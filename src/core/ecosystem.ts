@@ -1,6 +1,6 @@
-import uniswapLogo from "../assets/uniswap.svg";
-const sushiSwapLogo = require("../assets/partners/sushi.svg");
-const curveLogo = require("../assets/partners/curve.svg");
+import uniswapLogo from "../assets/partners/uniswap.svg";
+import sushiSwapLogo from "../assets/partners/sushi.svg";
+import curveLogo from "../assets/partners/curve.svg";
 
 export interface Partner {
   id: string;
