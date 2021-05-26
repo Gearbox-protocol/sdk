@@ -7,7 +7,7 @@ export function rayToNumber(num: BigNumberish) : number {
   return BigNumber.from(num).div(BigNumber.from(10).pow(21)).toNumber() / 1000000
 }
 
-export function formatRAY(num?: BigNumber, precision?: number): string {
+export function formatRAY(num?: BigNumber): string {
   return toSignificant(num || BigNumber.from(0), 27);
 }
 

@@ -1,4 +1,4 @@
-const uniswapLogo = require("../assets/partners/uniswap.svg");
+import uniswapLogo from "../assets/uniswap.svg";
 const sushiSwapLogo = require("../assets/partners/sushi.svg");
 const curveLogo = require("../assets/partners/curve.svg");
 

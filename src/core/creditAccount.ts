@@ -1,17 +1,6 @@
 import {BigNumber, ethers} from "ethers";
-import {CreditAccountDataExtendedPayload, CreditAccountDataPayload} from "../payload/creditAccount";
+import {CreditAccountDataExtendedPayload, CreditAccountDataPayload,} from "../payload/creditAccount";
 import {PERCENTAGE_FACTOR, RAY} from "./constants";
-
-export interface CreditCardCustomisation {
-  id: string,
-  name?: string
-  image: string,
-}
-
-export interface CreditCardCollection {
-  id: string,
-  collections: Array<CreditCardCustomisation>
-}
 
 export class CreditAccountData {
   public readonly id: string;
@@ -49,7 +38,7 @@ export class CreditAccountData {
         .toNumber() / PERCENTAGE_FACTOR;
 
     payload.balances.forEach(
-      b => (this.balances[b.token] = BigNumber.from(b.balance))
+      (b) => (this.balances[b.token] = BigNumber.from(b.balance))
     );
   }
 }
