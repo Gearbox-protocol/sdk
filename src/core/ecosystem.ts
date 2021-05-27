@@ -1,6 +1,6 @@
-import uniswapLogo from "../assets/partners/uniswap.svg";
-import sushiSwapLogo from "../assets/partners/sushi.svg";
-import curveLogo from "../assets/partners/curve.svg";
+import uniswapLogo from "../assets/protocols/uniswap.svg";
+import sushiSwapLogo from "../assets/protocols/sushi.svg";
+import curveLogo from "../assets/protocols/curve.svg";
 
 export interface Partner {
   id: string;
