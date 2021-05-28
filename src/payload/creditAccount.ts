@@ -16,7 +16,7 @@ export interface CreditAccountDataPayload {
   totalValue: BigNumberish;
   healthFactor: BigNumberish;
   borrowRate: BigNumberish;
-  balances: Array<TokenBalancePayload>;
+  balances?: Array<TokenBalancePayload>;
 }
 
 export interface CreditAccountDataExtendedPayload extends CreditAccountDataPayload {

@@ -23,7 +23,7 @@ export class CreditAccountData {
     this.borrower = payload.borrower;
     this.inUse = payload.inUse;
     this.creditManager = payload.creditManager;
-    this.kind = ethers.utils.parseBytes32String(payload.kind);
+    this.kind = payload.kind.startsWith("0x") ? ethers.utils.parseBytes32String(payload.kind) : payload.kind;
     this.underlyingToken = payload.underlyingToken;
     this.borrowedAmountPlusInterest = BigNumber.from(
       payload.borrowedAmountPlusInterest
@@ -37,7 +37,7 @@ export class CreditAccountData {
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
 
-    payload.balances.forEach(
+    (payload.balances || []).forEach(
       (b) => (this.balances[b.token] = BigNumber.from(b.balance))
     );
   }

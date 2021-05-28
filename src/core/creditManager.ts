@@ -1,9 +1,18 @@
-import {BigNumber, ethers} from "ethers";
-import {ICreditManager, StableCreditManager, TraderCreditManager} from "../types";
-import {formatBN} from "../utils/formatter";
-import {HEALTH_FACTOR_MIN_AFTER_UPDATE, LIQUIDATION_DISCOUNTED_SUM, PERCENTAGE_FACTOR, RAY} from "./constants";
-import {CreditManagerDataPayload} from "../payload/creditManager";
-import {ecosystemPartners, Partner, partnersByKind} from "./ecosystem";
+import { BigNumber, ethers } from "ethers";
+import {
+  ICreditManager,
+  StableCreditManager,
+  TraderCreditManager,
+} from "../types";
+import { formatBN } from "../utils/formatter";
+import {
+  HEALTH_FACTOR_MIN_AFTER_UPDATE,
+  LIQUIDATION_DISCOUNTED_SUM,
+  PERCENTAGE_FACTOR,
+  RAY,
+} from "./constants";
+import { CreditManagerDataPayload } from "../payload/creditManager";
+import { ecosystemPartners, Partner, partnersByKind } from "./ecosystem";
 
 export class CreditManagerData {
   public readonly id: string;
@@ -25,13 +34,13 @@ export class CreditManagerData {
     this.id = payload.addr;
     this.address = payload.addr;
 
-    this.kind =
-      ethers.utils.parseBytes32String(payload.kind) === "trade"
-        ? "trade"
-        : "stable";
-    this.underlyingToken = payload.underlyingToken;
-    this.isWETH = payload.isWETH;
-    this.canBorrow = payload.canBorrow;
+    const kind = payload.kind?.startsWith("0x")
+      ? ethers.utils.parseBytes32String(payload.kind)
+      : payload.kind;
+    this.kind = kind === "trade" ? "trade" : "stable";
+    this.underlyingToken = payload.underlyingToken || "";
+    this.isWETH = payload.isWETH || false;
+    this.canBorrow = payload.canBorrow || false;
     this.borrowRate =
       BigNumber.from(payload.borrowRate)
         .mul(PERCENTAGE_FACTOR)
@@ -44,9 +53,9 @@ export class CreditManagerData {
       payload.maxLeverageFactor
     ).toNumber();
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
-    this.allowedTokens = payload.allowedTokens;
-    this.allowedContracts = payload.allowedContracts;
-    this.hasAccount = payload.hasAccount;
+    this.allowedTokens = payload.allowedTokens || [];
+    this.allowedContracts = payload.allowedContracts || [];
+    this.hasAccount = payload.hasAccount || false;
   }
 
   validateOpenAccount(
@@ -77,11 +86,10 @@ export class CreditManagerData {
     return null;
   }
 
-  getApplications() : Array<Partner> {
-    const partnersId = partnersByKind[this.kind]
-    return partnersId.map(id => ecosystemPartners[id])
+  getApplications(): Array<Partner> {
+    const partnersId = partnersByKind[this.kind];
+    return partnersId.map((id) => ecosystemPartners[id]);
   }
-
 }
 
 export class CreditManagerDataExtended extends CreditManagerData {
