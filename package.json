@@ -1,6 +1,6 @@
 {
   "name": "@diesellabs/gearbox-sdk",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "Gearbox SDK typescript library",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "decimal.js-light": "^2.5.1",
-    "ethers": "^5.2.0"
+    "ethers": "^5.2.0",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
     "@types/jest": "^26.0.4",
