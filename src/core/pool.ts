@@ -40,11 +40,11 @@ export class PoolData {
 }
 
 export class PoolDataExtended extends PoolData {
-  public readonly poolService: IPoolService;
+  public readonly contractETH: IPoolService;
 
-  constructor(payload: PoolDataPayload, poolService: IPoolService) {
+  constructor(payload: PoolDataPayload, contractETH: IPoolService) {
     super(payload);
-    this.poolService = poolService;
+    this.contractETH = contractETH;
   }
 }
 

@@ -78,6 +78,12 @@ export function shortAddress(address?: string): string {
     : `${address.substr(0, 6)}...${address.substr(38, 4)}`;
 }
 
+export function shortHash(address?: string): string {
+  return address === undefined
+      ? ""
+      : `${address.substr(0, 5)}...`;
+}
+
 export const formatRate = (rate: BigNumberish | undefined) =>
   rate
     ? (

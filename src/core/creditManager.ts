@@ -11,7 +11,10 @@ import {
   PERCENTAGE_FACTOR,
   RAY,
 } from "./constants";
-import { CreditManagerDataPayload } from "../payload/creditManager";
+import {
+  CreditManagerDataPayload,
+  CreditManagerStatPayload,
+} from "../payload/creditManager";
 import { ecosystemPartners, Partner, partnersByKind } from "./ecosystem";
 
 export class CreditManagerData {
@@ -42,17 +45,17 @@ export class CreditManagerData {
     this.isWETH = payload.isWETH || false;
     this.canBorrow = payload.canBorrow || false;
     this.borrowRate =
-      BigNumber.from(payload.borrowRate)
+      BigNumber.from(payload.borrowRate || 0)
         .mul(PERCENTAGE_FACTOR)
         .mul(100)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
-    this.minAmount = BigNumber.from(payload.minAmount);
-    this.maxAmount = BigNumber.from(payload.maxAmount);
+    this.minAmount = BigNumber.from(payload.minAmount || 0);
+    this.maxAmount = BigNumber.from(payload.maxAmount || 0);
     this.maxLeverageFactor = BigNumber.from(
-      payload.maxLeverageFactor
+      payload.maxLeverageFactor || 0
     ).toNumber();
-    this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
+    this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
     this.allowedTokens = payload.allowedTokens || [];
     this.allowedContracts = payload.allowedContracts || [];
     this.hasAccount = payload.hasAccount || false;
@@ -94,12 +97,28 @@ export class CreditManagerData {
 
 export class CreditManagerDataExtended extends CreditManagerData {
   public readonly contractETH: ICreditManager;
-  public readonly traderManager?: TraderCreditManager;
-  public readonly stableManager?: StableCreditManager;
+  private _traderManager?: TraderCreditManager;
+  private _stableManager?: StableCreditManager;
 
   constructor(payload: CreditManagerDataPayload, contractETH: ICreditManager) {
     super(payload);
     this.contractETH = contractETH;
+  }
+
+  get traderManager(): TraderCreditManager | undefined {
+    return this._traderManager;
+  }
+
+  setTraderManager(value: TraderCreditManager) {
+    this._traderManager = value;
+  }
+
+  get stableManager(): StableCreditManager | undefined {
+    return this._stableManager;
+  }
+
+  set setStableManager(value: StableCreditManager) {
+    this._stableManager = value;
   }
 }
 
@@ -131,4 +150,31 @@ export function calcHealthFactorAfter(
     .add(additional.mul(LIQUIDATION_DISCOUNTED_SUM))
     .div(borrowAmountPlusInterest.add(additional))
     .toNumber();
+}
+
+export class CreditManagerStat extends CreditManagerData {
+  public readonly openedAccountsCount: number;
+  public readonly totalOpenedAccounts: number;
+  public readonly totalClosedAccounts: number;
+  public readonly totalRepaidAccounts: number;
+  public readonly totalLiquidatedAccounts: number;
+  public readonly totalBorrowed: BigNumber;
+  public readonly cumulativeBorrowed: BigNumber;
+  public readonly totalRepaid: BigNumber;
+  public readonly totalProfit: BigNumber;
+  public readonly totalLosses: BigNumber;
+
+  constructor(payload: CreditManagerStatPayload) {
+    super(payload);
+    this.openedAccountsCount = payload.openedAccountsCount || 0;
+    this.totalOpenedAccounts = payload.totalOpenedAccounts || 0;
+    this.totalClosedAccounts = payload.totalClosedAccounts || 0;
+    this.totalRepaidAccounts = payload.totalRepaidAccounts || 0;
+    this.totalLiquidatedAccounts = payload.totalLiquidatedAccounts || 0;
+    this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
+    this.cumulativeBorrowed = BigNumber.from(payload.cumulativeBorrowed || 0);
+    this.totalRepaid = BigNumber.from(payload.totalRepaid || 0);
+    this.totalProfit = BigNumber.from(payload.totalProfit || 0);
+    this.totalLosses = BigNumber.from(payload.totalLosses || 0);
+  }
 }
