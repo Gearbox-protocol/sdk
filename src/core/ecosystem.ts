@@ -15,7 +15,7 @@ export const ecosystemPartners: Record<string, Partner> = {
     id: "uniswap",
     name: "Uniswap",
     description: "Trade on Uniswap with margin",
-    link: "https://uniswap.gearbox.fi",
+    link: "https://gearbox-uniswap.vercel.app/swap",
     icon: uniswapLogo,
   },
   sushiswap: {
