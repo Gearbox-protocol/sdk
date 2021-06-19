@@ -2,6 +2,7 @@ import { BigNumberish } from "ethers";
 import { CreditOperation } from "../core/creditOperation";
 
 export interface CreditSessionPayload {
+  id: string;
   status: number;
   name: string;
   borrower: string;

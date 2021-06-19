@@ -43,15 +43,15 @@ export function formatBN(
 export function toHumanFormat(num: number): string {
   const round = (n: number) => (Math.floor(100 * n) / 100).toFixed(2);
 
-  if (num > 1e9) {
+  if (num >= 1e9) {
     return round(num / 1e9) + "Bn";
   }
 
-  if (num > 1e7) {
+  if (num >= 1e6) {
     return round(num / 1e6) + "M";
   }
 
-  if (num > 1e4) {
+  if (num >= 1e3) {
     return round(num / 1e3) + "K";
   }
 

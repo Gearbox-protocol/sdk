@@ -15,6 +15,9 @@ export class TokenData {
     this.address = payload.addr;
     // this.name = payload.name;
     this.symbol = payload.symbol;
+    if (this.symbol === "WETH" || this.symbol === "dWETH") {
+      this.symbol = this.symbol.replace("WETH", "ETH");
+    }
     this.decimals = payload.decimals;
     this.icon = ICONS[payload.symbol?.toLowerCase()];
   }

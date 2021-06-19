@@ -14,6 +14,7 @@ const statusEnum: Array<CreditSessionStatus> = [
 
 export class CreditSession {
   public readonly id: string;
+  public readonly session_id: string;
 
   public readonly status: CreditSessionStatus;
   public readonly name: string;
@@ -33,6 +34,7 @@ export class CreditSession {
 
   constructor(payload: CreditSessionPayload) {
     this.id = payload.creditManager;
+    this.session_id = payload.id;
     this.status = statusEnum[payload.status];
     this.name = payload.name;
     this.borrower = payload.borrower;

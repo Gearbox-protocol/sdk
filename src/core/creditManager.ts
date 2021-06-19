@@ -15,7 +15,6 @@ import {
   CreditManagerDataPayload,
   CreditManagerStatPayload,
 } from "../payload/creditManager";
-import { ecosystemPartners, Partner, partnersByKind } from "./ecosystem";
 
 export class CreditManagerData {
   public readonly id: string;
@@ -89,10 +88,6 @@ export class CreditManagerData {
     return null;
   }
 
-  getApplications(): Array<Partner> {
-    const partnersId = partnersByKind[this.kind];
-    return partnersId.map((id) => ecosystemPartners[id]);
-  }
 }
 
 export class CreditManagerDataExtended extends CreditManagerData {

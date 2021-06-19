@@ -1,7 +1,7 @@
-import {BigNumber} from "ethers";
-import {IPoolService} from "../types";
-import {PoolDataPayload} from "../payload/pool";
-import {rayToNumber} from "../utils/formatter";
+import { BigNumber } from "ethers";
+import { IPoolService } from "../types";
+import { PoolDataPayload } from "../payload/pool";
+import { rayToNumber } from "../utils/formatter";
 
 export class PoolData {
   public readonly id: string;
@@ -13,6 +13,7 @@ export class PoolData {
 
   // Information
   public readonly expectedLiquidity: BigNumber;
+  public readonly expectedLiquidityLimit: BigNumber;
   public readonly availableLiquidity: BigNumber;
   public readonly totalBorrowed: BigNumber;
   public readonly depositAPY: number;
@@ -29,6 +30,9 @@ export class PoolData {
     this.isWETH = payload.isWETH;
 
     this.expectedLiquidity = BigNumber.from(payload.expectedLiquidity);
+    this.expectedLiquidityLimit = BigNumber.from(
+      payload.expectedLiquidityLimit
+    );
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed);
     this.depositAPY = rayToNumber(payload.depositAPY_RAY) * 100;
