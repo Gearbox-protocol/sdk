@@ -1,6 +1,6 @@
 {
   "name": "@diesellabs/gearbox-sdk",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "description": "Gearbox SDK typescript library",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
