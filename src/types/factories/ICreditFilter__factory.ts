@@ -54,7 +54,13 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "contractAddress",
+        name: "protocol",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "adapter",
         type: "address",
       },
     ],
@@ -85,6 +91,11 @@ const _abi = [
       {
         internalType: "address",
         name: "allowedContract",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "adapter",
         type: "address",
       },
     ],
@@ -236,50 +247,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "holder",
-        type: "address",
-      },
-    ],
-    name: "calcThresholdWeightedValue",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "total",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "holder",
-        type: "address",
-      },
-    ],
-    name: "calcTotalValue",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "total",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
         name: "creditAccount",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "swapContract",
         type: "address",
       },
       {
@@ -303,9 +271,53 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "checkSwapOperationAllowed",
-    outputs: [],
-    stateMutability: "nonpayable",
+    name: "calcExpectedCollateralProtection",
+    outputs: [
+      {
+        internalType: "int256",
+        name: "",
+        type: "int256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "holder",
+        type: "address",
+      },
+    ],
+    name: "calcThresholdWeightedValue",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "total",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+    ],
+    name: "calcTotalValue",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "total",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -358,31 +370,16 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "tokenFrom",
+        name: "allowedContract",
         type: "address",
-      },
-      {
-        internalType: "address",
-        name: "tokenTo",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "amountsOutTolerance",
-        type: "uint256",
       },
     ],
-    name: "convertWithSlippage",
+    name: "contractToAdapter",
     outputs: [
       {
-        internalType: "uint256",
+        internalType: "address",
         name: "",
-        type: "uint256",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -413,6 +410,16 @@ const _abi = [
         name: "balance",
         type: "uint256",
       },
+      {
+        internalType: "uint256",
+        name: "tv",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "twv",
+        type: "uint256",
+      },
     ],
     stateMutability: "view",
     type: "function",
@@ -440,11 +447,11 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "contractToCheck",
+        name: "adapter",
         type: "address",
       },
     ],
-    name: "revertIfContractNotAllowed",
+    name: "revertIfAdapterNotAllowed",
     outputs: [],
     stateMutability: "view",
     type: "function",

@@ -19,7 +19,7 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface ICreditAccountsDataInterface extends ethers.utils.Interface {
+interface ICreditAccountDataInterface extends ethers.utils.Interface {
   functions: {
     "getCreditAccountDataExtended()": FunctionFragment;
     "getCreditManagerData()": FunctionFragment;
@@ -46,7 +46,7 @@ interface ICreditAccountsDataInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class ICreditAccountsData extends Contract {
+export class ICreditAccountData extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -57,7 +57,7 @@ export class ICreditAccountsData extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: ICreditAccountsDataInterface;
+  interface: ICreditAccountDataInterface;
 
   functions: {
     getCreditAccountDataExtended(

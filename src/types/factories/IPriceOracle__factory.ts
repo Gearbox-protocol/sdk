@@ -18,6 +18,25 @@ export class IPriceOracle__factory {
 
 const _abi = [
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "priceFeed",
+        type: "address",
+      },
+    ],
+    name: "NewPriceFeed",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",

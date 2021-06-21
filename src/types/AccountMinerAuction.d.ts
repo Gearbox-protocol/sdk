@@ -23,15 +23,11 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface AccountMinerAuctionInterface extends ethers.utils.Interface {
   functions: {
-    "accountFactories(uint256)": FunctionFragment;
-    "accountFactoriesCount()": FunctionFragment;
-    "addAccountFactory(address,uint256)": FunctionFragment;
-    "deploymentCosts(address)": FunctionFragment;
+    "accountFactory()": FunctionFragment;
     "getBid(address)": FunctionFragment;
     "getBidsCount()": FunctionFragment;
     "increaseBid()": FunctionFragment;
     "kind()": FunctionFragment;
-    "minBid()": FunctionFragment;
     "mineAccount(address)": FunctionFragment;
     "pause()": FunctionFragment;
     "paused()": FunctionFragment;
@@ -42,20 +38,8 @@ interface AccountMinerAuctionInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(
-    functionFragment: "accountFactories",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "accountFactoriesCount",
+    functionFragment: "accountFactory",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addAccountFactory",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "deploymentCosts",
-    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "getBid", values: [string]): string;
   encodeFunctionData(
@@ -67,7 +51,6 @@ interface AccountMinerAuctionInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "kind", values?: undefined): string;
-  encodeFunctionData(functionFragment: "minBid", values?: undefined): string;
   encodeFunctionData(functionFragment: "mineAccount", values: [string]): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
@@ -77,19 +60,7 @@ interface AccountMinerAuctionInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
 
   decodeFunctionResult(
-    functionFragment: "accountFactories",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "accountFactoriesCount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addAccountFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "deploymentCosts",
+    functionFragment: "accountFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getBid", data: BytesLike): Result;
@@ -102,7 +73,6 @@ interface AccountMinerAuctionInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "kind", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "minBid", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "mineAccount",
     data: BytesLike
@@ -119,7 +89,6 @@ interface AccountMinerAuctionInterface extends ethers.utils.Interface {
     "BidIncreased(address,uint256)": EventFragment;
     "BidPlaced(address,uint256)": EventFragment;
     "BidTaken(address,uint256)": EventFragment;
-    "NewAccountFactory(address,uint256)": EventFragment;
     "Paused(address)": EventFragment;
     "Unpaused(address)": EventFragment;
   };
@@ -128,7 +97,6 @@ interface AccountMinerAuctionInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "BidIncreased"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BidPlaced"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BidTaken"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewAccountFactory"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
@@ -147,41 +115,9 @@ export class AccountMinerAuction extends Contract {
   interface: AccountMinerAuctionInterface;
 
   functions: {
-    accountFactories(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    accountFactory(overrides?: CallOverrides): Promise<[string]>;
 
-    "accountFactories(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    accountFactoriesCount(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "accountFactoriesCount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    addAccountFactory(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addAccountFactory(address,uint256)"(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    deploymentCosts(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "deploymentCosts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    "accountFactory()"(overrides?: CallOverrides): Promise<[string]>;
 
     getBid(
       sponsor: string,
@@ -221,10 +157,6 @@ export class AccountMinerAuction extends Contract {
 
     "kind()"(overrides?: CallOverrides): Promise<[string]>;
 
-    minBid(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "minBid()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     mineAccount(
       user: string,
       overrides?: Overrides
@@ -260,38 +192,9 @@ export class AccountMinerAuction extends Contract {
     "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
   };
 
-  accountFactories(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  accountFactory(overrides?: CallOverrides): Promise<string>;
 
-  "accountFactories(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  accountFactoriesCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "accountFactoriesCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  addAccountFactory(
-    accountFactory: string,
-    deploymentCost: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addAccountFactory(address,uint256)"(
-    accountFactory: string,
-    deploymentCost: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  deploymentCosts(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "deploymentCosts(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  "accountFactory()"(overrides?: CallOverrides): Promise<string>;
 
   getBid(
     sponsor: string,
@@ -326,10 +229,6 @@ export class AccountMinerAuction extends Contract {
   kind(overrides?: CallOverrides): Promise<string>;
 
   "kind()"(overrides?: CallOverrides): Promise<string>;
-
-  minBid(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "minBid()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   mineAccount(
     user: string,
@@ -366,41 +265,9 @@ export class AccountMinerAuction extends Contract {
   "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
 
   callStatic: {
-    accountFactories(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    accountFactory(overrides?: CallOverrides): Promise<string>;
 
-    "accountFactories(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    accountFactoriesCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "accountFactoriesCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addAccountFactory(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "addAccountFactory(address,uint256)"(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    deploymentCosts(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "deploymentCosts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    "accountFactory()"(overrides?: CallOverrides): Promise<string>;
 
     getBid(
       sponsor: string,
@@ -435,10 +302,6 @@ export class AccountMinerAuction extends Contract {
     kind(overrides?: CallOverrides): Promise<string>;
 
     "kind()"(overrides?: CallOverrides): Promise<string>;
-
-    minBid(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "minBid()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     mineAccount(user: string, overrides?: CallOverrides): Promise<void>;
 
@@ -481,52 +344,15 @@ export class AccountMinerAuction extends Contract {
 
     BidTaken(sponsor: string | null, amount: null): EventFilter;
 
-    NewAccountFactory(
-      factoryAddress: string | null,
-      deploymentCost: null
-    ): EventFilter;
-
     Paused(account: null): EventFilter;
 
     Unpaused(account: null): EventFilter;
   };
 
   estimateGas: {
-    accountFactories(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    accountFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "accountFactories(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    accountFactoriesCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "accountFactoriesCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addAccountFactory(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "addAccountFactory(address,uint256)"(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    deploymentCosts(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "deploymentCosts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    "accountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getBid(sponsor: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -546,10 +372,6 @@ export class AccountMinerAuction extends Contract {
     kind(overrides?: CallOverrides): Promise<BigNumber>;
 
     "kind()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    minBid(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "minBid()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     mineAccount(user: string, overrides?: Overrides): Promise<BigNumber>;
 
@@ -584,43 +406,9 @@ export class AccountMinerAuction extends Contract {
   };
 
   populateTransaction: {
-    accountFactories(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    accountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "accountFactories(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    accountFactoriesCount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "accountFactoriesCount()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addAccountFactory(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addAccountFactory(address,uint256)"(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    deploymentCosts(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "deploymentCosts(address)"(
-      arg0: string,
+    "accountFactory()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -647,10 +435,6 @@ export class AccountMinerAuction extends Contract {
     kind(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "kind()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    minBid(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "minBid()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     mineAccount(
       user: string,

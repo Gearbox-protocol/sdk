@@ -32,6 +32,8 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "AM_USER_ALREADY_HAS_BID()": FunctionFragment;
     "AM_USER_HAS_NO_BIDS()": FunctionFragment;
     "AS_ADDRESS_NOT_FOUND()": FunctionFragment;
+    "CF_ADAPTERS_ONLY()": FunctionFragment;
+    "CF_CREDIT_MANAGERS_ONLY()": FunctionFragment;
     "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS()": FunctionFragment;
     "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()": FunctionFragment;
     "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()": FunctionFragment;
@@ -118,6 +120,14 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "AS_ADDRESS_NOT_FOUND",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CF_ADAPTERS_ONLY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CF_CREDIT_MANAGERS_ONLY",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -331,6 +341,14 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "AS_ADDRESS_NOT_FOUND",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CF_ADAPTERS_ONLY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CF_CREDIT_MANAGERS_ONLY",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -572,6 +590,14 @@ export class Errors extends Contract {
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<[string]>;
 
     "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
+
+    "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
+
+    "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
 
     CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
       overrides?: CallOverrides
@@ -916,6 +942,14 @@ export class Errors extends Contract {
 
   "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<string>;
 
+  CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+  "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
+  CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+  "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
   CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
     overrides?: CallOverrides
   ): Promise<string>;
@@ -1230,6 +1264,14 @@ export class Errors extends Contract {
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<string>;
 
     "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<string>;
+
+    CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+    "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
+    CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+    "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
     CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
       overrides?: CallOverrides
@@ -1562,6 +1604,14 @@ export class Errors extends Contract {
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<BigNumber>;
 
     "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
       overrides?: CallOverrides
@@ -1948,6 +1998,20 @@ export class Errors extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "AS_ADDRESS_NOT_FOUND()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "CF_ADAPTERS_ONLY()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CF_CREDIT_MANAGERS_ONLY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "CF_CREDIT_MANAGERS_ONLY()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

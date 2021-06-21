@@ -295,7 +295,7 @@ export class IAccountFactory extends Contract {
   };
 
   filters: {
-    AccountMinerChanged(miner: null): EventFilter;
+    AccountMinerChanged(miner: string | null): EventFilter;
 
     InitializeCreditAccount(
       account: string | null,

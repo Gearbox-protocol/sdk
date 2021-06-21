@@ -23,7 +23,6 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
   functions: {
     "calcLinearCumulative_RAY()": FunctionFragment;
-    "checkSwapOperationAllowed(address,address,address,address,uint256,uint256)": FunctionFragment;
     "checkSwapTokensAllowed(address,address,address,uint256,uint256)": FunctionFragment;
     "connectFilter(address,address)": FunctionFragment;
     "healthFactor()": FunctionFragment;
@@ -38,10 +37,6 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calcLinearCumulative_RAY",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "checkSwapOperationAllowed",
-    values: [string, string, string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "checkSwapTokensAllowed",
@@ -82,10 +77,6 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "calcLinearCumulative_RAY",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "checkSwapOperationAllowed",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -147,26 +138,6 @@ export class CreditManagerMockForFilter extends Contract {
     "calcLinearCumulative_RAY()"(
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    checkSwapOperationAllowed(
-      creditAccount: string,
-      swapContract: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "checkSwapOperationAllowed(address,address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      swapContract: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
 
     checkSwapTokensAllowed(
       creditAccount: string,
@@ -259,26 +230,6 @@ export class CreditManagerMockForFilter extends Contract {
 
   "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  checkSwapOperationAllowed(
-    creditAccount: string,
-    swapContract: string,
-    tokenIn: string,
-    tokenOut: string,
-    amountIn: BigNumberish,
-    amountOut: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "checkSwapOperationAllowed(address,address,address,address,uint256,uint256)"(
-    creditAccount: string,
-    swapContract: string,
-    tokenIn: string,
-    tokenOut: string,
-    amountIn: BigNumberish,
-    amountOut: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   checkSwapTokensAllowed(
     creditAccount: string,
     tokenIn: string,
@@ -369,26 +320,6 @@ export class CreditManagerMockForFilter extends Contract {
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    checkSwapOperationAllowed(
-      creditAccount: string,
-      swapContract: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "checkSwapOperationAllowed(address,address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      swapContract: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     checkSwapTokensAllowed(
       creditAccount: string,
@@ -484,26 +415,6 @@ export class CreditManagerMockForFilter extends Contract {
 
     "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    checkSwapOperationAllowed(
-      creditAccount: string,
-      swapContract: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "checkSwapOperationAllowed(address,address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      swapContract: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
     checkSwapTokensAllowed(
       creditAccount: string,
       tokenIn: string,
@@ -598,26 +509,6 @@ export class CreditManagerMockForFilter extends Contract {
 
     "calcLinearCumulative_RAY()"(
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    checkSwapOperationAllowed(
-      creditAccount: string,
-      swapContract: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "checkSwapOperationAllowed(address,address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      swapContract: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     checkSwapTokensAllowed(

@@ -22,10 +22,7 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface AccountMinerMockInterface extends ethers.utils.Interface {
   functions: {
-    "accountFactories(uint256)": FunctionFragment;
-    "accountFactoriesCount()": FunctionFragment;
-    "addAccountFactory(address,uint256)": FunctionFragment;
-    "deploymentCosts(address)": FunctionFragment;
+    "accountFactory()": FunctionFragment;
     "kind()": FunctionFragment;
     "mineAccount(address)": FunctionFragment;
     "owner()": FunctionFragment;
@@ -35,20 +32,8 @@ interface AccountMinerMockInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(
-    functionFragment: "accountFactories",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "accountFactoriesCount",
+    functionFragment: "accountFactory",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addAccountFactory",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "deploymentCosts",
-    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "kind", values?: undefined): string;
   encodeFunctionData(functionFragment: "mineAccount", values: [string]): string;
@@ -64,19 +49,7 @@ interface AccountMinerMockInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "accountFactories",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "accountFactoriesCount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addAccountFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "deploymentCosts",
+    functionFragment: "accountFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "kind", data: BytesLike): Result;
@@ -96,13 +69,11 @@ interface AccountMinerMockInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "NewAccountFactory(address,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
     "Unpaused(address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "NewAccountFactory"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
@@ -122,41 +93,9 @@ export class AccountMinerMock extends Contract {
   interface: AccountMinerMockInterface;
 
   functions: {
-    accountFactories(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    accountFactory(overrides?: CallOverrides): Promise<[string]>;
 
-    "accountFactories(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    accountFactoriesCount(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "accountFactoriesCount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    addAccountFactory(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addAccountFactory(address,uint256)"(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    deploymentCosts(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "deploymentCosts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    "accountFactory()"(overrides?: CallOverrides): Promise<[string]>;
 
     kind(overrides?: CallOverrides): Promise<[string]>;
 
@@ -192,38 +131,9 @@ export class AccountMinerMock extends Contract {
     ): Promise<ContractTransaction>;
   };
 
-  accountFactories(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  accountFactory(overrides?: CallOverrides): Promise<string>;
 
-  "accountFactories(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  accountFactoriesCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "accountFactoriesCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  addAccountFactory(
-    accountFactory: string,
-    deploymentCost: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addAccountFactory(address,uint256)"(
-    accountFactory: string,
-    deploymentCost: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  deploymentCosts(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "deploymentCosts(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  "accountFactory()"(overrides?: CallOverrides): Promise<string>;
 
   kind(overrides?: CallOverrides): Promise<string>;
 
@@ -259,41 +169,9 @@ export class AccountMinerMock extends Contract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    accountFactories(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    accountFactory(overrides?: CallOverrides): Promise<string>;
 
-    "accountFactories(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    accountFactoriesCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "accountFactoriesCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addAccountFactory(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "addAccountFactory(address,uint256)"(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    deploymentCosts(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "deploymentCosts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    "accountFactory()"(overrides?: CallOverrides): Promise<string>;
 
     kind(overrides?: CallOverrides): Promise<string>;
 
@@ -330,11 +208,6 @@ export class AccountMinerMock extends Contract {
   };
 
   filters: {
-    NewAccountFactory(
-      factoryAddress: string | null,
-      deploymentCost: null
-    ): EventFilter;
-
     OwnershipTransferred(
       previousOwner: string | null,
       newOwner: string | null
@@ -346,41 +219,9 @@ export class AccountMinerMock extends Contract {
   };
 
   estimateGas: {
-    accountFactories(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    accountFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "accountFactories(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    accountFactoriesCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "accountFactoriesCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addAccountFactory(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "addAccountFactory(address,uint256)"(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    deploymentCosts(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "deploymentCosts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    "accountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     kind(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -417,43 +258,9 @@ export class AccountMinerMock extends Contract {
   };
 
   populateTransaction: {
-    accountFactories(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    accountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "accountFactories(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    accountFactoriesCount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "accountFactoriesCount()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addAccountFactory(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addAccountFactory(address,uint256)"(
-      accountFactory: string,
-      deploymentCost: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    deploymentCosts(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "deploymentCosts(address)"(
-      arg0: string,
+    "accountFactory()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

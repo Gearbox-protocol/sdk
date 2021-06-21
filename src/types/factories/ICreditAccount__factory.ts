@@ -75,21 +75,27 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getGenericParameters",
-    outputs: [
+    inputs: [
       {
-        internalType: "uint256",
-        name: "_borrowedAmount",
-        type: "uint256",
+        internalType: "address",
+        name: "destination",
+        type: "address",
       },
       {
-        internalType: "uint256",
-        name: "_cumulativeIndexAtOpen",
-        type: "uint256",
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
       },
     ],
-    stateMutability: "view",
+    name: "execute",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

@@ -991,13 +991,13 @@ export class PoolService extends Contract {
       amount: BigNumberish,
       to: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     "removeLiquidity(uint256,address)"(
       amount: BigNumberish,
       to: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     repayCreditAccount(
       borrowedAmount: BigNumberish,
@@ -1075,7 +1075,7 @@ export class PoolService extends Contract {
 
     Borrow(
       creditManager: string | null,
-      creditAccount: null,
+      creditAccount: string | null,
       amount: null
     ): EventFilter;
 

@@ -22,48 +22,46 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface AddressProviderInterface extends ethers.utils.Interface {
   functions: {
+    "ACCOUNT_FACTORY()": FunctionFragment;
     "ACCOUNT_MINER()": FunctionFragment;
     "ACL()": FunctionFragment;
     "CONTRACTS_REGISTER()": FunctionFragment;
     "DATA_COMPRESSOR()": FunctionFragment;
-    "FARMING_ACCOUNT_FACTORY()": FunctionFragment;
     "GEAR_TOKEN()": FunctionFragment;
     "PRICE_ORACLE()": FunctionFragment;
-    "TRADER_ACCOUNT_FACTORY()": FunctionFragment;
     "TREASURY_CONTRACT()": FunctionFragment;
-    "VANILLA_ACCOUNT_FACTORY()": FunctionFragment;
     "WETH_GATEWAY()": FunctionFragment;
     "WETH_TOKEN()": FunctionFragment;
     "addresses(bytes32)": FunctionFragment;
     "getACL()": FunctionFragment;
+    "getAccountFactory()": FunctionFragment;
     "getAccountMiner()": FunctionFragment;
     "getContractsRegister()": FunctionFragment;
     "getDataCompressor()": FunctionFragment;
-    "getFarmingAccountFactory()": FunctionFragment;
     "getGearToken()": FunctionFragment;
     "getPriceOracle()": FunctionFragment;
-    "getTraderAccountFactory()": FunctionFragment;
     "getTreasuryContract()": FunctionFragment;
-    "getVanillaAccountFactory()": FunctionFragment;
     "getWETHGateway()": FunctionFragment;
     "getWethToken()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setACL(address)": FunctionFragment;
+    "setAccountFactory(address)": FunctionFragment;
     "setAccountMiner(address)": FunctionFragment;
     "setContractsRegister(address)": FunctionFragment;
     "setDataCompressor(address)": FunctionFragment;
-    "setFarmingAccountFactory(address)": FunctionFragment;
     "setGearToken(address)": FunctionFragment;
     "setPriceOracle(address)": FunctionFragment;
-    "setTraderAccountFactory(address)": FunctionFragment;
     "setTreasuryContract(address)": FunctionFragment;
-    "setVanillaAccountFactory(address)": FunctionFragment;
     "setWETHGateway(address)": FunctionFragment;
     "setWethToken(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "ACCOUNT_FACTORY",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "ACCOUNT_MINER",
     values?: undefined
@@ -78,10 +76,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "FARMING_ACCOUNT_FACTORY",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "GEAR_TOKEN",
     values?: undefined
   ): string;
@@ -90,15 +84,7 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "TRADER_ACCOUNT_FACTORY",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "TREASURY_CONTRACT",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "VANILLA_ACCOUNT_FACTORY",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -115,6 +101,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "getACL", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "getAccountFactory",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getAccountMiner",
     values?: undefined
   ): string;
@@ -127,10 +117,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getFarmingAccountFactory",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getGearToken",
     values?: undefined
   ): string;
@@ -139,15 +125,7 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getTraderAccountFactory",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getTreasuryContract",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getVanillaAccountFactory",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -165,6 +143,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "setACL", values: [string]): string;
   encodeFunctionData(
+    functionFragment: "setAccountFactory",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setAccountMiner",
     values: [string]
   ): string;
@@ -177,10 +159,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setFarmingAccountFactory",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setGearToken",
     values: [string]
   ): string;
@@ -189,15 +167,7 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setTraderAccountFactory",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setTreasuryContract",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setVanillaAccountFactory",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -214,6 +184,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "ACCOUNT_FACTORY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "ACCOUNT_MINER",
     data: BytesLike
   ): Result;
@@ -226,25 +200,13 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     functionFragment: "DATA_COMPRESSOR",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "FARMING_ACCOUNT_FACTORY",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "GEAR_TOKEN", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "PRICE_ORACLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "TRADER_ACCOUNT_FACTORY",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "TREASURY_CONTRACT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "VANILLA_ACCOUNT_FACTORY",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -254,6 +216,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "WETH_TOKEN", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "addresses", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getACL", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getAccountFactory",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getAccountMiner",
     data: BytesLike
@@ -267,10 +233,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getFarmingAccountFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getGearToken",
     data: BytesLike
   ): Result;
@@ -279,15 +241,7 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getTraderAccountFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getTreasuryContract",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getVanillaAccountFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -305,6 +259,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "setACL", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "setAccountFactory",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "setAccountMiner",
     data: BytesLike
   ): Result;
@@ -317,10 +275,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setFarmingAccountFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setGearToken",
     data: BytesLike
   ): Result;
@@ -329,15 +283,7 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setTraderAccountFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setTreasuryContract",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setVanillaAccountFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -376,6 +322,10 @@ export class AddressProvider extends Contract {
   interface: AddressProviderInterface;
 
   functions: {
+    ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<[string]>;
+
+    "ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<[string]>;
+
     ACCOUNT_MINER(overrides?: CallOverrides): Promise<[string]>;
 
     "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<[string]>;
@@ -392,10 +342,6 @@ export class AddressProvider extends Contract {
 
     "DATA_COMPRESSOR()"(overrides?: CallOverrides): Promise<[string]>;
 
-    FARMING_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<[string]>;
-
-    "FARMING_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<[string]>;
-
     GEAR_TOKEN(overrides?: CallOverrides): Promise<[string]>;
 
     "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<[string]>;
@@ -404,17 +350,9 @@ export class AddressProvider extends Contract {
 
     "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<[string]>;
 
-    TRADER_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<[string]>;
-
-    "TRADER_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<[string]>;
-
     TREASURY_CONTRACT(overrides?: CallOverrides): Promise<[string]>;
 
     "TREASURY_CONTRACT()"(overrides?: CallOverrides): Promise<[string]>;
-
-    VANILLA_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<[string]>;
-
-    "VANILLA_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<[string]>;
 
     WETH_GATEWAY(overrides?: CallOverrides): Promise<[string]>;
 
@@ -435,6 +373,10 @@ export class AddressProvider extends Contract {
 
     "getACL()"(overrides?: CallOverrides): Promise<[string]>;
 
+    getAccountFactory(overrides?: CallOverrides): Promise<[string]>;
+
+    "getAccountFactory()"(overrides?: CallOverrides): Promise<[string]>;
+
     getAccountMiner(overrides?: CallOverrides): Promise<[string]>;
 
     "getAccountMiner()"(overrides?: CallOverrides): Promise<[string]>;
@@ -447,10 +389,6 @@ export class AddressProvider extends Contract {
 
     "getDataCompressor()"(overrides?: CallOverrides): Promise<[string]>;
 
-    getFarmingAccountFactory(overrides?: CallOverrides): Promise<[string]>;
-
-    "getFarmingAccountFactory()"(overrides?: CallOverrides): Promise<[string]>;
-
     getGearToken(overrides?: CallOverrides): Promise<[string]>;
 
     "getGearToken()"(overrides?: CallOverrides): Promise<[string]>;
@@ -459,17 +397,9 @@ export class AddressProvider extends Contract {
 
     "getPriceOracle()"(overrides?: CallOverrides): Promise<[string]>;
 
-    getTraderAccountFactory(overrides?: CallOverrides): Promise<[string]>;
-
-    "getTraderAccountFactory()"(overrides?: CallOverrides): Promise<[string]>;
-
     getTreasuryContract(overrides?: CallOverrides): Promise<[string]>;
 
     "getTreasuryContract()"(overrides?: CallOverrides): Promise<[string]>;
-
-    getVanillaAccountFactory(overrides?: CallOverrides): Promise<[string]>;
-
-    "getVanillaAccountFactory()"(overrides?: CallOverrides): Promise<[string]>;
 
     getWETHGateway(overrides?: CallOverrides): Promise<[string]>;
 
@@ -493,6 +423,16 @@ export class AddressProvider extends Contract {
     ): Promise<ContractTransaction>;
 
     "setACL(address)"(
+      _address: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    setAccountFactory(
+      _address: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "setAccountFactory(address)"(
       _address: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
@@ -527,16 +467,6 @@ export class AddressProvider extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    setFarmingAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setFarmingAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
     setGearToken(
       _address: string,
       overrides?: Overrides
@@ -557,32 +487,12 @@ export class AddressProvider extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    setTraderAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setTraderAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
     setTreasuryContract(
       _address: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
     "setTreasuryContract(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    setVanillaAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setVanillaAccountFactory(address)"(
       _address: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
@@ -618,6 +528,10 @@ export class AddressProvider extends Contract {
     ): Promise<ContractTransaction>;
   };
 
+  ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
+
+  "ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
+
   ACCOUNT_MINER(overrides?: CallOverrides): Promise<string>;
 
   "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<string>;
@@ -634,10 +548,6 @@ export class AddressProvider extends Contract {
 
   "DATA_COMPRESSOR()"(overrides?: CallOverrides): Promise<string>;
 
-  FARMING_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
-
-  "FARMING_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
-
   GEAR_TOKEN(overrides?: CallOverrides): Promise<string>;
 
   "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<string>;
@@ -646,17 +556,9 @@ export class AddressProvider extends Contract {
 
   "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<string>;
 
-  TRADER_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
-
-  "TRADER_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
-
   TREASURY_CONTRACT(overrides?: CallOverrides): Promise<string>;
 
   "TREASURY_CONTRACT()"(overrides?: CallOverrides): Promise<string>;
-
-  VANILLA_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
-
-  "VANILLA_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
 
   WETH_GATEWAY(overrides?: CallOverrides): Promise<string>;
 
@@ -677,6 +579,10 @@ export class AddressProvider extends Contract {
 
   "getACL()"(overrides?: CallOverrides): Promise<string>;
 
+  getAccountFactory(overrides?: CallOverrides): Promise<string>;
+
+  "getAccountFactory()"(overrides?: CallOverrides): Promise<string>;
+
   getAccountMiner(overrides?: CallOverrides): Promise<string>;
 
   "getAccountMiner()"(overrides?: CallOverrides): Promise<string>;
@@ -689,10 +595,6 @@ export class AddressProvider extends Contract {
 
   "getDataCompressor()"(overrides?: CallOverrides): Promise<string>;
 
-  getFarmingAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-  "getFarmingAccountFactory()"(overrides?: CallOverrides): Promise<string>;
-
   getGearToken(overrides?: CallOverrides): Promise<string>;
 
   "getGearToken()"(overrides?: CallOverrides): Promise<string>;
@@ -701,17 +603,9 @@ export class AddressProvider extends Contract {
 
   "getPriceOracle()"(overrides?: CallOverrides): Promise<string>;
 
-  getTraderAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-  "getTraderAccountFactory()"(overrides?: CallOverrides): Promise<string>;
-
   getTreasuryContract(overrides?: CallOverrides): Promise<string>;
 
   "getTreasuryContract()"(overrides?: CallOverrides): Promise<string>;
-
-  getVanillaAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-  "getVanillaAccountFactory()"(overrides?: CallOverrides): Promise<string>;
 
   getWETHGateway(overrides?: CallOverrides): Promise<string>;
 
@@ -732,6 +626,16 @@ export class AddressProvider extends Contract {
   setACL(_address: string, overrides?: Overrides): Promise<ContractTransaction>;
 
   "setACL(address)"(
+    _address: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  setAccountFactory(
+    _address: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "setAccountFactory(address)"(
     _address: string,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
@@ -766,16 +670,6 @@ export class AddressProvider extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  setFarmingAccountFactory(
-    _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setFarmingAccountFactory(address)"(
-    _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   setGearToken(
     _address: string,
     overrides?: Overrides
@@ -796,32 +690,12 @@ export class AddressProvider extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  setTraderAccountFactory(
-    _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setTraderAccountFactory(address)"(
-    _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   setTreasuryContract(
     _address: string,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
   "setTreasuryContract(address)"(
-    _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  setVanillaAccountFactory(
-    _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setVanillaAccountFactory(address)"(
     _address: string,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
@@ -857,6 +731,10 @@ export class AddressProvider extends Contract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
+
+    "ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
+
     ACCOUNT_MINER(overrides?: CallOverrides): Promise<string>;
 
     "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<string>;
@@ -873,10 +751,6 @@ export class AddressProvider extends Contract {
 
     "DATA_COMPRESSOR()"(overrides?: CallOverrides): Promise<string>;
 
-    FARMING_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
-
-    "FARMING_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
-
     GEAR_TOKEN(overrides?: CallOverrides): Promise<string>;
 
     "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<string>;
@@ -885,17 +759,9 @@ export class AddressProvider extends Contract {
 
     "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<string>;
 
-    TRADER_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
-
-    "TRADER_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
-
     TREASURY_CONTRACT(overrides?: CallOverrides): Promise<string>;
 
     "TREASURY_CONTRACT()"(overrides?: CallOverrides): Promise<string>;
-
-    VANILLA_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
-
-    "VANILLA_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
 
     WETH_GATEWAY(overrides?: CallOverrides): Promise<string>;
 
@@ -916,6 +782,10 @@ export class AddressProvider extends Contract {
 
     "getACL()"(overrides?: CallOverrides): Promise<string>;
 
+    getAccountFactory(overrides?: CallOverrides): Promise<string>;
+
+    "getAccountFactory()"(overrides?: CallOverrides): Promise<string>;
+
     getAccountMiner(overrides?: CallOverrides): Promise<string>;
 
     "getAccountMiner()"(overrides?: CallOverrides): Promise<string>;
@@ -928,10 +798,6 @@ export class AddressProvider extends Contract {
 
     "getDataCompressor()"(overrides?: CallOverrides): Promise<string>;
 
-    getFarmingAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-    "getFarmingAccountFactory()"(overrides?: CallOverrides): Promise<string>;
-
     getGearToken(overrides?: CallOverrides): Promise<string>;
 
     "getGearToken()"(overrides?: CallOverrides): Promise<string>;
@@ -940,17 +806,9 @@ export class AddressProvider extends Contract {
 
     "getPriceOracle()"(overrides?: CallOverrides): Promise<string>;
 
-    getTraderAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-    "getTraderAccountFactory()"(overrides?: CallOverrides): Promise<string>;
-
     getTreasuryContract(overrides?: CallOverrides): Promise<string>;
 
     "getTreasuryContract()"(overrides?: CallOverrides): Promise<string>;
-
-    getVanillaAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-    "getVanillaAccountFactory()"(overrides?: CallOverrides): Promise<string>;
 
     getWETHGateway(overrides?: CallOverrides): Promise<string>;
 
@@ -971,6 +829,16 @@ export class AddressProvider extends Contract {
     setACL(_address: string, overrides?: CallOverrides): Promise<void>;
 
     "setACL(address)"(
+      _address: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setAccountFactory(
+      _address: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setAccountFactory(address)"(
       _address: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1002,16 +870,6 @@ export class AddressProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setFarmingAccountFactory(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setFarmingAccountFactory(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setGearToken(_address: string, overrides?: CallOverrides): Promise<void>;
 
     "setGearToken(address)"(
@@ -1026,32 +884,12 @@ export class AddressProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setTraderAccountFactory(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setTraderAccountFactory(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setTreasuryContract(
       _address: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "setTreasuryContract(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setVanillaAccountFactory(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setVanillaAccountFactory(address)"(
       _address: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1094,6 +932,10 @@ export class AddressProvider extends Contract {
   };
 
   estimateGas: {
+    ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     ACCOUNT_MINER(overrides?: CallOverrides): Promise<BigNumber>;
 
     "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1110,10 +952,6 @@ export class AddressProvider extends Contract {
 
     "DATA_COMPRESSOR()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    FARMING_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "FARMING_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     GEAR_TOKEN(overrides?: CallOverrides): Promise<BigNumber>;
 
     "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1122,17 +960,9 @@ export class AddressProvider extends Contract {
 
     "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    TRADER_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "TRADER_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     TREASURY_CONTRACT(overrides?: CallOverrides): Promise<BigNumber>;
 
     "TREASURY_CONTRACT()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    VANILLA_ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "VANILLA_ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     WETH_GATEWAY(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1153,6 +983,10 @@ export class AddressProvider extends Contract {
 
     "getACL()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getAccountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getAccountMiner(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getAccountMiner()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1165,10 +999,6 @@ export class AddressProvider extends Contract {
 
     "getDataCompressor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getFarmingAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getFarmingAccountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getGearToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getGearToken()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1177,17 +1007,9 @@ export class AddressProvider extends Contract {
 
     "getPriceOracle()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getTraderAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getTraderAccountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getTreasuryContract(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getTreasuryContract()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getVanillaAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getVanillaAccountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getWETHGateway(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1208,6 +1030,16 @@ export class AddressProvider extends Contract {
     setACL(_address: string, overrides?: Overrides): Promise<BigNumber>;
 
     "setACL(address)"(
+      _address: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    setAccountFactory(
+      _address: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "setAccountFactory(address)"(
       _address: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
@@ -1242,16 +1074,6 @@ export class AddressProvider extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    setFarmingAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setFarmingAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
     setGearToken(_address: string, overrides?: Overrides): Promise<BigNumber>;
 
     "setGearToken(address)"(
@@ -1266,32 +1088,12 @@ export class AddressProvider extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    setTraderAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setTraderAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
     setTreasuryContract(
       _address: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
     "setTreasuryContract(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    setVanillaAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setVanillaAccountFactory(address)"(
       _address: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
@@ -1322,6 +1124,12 @@ export class AddressProvider extends Contract {
   };
 
   populateTransaction: {
+    ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "ACCOUNT_FACTORY()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     ACCOUNT_MINER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1344,14 +1152,6 @@ export class AddressProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    FARMING_ACCOUNT_FACTORY(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "FARMING_ACCOUNT_FACTORY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     GEAR_TOKEN(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1360,25 +1160,9 @@ export class AddressProvider extends Contract {
 
     "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    TRADER_ACCOUNT_FACTORY(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "TRADER_ACCOUNT_FACTORY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     TREASURY_CONTRACT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "TREASURY_CONTRACT()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    VANILLA_ACCOUNT_FACTORY(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "VANILLA_ACCOUNT_FACTORY()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1404,6 +1188,12 @@ export class AddressProvider extends Contract {
 
     "getACL()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getAccountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getAccountFactory()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getAccountMiner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "getAccountMiner()"(
@@ -1424,14 +1214,6 @@ export class AddressProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getFarmingAccountFactory(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getFarmingAccountFactory()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getGearToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "getGearToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1442,27 +1224,11 @@ export class AddressProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getTraderAccountFactory(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getTraderAccountFactory()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getTreasuryContract(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "getTreasuryContract()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getVanillaAccountFactory(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getVanillaAccountFactory()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1494,6 +1260,16 @@ export class AddressProvider extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
+    setAccountFactory(
+      _address: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "setAccountFactory(address)"(
+      _address: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
     setAccountMiner(
       _address: string,
       overrides?: Overrides
@@ -1524,16 +1300,6 @@ export class AddressProvider extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    setFarmingAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setFarmingAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
     setGearToken(
       _address: string,
       overrides?: Overrides
@@ -1554,32 +1320,12 @@ export class AddressProvider extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    setTraderAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setTraderAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
     setTreasuryContract(
       _address: string,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     "setTreasuryContract(address)"(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    setVanillaAccountFactory(
-      _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setVanillaAccountFactory(address)"(
       _address: string,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;

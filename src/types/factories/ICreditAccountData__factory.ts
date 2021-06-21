@@ -5,14 +5,14 @@
 import { Contract, Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 
-import type { ICreditAccountsData } from "../ICreditAccountsData";
+import type { ICreditAccountData } from "../ICreditAccountData";
 
-export class ICreditAccountsData__factory {
+export class ICreditAccountData__factory {
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): ICreditAccountsData {
-    return new Contract(address, _abi, signerOrProvider) as ICreditAccountsData;
+  ): ICreditAccountData {
+    return new Contract(address, _abi, signerOrProvider) as ICreditAccountData;
   }
 }
 

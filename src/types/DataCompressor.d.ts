@@ -22,7 +22,9 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 interface DataCompressorInterface extends ethers.utils.Interface {
   functions: {
     "WETHToken()": FunctionFragment;
+    "addressProvider()": FunctionFragment;
     "contractsRegister()": FunctionFragment;
+    "getAdapter(address,address)": FunctionFragment;
     "getCreditAccountData(address,address)": FunctionFragment;
     "getCreditAccountDataExtended(address,address)": FunctionFragment;
     "getCreditAccountList(address)": FunctionFragment;
@@ -36,8 +38,16 @@ interface DataCompressorInterface extends ethers.utils.Interface {
 
   encodeFunctionData(functionFragment: "WETHToken", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "addressProvider",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "contractsRegister",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAdapter",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountData",
@@ -75,9 +85,14 @@ interface DataCompressorInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(functionFragment: "WETHToken", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "addressProvider",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "contractsRegister",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getAdapter", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountData",
     data: BytesLike
@@ -136,9 +151,25 @@ export class DataCompressor extends Contract {
 
     "WETHToken()"(overrides?: CallOverrides): Promise<[string]>;
 
+    addressProvider(overrides?: CallOverrides): Promise<[string]>;
+
+    "addressProvider()"(overrides?: CallOverrides): Promise<[string]>;
+
     contractsRegister(overrides?: CallOverrides): Promise<[string]>;
 
     "contractsRegister()"(overrides?: CallOverrides): Promise<[string]>;
+
+    getAdapter(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "getAdapter(address,address)"(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     getCreditAccountData(
       _creditManager: string,
@@ -571,6 +602,7 @@ export class DataCompressor extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -580,6 +612,7 @@ export class DataCompressor extends Contract {
           linearCumulativeIndex: BigNumber;
           availableLiquidity: BigNumber;
           expectedLiquidity: BigNumber;
+          expectedLiquidityLimit: BigNumber;
           totalBorrowed: BigNumber;
           depositAPY_RAY: BigNumber;
           borrowAPY_RAY: BigNumber;
@@ -606,6 +639,7 @@ export class DataCompressor extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -615,6 +649,7 @@ export class DataCompressor extends Contract {
           linearCumulativeIndex: BigNumber;
           availableLiquidity: BigNumber;
           expectedLiquidity: BigNumber;
+          expectedLiquidityLimit: BigNumber;
           totalBorrowed: BigNumber;
           depositAPY_RAY: BigNumber;
           borrowAPY_RAY: BigNumber;
@@ -640,6 +675,7 @@ export class DataCompressor extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -649,6 +685,7 @@ export class DataCompressor extends Contract {
           linearCumulativeIndex: BigNumber;
           availableLiquidity: BigNumber;
           expectedLiquidity: BigNumber;
+          expectedLiquidityLimit: BigNumber;
           totalBorrowed: BigNumber;
           depositAPY_RAY: BigNumber;
           borrowAPY_RAY: BigNumber;
@@ -674,6 +711,7 @@ export class DataCompressor extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -683,6 +721,7 @@ export class DataCompressor extends Contract {
           linearCumulativeIndex: BigNumber;
           availableLiquidity: BigNumber;
           expectedLiquidity: BigNumber;
+          expectedLiquidityLimit: BigNumber;
           totalBorrowed: BigNumber;
           depositAPY_RAY: BigNumber;
           borrowAPY_RAY: BigNumber;
@@ -723,9 +762,25 @@ export class DataCompressor extends Contract {
 
   "WETHToken()"(overrides?: CallOverrides): Promise<string>;
 
+  addressProvider(overrides?: CallOverrides): Promise<string>;
+
+  "addressProvider()"(overrides?: CallOverrides): Promise<string>;
+
   contractsRegister(overrides?: CallOverrides): Promise<string>;
 
   "contractsRegister()"(overrides?: CallOverrides): Promise<string>;
+
+  getAdapter(
+    _creditManager: string,
+    _allowedContract: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "getAdapter(address,address)"(
+    _creditManager: string,
+    _allowedContract: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   getCreditAccountData(
     _creditManager: string,
@@ -1119,6 +1174,7 @@ export class DataCompressor extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -1128,6 +1184,7 @@ export class DataCompressor extends Contract {
       linearCumulativeIndex: BigNumber;
       availableLiquidity: BigNumber;
       expectedLiquidity: BigNumber;
+      expectedLiquidityLimit: BigNumber;
       totalBorrowed: BigNumber;
       depositAPY_RAY: BigNumber;
       borrowAPY_RAY: BigNumber;
@@ -1152,6 +1209,7 @@ export class DataCompressor extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -1161,6 +1219,7 @@ export class DataCompressor extends Contract {
       linearCumulativeIndex: BigNumber;
       availableLiquidity: BigNumber;
       expectedLiquidity: BigNumber;
+      expectedLiquidityLimit: BigNumber;
       totalBorrowed: BigNumber;
       depositAPY_RAY: BigNumber;
       borrowAPY_RAY: BigNumber;
@@ -1184,6 +1243,7 @@ export class DataCompressor extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -1193,6 +1253,7 @@ export class DataCompressor extends Contract {
       linearCumulativeIndex: BigNumber;
       availableLiquidity: BigNumber;
       expectedLiquidity: BigNumber;
+      expectedLiquidityLimit: BigNumber;
       totalBorrowed: BigNumber;
       depositAPY_RAY: BigNumber;
       borrowAPY_RAY: BigNumber;
@@ -1216,6 +1277,7 @@ export class DataCompressor extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -1225,6 +1287,7 @@ export class DataCompressor extends Contract {
       linearCumulativeIndex: BigNumber;
       availableLiquidity: BigNumber;
       expectedLiquidity: BigNumber;
+      expectedLiquidityLimit: BigNumber;
       totalBorrowed: BigNumber;
       depositAPY_RAY: BigNumber;
       borrowAPY_RAY: BigNumber;
@@ -1260,9 +1323,25 @@ export class DataCompressor extends Contract {
 
     "WETHToken()"(overrides?: CallOverrides): Promise<string>;
 
+    addressProvider(overrides?: CallOverrides): Promise<string>;
+
+    "addressProvider()"(overrides?: CallOverrides): Promise<string>;
+
     contractsRegister(overrides?: CallOverrides): Promise<string>;
 
     "contractsRegister()"(overrides?: CallOverrides): Promise<string>;
+
+    getAdapter(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "getAdapter(address,address)"(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     getCreditAccountData(
       _creditManager: string,
@@ -1674,6 +1753,7 @@ export class DataCompressor extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1683,6 +1763,7 @@ export class DataCompressor extends Contract {
         linearCumulativeIndex: BigNumber;
         availableLiquidity: BigNumber;
         expectedLiquidity: BigNumber;
+        expectedLiquidityLimit: BigNumber;
         totalBorrowed: BigNumber;
         depositAPY_RAY: BigNumber;
         borrowAPY_RAY: BigNumber;
@@ -1707,6 +1788,7 @@ export class DataCompressor extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1716,6 +1798,7 @@ export class DataCompressor extends Contract {
         linearCumulativeIndex: BigNumber;
         availableLiquidity: BigNumber;
         expectedLiquidity: BigNumber;
+        expectedLiquidityLimit: BigNumber;
         totalBorrowed: BigNumber;
         depositAPY_RAY: BigNumber;
         borrowAPY_RAY: BigNumber;
@@ -1739,6 +1822,7 @@ export class DataCompressor extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1748,6 +1832,7 @@ export class DataCompressor extends Contract {
         linearCumulativeIndex: BigNumber;
         availableLiquidity: BigNumber;
         expectedLiquidity: BigNumber;
+        expectedLiquidityLimit: BigNumber;
         totalBorrowed: BigNumber;
         depositAPY_RAY: BigNumber;
         borrowAPY_RAY: BigNumber;
@@ -1771,6 +1856,7 @@ export class DataCompressor extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1780,6 +1866,7 @@ export class DataCompressor extends Contract {
         linearCumulativeIndex: BigNumber;
         availableLiquidity: BigNumber;
         expectedLiquidity: BigNumber;
+        expectedLiquidityLimit: BigNumber;
         totalBorrowed: BigNumber;
         depositAPY_RAY: BigNumber;
         borrowAPY_RAY: BigNumber;
@@ -1818,9 +1905,25 @@ export class DataCompressor extends Contract {
 
     "WETHToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "addressProvider()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     contractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
 
     "contractsRegister()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getAdapter(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getAdapter(address,address)"(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getCreditAccountData(
       _creditManager: string,
@@ -1912,9 +2015,27 @@ export class DataCompressor extends Contract {
 
     "WETHToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "addressProvider()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     contractsRegister(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "contractsRegister()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAdapter(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getAdapter(address,address)"(
+      _creditManager: string,
+      _allowedContract: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

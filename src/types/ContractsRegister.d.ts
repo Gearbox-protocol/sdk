@@ -129,12 +129,12 @@ export class ContractsRegister extends Contract {
 
   functions: {
     addCreditManager(
-      newCreditManageranager: string,
+      newCreditManager: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
     "addCreditManager(address)"(
-      newCreditManageranager: string,
+      newCreditManager: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
@@ -212,12 +212,12 @@ export class ContractsRegister extends Contract {
   };
 
   addCreditManager(
-    newCreditManageranager: string,
+    newCreditManager: string,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
   "addCreditManager(address)"(
-    newCreditManageranager: string,
+    newCreditManager: string,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
@@ -289,12 +289,12 @@ export class ContractsRegister extends Contract {
 
   callStatic: {
     addCreditManager(
-      newCreditManageranager: string,
+      newCreditManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "addCreditManager(address)"(
-      newCreditManageranager: string,
+      newCreditManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -377,12 +377,12 @@ export class ContractsRegister extends Contract {
 
   estimateGas: {
     addCreditManager(
-      newCreditManageranager: string,
+      newCreditManager: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
     "addCreditManager(address)"(
-      newCreditManageranager: string,
+      newCreditManager: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
@@ -458,12 +458,12 @@ export class ContractsRegister extends Contract {
 
   populateTransaction: {
     addCreditManager(
-      newCreditManageranager: string,
+      newCreditManager: string,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     "addCreditManager(address)"(
-      newCreditManageranager: string,
+      newCreditManager: string,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 

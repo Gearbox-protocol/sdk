@@ -26,6 +26,8 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     "closeCreditAccount(address,uint256)": FunctionFragment;
     "creditAccounts(address)": FunctionFragment;
     "creditFilter()": FunctionFragment;
+    "executeOrder(address,address,bytes)": FunctionFragment;
+    "getCreditAccountOrRevert(address)": FunctionFragment;
     "hasOpenedCreditAccount(address)": FunctionFragment;
     "increaseBorrowedAmount(uint256)": FunctionFragment;
     "kind()": FunctionFragment;
@@ -35,6 +37,7 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     "minAmount()": FunctionFragment;
     "openCreditAccount(uint256,address,uint256,uint256)": FunctionFragment;
     "poolService()": FunctionFragment;
+    "provideCreditAccountAllowance(address,address,address)": FunctionFragment;
     "repayCreditAccount(address)": FunctionFragment;
     "repayCreditAccountETH(address,address)": FunctionFragment;
     "setLimits(uint256,uint256)": FunctionFragment;
@@ -57,6 +60,14 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "creditFilter",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "executeOrder",
+    values: [string, string, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCreditAccountOrRevert",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "hasOpenedCreditAccount",
@@ -84,6 +95,10 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "poolService",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "provideCreditAccountAllowance",
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "repayCreditAccount",
@@ -123,6 +138,14 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "executeOrder",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCreditAccountOrRevert",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "hasOpenedCreditAccount",
     data: BytesLike
   ): Result;
@@ -147,6 +170,10 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "poolService",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "provideCreditAccountAllowance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -234,6 +261,30 @@ export class ICreditManager extends Contract {
 
     "creditFilter()"(overrides?: CallOverrides): Promise<[string]>;
 
+    executeOrder(
+      borrower: string,
+      target: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "executeOrder(address,address,bytes)"(
+      borrower: string,
+      target: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    getCreditAccountOrRevert(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "getCreditAccountOrRevert(address)"(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     hasOpenedCreditAccount(
       borrower: string,
       overrides?: CallOverrides
@@ -301,6 +352,20 @@ export class ICreditManager extends Contract {
     poolService(overrides?: CallOverrides): Promise<[string]>;
 
     "poolService()"(overrides?: CallOverrides): Promise<[string]>;
+
+    provideCreditAccountAllowance(
+      creditAccount: string,
+      toContract: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "provideCreditAccountAllowance(address,address,address)"(
+      creditAccount: string,
+      toContract: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
     repayCreditAccount(
       to: string,
@@ -386,6 +451,30 @@ export class ICreditManager extends Contract {
 
   "creditFilter()"(overrides?: CallOverrides): Promise<string>;
 
+  executeOrder(
+    borrower: string,
+    target: string,
+    data: BytesLike,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "executeOrder(address,address,bytes)"(
+    borrower: string,
+    target: string,
+    data: BytesLike,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  getCreditAccountOrRevert(
+    borrower: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "getCreditAccountOrRevert(address)"(
+    borrower: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   hasOpenedCreditAccount(
     borrower: string,
     overrides?: CallOverrides
@@ -453,6 +542,20 @@ export class ICreditManager extends Contract {
   poolService(overrides?: CallOverrides): Promise<string>;
 
   "poolService()"(overrides?: CallOverrides): Promise<string>;
+
+  provideCreditAccountAllowance(
+    creditAccount: string,
+    toContract: string,
+    token: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "provideCreditAccountAllowance(address,address,address)"(
+    creditAccount: string,
+    toContract: string,
+    token: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
   repayCreditAccount(
     to: string,
@@ -541,6 +644,30 @@ export class ICreditManager extends Contract {
 
     "creditFilter()"(overrides?: CallOverrides): Promise<string>;
 
+    executeOrder(
+      borrower: string,
+      target: string,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "executeOrder(address,address,bytes)"(
+      borrower: string,
+      target: string,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getCreditAccountOrRevert(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "getCreditAccountOrRevert(address)"(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     hasOpenedCreditAccount(
       borrower: string,
       overrides?: CallOverrides
@@ -609,6 +736,20 @@ export class ICreditManager extends Contract {
 
     "poolService()"(overrides?: CallOverrides): Promise<string>;
 
+    provideCreditAccountAllowance(
+      creditAccount: string,
+      toContract: string,
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "provideCreditAccountAllowance(address,address,address)"(
+      creditAccount: string,
+      toContract: string,
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     repayCreditAccount(to: string, overrides?: CallOverrides): Promise<void>;
 
     "repayCreditAccount(address)"(
@@ -620,13 +761,13 @@ export class ICreditManager extends Contract {
       borrower: string,
       to: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     "repayCreditAccountETH(address,address)"(
       borrower: string,
       to: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     setLimits(
       _minAmount: BigNumberish,
@@ -721,6 +862,30 @@ export class ICreditManager extends Contract {
 
     "creditFilter()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    executeOrder(
+      borrower: string,
+      target: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "executeOrder(address,address,bytes)"(
+      borrower: string,
+      target: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    getCreditAccountOrRevert(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getCreditAccountOrRevert(address)"(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     hasOpenedCreditAccount(
       borrower: string,
       overrides?: CallOverrides
@@ -788,6 +953,20 @@ export class ICreditManager extends Contract {
     poolService(overrides?: CallOverrides): Promise<BigNumber>;
 
     "poolService()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    provideCreditAccountAllowance(
+      creditAccount: string,
+      toContract: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "provideCreditAccountAllowance(address,address,address)"(
+      creditAccount: string,
+      toContract: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
 
     repayCreditAccount(to: string, overrides?: Overrides): Promise<BigNumber>;
 
@@ -874,6 +1053,30 @@ export class ICreditManager extends Contract {
 
     "creditFilter()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    executeOrder(
+      borrower: string,
+      target: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "executeOrder(address,address,bytes)"(
+      borrower: string,
+      target: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    getCreditAccountOrRevert(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getCreditAccountOrRevert(address)"(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     hasOpenedCreditAccount(
       borrower: string,
       overrides?: CallOverrides
@@ -943,6 +1146,20 @@ export class ICreditManager extends Contract {
     poolService(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "poolService()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    provideCreditAccountAllowance(
+      creditAccount: string,
+      toContract: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "provideCreditAccountAllowance(address,address,address)"(
+      creditAccount: string,
+      toContract: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
 
     repayCreditAccount(
       to: string,

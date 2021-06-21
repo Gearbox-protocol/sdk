@@ -26,7 +26,7 @@ interface ICreditAccountInterface extends ethers.utils.Interface {
     "borrowedAmount()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "cumulativeIndexAtOpen()": FunctionFragment;
-    "getGenericParameters()": FunctionFragment;
+    "execute(address,bytes)": FunctionFragment;
     "initialize(address)": FunctionFragment;
     "setGenericParameters(uint256,uint256)": FunctionFragment;
     "since()": FunctionFragment;
@@ -51,8 +51,8 @@ interface ICreditAccountInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getGenericParameters",
-    values?: undefined
+    functionFragment: "execute",
+    values: [string, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(
@@ -85,10 +85,7 @@ interface ICreditAccountInterface extends ethers.utils.Interface {
     functionFragment: "cumulativeIndexAtOpen",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getGenericParameters",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setGenericParameters",
@@ -142,23 +139,17 @@ export class ICreditAccount extends Contract {
 
     "cumulativeIndexAtOpen()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getGenericParameters(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        _borrowedAmount: BigNumber;
-        _cumulativeIndexAtOpen: BigNumber;
-      }
-    >;
+    execute(
+      destination: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
-    "getGenericParameters()"(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        _borrowedAmount: BigNumber;
-        _cumulativeIndexAtOpen: BigNumber;
-      }
-    >;
+    "execute(address,bytes)"(
+      destination: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
     initialize(
       _creditManager: string,
@@ -235,23 +226,17 @@ export class ICreditAccount extends Contract {
 
   "cumulativeIndexAtOpen()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getGenericParameters(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & {
-      _borrowedAmount: BigNumber;
-      _cumulativeIndexAtOpen: BigNumber;
-    }
-  >;
+  execute(
+    destination: string,
+    data: BytesLike,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
-  "getGenericParameters()"(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & {
-      _borrowedAmount: BigNumber;
-      _cumulativeIndexAtOpen: BigNumber;
-    }
-  >;
+  "execute(address,bytes)"(
+    destination: string,
+    data: BytesLike,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
   initialize(
     _creditManager: string,
@@ -328,23 +313,17 @@ export class ICreditAccount extends Contract {
 
     "cumulativeIndexAtOpen()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getGenericParameters(
+    execute(
+      destination: string,
+      data: BytesLike,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        _borrowedAmount: BigNumber;
-        _cumulativeIndexAtOpen: BigNumber;
-      }
-    >;
+    ): Promise<string>;
 
-    "getGenericParameters()"(
+    "execute(address,bytes)"(
+      destination: string,
+      data: BytesLike,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        _borrowedAmount: BigNumber;
-        _cumulativeIndexAtOpen: BigNumber;
-      }
-    >;
+    ): Promise<string>;
 
     initialize(
       _creditManager: string,
@@ -424,9 +403,17 @@ export class ICreditAccount extends Contract {
 
     "cumulativeIndexAtOpen()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getGenericParameters(overrides?: CallOverrides): Promise<BigNumber>;
+    execute(
+      destination: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
 
-    "getGenericParameters()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "execute(address,bytes)"(
+      destination: string,
+      data: BytesLike,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
 
     initialize(
       _creditManager: string,
@@ -510,12 +497,16 @@ export class ICreditAccount extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getGenericParameters(
-      overrides?: CallOverrides
+    execute(
+      destination: string,
+      data: BytesLike,
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "getGenericParameters()"(
-      overrides?: CallOverrides
+    "execute(address,bytes)"(
+      destination: string,
+      data: BytesLike,
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     initialize(

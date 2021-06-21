@@ -31,6 +31,7 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
     "creditManagersCount()": FunctionFragment;
     "dieselToken()": FunctionFragment;
     "expectedLiquidity()": FunctionFragment;
+    "expectedLiquidityLimit()": FunctionFragment;
     "fromDiesel(uint256)": FunctionFragment;
     "getDieselRate_RAY()": FunctionFragment;
     "lendCreditAccount(uint256,address)": FunctionFragment;
@@ -76,6 +77,10 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "expectedLiquidity",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "expectedLiquidityLimit",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -149,6 +154,10 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "expectedLiquidity",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "expectedLiquidityLimit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "fromDiesel", data: BytesLike): Result;
@@ -278,6 +287,10 @@ export class IPoolService extends Contract {
     expectedLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "expectedLiquidity()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    expectedLiquidityLimit(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     fromDiesel(
       amount: BigNumberish,
@@ -409,6 +422,10 @@ export class IPoolService extends Contract {
 
   "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   fromDiesel(
     amount: BigNumberish,
     overrides?: CallOverrides
@@ -539,6 +556,10 @@ export class IPoolService extends Contract {
 
     "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     fromDiesel(
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -569,13 +590,13 @@ export class IPoolService extends Contract {
       amount: BigNumberish,
       to: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     "removeLiquidity(uint256,address)"(
       amount: BigNumberish,
       to: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     repayCreditAccount(
       borrowedAmount: BigNumberish,
@@ -624,7 +645,7 @@ export class IPoolService extends Contract {
 
     Borrow(
       creditManager: string | null,
-      creditAccount: null,
+      creditAccount: string | null,
       amount: null
     ): EventFilter;
 
@@ -710,6 +731,10 @@ export class IPoolService extends Contract {
     expectedLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
     "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     fromDiesel(
       amount: BigNumberish,
@@ -856,6 +881,14 @@ export class IPoolService extends Contract {
     expectedLiquidity(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "expectedLiquidity()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    expectedLiquidityLimit(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "expectedLiquidityLimit()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

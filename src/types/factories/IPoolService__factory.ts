@@ -58,7 +58,7 @@ const _abi = [
         type: "address",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "creditAccount",
         type: "address",
@@ -340,6 +340,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "expectedLiquidityLimit",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -403,7 +416,13 @@ const _abi = [
       },
     ],
     name: "removeLiquidity",
-    outputs: [],
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },

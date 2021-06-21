@@ -50,7 +50,11 @@ interface IPriceOracleInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "NewPriceFeed(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "NewPriceFeed"): EventFragment;
 }
 
 export class IPriceOracle extends Contract {
@@ -184,7 +188,9 @@ export class IPriceOracle extends Contract {
     ): Promise<BigNumber>;
   };
 
-  filters: {};
+  filters: {
+    NewPriceFeed(token: string | null, priceFeed: string | null): EventFilter;
+  };
 
   estimateGas: {
     addPriceFeed(

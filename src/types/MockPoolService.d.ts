@@ -32,6 +32,7 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     "creditManagersCount()": FunctionFragment;
     "dieselToken()": FunctionFragment;
     "expectedLiquidity()": FunctionFragment;
+    "expectedLiquidityLimit()": FunctionFragment;
     "forbidCreditManagerToBorrow(address)": FunctionFragment;
     "fromDiesel(uint256)": FunctionFragment;
     "getDieselRate_RAY()": FunctionFragment;
@@ -89,6 +90,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "expectedLiquidity",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "expectedLiquidityLimit",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -195,6 +200,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "expectedLiquidity",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "expectedLiquidityLimit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -360,6 +369,10 @@ export class MockPoolService extends Contract {
     expectedLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "expectedLiquidity()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    expectedLiquidityLimit(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     forbidCreditManagerToBorrow(
       _creditManager: string,
@@ -554,6 +567,10 @@ export class MockPoolService extends Contract {
 
   "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   forbidCreditManagerToBorrow(
     _creditManager: string,
     overrides?: Overrides
@@ -744,6 +761,10 @@ export class MockPoolService extends Contract {
 
     "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     forbidCreditManagerToBorrow(
       _creditManager: string,
       overrides?: CallOverrides
@@ -802,13 +823,13 @@ export class MockPoolService extends Contract {
       amount: BigNumberish,
       to: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     "removeLiquidity(uint256,address)"(
       amount: BigNumberish,
       to: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     repayAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -879,7 +900,7 @@ export class MockPoolService extends Contract {
 
     Borrow(
       creditManager: string | null,
-      creditAccount: null,
+      creditAccount: string | null,
       amount: null
     ): EventFilter;
 
@@ -975,6 +996,10 @@ export class MockPoolService extends Contract {
     expectedLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
     "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     forbidCreditManagerToBorrow(
       _creditManager: string,
@@ -1181,6 +1206,14 @@ export class MockPoolService extends Contract {
     expectedLiquidity(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "expectedLiquidity()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    expectedLiquidityLimit(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "expectedLiquidityLimit()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
