@@ -1,20 +1,8 @@
-import { BigNumber, ethers } from "ethers";
-import {
-  ICreditManager,
-  StableCreditManager,
-  TraderCreditManager,
-} from "../types";
-import { formatBN } from "../utils/formatter";
-import {
-  HEALTH_FACTOR_MIN_AFTER_UPDATE,
-  LIQUIDATION_DISCOUNTED_SUM,
-  PERCENTAGE_FACTOR,
-  RAY,
-} from "./constants";
-import {
-  CreditManagerDataPayload,
-  CreditManagerStatPayload,
-} from "../payload/creditManager";
+import {BigNumber, ethers} from "ethers";
+import {ICreditManager, StableCreditManager, TraderCreditManager,} from "../types";
+import {formatBN} from "../utils/formatter";
+import {PERCENTAGE_FACTOR, RAY, UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,} from "./constants";
+import {CreditManagerDataPayload, CreditManagerStatPayload,} from "../payload/creditManager";
 
 export class CreditManagerData {
   public readonly id: string;
@@ -87,7 +75,6 @@ export class CreditManagerData {
 
     return null;
   }
-
 }
 
 export class CreditManagerDataExtended extends CreditManagerData {
@@ -118,19 +105,24 @@ export class CreditManagerDataExtended extends CreditManagerData {
 }
 
 export function calcMaxIncreaseBorrow(
-  healthFactor?: number,
+  healthFactor: number | undefined,
   borrowAmountPlusInterest?: BigNumber,
   maxLeverageFactor?: number
 ): BigNumber {
   if (!healthFactor || !borrowAmountPlusInterest || !maxLeverageFactor)
     return BigNumber.from(0);
 
-  const minHealthFactor =
-    (LIQUIDATION_DISCOUNTED_SUM * (maxLeverageFactor + 1)) / maxLeverageFactor;
+  const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
+
+  const minHealthFactor = Math.floor(
+    (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD * (maxLeverageFactor + 100)) / maxLeverageFactor);
+
+  console.log("HFPer", healthFactorPercentage)
+  console.log("minHealthFactor", minHealthFactor)
 
   const result = borrowAmountPlusInterest
-    .mul(healthFactor - HEALTH_FACTOR_MIN_AFTER_UPDATE)
-    .div(minHealthFactor - LIQUIDATION_DISCOUNTED_SUM);
+    .mul(healthFactorPercentage - minHealthFactor)
+    .div(minHealthFactor - UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD);
   return result.isNegative() ? BigNumber.from(0) : result;
 }
 
@@ -140,9 +132,12 @@ export function calcHealthFactorAfter(
   additional: BigNumber
 ): number {
   if (!healthFactor || !borrowAmountPlusInterest) return 0;
+
+  const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
+
   return borrowAmountPlusInterest
-    .mul(healthFactor)
-    .add(additional.mul(LIQUIDATION_DISCOUNTED_SUM))
+    .mul(healthFactorPercentage)
+    .add(additional.mul(UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD))
     .div(borrowAmountPlusInterest.add(additional))
     .toNumber();
 }

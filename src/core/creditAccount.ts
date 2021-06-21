@@ -29,7 +29,7 @@ export class CreditAccountData {
       payload.borrowedAmountPlusInterest
     );
     this.totalValue = BigNumber.from(payload.totalValue);
-    this.healthFactor = BigNumber.from(payload.healthFactor).toNumber() / 10000;
+    this.healthFactor = BigNumber.from(payload.healthFactor).toNumber() / PERCENTAGE_FACTOR;
     this.borrowRate =
       BigNumber.from(payload.borrowRate)
         .mul(PERCENTAGE_FACTOR)

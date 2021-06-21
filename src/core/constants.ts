@@ -15,7 +15,7 @@ export const WAD = BigNumber.from(10).pow(18);
 
 export const PERCENTAGE_FACTOR = 1e4;
 export const LIQUIDATION_DISCOUNTED_SUM = 9500;
-export const HEALTH_FACTOR_MIN_AFTER_UPDATE = 12000;
+export const UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD= 9300;
 
 export const timeRanges: Record<string, number> = {
   // "1H": 3600,
