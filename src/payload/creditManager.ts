@@ -1,5 +1,10 @@
 import { BigNumberish } from "ethers";
 
+export interface AdapterPayload {
+  allowedContract: string;
+  adapter: string
+}
+
 export interface CreditManagerDataPayload {
   addr: string;
   hasAccount?: boolean;
@@ -13,7 +18,7 @@ export interface CreditManagerDataPayload {
   maxLeverageFactor?: BigNumberish;
   availableLiquidity?: BigNumberish;
   allowedTokens?: Array<string>;
-  allowedContracts?: Array<string>;
+  adapters?: Array<AdapterPayload>;
 }
 
 export interface CreditManagerStatPayload {

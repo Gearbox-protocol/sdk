@@ -191,9 +191,21 @@ const _abi = [
             type: "address[]",
           },
           {
-            internalType: "address[]",
-            name: "allowedContracts",
-            type: "address[]",
+            components: [
+              {
+                internalType: "address",
+                name: "allowedContract",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "adapter",
+                type: "address",
+              },
+            ],
+            internalType: "struct DataTypes.ContractAdapter[]",
+            name: "adapters",
+            type: "tuple[]",
           },
         ],
         internalType: "struct DataTypes.CreditManagerData",

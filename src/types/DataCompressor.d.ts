@@ -454,7 +454,7 @@ export class DataCompressor extends Contract {
           BigNumber,
           BigNumber,
           string[],
-          string[]
+          ([string, string] & { allowedContract: string; adapter: string })[]
         ] & {
           addr: string;
           hasAccount: boolean;
@@ -468,7 +468,10 @@ export class DataCompressor extends Contract {
           maxLeverageFactor: BigNumber;
           availableLiquidity: BigNumber;
           allowedTokens: string[];
-          allowedContracts: string[];
+          adapters: ([string, string] & {
+            allowedContract: string;
+            adapter: string;
+          })[];
         }
       ]
     >;
@@ -492,7 +495,7 @@ export class DataCompressor extends Contract {
           BigNumber,
           BigNumber,
           string[],
-          string[]
+          ([string, string] & { allowedContract: string; adapter: string })[]
         ] & {
           addr: string;
           hasAccount: boolean;
@@ -506,7 +509,10 @@ export class DataCompressor extends Contract {
           maxLeverageFactor: BigNumber;
           availableLiquidity: BigNumber;
           allowedTokens: string[];
-          allowedContracts: string[];
+          adapters: ([string, string] & {
+            allowedContract: string;
+            adapter: string;
+          })[];
         }
       ]
     >;
@@ -529,7 +535,7 @@ export class DataCompressor extends Contract {
           BigNumber,
           BigNumber,
           string[],
-          string[]
+          ([string, string] & { allowedContract: string; adapter: string })[]
         ] & {
           addr: string;
           hasAccount: boolean;
@@ -543,7 +549,10 @@ export class DataCompressor extends Contract {
           maxLeverageFactor: BigNumber;
           availableLiquidity: BigNumber;
           allowedTokens: string[];
-          allowedContracts: string[];
+          adapters: ([string, string] & {
+            allowedContract: string;
+            adapter: string;
+          })[];
         })[]
       ]
     >;
@@ -566,7 +575,7 @@ export class DataCompressor extends Contract {
           BigNumber,
           BigNumber,
           string[],
-          string[]
+          ([string, string] & { allowedContract: string; adapter: string })[]
         ] & {
           addr: string;
           hasAccount: boolean;
@@ -580,7 +589,10 @@ export class DataCompressor extends Contract {
           maxLeverageFactor: BigNumber;
           availableLiquidity: BigNumber;
           allowedTokens: string[];
-          allowedContracts: string[];
+          adapters: ([string, string] & {
+            allowedContract: string;
+            adapter: string;
+          })[];
         })[]
       ]
     >;
@@ -1034,7 +1046,7 @@ export class DataCompressor extends Contract {
       BigNumber,
       BigNumber,
       string[],
-      string[]
+      ([string, string] & { allowedContract: string; adapter: string })[]
     ] & {
       addr: string;
       hasAccount: boolean;
@@ -1048,7 +1060,10 @@ export class DataCompressor extends Contract {
       maxLeverageFactor: BigNumber;
       availableLiquidity: BigNumber;
       allowedTokens: string[];
-      allowedContracts: string[];
+      adapters: ([string, string] & {
+        allowedContract: string;
+        adapter: string;
+      })[];
     }
   >;
 
@@ -1070,7 +1085,7 @@ export class DataCompressor extends Contract {
       BigNumber,
       BigNumber,
       string[],
-      string[]
+      ([string, string] & { allowedContract: string; adapter: string })[]
     ] & {
       addr: string;
       hasAccount: boolean;
@@ -1084,7 +1099,10 @@ export class DataCompressor extends Contract {
       maxLeverageFactor: BigNumber;
       availableLiquidity: BigNumber;
       allowedTokens: string[];
-      allowedContracts: string[];
+      adapters: ([string, string] & {
+        allowedContract: string;
+        adapter: string;
+      })[];
     }
   >;
 
@@ -1105,7 +1123,7 @@ export class DataCompressor extends Contract {
       BigNumber,
       BigNumber,
       string[],
-      string[]
+      ([string, string] & { allowedContract: string; adapter: string })[]
     ] & {
       addr: string;
       hasAccount: boolean;
@@ -1119,7 +1137,10 @@ export class DataCompressor extends Contract {
       maxLeverageFactor: BigNumber;
       availableLiquidity: BigNumber;
       allowedTokens: string[];
-      allowedContracts: string[];
+      adapters: ([string, string] & {
+        allowedContract: string;
+        adapter: string;
+      })[];
     })[]
   >;
 
@@ -1140,7 +1161,7 @@ export class DataCompressor extends Contract {
       BigNumber,
       BigNumber,
       string[],
-      string[]
+      ([string, string] & { allowedContract: string; adapter: string })[]
     ] & {
       addr: string;
       hasAccount: boolean;
@@ -1154,7 +1175,10 @@ export class DataCompressor extends Contract {
       maxLeverageFactor: BigNumber;
       availableLiquidity: BigNumber;
       allowedTokens: string[];
-      allowedContracts: string[];
+      adapters: ([string, string] & {
+        allowedContract: string;
+        adapter: string;
+      })[];
     })[]
   >;
 
@@ -1613,7 +1637,7 @@ export class DataCompressor extends Contract {
         BigNumber,
         BigNumber,
         string[],
-        string[]
+        ([string, string] & { allowedContract: string; adapter: string })[]
       ] & {
         addr: string;
         hasAccount: boolean;
@@ -1627,7 +1651,10 @@ export class DataCompressor extends Contract {
         maxLeverageFactor: BigNumber;
         availableLiquidity: BigNumber;
         allowedTokens: string[];
-        allowedContracts: string[];
+        adapters: ([string, string] & {
+          allowedContract: string;
+          adapter: string;
+        })[];
       }
     >;
 
@@ -1649,7 +1676,7 @@ export class DataCompressor extends Contract {
         BigNumber,
         BigNumber,
         string[],
-        string[]
+        ([string, string] & { allowedContract: string; adapter: string })[]
       ] & {
         addr: string;
         hasAccount: boolean;
@@ -1663,7 +1690,10 @@ export class DataCompressor extends Contract {
         maxLeverageFactor: BigNumber;
         availableLiquidity: BigNumber;
         allowedTokens: string[];
-        allowedContracts: string[];
+        adapters: ([string, string] & {
+          allowedContract: string;
+          adapter: string;
+        })[];
       }
     >;
 
@@ -1684,7 +1714,7 @@ export class DataCompressor extends Contract {
         BigNumber,
         BigNumber,
         string[],
-        string[]
+        ([string, string] & { allowedContract: string; adapter: string })[]
       ] & {
         addr: string;
         hasAccount: boolean;
@@ -1698,7 +1728,10 @@ export class DataCompressor extends Contract {
         maxLeverageFactor: BigNumber;
         availableLiquidity: BigNumber;
         allowedTokens: string[];
-        allowedContracts: string[];
+        adapters: ([string, string] & {
+          allowedContract: string;
+          adapter: string;
+        })[];
       })[]
     >;
 
@@ -1719,7 +1752,7 @@ export class DataCompressor extends Contract {
         BigNumber,
         BigNumber,
         string[],
-        string[]
+        ([string, string] & { allowedContract: string; adapter: string })[]
       ] & {
         addr: string;
         hasAccount: boolean;
@@ -1733,7 +1766,10 @@ export class DataCompressor extends Contract {
         maxLeverageFactor: BigNumber;
         availableLiquidity: BigNumber;
         allowedTokens: string[];
-        allowedContracts: string[];
+        adapters: ([string, string] & {
+          allowedContract: string;
+          adapter: string;
+        })[];
       })[]
     >;
 

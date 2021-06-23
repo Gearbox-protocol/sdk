@@ -1,8 +1,15 @@
-import {BigNumber, ethers} from "ethers";
-import {ICreditManager, StableCreditManager, TraderCreditManager,} from "../types";
-import {formatBN} from "../utils/formatter";
-import {PERCENTAGE_FACTOR, RAY, UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,} from "./constants";
-import {CreditManagerDataPayload, CreditManagerStatPayload,} from "../payload/creditManager";
+import { BigNumber, ethers } from "ethers";
+import { ICreditManager } from "../types";
+import { formatBN } from "../utils/formatter";
+import {
+  PERCENTAGE_FACTOR,
+  RAY,
+  UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
+} from "./constants";
+import {
+  CreditManagerDataPayload,
+  CreditManagerStatPayload,
+} from "../payload/creditManager";
 
 export class CreditManagerData {
   public readonly id: string;
@@ -17,7 +24,7 @@ export class CreditManagerData {
   public readonly maxLeverageFactor: number;
   public readonly availableLiquidity: BigNumber;
   public readonly allowedTokens: Array<string>;
-  public readonly allowedContracts: Array<string>;
+  public readonly adapters: Record<string, string> = {};
   public readonly hasAccount: boolean;
 
   constructor(payload: CreditManagerDataPayload) {
@@ -44,7 +51,10 @@ export class CreditManagerData {
     ).toNumber();
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
     this.allowedTokens = payload.allowedTokens || [];
-    this.allowedContracts = payload.allowedContracts || [];
+    payload.adapters?.forEach((a) => {
+      this.adapters[a.allowedContract] = a.adapter;
+    });
+
     this.hasAccount = payload.hasAccount || false;
   }
 
@@ -79,28 +89,10 @@ export class CreditManagerData {
 
 export class CreditManagerDataExtended extends CreditManagerData {
   public readonly contractETH: ICreditManager;
-  private _traderManager?: TraderCreditManager;
-  private _stableManager?: StableCreditManager;
 
   constructor(payload: CreditManagerDataPayload, contractETH: ICreditManager) {
     super(payload);
     this.contractETH = contractETH;
-  }
-
-  get traderManager(): TraderCreditManager | undefined {
-    return this._traderManager;
-  }
-
-  setTraderManager(value: TraderCreditManager) {
-    this._traderManager = value;
-  }
-
-  get stableManager(): StableCreditManager | undefined {
-    return this._stableManager;
-  }
-
-  set setStableManager(value: StableCreditManager) {
-    this._stableManager = value;
   }
 }
 
@@ -115,10 +107,12 @@ export function calcMaxIncreaseBorrow(
   const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
 
   const minHealthFactor = Math.floor(
-    (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD * (maxLeverageFactor + 100)) / maxLeverageFactor);
+    (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD * (maxLeverageFactor + 100)) /
+      maxLeverageFactor
+  );
 
-  console.log("HFPer", healthFactorPercentage)
-  console.log("minHealthFactor", minHealthFactor)
+  console.log("HFPer", healthFactorPercentage);
+  console.log("minHealthFactor", minHealthFactor);
 
   const result = borrowAmountPlusInterest
     .mul(healthFactorPercentage - minHealthFactor)
