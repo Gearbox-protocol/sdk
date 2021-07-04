@@ -30,6 +30,7 @@ interface PoolServiceInterface extends ethers.utils.Interface {
     "availableLiquidity()": FunctionFragment;
     "borrowAPY_RAY()": FunctionFragment;
     "calcLinearCumulative_RAY()": FunctionFragment;
+    "calcLinearIndex_RAY(uint256,uint256,uint256)": FunctionFragment;
     "connectCreditManager(address)": FunctionFragment;
     "creditManagers(uint256)": FunctionFragment;
     "creditManagersCanBorrow(address)": FunctionFragment;
@@ -90,6 +91,10 @@ interface PoolServiceInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calcLinearCumulative_RAY",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calcLinearIndex_RAY",
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "connectCreditManager",
@@ -221,6 +226,10 @@ interface PoolServiceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "calcLinearCumulative_RAY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "calcLinearIndex_RAY",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -399,6 +408,20 @@ export class PoolService extends Contract {
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "calcLinearCumulative_RAY()"(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    calcLinearIndex_RAY(
+      cumulativeIndex_RAY: BigNumberish,
+      currentBorrowRate_RAY: BigNumberish,
+      timeDifference: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "calcLinearIndex_RAY(uint256,uint256,uint256)"(
+      cumulativeIndex_RAY: BigNumberish,
+      currentBorrowRate_RAY: BigNumberish,
+      timeDifference: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -639,6 +662,20 @@ export class PoolService extends Contract {
 
   "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  calcLinearIndex_RAY(
+    cumulativeIndex_RAY: BigNumberish,
+    currentBorrowRate_RAY: BigNumberish,
+    timeDifference: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "calcLinearIndex_RAY(uint256,uint256,uint256)"(
+    cumulativeIndex_RAY: BigNumberish,
+    currentBorrowRate_RAY: BigNumberish,
+    timeDifference: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   connectCreditManager(
     _creditManager: string,
     overrides?: Overrides
@@ -872,6 +909,20 @@ export class PoolService extends Contract {
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calcLinearIndex_RAY(
+      cumulativeIndex_RAY: BigNumberish,
+      currentBorrowRate_RAY: BigNumberish,
+      timeDifference: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "calcLinearIndex_RAY(uint256,uint256,uint256)"(
+      cumulativeIndex_RAY: BigNumberish,
+      currentBorrowRate_RAY: BigNumberish,
+      timeDifference: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     connectCreditManager(
       _creditManager: string,
@@ -1150,6 +1201,20 @@ export class PoolService extends Contract {
 
     "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    calcLinearIndex_RAY(
+      cumulativeIndex_RAY: BigNumberish,
+      currentBorrowRate_RAY: BigNumberish,
+      timeDifference: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "calcLinearIndex_RAY(uint256,uint256,uint256)"(
+      cumulativeIndex_RAY: BigNumberish,
+      currentBorrowRate_RAY: BigNumberish,
+      timeDifference: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     connectCreditManager(
       _creditManager: string,
       overrides?: Overrides
@@ -1403,6 +1468,20 @@ export class PoolService extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "calcLinearCumulative_RAY()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    calcLinearIndex_RAY(
+      cumulativeIndex_RAY: BigNumberish,
+      currentBorrowRate_RAY: BigNumberish,
+      timeDifference: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "calcLinearIndex_RAY(uint256,uint256,uint256)"(
+      cumulativeIndex_RAY: BigNumberish,
+      currentBorrowRate_RAY: BigNumberish,
+      timeDifference: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -21,37 +21,6 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "address",
-        name: "contributor",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "prevValue",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "updatedValue",
-        type: "uint256",
-      },
-    ],
-    name: "CollateralProtectionUpdate",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
         name: "protocol",
@@ -65,6 +34,25 @@ const _abi = [
       },
     ],
     name: "ContractAllowed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "chiThreshold",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "fastCheckDelay",
+        type: "uint256",
+      },
+    ],
+    name: "NewFastCheckParameters",
     type: "event",
   },
   {
@@ -113,7 +101,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "liquidityThreshold",
+        name: "liquidationThreshold",
         type: "uint256",
       },
     ],
@@ -194,25 +182,6 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "calcCollateralProtection",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-    ],
     name: "calcCreditAccountAccruedInterest",
     outputs: [
       {
@@ -228,7 +197,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "borrower",
+        name: "creditAccount",
         type: "address",
       },
     ],
@@ -248,45 +217,6 @@ const _abi = [
       {
         internalType: "address",
         name: "creditAccount",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "tokenIn",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "tokenOut",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amountIn",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "amountOut",
-        type: "uint256",
-      },
-    ],
-    name: "calcExpectedCollateralProtection",
-    outputs: [
-      {
-        internalType: "int256",
-        name: "",
-        type: "int256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "holder",
         type: "address",
       },
     ],
@@ -329,6 +259,24 @@ const _abi = [
       },
       {
         internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "checkAndEnableToken",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        internalType: "address",
         name: "tokenIn",
         type: "address",
       },
@@ -348,7 +296,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "checkSwapTokensAllowed",
+    name: "checkCollateralChange",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -380,6 +328,25 @@ const _abi = [
         internalType: "address",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+    ],
+    name: "enabledTokens",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -428,6 +395,19 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+    ],
+    name: "initEnabledTokens",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "token",
         type: "address",
       },
@@ -470,29 +450,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "borrowedAmount",
-        type: "uint256",
-      },
-    ],
-    name: "setCollateralProtection",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "underlyingToken",
     outputs: [
@@ -503,43 +460,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-    ],
-    name: "updateCPandGetHealthFactor",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "contributor",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-    ],
-    name: "updateCollateralProtection",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
 ];

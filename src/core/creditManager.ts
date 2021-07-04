@@ -1,20 +1,12 @@
-import { BigNumber, ethers } from "ethers";
-import { ICreditManager } from "../types";
-import { formatBN } from "../utils/formatter";
-import {
-  PERCENTAGE_FACTOR,
-  RAY,
-  UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
-} from "./constants";
-import {
-  CreditManagerDataPayload,
-  CreditManagerStatPayload,
-} from "../payload/creditManager";
+import {BigNumber} from "ethers";
+import {ICreditManager} from "../types";
+import {formatBN} from "../utils/formatter";
+import {PERCENTAGE_FACTOR, RAY, UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,} from "./constants";
+import {CreditManagerDataPayload, CreditManagerStatPayload,} from "../payload/creditManager";
 
 export class CreditManagerData {
   public readonly id: string;
   public readonly address: string;
-  public readonly kind: "trade" | "stable";
   public readonly underlyingToken: string;
   public readonly isWETH: boolean;
   public readonly canBorrow: boolean;
@@ -31,10 +23,6 @@ export class CreditManagerData {
     this.id = payload.addr;
     this.address = payload.addr;
 
-    const kind = payload.kind?.startsWith("0x")
-      ? ethers.utils.parseBytes32String(payload.kind)
-      : payload.kind;
-    this.kind = kind === "trade" ? "trade" : "stable";
     this.underlyingToken = payload.underlyingToken || "";
     this.isWETH = payload.isWETH || false;
     this.canBorrow = payload.canBorrow || false;
@@ -137,6 +125,7 @@ export function calcHealthFactorAfter(
 }
 
 export class CreditManagerStat extends CreditManagerData {
+  public readonly uniqueUsers: number;
   public readonly openedAccountsCount: number;
   public readonly totalOpenedAccounts: number;
   public readonly totalClosedAccounts: number;
@@ -150,6 +139,7 @@ export class CreditManagerStat extends CreditManagerData {
 
   constructor(payload: CreditManagerStatPayload) {
     super(payload);
+    this.uniqueUsers = payload.uniqueUsers;
     this.openedAccountsCount = payload.openedAccountsCount || 0;
     this.totalOpenedAccounts = payload.totalOpenedAccounts || 0;
     this.totalClosedAccounts = payload.totalClosedAccounts || 0;

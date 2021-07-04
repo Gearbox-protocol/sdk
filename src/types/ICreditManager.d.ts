@@ -22,6 +22,7 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface ICreditManagerInterface extends ethers.utils.Interface {
   functions: {
+    "addCollateral(address,address,uint256)": FunctionFragment;
     "calcRepayAmount(address,bool)": FunctionFragment;
     "closeCreditAccount(address,uint256)": FunctionFragment;
     "creditAccounts(address)": FunctionFragment;
@@ -30,7 +31,6 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     "getCreditAccountOrRevert(address)": FunctionFragment;
     "hasOpenedCreditAccount(address)": FunctionFragment;
     "increaseBorrowedAmount(uint256)": FunctionFragment;
-    "kind()": FunctionFragment;
     "liquidateCreditAccount(address,address)": FunctionFragment;
     "maxAmount()": FunctionFragment;
     "maxLeverageFactor()": FunctionFragment;
@@ -42,9 +42,12 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     "repayCreditAccountETH(address,address)": FunctionFragment;
     "setLimits(uint256,uint256)": FunctionFragment;
     "underlyingToken()": FunctionFragment;
-    "updateCollateralProtection(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "addCollateral",
+    values: [string, string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "calcRepayAmount",
     values: [string, boolean]
@@ -77,7 +80,6 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "increaseBorrowedAmount",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "kind", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount",
     values: [string, string]
@@ -116,11 +118,11 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "underlyingToken",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "updateCollateralProtection",
-    values: [string]
-  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "addCollateral",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "calcRepayAmount",
     data: BytesLike
@@ -153,7 +155,6 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "increaseBorrowedAmount",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "kind", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "liquidateCreditAccount",
     data: BytesLike
@@ -189,21 +190,23 @@ interface ICreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "underlyingToken",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateCollateralProtection",
-    data: BytesLike
-  ): Result;
 
   events: {
+    "AddCollateral(address,address,uint256)": EventFragment;
     "CloseCreditAccount(address,address,uint256)": EventFragment;
+    "IncreaseBorrowedAmount(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,uint256)": EventFragment;
+    "NewFees(uint256,uint256,uint256,uint256)": EventFragment;
     "NewLimits(uint256,uint256)": EventFragment;
     "OpenCreditAccount(address,address,address,uint256,uint256,uint256)": EventFragment;
     "RepayCreditAccount(address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AddCollateral"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CloseCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewFees"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewLimits"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RepayCreditAccount"): EventFragment;
@@ -223,6 +226,20 @@ export class ICreditManager extends Contract {
   interface: ICreditManagerInterface;
 
   functions: {
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "addCollateral(address,address,uint256)"(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
     calcRepayAmount(
       borrower: string,
       isLiquidated: boolean,
@@ -304,10 +321,6 @@ export class ICreditManager extends Contract {
       amount: BigNumberish,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
-
-    kind(overrides?: CallOverrides): Promise<[string]>;
-
-    "kind()"(overrides?: CallOverrides): Promise<[string]>;
 
     liquidateCreditAccount(
       borrower: string,
@@ -404,17 +417,21 @@ export class ICreditManager extends Contract {
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<[string]>;
-
-    updateCollateralProtection(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "updateCollateralProtection(address)"(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
   };
+
+  addCollateral(
+    onBehalfOf: string,
+    token: string,
+    amount: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "addCollateral(address,address,uint256)"(
+    onBehalfOf: string,
+    token: string,
+    amount: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
   calcRepayAmount(
     borrower: string,
@@ -494,10 +511,6 @@ export class ICreditManager extends Contract {
     amount: BigNumberish,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
-
-  kind(overrides?: CallOverrides): Promise<string>;
-
-  "kind()"(overrides?: CallOverrides): Promise<string>;
 
   liquidateCreditAccount(
     borrower: string,
@@ -595,17 +608,21 @@ export class ICreditManager extends Contract {
 
   "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
 
-  updateCollateralProtection(
-    borrower: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "updateCollateralProtection(address)"(
-    borrower: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   callStatic: {
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "addCollateral(address,address,uint256)"(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     calcRepayAmount(
       borrower: string,
       isLiquidated: boolean,
@@ -687,10 +704,6 @@ export class ICreditManager extends Contract {
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    kind(overrides?: CallOverrides): Promise<string>;
-
-    "kind()"(overrides?: CallOverrides): Promise<string>;
 
     liquidateCreditAccount(
       borrower: string,
@@ -784,29 +797,34 @@ export class ICreditManager extends Contract {
     underlyingToken(overrides?: CallOverrides): Promise<string>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
-    updateCollateralProtection(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "updateCollateralProtection(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
   filters: {
+    AddCollateral(
+      onBehalfOf: string | null,
+      token: string | null,
+      value: null
+    ): EventFilter;
+
     CloseCreditAccount(
       owner: string | null,
       to: string | null,
       remainingFunds: null
     ): EventFilter;
 
+    IncreaseBorrowedAmount(borrower: string | null, amount: null): EventFilter;
+
     LiquidateCreditAccount(
       owner: string | null,
       liquidator: string | null,
       remainingFunds: null
+    ): EventFilter;
+
+    NewFees(
+      feeSuccess: null,
+      feeInterest: null,
+      feeLiquidation: null,
+      liquidationDiscount: null
     ): EventFilter;
 
     NewLimits(minAmount: null, maxAmount: null): EventFilter;
@@ -820,10 +838,24 @@ export class ICreditManager extends Contract {
       referralCode: null
     ): EventFilter;
 
-    RepayCreditAccount(owner: string | null, to: null): EventFilter;
+    RepayCreditAccount(owner: string | null, to: string | null): EventFilter;
   };
 
   estimateGas: {
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "addCollateral(address,address,uint256)"(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
     calcRepayAmount(
       borrower: string,
       isLiquidated: boolean,
@@ -905,10 +937,6 @@ export class ICreditManager extends Contract {
       amount: BigNumberish,
       overrides?: Overrides
     ): Promise<BigNumber>;
-
-    kind(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "kind()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     liquidateCreditAccount(
       borrower: string,
@@ -1002,19 +1030,23 @@ export class ICreditManager extends Contract {
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateCollateralProtection(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "updateCollateralProtection(address)"(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "addCollateral(address,address,uint256)"(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
     calcRepayAmount(
       borrower: string,
       isLiquidated: boolean,
@@ -1096,10 +1128,6 @@ export class ICreditManager extends Contract {
       amount: BigNumberish,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
-
-    kind(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "kind()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     liquidateCreditAccount(
       borrower: string,
@@ -1199,16 +1227,6 @@ export class ICreditManager extends Contract {
 
     "underlyingToken()"(
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    updateCollateralProtection(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "updateCollateralProtection(address)"(
-      borrower: string,
-      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -21,5 +21,6 @@ export { abi as CREDIT_MANAGER_ABI } from "./abi/credit/CreditManager.sol/Credit
 export { abi as WETH_GATEWAY_ABI } from "./abi/core/WETHGateway.sol/WETHGateway.json";
 export { abi as TOKEN_ABI } from "./abi/mocks/tokens/ERC20Mock.sol/TokenMock.json";
 export { abi as CREDIT_ACCOUNT_DATA_ABI } from "./abi/interfaces/ICreditAccountData.sol/ICreditAccountData.json";
+export { abi as POOL_SERVICE_ABI } from "./abi/pool/PoolService.sol/PoolService.json";
 
 export * from "./types";

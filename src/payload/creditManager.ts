@@ -8,7 +8,6 @@ export interface AdapterPayload {
 export interface CreditManagerDataPayload {
   addr: string;
   hasAccount?: boolean;
-  kind?: string;
   underlyingToken?: string;
   isWETH?: boolean;
   canBorrow?: boolean;
@@ -23,7 +22,6 @@ export interface CreditManagerDataPayload {
 
 export interface CreditManagerStatPayload {
   addr: string;
-  kind?: string;
   underlyingToken?: string;
   isWETH?: boolean;
   canBorrow?: boolean;
@@ -34,6 +32,7 @@ export interface CreditManagerStatPayload {
   availableLiquidity?: BigNumberish;
   allowedTokens?: Array<string>;
   allowedContracts?: Array<string>;
+  uniqueUsers: number;
   openedAccountsCount?: number;
   totalOpenedAccounts?: number;
   totalClosedAccounts?: number;

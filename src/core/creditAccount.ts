@@ -1,4 +1,4 @@
-import {BigNumber, ethers} from "ethers";
+import {BigNumber} from "ethers";
 import {CreditAccountDataExtendedPayload, CreditAccountDataPayload,} from "../payload/creditAccount";
 import {PERCENTAGE_FACTOR, RAY} from "./constants";
 
@@ -9,7 +9,6 @@ export class CreditAccountData {
   public readonly borrower: string;
   public readonly inUse: boolean;
   public readonly creditManager: string;
-  public readonly kind: string;
   public readonly underlyingToken: string;
   public readonly borrowedAmountPlusInterest: BigNumber;
   public readonly totalValue: BigNumber;
@@ -23,7 +22,6 @@ export class CreditAccountData {
     this.borrower = payload.borrower;
     this.inUse = payload.inUse;
     this.creditManager = payload.creditManager;
-    this.kind = payload.kind.startsWith("0x") ? ethers.utils.parseBytes32String(payload.kind) : payload.kind;
     this.underlyingToken = payload.underlyingToken;
     this.borrowedAmountPlusInterest = BigNumber.from(
       payload.borrowedAmountPlusInterest

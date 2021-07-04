@@ -23,6 +23,7 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 interface AccountFactoryInterface extends ethers.utils.Interface {
   functions: {
     "accountMiner()": FunctionFragment;
+    "addCreditAccount()": FunctionFragment;
     "connectMiner()": FunctionFragment;
     "countCreditAccounts()": FunctionFragment;
     "countCreditAccountsInStock()": FunctionFragment;
@@ -39,6 +40,10 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
 
   encodeFunctionData(
     functionFragment: "accountMiner",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addCreditAccount",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -74,6 +79,10 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "accountMiner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addCreditAccount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -142,6 +151,10 @@ export class AccountFactory extends Contract {
 
     "accountMiner()"(overrides?: CallOverrides): Promise<[string]>;
 
+    addCreditAccount(overrides?: Overrides): Promise<ContractTransaction>;
+
+    "addCreditAccount()"(overrides?: Overrides): Promise<ContractTransaction>;
+
     connectMiner(overrides?: Overrides): Promise<ContractTransaction>;
 
     "connectMiner()"(overrides?: Overrides): Promise<ContractTransaction>;
@@ -203,12 +216,12 @@ export class AccountFactory extends Contract {
     "tail()"(overrides?: CallOverrides): Promise<[string]>;
 
     takeCreditAccount(
-      trader: string,
+      borrower: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
     "takeCreditAccount(address)"(
-      trader: string,
+      borrower: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
@@ -220,6 +233,10 @@ export class AccountFactory extends Contract {
   accountMiner(overrides?: CallOverrides): Promise<string>;
 
   "accountMiner()"(overrides?: CallOverrides): Promise<string>;
+
+  addCreditAccount(overrides?: Overrides): Promise<ContractTransaction>;
+
+  "addCreditAccount()"(overrides?: Overrides): Promise<ContractTransaction>;
 
   connectMiner(overrides?: Overrides): Promise<ContractTransaction>;
 
@@ -277,12 +294,12 @@ export class AccountFactory extends Contract {
   "tail()"(overrides?: CallOverrides): Promise<string>;
 
   takeCreditAccount(
-    trader: string,
+    borrower: string,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
   "takeCreditAccount(address)"(
-    trader: string,
+    borrower: string,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
@@ -294,6 +311,10 @@ export class AccountFactory extends Contract {
     accountMiner(overrides?: CallOverrides): Promise<string>;
 
     "accountMiner()"(overrides?: CallOverrides): Promise<string>;
+
+    addCreditAccount(overrides?: CallOverrides): Promise<void>;
+
+    "addCreditAccount()"(overrides?: CallOverrides): Promise<void>;
 
     connectMiner(overrides?: CallOverrides): Promise<void>;
 
@@ -353,12 +374,12 @@ export class AccountFactory extends Contract {
     "tail()"(overrides?: CallOverrides): Promise<string>;
 
     takeCreditAccount(
-      trader: string,
+      borrower: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
     "takeCreditAccount(address)"(
-      trader: string,
+      borrower: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -388,6 +409,10 @@ export class AccountFactory extends Contract {
     accountMiner(overrides?: CallOverrides): Promise<BigNumber>;
 
     "accountMiner()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    addCreditAccount(overrides?: Overrides): Promise<BigNumber>;
+
+    "addCreditAccount()"(overrides?: Overrides): Promise<BigNumber>;
 
     connectMiner(overrides?: Overrides): Promise<BigNumber>;
 
@@ -450,12 +475,12 @@ export class AccountFactory extends Contract {
     "tail()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     takeCreditAccount(
-      trader: string,
+      borrower: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
     "takeCreditAccount(address)"(
-      trader: string,
+      borrower: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
@@ -468,6 +493,10 @@ export class AccountFactory extends Contract {
     accountMiner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "accountMiner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    addCreditAccount(overrides?: Overrides): Promise<PopulatedTransaction>;
+
+    "addCreditAccount()"(overrides?: Overrides): Promise<PopulatedTransaction>;
 
     connectMiner(overrides?: Overrides): Promise<PopulatedTransaction>;
 
@@ -536,12 +565,12 @@ export class AccountFactory extends Contract {
     "tail()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     takeCreditAccount(
-      trader: string,
+      borrower: string,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     "takeCreditAccount(address)"(
-      trader: string,
+      borrower: string,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 

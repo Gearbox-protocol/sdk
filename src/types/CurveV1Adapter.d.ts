@@ -24,9 +24,8 @@ interface CurveV1AdapterInterface extends ethers.utils.Interface {
   functions: {
     "creditFilter()": FunctionFragment;
     "creditManager()": FunctionFragment;
-    "curveExchange(address,address,uint256,uint256)": FunctionFragment;
     "curvePoolAddress()": FunctionFragment;
-    "tokenIndexes(address)": FunctionFragment;
+    "exchange(int128,int128,uint256,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -38,16 +37,12 @@ interface CurveV1AdapterInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "curveExchange",
-    values: [string, string, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "curvePoolAddress",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "tokenIndexes",
-    values: [string]
+    functionFragment: "exchange",
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -59,17 +54,10 @@ interface CurveV1AdapterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "curveExchange",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "curvePoolAddress",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenIndexes",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "exchange", data: BytesLike): Result;
 
   events: {};
 }
@@ -96,32 +84,25 @@ export class CurveV1Adapter extends Contract {
 
     "creditManager()"(overrides?: CallOverrides): Promise<[string]>;
 
-    curveExchange(
-      tokenOut: string,
-      tokenIn: string,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "curveExchange(address,address,uint256,uint256)"(
-      tokenOut: string,
-      tokenIn: string,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
     curvePoolAddress(overrides?: CallOverrides): Promise<[string]>;
 
     "curvePoolAddress()"(overrides?: CallOverrides): Promise<[string]>;
 
-    tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    exchange(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
-    "tokenIndexes(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    "exchange(int128,int128,uint256,uint256)"(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
   };
 
   creditFilter(overrides?: CallOverrides): Promise<string>;
@@ -132,32 +113,25 @@ export class CurveV1Adapter extends Contract {
 
   "creditManager()"(overrides?: CallOverrides): Promise<string>;
 
-  curveExchange(
-    tokenOut: string,
-    tokenIn: string,
-    dx: BigNumberish,
-    min_dy: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "curveExchange(address,address,uint256,uint256)"(
-    tokenOut: string,
-    tokenIn: string,
-    dx: BigNumberish,
-    min_dy: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   curvePoolAddress(overrides?: CallOverrides): Promise<string>;
 
   "curvePoolAddress()"(overrides?: CallOverrides): Promise<string>;
 
-  tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+  exchange(
+    i: BigNumberish,
+    j: BigNumberish,
+    dx: BigNumberish,
+    min_dy: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
-  "tokenIndexes(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  "exchange(int128,int128,uint256,uint256)"(
+    i: BigNumberish,
+    j: BigNumberish,
+    dx: BigNumberish,
+    min_dy: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     creditFilter(overrides?: CallOverrides): Promise<string>;
@@ -168,32 +142,25 @@ export class CurveV1Adapter extends Contract {
 
     "creditManager()"(overrides?: CallOverrides): Promise<string>;
 
-    curveExchange(
-      tokenOut: string,
-      tokenIn: string,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "curveExchange(address,address,uint256,uint256)"(
-      tokenOut: string,
-      tokenIn: string,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     curvePoolAddress(overrides?: CallOverrides): Promise<string>;
 
     "curvePoolAddress()"(overrides?: CallOverrides): Promise<string>;
 
-    tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "tokenIndexes(address)"(
-      arg0: string,
+    exchange(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
+
+    "exchange(int128,int128,uint256,uint256)"(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
   filters: {};
@@ -207,31 +174,24 @@ export class CurveV1Adapter extends Contract {
 
     "creditManager()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    curveExchange(
-      tokenOut: string,
-      tokenIn: string,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "curveExchange(address,address,uint256,uint256)"(
-      tokenOut: string,
-      tokenIn: string,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
     curvePoolAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     "curvePoolAddress()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    exchange(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
 
-    "tokenIndexes(address)"(
-      arg0: string,
-      overrides?: CallOverrides
+    "exchange(int128,int128,uint256,uint256)"(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides
     ): Promise<BigNumber>;
   };
 
@@ -244,36 +204,26 @@ export class CurveV1Adapter extends Contract {
 
     "creditManager()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    curveExchange(
-      tokenOut: string,
-      tokenIn: string,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "curveExchange(address,address,uint256,uint256)"(
-      tokenOut: string,
-      tokenIn: string,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
     curvePoolAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "curvePoolAddress()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    tokenIndexes(
-      arg0: string,
-      overrides?: CallOverrides
+    exchange(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "tokenIndexes(address)"(
-      arg0: string,
-      overrides?: CallOverrides
+    "exchange(int128,int128,uint256,uint256)"(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -23,6 +23,31 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "onBehalfOf",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "AddCollateral",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "owner",
         type: "address",
       },
@@ -48,6 +73,25 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "borrower",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "IncreaseBorrowedAmount",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "owner",
         type: "address",
       },
@@ -65,6 +109,37 @@ const _abi = [
       },
     ],
     name: "LiquidateCreditAccount",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "feeSuccess",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "feeInterest",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "feeLiquidation",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "liquidationDiscount",
+        type: "uint256",
+      },
+    ],
+    name: "NewFees",
     type: "event",
   },
   {
@@ -139,7 +214,7 @@ const _abi = [
         type: "address",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "to",
         type: "address",
@@ -147,6 +222,29 @@ const _abi = [
     ],
     name: "RepayCreditAccount",
     type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "onBehalfOf",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "addCollateral",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
     inputs: [
@@ -300,19 +398,6 @@ const _abi = [
     name: "increaseBorrowedAmount",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "kind",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "pure",
     type: "function",
   },
   {
@@ -502,19 +587,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-    ],
-    name: "updateCollateralProtection",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
 ];

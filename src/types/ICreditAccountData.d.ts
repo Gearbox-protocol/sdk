@@ -70,7 +70,6 @@ export class ICreditAccountData extends Contract {
           boolean,
           string,
           string,
-          string,
           BigNumber,
           BigNumber,
           BigNumber,
@@ -86,7 +85,6 @@ export class ICreditAccountData extends Contract {
           borrower: string;
           inUse: boolean;
           creditManager: string;
-          kind: string;
           underlyingToken: string;
           borrowedAmountPlusInterest: BigNumber;
           totalValue: BigNumber;
@@ -115,7 +113,6 @@ export class ICreditAccountData extends Contract {
           boolean,
           string,
           string,
-          string,
           BigNumber,
           BigNumber,
           BigNumber,
@@ -131,7 +128,6 @@ export class ICreditAccountData extends Contract {
           borrower: string;
           inUse: boolean;
           creditManager: string;
-          kind: string;
           underlyingToken: string;
           borrowedAmountPlusInterest: BigNumber;
           totalValue: BigNumber;
@@ -158,7 +154,6 @@ export class ICreditAccountData extends Contract {
           string,
           boolean,
           string,
-          string,
           boolean,
           boolean,
           BigNumber,
@@ -171,7 +166,6 @@ export class ICreditAccountData extends Contract {
         ] & {
           addr: string;
           hasAccount: boolean;
-          kind: string;
           underlyingToken: string;
           isWETH: boolean;
           canBorrow: boolean;
@@ -197,7 +191,6 @@ export class ICreditAccountData extends Contract {
           string,
           boolean,
           string,
-          string,
           boolean,
           boolean,
           BigNumber,
@@ -210,7 +203,6 @@ export class ICreditAccountData extends Contract {
         ] & {
           addr: string;
           hasAccount: boolean;
-          kind: string;
           underlyingToken: string;
           isWETH: boolean;
           canBorrow: boolean;
@@ -238,7 +230,6 @@ export class ICreditAccountData extends Contract {
       boolean,
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -254,7 +245,6 @@ export class ICreditAccountData extends Contract {
       borrower: string;
       inUse: boolean;
       creditManager: string;
-      kind: string;
       underlyingToken: string;
       borrowedAmountPlusInterest: BigNumber;
       totalValue: BigNumber;
@@ -278,7 +268,6 @@ export class ICreditAccountData extends Contract {
       boolean,
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -294,7 +283,6 @@ export class ICreditAccountData extends Contract {
       borrower: string;
       inUse: boolean;
       creditManager: string;
-      kind: string;
       underlyingToken: string;
       borrowedAmountPlusInterest: BigNumber;
       totalValue: BigNumber;
@@ -316,7 +304,6 @@ export class ICreditAccountData extends Contract {
       string,
       boolean,
       string,
-      string,
       boolean,
       boolean,
       BigNumber,
@@ -329,7 +316,6 @@ export class ICreditAccountData extends Contract {
     ] & {
       addr: string;
       hasAccount: boolean;
-      kind: string;
       underlyingToken: string;
       isWETH: boolean;
       canBorrow: boolean;
@@ -353,7 +339,6 @@ export class ICreditAccountData extends Contract {
       string,
       boolean,
       string,
-      string,
       boolean,
       boolean,
       BigNumber,
@@ -366,7 +351,6 @@ export class ICreditAccountData extends Contract {
     ] & {
       addr: string;
       hasAccount: boolean;
-      kind: string;
       underlyingToken: string;
       isWETH: boolean;
       canBorrow: boolean;
@@ -393,7 +377,6 @@ export class ICreditAccountData extends Contract {
         boolean,
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -409,7 +392,6 @@ export class ICreditAccountData extends Contract {
         borrower: string;
         inUse: boolean;
         creditManager: string;
-        kind: string;
         underlyingToken: string;
         borrowedAmountPlusInterest: BigNumber;
         totalValue: BigNumber;
@@ -436,7 +418,6 @@ export class ICreditAccountData extends Contract {
         boolean,
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -452,7 +433,6 @@ export class ICreditAccountData extends Contract {
         borrower: string;
         inUse: boolean;
         creditManager: string;
-        kind: string;
         underlyingToken: string;
         borrowedAmountPlusInterest: BigNumber;
         totalValue: BigNumber;
@@ -477,7 +457,6 @@ export class ICreditAccountData extends Contract {
         string,
         boolean,
         string,
-        string,
         boolean,
         boolean,
         BigNumber,
@@ -490,7 +469,6 @@ export class ICreditAccountData extends Contract {
       ] & {
         addr: string;
         hasAccount: boolean;
-        kind: string;
         underlyingToken: string;
         isWETH: boolean;
         canBorrow: boolean;
@@ -514,7 +492,6 @@ export class ICreditAccountData extends Contract {
         string,
         boolean,
         string,
-        string,
         boolean,
         boolean,
         BigNumber,
@@ -527,7 +504,6 @@ export class ICreditAccountData extends Contract {
       ] & {
         addr: string;
         hasAccount: boolean;
-        kind: string;
         underlyingToken: string;
         isWETH: boolean;
         canBorrow: boolean;

@@ -52,39 +52,39 @@ export class IInterestRateModel extends Contract {
 
   functions: {
     calcBorrowRate(
-      totalLiquidity: BigNumberish,
+      expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     "calcBorrowRate(uint256,uint256)"(
-      totalLiquidity: BigNumberish,
+      expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
 
   calcBorrowRate(
-    totalLiquidity: BigNumberish,
+    expectedLiquidity: BigNumberish,
     availableLiquidity: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "calcBorrowRate(uint256,uint256)"(
-    totalLiquidity: BigNumberish,
+    expectedLiquidity: BigNumberish,
     availableLiquidity: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   callStatic: {
     calcBorrowRate(
-      totalLiquidity: BigNumberish,
+      expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "calcBorrowRate(uint256,uint256)"(
-      totalLiquidity: BigNumberish,
+      expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -94,13 +94,13 @@ export class IInterestRateModel extends Contract {
 
   estimateGas: {
     calcBorrowRate(
-      totalLiquidity: BigNumberish,
+      expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "calcBorrowRate(uint256,uint256)"(
-      totalLiquidity: BigNumberish,
+      expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -108,13 +108,13 @@ export class IInterestRateModel extends Contract {
 
   populateTransaction: {
     calcBorrowRate(
-      totalLiquidity: BigNumberish,
+      expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "calcBorrowRate(uint256,uint256)"(
-      totalLiquidity: BigNumberish,
+      expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

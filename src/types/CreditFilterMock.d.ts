@@ -34,6 +34,7 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
     "calcCreditAccountHealthFactor(address)": FunctionFragment;
     "calcThresholdWeightedValue(address)": FunctionFragment;
     "calcTotalValue(address)": FunctionFragment;
+    "checkAndEnableToken(address,address)": FunctionFragment;
     "checkCollateralChange(address,address,address,uint256,uint256)": FunctionFragment;
     "chiThreshold()": FunctionFragment;
     "connectCreditManager(address)": FunctionFragment;
@@ -107,6 +108,10 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calcTotalValue",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "checkAndEnableToken",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "checkCollateralChange",
@@ -239,6 +244,10 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "calcTotalValue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "checkAndEnableToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -469,6 +478,18 @@ export class CreditFilterMock extends Contract {
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { total: BigNumber }>;
+
+    checkAndEnableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "checkAndEnableToken(address,address)"(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
     checkCollateralChange(
       creditAccount: string,
@@ -790,6 +811,18 @@ export class CreditFilterMock extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  checkAndEnableToken(
+    creditAccount: string,
+    token: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "checkAndEnableToken(address,address)"(
+    creditAccount: string,
+    token: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
   checkCollateralChange(
     creditAccount: string,
     tokenIn: string,
@@ -1100,6 +1133,18 @@ export class CreditFilterMock extends Contract {
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    checkAndEnableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "checkAndEnableToken(address,address)"(
+      creditAccount: string,
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     checkCollateralChange(
       creditAccount: string,
@@ -1434,6 +1479,18 @@ export class CreditFilterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    checkAndEnableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "checkAndEnableToken(address,address)"(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
     checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
@@ -1747,6 +1804,18 @@ export class CreditFilterMock extends Contract {
     "calcTotalValue(address)"(
       creditAccount: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    checkAndEnableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "checkAndEnableToken(address,address)"(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     checkCollateralChange(

@@ -10,7 +10,6 @@ export interface CreditAccountDataPayload {
   borrower: string;
   inUse: boolean;
   creditManager: string;
-  kind: string;
   underlyingToken: string;
   borrowedAmountPlusInterest: BigNumberish;
   totalValue: BigNumberish;

@@ -24,6 +24,7 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "ACL_ADMIN_IS_ALREADY_ADDED()": FunctionFragment;
     "ACL_CALLER_NOT_CONFIGURATOR()": FunctionFragment;
     "ACL_CALLER_NOT_PAUSABLE_ADMIN()": FunctionFragment;
+    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()": FunctionFragment;
     "AF_CANT_TAKE_LAST_ACCOUNT()": FunctionFragment;
     "AM_ACCOUNT_FACTORY_ALREADY_EXISTS()": FunctionFragment;
     "AM_ACCOUNT_FACTORY_ONLY()": FunctionFragment;
@@ -32,25 +33,31 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "AM_USER_ALREADY_HAS_BID()": FunctionFragment;
     "AM_USER_HAS_NO_BIDS()": FunctionFragment;
     "AS_ADDRESS_NOT_FOUND()": FunctionFragment;
+    "CA_CREDIT_MANAGER_ONLY()": FunctionFragment;
     "CF_ADAPTERS_ONLY()": FunctionFragment;
     "CF_CREDIT_MANAGERS_ONLY()": FunctionFragment;
-    "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS()": FunctionFragment;
-    "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()": FunctionFragment;
-    "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()": FunctionFragment;
-    "CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()": FunctionFragment;
-    "CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()": FunctionFragment;
-    "CREDIT_MANAGER_INCORRECT_AMOUNT()": FunctionFragment;
-    "CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR()": FunctionFragment;
-    "CREDIT_MANAGER_INCORRECT_LIMITS()": FunctionFragment;
-    "CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH()": FunctionFragment;
-    "CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()": FunctionFragment;
-    "CREDIT_MANAGER_NO_OPEN_ACCOUNT()": FunctionFragment;
-    "CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED()": FunctionFragment;
-    "CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL()": FunctionFragment;
-    "CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT()": FunctionFragment;
-    "CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK()": FunctionFragment;
-    "CREDIT_MANAGER_WETH_GATEWAY_ONLY()": FunctionFragment;
-    "CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()": FunctionFragment;
+    "CF_INCORRECT_CHI_THRESHOLD()": FunctionFragment;
+    "CF_INCORRECT_LIQUIDATION_THRESHOLD()": FunctionFragment;
+    "CF_OPERATION_LOW_HEALTH_FACTOR()": FunctionFragment;
+    "CF_TOKEN_IS_NOT_ALLOWED()": FunctionFragment;
+    "CF_TOO_MUCH_ALLOWED_TOKENS()": FunctionFragment;
+    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()": FunctionFragment;
+    "CM_CANT_CLOSE_WITH_LOSS()": FunctionFragment;
+    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()": FunctionFragment;
+    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()": FunctionFragment;
+    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()": FunctionFragment;
+    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()": FunctionFragment;
+    "CM_INCORRECT_AMOUNT()": FunctionFragment;
+    "CM_INCORRECT_FEES()": FunctionFragment;
+    "CM_INCORRECT_LEVERAGE_FACTOR()": FunctionFragment;
+    "CM_INCORRECT_LIMITS()": FunctionFragment;
+    "CM_MAX_LEVERAGE_IS_TOO_HIGH()": FunctionFragment;
+    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()": FunctionFragment;
+    "CM_NO_OPEN_ACCOUNT()": FunctionFragment;
+    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()": FunctionFragment;
+    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()": FunctionFragment;
+    "CM_WETH_GATEWAY_ONLY()": FunctionFragment;
+    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()": FunctionFragment;
     "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY()": FunctionFragment;
     "CR_POOL_ALREADY_ADDED()": FunctionFragment;
     "CR_VA_MANAGER_ALREADY_ADDED()": FunctionFragment;
@@ -58,18 +65,12 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "MATH_ADDITION_OVERFLOW()": FunctionFragment;
     "MATH_DIVISION_BY_ZERO()": FunctionFragment;
     "MATH_MULTIPLICATION_OVERFLOW()": FunctionFragment;
-    "POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER()": FunctionFragment;
+    "POOL_CREDIT_MANAGERS_ONLY()": FunctionFragment;
+    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()": FunctionFragment;
     "POOL_INCORRECT_WITHDRAW_FEE()": FunctionFragment;
     "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT()": FunctionFragment;
-    "POOL_VIRTUAL_MANAGERS_ONLY()": FunctionFragment;
     "PO_PRICE_FEED_DOESNT_EXIST()": FunctionFragment;
     "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()": FunctionFragment;
-    "VA_VIRUAL_ACCOUNT_MANAGERS_ONLY()": FunctionFragment;
-    "VF_CONTRACT_IS_ALREADY_ALLOWED()": FunctionFragment;
-    "VF_CONTRACT_IS_NOT_ALLOWED()": FunctionFragment;
-    "VF_INCORRECT_LIQUIDATION_THRESHOLD()": FunctionFragment;
-    "VF_TOKEN_IS_ALREADY_ALLOWED()": FunctionFragment;
-    "VF_TOKEN_IS_NOT_ALLOWED()": FunctionFragment;
     "WG_DESTINATION_IS_NOT_CREDIT_MANAGER()": FunctionFragment;
     "WG_DESTINATION_IS_NOT_POOL()": FunctionFragment;
     "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE()": FunctionFragment;
@@ -88,6 +89,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "ACL_CALLER_NOT_PAUSABLE_ADMIN",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -123,6 +128,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "CA_CREDIT_MANAGER_ONLY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "CF_ADAPTERS_ONLY",
     values?: undefined
   ): string;
@@ -131,71 +140,91 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS",
+    functionFragment: "CF_INCORRECT_CHI_THRESHOLD",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL",
+    functionFragment: "CF_INCORRECT_LIQUIDATION_THRESHOLD",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR",
+    functionFragment: "CF_OPERATION_LOW_HEALTH_FACTOR",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR",
+    functionFragment: "CF_TOKEN_IS_NOT_ALLOWED",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED",
+    functionFragment: "CF_TOO_MUCH_ALLOWED_TOKENS",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_INCORRECT_AMOUNT",
+    functionFragment: "CF_UNDERLYING_TOKEN_FILTER_CONFLICT",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR",
+    functionFragment: "CM_CANT_CLOSE_WITH_LOSS",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_INCORRECT_LIMITS",
+    functionFragment: "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH",
+    functionFragment: "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN",
+    functionFragment: "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_NO_OPEN_ACCOUNT",
+    functionFragment: "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED",
+    functionFragment: "CM_INCORRECT_AMOUNT",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL",
+    functionFragment: "CM_INCORRECT_FEES",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT",
+    functionFragment: "CM_INCORRECT_LEVERAGE_FACTOR",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK",
+    functionFragment: "CM_INCORRECT_LIMITS",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_WETH_GATEWAY_ONLY",
+    functionFragment: "CM_MAX_LEVERAGE_IS_TOO_HIGH",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT",
+    functionFragment: "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CM_NO_OPEN_ACCOUNT",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CM_SWAP_CONTRACT_IS_NOT_ALLOWED",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CM_WETH_GATEWAY_ONLY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -227,7 +256,11 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER",
+    functionFragment: "POOL_CREDIT_MANAGERS_ONLY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -239,39 +272,11 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "POOL_VIRTUAL_MANAGERS_ONLY",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "PO_PRICE_FEED_DOESNT_EXIST",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "VA_VIRUAL_ACCOUNT_MANAGERS_ONLY",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "VF_CONTRACT_IS_ALREADY_ALLOWED",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "VF_CONTRACT_IS_NOT_ALLOWED",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "VF_INCORRECT_LIQUIDATION_THRESHOLD",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "VF_TOKEN_IS_ALREADY_ALLOWED",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "VF_TOKEN_IS_NOT_ALLOWED",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -312,6 +317,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "AF_CANT_TAKE_LAST_ACCOUNT",
     data: BytesLike
   ): Result;
@@ -344,6 +353,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "CA_CREDIT_MANAGER_ONLY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "CF_ADAPTERS_ONLY",
     data: BytesLike
   ): Result;
@@ -352,71 +365,91 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS",
+    functionFragment: "CF_INCORRECT_CHI_THRESHOLD",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL",
+    functionFragment: "CF_INCORRECT_LIQUIDATION_THRESHOLD",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR",
+    functionFragment: "CF_OPERATION_LOW_HEALTH_FACTOR",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR",
+    functionFragment: "CF_TOKEN_IS_NOT_ALLOWED",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED",
+    functionFragment: "CF_TOO_MUCH_ALLOWED_TOKENS",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_INCORRECT_AMOUNT",
+    functionFragment: "CF_UNDERLYING_TOKEN_FILTER_CONFLICT",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR",
+    functionFragment: "CM_CANT_CLOSE_WITH_LOSS",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_INCORRECT_LIMITS",
+    functionFragment: "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH",
+    functionFragment: "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN",
+    functionFragment: "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_NO_OPEN_ACCOUNT",
+    functionFragment: "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED",
+    functionFragment: "CM_INCORRECT_AMOUNT",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL",
+    functionFragment: "CM_INCORRECT_FEES",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT",
+    functionFragment: "CM_INCORRECT_LEVERAGE_FACTOR",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK",
+    functionFragment: "CM_INCORRECT_LIMITS",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_WETH_GATEWAY_ONLY",
+    functionFragment: "CM_MAX_LEVERAGE_IS_TOO_HIGH",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT",
+    functionFragment: "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CM_NO_OPEN_ACCOUNT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CM_SWAP_CONTRACT_IS_NOT_ALLOWED",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CM_WETH_GATEWAY_ONLY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -448,7 +481,11 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER",
+    functionFragment: "POOL_CREDIT_MANAGERS_ONLY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -460,39 +497,11 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "POOL_VIRTUAL_MANAGERS_ONLY",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "PO_PRICE_FEED_DOESNT_EXIST",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "VA_VIRUAL_ACCOUNT_MANAGERS_ONLY",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "VF_CONTRACT_IS_ALREADY_ALLOWED",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "VF_CONTRACT_IS_NOT_ALLOWED",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "VF_INCORRECT_LIQUIDATION_THRESHOLD",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "VF_TOKEN_IS_ALREADY_ALLOWED",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "VF_TOKEN_IS_NOT_ALLOWED",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -555,6 +564,14 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<[string]>;
 
     "AF_CANT_TAKE_LAST_ACCOUNT()"(overrides?: CallOverrides): Promise<[string]>;
@@ -591,6 +608,10 @@ export class Errors extends Contract {
 
     "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<[string]>;
 
+    CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<[string]>;
+
+    "CA_CREDIT_MANAGER_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
+
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
     "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
@@ -599,139 +620,143 @@ export class Errors extends Contract {
 
     "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
 
-    CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
+    CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<[string]>;
+
+    "CF_INCORRECT_CHI_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS()"(
+    CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
+    "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
+    CF_OPERATION_LOW_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
+    "CF_OPERATION_LOW_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
+    CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<[string]>;
+
+    "CF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CF_TOO_MUCH_ALLOWED_TOKENS(overrides?: CallOverrides): Promise<[string]>;
+
+    "CF_TOO_MUCH_ALLOWED_TOKENS()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
+    CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
+    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
+    CM_CANT_CLOSE_WITH_LOSS(overrides?: CallOverrides): Promise<[string]>;
+
+    "CM_CANT_CLOSE_WITH_LOSS()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
+    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_INCORRECT_AMOUNT(
+    CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_INCORRECT_AMOUNT()"(
+    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR(
+    CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR()"(
+    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_INCORRECT_LIMITS(
+    CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_INCORRECT_LIMITS()"(
+    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH(
+    CM_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<[string]>;
+
+    "CM_INCORRECT_AMOUNT()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<[string]>;
+
+    "CM_INCORRECT_FEES()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CM_INCORRECT_LEVERAGE_FACTOR(overrides?: CallOverrides): Promise<[string]>;
+
+    "CM_INCORRECT_LEVERAGE_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH()"(
+    CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<[string]>;
+
+    "CM_INCORRECT_LIMITS()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<[string]>;
+
+    "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
+    CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
+    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_NO_OPEN_ACCOUNT(
+    CM_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<[string]>;
+
+    "CM_NO_OPEN_ACCOUNT()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CM_SWAP_CONTRACT_IS_NOT_ALLOWED(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_NO_OPEN_ACCOUNT()"(
+    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED(
+    CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
+    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL(
+    CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<[string]>;
+
+    "CM_WETH_GATEWAY_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
+
+    CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    CREDIT_MANAGER_WETH_GATEWAY_ONLY(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CREDIT_MANAGER_WETH_GATEWAY_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
+    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -775,11 +800,15 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER(
+    POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
+
+    "POOL_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
+
+    POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER()"(
+    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -797,12 +826,6 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    POOL_VIRTUAL_MANAGERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
-
-    "POOL_VIRTUAL_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     PO_PRICE_FEED_DOESNT_EXIST(overrides?: CallOverrides): Promise<[string]>;
 
     "PO_PRICE_FEED_DOESNT_EXIST()"(
@@ -816,46 +839,6 @@ export class Errors extends Contract {
     "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    VA_VIRUAL_ACCOUNT_MANAGERS_ONLY(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "VA_VIRUAL_ACCOUNT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    VF_CONTRACT_IS_ALREADY_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "VF_CONTRACT_IS_ALREADY_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    VF_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<[string]>;
-
-    "VF_CONTRACT_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    VF_INCORRECT_LIQUIDATION_THRESHOLD(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "VF_INCORRECT_LIQUIDATION_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    VF_TOKEN_IS_ALREADY_ALLOWED(overrides?: CallOverrides): Promise<[string]>;
-
-    "VF_TOKEN_IS_ALREADY_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    VF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<[string]>;
-
-    "VF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<[string]>;
 
     WG_DESTINATION_IS_NOT_CREDIT_MANAGER(
       overrides?: CallOverrides
@@ -908,6 +891,14 @@ export class Errors extends Contract {
 
   "ACL_CALLER_NOT_PAUSABLE_ADMIN()"(overrides?: CallOverrides): Promise<string>;
 
+  AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<string>;
 
   "AF_CANT_TAKE_LAST_ACCOUNT()"(overrides?: CallOverrides): Promise<string>;
@@ -942,6 +933,10 @@ export class Errors extends Contract {
 
   "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<string>;
 
+  CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<string>;
+
+  "CA_CREDIT_MANAGER_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
   CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<string>;
 
   "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
@@ -950,131 +945,131 @@ export class Errors extends Contract {
 
   "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
-  CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
+  CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<string>;
+
+  "CF_INCORRECT_CHI_THRESHOLD()"(overrides?: CallOverrides): Promise<string>;
+
+  CF_INCORRECT_LIQUIDATION_THRESHOLD(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS()"(
+  "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
+  CF_OPERATION_LOW_HEALTH_FACTOR(overrides?: CallOverrides): Promise<string>;
+
+  "CF_OPERATION_LOW_HEALTH_FACTOR()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
+  CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
+
+  "CF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
+
+  CF_TOO_MUCH_ALLOWED_TOKENS(overrides?: CallOverrides): Promise<string>;
+
+  "CF_TOO_MUCH_ALLOWED_TOKENS()"(overrides?: CallOverrides): Promise<string>;
+
+  CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
+  "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
+  CM_CANT_CLOSE_WITH_LOSS(overrides?: CallOverrides): Promise<string>;
+
+  "CM_CANT_CLOSE_WITH_LOSS()"(overrides?: CallOverrides): Promise<string>;
+
+  CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
+  "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
+  CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
+  "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
+  CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<string>;
-
-  "CREDIT_MANAGER_INCORRECT_AMOUNT()"(
+  "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR(
+  CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR()"(
+  "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<string>;
+  CM_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<string>;
 
-  "CREDIT_MANAGER_INCORRECT_LIMITS()"(
+  "CM_INCORRECT_AMOUNT()"(overrides?: CallOverrides): Promise<string>;
+
+  CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<string>;
+
+  "CM_INCORRECT_FEES()"(overrides?: CallOverrides): Promise<string>;
+
+  CM_INCORRECT_LEVERAGE_FACTOR(overrides?: CallOverrides): Promise<string>;
+
+  "CM_INCORRECT_LEVERAGE_FACTOR()"(overrides?: CallOverrides): Promise<string>;
+
+  CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<string>;
+
+  "CM_INCORRECT_LIMITS()"(overrides?: CallOverrides): Promise<string>;
+
+  CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<string>;
+
+  "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(overrides?: CallOverrides): Promise<string>;
+
+  CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH(
+  "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH()"(
+  CM_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<string>;
+
+  "CM_NO_OPEN_ACCOUNT()"(overrides?: CallOverrides): Promise<string>;
+
+  CM_SWAP_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
+
+  "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
+  CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
+  "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<string>;
+  CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<string>;
 
-  "CREDIT_MANAGER_NO_OPEN_ACCOUNT()"(
+  "CM_WETH_GATEWAY_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
+  CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  CREDIT_MANAGER_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<string>;
-
-  "CREDIT_MANAGER_WETH_GATEWAY_ONLY()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
+  "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -1114,11 +1109,15 @@ export class Errors extends Contract {
 
   "MATH_MULTIPLICATION_OVERFLOW()"(overrides?: CallOverrides): Promise<string>;
 
-  POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER(
+  POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+  "POOL_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
+  POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER()"(
+  "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -1134,10 +1133,6 @@ export class Errors extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  POOL_VIRTUAL_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
-
-  "POOL_VIRTUAL_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
-
   PO_PRICE_FEED_DOESNT_EXIST(overrides?: CallOverrides): Promise<string>;
 
   "PO_PRICE_FEED_DOESNT_EXIST()"(overrides?: CallOverrides): Promise<string>;
@@ -1149,38 +1144,6 @@ export class Errors extends Contract {
   "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
     overrides?: CallOverrides
   ): Promise<string>;
-
-  VA_VIRUAL_ACCOUNT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
-
-  "VA_VIRUAL_ACCOUNT_MANAGERS_ONLY()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  VF_CONTRACT_IS_ALREADY_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-  "VF_CONTRACT_IS_ALREADY_ALLOWED()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  VF_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-  "VF_CONTRACT_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
-
-  VF_INCORRECT_LIQUIDATION_THRESHOLD(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "VF_INCORRECT_LIQUIDATION_THRESHOLD()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  VF_TOKEN_IS_ALREADY_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-  "VF_TOKEN_IS_ALREADY_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
-
-  VF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-  "VF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
 
   WG_DESTINATION_IS_NOT_CREDIT_MANAGER(
     overrides?: CallOverrides
@@ -1229,6 +1192,14 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<string>;
 
     "AF_CANT_TAKE_LAST_ACCOUNT()"(overrides?: CallOverrides): Promise<string>;
@@ -1265,6 +1236,10 @@ export class Errors extends Contract {
 
     "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<string>;
 
+    CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<string>;
+
+    "CA_CREDIT_MANAGER_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<string>;
 
     "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
@@ -1273,133 +1248,133 @@ export class Errors extends Contract {
 
     "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
-    CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
+    CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<string>;
+
+    "CF_INCORRECT_CHI_THRESHOLD()"(overrides?: CallOverrides): Promise<string>;
+
+    CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS()"(
+    "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
+    CF_OPERATION_LOW_HEALTH_FACTOR(overrides?: CallOverrides): Promise<string>;
+
+    "CF_OPERATION_LOW_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
+    CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
+
+    "CF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
+
+    CF_TOO_MUCH_ALLOWED_TOKENS(overrides?: CallOverrides): Promise<string>;
+
+    "CF_TOO_MUCH_ALLOWED_TOKENS()"(overrides?: CallOverrides): Promise<string>;
+
+    CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
+    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
+    CM_CANT_CLOSE_WITH_LOSS(overrides?: CallOverrides): Promise<string>;
+
+    "CM_CANT_CLOSE_WITH_LOSS()"(overrides?: CallOverrides): Promise<string>;
+
+    CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
+    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
+    CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
+    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
+    CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<string>;
-
-    "CREDIT_MANAGER_INCORRECT_AMOUNT()"(
+    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR(
+    CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR()"(
+    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<string>;
+    CM_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<string>;
 
-    "CREDIT_MANAGER_INCORRECT_LIMITS()"(
+    "CM_INCORRECT_AMOUNT()"(overrides?: CallOverrides): Promise<string>;
+
+    CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<string>;
+
+    "CM_INCORRECT_FEES()"(overrides?: CallOverrides): Promise<string>;
+
+    CM_INCORRECT_LEVERAGE_FACTOR(overrides?: CallOverrides): Promise<string>;
+
+    "CM_INCORRECT_LEVERAGE_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH(
+    CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<string>;
+
+    "CM_INCORRECT_LIMITS()"(overrides?: CallOverrides): Promise<string>;
+
+    CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<string>;
+
+    "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(overrides?: CallOverrides): Promise<string>;
+
+    CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH()"(
+    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
+    CM_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<string>;
+
+    "CM_NO_OPEN_ACCOUNT()"(overrides?: CallOverrides): Promise<string>;
+
+    CM_SWAP_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
+
+    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
+    CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<string>;
-
-    "CREDIT_MANAGER_NO_OPEN_ACCOUNT()"(
+    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED(
+    CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<string>;
+
+    "CM_WETH_GATEWAY_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
+    CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    CREDIT_MANAGER_WETH_GATEWAY_ONLY(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "CREDIT_MANAGER_WETH_GATEWAY_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
+    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1441,11 +1416,15 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER(
+    POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+    "POOL_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
+
+    POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER()"(
+    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1461,10 +1440,6 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    POOL_VIRTUAL_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
-
-    "POOL_VIRTUAL_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
-
     PO_PRICE_FEED_DOESNT_EXIST(overrides?: CallOverrides): Promise<string>;
 
     "PO_PRICE_FEED_DOESNT_EXIST()"(overrides?: CallOverrides): Promise<string>;
@@ -1476,38 +1451,6 @@ export class Errors extends Contract {
     "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<string>;
-
-    VA_VIRUAL_ACCOUNT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
-
-    "VA_VIRUAL_ACCOUNT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    VF_CONTRACT_IS_ALREADY_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-    "VF_CONTRACT_IS_ALREADY_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    VF_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-    "VF_CONTRACT_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
-
-    VF_INCORRECT_LIQUIDATION_THRESHOLD(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "VF_INCORRECT_LIQUIDATION_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    VF_TOKEN_IS_ALREADY_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-    "VF_TOKEN_IS_ALREADY_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
-
-    VF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-    "VF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
 
     WG_DESTINATION_IS_NOT_CREDIT_MANAGER(
       overrides?: CallOverrides
@@ -1565,6 +1508,14 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
     "AF_CANT_TAKE_LAST_ACCOUNT()"(
@@ -1605,6 +1556,10 @@ export class Errors extends Contract {
 
     "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CA_CREDIT_MANAGER_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
 
     "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1613,139 +1568,143 @@ export class Errors extends Contract {
 
     "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
+    CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CF_INCORRECT_CHI_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS()"(
+    CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
+    "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
+    CF_OPERATION_LOW_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
+    "CF_OPERATION_LOW_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
+    CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CF_TOO_MUCH_ALLOWED_TOKENS(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CF_TOO_MUCH_ALLOWED_TOKENS()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
+    CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
+    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
+    CM_CANT_CLOSE_WITH_LOSS(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CM_CANT_CLOSE_WITH_LOSS()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
+    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_INCORRECT_AMOUNT(
+    CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_INCORRECT_AMOUNT()"(
+    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR(
+    CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR()"(
+    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_INCORRECT_LIMITS(
+    CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_INCORRECT_LIMITS()"(
+    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH(
+    CM_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CM_INCORRECT_AMOUNT()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CM_INCORRECT_FEES()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CM_INCORRECT_LEVERAGE_FACTOR(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CM_INCORRECT_LEVERAGE_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH()"(
+    CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CM_INCORRECT_LIMITS()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
+    CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
+    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_NO_OPEN_ACCOUNT(
+    CM_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CM_NO_OPEN_ACCOUNT()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CM_SWAP_CONTRACT_IS_NOT_ALLOWED(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_NO_OPEN_ACCOUNT()"(
+    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED(
+    CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
+    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL(
+    CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CM_WETH_GATEWAY_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    CREDIT_MANAGER_WETH_GATEWAY_ONLY(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CREDIT_MANAGER_WETH_GATEWAY_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
+    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1789,11 +1748,17 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER(
+    POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "POOL_CREDIT_MANAGERS_ONLY()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER()"(
+    POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1811,12 +1776,6 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    POOL_VIRTUAL_MANAGERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "POOL_VIRTUAL_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     PO_PRICE_FEED_DOESNT_EXIST(overrides?: CallOverrides): Promise<BigNumber>;
 
     "PO_PRICE_FEED_DOESNT_EXIST()"(
@@ -1830,46 +1789,6 @@ export class Errors extends Contract {
     "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    VA_VIRUAL_ACCOUNT_MANAGERS_ONLY(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "VA_VIRUAL_ACCOUNT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    VF_CONTRACT_IS_ALREADY_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "VF_CONTRACT_IS_ALREADY_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    VF_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "VF_CONTRACT_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    VF_INCORRECT_LIQUIDATION_THRESHOLD(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "VF_INCORRECT_LIQUIDATION_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    VF_TOKEN_IS_ALREADY_ALLOWED(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "VF_TOKEN_IS_ALREADY_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    VF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "VF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     WG_DESTINATION_IS_NOT_CREDIT_MANAGER(
       overrides?: CallOverrides
@@ -1937,6 +1856,14 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     AF_CANT_TAKE_LAST_ACCOUNT(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -2001,6 +1928,14 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    CA_CREDIT_MANAGER_ONLY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "CA_CREDIT_MANAGER_ONLY()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "CF_ADAPTERS_ONLY()"(
@@ -2015,139 +1950,177 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS(
+    CF_INCORRECT_CHI_THRESHOLD(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_CANT_CLOSE_WITH_LOSS()"(
+    "CF_INCORRECT_CHI_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
+    CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
+    "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
+    CF_OPERATION_LOW_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
+    "CF_OPERATION_LOW_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
+    CF_TOKEN_IS_NOT_ALLOWED(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
+    "CF_TOKEN_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
+    CF_TOO_MUCH_ALLOWED_TOKENS(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
+    "CF_TOO_MUCH_ALLOWED_TOKENS()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_INCORRECT_AMOUNT(
+    CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_INCORRECT_AMOUNT()"(
+    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR(
+    CM_CANT_CLOSE_WITH_LOSS(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_INCORRECT_LEVERAGE_FACTOR()"(
+    "CM_CANT_CLOSE_WITH_LOSS()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_INCORRECT_LIMITS(
+    CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_INCORRECT_LIMITS()"(
+    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH(
+    CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_MAX_LEVERAGE_IS_TOO_HIGH()"(
+    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
+    CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
+    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_NO_OPEN_ACCOUNT(
+    CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_NO_OPEN_ACCOUNT()"(
+    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED(
+    CM_INCORRECT_AMOUNT(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
+    "CM_INCORRECT_AMOUNT()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL(
+    CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "CM_INCORRECT_FEES()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
+    CM_INCORRECT_LEVERAGE_FACTOR(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT(
+    "CM_INCORRECT_LEVERAGE_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
+    CM_INCORRECT_LIMITS(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK(
+    "CM_INCORRECT_LIMITS()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_VIRTUAL_ACCOUNT_CLOSE_THE_SAME_BLOCK()"(
+    CM_MAX_LEVERAGE_IS_TOO_HIGH(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_WETH_GATEWAY_ONLY(
+    "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_WETH_GATEWAY_ONLY()"(
+    CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
+    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CREDIT_MANAGER_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
+    CM_NO_OPEN_ACCOUNT(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "CM_NO_OPEN_ACCOUNT()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CM_SWAP_CONTRACT_IS_NOT_ALLOWED(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CM_WETH_GATEWAY_ONLY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "CM_WETH_GATEWAY_ONLY()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2207,11 +2180,19 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER(
+    POOL_CREDIT_MANAGERS_ONLY(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "POOL_INCOMPATIBLE_VIRTUAL_ACCOUNT_MANAGER()"(
+    "POOL_CREDIT_MANAGERS_ONLY()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2231,14 +2212,6 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    POOL_VIRTUAL_MANAGERS_ONLY(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "POOL_VIRTUAL_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     PO_PRICE_FEED_DOESNT_EXIST(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -2252,54 +2225,6 @@ export class Errors extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    VA_VIRUAL_ACCOUNT_MANAGERS_ONLY(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "VA_VIRUAL_ACCOUNT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    VF_CONTRACT_IS_ALREADY_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "VF_CONTRACT_IS_ALREADY_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    VF_CONTRACT_IS_NOT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "VF_CONTRACT_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    VF_INCORRECT_LIQUIDATION_THRESHOLD(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "VF_INCORRECT_LIQUIDATION_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    VF_TOKEN_IS_ALREADY_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "VF_TOKEN_IS_ALREADY_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    VF_TOKEN_IS_NOT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "VF_TOKEN_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -23,15 +23,13 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
   functions: {
     "calcLinearCumulative_RAY()": FunctionFragment;
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)": FunctionFragment;
+    "checkCollateralChange(address,address,address,uint256,uint256)": FunctionFragment;
     "connectFilter(address,address)": FunctionFragment;
     "healthFactor()": FunctionFragment;
+    "initEnabledTokens(address)": FunctionFragment;
     "poolService()": FunctionFragment;
-    "setCollateralProtection(address,uint256,uint256)": FunctionFragment;
     "setLinearCumulative(uint256)": FunctionFragment;
     "underlyingToken()": FunctionFragment;
-    "updateCPandGetHealthFactor(address)": FunctionFragment;
-    "updateCollateralProtection(address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -39,7 +37,7 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "checkSwapTokensAllowed",
+    functionFragment: "checkCollateralChange",
     values: [string, string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -51,12 +49,12 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "poolService",
-    values?: undefined
+    functionFragment: "initEnabledTokens",
+    values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setCollateralProtection",
-    values: [string, BigNumberish, BigNumberish]
+    functionFragment: "poolService",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "setLinearCumulative",
@@ -66,21 +64,13 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     functionFragment: "underlyingToken",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "updateCPandGetHealthFactor",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateCollateralProtection",
-    values: [string]
-  ): string;
 
   decodeFunctionResult(
     functionFragment: "calcLinearCumulative_RAY",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "checkSwapTokensAllowed",
+    functionFragment: "checkCollateralChange",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -92,11 +82,11 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "poolService",
+    functionFragment: "initEnabledTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setCollateralProtection",
+    functionFragment: "poolService",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -105,14 +95,6 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "underlyingToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateCPandGetHealthFactor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateCollateralProtection",
     data: BytesLike
   ): Result;
 
@@ -139,7 +121,7 @@ export class CreditManagerMockForFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    checkSwapTokensAllowed(
+    checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -148,7 +130,7 @@ export class CreditManagerMockForFilter extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+    "checkCollateralChange(address,address,address,uint256,uint256)"(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -173,23 +155,19 @@ export class CreditManagerMockForFilter extends Contract {
 
     "healthFactor()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    initEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "initEnabledTokens(address)"(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
     poolService(overrides?: CallOverrides): Promise<[string]>;
 
     "poolService()"(overrides?: CallOverrides): Promise<[string]>;
-
-    setCollateralProtection(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setCollateralProtection(address,uint256,uint256)"(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
 
     setLinearCumulative(
       newValue: BigNumberish,
@@ -204,33 +182,13 @@ export class CreditManagerMockForFilter extends Contract {
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<[string]>;
-
-    updateCPandGetHealthFactor(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "updateCPandGetHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    updateCollateralProtection(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "updateCollateralProtection(address)"(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
   };
 
   calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
   "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  checkSwapTokensAllowed(
+  checkCollateralChange(
     creditAccount: string,
     tokenIn: string,
     tokenOut: string,
@@ -239,7 +197,7 @@ export class CreditManagerMockForFilter extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+  "checkCollateralChange(address,address,address,uint256,uint256)"(
     creditAccount: string,
     tokenIn: string,
     tokenOut: string,
@@ -264,23 +222,19 @@ export class CreditManagerMockForFilter extends Contract {
 
   "healthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  initEnabledTokens(
+    creditAccount: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "initEnabledTokens(address)"(
+    creditAccount: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
   poolService(overrides?: CallOverrides): Promise<string>;
 
   "poolService()"(overrides?: CallOverrides): Promise<string>;
-
-  setCollateralProtection(
-    creditAccount: string,
-    amount: BigNumberish,
-    borrowedAmount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setCollateralProtection(address,uint256,uint256)"(
-    creditAccount: string,
-    amount: BigNumberish,
-    borrowedAmount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
 
   setLinearCumulative(
     newValue: BigNumberish,
@@ -296,32 +250,12 @@ export class CreditManagerMockForFilter extends Contract {
 
   "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
 
-  updateCPandGetHealthFactor(
-    creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "updateCPandGetHealthFactor(address)"(
-    creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  updateCollateralProtection(
-    creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "updateCollateralProtection(address)"(
-    creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   callStatic: {
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    checkSwapTokensAllowed(
+    checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -330,7 +264,7 @@ export class CreditManagerMockForFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+    "checkCollateralChange(address,address,address,uint256,uint256)"(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -355,23 +289,19 @@ export class CreditManagerMockForFilter extends Contract {
 
     "healthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    initEnabledTokens(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initEnabledTokens(address)"(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     poolService(overrides?: CallOverrides): Promise<string>;
 
     "poolService()"(overrides?: CallOverrides): Promise<string>;
-
-    setCollateralProtection(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setCollateralProtection(address,uint256,uint256)"(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     setLinearCumulative(
       newValue: BigNumberish,
@@ -386,26 +316,6 @@ export class CreditManagerMockForFilter extends Contract {
     underlyingToken(overrides?: CallOverrides): Promise<string>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
-    updateCPandGetHealthFactor(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "updateCPandGetHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    updateCollateralProtection(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "updateCollateralProtection(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
   filters: {};
@@ -415,7 +325,7 @@ export class CreditManagerMockForFilter extends Contract {
 
     "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    checkSwapTokensAllowed(
+    checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -424,7 +334,7 @@ export class CreditManagerMockForFilter extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+    "checkCollateralChange(address,address,address,uint256,uint256)"(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -449,23 +359,19 @@ export class CreditManagerMockForFilter extends Contract {
 
     "healthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    initEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "initEnabledTokens(address)"(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
     poolService(overrides?: CallOverrides): Promise<BigNumber>;
 
     "poolService()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    setCollateralProtection(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setCollateralProtection(address,uint256,uint256)"(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
 
     setLinearCumulative(
       newValue: BigNumberish,
@@ -480,26 +386,6 @@ export class CreditManagerMockForFilter extends Contract {
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateCPandGetHealthFactor(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "updateCPandGetHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    updateCollateralProtection(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "updateCollateralProtection(address)"(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -511,7 +397,7 @@ export class CreditManagerMockForFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    checkSwapTokensAllowed(
+    checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -520,7 +406,7 @@ export class CreditManagerMockForFilter extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+    "checkCollateralChange(address,address,address,uint256,uint256)"(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -545,23 +431,19 @@ export class CreditManagerMockForFilter extends Contract {
 
     "healthFactor()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    initEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "initEnabledTokens(address)"(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
     poolService(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "poolService()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    setCollateralProtection(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setCollateralProtection(address,uint256,uint256)"(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
 
     setLinearCumulative(
       newValue: BigNumberish,
@@ -577,26 +459,6 @@ export class CreditManagerMockForFilter extends Contract {
 
     "underlyingToken()"(
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    updateCPandGetHealthFactor(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "updateCPandGetHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    updateCollateralProtection(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "updateCollateralProtection(address)"(
-      creditAccount: string,
-      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
   };
 }

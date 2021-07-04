@@ -21,6 +21,24 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "creditManager",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "onBehalfOf",
+        type: "address",
+      },
+    ],
+    name: "addCollateralETH",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "pool",
         type: "address",
       },

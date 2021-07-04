@@ -22,7 +22,6 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 interface GearMathTestInterface extends ethers.utils.Interface {
   functions: {
     "calcBorrowAmountPlusFee(uint256,uint256,uint256,bool)": FunctionFragment;
-    "calcCloseDistributionTest(uint256,uint256,uint256,uint256,bool)": FunctionFragment;
     "calcCreditAccountAccruedInterest(uint256,uint256,uint256)": FunctionFragment;
     "calcInterestAccrued(uint256,uint256,uint256)": FunctionFragment;
     "calcLinearIndex_RAY(uint256,uint256,uint256)": FunctionFragment;
@@ -31,10 +30,6 @@ interface GearMathTestInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calcBorrowAmountPlusFee",
     values: [BigNumberish, BigNumberish, BigNumberish, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "calcCloseDistributionTest",
-    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "calcCreditAccountAccruedInterest",
@@ -51,10 +46,6 @@ interface GearMathTestInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "calcBorrowAmountPlusFee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "calcCloseDistributionTest",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -102,40 +93,6 @@ export class GearMathTest extends Contract {
       isLiquidated: boolean,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    calcCloseDistributionTest(
-      totalFunds: BigNumberish,
-      _borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      currentCumulativeIndex_RAY: BigNumberish,
-      isLiquidation: boolean,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        borrowedAmount: BigNumber;
-        amountToPool: BigNumber;
-        remainingFunds: BigNumber;
-        profit: BigNumber;
-        loss: BigNumber;
-      }
-    >;
-
-    "calcCloseDistributionTest(uint256,uint256,uint256,uint256,bool)"(
-      totalFunds: BigNumberish,
-      _borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      currentCumulativeIndex_RAY: BigNumberish,
-      isLiquidation: boolean,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        borrowedAmount: BigNumber;
-        amountToPool: BigNumber;
-        remainingFunds: BigNumber;
-        profit: BigNumber;
-        loss: BigNumber;
-      }
-    >;
 
     calcCreditAccountAccruedInterest(
       borrowedAmount: BigNumberish,
@@ -196,40 +153,6 @@ export class GearMathTest extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  calcCloseDistributionTest(
-    totalFunds: BigNumberish,
-    _borrowedAmount: BigNumberish,
-    cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-    currentCumulativeIndex_RAY: BigNumberish,
-    isLiquidation: boolean,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-      borrowedAmount: BigNumber;
-      amountToPool: BigNumber;
-      remainingFunds: BigNumber;
-      profit: BigNumber;
-      loss: BigNumber;
-    }
-  >;
-
-  "calcCloseDistributionTest(uint256,uint256,uint256,uint256,bool)"(
-    totalFunds: BigNumberish,
-    _borrowedAmount: BigNumberish,
-    cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-    currentCumulativeIndex_RAY: BigNumberish,
-    isLiquidation: boolean,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-      borrowedAmount: BigNumber;
-      amountToPool: BigNumber;
-      remainingFunds: BigNumber;
-      profit: BigNumber;
-      loss: BigNumber;
-    }
-  >;
-
   calcCreditAccountAccruedInterest(
     borrowedAmount: BigNumberish,
     currentCumulativeIndex_RAY: BigNumberish,
@@ -288,40 +211,6 @@ export class GearMathTest extends Contract {
       isLiquidated: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    calcCloseDistributionTest(
-      totalFunds: BigNumberish,
-      _borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      currentCumulativeIndex_RAY: BigNumberish,
-      isLiquidation: boolean,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        borrowedAmount: BigNumber;
-        amountToPool: BigNumber;
-        remainingFunds: BigNumber;
-        profit: BigNumber;
-        loss: BigNumber;
-      }
-    >;
-
-    "calcCloseDistributionTest(uint256,uint256,uint256,uint256,bool)"(
-      totalFunds: BigNumberish,
-      _borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      currentCumulativeIndex_RAY: BigNumberish,
-      isLiquidation: boolean,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        borrowedAmount: BigNumber;
-        amountToPool: BigNumber;
-        remainingFunds: BigNumber;
-        profit: BigNumber;
-        loss: BigNumber;
-      }
-    >;
 
     calcCreditAccountAccruedInterest(
       borrowedAmount: BigNumberish,
@@ -385,24 +274,6 @@ export class GearMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    calcCloseDistributionTest(
-      totalFunds: BigNumberish,
-      _borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      currentCumulativeIndex_RAY: BigNumberish,
-      isLiquidation: boolean,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcCloseDistributionTest(uint256,uint256,uint256,uint256,bool)"(
-      totalFunds: BigNumberish,
-      _borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      currentCumulativeIndex_RAY: BigNumberish,
-      isLiquidation: boolean,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calcCreditAccountAccruedInterest(
       borrowedAmount: BigNumberish,
       currentCumulativeIndex_RAY: BigNumberish,
@@ -460,24 +331,6 @@ export class GearMathTest extends Contract {
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    calcCloseDistributionTest(
-      totalFunds: BigNumberish,
-      _borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      currentCumulativeIndex_RAY: BigNumberish,
-      isLiquidation: boolean,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "calcCloseDistributionTest(uint256,uint256,uint256,uint256,bool)"(
-      totalFunds: BigNumberish,
-      _borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      currentCumulativeIndex_RAY: BigNumberish,
-      isLiquidation: boolean,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

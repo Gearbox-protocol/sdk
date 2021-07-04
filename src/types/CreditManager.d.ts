@@ -23,6 +23,8 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 interface CreditManagerInterface extends ethers.utils.Interface {
   functions: {
     "_calcClosePayments(address,uint256,bool)": FunctionFragment;
+    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)": FunctionFragment;
+    "addCollateral(address,address,uint256)": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "calcRepayAmount(address,bool)": FunctionFragment;
     "closeCreditAccount(address,uint256)": FunctionFragment;
@@ -30,11 +32,14 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "creditFilter()": FunctionFragment;
     "defaultSwapContract()": FunctionFragment;
     "executeOrder(address,address,bytes)": FunctionFragment;
+    "feeInterest()": FunctionFragment;
+    "feeLiquidation()": FunctionFragment;
+    "feeSuccess()": FunctionFragment;
     "getCreditAccountOrRevert(address)": FunctionFragment;
     "hasOpenedCreditAccount(address)": FunctionFragment;
     "increaseBorrowedAmount(uint256)": FunctionFragment;
-    "kind()": FunctionFragment;
     "liquidateCreditAccount(address,address)": FunctionFragment;
+    "liquidationDiscount()": FunctionFragment;
     "maxAmount()": FunctionFragment;
     "maxLeverageFactor()": FunctionFragment;
     "minAmount()": FunctionFragment;
@@ -46,10 +51,10 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "provideCreditAccountAllowance(address,address,address)": FunctionFragment;
     "repayCreditAccount(address)": FunctionFragment;
     "repayCreditAccountETH(address,address)": FunctionFragment;
+    "setFees(uint256,uint256,uint256,uint256)": FunctionFragment;
     "setLimits(uint256,uint256)": FunctionFragment;
     "underlyingToken()": FunctionFragment;
     "unpause()": FunctionFragment;
-    "updateCollateralProtection(address)": FunctionFragment;
     "wethAddress()": FunctionFragment;
     "wethGateway()": FunctionFragment;
   };
@@ -57,6 +62,14 @@ interface CreditManagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "_calcClosePayments",
     values: [string, BigNumberish, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcClosePaymentsPure",
+    values: [BigNumberish, boolean, BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addCollateral",
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
@@ -87,6 +100,18 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     values: [string, string, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "feeInterest",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "feeLiquidation",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "feeSuccess",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getCreditAccountOrRevert",
     values: [string]
   ): string;
@@ -98,10 +123,13 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "increaseBorrowedAmount",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "kind", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount",
     values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "liquidationDiscount",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "maxAmount", values?: undefined): string;
   encodeFunctionData(
@@ -136,6 +164,10 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "setFees",
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setLimits",
     values: [BigNumberish, BigNumberish]
   ): string;
@@ -144,10 +176,6 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "updateCollateralProtection",
-    values: [string]
-  ): string;
   encodeFunctionData(
     functionFragment: "wethAddress",
     values?: undefined
@@ -159,6 +187,14 @@ interface CreditManagerInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "_calcClosePayments",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcClosePaymentsPure",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addCollateral",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -190,6 +226,15 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "feeInterest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "feeLiquidation",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "feeSuccess", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "getCreditAccountOrRevert",
     data: BytesLike
   ): Result;
@@ -201,9 +246,12 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "increaseBorrowedAmount",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "kind", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "liquidateCreditAccount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidationDiscount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "maxAmount", data: BytesLike): Result;
@@ -238,16 +286,13 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "repayCreditAccountETH",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setFees", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setLimits", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "underlyingToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "updateCollateralProtection",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "wethAddress",
     data: BytesLike
@@ -258,8 +303,11 @@ interface CreditManagerInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
+    "AddCollateral(address,address,uint256)": EventFragment;
     "CloseCreditAccount(address,address,uint256)": EventFragment;
+    "IncreaseBorrowedAmount(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,uint256)": EventFragment;
+    "NewFees(uint256,uint256,uint256,uint256)": EventFragment;
     "NewLimits(uint256,uint256)": EventFragment;
     "OpenCreditAccount(address,address,address,uint256,uint256,uint256)": EventFragment;
     "Paused(address)": EventFragment;
@@ -267,8 +315,11 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "Unpaused(address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AddCollateral"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CloseCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewFees"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewLimits"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
@@ -319,6 +370,54 @@ export class CreditManager extends Contract {
         loss: BigNumber;
       }
     >;
+
+    _calcClosePaymentsPure(
+      totalValue: BigNumberish,
+      isLiquidated: boolean,
+      borrowedAmount: BigNumberish,
+      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+      cumulativeIndexNow_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        _borrowedAmount: BigNumber;
+        amountToPool: BigNumber;
+        remainingFunds: BigNumber;
+        profit: BigNumber;
+        loss: BigNumber;
+      }
+    >;
+
+    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
+      totalValue: BigNumberish,
+      isLiquidated: boolean,
+      borrowedAmount: BigNumberish,
+      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+      cumulativeIndexNow_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        _borrowedAmount: BigNumber;
+        amountToPool: BigNumber;
+        remainingFunds: BigNumber;
+        profit: BigNumber;
+        loss: BigNumber;
+      }
+    >;
+
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "addCollateral(address,address,uint256)"(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
 
@@ -377,6 +476,18 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
+    feeInterest(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "feeInterest()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    feeLiquidation(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "feeLiquidation()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    feeSuccess(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "feeSuccess()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getCreditAccountOrRevert(
       borrower: string,
       overrides?: CallOverrides
@@ -407,10 +518,6 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    kind(overrides?: CallOverrides): Promise<[string]>;
-
-    "kind()"(overrides?: CallOverrides): Promise<[string]>;
-
     liquidateCreditAccount(
       borrower: string,
       to: string,
@@ -422,6 +529,10 @@ export class CreditManager extends Contract {
       to: string,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
+
+    liquidationDiscount(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "liquidationDiscount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     maxAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -503,6 +614,22 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
+    setFees(
+      _feeSuccess: BigNumberish,
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationDiscount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "setFees(uint256,uint256,uint256,uint256)"(
+      _feeSuccess: BigNumberish,
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationDiscount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
     setLimits(
       newMinAmount: BigNumberish,
       newMaxAmount: BigNumberish,
@@ -522,16 +649,6 @@ export class CreditManager extends Contract {
     unpause(overrides?: Overrides): Promise<ContractTransaction>;
 
     "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
-
-    updateCollateralProtection(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "updateCollateralProtection(address)"(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<[string]>;
 
@@ -571,6 +688,54 @@ export class CreditManager extends Contract {
       loss: BigNumber;
     }
   >;
+
+  _calcClosePaymentsPure(
+    totalValue: BigNumberish,
+    isLiquidated: boolean,
+    borrowedAmount: BigNumberish,
+    cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+    cumulativeIndexNow_RAY: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      _borrowedAmount: BigNumber;
+      amountToPool: BigNumber;
+      remainingFunds: BigNumber;
+      profit: BigNumber;
+      loss: BigNumber;
+    }
+  >;
+
+  "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
+    totalValue: BigNumberish,
+    isLiquidated: boolean,
+    borrowedAmount: BigNumberish,
+    cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+    cumulativeIndexNow_RAY: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      _borrowedAmount: BigNumber;
+      amountToPool: BigNumber;
+      remainingFunds: BigNumber;
+      profit: BigNumber;
+      loss: BigNumber;
+    }
+  >;
+
+  addCollateral(
+    onBehalfOf: string,
+    token: string,
+    amount: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "addCollateral(address,address,uint256)"(
+    onBehalfOf: string,
+    token: string,
+    amount: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
 
@@ -629,6 +794,18 @@ export class CreditManager extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
+  feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "feeInterest()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "feeLiquidation()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "feeSuccess()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   getCreditAccountOrRevert(
     borrower: string,
     overrides?: CallOverrides
@@ -659,10 +836,6 @@ export class CreditManager extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  kind(overrides?: CallOverrides): Promise<string>;
-
-  "kind()"(overrides?: CallOverrides): Promise<string>;
-
   liquidateCreditAccount(
     borrower: string,
     to: string,
@@ -674,6 +847,10 @@ export class CreditManager extends Contract {
     to: string,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
+
+  liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "liquidationDiscount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   maxAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -755,6 +932,22 @@ export class CreditManager extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
+  setFees(
+    _feeSuccess: BigNumberish,
+    _feeInterest: BigNumberish,
+    _feeLiquidation: BigNumberish,
+    _liquidationDiscount: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "setFees(uint256,uint256,uint256,uint256)"(
+    _feeSuccess: BigNumberish,
+    _feeInterest: BigNumberish,
+    _feeLiquidation: BigNumberish,
+    _liquidationDiscount: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
   setLimits(
     newMinAmount: BigNumberish,
     newMaxAmount: BigNumberish,
@@ -774,16 +967,6 @@ export class CreditManager extends Contract {
   unpause(overrides?: Overrides): Promise<ContractTransaction>;
 
   "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
-
-  updateCollateralProtection(
-    borrower: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "updateCollateralProtection(address)"(
-    borrower: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
 
   wethAddress(overrides?: CallOverrides): Promise<string>;
 
@@ -823,6 +1006,54 @@ export class CreditManager extends Contract {
         loss: BigNumber;
       }
     >;
+
+    _calcClosePaymentsPure(
+      totalValue: BigNumberish,
+      isLiquidated: boolean,
+      borrowedAmount: BigNumberish,
+      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+      cumulativeIndexNow_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        _borrowedAmount: BigNumber;
+        amountToPool: BigNumber;
+        remainingFunds: BigNumber;
+        profit: BigNumber;
+        loss: BigNumber;
+      }
+    >;
+
+    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
+      totalValue: BigNumberish,
+      isLiquidated: boolean,
+      borrowedAmount: BigNumberish,
+      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+      cumulativeIndexNow_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        _borrowedAmount: BigNumber;
+        amountToPool: BigNumber;
+        remainingFunds: BigNumber;
+        profit: BigNumber;
+        loss: BigNumber;
+      }
+    >;
+
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "addCollateral(address,address,uint256)"(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     addressProvider(overrides?: CallOverrides): Promise<string>;
 
@@ -881,6 +1112,18 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "feeInterest()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "feeLiquidation()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "feeSuccess()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getCreditAccountOrRevert(
       borrower: string,
       overrides?: CallOverrides
@@ -911,10 +1154,6 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    kind(overrides?: CallOverrides): Promise<string>;
-
-    "kind()"(overrides?: CallOverrides): Promise<string>;
-
     liquidateCreditAccount(
       borrower: string,
       to: string,
@@ -926,6 +1165,10 @@ export class CreditManager extends Contract {
       to: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "liquidationDiscount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1004,6 +1247,22 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    setFees(
+      _feeSuccess: BigNumberish,
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationDiscount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setFees(uint256,uint256,uint256,uint256)"(
+      _feeSuccess: BigNumberish,
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationDiscount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setLimits(
       newMinAmount: BigNumberish,
       newMaxAmount: BigNumberish,
@@ -1024,16 +1283,6 @@ export class CreditManager extends Contract {
 
     "unpause()"(overrides?: CallOverrides): Promise<void>;
 
-    updateCollateralProtection(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "updateCollateralProtection(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     wethAddress(overrides?: CallOverrides): Promise<string>;
 
     "wethAddress()"(overrides?: CallOverrides): Promise<string>;
@@ -1044,16 +1293,31 @@ export class CreditManager extends Contract {
   };
 
   filters: {
+    AddCollateral(
+      onBehalfOf: string | null,
+      token: string | null,
+      value: null
+    ): EventFilter;
+
     CloseCreditAccount(
       owner: string | null,
       to: string | null,
       remainingFunds: null
     ): EventFilter;
 
+    IncreaseBorrowedAmount(borrower: string | null, amount: null): EventFilter;
+
     LiquidateCreditAccount(
       owner: string | null,
       liquidator: string | null,
       remainingFunds: null
+    ): EventFilter;
+
+    NewFees(
+      feeSuccess: null,
+      feeInterest: null,
+      feeLiquidation: null,
+      liquidationDiscount: null
     ): EventFilter;
 
     NewLimits(minAmount: null, maxAmount: null): EventFilter;
@@ -1069,7 +1333,7 @@ export class CreditManager extends Contract {
 
     Paused(account: null): EventFilter;
 
-    RepayCreditAccount(owner: string | null, to: null): EventFilter;
+    RepayCreditAccount(owner: string | null, to: string | null): EventFilter;
 
     Unpaused(account: null): EventFilter;
   };
@@ -1087,6 +1351,38 @@ export class CreditManager extends Contract {
       totalValue: BigNumberish,
       isLiquidated: boolean,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcClosePaymentsPure(
+      totalValue: BigNumberish,
+      isLiquidated: boolean,
+      borrowedAmount: BigNumberish,
+      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+      cumulativeIndexNow_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
+      totalValue: BigNumberish,
+      isLiquidated: boolean,
+      borrowedAmount: BigNumberish,
+      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+      cumulativeIndexNow_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "addCollateral(address,address,uint256)"(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
     ): Promise<BigNumber>;
 
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1146,6 +1442,18 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
+    feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "feeInterest()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "feeLiquidation()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "feeSuccess()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getCreditAccountOrRevert(
       borrower: string,
       overrides?: CallOverrides
@@ -1176,10 +1484,6 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    kind(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "kind()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     liquidateCreditAccount(
       borrower: string,
       to: string,
@@ -1191,6 +1495,10 @@ export class CreditManager extends Contract {
       to: string,
       overrides?: Overrides
     ): Promise<BigNumber>;
+
+    liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "liquidationDiscount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1269,6 +1577,22 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
+    setFees(
+      _feeSuccess: BigNumberish,
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationDiscount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "setFees(uint256,uint256,uint256,uint256)"(
+      _feeSuccess: BigNumberish,
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationDiscount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
     setLimits(
       newMinAmount: BigNumberish,
       newMaxAmount: BigNumberish,
@@ -1288,16 +1612,6 @@ export class CreditManager extends Contract {
     unpause(overrides?: Overrides): Promise<BigNumber>;
 
     "unpause()"(overrides?: Overrides): Promise<BigNumber>;
-
-    updateCollateralProtection(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "updateCollateralProtection(address)"(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
 
     wethAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1321,6 +1635,38 @@ export class CreditManager extends Contract {
       totalValue: BigNumberish,
       isLiquidated: boolean,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcClosePaymentsPure(
+      totalValue: BigNumberish,
+      isLiquidated: boolean,
+      borrowedAmount: BigNumberish,
+      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+      cumulativeIndexNow_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
+      totalValue: BigNumberish,
+      isLiquidated: boolean,
+      borrowedAmount: BigNumberish,
+      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
+      cumulativeIndexNow_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "addCollateral(address,address,uint256)"(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1389,6 +1735,20 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
+    feeInterest(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "feeInterest()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    feeLiquidation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "feeLiquidation()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    feeSuccess(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "feeSuccess()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getCreditAccountOrRevert(
       borrower: string,
       overrides?: CallOverrides
@@ -1419,10 +1779,6 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    kind(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "kind()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     liquidateCreditAccount(
       borrower: string,
       to: string,
@@ -1433,6 +1789,14 @@ export class CreditManager extends Contract {
       borrower: string,
       to: string,
       overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    liquidationDiscount(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "liquidationDiscount()"(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     maxAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1519,6 +1883,22 @@ export class CreditManager extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
+    setFees(
+      _feeSuccess: BigNumberish,
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationDiscount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "setFees(uint256,uint256,uint256,uint256)"(
+      _feeSuccess: BigNumberish,
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationDiscount: BigNumberish,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
     setLimits(
       newMinAmount: BigNumberish,
       newMaxAmount: BigNumberish,
@@ -1540,16 +1920,6 @@ export class CreditManager extends Contract {
     unpause(overrides?: Overrides): Promise<PopulatedTransaction>;
 
     "unpause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    updateCollateralProtection(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "updateCollateralProtection(address)"(
-      borrower: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

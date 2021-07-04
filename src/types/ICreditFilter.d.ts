@@ -28,23 +28,21 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     "allowedContractsCount()": FunctionFragment;
     "allowedTokens(uint256)": FunctionFragment;
     "allowedTokensCount()": FunctionFragment;
-    "calcCollateralProtection(address)": FunctionFragment;
     "calcCreditAccountAccruedInterest(address)": FunctionFragment;
     "calcCreditAccountHealthFactor(address)": FunctionFragment;
-    "calcExpectedCollateralProtection(address,address,address,uint256,uint256)": FunctionFragment;
     "calcThresholdWeightedValue(address)": FunctionFragment;
     "calcTotalValue(address)": FunctionFragment;
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)": FunctionFragment;
+    "checkAndEnableToken(address,address)": FunctionFragment;
+    "checkCollateralChange(address,address,address,uint256,uint256)": FunctionFragment;
     "connectCreditManager(address)": FunctionFragment;
     "contractToAdapter(address)": FunctionFragment;
+    "enabledTokens(address)": FunctionFragment;
     "getCreditAccountTokenById(address,uint256)": FunctionFragment;
+    "initEnabledTokens(address)": FunctionFragment;
     "isTokenAllowed(address)": FunctionFragment;
     "revertIfAdapterNotAllowed(address)": FunctionFragment;
     "revertIfTokenNotAllowed(address)": FunctionFragment;
-    "setCollateralProtection(address,uint256,uint256)": FunctionFragment;
     "underlyingToken()": FunctionFragment;
-    "updateCPandGetHealthFactor(address)": FunctionFragment;
-    "updateCollateralProtection(address,address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -72,20 +70,12 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "calcCollateralProtection",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "calcCreditAccountAccruedInterest",
     values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "calcCreditAccountHealthFactor",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "calcExpectedCollateralProtection",
-    values: [string, string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcThresholdWeightedValue",
@@ -96,7 +86,11 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "checkSwapTokensAllowed",
+    functionFragment: "checkAndEnableToken",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "checkCollateralChange",
     values: [string, string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -108,8 +102,16 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "enabledTokens",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getCreditAccountTokenById",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initEnabledTokens",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "isTokenAllowed",
@@ -124,20 +126,8 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setCollateralProtection",
-    values: [string, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "underlyingToken",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateCPandGetHealthFactor",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateCollateralProtection",
-    values: [string, string]
   ): string;
 
   decodeFunctionResult(
@@ -162,19 +152,11 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "calcCollateralProtection",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "calcCreditAccountAccruedInterest",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "calcCreditAccountHealthFactor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "calcExpectedCollateralProtection",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -186,7 +168,11 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "checkSwapTokensAllowed",
+    functionFragment: "checkAndEnableToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "checkCollateralChange",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -198,7 +184,15 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "enabledTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getCreditAccountTokenById",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "initEnabledTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -214,30 +208,18 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setCollateralProtection",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "underlyingToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateCPandGetHealthFactor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateCollateralProtection",
     data: BytesLike
   ): Result;
 
   events: {
-    "CollateralProtectionUpdate(address,address,uint256,uint256)": EventFragment;
     "ContractAllowed(address,address)": EventFragment;
+    "NewFastCheckParameters(uint256,uint256)": EventFragment;
     "TokenAllowed(address,uint256)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "CollateralProtectionUpdate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ContractAllowed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewFastCheckParameters"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
 }
 
@@ -269,13 +251,13 @@ export class ICreditFilter extends Contract {
 
     allowToken(
       token: string,
-      liquidityThreshold: BigNumberish,
+      liquidationThreshold: BigNumberish,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
     "allowToken(address,uint256)"(
       token: string,
-      liquidityThreshold: BigNumberish,
+      liquidationThreshold: BigNumberish,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
@@ -307,16 +289,6 @@ export class ICreditFilter extends Contract {
 
     "allowedTokensCount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    calcCollateralProtection(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "calcCollateralProtection(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     calcCreditAccountAccruedInterest(
       creditAccount: string,
       overrides?: CallOverrides
@@ -328,40 +300,22 @@ export class ICreditFilter extends Contract {
     ): Promise<[BigNumber]>;
 
     calcCreditAccountHealthFactor(
-      borrower: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     "calcCreditAccountHealthFactor(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    calcExpectedCollateralProtection(
       creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "calcExpectedCollateralProtection(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     calcThresholdWeightedValue(
-      holder: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { total: BigNumber }>;
 
     "calcThresholdWeightedValue(address)"(
-      holder: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { total: BigNumber }>;
 
@@ -375,7 +329,19 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { total: BigNumber }>;
 
-    checkSwapTokensAllowed(
+    checkAndEnableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "checkAndEnableToken(address,address)"(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -384,7 +350,7 @@ export class ICreditFilter extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+    "checkCollateralChange(address,address,address,uint256,uint256)"(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -413,6 +379,16 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    enabledTokens(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "enabledTokens(address)"(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     getCreditAccountTokenById(
       creditAccount: string,
       id: BigNumberish,
@@ -438,6 +414,16 @@ export class ICreditFilter extends Contract {
         twv: BigNumber;
       }
     >;
+
+    initEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "initEnabledTokens(address)"(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
     isTokenAllowed(
       token: string,
@@ -469,45 +455,9 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[void]>;
 
-    setCollateralProtection(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setCollateralProtection(address,uint256,uint256)"(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<[string]>;
-
-    updateCPandGetHealthFactor(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "updateCPandGetHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    updateCollateralProtection(
-      contributor: string,
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "updateCollateralProtection(address,address)"(
-      contributor: string,
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
   };
 
   allowContract(
@@ -524,13 +474,13 @@ export class ICreditFilter extends Contract {
 
   allowToken(
     token: string,
-    liquidityThreshold: BigNumberish,
+    liquidationThreshold: BigNumberish,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
   "allowToken(address,uint256)"(
     token: string,
-    liquidityThreshold: BigNumberish,
+    liquidationThreshold: BigNumberish,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
@@ -559,16 +509,6 @@ export class ICreditFilter extends Contract {
 
   "allowedTokensCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  calcCollateralProtection(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "calcCollateralProtection(address)"(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   calcCreditAccountAccruedInterest(
     creditAccount: string,
     overrides?: CallOverrides
@@ -580,40 +520,22 @@ export class ICreditFilter extends Contract {
   ): Promise<BigNumber>;
 
   calcCreditAccountHealthFactor(
-    borrower: string,
+    creditAccount: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "calcCreditAccountHealthFactor(address)"(
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  calcExpectedCollateralProtection(
     creditAccount: string,
-    tokenIn: string,
-    tokenOut: string,
-    amountIn: BigNumberish,
-    amountOut: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "calcExpectedCollateralProtection(address,address,address,uint256,uint256)"(
-    creditAccount: string,
-    tokenIn: string,
-    tokenOut: string,
-    amountIn: BigNumberish,
-    amountOut: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calcThresholdWeightedValue(
-    holder: string,
+    creditAccount: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "calcThresholdWeightedValue(address)"(
-    holder: string,
+    creditAccount: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -627,7 +549,19 @@ export class ICreditFilter extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  checkSwapTokensAllowed(
+  checkAndEnableToken(
+    creditAccount: string,
+    token: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "checkAndEnableToken(address,address)"(
+    creditAccount: string,
+    token: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  checkCollateralChange(
     creditAccount: string,
     tokenIn: string,
     tokenOut: string,
@@ -636,7 +570,7 @@ export class ICreditFilter extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+  "checkCollateralChange(address,address,address,uint256,uint256)"(
     creditAccount: string,
     tokenIn: string,
     tokenOut: string,
@@ -665,6 +599,16 @@ export class ICreditFilter extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  enabledTokens(
+    creditAccount: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "enabledTokens(address)"(
+    creditAccount: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getCreditAccountTokenById(
     creditAccount: string,
     id: BigNumberish,
@@ -690,6 +634,16 @@ export class ICreditFilter extends Contract {
       twv: BigNumber;
     }
   >;
+
+  initEnabledTokens(
+    creditAccount: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "initEnabledTokens(address)"(
+    creditAccount: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
   isTokenAllowed(token: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -718,45 +672,9 @@ export class ICreditFilter extends Contract {
     overrides?: CallOverrides
   ): Promise<void>;
 
-  setCollateralProtection(
-    creditAccount: string,
-    amount: BigNumberish,
-    borrowedAmount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setCollateralProtection(address,uint256,uint256)"(
-    creditAccount: string,
-    amount: BigNumberish,
-    borrowedAmount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   underlyingToken(overrides?: CallOverrides): Promise<string>;
 
   "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
-  updateCPandGetHealthFactor(
-    creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "updateCPandGetHealthFactor(address)"(
-    creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  updateCollateralProtection(
-    contributor: string,
-    creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "updateCollateralProtection(address,address)"(
-    contributor: string,
-    creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
 
   callStatic: {
     allowContract(
@@ -773,13 +691,13 @@ export class ICreditFilter extends Contract {
 
     allowToken(
       token: string,
-      liquidityThreshold: BigNumberish,
+      liquidationThreshold: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "allowToken(address,uint256)"(
       token: string,
-      liquidityThreshold: BigNumberish,
+      liquidationThreshold: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -808,16 +726,6 @@ export class ICreditFilter extends Contract {
 
     "allowedTokensCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    calcCollateralProtection(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcCollateralProtection(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calcCreditAccountAccruedInterest(
       creditAccount: string,
       overrides?: CallOverrides
@@ -829,40 +737,22 @@ export class ICreditFilter extends Contract {
     ): Promise<BigNumber>;
 
     calcCreditAccountHealthFactor(
-      borrower: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "calcCreditAccountHealthFactor(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calcExpectedCollateralProtection(
       creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcExpectedCollateralProtection(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calcThresholdWeightedValue(
-      holder: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "calcThresholdWeightedValue(address)"(
-      holder: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -876,7 +766,19 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    checkSwapTokensAllowed(
+    checkAndEnableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "checkAndEnableToken(address,address)"(
+      creditAccount: string,
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -885,7 +787,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+    "checkCollateralChange(address,address,address,uint256,uint256)"(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -914,6 +816,16 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    enabledTokens(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "enabledTokens(address)"(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getCreditAccountTokenById(
       creditAccount: string,
       id: BigNumberish,
@@ -939,6 +851,16 @@ export class ICreditFilter extends Contract {
         twv: BigNumber;
       }
     >;
+
+    initEnabledTokens(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initEnabledTokens(address)"(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     isTokenAllowed(token: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -967,58 +889,20 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setCollateralProtection(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setCollateralProtection(address,uint256,uint256)"(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     underlyingToken(overrides?: CallOverrides): Promise<string>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
-    updateCPandGetHealthFactor(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "updateCPandGetHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    updateCollateralProtection(
-      contributor: string,
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "updateCollateralProtection(address,address)"(
-      contributor: string,
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
   filters: {
-    CollateralProtectionUpdate(
-      contributor: null,
-      creditAccount: null,
-      prevValue: null,
-      updatedValue: null
-    ): EventFilter;
-
     ContractAllowed(
       protocol: string | null,
       adapter: string | null
+    ): EventFilter;
+
+    NewFastCheckParameters(
+      chiThreshold: null,
+      fastCheckDelay: null
     ): EventFilter;
 
     TokenAllowed(token: string | null, liquidityThreshold: null): EventFilter;
@@ -1039,13 +923,13 @@ export class ICreditFilter extends Contract {
 
     allowToken(
       token: string,
-      liquidityThreshold: BigNumberish,
+      liquidationThreshold: BigNumberish,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
     "allowToken(address,uint256)"(
       token: string,
-      liquidityThreshold: BigNumberish,
+      liquidationThreshold: BigNumberish,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
@@ -1077,16 +961,6 @@ export class ICreditFilter extends Contract {
 
     "allowedTokensCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    calcCollateralProtection(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcCollateralProtection(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calcCreditAccountAccruedInterest(
       creditAccount: string,
       overrides?: CallOverrides
@@ -1098,40 +972,22 @@ export class ICreditFilter extends Contract {
     ): Promise<BigNumber>;
 
     calcCreditAccountHealthFactor(
-      borrower: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "calcCreditAccountHealthFactor(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calcExpectedCollateralProtection(
       creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcExpectedCollateralProtection(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calcThresholdWeightedValue(
-      holder: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "calcThresholdWeightedValue(address)"(
-      holder: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1145,7 +1001,19 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    checkSwapTokensAllowed(
+    checkAndEnableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "checkAndEnableToken(address,address)"(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -1154,7 +1022,7 @@ export class ICreditFilter extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+    "checkCollateralChange(address,address,address,uint256,uint256)"(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -1183,6 +1051,16 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    enabledTokens(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "enabledTokens(address)"(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getCreditAccountTokenById(
       creditAccount: string,
       id: BigNumberish,
@@ -1193,6 +1071,16 @@ export class ICreditFilter extends Contract {
       creditAccount: string,
       id: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    initEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "initEnabledTokens(address)"(
+      creditAccount: string,
+      overrides?: Overrides
     ): Promise<BigNumber>;
 
     isTokenAllowed(
@@ -1225,45 +1113,9 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    setCollateralProtection(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setCollateralProtection(address,uint256,uint256)"(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     "underlyingToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateCPandGetHealthFactor(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "updateCPandGetHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    updateCollateralProtection(
-      contributor: string,
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "updateCollateralProtection(address,address)"(
-      contributor: string,
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1281,13 +1133,13 @@ export class ICreditFilter extends Contract {
 
     allowToken(
       token: string,
-      liquidityThreshold: BigNumberish,
+      liquidationThreshold: BigNumberish,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     "allowToken(address,uint256)"(
       token: string,
-      liquidityThreshold: BigNumberish,
+      liquidationThreshold: BigNumberish,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
@@ -1327,16 +1179,6 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    calcCollateralProtection(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "calcCollateralProtection(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     calcCreditAccountAccruedInterest(
       creditAccount: string,
       overrides?: CallOverrides
@@ -1348,40 +1190,22 @@ export class ICreditFilter extends Contract {
     ): Promise<PopulatedTransaction>;
 
     calcCreditAccountHealthFactor(
-      borrower: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "calcCreditAccountHealthFactor(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    calcExpectedCollateralProtection(
       creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "calcExpectedCollateralProtection(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calcThresholdWeightedValue(
-      holder: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "calcThresholdWeightedValue(address)"(
-      holder: string,
+      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1395,7 +1219,19 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    checkSwapTokensAllowed(
+    checkAndEnableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "checkAndEnableToken(address,address)"(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    checkCollateralChange(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -1404,7 +1240,7 @@ export class ICreditFilter extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "checkSwapTokensAllowed(address,address,address,uint256,uint256)"(
+    "checkCollateralChange(address,address,address,uint256,uint256)"(
       creditAccount: string,
       tokenIn: string,
       tokenOut: string,
@@ -1433,6 +1269,16 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    enabledTokens(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "enabledTokens(address)"(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getCreditAccountTokenById(
       creditAccount: string,
       id: BigNumberish,
@@ -1443,6 +1289,16 @@ export class ICreditFilter extends Contract {
       creditAccount: string,
       id: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    initEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "initEnabledTokens(address)"(
+      creditAccount: string,
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     isTokenAllowed(
@@ -1475,46 +1331,10 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setCollateralProtection(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setCollateralProtection(address,uint256,uint256)"(
-      creditAccount: string,
-      amount: BigNumberish,
-      borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
     underlyingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "underlyingToken()"(
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    updateCPandGetHealthFactor(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "updateCPandGetHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    updateCollateralProtection(
-      contributor: string,
-      creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "updateCollateralProtection(address,address)"(
-      contributor: string,
-      creditAccount: string,
-      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
   };
 }

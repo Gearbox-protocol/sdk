@@ -44,11 +44,6 @@ const _abi = [
             type: "address",
           },
           {
-            internalType: "bytes32",
-            name: "kind",
-            type: "bytes32",
-          },
-          {
             internalType: "address",
             name: "underlyingToken",
             type: "address",
@@ -139,11 +134,6 @@ const _abi = [
             internalType: "bool",
             name: "hasAccount",
             type: "bool",
-          },
-          {
-            internalType: "bytes32",
-            name: "kind",
-            type: "bytes32",
           },
           {
             internalType: "address",

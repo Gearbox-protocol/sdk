@@ -21,7 +21,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "totalLiquidity",
+        name: "expectedLiquidity",
         type: "uint256",
       },
       {

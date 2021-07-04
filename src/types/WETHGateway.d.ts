@@ -23,6 +23,7 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface WETHGatewayInterface extends ethers.utils.Interface {
   functions: {
+    "addCollateralETH(address,address)": FunctionFragment;
     "addLiquidityETH(address,address,uint16)": FunctionFragment;
     "openCreditAccountETH(address,address,uint256,uint256)": FunctionFragment;
     "removeLiquidityETH(address,uint256,address)": FunctionFragment;
@@ -31,6 +32,10 @@ interface WETHGatewayInterface extends ethers.utils.Interface {
     "wethAddress()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "addCollateralETH",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "addLiquidityETH",
     values: [string, string, BigNumberish]
@@ -56,6 +61,10 @@ interface WETHGatewayInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "addCollateralETH",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "addLiquidityETH",
     data: BytesLike
@@ -95,6 +104,18 @@ export class WETHGateway extends Contract {
   interface: WETHGatewayInterface;
 
   functions: {
+    addCollateralETH(
+      creditManager: string,
+      onBehalfOf: string,
+      overrides?: PayableOverrides
+    ): Promise<ContractTransaction>;
+
+    "addCollateralETH(address,address)"(
+      creditManager: string,
+      onBehalfOf: string,
+      overrides?: PayableOverrides
+    ): Promise<ContractTransaction>;
+
     addLiquidityETH(
       pool: string,
       onBehalfOf: string,
@@ -167,6 +188,18 @@ export class WETHGateway extends Contract {
 
     "wethAddress()"(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  addCollateralETH(
+    creditManager: string,
+    onBehalfOf: string,
+    overrides?: PayableOverrides
+  ): Promise<ContractTransaction>;
+
+  "addCollateralETH(address,address)"(
+    creditManager: string,
+    onBehalfOf: string,
+    overrides?: PayableOverrides
+  ): Promise<ContractTransaction>;
 
   addLiquidityETH(
     pool: string,
@@ -241,6 +274,18 @@ export class WETHGateway extends Contract {
   "wethAddress()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    addCollateralETH(
+      creditManager: string,
+      onBehalfOf: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "addCollateralETH(address,address)"(
+      creditManager: string,
+      onBehalfOf: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     addLiquidityETH(
       pool: string,
       onBehalfOf: string,
@@ -317,6 +362,18 @@ export class WETHGateway extends Contract {
   filters: {};
 
   estimateGas: {
+    addCollateralETH(
+      creditManager: string,
+      onBehalfOf: string,
+      overrides?: PayableOverrides
+    ): Promise<BigNumber>;
+
+    "addCollateralETH(address,address)"(
+      creditManager: string,
+      onBehalfOf: string,
+      overrides?: PayableOverrides
+    ): Promise<BigNumber>;
+
     addLiquidityETH(
       pool: string,
       onBehalfOf: string,
@@ -391,6 +448,18 @@ export class WETHGateway extends Contract {
   };
 
   populateTransaction: {
+    addCollateralETH(
+      creditManager: string,
+      onBehalfOf: string,
+      overrides?: PayableOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "addCollateralETH(address,address)"(
+      creditManager: string,
+      onBehalfOf: string,
+      overrides?: PayableOverrides
+    ): Promise<PopulatedTransaction>;
+
     addLiquidityETH(
       pool: string,
       onBehalfOf: string,

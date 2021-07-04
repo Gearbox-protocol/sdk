@@ -183,7 +183,6 @@ export class DataCompressor extends Contract {
           boolean,
           string,
           string,
-          string,
           BigNumber,
           BigNumber,
           BigNumber,
@@ -194,7 +193,6 @@ export class DataCompressor extends Contract {
           borrower: string;
           inUse: boolean;
           creditManager: string;
-          kind: string;
           underlyingToken: string;
           borrowedAmountPlusInterest: BigNumber;
           totalValue: BigNumber;
@@ -220,7 +218,6 @@ export class DataCompressor extends Contract {
           boolean,
           string,
           string,
-          string,
           BigNumber,
           BigNumber,
           BigNumber,
@@ -231,7 +228,6 @@ export class DataCompressor extends Contract {
           borrower: string;
           inUse: boolean;
           creditManager: string;
-          kind: string;
           underlyingToken: string;
           borrowedAmountPlusInterest: BigNumber;
           totalValue: BigNumber;
@@ -257,7 +253,6 @@ export class DataCompressor extends Contract {
           boolean,
           string,
           string,
-          string,
           BigNumber,
           BigNumber,
           BigNumber,
@@ -273,7 +268,6 @@ export class DataCompressor extends Contract {
           borrower: string;
           inUse: boolean;
           creditManager: string;
-          kind: string;
           underlyingToken: string;
           borrowedAmountPlusInterest: BigNumber;
           totalValue: BigNumber;
@@ -304,7 +298,6 @@ export class DataCompressor extends Contract {
           boolean,
           string,
           string,
-          string,
           BigNumber,
           BigNumber,
           BigNumber,
@@ -320,7 +313,6 @@ export class DataCompressor extends Contract {
           borrower: string;
           inUse: boolean;
           creditManager: string;
-          kind: string;
           underlyingToken: string;
           borrowedAmountPlusInterest: BigNumber;
           totalValue: BigNumber;
@@ -350,7 +342,6 @@ export class DataCompressor extends Contract {
           boolean,
           string,
           string,
-          string,
           BigNumber,
           BigNumber,
           BigNumber,
@@ -361,7 +352,6 @@ export class DataCompressor extends Contract {
           borrower: string;
           inUse: boolean;
           creditManager: string;
-          kind: string;
           underlyingToken: string;
           borrowedAmountPlusInterest: BigNumber;
           totalValue: BigNumber;
@@ -386,7 +376,6 @@ export class DataCompressor extends Contract {
           boolean,
           string,
           string,
-          string,
           BigNumber,
           BigNumber,
           BigNumber,
@@ -397,7 +386,6 @@ export class DataCompressor extends Contract {
           borrower: string;
           inUse: boolean;
           creditManager: string;
-          kind: string;
           underlyingToken: string;
           borrowedAmountPlusInterest: BigNumber;
           totalValue: BigNumber;
@@ -445,7 +433,6 @@ export class DataCompressor extends Contract {
           string,
           boolean,
           string,
-          string,
           boolean,
           boolean,
           BigNumber,
@@ -458,7 +445,6 @@ export class DataCompressor extends Contract {
         ] & {
           addr: string;
           hasAccount: boolean;
-          kind: string;
           underlyingToken: string;
           isWETH: boolean;
           canBorrow: boolean;
@@ -486,7 +472,6 @@ export class DataCompressor extends Contract {
           string,
           boolean,
           string,
-          string,
           boolean,
           boolean,
           BigNumber,
@@ -499,7 +484,6 @@ export class DataCompressor extends Contract {
         ] & {
           addr: string;
           hasAccount: boolean;
-          kind: string;
           underlyingToken: string;
           isWETH: boolean;
           canBorrow: boolean;
@@ -526,7 +510,6 @@ export class DataCompressor extends Contract {
           string,
           boolean,
           string,
-          string,
           boolean,
           boolean,
           BigNumber,
@@ -539,7 +522,6 @@ export class DataCompressor extends Contract {
         ] & {
           addr: string;
           hasAccount: boolean;
-          kind: string;
           underlyingToken: string;
           isWETH: boolean;
           canBorrow: boolean;
@@ -566,7 +548,6 @@ export class DataCompressor extends Contract {
           string,
           boolean,
           string,
-          string,
           boolean,
           boolean,
           BigNumber,
@@ -579,7 +560,6 @@ export class DataCompressor extends Contract {
         ] & {
           addr: string;
           hasAccount: boolean;
-          kind: string;
           underlyingToken: string;
           isWETH: boolean;
           canBorrow: boolean;
@@ -805,7 +785,6 @@ export class DataCompressor extends Contract {
       boolean,
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -816,7 +795,6 @@ export class DataCompressor extends Contract {
       borrower: string;
       inUse: boolean;
       creditManager: string;
-      kind: string;
       underlyingToken: string;
       borrowedAmountPlusInterest: BigNumber;
       totalValue: BigNumber;
@@ -837,7 +815,6 @@ export class DataCompressor extends Contract {
       boolean,
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -848,7 +825,6 @@ export class DataCompressor extends Contract {
       borrower: string;
       inUse: boolean;
       creditManager: string;
-      kind: string;
       underlyingToken: string;
       borrowedAmountPlusInterest: BigNumber;
       totalValue: BigNumber;
@@ -869,7 +845,6 @@ export class DataCompressor extends Contract {
       boolean,
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -885,7 +860,6 @@ export class DataCompressor extends Contract {
       borrower: string;
       inUse: boolean;
       creditManager: string;
-      kind: string;
       underlyingToken: string;
       borrowedAmountPlusInterest: BigNumber;
       totalValue: BigNumber;
@@ -911,7 +885,6 @@ export class DataCompressor extends Contract {
       boolean,
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -927,7 +900,6 @@ export class DataCompressor extends Contract {
       borrower: string;
       inUse: boolean;
       creditManager: string;
-      kind: string;
       underlyingToken: string;
       borrowedAmountPlusInterest: BigNumber;
       totalValue: BigNumber;
@@ -952,7 +924,6 @@ export class DataCompressor extends Contract {
       boolean,
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -963,7 +934,6 @@ export class DataCompressor extends Contract {
       borrower: string;
       inUse: boolean;
       creditManager: string;
-      kind: string;
       underlyingToken: string;
       borrowedAmountPlusInterest: BigNumber;
       totalValue: BigNumber;
@@ -983,7 +953,6 @@ export class DataCompressor extends Contract {
       boolean,
       string,
       string,
-      string,
       BigNumber,
       BigNumber,
       BigNumber,
@@ -994,7 +963,6 @@ export class DataCompressor extends Contract {
       borrower: string;
       inUse: boolean;
       creditManager: string;
-      kind: string;
       underlyingToken: string;
       borrowedAmountPlusInterest: BigNumber;
       totalValue: BigNumber;
@@ -1037,7 +1005,6 @@ export class DataCompressor extends Contract {
       string,
       boolean,
       string,
-      string,
       boolean,
       boolean,
       BigNumber,
@@ -1050,7 +1017,6 @@ export class DataCompressor extends Contract {
     ] & {
       addr: string;
       hasAccount: boolean;
-      kind: string;
       underlyingToken: string;
       isWETH: boolean;
       canBorrow: boolean;
@@ -1076,7 +1042,6 @@ export class DataCompressor extends Contract {
       string,
       boolean,
       string,
-      string,
       boolean,
       boolean,
       BigNumber,
@@ -1089,7 +1054,6 @@ export class DataCompressor extends Contract {
     ] & {
       addr: string;
       hasAccount: boolean;
-      kind: string;
       underlyingToken: string;
       isWETH: boolean;
       canBorrow: boolean;
@@ -1114,7 +1078,6 @@ export class DataCompressor extends Contract {
       string,
       boolean,
       string,
-      string,
       boolean,
       boolean,
       BigNumber,
@@ -1127,7 +1090,6 @@ export class DataCompressor extends Contract {
     ] & {
       addr: string;
       hasAccount: boolean;
-      kind: string;
       underlyingToken: string;
       isWETH: boolean;
       canBorrow: boolean;
@@ -1152,7 +1114,6 @@ export class DataCompressor extends Contract {
       string,
       boolean,
       string,
-      string,
       boolean,
       boolean,
       BigNumber,
@@ -1165,7 +1126,6 @@ export class DataCompressor extends Contract {
     ] & {
       addr: string;
       hasAccount: boolean;
-      kind: string;
       underlyingToken: string;
       isWETH: boolean;
       canBorrow: boolean;
@@ -1378,7 +1338,6 @@ export class DataCompressor extends Contract {
         boolean,
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -1389,7 +1348,6 @@ export class DataCompressor extends Contract {
         borrower: string;
         inUse: boolean;
         creditManager: string;
-        kind: string;
         underlyingToken: string;
         borrowedAmountPlusInterest: BigNumber;
         totalValue: BigNumber;
@@ -1413,7 +1371,6 @@ export class DataCompressor extends Contract {
         boolean,
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -1424,7 +1381,6 @@ export class DataCompressor extends Contract {
         borrower: string;
         inUse: boolean;
         creditManager: string;
-        kind: string;
         underlyingToken: string;
         borrowedAmountPlusInterest: BigNumber;
         totalValue: BigNumber;
@@ -1448,7 +1404,6 @@ export class DataCompressor extends Contract {
         boolean,
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -1464,7 +1419,6 @@ export class DataCompressor extends Contract {
         borrower: string;
         inUse: boolean;
         creditManager: string;
-        kind: string;
         underlyingToken: string;
         borrowedAmountPlusInterest: BigNumber;
         totalValue: BigNumber;
@@ -1493,7 +1447,6 @@ export class DataCompressor extends Contract {
         boolean,
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -1509,7 +1462,6 @@ export class DataCompressor extends Contract {
         borrower: string;
         inUse: boolean;
         creditManager: string;
-        kind: string;
         underlyingToken: string;
         borrowedAmountPlusInterest: BigNumber;
         totalValue: BigNumber;
@@ -1537,7 +1489,6 @@ export class DataCompressor extends Contract {
         boolean,
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -1548,7 +1499,6 @@ export class DataCompressor extends Contract {
         borrower: string;
         inUse: boolean;
         creditManager: string;
-        kind: string;
         underlyingToken: string;
         borrowedAmountPlusInterest: BigNumber;
         totalValue: BigNumber;
@@ -1571,7 +1521,6 @@ export class DataCompressor extends Contract {
         boolean,
         string,
         string,
-        string,
         BigNumber,
         BigNumber,
         BigNumber,
@@ -1582,7 +1531,6 @@ export class DataCompressor extends Contract {
         borrower: string;
         inUse: boolean;
         creditManager: string;
-        kind: string;
         underlyingToken: string;
         borrowedAmountPlusInterest: BigNumber;
         totalValue: BigNumber;
@@ -1628,7 +1576,6 @@ export class DataCompressor extends Contract {
         string,
         boolean,
         string,
-        string,
         boolean,
         boolean,
         BigNumber,
@@ -1641,7 +1588,6 @@ export class DataCompressor extends Contract {
       ] & {
         addr: string;
         hasAccount: boolean;
-        kind: string;
         underlyingToken: string;
         isWETH: boolean;
         canBorrow: boolean;
@@ -1667,7 +1613,6 @@ export class DataCompressor extends Contract {
         string,
         boolean,
         string,
-        string,
         boolean,
         boolean,
         BigNumber,
@@ -1680,7 +1625,6 @@ export class DataCompressor extends Contract {
       ] & {
         addr: string;
         hasAccount: boolean;
-        kind: string;
         underlyingToken: string;
         isWETH: boolean;
         canBorrow: boolean;
@@ -1705,7 +1649,6 @@ export class DataCompressor extends Contract {
         string,
         boolean,
         string,
-        string,
         boolean,
         boolean,
         BigNumber,
@@ -1718,7 +1661,6 @@ export class DataCompressor extends Contract {
       ] & {
         addr: string;
         hasAccount: boolean;
-        kind: string;
         underlyingToken: string;
         isWETH: boolean;
         canBorrow: boolean;
@@ -1743,7 +1685,6 @@ export class DataCompressor extends Contract {
         string,
         boolean,
         string,
-        string,
         boolean,
         boolean,
         BigNumber,
@@ -1756,7 +1697,6 @@ export class DataCompressor extends Contract {
       ] & {
         addr: string;
         hasAccount: boolean;
-        kind: string;
         underlyingToken: string;
         isWETH: boolean;
         canBorrow: boolean;
