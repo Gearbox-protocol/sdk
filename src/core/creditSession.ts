@@ -18,6 +18,7 @@ export class CreditSession {
 
   public readonly status: CreditSessionStatus;
   public readonly name: string;
+  public readonly background: string;
   public readonly borrower: string;
   public readonly creditManager: string;
   public readonly account: string;
@@ -37,6 +38,7 @@ export class CreditSession {
     this.session_id = payload.id;
     this.status = statusEnum[payload.status];
     this.name = payload.name;
+    this.background = payload.background;
     this.borrower = payload.borrower;
     this.creditManager = payload.creditManager;
     this.account = payload.account;

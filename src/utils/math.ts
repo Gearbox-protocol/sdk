@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import {RAY} from "@diesellabs/gearbox-sdk";
+import {RAY} from "../core/constants";
 
 export function revertRay(num?: BigNumber): BigNumber | undefined {
     if (!num) return undefined

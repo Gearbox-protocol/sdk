@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { IPoolService } from "../types";
+import { IAppPoolService } from "../types";
 import { PoolDataPayload } from "../payload/pool";
 import { rayToNumber } from "../utils/formatter";
 
@@ -44,9 +44,9 @@ export class PoolData {
 }
 
 export class PoolDataExtended extends PoolData {
-  public readonly contractETH: IPoolService;
+  public readonly contractETH: IAppPoolService;
 
-  constructor(payload: PoolDataPayload, contractETH: IPoolService) {
+  constructor(payload: PoolDataPayload, contractETH: IAppPoolService) {
     super(payload);
     this.contractETH = contractETH;
   }

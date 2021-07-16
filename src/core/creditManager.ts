@@ -1,8 +1,15 @@
-import {BigNumber} from "ethers";
-import {ICreditManager} from "../types";
-import {formatBN} from "../utils/formatter";
-import {PERCENTAGE_FACTOR, RAY, UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,} from "./constants";
-import {CreditManagerDataPayload, CreditManagerStatPayload,} from "../payload/creditManager";
+import { BigNumber } from "ethers";
+import { IAppCreditManager } from "../types";
+import { formatBN } from "../utils/formatter";
+import {
+  PERCENTAGE_FACTOR,
+  RAY,
+  UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
+} from "./constants";
+import {
+  CreditManagerDataPayload,
+  CreditManagerStatPayload,
+} from "../payload/creditManager";
 
 export class CreditManagerData {
   public readonly id: string;
@@ -76,9 +83,12 @@ export class CreditManagerData {
 }
 
 export class CreditManagerDataExtended extends CreditManagerData {
-  public readonly contractETH: ICreditManager;
+  public readonly contractETH: IAppCreditManager;
 
-  constructor(payload: CreditManagerDataPayload, contractETH: ICreditManager) {
+  constructor(
+    payload: CreditManagerDataPayload,
+    contractETH: IAppCreditManager
+  ) {
     super(payload);
     this.contractETH = contractETH;
   }
@@ -108,7 +118,7 @@ export function calcMaxIncreaseBorrow(
   return result.isNegative() ? BigNumber.from(0) : result;
 }
 
-export function calcHealthFactorAfter(
+export function calcHealthFactorAfterIncreasingBorrow(
   healthFactor: number | undefined,
   borrowAmountPlusInterest: BigNumber | undefined,
   additional: BigNumber
@@ -117,11 +127,31 @@ export function calcHealthFactorAfter(
 
   const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
 
-  return borrowAmountPlusInterest
-    .mul(healthFactorPercentage)
-    .add(additional.mul(UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD))
-    .div(borrowAmountPlusInterest.add(additional))
-    .toNumber();
+  return (
+    borrowAmountPlusInterest
+      .mul(healthFactorPercentage)
+      .add(additional.mul(UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD))
+      .div(borrowAmountPlusInterest.add(additional))
+      .toNumber() / PERCENTAGE_FACTOR
+  );
+}
+
+export function calcHealthFactorAfterAddingCollateral(
+  healthFactor: number | undefined,
+  borrowAmountPlusInterest: BigNumber | undefined,
+  additionalCollateral: BigNumber
+): number {
+  if (!healthFactor || !borrowAmountPlusInterest) return 0;
+
+  const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
+
+  return (
+    borrowAmountPlusInterest
+      .mul(healthFactorPercentage)
+      .add(additionalCollateral.mul(UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD))
+      .div(borrowAmountPlusInterest)
+      .toNumber() / PERCENTAGE_FACTOR
+  );
 }
 
 export class CreditManagerStat extends CreditManagerData {

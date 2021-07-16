@@ -5,6 +5,7 @@ export interface CreditSessionPayload {
   id: string;
   status: number;
   name: string;
+  background: string;
   borrower: string;
   creditManager: string;
   account: string;
