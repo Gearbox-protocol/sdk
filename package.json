@@ -1,15 +1,14 @@
 {
   "name": "@diesellabs/gearbox-sdk",
-  "version": "0.0.74",
-  "description": "Gearbox SDK typescript library",
+  "version": "0.0.75",
+  "description": "Gearbox SDK",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "author": "Mikael Lazarev",
   "license": "BSL",
   "scripts": {
     "build": "tsc",
-    "pub": "tsc && yarn copy-files && yarn publish",
-    "copy-files": "cp -R ./src/assets ./lib"
+    "pub": "tsc && yarn publish"
   },
   "dependencies": {
     "decimal.js-light": "^2.5.1",
