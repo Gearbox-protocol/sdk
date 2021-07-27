@@ -45,6 +45,7 @@ export class CreditAccountDataExtended extends CreditAccountData {
   public readonly repayAmount: BigNumber;
   public readonly liquidationAmount: BigNumber;
   public readonly borrowedAmount: BigNumber;
+  public readonly canBeClosed: boolean;
   public readonly cumulativeIndexAtOpen: BigNumber;
   public readonly since: number;
 
@@ -54,6 +55,7 @@ export class CreditAccountDataExtended extends CreditAccountData {
     this.cumulativeIndexAtOpen = BigNumber.from(payload.cumulativeIndexAtOpen);
     this.repayAmount = BigNumber.from(payload.repayAmount);
     this.liquidationAmount = BigNumber.from(payload.liquidationAmount);
+    this.canBeClosed = payload.canBeClosed || false;
     this.since = BigNumber.from(payload.since).toNumber();
   }
 }

@@ -200,6 +200,7 @@ export class IDataCompressor extends Contract {
           ([string, BigNumber] & { token: string; balance: BigNumber })[],
           BigNumber,
           BigNumber,
+          boolean,
           BigNumber,
           BigNumber,
           BigNumber
@@ -219,6 +220,7 @@ export class IDataCompressor extends Contract {
           })[];
           repayAmount: BigNumber;
           liquidationAmount: BigNumber;
+          canBeClosed: boolean;
           borrowedAmount: BigNumber;
           cumulativeIndexAtOpen: BigNumber;
           since: BigNumber;
@@ -245,6 +247,7 @@ export class IDataCompressor extends Contract {
           ([string, BigNumber] & { token: string; balance: BigNumber })[],
           BigNumber,
           BigNumber,
+          boolean,
           BigNumber,
           BigNumber,
           BigNumber
@@ -264,6 +267,7 @@ export class IDataCompressor extends Contract {
           })[];
           repayAmount: BigNumber;
           liquidationAmount: BigNumber;
+          canBeClosed: boolean;
           borrowedAmount: BigNumber;
           cumulativeIndexAtOpen: BigNumber;
           since: BigNumber;
@@ -744,6 +748,7 @@ export class IDataCompressor extends Contract {
       ([string, BigNumber] & { token: string; balance: BigNumber })[],
       BigNumber,
       BigNumber,
+      boolean,
       BigNumber,
       BigNumber,
       BigNumber
@@ -760,6 +765,7 @@ export class IDataCompressor extends Contract {
       balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
       repayAmount: BigNumber;
       liquidationAmount: BigNumber;
+      canBeClosed: boolean;
       borrowedAmount: BigNumber;
       cumulativeIndexAtOpen: BigNumber;
       since: BigNumber;
@@ -784,6 +790,7 @@ export class IDataCompressor extends Contract {
       ([string, BigNumber] & { token: string; balance: BigNumber })[],
       BigNumber,
       BigNumber,
+      boolean,
       BigNumber,
       BigNumber,
       BigNumber
@@ -800,6 +807,7 @@ export class IDataCompressor extends Contract {
       balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
       repayAmount: BigNumber;
       liquidationAmount: BigNumber;
+      canBeClosed: boolean;
       borrowedAmount: BigNumber;
       cumulativeIndexAtOpen: BigNumber;
       since: BigNumber;
@@ -1255,6 +1263,7 @@ export class IDataCompressor extends Contract {
         ([string, BigNumber] & { token: string; balance: BigNumber })[],
         BigNumber,
         BigNumber,
+        boolean,
         BigNumber,
         BigNumber,
         BigNumber
@@ -1274,6 +1283,7 @@ export class IDataCompressor extends Contract {
         })[];
         repayAmount: BigNumber;
         liquidationAmount: BigNumber;
+        canBeClosed: boolean;
         borrowedAmount: BigNumber;
         cumulativeIndexAtOpen: BigNumber;
         since: BigNumber;
@@ -1298,6 +1308,7 @@ export class IDataCompressor extends Contract {
         ([string, BigNumber] & { token: string; balance: BigNumber })[],
         BigNumber,
         BigNumber,
+        boolean,
         BigNumber,
         BigNumber,
         BigNumber
@@ -1317,6 +1328,7 @@ export class IDataCompressor extends Contract {
         })[];
         repayAmount: BigNumber;
         liquidationAmount: BigNumber;
+        canBeClosed: boolean;
         borrowedAmount: BigNumber;
         cumulativeIndexAtOpen: BigNumber;
         since: BigNumber;

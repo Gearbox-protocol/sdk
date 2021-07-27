@@ -15,6 +15,8 @@ export interface CreditSessionPayload {
   closedAtTimestamp: number;
   initialAmount: BigNumberish;
   borrowedAmount: BigNumberish;
+  totalValue?: BigNumberish;
+  healthFactor?: BigNumberish;
   profit: BigNumberish;
   profitPercentage: number;
   score: number;

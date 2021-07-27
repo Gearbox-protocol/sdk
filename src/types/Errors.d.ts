@@ -65,6 +65,7 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "MATH_ADDITION_OVERFLOW()": FunctionFragment;
     "MATH_DIVISION_BY_ZERO()": FunctionFragment;
     "MATH_MULTIPLICATION_OVERFLOW()": FunctionFragment;
+    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()": FunctionFragment;
     "POOL_CREDIT_MANAGERS_ONLY()": FunctionFragment;
     "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()": FunctionFragment;
     "POOL_INCORRECT_WITHDRAW_FEE()": FunctionFragment;
@@ -253,6 +254,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "MATH_MULTIPLICATION_OVERFLOW",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "POOL_CANT_ADD_CREDIT_MANAGER_TWICE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -478,6 +483,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "MATH_MULTIPLICATION_OVERFLOW",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "POOL_CANT_ADD_CREDIT_MANAGER_TWICE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -800,6 +809,14 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
     "POOL_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
@@ -1109,6 +1126,14 @@ export class Errors extends Contract {
 
   "MATH_MULTIPLICATION_OVERFLOW()"(overrides?: CallOverrides): Promise<string>;
 
+  POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
 
   "POOL_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
@@ -1413,6 +1438,14 @@ export class Errors extends Contract {
     MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
 
     "MATH_MULTIPLICATION_OVERFLOW()"(
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1745,6 +1778,14 @@ export class Errors extends Contract {
     MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<BigNumber>;
 
     "MATH_MULTIPLICATION_OVERFLOW()"(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2177,6 +2218,14 @@ export class Errors extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "MATH_MULTIPLICATION_OVERFLOW()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

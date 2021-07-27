@@ -96,6 +96,11 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "bool",
+            name: "canBeClosed",
+            type: "bool",
+          },
+          {
             internalType: "uint256",
             name: "borrowedAmount",
             type: "uint256",

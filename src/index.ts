@@ -23,7 +23,7 @@ export { abi as WETH_GATEWAY_ABI } from "./abi/interfaces/IWETHGateway.sol/IWETH
 export { abi as TOKEN_ABI } from "./abi/interfaces/app/IAppERC20.sol/IAppERC20.json";
 export { abi as CREDIT_ACCOUNT_DATA_ABI } from "./abi/interfaces/app/ICreditAccountData.sol/ICreditAccountData.json";
 export { abi as POOL_SERVICE_ABI } from "./abi/interfaces/app/IAppPoolService.sol/IAppPoolService.json";
-export { abi as PRICE_ORACLE_ABI} from "./abi/oracles/PriceOracle.sol/PriceOracle.json";
+export { abi as PRICE_ORACLE_ABI } from "./abi/oracles/PriceOracle.sol/PriceOracle.json";
 
 export { revertRay } from "./utils/math";
 
@@ -36,3 +36,4 @@ export type {
   IDataCompressor,
   IWETHGateway,
 } from "./types";
+

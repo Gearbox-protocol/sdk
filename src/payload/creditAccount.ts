@@ -21,6 +21,7 @@ export interface CreditAccountDataPayload {
 export interface CreditAccountDataExtendedPayload extends CreditAccountDataPayload {
   repayAmount: BigNumberish;
   liquidationAmount: BigNumberish;
+  canBeClosed?: boolean;
   borrowedAmount: BigNumberish;
   cumulativeIndexAtOpen: BigNumberish;
   since: BigNumberish;

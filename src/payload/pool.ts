@@ -6,7 +6,7 @@ export interface PoolDataPayload {
   dieselToken: string;
   isWETH: boolean;
   expectedLiquidity: BigNumberish;
-  expectedLiquidityLimit: BigNumberish;
+  expectedLiquidityLimit?: BigNumberish;
   availableLiquidity: BigNumberish;
   totalBorrowed: BigNumberish;
   depositAPY_RAY: BigNumberish;
@@ -15,3 +15,4 @@ export interface PoolDataPayload {
   withdrawFee: BigNumberish;
 }
 
+//

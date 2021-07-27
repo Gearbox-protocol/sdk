@@ -25,13 +25,13 @@ export class PoolData {
   constructor(payload: PoolDataPayload) {
     this.id = payload.addr;
     this.address = payload.addr;
-    this.underlyingToken = payload.underlyingToken;
-    this.dieselToken = payload.dieselToken;
-    this.isWETH = payload.isWETH;
+    this.underlyingToken = payload.underlyingToken || "";
+    this.dieselToken = payload.dieselToken || "";
+    this.isWETH = payload.isWETH || false;
 
     this.expectedLiquidity = BigNumber.from(payload.expectedLiquidity);
     this.expectedLiquidityLimit = BigNumber.from(
-      payload.expectedLiquidityLimit
+      payload.expectedLiquidityLimit || 0
     );
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed);
