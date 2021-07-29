@@ -1,6 +1,8 @@
 // ICONS
 
-const t = (name: string) => `https://gearbox1.s3.us-west-1.amazonaws.com/tokens/${name}`;
+import {getStatic} from "./index";
+
+const t = (name: string) => getStatic(`/tokens/${name}`);
 
 export const ICONS: Record<string, string> = {
   weth: t('eth.svg'),
