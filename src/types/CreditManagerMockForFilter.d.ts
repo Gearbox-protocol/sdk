@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
   functions: {
@@ -110,36 +109,56 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class CreditManagerMockForFilter extends Contract {
+export class CreditManagerMockForFilter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: CreditManagerMockForFilterInterface;
 
   functions: {
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "calcLinearCumulative_RAY()"(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     checkAndEnableToken(
       creditAccount: string,
       token: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "checkAndEnableToken(address,address)"(
-      creditAccount: string,
-      token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     checkCollateralChange(
@@ -148,77 +167,38 @@ export class CreditManagerMockForFilter extends Contract {
       tokenOut: string,
       amountIn: BigNumberish,
       amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "checkCollateralChange(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     connectFilter(
       _creditFilterAddress: string,
       _underlyingToken: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "connectFilter(address,address)"(
-      _creditFilterAddress: string,
-      _underlyingToken: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     healthFactor(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "healthFactor()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     initEnabledTokens(
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "initEnabledTokens(address)"(
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     poolService(overrides?: CallOverrides): Promise<[string]>;
 
-    "poolService()"(overrides?: CallOverrides): Promise<[string]>;
-
     setLinearCumulative(
       newValue: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setLinearCumulative(uint256)"(
-      newValue: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
-
-    "underlyingToken()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   checkAndEnableToken(
     creditAccount: string,
     token: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "checkAndEnableToken(address,address)"(
-    creditAccount: string,
-    token: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   checkCollateralChange(
@@ -227,74 +207,35 @@ export class CreditManagerMockForFilter extends Contract {
     tokenOut: string,
     amountIn: BigNumberish,
     amountOut: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "checkCollateralChange(address,address,address,uint256,uint256)"(
-    creditAccount: string,
-    tokenIn: string,
-    tokenOut: string,
-    amountIn: BigNumberish,
-    amountOut: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   connectFilter(
     _creditFilterAddress: string,
     _underlyingToken: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "connectFilter(address,address)"(
-    _creditFilterAddress: string,
-    _underlyingToken: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   healthFactor(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "healthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   initEnabledTokens(
     creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "initEnabledTokens(address)"(
-    creditAccount: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   poolService(overrides?: CallOverrides): Promise<string>;
 
-  "poolService()"(overrides?: CallOverrides): Promise<string>;
-
   setLinearCumulative(
     newValue: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setLinearCumulative(uint256)"(
-    newValue: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   underlyingToken(overrides?: CallOverrides): Promise<string>;
 
-  "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     checkAndEnableToken(
-      creditAccount: string,
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "checkAndEnableToken(address,address)"(
       creditAccount: string,
       token: string,
       overrides?: CallOverrides
@@ -309,22 +250,7 @@ export class CreditManagerMockForFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "checkCollateralChange(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     connectFilter(
-      _creditFilterAddress: string,
-      _underlyingToken: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "connectFilter(address,address)"(
       _creditFilterAddress: string,
       _underlyingToken: string,
       overrides?: CallOverrides
@@ -332,35 +258,19 @@ export class CreditManagerMockForFilter extends Contract {
 
     healthFactor(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "healthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     initEnabledTokens(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "initEnabledTokens(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     poolService(overrides?: CallOverrides): Promise<string>;
 
-    "poolService()"(overrides?: CallOverrides): Promise<string>;
-
     setLinearCumulative(
       newValue: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setLinearCumulative(uint256)"(
-      newValue: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     underlyingToken(overrides?: CallOverrides): Promise<string>;
-
-    "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
@@ -368,18 +278,10 @@ export class CreditManagerMockForFilter extends Contract {
   estimateGas: {
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     checkAndEnableToken(
       creditAccount: string,
       token: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "checkAndEnableToken(address,address)"(
-      creditAccount: string,
-      token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     checkCollateralChange(
@@ -388,61 +290,30 @@ export class CreditManagerMockForFilter extends Contract {
       tokenOut: string,
       amountIn: BigNumberish,
       amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "checkCollateralChange(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     connectFilter(
       _creditFilterAddress: string,
       _underlyingToken: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "connectFilter(address,address)"(
-      _creditFilterAddress: string,
-      _underlyingToken: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     healthFactor(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "healthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     initEnabledTokens(
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "initEnabledTokens(address)"(
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     poolService(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "poolService()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     setLinearCumulative(
       newValue: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setLinearCumulative(uint256)"(
-      newValue: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "underlyingToken()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -450,20 +321,10 @@ export class CreditManagerMockForFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "calcLinearCumulative_RAY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     checkAndEnableToken(
       creditAccount: string,
       token: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "checkAndEnableToken(address,address)"(
-      creditAccount: string,
-      token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     checkCollateralChange(
@@ -472,62 +333,29 @@ export class CreditManagerMockForFilter extends Contract {
       tokenOut: string,
       amountIn: BigNumberish,
       amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "checkCollateralChange(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     connectFilter(
       _creditFilterAddress: string,
       _underlyingToken: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "connectFilter(address,address)"(
-      _creditFilterAddress: string,
-      _underlyingToken: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     healthFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "healthFactor()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     initEnabledTokens(
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "initEnabledTokens(address)"(
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     poolService(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "poolService()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     setLinearCumulative(
       newValue: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setLinearCumulative(uint256)"(
-      newValue: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     underlyingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "underlyingToken()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
   };
 }

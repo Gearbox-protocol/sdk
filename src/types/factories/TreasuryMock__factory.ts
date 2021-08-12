@@ -2,36 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Signer } from "ethers";
+import { Signer, utils, Contract, ContractFactory, Overrides } from "ethers";
 import { Provider, TransactionRequest } from "@ethersproject/providers";
-import { Contract, ContractFactory, Overrides } from "@ethersproject/contracts";
-
-import type { TreasuryMock } from "../TreasuryMock";
-
-export class TreasuryMock__factory extends ContractFactory {
-  constructor(signer?: Signer) {
-    super(_abi, _bytecode, signer);
-  }
-
-  deploy(overrides?: Overrides): Promise<TreasuryMock> {
-    return super.deploy(overrides || {}) as Promise<TreasuryMock>;
-  }
-  getDeployTransaction(overrides?: Overrides): TransactionRequest {
-    return super.getDeployTransaction(overrides || {});
-  }
-  attach(address: string): TreasuryMock {
-    return super.attach(address) as TreasuryMock;
-  }
-  connect(signer: Signer): TreasuryMock__factory {
-    return super.connect(signer) as TreasuryMock__factory;
-  }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): TreasuryMock {
-    return new Contract(address, _abi, signerOrProvider) as TreasuryMock;
-  }
-}
+import type { TreasuryMock, TreasuryMockInterface } from "../TreasuryMock";
 
 const _abi = [
   {
@@ -55,3 +28,37 @@ const _abi = [
 
 const _bytecode =
   "0x6080604052348015600f57600080fd5b50607c8061001e6000396000f3fe6080604052366041577f8ffa785350fa6b5fee858c4ca63eff2704b9538ff446bd673c1f6c11fc7aca16346040518082815260200191505060405180910390a1005b600080fdfea26469706673582212203cc337c5617bf84f1231377cb7761e691e3a3b15210ad09153c5a3f48069a44564736f6c63430007060033";
+
+export class TreasuryMock__factory extends ContractFactory {
+  constructor(signer?: Signer) {
+    super(_abi, _bytecode, signer);
+  }
+
+  deploy(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<TreasuryMock> {
+    return super.deploy(overrides || {}) as Promise<TreasuryMock>;
+  }
+  getDeployTransaction(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): TransactionRequest {
+    return super.getDeployTransaction(overrides || {});
+  }
+  attach(address: string): TreasuryMock {
+    return super.attach(address) as TreasuryMock;
+  }
+  connect(signer: Signer): TreasuryMock__factory {
+    return super.connect(signer) as TreasuryMock__factory;
+  }
+  static readonly bytecode = _bytecode;
+  static readonly abi = _abi;
+  static createInterface(): TreasuryMockInterface {
+    return new utils.Interface(_abi) as TreasuryMockInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): TreasuryMock {
+    return new Contract(address, _abi, signerOrProvider) as TreasuryMock;
+  }
+}

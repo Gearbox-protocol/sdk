@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CreditManagerInterface extends ethers.utils.Interface {
   functions: {
@@ -329,36 +328,51 @@ interface CreditManagerInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
-export class CreditManager extends Contract {
+export class CreditManager extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: CreditManagerInterface;
 
   functions: {
     _calcClosePayments(
-      creditAccount: string,
-      totalValue: BigNumberish,
-      isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        _borrowedAmount: BigNumber;
-        amountToPool: BigNumber;
-        remainingFunds: BigNumber;
-        profit: BigNumber;
-        loss: BigNumber;
-      }
-    >;
-
-    "_calcClosePayments(address,uint256,bool)"(
       creditAccount: string,
       totalValue: BigNumberish,
       isLiquidated: boolean,
@@ -390,48 +404,16 @@ export class CreditManager extends Contract {
       }
     >;
 
-    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
-      totalValue: BigNumberish,
-      isLiquidated: boolean,
-      borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      cumulativeIndexNow_RAY: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        _borrowedAmount: BigNumber;
-        amountToPool: BigNumber;
-        remainingFunds: BigNumber;
-        profit: BigNumber;
-        loss: BigNumber;
-      }
-    >;
-
     addCollateral(
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addCollateral(address,address,uint256)"(
-      onBehalfOf: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
 
-    "addressProvider()"(overrides?: CallOverrides): Promise<[string]>;
-
     calcRepayAmount(
-      borrower: string,
-      isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "calcRepayAmount(address,bool)"(
       borrower: string,
       isLiquidated: boolean,
       overrides?: CallOverrides
@@ -440,62 +422,29 @@ export class CreditManager extends Contract {
     closeCreditAccount(
       to: string,
       paths: { path: string[]; amountOutMin: BigNumberish }[],
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "closeCreditAccount(address,tuple[])"(
-      to: string,
-      paths: { path: string[]; amountOutMin: BigNumberish }[],
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     creditAccounts(arg0: string, overrides?: CallOverrides): Promise<[string]>;
 
-    "creditAccounts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     creditFilter(overrides?: CallOverrides): Promise<[string]>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<[string]>;
-
     defaultSwapContract(overrides?: CallOverrides): Promise<[string]>;
-
-    "defaultSwapContract()"(overrides?: CallOverrides): Promise<[string]>;
 
     executeOrder(
       borrower: string,
       target: string,
       data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "executeOrder(address,address,bytes)"(
-      borrower: string,
-      target: string,
-      data: BytesLike,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     feeInterest(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "feeInterest()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     feeLiquidation(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "feeLiquidation()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     feeSuccess(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "feeSuccess()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     getCreditAccountOrRevert(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "getCreditAccountOrRevert(address)"(
       borrower: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
@@ -505,115 +454,59 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    "hasOpenedCreditAccount(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
     increaseBorrowedAmount(
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "increaseBorrowedAmount(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     liquidateCreditAccount(
       borrower: string,
       to: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "liquidateCreditAccount(address,address)"(
-      borrower: string,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     liquidationDiscount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "liquidationDiscount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     maxAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "maxAmount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     maxLeverageFactor(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "maxLeverageFactor()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     minAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "minAmount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     minHealthFactor(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "minHealthFactor()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     openCreditAccount(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "openCreditAccount(uint256,address,uint256,uint256)"(
-      amount: BigNumberish,
-      onBehalfOf: string,
-      leverageFactor: BigNumberish,
-      referralCode: BigNumberish,
-      overrides?: Overrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    pause(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "pause()"(overrides?: Overrides): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
-    "paused()"(overrides?: CallOverrides): Promise<[boolean]>;
-
     poolService(overrides?: CallOverrides): Promise<[string]>;
-
-    "poolService()"(overrides?: CallOverrides): Promise<[string]>;
 
     provideCreditAccountAllowance(
       creditAccount: string,
       toContract: string,
       token: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "provideCreditAccountAllowance(address,address,address)"(
-      creditAccount: string,
-      toContract: string,
-      token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     repayCreditAccount(
       to: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "repayCreditAccount(address)"(
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     repayCreditAccountETH(
       borrower: string,
       to: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "repayCreditAccountETH(address,address)"(
-      borrower: string,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setFees(
@@ -621,62 +514,27 @@ export class CreditManager extends Contract {
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
       _liquidationDiscount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setFees(uint256,uint256,uint256,uint256)"(
-      _feeSuccess: BigNumberish,
-      _feeInterest: BigNumberish,
-      _feeLiquidation: BigNumberish,
-      _liquidationDiscount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setLimits(
       newMinAmount: BigNumberish,
       newMaxAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setLimits(uint256,uint256)"(
-      newMinAmount: BigNumberish,
-      newMaxAmount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "underlyingToken()"(overrides?: CallOverrides): Promise<[string]>;
-
-    unpause(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<[string]>;
 
-    "wethAddress()"(overrides?: CallOverrides): Promise<[string]>;
-
     wethGateway(overrides?: CallOverrides): Promise<[string]>;
-
-    "wethGateway()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   _calcClosePayments(
-    creditAccount: string,
-    totalValue: BigNumberish,
-    isLiquidated: boolean,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-      _borrowedAmount: BigNumber;
-      amountToPool: BigNumber;
-      remainingFunds: BigNumber;
-      profit: BigNumber;
-      loss: BigNumber;
-    }
-  >;
-
-  "_calcClosePayments(address,uint256,bool)"(
     creditAccount: string,
     totalValue: BigNumberish,
     isLiquidated: boolean,
@@ -708,48 +566,16 @@ export class CreditManager extends Contract {
     }
   >;
 
-  "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
-    totalValue: BigNumberish,
-    isLiquidated: boolean,
-    borrowedAmount: BigNumberish,
-    cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-    cumulativeIndexNow_RAY: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-      _borrowedAmount: BigNumber;
-      amountToPool: BigNumber;
-      remainingFunds: BigNumber;
-      profit: BigNumber;
-      loss: BigNumber;
-    }
-  >;
-
   addCollateral(
     onBehalfOf: string,
     token: string,
     amount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addCollateral(address,address,uint256)"(
-    onBehalfOf: string,
-    token: string,
-    amount: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
 
-  "addressProvider()"(overrides?: CallOverrides): Promise<string>;
-
   calcRepayAmount(
-    borrower: string,
-    isLiquidated: boolean,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "calcRepayAmount(address,bool)"(
     borrower: string,
     isLiquidated: boolean,
     overrides?: CallOverrides
@@ -758,62 +584,29 @@ export class CreditManager extends Contract {
   closeCreditAccount(
     to: string,
     paths: { path: string[]; amountOutMin: BigNumberish }[],
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "closeCreditAccount(address,tuple[])"(
-    to: string,
-    paths: { path: string[]; amountOutMin: BigNumberish }[],
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   creditAccounts(arg0: string, overrides?: CallOverrides): Promise<string>;
 
-  "creditAccounts(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   creditFilter(overrides?: CallOverrides): Promise<string>;
 
-  "creditFilter()"(overrides?: CallOverrides): Promise<string>;
-
   defaultSwapContract(overrides?: CallOverrides): Promise<string>;
-
-  "defaultSwapContract()"(overrides?: CallOverrides): Promise<string>;
 
   executeOrder(
     borrower: string,
     target: string,
     data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "executeOrder(address,address,bytes)"(
-    borrower: string,
-    target: string,
-    data: BytesLike,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "feeInterest()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "feeLiquidation()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "feeSuccess()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   getCreditAccountOrRevert(
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "getCreditAccountOrRevert(address)"(
     borrower: string,
     overrides?: CallOverrides
   ): Promise<string>;
@@ -823,115 +616,59 @@ export class CreditManager extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  "hasOpenedCreditAccount(address)"(
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   increaseBorrowedAmount(
     amount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "increaseBorrowedAmount(uint256)"(
-    amount: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   liquidateCreditAccount(
     borrower: string,
     to: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "liquidateCreditAccount(address,address)"(
-    borrower: string,
-    to: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "liquidationDiscount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   maxAmount(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "maxAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   maxLeverageFactor(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "maxLeverageFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   minAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "minAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   minHealthFactor(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "minHealthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   openCreditAccount(
     amount: BigNumberish,
     onBehalfOf: string,
     leverageFactor: BigNumberish,
     referralCode: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "openCreditAccount(uint256,address,uint256,uint256)"(
-    amount: BigNumberish,
-    onBehalfOf: string,
-    leverageFactor: BigNumberish,
-    referralCode: BigNumberish,
-    overrides?: Overrides
+  pause(
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  pause(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "pause()"(overrides?: Overrides): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
-  "paused()"(overrides?: CallOverrides): Promise<boolean>;
-
   poolService(overrides?: CallOverrides): Promise<string>;
-
-  "poolService()"(overrides?: CallOverrides): Promise<string>;
 
   provideCreditAccountAllowance(
     creditAccount: string,
     toContract: string,
     token: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "provideCreditAccountAllowance(address,address,address)"(
-    creditAccount: string,
-    toContract: string,
-    token: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   repayCreditAccount(
     to: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "repayCreditAccount(address)"(
-    to: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   repayCreditAccountETH(
     borrower: string,
     to: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "repayCreditAccountETH(address,address)"(
-    borrower: string,
-    to: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setFees(
@@ -939,44 +676,24 @@ export class CreditManager extends Contract {
     _feeInterest: BigNumberish,
     _feeLiquidation: BigNumberish,
     _liquidationDiscount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setFees(uint256,uint256,uint256,uint256)"(
-    _feeSuccess: BigNumberish,
-    _feeInterest: BigNumberish,
-    _feeLiquidation: BigNumberish,
-    _liquidationDiscount: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setLimits(
     newMinAmount: BigNumberish,
     newMaxAmount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setLimits(uint256,uint256)"(
-    newMinAmount: BigNumberish,
-    newMaxAmount: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   underlyingToken(overrides?: CallOverrides): Promise<string>;
 
-  "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
-  unpause(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
+  unpause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   wethAddress(overrides?: CallOverrides): Promise<string>;
 
-  "wethAddress()"(overrides?: CallOverrides): Promise<string>;
-
   wethGateway(overrides?: CallOverrides): Promise<string>;
-
-  "wethGateway()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     _calcClosePayments(
@@ -994,39 +711,7 @@ export class CreditManager extends Contract {
       }
     >;
 
-    "_calcClosePayments(address,uint256,bool)"(
-      creditAccount: string,
-      totalValue: BigNumberish,
-      isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        _borrowedAmount: BigNumber;
-        amountToPool: BigNumber;
-        remainingFunds: BigNumber;
-        profit: BigNumber;
-        loss: BigNumber;
-      }
-    >;
-
     _calcClosePaymentsPure(
-      totalValue: BigNumberish,
-      isLiquidated: boolean,
-      borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      cumulativeIndexNow_RAY: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        _borrowedAmount: BigNumber;
-        amountToPool: BigNumber;
-        remainingFunds: BigNumber;
-        profit: BigNumber;
-        loss: BigNumber;
-      }
-    >;
-
-    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
       totalValue: BigNumberish,
       isLiquidated: boolean,
       borrowedAmount: BigNumberish,
@@ -1050,24 +735,9 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "addCollateral(address,address,uint256)"(
-      onBehalfOf: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     addressProvider(overrides?: CallOverrides): Promise<string>;
 
-    "addressProvider()"(overrides?: CallOverrides): Promise<string>;
-
     calcRepayAmount(
-      borrower: string,
-      isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcRepayAmount(address,bool)"(
       borrower: string,
       isLiquidated: boolean,
       overrides?: CallOverrides
@@ -1079,26 +749,11 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "closeCreditAccount(address,tuple[])"(
-      to: string,
-      paths: { path: string[]; amountOutMin: BigNumberish }[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     creditAccounts(arg0: string, overrides?: CallOverrides): Promise<string>;
-
-    "creditAccounts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     creditFilter(overrides?: CallOverrides): Promise<string>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<string>;
-
     defaultSwapContract(overrides?: CallOverrides): Promise<string>;
-
-    "defaultSwapContract()"(overrides?: CallOverrides): Promise<string>;
 
     executeOrder(
       borrower: string,
@@ -1107,31 +762,13 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "executeOrder(address,address,bytes)"(
-      borrower: string,
-      target: string,
-      data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "feeInterest()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "feeLiquidation()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "feeSuccess()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getCreditAccountOrRevert(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "getCreditAccountOrRevert(address)"(
       borrower: string,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -1141,17 +778,7 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "hasOpenedCreditAccount(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     increaseBorrowedAmount(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "increaseBorrowedAmount(uint256)"(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1162,31 +789,15 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "liquidateCreditAccount(address,address)"(
-      borrower: string,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "liquidationDiscount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "maxAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     maxLeverageFactor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "maxLeverageFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     minAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "minAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     minHealthFactor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "minHealthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     openCreditAccount(
       amount: BigNumberish,
@@ -1196,25 +807,11 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "openCreditAccount(uint256,address,uint256,uint256)"(
-      amount: BigNumberish,
-      onBehalfOf: string,
-      leverageFactor: BigNumberish,
-      referralCode: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     pause(overrides?: CallOverrides): Promise<void>;
-
-    "pause()"(overrides?: CallOverrides): Promise<void>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
-    "paused()"(overrides?: CallOverrides): Promise<boolean>;
-
     poolService(overrides?: CallOverrides): Promise<string>;
-
-    "poolService()"(overrides?: CallOverrides): Promise<string>;
 
     provideCreditAccountAllowance(
       creditAccount: string,
@@ -1223,27 +820,9 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "provideCreditAccountAllowance(address,address,address)"(
-      creditAccount: string,
-      toContract: string,
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     repayCreditAccount(to: string, overrides?: CallOverrides): Promise<void>;
 
-    "repayCreditAccount(address)"(
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     repayCreditAccountETH(
-      borrower: string,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "repayCreditAccountETH(address,address)"(
       borrower: string,
       to: string,
       overrides?: CallOverrides
@@ -1257,21 +836,7 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setFees(uint256,uint256,uint256,uint256)"(
-      _feeSuccess: BigNumberish,
-      _feeInterest: BigNumberish,
-      _feeLiquidation: BigNumberish,
-      _liquidationDiscount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setLimits(
-      newMinAmount: BigNumberish,
-      newMaxAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setLimits(uint256,uint256)"(
       newMinAmount: BigNumberish,
       newMaxAmount: BigNumberish,
       overrides?: CallOverrides
@@ -1279,67 +844,104 @@ export class CreditManager extends Contract {
 
     underlyingToken(overrides?: CallOverrides): Promise<string>;
 
-    "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
     unpause(overrides?: CallOverrides): Promise<void>;
-
-    "unpause()"(overrides?: CallOverrides): Promise<void>;
 
     wethAddress(overrides?: CallOverrides): Promise<string>;
 
-    "wethAddress()"(overrides?: CallOverrides): Promise<string>;
-
     wethGateway(overrides?: CallOverrides): Promise<string>;
-
-    "wethGateway()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
     AddCollateral(
-      onBehalfOf: string | null,
-      token: string | null,
-      value: null
-    ): EventFilter;
+      onBehalfOf?: string | null,
+      token?: string | null,
+      value?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { onBehalfOf: string; token: string; value: BigNumber }
+    >;
 
     CloseCreditAccount(
-      owner: string | null,
-      to: string | null,
-      remainingFunds: null
-    ): EventFilter;
+      owner?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { owner: string; to: string; remainingFunds: BigNumber }
+    >;
 
-    ExecuteOrder(borrower: string | null, target: string | null): EventFilter;
+    ExecuteOrder(
+      borrower?: string | null,
+      target?: string | null
+    ): TypedEventFilter<[string, string], { borrower: string; target: string }>;
 
-    IncreaseBorrowedAmount(borrower: string | null, amount: null): EventFilter;
+    IncreaseBorrowedAmount(
+      borrower?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { borrower: string; amount: BigNumber }
+    >;
 
     LiquidateCreditAccount(
-      owner: string | null,
-      liquidator: string | null,
-      remainingFunds: null
-    ): EventFilter;
+      owner?: string | null,
+      liquidator?: string | null,
+      remainingFunds?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { owner: string; liquidator: string; remainingFunds: BigNumber }
+    >;
 
     NewFees(
-      feeSuccess: null,
-      feeInterest: null,
-      feeLiquidation: null,
-      liquidationDiscount: null
-    ): EventFilter;
+      feeSuccess?: null,
+      feeInterest?: null,
+      feeLiquidation?: null,
+      liquidationDiscount?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        feeSuccess: BigNumber;
+        feeInterest: BigNumber;
+        feeLiquidation: BigNumber;
+        liquidationDiscount: BigNumber;
+      }
+    >;
 
-    NewLimits(minAmount: null, maxAmount: null): EventFilter;
+    NewLimits(
+      minAmount?: null,
+      maxAmount?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber],
+      { minAmount: BigNumber; maxAmount: BigNumber }
+    >;
 
     OpenCreditAccount(
-      sender: string | null,
-      onBehalfOf: string | null,
-      creditAccount: string | null,
-      amount: null,
-      borrowAmount: null,
-      referralCode: null
-    ): EventFilter;
+      sender?: string | null,
+      onBehalfOf?: string | null,
+      creditAccount?: string | null,
+      amount?: null,
+      borrowAmount?: null,
+      referralCode?: null
+    ): TypedEventFilter<
+      [string, string, string, BigNumber, BigNumber, BigNumber],
+      {
+        sender: string;
+        onBehalfOf: string;
+        creditAccount: string;
+        amount: BigNumber;
+        borrowAmount: BigNumber;
+        referralCode: BigNumber;
+      }
+    >;
 
-    Paused(account: null): EventFilter;
+    Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
-    RepayCreditAccount(owner: string | null, to: string | null): EventFilter;
+    RepayCreditAccount(
+      owner?: string | null,
+      to?: string | null
+    ): TypedEventFilter<[string, string], { owner: string; to: string }>;
 
-    Unpaused(account: null): EventFilter;
+    Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
 
   estimateGas: {
@@ -1350,23 +952,7 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "_calcClosePayments(address,uint256,bool)"(
-      creditAccount: string,
-      totalValue: BigNumberish,
-      isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     _calcClosePaymentsPure(
-      totalValue: BigNumberish,
-      isLiquidated: boolean,
-      borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      cumulativeIndexNow_RAY: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
       totalValue: BigNumberish,
       isLiquidated: boolean,
       borrowedAmount: BigNumberish,
@@ -1379,27 +965,12 @@ export class CreditManager extends Contract {
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "addCollateral(address,address,uint256)"(
-      onBehalfOf: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "addressProvider()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     calcRepayAmount(
-      borrower: string,
-      isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcRepayAmount(address,bool)"(
       borrower: string,
       isLiquidated: boolean,
       overrides?: CallOverrides
@@ -1408,62 +979,29 @@ export class CreditManager extends Contract {
     closeCreditAccount(
       to: string,
       paths: { path: string[]; amountOutMin: BigNumberish }[],
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "closeCreditAccount(address,tuple[])"(
-      to: string,
-      paths: { path: string[]; amountOutMin: BigNumberish }[],
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     creditAccounts(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "creditAccounts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     creditFilter(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     defaultSwapContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "defaultSwapContract()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     executeOrder(
       borrower: string,
       target: string,
       data: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "executeOrder(address,address,bytes)"(
-      borrower: string,
-      target: string,
-      data: BytesLike,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "feeInterest()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "feeLiquidation()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "feeSuccess()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getCreditAccountOrRevert(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getCreditAccountOrRevert(address)"(
       borrower: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1473,112 +1011,59 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "hasOpenedCreditAccount(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     increaseBorrowedAmount(
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "increaseBorrowedAmount(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     liquidateCreditAccount(
       borrower: string,
       to: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "liquidateCreditAccount(address,address)"(
-      borrower: string,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "liquidationDiscount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     maxAmount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "maxAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxLeverageFactor(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "maxLeverageFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     minAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "minAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     minHealthFactor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "minHealthFactor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     openCreditAccount(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "openCreditAccount(uint256,address,uint256,uint256)"(
-      amount: BigNumberish,
-      onBehalfOf: string,
-      leverageFactor: BigNumberish,
-      referralCode: BigNumberish,
-      overrides?: Overrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    pause(overrides?: Overrides): Promise<BigNumber>;
-
-    "pause()"(overrides?: Overrides): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "paused()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     poolService(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "poolService()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     provideCreditAccountAllowance(
       creditAccount: string,
       toContract: string,
       token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "provideCreditAccountAllowance(address,address,address)"(
-      creditAccount: string,
-      toContract: string,
-      token: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    repayCreditAccount(to: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "repayCreditAccount(address)"(
+    repayCreditAccount(
       to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     repayCreditAccountETH(
       borrower: string,
       to: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "repayCreditAccountETH(address,address)"(
-      borrower: string,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setFees(
@@ -1586,44 +1071,24 @@ export class CreditManager extends Contract {
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
       _liquidationDiscount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setFees(uint256,uint256,uint256,uint256)"(
-      _feeSuccess: BigNumberish,
-      _feeInterest: BigNumberish,
-      _feeLiquidation: BigNumberish,
-      _liquidationDiscount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setLimits(
       newMinAmount: BigNumberish,
       newMaxAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setLimits(uint256,uint256)"(
-      newMinAmount: BigNumberish,
-      newMaxAmount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "underlyingToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    unpause(overrides?: Overrides): Promise<BigNumber>;
-
-    "unpause()"(overrides?: Overrides): Promise<BigNumber>;
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     wethAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "wethAddress()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     wethGateway(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "wethGateway()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1634,23 +1099,7 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "_calcClosePayments(address,uint256,bool)"(
-      creditAccount: string,
-      totalValue: BigNumberish,
-      isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     _calcClosePaymentsPure(
-      totalValue: BigNumberish,
-      isLiquidated: boolean,
-      borrowedAmount: BigNumberish,
-      cumulativeIndexAtCreditAccountOpen_RAY: BigNumberish,
-      cumulativeIndexNow_RAY: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)"(
       totalValue: BigNumberish,
       isLiquidated: boolean,
       borrowedAmount: BigNumberish,
@@ -1663,29 +1112,12 @@ export class CreditManager extends Contract {
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addCollateral(address,address,uint256)"(
-      onBehalfOf: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "addressProvider()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     calcRepayAmount(
-      borrower: string,
-      isLiquidated: boolean,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "calcRepayAmount(address,bool)"(
       borrower: string,
       isLiquidated: boolean,
       overrides?: CallOverrides
@@ -1694,13 +1126,7 @@ export class CreditManager extends Contract {
     closeCreditAccount(
       to: string,
       paths: { path: string[]; amountOutMin: BigNumberish }[],
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "closeCreditAccount(address,tuple[])"(
-      to: string,
-      paths: { path: string[]; amountOutMin: BigNumberish }[],
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     creditAccounts(
@@ -1708,20 +1134,9 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "creditAccounts(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     creditFilter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     defaultSwapContract(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "defaultSwapContract()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1729,36 +1144,16 @@ export class CreditManager extends Contract {
       borrower: string,
       target: string,
       data: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "executeOrder(address,address,bytes)"(
-      borrower: string,
-      target: string,
-      data: BytesLike,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     feeInterest(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "feeInterest()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     feeLiquidation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "feeLiquidation()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     feeSuccess(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "feeSuccess()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getCreditAccountOrRevert(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getCreditAccountOrRevert(address)"(
       borrower: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1768,123 +1163,61 @@ export class CreditManager extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "hasOpenedCreditAccount(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     increaseBorrowedAmount(
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "increaseBorrowedAmount(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     liquidateCreditAccount(
       borrower: string,
       to: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "liquidateCreditAccount(address,address)"(
-      borrower: string,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     liquidationDiscount(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "liquidationDiscount()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     maxAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "maxAmount()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     maxLeverageFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "maxLeverageFactor()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     minAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "minAmount()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     minHealthFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "minHealthFactor()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     openCreditAccount(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "openCreditAccount(uint256,address,uint256,uint256)"(
-      amount: BigNumberish,
-      onBehalfOf: string,
-      leverageFactor: BigNumberish,
-      referralCode: BigNumberish,
-      overrides?: Overrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    pause(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "pause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "paused()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     poolService(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "poolService()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     provideCreditAccountAllowance(
       creditAccount: string,
       toContract: string,
       token: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "provideCreditAccountAllowance(address,address,address)"(
-      creditAccount: string,
-      toContract: string,
-      token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     repayCreditAccount(
       to: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "repayCreditAccount(address)"(
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     repayCreditAccountETH(
       borrower: string,
       to: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "repayCreditAccountETH(address,address)"(
-      borrower: string,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setFees(
@@ -1892,45 +1225,23 @@ export class CreditManager extends Contract {
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
       _liquidationDiscount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setFees(uint256,uint256,uint256,uint256)"(
-      _feeSuccess: BigNumberish,
-      _feeInterest: BigNumberish,
-      _feeLiquidation: BigNumberish,
-      _liquidationDiscount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setLimits(
       newMinAmount: BigNumberish,
       newMaxAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setLimits(uint256,uint256)"(
-      newMinAmount: BigNumberish,
-      newMaxAmount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     underlyingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "underlyingToken()"(
-      overrides?: CallOverrides
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    unpause(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "unpause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "wethAddress()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     wethGateway(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "wethGateway()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

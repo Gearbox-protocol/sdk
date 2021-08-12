@@ -9,17 +9,16 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   PayableOverrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface AccountMinerAuctionInterface extends ethers.utils.Interface {
   functions: {
@@ -101,36 +100,53 @@ interface AccountMinerAuctionInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
-export class AccountMinerAuction extends Contract {
+export class AccountMinerAuction extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: AccountMinerAuctionInterface;
 
   functions: {
     accountFactory(overrides?: CallOverrides): Promise<[string]>;
 
-    "accountFactory()"(overrides?: CallOverrides): Promise<[string]>;
-
     getBid(
-      sponsor: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, string] & {
-        prevBid: string;
-        amount: BigNumber;
-        nextBid: string;
-      }
-    >;
-
-    "getBid(address)"(
       sponsor: string,
       overrides?: CallOverrides
     ): Promise<
@@ -145,56 +161,39 @@ export class AccountMinerAuction extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { count: BigNumber }>;
 
-    "getBidsCount()"(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { count: BigNumber }>;
-
-    increaseBid(overrides?: PayableOverrides): Promise<ContractTransaction>;
-
-    "increaseBid()"(overrides?: PayableOverrides): Promise<ContractTransaction>;
+    increaseBid(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     kind(overrides?: CallOverrides): Promise<[string]>;
 
-    "kind()"(overrides?: CallOverrides): Promise<[string]>;
-
     mineAccount(
       user: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "mineAccount(address)"(
-      user: string,
-      overrides?: Overrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    pause(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "pause()"(overrides?: Overrides): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
-    "paused()"(overrides?: CallOverrides): Promise<[boolean]>;
-
-    placeBid(overrides?: PayableOverrides): Promise<ContractTransaction>;
-
-    "placeBid()"(overrides?: PayableOverrides): Promise<ContractTransaction>;
+    placeBid(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     tail(overrides?: CallOverrides): Promise<[string]>;
 
-    "tail()"(overrides?: CallOverrides): Promise<[string]>;
+    takeBid(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    takeBid(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "takeBid()"(overrides?: Overrides): Promise<ContractTransaction>;
-
-    unpause(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   accountFactory(overrides?: CallOverrides): Promise<string>;
-
-  "accountFactory()"(overrides?: CallOverrides): Promise<string>;
 
   getBid(
     sponsor: string,
@@ -207,67 +206,41 @@ export class AccountMinerAuction extends Contract {
     }
   >;
 
-  "getBid(address)"(
-    sponsor: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber, string] & {
-      prevBid: string;
-      amount: BigNumber;
-      nextBid: string;
-    }
-  >;
-
   getBidsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "getBidsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  increaseBid(overrides?: PayableOverrides): Promise<ContractTransaction>;
-
-  "increaseBid()"(overrides?: PayableOverrides): Promise<ContractTransaction>;
+  increaseBid(
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   kind(overrides?: CallOverrides): Promise<string>;
 
-  "kind()"(overrides?: CallOverrides): Promise<string>;
-
   mineAccount(
     user: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "mineAccount(address)"(
-    user: string,
-    overrides?: Overrides
+  pause(
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  pause(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "pause()"(overrides?: Overrides): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
-  "paused()"(overrides?: CallOverrides): Promise<boolean>;
-
-  placeBid(overrides?: PayableOverrides): Promise<ContractTransaction>;
-
-  "placeBid()"(overrides?: PayableOverrides): Promise<ContractTransaction>;
+  placeBid(
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   tail(overrides?: CallOverrides): Promise<string>;
 
-  "tail()"(overrides?: CallOverrides): Promise<string>;
+  takeBid(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  takeBid(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "takeBid()"(overrides?: Overrides): Promise<ContractTransaction>;
-
-  unpause(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
+  unpause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     accountFactory(overrides?: CallOverrides): Promise<string>;
-
-    "accountFactory()"(overrides?: CallOverrides): Promise<string>;
 
     getBid(
       sponsor: string,
@@ -280,194 +253,139 @@ export class AccountMinerAuction extends Contract {
       }
     >;
 
-    "getBid(address)"(
-      sponsor: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, string] & {
-        prevBid: string;
-        amount: BigNumber;
-        nextBid: string;
-      }
-    >;
-
     getBidsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getBidsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     increaseBid(overrides?: CallOverrides): Promise<void>;
 
-    "increaseBid()"(overrides?: CallOverrides): Promise<void>;
-
     kind(overrides?: CallOverrides): Promise<string>;
-
-    "kind()"(overrides?: CallOverrides): Promise<string>;
 
     mineAccount(user: string, overrides?: CallOverrides): Promise<void>;
 
-    "mineAccount(address)"(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     pause(overrides?: CallOverrides): Promise<void>;
-
-    "pause()"(overrides?: CallOverrides): Promise<void>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
-    "paused()"(overrides?: CallOverrides): Promise<boolean>;
-
     placeBid(overrides?: CallOverrides): Promise<void>;
-
-    "placeBid()"(overrides?: CallOverrides): Promise<void>;
 
     tail(overrides?: CallOverrides): Promise<string>;
 
-    "tail()"(overrides?: CallOverrides): Promise<string>;
-
     takeBid(overrides?: CallOverrides): Promise<void>;
 
-    "takeBid()"(overrides?: CallOverrides): Promise<void>;
-
     unpause(overrides?: CallOverrides): Promise<void>;
-
-    "unpause()"(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
-    AccountMined(sponsor: string | null): EventFilter;
+    AccountMined(
+      sponsor?: string | null
+    ): TypedEventFilter<[string], { sponsor: string }>;
 
-    BidIncreased(sponsor: string | null, amount: null): EventFilter;
+    BidIncreased(
+      sponsor?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { sponsor: string; amount: BigNumber }
+    >;
 
-    BidPlaced(sponsor: string | null, amount: null): EventFilter;
+    BidPlaced(
+      sponsor?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { sponsor: string; amount: BigNumber }
+    >;
 
-    BidTaken(sponsor: string | null, amount: null): EventFilter;
+    BidTaken(
+      sponsor?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { sponsor: string; amount: BigNumber }
+    >;
 
-    Paused(account: null): EventFilter;
+    Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
-    Unpaused(account: null): EventFilter;
+    Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
 
   estimateGas: {
     accountFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "accountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getBid(sponsor: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getBid(address)"(
-      sponsor: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     getBidsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getBidsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    increaseBid(overrides?: PayableOverrides): Promise<BigNumber>;
-
-    "increaseBid()"(overrides?: PayableOverrides): Promise<BigNumber>;
+    increaseBid(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     kind(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "kind()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    mineAccount(user: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "mineAccount(address)"(
+    mineAccount(
       user: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    pause(overrides?: Overrides): Promise<BigNumber>;
-
-    "pause()"(overrides?: Overrides): Promise<BigNumber>;
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "paused()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    placeBid(overrides?: PayableOverrides): Promise<BigNumber>;
-
-    "placeBid()"(overrides?: PayableOverrides): Promise<BigNumber>;
+    placeBid(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     tail(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "tail()"(overrides?: CallOverrides): Promise<BigNumber>;
+    takeBid(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    takeBid(overrides?: Overrides): Promise<BigNumber>;
-
-    "takeBid()"(overrides?: Overrides): Promise<BigNumber>;
-
-    unpause(overrides?: Overrides): Promise<BigNumber>;
-
-    "unpause()"(overrides?: Overrides): Promise<BigNumber>;
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     accountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "accountFactory()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getBid(
-      sponsor: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getBid(address)"(
       sponsor: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getBidsCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "getBidsCount()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    increaseBid(overrides?: PayableOverrides): Promise<PopulatedTransaction>;
-
-    "increaseBid()"(
-      overrides?: PayableOverrides
+    increaseBid(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     kind(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "kind()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     mineAccount(
       user: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "mineAccount(address)"(
-      user: string,
-      overrides?: Overrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    pause(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "pause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "paused()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    placeBid(overrides?: PayableOverrides): Promise<PopulatedTransaction>;
-
-    "placeBid()"(overrides?: PayableOverrides): Promise<PopulatedTransaction>;
+    placeBid(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     tail(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "tail()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    takeBid(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
-    takeBid(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "takeBid()"(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    unpause(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "unpause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

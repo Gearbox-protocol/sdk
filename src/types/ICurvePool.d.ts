@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ICurvePoolInterface extends ethers.utils.Interface {
   functions: {
@@ -86,28 +85,53 @@ interface ICurvePoolInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class ICurvePool extends Contract {
+export class ICurvePool extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: ICurvePoolInterface;
 
   functions: {
     coins(
       arg0: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "coins(uint256)"(
-      arg0: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     exchange(
@@ -115,15 +139,7 @@ export class ICurvePool extends Contract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     exchange_underlying(
@@ -131,25 +147,10 @@ export class ICurvePool extends Contract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "exchange_underlying(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     get_dx(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "get_dx(int128,int128,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dy: BigNumberish,
@@ -163,21 +164,7 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "get_dx_underlying(int128,int128,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     get_dy(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "get_dy(int128,int128,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
@@ -191,26 +178,12 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "get_dy_underlying(int128,int128,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     get_virtual_price(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "get_virtual_price()"(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   coins(
     arg0: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "coins(uint256)"(
-    arg0: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   exchange(
@@ -218,15 +191,7 @@ export class ICurvePool extends Contract {
     j: BigNumberish,
     dx: BigNumberish,
     min_dy: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "exchange(int128,int128,uint256,uint256)"(
-    i: BigNumberish,
-    j: BigNumberish,
-    dx: BigNumberish,
-    min_dy: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   exchange_underlying(
@@ -234,25 +199,10 @@ export class ICurvePool extends Contract {
     j: BigNumberish,
     dx: BigNumberish,
     min_dy: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "exchange_underlying(int128,int128,uint256,uint256)"(
-    i: BigNumberish,
-    j: BigNumberish,
-    dx: BigNumberish,
-    min_dy: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   get_dx(
-    i: BigNumberish,
-    j: BigNumberish,
-    dy: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "get_dx(int128,int128,uint256)"(
     i: BigNumberish,
     j: BigNumberish,
     dy: BigNumberish,
@@ -266,21 +216,7 @@ export class ICurvePool extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "get_dx_underlying(int128,int128,uint256)"(
-    i: BigNumberish,
-    j: BigNumberish,
-    dy: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   get_dy(
-    i: BigNumberish,
-    j: BigNumberish,
-    dx: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "get_dy(int128,int128,uint256)"(
     i: BigNumberish,
     j: BigNumberish,
     dx: BigNumberish,
@@ -294,34 +230,12 @@ export class ICurvePool extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "get_dy_underlying(int128,int128,uint256)"(
-    i: BigNumberish,
-    j: BigNumberish,
-    dx: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "get_virtual_price()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     coins(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    "coins(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     exchange(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "exchange(int128,int128,uint256,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
@@ -337,22 +251,7 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "exchange_underlying(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     get_dx(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "get_dx(int128,int128,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dy: BigNumberish,
@@ -366,21 +265,7 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "get_dx_underlying(int128,int128,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     get_dy(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "get_dy(int128,int128,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
@@ -394,26 +279,15 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "get_dy_underlying(int128,int128,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "get_virtual_price()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
 
   estimateGas: {
-    coins(arg0: BigNumberish, overrides?: Overrides): Promise<BigNumber>;
-
-    "coins(uint256)"(
+    coins(
       arg0: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     exchange(
@@ -421,15 +295,7 @@ export class ICurvePool extends Contract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     exchange_underlying(
@@ -437,25 +303,10 @@ export class ICurvePool extends Contract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "exchange_underlying(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     get_dx(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "get_dx(int128,int128,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dy: BigNumberish,
@@ -469,13 +320,6 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "get_dx_underlying(int128,int128,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     get_dy(
       i: BigNumberish,
       j: BigNumberish,
@@ -483,21 +327,7 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "get_dy(int128,int128,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     get_dy_underlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "get_dy_underlying(int128,int128,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
@@ -505,19 +335,12 @@ export class ICurvePool extends Contract {
     ): Promise<BigNumber>;
 
     get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "get_virtual_price()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     coins(
       arg0: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "coins(uint256)"(
-      arg0: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     exchange(
@@ -525,15 +348,7 @@ export class ICurvePool extends Contract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     exchange_underlying(
@@ -541,25 +356,10 @@ export class ICurvePool extends Contract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "exchange_underlying(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     get_dx(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "get_dx(int128,int128,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dy: BigNumberish,
@@ -573,13 +373,6 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "get_dx_underlying(int128,int128,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     get_dy(
       i: BigNumberish,
       j: BigNumberish,
@@ -587,21 +380,7 @@ export class ICurvePool extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "get_dy(int128,int128,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     get_dy_underlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "get_dy_underlying(int128,int128,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
@@ -609,9 +388,5 @@ export class ICurvePool extends Contract {
     ): Promise<PopulatedTransaction>;
 
     get_virtual_price(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "get_virtual_price()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
   };
 }

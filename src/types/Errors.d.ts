@@ -9,15 +9,14 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ErrorsInterface extends ethers.utils.Interface {
   functions: {
@@ -550,109 +549,89 @@ interface ErrorsInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class Errors extends Contract {
+export class Errors extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: ErrorsInterface;
 
   functions: {
     ACL_ADMIN_IS_ALREADY_ADDED(overrides?: CallOverrides): Promise<[string]>;
 
-    "ACL_ADMIN_IS_ALREADY_ADDED()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     ACL_CALLER_NOT_CONFIGURATOR(overrides?: CallOverrides): Promise<[string]>;
 
-    "ACL_CALLER_NOT_CONFIGURATOR()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     ACL_CALLER_NOT_PAUSABLE_ADMIN(overrides?: CallOverrides): Promise<[string]>;
-
-    "ACL_CALLER_NOT_PAUSABLE_ADMIN()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<[string]>;
-
-    "AF_CANT_TAKE_LAST_ACCOUNT()"(overrides?: CallOverrides): Promise<[string]>;
 
     AM_ACCOUNT_FACTORY_ALREADY_EXISTS(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "AM_ACCOUNT_FACTORY_ALREADY_EXISTS()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     AM_ACCOUNT_FACTORY_ONLY(overrides?: CallOverrides): Promise<[string]>;
-
-    "AM_ACCOUNT_FACTORY_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
 
     AM_BID_LOWER_THAN_MINIMAL(overrides?: CallOverrides): Promise<[string]>;
 
-    "AM_BID_LOWER_THAN_MINIMAL()"(overrides?: CallOverrides): Promise<[string]>;
-
     AM_NO_BIDS_WERE_MADE(overrides?: CallOverrides): Promise<[string]>;
-
-    "AM_NO_BIDS_WERE_MADE()"(overrides?: CallOverrides): Promise<[string]>;
 
     AM_USER_ALREADY_HAS_BID(overrides?: CallOverrides): Promise<[string]>;
 
-    "AM_USER_ALREADY_HAS_BID()"(overrides?: CallOverrides): Promise<[string]>;
-
     AM_USER_HAS_NO_BIDS(overrides?: CallOverrides): Promise<[string]>;
-
-    "AM_USER_HAS_NO_BIDS()"(overrides?: CallOverrides): Promise<[string]>;
 
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<[string]>;
 
-    "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<[string]>;
-
     CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<[string]>;
-
-    "CA_CREDIT_MANAGER_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
 
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
-    "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
-
     CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
-
-    "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
 
     CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<[string]>;
 
-    "CF_INCORRECT_CHI_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     CF_INCORRECT_FAST_CHECK(overrides?: CallOverrides): Promise<[string]>;
 
-    "CF_INCORRECT_FAST_CHECK()"(overrides?: CallOverrides): Promise<[string]>;
-
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -660,37 +639,17 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CF_OPERATION_LOW_HEALTH_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<[string]>;
 
-    "CF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<[string]>;
-
     CF_TOO_MUCH_ALLOWED_TOKENS(overrides?: CallOverrides): Promise<[string]>;
-
-    "CF_TOO_MUCH_ALLOWED_TOKENS()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     CM_CANT_CLOSE_WITH_LOSS(overrides?: CallOverrides): Promise<[string]>;
 
-    "CM_CANT_CLOSE_WITH_LOSS()"(overrides?: CallOverrides): Promise<[string]>;
-
     CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -698,15 +657,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -714,51 +665,23 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     CM_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<[string]>;
-
-    "CM_INCORRECT_AMOUNT()"(overrides?: CallOverrides): Promise<[string]>;
 
     CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<[string]>;
 
-    "CM_INCORRECT_FEES()"(overrides?: CallOverrides): Promise<[string]>;
-
     CM_INCORRECT_LEVERAGE_FACTOR(overrides?: CallOverrides): Promise<[string]>;
-
-    "CM_INCORRECT_LEVERAGE_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<[string]>;
 
-    "CM_INCORRECT_LIMITS()"(overrides?: CallOverrides): Promise<[string]>;
-
     CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<[string]>;
-
-    "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     CM_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<[string]>;
 
-    "CM_NO_OPEN_ACCOUNT()"(overrides?: CallOverrides): Promise<[string]>;
-
     CM_SWAP_CONTRACT_IS_NOT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -766,19 +689,9 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
-    "CM_WETH_GATEWAY_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
-
     CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -786,87 +699,39 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<[string]>;
 
-    "CR_POOL_ALREADY_ADDED()"(overrides?: CallOverrides): Promise<[string]>;
-
     CR_VA_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<[string]>;
-
-    "CR_VA_MANAGER_ALREADY_ADDED()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     MATH_ADDITION_OVERFLOW(overrides?: CallOverrides): Promise<[string]>;
-
-    "MATH_ADDITION_OVERFLOW()"(overrides?: CallOverrides): Promise<[string]>;
 
     MATH_DIVISION_BY_ZERO(overrides?: CallOverrides): Promise<[string]>;
 
-    "MATH_DIVISION_BY_ZERO()"(overrides?: CallOverrides): Promise<[string]>;
-
     MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<[string]>;
-
-    "MATH_MULTIPLICATION_OVERFLOW()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
-
-    "POOL_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<[string]>;
 
     POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     POOL_INCORRECT_WITHDRAW_FEE(overrides?: CallOverrides): Promise<[string]>;
-
-    "POOL_INCORRECT_WITHDRAW_FEE()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     PO_PRICE_FEED_DOESNT_EXIST(overrides?: CallOverrides): Promise<[string]>;
 
-    "PO_PRICE_FEED_DOESNT_EXIST()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -874,154 +739,72 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "WG_DESTINATION_IS_NOT_CREDIT_MANAGER()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     WG_DESTINATION_IS_NOT_POOL(overrides?: CallOverrides): Promise<[string]>;
-
-    "WG_DESTINATION_IS_NOT_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     WG_FALLBACK_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<[string]>;
-
-    "WG_FALLBACK_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     WG_RECEIVE_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<[string]>;
 
-    "WG_RECEIVE_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<[string]>;
-
     ZERO_ADDRESS_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<[string]>;
-
-    "ZERO_ADDRESS_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<[string]>;
   };
 
   ACL_ADMIN_IS_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
 
-  "ACL_ADMIN_IS_ALREADY_ADDED()"(overrides?: CallOverrides): Promise<string>;
-
   ACL_CALLER_NOT_CONFIGURATOR(overrides?: CallOverrides): Promise<string>;
 
-  "ACL_CALLER_NOT_CONFIGURATOR()"(overrides?: CallOverrides): Promise<string>;
-
   ACL_CALLER_NOT_PAUSABLE_ADMIN(overrides?: CallOverrides): Promise<string>;
-
-  "ACL_CALLER_NOT_PAUSABLE_ADMIN()"(overrides?: CallOverrides): Promise<string>;
 
   AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<string>;
-
-  "AF_CANT_TAKE_LAST_ACCOUNT()"(overrides?: CallOverrides): Promise<string>;
 
   AM_ACCOUNT_FACTORY_ALREADY_EXISTS(overrides?: CallOverrides): Promise<string>;
 
-  "AM_ACCOUNT_FACTORY_ALREADY_EXISTS()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   AM_ACCOUNT_FACTORY_ONLY(overrides?: CallOverrides): Promise<string>;
-
-  "AM_ACCOUNT_FACTORY_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
   AM_BID_LOWER_THAN_MINIMAL(overrides?: CallOverrides): Promise<string>;
 
-  "AM_BID_LOWER_THAN_MINIMAL()"(overrides?: CallOverrides): Promise<string>;
-
   AM_NO_BIDS_WERE_MADE(overrides?: CallOverrides): Promise<string>;
-
-  "AM_NO_BIDS_WERE_MADE()"(overrides?: CallOverrides): Promise<string>;
 
   AM_USER_ALREADY_HAS_BID(overrides?: CallOverrides): Promise<string>;
 
-  "AM_USER_ALREADY_HAS_BID()"(overrides?: CallOverrides): Promise<string>;
-
   AM_USER_HAS_NO_BIDS(overrides?: CallOverrides): Promise<string>;
-
-  "AM_USER_HAS_NO_BIDS()"(overrides?: CallOverrides): Promise<string>;
 
   AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<string>;
 
-  "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<string>;
-
   CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<string>;
-
-  "CA_CREDIT_MANAGER_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
   CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<string>;
 
-  "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
-
   CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
-
-  "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
   CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<string>;
 
-  "CF_INCORRECT_CHI_THRESHOLD()"(overrides?: CallOverrides): Promise<string>;
-
   CF_INCORRECT_FAST_CHECK(overrides?: CallOverrides): Promise<string>;
-
-  "CF_INCORRECT_FAST_CHECK()"(overrides?: CallOverrides): Promise<string>;
 
   CF_INCORRECT_LIQUIDATION_THRESHOLD(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   CF_OPERATION_LOW_HEALTH_FACTOR(overrides?: CallOverrides): Promise<string>;
-
-  "CF_OPERATION_LOW_HEALTH_FACTOR()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
 
-  "CF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
-
   CF_TOO_MUCH_ALLOWED_TOKENS(overrides?: CallOverrides): Promise<string>;
-
-  "CF_TOO_MUCH_ALLOWED_TOKENS()"(overrides?: CallOverrides): Promise<string>;
 
   CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   CM_CANT_CLOSE_WITH_LOSS(overrides?: CallOverrides): Promise<string>;
 
-  "CM_CANT_CLOSE_WITH_LOSS()"(overrides?: CallOverrides): Promise<string>;
-
   CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -1029,15 +812,7 @@ export class Errors extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -1045,65 +820,31 @@ export class Errors extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   CM_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<string>;
-
-  "CM_INCORRECT_AMOUNT()"(overrides?: CallOverrides): Promise<string>;
 
   CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<string>;
 
-  "CM_INCORRECT_FEES()"(overrides?: CallOverrides): Promise<string>;
-
   CM_INCORRECT_LEVERAGE_FACTOR(overrides?: CallOverrides): Promise<string>;
-
-  "CM_INCORRECT_LEVERAGE_FACTOR()"(overrides?: CallOverrides): Promise<string>;
 
   CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<string>;
 
-  "CM_INCORRECT_LIMITS()"(overrides?: CallOverrides): Promise<string>;
-
   CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<string>;
-
-  "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(overrides?: CallOverrides): Promise<string>;
 
   CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   CM_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<string>;
 
-  "CM_NO_OPEN_ACCOUNT()"(overrides?: CallOverrides): Promise<string>;
-
   CM_SWAP_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-  "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<string>;
 
-  "CM_WETH_GATEWAY_ONLY()"(overrides?: CallOverrides): Promise<string>;
-
   CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -1111,79 +852,39 @@ export class Errors extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
 
-  "CR_POOL_ALREADY_ADDED()"(overrides?: CallOverrides): Promise<string>;
-
   CR_VA_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
-
-  "CR_VA_MANAGER_ALREADY_ADDED()"(overrides?: CallOverrides): Promise<string>;
 
   IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   MATH_ADDITION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
-
-  "MATH_ADDITION_OVERFLOW()"(overrides?: CallOverrides): Promise<string>;
 
   MATH_DIVISION_BY_ZERO(overrides?: CallOverrides): Promise<string>;
 
-  "MATH_DIVISION_BY_ZERO()"(overrides?: CallOverrides): Promise<string>;
-
   MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
-
-  "MATH_MULTIPLICATION_OVERFLOW()"(overrides?: CallOverrides): Promise<string>;
 
   POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
-
-  "POOL_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
   POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   POOL_INCORRECT_WITHDRAW_FEE(overrides?: CallOverrides): Promise<string>;
-
-  "POOL_INCORRECT_WITHDRAW_FEE()"(overrides?: CallOverrides): Promise<string>;
 
   POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   PO_PRICE_FEED_DOESNT_EXIST(overrides?: CallOverrides): Promise<string>;
 
-  "PO_PRICE_FEED_DOESNT_EXIST()"(overrides?: CallOverrides): Promise<string>;
-
   PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -1191,152 +892,74 @@ export class Errors extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "WG_DESTINATION_IS_NOT_CREDIT_MANAGER()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   WG_DESTINATION_IS_NOT_POOL(overrides?: CallOverrides): Promise<string>;
-
-  "WG_DESTINATION_IS_NOT_POOL()"(overrides?: CallOverrides): Promise<string>;
 
   WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE()"(
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   WG_FALLBACK_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-  "WG_FALLBACK_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
 
   WG_RECEIVE_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
 
-  "WG_RECEIVE_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
-
   ZERO_ADDRESS_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-  "ZERO_ADDRESS_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     ACL_ADMIN_IS_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
 
-    "ACL_ADMIN_IS_ALREADY_ADDED()"(overrides?: CallOverrides): Promise<string>;
-
     ACL_CALLER_NOT_CONFIGURATOR(overrides?: CallOverrides): Promise<string>;
 
-    "ACL_CALLER_NOT_CONFIGURATOR()"(overrides?: CallOverrides): Promise<string>;
-
     ACL_CALLER_NOT_PAUSABLE_ADMIN(overrides?: CallOverrides): Promise<string>;
-
-    "ACL_CALLER_NOT_PAUSABLE_ADMIN()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<string>;
-
-    "AF_CANT_TAKE_LAST_ACCOUNT()"(overrides?: CallOverrides): Promise<string>;
 
     AM_ACCOUNT_FACTORY_ALREADY_EXISTS(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "AM_ACCOUNT_FACTORY_ALREADY_EXISTS()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     AM_ACCOUNT_FACTORY_ONLY(overrides?: CallOverrides): Promise<string>;
-
-    "AM_ACCOUNT_FACTORY_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
     AM_BID_LOWER_THAN_MINIMAL(overrides?: CallOverrides): Promise<string>;
 
-    "AM_BID_LOWER_THAN_MINIMAL()"(overrides?: CallOverrides): Promise<string>;
-
     AM_NO_BIDS_WERE_MADE(overrides?: CallOverrides): Promise<string>;
-
-    "AM_NO_BIDS_WERE_MADE()"(overrides?: CallOverrides): Promise<string>;
 
     AM_USER_ALREADY_HAS_BID(overrides?: CallOverrides): Promise<string>;
 
-    "AM_USER_ALREADY_HAS_BID()"(overrides?: CallOverrides): Promise<string>;
-
     AM_USER_HAS_NO_BIDS(overrides?: CallOverrides): Promise<string>;
-
-    "AM_USER_HAS_NO_BIDS()"(overrides?: CallOverrides): Promise<string>;
 
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<string>;
 
-    "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<string>;
-
     CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<string>;
-
-    "CA_CREDIT_MANAGER_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<string>;
 
-    "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
-
     CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
-
-    "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
     CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<string>;
 
-    "CF_INCORRECT_CHI_THRESHOLD()"(overrides?: CallOverrides): Promise<string>;
-
     CF_INCORRECT_FAST_CHECK(overrides?: CallOverrides): Promise<string>;
-
-    "CF_INCORRECT_FAST_CHECK()"(overrides?: CallOverrides): Promise<string>;
 
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     CF_OPERATION_LOW_HEALTH_FACTOR(overrides?: CallOverrides): Promise<string>;
-
-    "CF_OPERATION_LOW_HEALTH_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
 
-    "CF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
-
     CF_TOO_MUCH_ALLOWED_TOKENS(overrides?: CallOverrides): Promise<string>;
-
-    "CF_TOO_MUCH_ALLOWED_TOKENS()"(overrides?: CallOverrides): Promise<string>;
 
     CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     CM_CANT_CLOSE_WITH_LOSS(overrides?: CallOverrides): Promise<string>;
 
-    "CM_CANT_CLOSE_WITH_LOSS()"(overrides?: CallOverrides): Promise<string>;
-
     CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1344,15 +967,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1360,67 +975,31 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     CM_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<string>;
-
-    "CM_INCORRECT_AMOUNT()"(overrides?: CallOverrides): Promise<string>;
 
     CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<string>;
 
-    "CM_INCORRECT_FEES()"(overrides?: CallOverrides): Promise<string>;
-
     CM_INCORRECT_LEVERAGE_FACTOR(overrides?: CallOverrides): Promise<string>;
-
-    "CM_INCORRECT_LEVERAGE_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<string>;
 
-    "CM_INCORRECT_LIMITS()"(overrides?: CallOverrides): Promise<string>;
-
     CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<string>;
-
-    "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(overrides?: CallOverrides): Promise<string>;
 
     CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     CM_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<string>;
 
-    "CM_NO_OPEN_ACCOUNT()"(overrides?: CallOverrides): Promise<string>;
-
     CM_SWAP_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<string>;
 
-    "CM_WETH_GATEWAY_ONLY()"(overrides?: CallOverrides): Promise<string>;
-
     CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1428,81 +1007,39 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
 
-    "CR_POOL_ALREADY_ADDED()"(overrides?: CallOverrides): Promise<string>;
-
     CR_VA_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
-
-    "CR_VA_MANAGER_ALREADY_ADDED()"(overrides?: CallOverrides): Promise<string>;
 
     IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     MATH_ADDITION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
-
-    "MATH_ADDITION_OVERFLOW()"(overrides?: CallOverrides): Promise<string>;
 
     MATH_DIVISION_BY_ZERO(overrides?: CallOverrides): Promise<string>;
 
-    "MATH_DIVISION_BY_ZERO()"(overrides?: CallOverrides): Promise<string>;
-
     MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
-
-    "MATH_MULTIPLICATION_OVERFLOW()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
-
-    "POOL_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<string>;
 
     POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     POOL_INCORRECT_WITHDRAW_FEE(overrides?: CallOverrides): Promise<string>;
-
-    "POOL_INCORRECT_WITHDRAW_FEE()"(overrides?: CallOverrides): Promise<string>;
 
     POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     PO_PRICE_FEED_DOESNT_EXIST(overrides?: CallOverrides): Promise<string>;
 
-    "PO_PRICE_FEED_DOESNT_EXIST()"(overrides?: CallOverrides): Promise<string>;
-
     PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1510,33 +1047,17 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "WG_DESTINATION_IS_NOT_CREDIT_MANAGER()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     WG_DESTINATION_IS_NOT_POOL(overrides?: CallOverrides): Promise<string>;
-
-    "WG_DESTINATION_IS_NOT_POOL()"(overrides?: CallOverrides): Promise<string>;
 
     WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE()"(
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     WG_FALLBACK_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-    "WG_FALLBACK_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
 
     WG_RECEIVE_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
 
-    "WG_RECEIVE_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
-
     ZERO_ADDRESS_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
-
-    "ZERO_ADDRESS_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
@@ -1544,21 +1065,9 @@ export class Errors extends Contract {
   estimateGas: {
     ACL_ADMIN_IS_ALREADY_ADDED(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "ACL_ADMIN_IS_ALREADY_ADDED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     ACL_CALLER_NOT_CONFIGURATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "ACL_CALLER_NOT_CONFIGURATOR()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     ACL_CALLER_NOT_PAUSABLE_ADMIN(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "ACL_CALLER_NOT_PAUSABLE_ADMIN()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1566,77 +1075,35 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "AF_CANT_TAKE_LAST_ACCOUNT()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     AM_ACCOUNT_FACTORY_ALREADY_EXISTS(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "AM_ACCOUNT_FACTORY_ALREADY_EXISTS()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     AM_ACCOUNT_FACTORY_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "AM_ACCOUNT_FACTORY_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     AM_BID_LOWER_THAN_MINIMAL(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "AM_BID_LOWER_THAN_MINIMAL()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     AM_NO_BIDS_WERE_MADE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "AM_NO_BIDS_WERE_MADE()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     AM_USER_ALREADY_HAS_BID(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "AM_USER_ALREADY_HAS_BID()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     AM_USER_HAS_NO_BIDS(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "AM_USER_HAS_NO_BIDS()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "AS_ADDRESS_NOT_FOUND()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "CA_CREDIT_MANAGER_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CF_ADAPTERS_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "CF_CREDIT_MANAGERS_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CF_INCORRECT_CHI_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     CF_INCORRECT_FAST_CHECK(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CF_INCORRECT_FAST_CHECK()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1644,37 +1111,17 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CF_OPERATION_LOW_HEALTH_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CF_TOKEN_IS_NOT_ALLOWED()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CF_TOO_MUCH_ALLOWED_TOKENS(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "CF_TOO_MUCH_ALLOWED_TOKENS()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     CF_UNDERLYING_TOKEN_FILTER_CONFLICT(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     CM_CANT_CLOSE_WITH_LOSS(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CM_CANT_CLOSE_WITH_LOSS()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1682,15 +1129,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1698,51 +1137,23 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     CM_INCORRECT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "CM_INCORRECT_AMOUNT()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CM_INCORRECT_FEES()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CM_INCORRECT_LEVERAGE_FACTOR(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "CM_INCORRECT_LEVERAGE_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CM_INCORRECT_LIMITS()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     CM_NO_OPEN_ACCOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CM_NO_OPEN_ACCOUNT()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CM_SWAP_CONTRACT_IS_NOT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1750,19 +1161,9 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CM_WETH_GATEWAY_ONLY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1770,89 +1171,39 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "CR_POOL_ALREADY_ADDED()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CR_VA_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "CR_VA_MANAGER_ALREADY_ADDED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     MATH_ADDITION_OVERFLOW(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "MATH_ADDITION_OVERFLOW()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     MATH_DIVISION_BY_ZERO(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "MATH_DIVISION_BY_ZERO()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "MATH_MULTIPLICATION_OVERFLOW()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     POOL_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "POOL_CREDIT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     POOL_INCORRECT_WITHDRAW_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "POOL_INCORRECT_WITHDRAW_FEE()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     PO_PRICE_FEED_DOESNT_EXIST(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "PO_PRICE_FEED_DOESNT_EXIST()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1860,41 +1211,17 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "WG_DESTINATION_IS_NOT_CREDIT_MANAGER()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     WG_DESTINATION_IS_NOT_POOL(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "WG_DESTINATION_IS_NOT_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     WG_FALLBACK_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "WG_FALLBACK_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     WG_RECEIVE_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "WG_RECEIVE_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     ZERO_ADDRESS_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "ZERO_ADDRESS_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1902,15 +1229,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "ACL_ADMIN_IS_ALREADY_ADDED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     ACL_CALLER_NOT_CONFIGURATOR(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "ACL_CALLER_NOT_CONFIGURATOR()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1918,15 +1237,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "ACL_CALLER_NOT_PAUSABLE_ADMIN()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1934,15 +1245,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "AF_CANT_TAKE_LAST_ACCOUNT()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     AM_ACCOUNT_FACTORY_ALREADY_EXISTS(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "AM_ACCOUNT_FACTORY_ALREADY_EXISTS()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1950,15 +1253,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "AM_ACCOUNT_FACTORY_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     AM_BID_LOWER_THAN_MINIMAL(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "AM_BID_LOWER_THAN_MINIMAL()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1966,15 +1261,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "AM_NO_BIDS_WERE_MADE()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     AM_USER_ALREADY_HAS_BID(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "AM_USER_ALREADY_HAS_BID()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1982,15 +1269,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "AM_USER_HAS_NO_BIDS()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     AS_ADDRESS_NOT_FOUND(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "AS_ADDRESS_NOT_FOUND()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1998,21 +1277,9 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CA_CREDIT_MANAGER_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "CF_ADAPTERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CF_CREDIT_MANAGERS_ONLY(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CF_CREDIT_MANAGERS_ONLY()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2020,15 +1287,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CF_INCORRECT_CHI_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CF_INCORRECT_FAST_CHECK(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CF_INCORRECT_FAST_CHECK()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2036,15 +1295,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CF_INCORRECT_LIQUIDATION_THRESHOLD()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CF_OPERATION_LOW_HEALTH_FACTOR(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CF_OPERATION_LOW_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2052,15 +1303,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CF_TOKEN_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CF_TOO_MUCH_ALLOWED_TOKENS(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CF_TOO_MUCH_ALLOWED_TOKENS()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2068,15 +1311,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_CANT_CLOSE_WITH_LOSS(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CM_CANT_CLOSE_WITH_LOSS()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2084,15 +1319,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CM_CANT_DEPOSIT_ETH_ON_NON_ETH_POOL()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CM_CAN_LIQUIDATE_WITH_SUCH_HEALTH_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2100,15 +1327,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CM_CAN_UPDATE_WITH_SUCH_HEALTH_FACTOR()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CM_DEFAULT_SWAP_CONTRACT_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2116,21 +1335,9 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CM_INCORRECT_AMOUNT()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_INCORRECT_FEES(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "CM_INCORRECT_FEES()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_INCORRECT_LEVERAGE_FACTOR(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CM_INCORRECT_LEVERAGE_FACTOR()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2138,15 +1345,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CM_INCORRECT_LIMITS()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_MAX_LEVERAGE_IS_TOO_HIGH(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CM_MAX_LEVERAGE_IS_TOO_HIGH()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2154,15 +1353,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_NO_OPEN_ACCOUNT(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CM_NO_OPEN_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2170,15 +1361,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2186,15 +1369,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CM_WETH_GATEWAY_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2202,15 +1377,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     CR_POOL_ALREADY_ADDED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "CR_POOL_ALREADY_ADDED()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2218,15 +1385,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CR_VA_MANAGER_ALREADY_ADDED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2234,15 +1393,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "MATH_ADDITION_OVERFLOW()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     MATH_DIVISION_BY_ZERO(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "MATH_DIVISION_BY_ZERO()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2250,15 +1401,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "MATH_MULTIPLICATION_OVERFLOW()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2266,15 +1409,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "POOL_CREDIT_MANAGERS_ONLY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2282,15 +1417,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "POOL_INCORRECT_WITHDRAW_FEE()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2298,15 +1425,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "PO_PRICE_FEED_DOESNT_EXIST()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "PO_TOKENS_WITH_DECIMALS_MORE_18_ISNT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2314,15 +1433,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "WG_DESTINATION_IS_NOT_CREDIT_MANAGER()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     WG_DESTINATION_IS_NOT_POOL(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "WG_DESTINATION_IS_NOT_POOL()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2330,15 +1441,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     WG_FALLBACK_IS_NOT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "WG_FALLBACK_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2346,15 +1449,7 @@ export class Errors extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "WG_RECEIVE_IS_NOT_ALLOWED()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     ZERO_ADDRESS_IS_NOT_ALLOWED(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "ZERO_ADDRESS_IS_NOT_ALLOWED()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

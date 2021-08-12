@@ -2,16 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { IWETH } from "../IWETH";
-
-export class IWETH__factory {
-  static connect(address: string, signerOrProvider: Signer | Provider): IWETH {
-    return new Contract(address, _abi, signerOrProvider) as IWETH;
-  }
-}
+import type { IWETH, IWETHInterface } from "../IWETH";
 
 const _abi = [
   {
@@ -59,3 +52,13 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class IWETH__factory {
+  static readonly abi = _abi;
+  static createInterface(): IWETHInterface {
+    return new utils.Interface(_abi) as IWETHInterface;
+  }
+  static connect(address: string, signerOrProvider: Signer | Provider): IWETH {
+    return new Contract(address, _abi, signerOrProvider) as IWETH;
+  }
+}

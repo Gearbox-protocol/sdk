@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface AddressProviderInterface extends ethers.utils.Interface {
   functions: {
@@ -308,554 +307,314 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
-export class AddressProvider extends Contract {
+export class AddressProvider extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: AddressProviderInterface;
 
   functions: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<[string]>;
 
-    "ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<[string]>;
-
     ACCOUNT_MINER(overrides?: CallOverrides): Promise<[string]>;
-
-    "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<[string]>;
 
     ACL(overrides?: CallOverrides): Promise<[string]>;
 
-    "ACL()"(overrides?: CallOverrides): Promise<[string]>;
-
     CONTRACTS_REGISTER(overrides?: CallOverrides): Promise<[string]>;
-
-    "CONTRACTS_REGISTER()"(overrides?: CallOverrides): Promise<[string]>;
 
     DATA_COMPRESSOR(overrides?: CallOverrides): Promise<[string]>;
 
-    "DATA_COMPRESSOR()"(overrides?: CallOverrides): Promise<[string]>;
-
     GEAR_TOKEN(overrides?: CallOverrides): Promise<[string]>;
-
-    "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<[string]>;
 
     PRICE_ORACLE(overrides?: CallOverrides): Promise<[string]>;
 
-    "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<[string]>;
-
     TREASURY_CONTRACT(overrides?: CallOverrides): Promise<[string]>;
-
-    "TREASURY_CONTRACT()"(overrides?: CallOverrides): Promise<[string]>;
 
     WETH_GATEWAY(overrides?: CallOverrides): Promise<[string]>;
 
-    "WETH_GATEWAY()"(overrides?: CallOverrides): Promise<[string]>;
-
     WETH_TOKEN(overrides?: CallOverrides): Promise<[string]>;
-
-    "WETH_TOKEN()"(overrides?: CallOverrides): Promise<[string]>;
 
     addresses(arg0: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
-    "addresses(bytes32)"(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     getACL(overrides?: CallOverrides): Promise<[string]>;
-
-    "getACL()"(overrides?: CallOverrides): Promise<[string]>;
 
     getAccountFactory(overrides?: CallOverrides): Promise<[string]>;
 
-    "getAccountFactory()"(overrides?: CallOverrides): Promise<[string]>;
-
     getAccountMiner(overrides?: CallOverrides): Promise<[string]>;
-
-    "getAccountMiner()"(overrides?: CallOverrides): Promise<[string]>;
 
     getContractsRegister(overrides?: CallOverrides): Promise<[string]>;
 
-    "getContractsRegister()"(overrides?: CallOverrides): Promise<[string]>;
-
     getDataCompressor(overrides?: CallOverrides): Promise<[string]>;
-
-    "getDataCompressor()"(overrides?: CallOverrides): Promise<[string]>;
 
     getGearToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "getGearToken()"(overrides?: CallOverrides): Promise<[string]>;
-
     getPriceOracle(overrides?: CallOverrides): Promise<[string]>;
-
-    "getPriceOracle()"(overrides?: CallOverrides): Promise<[string]>;
 
     getTreasuryContract(overrides?: CallOverrides): Promise<[string]>;
 
-    "getTreasuryContract()"(overrides?: CallOverrides): Promise<[string]>;
-
     getWETHGateway(overrides?: CallOverrides): Promise<[string]>;
-
-    "getWETHGateway()"(overrides?: CallOverrides): Promise<[string]>;
 
     getWethToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "getWethToken()"(overrides?: CallOverrides): Promise<[string]>;
-
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    "owner()"(overrides?: CallOverrides): Promise<[string]>;
-
-    renounceOwnership(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<ContractTransaction>;
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     setACL(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setACL(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setAccountFactory(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setAccountMiner(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setAccountMiner(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setContractsRegister(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setContractsRegister(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setDataCompressor(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setDataCompressor(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setGearToken(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setGearToken(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setPriceOracle(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setPriceOracle(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setTreasuryContract(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setTreasuryContract(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setWETHGateway(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setWETHGateway(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setWethToken(
       _address: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setWethToken(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
 
-  "ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
-
   ACCOUNT_MINER(overrides?: CallOverrides): Promise<string>;
-
-  "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<string>;
 
   ACL(overrides?: CallOverrides): Promise<string>;
 
-  "ACL()"(overrides?: CallOverrides): Promise<string>;
-
   CONTRACTS_REGISTER(overrides?: CallOverrides): Promise<string>;
-
-  "CONTRACTS_REGISTER()"(overrides?: CallOverrides): Promise<string>;
 
   DATA_COMPRESSOR(overrides?: CallOverrides): Promise<string>;
 
-  "DATA_COMPRESSOR()"(overrides?: CallOverrides): Promise<string>;
-
   GEAR_TOKEN(overrides?: CallOverrides): Promise<string>;
-
-  "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<string>;
 
   PRICE_ORACLE(overrides?: CallOverrides): Promise<string>;
 
-  "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<string>;
-
   TREASURY_CONTRACT(overrides?: CallOverrides): Promise<string>;
-
-  "TREASURY_CONTRACT()"(overrides?: CallOverrides): Promise<string>;
 
   WETH_GATEWAY(overrides?: CallOverrides): Promise<string>;
 
-  "WETH_GATEWAY()"(overrides?: CallOverrides): Promise<string>;
-
   WETH_TOKEN(overrides?: CallOverrides): Promise<string>;
-
-  "WETH_TOKEN()"(overrides?: CallOverrides): Promise<string>;
 
   addresses(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-  "addresses(bytes32)"(
-    arg0: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   getACL(overrides?: CallOverrides): Promise<string>;
-
-  "getACL()"(overrides?: CallOverrides): Promise<string>;
 
   getAccountFactory(overrides?: CallOverrides): Promise<string>;
 
-  "getAccountFactory()"(overrides?: CallOverrides): Promise<string>;
-
   getAccountMiner(overrides?: CallOverrides): Promise<string>;
-
-  "getAccountMiner()"(overrides?: CallOverrides): Promise<string>;
 
   getContractsRegister(overrides?: CallOverrides): Promise<string>;
 
-  "getContractsRegister()"(overrides?: CallOverrides): Promise<string>;
-
   getDataCompressor(overrides?: CallOverrides): Promise<string>;
-
-  "getDataCompressor()"(overrides?: CallOverrides): Promise<string>;
 
   getGearToken(overrides?: CallOverrides): Promise<string>;
 
-  "getGearToken()"(overrides?: CallOverrides): Promise<string>;
-
   getPriceOracle(overrides?: CallOverrides): Promise<string>;
-
-  "getPriceOracle()"(overrides?: CallOverrides): Promise<string>;
 
   getTreasuryContract(overrides?: CallOverrides): Promise<string>;
 
-  "getTreasuryContract()"(overrides?: CallOverrides): Promise<string>;
-
   getWETHGateway(overrides?: CallOverrides): Promise<string>;
-
-  "getWETHGateway()"(overrides?: CallOverrides): Promise<string>;
 
   getWethToken(overrides?: CallOverrides): Promise<string>;
 
-  "getWethToken()"(overrides?: CallOverrides): Promise<string>;
-
   owner(overrides?: CallOverrides): Promise<string>;
 
-  "owner()"(overrides?: CallOverrides): Promise<string>;
+  renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  renounceOwnership(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "renounceOwnership()"(overrides?: Overrides): Promise<ContractTransaction>;
-
-  setACL(_address: string, overrides?: Overrides): Promise<ContractTransaction>;
-
-  "setACL(address)"(
+  setACL(
     _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setAccountFactory(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setAccountFactory(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setAccountMiner(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setAccountMiner(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setContractsRegister(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setContractsRegister(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setDataCompressor(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setDataCompressor(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setGearToken(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setGearToken(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setPriceOracle(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setPriceOracle(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setTreasuryContract(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setTreasuryContract(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setWETHGateway(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setWETHGateway(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setWethToken(
     _address: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setWethToken(address)"(
-    _address: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnership(
     newOwner: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "transferOwnership(address)"(
-    newOwner: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
 
-    "ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<string>;
-
     ACCOUNT_MINER(overrides?: CallOverrides): Promise<string>;
-
-    "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<string>;
 
     ACL(overrides?: CallOverrides): Promise<string>;
 
-    "ACL()"(overrides?: CallOverrides): Promise<string>;
-
     CONTRACTS_REGISTER(overrides?: CallOverrides): Promise<string>;
-
-    "CONTRACTS_REGISTER()"(overrides?: CallOverrides): Promise<string>;
 
     DATA_COMPRESSOR(overrides?: CallOverrides): Promise<string>;
 
-    "DATA_COMPRESSOR()"(overrides?: CallOverrides): Promise<string>;
-
     GEAR_TOKEN(overrides?: CallOverrides): Promise<string>;
-
-    "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<string>;
 
     PRICE_ORACLE(overrides?: CallOverrides): Promise<string>;
 
-    "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<string>;
-
     TREASURY_CONTRACT(overrides?: CallOverrides): Promise<string>;
-
-    "TREASURY_CONTRACT()"(overrides?: CallOverrides): Promise<string>;
 
     WETH_GATEWAY(overrides?: CallOverrides): Promise<string>;
 
-    "WETH_GATEWAY()"(overrides?: CallOverrides): Promise<string>;
-
     WETH_TOKEN(overrides?: CallOverrides): Promise<string>;
-
-    "WETH_TOKEN()"(overrides?: CallOverrides): Promise<string>;
 
     addresses(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-    "addresses(bytes32)"(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     getACL(overrides?: CallOverrides): Promise<string>;
-
-    "getACL()"(overrides?: CallOverrides): Promise<string>;
 
     getAccountFactory(overrides?: CallOverrides): Promise<string>;
 
-    "getAccountFactory()"(overrides?: CallOverrides): Promise<string>;
-
     getAccountMiner(overrides?: CallOverrides): Promise<string>;
-
-    "getAccountMiner()"(overrides?: CallOverrides): Promise<string>;
 
     getContractsRegister(overrides?: CallOverrides): Promise<string>;
 
-    "getContractsRegister()"(overrides?: CallOverrides): Promise<string>;
-
     getDataCompressor(overrides?: CallOverrides): Promise<string>;
-
-    "getDataCompressor()"(overrides?: CallOverrides): Promise<string>;
 
     getGearToken(overrides?: CallOverrides): Promise<string>;
 
-    "getGearToken()"(overrides?: CallOverrides): Promise<string>;
-
     getPriceOracle(overrides?: CallOverrides): Promise<string>;
-
-    "getPriceOracle()"(overrides?: CallOverrides): Promise<string>;
 
     getTreasuryContract(overrides?: CallOverrides): Promise<string>;
 
-    "getTreasuryContract()"(overrides?: CallOverrides): Promise<string>;
-
     getWETHGateway(overrides?: CallOverrides): Promise<string>;
-
-    "getWETHGateway()"(overrides?: CallOverrides): Promise<string>;
 
     getWethToken(overrides?: CallOverrides): Promise<string>;
 
-    "getWethToken()"(overrides?: CallOverrides): Promise<string>;
-
     owner(overrides?: CallOverrides): Promise<string>;
-
-    "owner()"(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    "renounceOwnership()"(overrides?: CallOverrides): Promise<void>;
-
     setACL(_address: string, overrides?: CallOverrides): Promise<void>;
 
-    "setACL(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setAccountFactory(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setAccountFactory(address)"(
       _address: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setAccountMiner(_address: string, overrides?: CallOverrides): Promise<void>;
 
-    "setAccountMiner(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setContractsRegister(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setContractsRegister(address)"(
       _address: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -865,55 +624,20 @@ export class AddressProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setDataCompressor(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setGearToken(_address: string, overrides?: CallOverrides): Promise<void>;
 
-    "setGearToken(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setPriceOracle(_address: string, overrides?: CallOverrides): Promise<void>;
-
-    "setPriceOracle(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     setTreasuryContract(
       _address: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setTreasuryContract(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setWETHGateway(_address: string, overrides?: CallOverrides): Promise<void>;
-
-    "setWETHGateway(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     setWethToken(_address: string, overrides?: CallOverrides): Promise<void>;
 
-    "setWethToken(address)"(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "transferOwnership(address)"(
       newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -921,443 +645,238 @@ export class AddressProvider extends Contract {
 
   filters: {
     AddressSet(
-      service: BytesLike | null,
-      newAddress: string | null
-    ): EventFilter;
+      service?: BytesLike | null,
+      newAddress?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { service: string; newAddress: string }
+    >;
 
     OwnershipTransferred(
-      previousOwner: string | null,
-      newOwner: string | null
-    ): EventFilter;
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
   };
 
   estimateGas: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "ACCOUNT_FACTORY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     ACCOUNT_MINER(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     ACL(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "ACL()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     CONTRACTS_REGISTER(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "CONTRACTS_REGISTER()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     DATA_COMPRESSOR(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "DATA_COMPRESSOR()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     GEAR_TOKEN(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     PRICE_ORACLE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     TREASURY_CONTRACT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "TREASURY_CONTRACT()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     WETH_GATEWAY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "WETH_GATEWAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     WETH_TOKEN(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "WETH_TOKEN()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     addresses(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "addresses(bytes32)"(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getACL(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getACL()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getAccountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getAccountMiner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getAccountMiner()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getContractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getContractsRegister()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getDataCompressor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getDataCompressor()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getGearToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getGearToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getPriceOracle(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getPriceOracle()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTreasuryContract(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getTreasuryContract()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getWETHGateway(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getWETHGateway()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getWethToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getWethToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "owner()"(overrides?: CallOverrides): Promise<BigNumber>;
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    renounceOwnership(overrides?: Overrides): Promise<BigNumber>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<BigNumber>;
-
-    setACL(_address: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "setACL(address)"(
+    setACL(
       _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setAccountFactory(
       _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setAccountMiner(
       _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setAccountMiner(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setContractsRegister(
       _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setContractsRegister(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setDataCompressor(
       _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "setDataCompressor(address)"(
+    setGearToken(
       _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setGearToken(_address: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "setGearToken(address)"(
+    setPriceOracle(
       _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    setPriceOracle(_address: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "setPriceOracle(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setTreasuryContract(
       _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "setTreasuryContract(address)"(
+    setWETHGateway(
       _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setWETHGateway(_address: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "setWETHGateway(address)"(
+    setWethToken(
       _address: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    setWethToken(_address: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "setWethToken(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "ACCOUNT_FACTORY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     ACCOUNT_MINER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "ACCOUNT_MINER()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     ACL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "ACL()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     CONTRACTS_REGISTER(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "CONTRACTS_REGISTER()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     DATA_COMPRESSOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "DATA_COMPRESSOR()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     GEAR_TOKEN(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "GEAR_TOKEN()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     PRICE_ORACLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "PRICE_ORACLE()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     TREASURY_CONTRACT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "TREASURY_CONTRACT()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     WETH_GATEWAY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "WETH_GATEWAY()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     WETH_TOKEN(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "WETH_TOKEN()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     addresses(
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "addresses(bytes32)"(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getACL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getACL()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getAccountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "getAccountFactory()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getAccountMiner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getAccountMiner()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     getContractsRegister(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getContractsRegister()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getDataCompressor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getDataCompressor()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     getGearToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "getGearToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getPriceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getPriceOracle()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     getTreasuryContract(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getTreasuryContract()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getWETHGateway(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getWETHGateway()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     getWethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "getWethToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "owner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<PopulatedTransaction>;
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     setACL(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setACL(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setAccountFactory(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setAccountFactory(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setAccountMiner(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setAccountMiner(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setContractsRegister(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setContractsRegister(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setDataCompressor(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setDataCompressor(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setGearToken(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setGearToken(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setPriceOracle(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setPriceOracle(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setTreasuryContract(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setTreasuryContract(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setWETHGateway(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setWETHGateway(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setWethToken(
       _address: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setWethToken(address)"(
-      _address: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

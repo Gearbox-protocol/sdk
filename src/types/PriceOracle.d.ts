@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface PriceOracleInterface extends ethers.utils.Interface {
   functions: {
@@ -100,16 +99,46 @@ interface PriceOracleInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
-export class PriceOracle extends Contract {
+export class PriceOracle extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: PriceOracleInterface;
 
@@ -117,23 +146,10 @@ export class PriceOracle extends Contract {
     addPriceFeed(
       token: string,
       priceFeed: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addPriceFeed(address,address)"(
-      token: string,
-      priceFeed: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     convert(
-      amount: BigNumberish,
-      tokenFrom: string,
-      tokenTo: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "convert(uint256,address,address)"(
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
@@ -145,17 +161,7 @@ export class PriceOracle extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "decimalsDividers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     decimalsMultipliers(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "decimalsMultipliers(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -166,46 +172,25 @@ export class PriceOracle extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "getLastPrice(address,address)"(
-      tokenFrom: string,
-      tokenTo: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    pause(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "pause()"(overrides?: Overrides): Promise<ContractTransaction>;
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
-    "paused()"(overrides?: CallOverrides): Promise<[boolean]>;
-
     priceFeeds(arg0: string, overrides?: CallOverrides): Promise<[string]>;
 
-    "priceFeeds(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    unpause(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<[string]>;
-
-    "wethAddress()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   addPriceFeed(
     token: string,
     priceFeed: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addPriceFeed(address,address)"(
-    token: string,
-    priceFeed: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   convert(
@@ -215,26 +200,9 @@ export class PriceOracle extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "convert(uint256,address,address)"(
-    amount: BigNumberish,
-    tokenFrom: string,
-    tokenTo: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   decimalsDividers(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  "decimalsDividers(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   decimalsMultipliers(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "decimalsMultipliers(address)"(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -245,34 +213,19 @@ export class PriceOracle extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "getLastPrice(address,address)"(
-    tokenFrom: string,
-    tokenTo: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  pause(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "pause()"(overrides?: Overrides): Promise<ContractTransaction>;
+  pause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
-  "paused()"(overrides?: CallOverrides): Promise<boolean>;
-
   priceFeeds(arg0: string, overrides?: CallOverrides): Promise<string>;
 
-  "priceFeeds(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  unpause(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
+  unpause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   wethAddress(overrides?: CallOverrides): Promise<string>;
-
-  "wethAddress()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     addPriceFeed(
@@ -281,20 +234,7 @@ export class PriceOracle extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "addPriceFeed(address,address)"(
-      token: string,
-      priceFeed: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     convert(
-      amount: BigNumberish,
-      tokenFrom: string,
-      tokenTo: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "convert(uint256,address,address)"(
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
@@ -306,28 +246,12 @@ export class PriceOracle extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "decimalsDividers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     decimalsMultipliers(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "decimalsMultipliers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getLastPrice(
-      tokenFrom: string,
-      tokenTo: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getLastPrice(address,address)"(
       tokenFrom: string,
       tokenTo: string,
       overrides?: CallOverrides
@@ -335,57 +259,34 @@ export class PriceOracle extends Contract {
 
     pause(overrides?: CallOverrides): Promise<void>;
 
-    "pause()"(overrides?: CallOverrides): Promise<void>;
-
     paused(overrides?: CallOverrides): Promise<boolean>;
-
-    "paused()"(overrides?: CallOverrides): Promise<boolean>;
 
     priceFeeds(arg0: string, overrides?: CallOverrides): Promise<string>;
 
-    "priceFeeds(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     unpause(overrides?: CallOverrides): Promise<void>;
 
-    "unpause()"(overrides?: CallOverrides): Promise<void>;
-
     wethAddress(overrides?: CallOverrides): Promise<string>;
-
-    "wethAddress()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
-    NewPriceFeed(token: string | null, priceFeed: string | null): EventFilter;
+    NewPriceFeed(
+      token?: string | null,
+      priceFeed?: string | null
+    ): TypedEventFilter<[string, string], { token: string; priceFeed: string }>;
 
-    Paused(account: null): EventFilter;
+    Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
-    Unpaused(account: null): EventFilter;
+    Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
 
   estimateGas: {
     addPriceFeed(
       token: string,
       priceFeed: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "addPriceFeed(address,address)"(
-      token: string,
-      priceFeed: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     convert(
-      amount: BigNumberish,
-      tokenFrom: string,
-      tokenTo: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "convert(uint256,address,address)"(
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
@@ -397,17 +298,7 @@ export class PriceOracle extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "decimalsDividers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     decimalsMultipliers(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "decimalsMultipliers(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -418,57 +309,29 @@ export class PriceOracle extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getLastPrice(address,address)"(
-      tokenFrom: string,
-      tokenTo: string,
-      overrides?: CallOverrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    pause(overrides?: Overrides): Promise<BigNumber>;
-
-    "pause()"(overrides?: Overrides): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "paused()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     priceFeeds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "priceFeeds(address)"(
-      arg0: string,
-      overrides?: CallOverrides
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    unpause(overrides?: Overrides): Promise<BigNumber>;
-
-    "unpause()"(overrides?: Overrides): Promise<BigNumber>;
-
     wethAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "wethAddress()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     addPriceFeed(
       token: string,
       priceFeed: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addPriceFeed(address,address)"(
-      token: string,
-      priceFeed: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     convert(
-      amount: BigNumberish,
-      tokenFrom: string,
-      tokenTo: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "convert(uint256,address,address)"(
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
@@ -480,17 +343,7 @@ export class PriceOracle extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "decimalsDividers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     decimalsMultipliers(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "decimalsMultipliers(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -501,36 +354,21 @@ export class PriceOracle extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getLastPrice(address,address)"(
-      tokenFrom: string,
-      tokenTo: string,
-      overrides?: CallOverrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    pause(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "pause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
-
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "paused()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     priceFeeds(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "priceFeeds(address)"(
-      arg0: string,
-      overrides?: CallOverrides
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    unpause(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "unpause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
-
     wethAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "wethAddress()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

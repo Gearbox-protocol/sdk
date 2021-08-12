@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IAccountFactoryInterface extends ethers.utils.Interface {
   functions: {
@@ -102,232 +101,170 @@ interface IAccountFactoryInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ReturnCreditAccount"): EventFragment;
 }
 
-export class IAccountFactory extends Contract {
+export class IAccountFactory extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: IAccountFactoryInterface;
 
   functions: {
-    connectMiner(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "connectMiner()"(overrides?: Overrides): Promise<ContractTransaction>;
+    connectMiner(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     countCreditAccounts(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "countCreditAccounts()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "countCreditAccountsInStock()"(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     creditAccounts(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "creditAccounts(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     getNext(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "getNext(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     head(overrides?: CallOverrides): Promise<[string]>;
 
-    "head()"(overrides?: CallOverrides): Promise<[string]>;
-
     returnCreditAccount(
       usedAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "returnCreditAccount(address)"(
-      usedAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     tail(overrides?: CallOverrides): Promise<[string]>;
 
-    "tail()"(overrides?: CallOverrides): Promise<[string]>;
-
     takeCreditAccount(
       trader: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "takeCreditAccount(address)"(
-      trader: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  connectMiner(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "connectMiner()"(overrides?: Overrides): Promise<ContractTransaction>;
+  connectMiner(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "countCreditAccounts()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   countCreditAccountsInStock(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "countCreditAccountsInStock()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   creditAccounts(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  "creditAccounts(uint256)"(
-    id: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   getNext(creditAccount: string, overrides?: CallOverrides): Promise<string>;
-
-  "getNext(address)"(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   head(overrides?: CallOverrides): Promise<string>;
 
-  "head()"(overrides?: CallOverrides): Promise<string>;
-
   returnCreditAccount(
     usedAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "returnCreditAccount(address)"(
-    usedAccount: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   tail(overrides?: CallOverrides): Promise<string>;
 
-  "tail()"(overrides?: CallOverrides): Promise<string>;
-
   takeCreditAccount(
     trader: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "takeCreditAccount(address)"(
-    trader: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     connectMiner(overrides?: CallOverrides): Promise<void>;
 
-    "connectMiner()"(overrides?: CallOverrides): Promise<void>;
-
     countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "countCreditAccounts()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "countCreditAccountsInStock()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     creditAccounts(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "creditAccounts(uint256)"(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getNext(creditAccount: string, overrides?: CallOverrides): Promise<string>;
 
-    "getNext(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     head(overrides?: CallOverrides): Promise<string>;
-
-    "head()"(overrides?: CallOverrides): Promise<string>;
 
     returnCreditAccount(
       usedAccount: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "returnCreditAccount(address)"(
-      usedAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     tail(overrides?: CallOverrides): Promise<string>;
 
-    "tail()"(overrides?: CallOverrides): Promise<string>;
-
     takeCreditAccount(
-      trader: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "takeCreditAccount(address)"(
       trader: string,
       overrides?: CallOverrides
     ): Promise<string>;
   };
 
   filters: {
-    AccountMinerChanged(miner: string | null): EventFilter;
+    AccountMinerChanged(
+      miner?: string | null
+    ): TypedEventFilter<[string], { miner: string }>;
 
     InitializeCreditAccount(
-      account: string | null,
-      creditManager: string | null
-    ): EventFilter;
+      account?: string | null,
+      creditManager?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { account: string; creditManager: string }
+    >;
 
-    NewCreditAccount(account: string | null): EventFilter;
+    NewCreditAccount(
+      account?: string | null
+    ): TypedEventFilter<[string], { account: string }>;
 
-    ReturnCreditAccount(account: string | null): EventFilter;
+    ReturnCreditAccount(
+      account?: string | null
+    ): TypedEventFilter<[string], { account: string }>;
   };
 
   estimateGas: {
-    connectMiner(overrides?: Overrides): Promise<BigNumber>;
-
-    "connectMiner()"(overrides?: Overrides): Promise<BigNumber>;
+    connectMiner(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "countCreditAccounts()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "countCreditAccountsInStock()"(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     creditAccounts(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "creditAccounts(uint256)"(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -337,50 +274,27 @@ export class IAccountFactory extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getNext(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     head(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "head()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     returnCreditAccount(
       usedAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "returnCreditAccount(address)"(
-      usedAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     tail(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "tail()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     takeCreditAccount(
       trader: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "takeCreditAccount(address)"(
-      trader: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    connectMiner(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "connectMiner()"(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    countCreditAccounts(
-      overrides?: CallOverrides
+    connectMiner(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "countCreditAccounts()"(
+    countCreditAccounts(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -388,16 +302,7 @@ export class IAccountFactory extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "countCreditAccountsInStock()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     creditAccounts(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "creditAccounts(uint256)"(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -407,37 +312,18 @@ export class IAccountFactory extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getNext(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     head(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "head()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     returnCreditAccount(
       usedAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "returnCreditAccount(address)"(
-      usedAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     tail(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "tail()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     takeCreditAccount(
       trader: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "takeCreditAccount(address)"(
-      trader: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -2,19 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { IUniswapV2Router02 } from "../IUniswapV2Router02";
-
-export class IUniswapV2Router02__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IUniswapV2Router02 {
-    return new Contract(address, _abi, signerOrProvider) as IUniswapV2Router02;
-  }
-}
+import type {
+  IUniswapV2Router02,
+  IUniswapV2Router02Interface,
+} from "../IUniswapV2Router02";
 
 const _abi = [
   {
@@ -969,3 +962,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class IUniswapV2Router02__factory {
+  static readonly abi = _abi;
+  static createInterface(): IUniswapV2Router02Interface {
+    return new utils.Interface(_abi) as IUniswapV2Router02Interface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IUniswapV2Router02 {
+    return new Contract(address, _abi, signerOrProvider) as IUniswapV2Router02;
+  }
+}

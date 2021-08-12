@@ -9,15 +9,14 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface WadRayMathTestInterface extends ethers.utils.Interface {
   functions: {
@@ -76,39 +75,57 @@ interface WadRayMathTestInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class WadRayMathTest extends Contract {
+export class WadRayMathTest extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: WadRayMathTestInterface;
 
   functions: {
     halfRay(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "halfRay()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     halfWad(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "halfWad()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     ray(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "ray()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     rayDiv(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "rayDiv(uint256,uint256)"(
       a: BigNumberish,
       b: BigNumberish,
       overrides?: CallOverrides
@@ -120,30 +137,11 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "rayMul(uint256,uint256)"(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     rayToWad(a: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "rayToWad(uint256)"(
-      a: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     wad(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "wad()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     wadDiv(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "wadDiv(uint256,uint256)"(
       a: BigNumberish,
       b: BigNumberish,
       overrides?: CallOverrides
@@ -155,39 +153,16 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "wadMul(uint256,uint256)"(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     wadToRay(a: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "wadToRay(uint256)"(
-      a: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
   };
 
   halfRay(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "halfRay()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   halfWad(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "halfWad()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   ray(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "ray()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   rayDiv(
-    a: BigNumberish,
-    b: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "rayDiv(uint256,uint256)"(
     a: BigNumberish,
     b: BigNumberish,
     overrides?: CallOverrides
@@ -199,30 +174,11 @@ export class WadRayMathTest extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "rayMul(uint256,uint256)"(
-    a: BigNumberish,
-    b: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   rayToWad(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "rayToWad(uint256)"(
-    a: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   wad(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "wad()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   wadDiv(
-    a: BigNumberish,
-    b: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "wadDiv(uint256,uint256)"(
     a: BigNumberish,
     b: BigNumberish,
     overrides?: CallOverrides
@@ -234,39 +190,16 @@ export class WadRayMathTest extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "wadMul(uint256,uint256)"(
-    a: BigNumberish,
-    b: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   wadToRay(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "wadToRay(uint256)"(
-    a: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   callStatic: {
     halfRay(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "halfRay()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     halfWad(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "halfWad()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     ray(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "ray()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     rayDiv(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "rayDiv(uint256,uint256)"(
       a: BigNumberish,
       b: BigNumberish,
       overrides?: CallOverrides
@@ -278,30 +211,11 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "rayMul(uint256,uint256)"(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     rayToWad(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "rayToWad(uint256)"(
-      a: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     wad(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "wad()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     wadDiv(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "wadDiv(uint256,uint256)"(
       a: BigNumberish,
       b: BigNumberish,
       overrides?: CallOverrides
@@ -313,18 +227,7 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "wadMul(uint256,uint256)"(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     wadToRay(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "wadToRay(uint256)"(
-      a: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
   };
 
   filters: {};
@@ -332,23 +235,11 @@ export class WadRayMathTest extends Contract {
   estimateGas: {
     halfRay(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "halfRay()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     halfWad(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "halfWad()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     ray(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "ray()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     rayDiv(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "rayDiv(uint256,uint256)"(
       a: BigNumberish,
       b: BigNumberish,
       overrides?: CallOverrides
@@ -360,30 +251,11 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "rayMul(uint256,uint256)"(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     rayToWad(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "rayToWad(uint256)"(
-      a: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     wad(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "wad()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     wadDiv(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "wadDiv(uint256,uint256)"(
       a: BigNumberish,
       b: BigNumberish,
       overrides?: CallOverrides
@@ -395,32 +267,15 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "wadMul(uint256,uint256)"(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     wadToRay(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "wadToRay(uint256)"(
-      a: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     halfRay(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "halfRay()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     halfWad(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "halfWad()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     ray(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "ray()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     rayDiv(
       a: BigNumberish,
@@ -428,19 +283,7 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "rayDiv(uint256,uint256)"(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     rayMul(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "rayMul(uint256,uint256)"(
       a: BigNumberish,
       b: BigNumberish,
       overrides?: CallOverrides
@@ -451,22 +294,9 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "rayToWad(uint256)"(
-      a: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     wad(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "wad()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     wadDiv(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "wadDiv(uint256,uint256)"(
       a: BigNumberish,
       b: BigNumberish,
       overrides?: CallOverrides
@@ -478,18 +308,7 @@ export class WadRayMathTest extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "wadMul(uint256,uint256)"(
-      a: BigNumberish,
-      b: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     wadToRay(
-      a: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "wadToRay(uint256)"(
       a: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

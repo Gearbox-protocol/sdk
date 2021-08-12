@@ -2,19 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { IDataCompressor } from "../IDataCompressor";
-
-export class IDataCompressor__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IDataCompressor {
-    return new Contract(address, _abi, signerOrProvider) as IDataCompressor;
-  }
-}
+import type {
+  IDataCompressor,
+  IDataCompressorInterface,
+} from "../IDataCompressor";
 
 const _abi = [
   {
@@ -734,3 +727,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class IDataCompressor__factory {
+  static readonly abi = _abi;
+  static createInterface(): IDataCompressorInterface {
+    return new utils.Interface(_abi) as IDataCompressorInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IDataCompressor {
+    return new Contract(address, _abi, signerOrProvider) as IDataCompressor;
+  }
+}

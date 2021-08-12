@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   PayableOverrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ISwapRouterInterface extends ethers.utils.Interface {
   functions: {
@@ -100,16 +99,46 @@ interface ISwapRouterInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class ISwapRouter extends Contract {
+export class ISwapRouter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: ISwapRouterInterface;
 
@@ -122,18 +151,7 @@ export class ISwapRouter extends Contract {
         amountIn: BigNumberish;
         amountOutMinimum: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "exactInput((bytes,address,uint256,uint256,uint256))"(
-      params: {
-        path: BytesLike;
-        recipient: string;
-        deadline: BigNumberish;
-        amountIn: BigNumberish;
-        amountOutMinimum: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     exactInputSingle(
@@ -147,21 +165,7 @@ export class ISwapRouter extends Contract {
         amountOutMinimum: BigNumberish;
         sqrtPriceLimitX96: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
-      params: {
-        tokenIn: string;
-        tokenOut: string;
-        fee: BigNumberish;
-        recipient: string;
-        deadline: BigNumberish;
-        amountIn: BigNumberish;
-        amountOutMinimum: BigNumberish;
-        sqrtPriceLimitX96: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     exactOutput(
@@ -172,18 +176,7 @@ export class ISwapRouter extends Contract {
         amountOut: BigNumberish;
         amountInMaximum: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "exactOutput((bytes,address,uint256,uint256,uint256))"(
-      params: {
-        path: BytesLike;
-        recipient: string;
-        deadline: BigNumberish;
-        amountOut: BigNumberish;
-        amountInMaximum: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     exactOutputSingle(
@@ -197,21 +190,7 @@ export class ISwapRouter extends Contract {
         amountInMaximum: BigNumberish;
         sqrtPriceLimitX96: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
-      params: {
-        tokenIn: string;
-        tokenOut: string;
-        fee: BigNumberish;
-        recipient: string;
-        deadline: BigNumberish;
-        amountOut: BigNumberish;
-        amountInMaximum: BigNumberish;
-        sqrtPriceLimitX96: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
@@ -223,18 +202,7 @@ export class ISwapRouter extends Contract {
       amountIn: BigNumberish;
       amountOutMinimum: BigNumberish;
     },
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "exactInput((bytes,address,uint256,uint256,uint256))"(
-    params: {
-      path: BytesLike;
-      recipient: string;
-      deadline: BigNumberish;
-      amountIn: BigNumberish;
-      amountOutMinimum: BigNumberish;
-    },
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   exactInputSingle(
@@ -248,21 +216,7 @@ export class ISwapRouter extends Contract {
       amountOutMinimum: BigNumberish;
       sqrtPriceLimitX96: BigNumberish;
     },
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
-    params: {
-      tokenIn: string;
-      tokenOut: string;
-      fee: BigNumberish;
-      recipient: string;
-      deadline: BigNumberish;
-      amountIn: BigNumberish;
-      amountOutMinimum: BigNumberish;
-      sqrtPriceLimitX96: BigNumberish;
-    },
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   exactOutput(
@@ -273,18 +227,7 @@ export class ISwapRouter extends Contract {
       amountOut: BigNumberish;
       amountInMaximum: BigNumberish;
     },
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "exactOutput((bytes,address,uint256,uint256,uint256))"(
-    params: {
-      path: BytesLike;
-      recipient: string;
-      deadline: BigNumberish;
-      amountOut: BigNumberish;
-      amountInMaximum: BigNumberish;
-    },
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   exactOutputSingle(
@@ -298,21 +241,7 @@ export class ISwapRouter extends Contract {
       amountInMaximum: BigNumberish;
       sqrtPriceLimitX96: BigNumberish;
     },
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
-    params: {
-      tokenIn: string;
-      tokenOut: string;
-      fee: BigNumberish;
-      recipient: string;
-      deadline: BigNumberish;
-      amountOut: BigNumberish;
-      amountInMaximum: BigNumberish;
-      sqrtPriceLimitX96: BigNumberish;
-    },
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -327,32 +256,7 @@ export class ISwapRouter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "exactInput((bytes,address,uint256,uint256,uint256))"(
-      params: {
-        path: BytesLike;
-        recipient: string;
-        deadline: BigNumberish;
-        amountIn: BigNumberish;
-        amountOutMinimum: BigNumberish;
-      },
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     exactInputSingle(
-      params: {
-        tokenIn: string;
-        tokenOut: string;
-        fee: BigNumberish;
-        recipient: string;
-        deadline: BigNumberish;
-        amountIn: BigNumberish;
-        amountOutMinimum: BigNumberish;
-        sqrtPriceLimitX96: BigNumberish;
-      },
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
       params: {
         tokenIn: string;
         tokenOut: string;
@@ -377,32 +281,7 @@ export class ISwapRouter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "exactOutput((bytes,address,uint256,uint256,uint256))"(
-      params: {
-        path: BytesLike;
-        recipient: string;
-        deadline: BigNumberish;
-        amountOut: BigNumberish;
-        amountInMaximum: BigNumberish;
-      },
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     exactOutputSingle(
-      params: {
-        tokenIn: string;
-        tokenOut: string;
-        fee: BigNumberish;
-        recipient: string;
-        deadline: BigNumberish;
-        amountOut: BigNumberish;
-        amountInMaximum: BigNumberish;
-        sqrtPriceLimitX96: BigNumberish;
-      },
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
       params: {
         tokenIn: string;
         tokenOut: string;
@@ -428,18 +307,7 @@ export class ISwapRouter extends Contract {
         amountIn: BigNumberish;
         amountOutMinimum: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "exactInput((bytes,address,uint256,uint256,uint256))"(
-      params: {
-        path: BytesLike;
-        recipient: string;
-        deadline: BigNumberish;
-        amountIn: BigNumberish;
-        amountOutMinimum: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     exactInputSingle(
@@ -453,21 +321,7 @@ export class ISwapRouter extends Contract {
         amountOutMinimum: BigNumberish;
         sqrtPriceLimitX96: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
-      params: {
-        tokenIn: string;
-        tokenOut: string;
-        fee: BigNumberish;
-        recipient: string;
-        deadline: BigNumberish;
-        amountIn: BigNumberish;
-        amountOutMinimum: BigNumberish;
-        sqrtPriceLimitX96: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     exactOutput(
@@ -478,18 +332,7 @@ export class ISwapRouter extends Contract {
         amountOut: BigNumberish;
         amountInMaximum: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "exactOutput((bytes,address,uint256,uint256,uint256))"(
-      params: {
-        path: BytesLike;
-        recipient: string;
-        deadline: BigNumberish;
-        amountOut: BigNumberish;
-        amountInMaximum: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     exactOutputSingle(
@@ -503,21 +346,7 @@ export class ISwapRouter extends Contract {
         amountInMaximum: BigNumberish;
         sqrtPriceLimitX96: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
-      params: {
-        tokenIn: string;
-        tokenOut: string;
-        fee: BigNumberish;
-        recipient: string;
-        deadline: BigNumberish;
-        amountOut: BigNumberish;
-        amountInMaximum: BigNumberish;
-        sqrtPriceLimitX96: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -530,18 +359,7 @@ export class ISwapRouter extends Contract {
         amountIn: BigNumberish;
         amountOutMinimum: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "exactInput((bytes,address,uint256,uint256,uint256))"(
-      params: {
-        path: BytesLike;
-        recipient: string;
-        deadline: BigNumberish;
-        amountIn: BigNumberish;
-        amountOutMinimum: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     exactInputSingle(
@@ -555,21 +373,7 @@ export class ISwapRouter extends Contract {
         amountOutMinimum: BigNumberish;
         sqrtPriceLimitX96: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
-      params: {
-        tokenIn: string;
-        tokenOut: string;
-        fee: BigNumberish;
-        recipient: string;
-        deadline: BigNumberish;
-        amountIn: BigNumberish;
-        amountOutMinimum: BigNumberish;
-        sqrtPriceLimitX96: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     exactOutput(
@@ -580,18 +384,7 @@ export class ISwapRouter extends Contract {
         amountOut: BigNumberish;
         amountInMaximum: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "exactOutput((bytes,address,uint256,uint256,uint256))"(
-      params: {
-        path: BytesLike;
-        recipient: string;
-        deadline: BigNumberish;
-        amountOut: BigNumberish;
-        amountInMaximum: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     exactOutputSingle(
@@ -605,21 +398,7 @@ export class ISwapRouter extends Contract {
         amountInMaximum: BigNumberish;
         sqrtPriceLimitX96: BigNumberish;
       },
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))"(
-      params: {
-        tokenIn: string;
-        tokenOut: string;
-        fee: BigNumberish;
-        recipient: string;
-        deadline: BigNumberish;
-        amountOut: BigNumberish;
-        amountInMaximum: BigNumberish;
-        sqrtPriceLimitX96: BigNumberish;
-      },
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IPoolServiceInterface extends ethers.utils.Interface {
   functions: {
@@ -223,301 +222,187 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "UncoveredLoss"): EventFragment;
 }
 
-export class IPoolService extends Contract {
+export class IPoolService extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: IPoolServiceInterface;
 
   functions: {
     _timestampLU(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "_timestampLU()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     addLiquidity(
       amount: BigNumberish,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addLiquidity(uint256,address,uint256)"(
-      amount: BigNumberish,
-      onBehalfOf: string,
-      referralCode: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     availableLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "availableLiquidity()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     borrowAPY_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "borrowAPY_RAY()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "calcLinearCumulative_RAY()"(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     creditManagers(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "creditManagers(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     creditManagersCanBorrow(
-      id: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "creditManagersCanBorrow(address)"(
       id: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     creditManagersCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "creditManagersCount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     dieselToken(overrides?: CallOverrides): Promise<[string]>;
-
-    "dieselToken()"(overrides?: CallOverrides): Promise<[string]>;
 
     expectedLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "expectedLiquidity()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     expectedLiquidityLimit(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     fromDiesel(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "fromDiesel(uint256)"(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getDieselRate_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "getDieselRate_RAY()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     lendCreditAccount(
       borrowedAmount: BigNumberish,
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "lendCreditAccount(uint256,address)"(
-      borrowedAmount: BigNumberish,
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeLiquidity(
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "removeLiquidity(uint256,address)"(
-      amount: BigNumberish,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     repayCreditAccount(
       borrowedAmount: BigNumberish,
       profit: BigNumberish,
       loss: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "repayCreditAccount(uint256,uint256,uint256)"(
-      borrowedAmount: BigNumberish,
-      profit: BigNumberish,
-      loss: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     toDiesel(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "toDiesel(uint256)"(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     totalBorrowed(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "totalBorrowed()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "underlyingToken()"(overrides?: CallOverrides): Promise<[string]>;
-
     withdrawFee(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "withdrawFee()"(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "_timestampLU()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   addLiquidity(
     amount: BigNumberish,
     onBehalfOf: string,
     referralCode: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addLiquidity(uint256,address,uint256)"(
-    amount: BigNumberish,
-    onBehalfOf: string,
-    referralCode: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "availableLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "borrowAPY_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   creditManagers(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  "creditManagers(uint256)"(
-    id: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   creditManagersCanBorrow(
     id: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  "creditManagersCanBorrow(address)"(
-    id: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   creditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "creditManagersCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   dieselToken(overrides?: CallOverrides): Promise<string>;
 
-  "dieselToken()"(overrides?: CallOverrides): Promise<string>;
-
   expectedLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   fromDiesel(
     amount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "fromDiesel(uint256)"(
-    amount: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   getDieselRate_RAY(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "getDieselRate_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   lendCreditAccount(
     borrowedAmount: BigNumberish,
     creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "lendCreditAccount(uint256,address)"(
-    borrowedAmount: BigNumberish,
-    creditAccount: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeLiquidity(
     amount: BigNumberish,
     to: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "removeLiquidity(uint256,address)"(
-    amount: BigNumberish,
-    to: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   repayCreditAccount(
     borrowedAmount: BigNumberish,
     profit: BigNumberish,
     loss: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "repayCreditAccount(uint256,uint256,uint256)"(
-    borrowedAmount: BigNumberish,
-    profit: BigNumberish,
-    loss: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   toDiesel(amount: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-  "toDiesel(uint256)"(
-    amount: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "totalBorrowed()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   underlyingToken(overrides?: CallOverrides): Promise<string>;
 
-  "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
   withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "withdrawFee()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "_timestampLU()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     addLiquidity(
       amount: BigNumberish,
@@ -526,31 +411,13 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "addLiquidity(uint256,address,uint256)"(
-      amount: BigNumberish,
-      onBehalfOf: string,
-      referralCode: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "availableLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "borrowAPY_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     creditManagers(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "creditManagers(uint256)"(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -560,40 +427,20 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "creditManagersCanBorrow(address)"(
-      id: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     creditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "creditManagersCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     dieselToken(overrides?: CallOverrides): Promise<string>;
 
-    "dieselToken()"(overrides?: CallOverrides): Promise<string>;
-
     expectedLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     fromDiesel(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "fromDiesel(uint256)"(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getDieselRate_RAY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getDieselRate_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     lendCreditAccount(
       borrowedAmount: BigNumberish,
@@ -601,19 +448,7 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "lendCreditAccount(uint256,address)"(
-      borrowedAmount: BigNumberish,
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     removeLiquidity(
-      amount: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "removeLiquidity(uint256,address)"(
       amount: BigNumberish,
       to: string,
       overrides?: CallOverrides
@@ -626,111 +461,109 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "repayCreditAccount(uint256,uint256,uint256)"(
-      borrowedAmount: BigNumberish,
-      profit: BigNumberish,
-      loss: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     toDiesel(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "toDiesel(uint256)"(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "totalBorrowed()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     underlyingToken(overrides?: CallOverrides): Promise<string>;
 
-    "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
-
     withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "withdrawFee()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
     AddLiquidity(
-      sender: string | null,
-      onBehalfOf: string | null,
-      amount: null,
-      referralCode: null
-    ): EventFilter;
+      sender?: string | null,
+      onBehalfOf?: string | null,
+      amount?: null,
+      referralCode?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        sender: string;
+        onBehalfOf: string;
+        amount: BigNumber;
+        referralCode: BigNumber;
+      }
+    >;
 
     Borrow(
-      creditManager: string | null,
-      creditAccount: string | null,
-      amount: null
-    ): EventFilter;
+      creditManager?: string | null,
+      creditAccount?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { creditManager: string; creditAccount: string; amount: BigNumber }
+    >;
 
-    BorrowForbidden(creditManager: string | null): EventFilter;
+    BorrowForbidden(
+      creditManager?: string | null
+    ): TypedEventFilter<[string], { creditManager: string }>;
 
-    NewCreditManagerConnected(creditManager: string | null): EventFilter;
+    NewCreditManagerConnected(
+      creditManager?: string | null
+    ): TypedEventFilter<[string], { creditManager: string }>;
 
-    NewExpectedLiquidityLimit(newLimit: null): EventFilter;
+    NewExpectedLiquidityLimit(
+      newLimit?: null
+    ): TypedEventFilter<[BigNumber], { newLimit: BigNumber }>;
 
-    NewInterestRateModel(newInterestRateModel: string | null): EventFilter;
+    NewInterestRateModel(
+      newInterestRateModel?: string | null
+    ): TypedEventFilter<[string], { newInterestRateModel: string }>;
 
     RemoveLiquidity(
-      sender: string | null,
-      to: string | null,
-      amount: null
-    ): EventFilter;
+      sender?: string | null,
+      to?: string | null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { sender: string; to: string; amount: BigNumber }
+    >;
 
     Repay(
-      creditManager: string | null,
-      borrowedAmount: null,
-      profit: null,
-      loss: null
-    ): EventFilter;
+      creditManager?: string | null,
+      borrowedAmount?: null,
+      profit?: null,
+      loss?: null
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber, BigNumber],
+      {
+        creditManager: string;
+        borrowedAmount: BigNumber;
+        profit: BigNumber;
+        loss: BigNumber;
+      }
+    >;
 
-    UncoveredLoss(creditManager: string | null, loss: null): EventFilter;
+    UncoveredLoss(
+      creditManager?: string | null,
+      loss?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { creditManager: string; loss: BigNumber }
+    >;
   };
 
   estimateGas: {
     _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "_timestampLU()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     addLiquidity(
       amount: BigNumberish,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "addLiquidity(uint256,address,uint256)"(
-      amount: BigNumberish,
-      onBehalfOf: string,
-      referralCode: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "availableLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "borrowAPY_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "calcLinearCumulative_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     creditManagers(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "creditManagers(uint256)"(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -740,77 +573,38 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "creditManagersCanBorrow(address)"(
-      id: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     creditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "creditManagersCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     dieselToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "dieselToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     expectedLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "expectedLiquidity()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     expectedLiquidityLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "expectedLiquidityLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     fromDiesel(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "fromDiesel(uint256)"(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getDieselRate_RAY(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getDieselRate_RAY()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     lendCreditAccount(
       borrowedAmount: BigNumberish,
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "lendCreditAccount(uint256,address)"(
-      borrowedAmount: BigNumberish,
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeLiquidity(
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "removeLiquidity(uint256,address)"(
-      amount: BigNumberish,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     repayCreditAccount(
       borrowedAmount: BigNumberish,
       profit: BigNumberish,
       loss: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "repayCreditAccount(uint256,uint256,uint256)"(
-      borrowedAmount: BigNumberish,
-      profit: BigNumberish,
-      loss: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     toDiesel(
@@ -818,60 +612,30 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "toDiesel(uint256)"(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "totalBorrowed()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "underlyingToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "withdrawFee()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     _timestampLU(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "_timestampLU()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     addLiquidity(
       amount: BigNumberish,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addLiquidity(uint256,address,uint256)"(
-      amount: BigNumberish,
-      onBehalfOf: string,
-      referralCode: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     availableLiquidity(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "availableLiquidity()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     borrowAPY_RAY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "borrowAPY_RAY()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     calcLinearCumulative_RAY(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "calcLinearCumulative_RAY()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -880,17 +644,7 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "creditManagers(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     creditManagersCanBorrow(
-      id: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "creditManagersCanBorrow(address)"(
       id: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -899,25 +653,11 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "creditManagersCount()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     dieselToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "dieselToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     expectedLiquidity(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "expectedLiquidity()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     expectedLiquidityLimit(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "expectedLiquidityLimit()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -926,53 +666,25 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "fromDiesel(uint256)"(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getDieselRate_RAY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getDieselRate_RAY()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     lendCreditAccount(
       borrowedAmount: BigNumberish,
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "lendCreditAccount(uint256,address)"(
-      borrowedAmount: BigNumberish,
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeLiquidity(
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "removeLiquidity(uint256,address)"(
-      amount: BigNumberish,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     repayCreditAccount(
       borrowedAmount: BigNumberish,
       profit: BigNumberish,
       loss: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "repayCreditAccount(uint256,uint256,uint256)"(
-      borrowedAmount: BigNumberish,
-      profit: BigNumberish,
-      loss: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     toDiesel(
@@ -980,23 +692,10 @@ export class IPoolService extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "toDiesel(uint256)"(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     totalBorrowed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "totalBorrowed()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     underlyingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "underlyingToken()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     withdrawFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "withdrawFee()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

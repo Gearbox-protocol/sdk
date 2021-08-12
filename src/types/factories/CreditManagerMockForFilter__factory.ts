@@ -2,40 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Signer } from "ethers";
+import { Signer, utils, Contract, ContractFactory, Overrides } from "ethers";
 import { Provider, TransactionRequest } from "@ethersproject/providers";
-import { Contract, ContractFactory, Overrides } from "@ethersproject/contracts";
-
-import type { CreditManagerMockForFilter } from "../CreditManagerMockForFilter";
-
-export class CreditManagerMockForFilter__factory extends ContractFactory {
-  constructor(signer?: Signer) {
-    super(_abi, _bytecode, signer);
-  }
-
-  deploy(overrides?: Overrides): Promise<CreditManagerMockForFilter> {
-    return super.deploy(overrides || {}) as Promise<CreditManagerMockForFilter>;
-  }
-  getDeployTransaction(overrides?: Overrides): TransactionRequest {
-    return super.getDeployTransaction(overrides || {});
-  }
-  attach(address: string): CreditManagerMockForFilter {
-    return super.attach(address) as CreditManagerMockForFilter;
-  }
-  connect(signer: Signer): CreditManagerMockForFilter__factory {
-    return super.connect(signer) as CreditManagerMockForFilter__factory;
-  }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): CreditManagerMockForFilter {
-    return new Contract(
-      address,
-      _abi,
-      signerOrProvider
-    ) as CreditManagerMockForFilter;
-  }
-}
+import type {
+  CreditManagerMockForFilter,
+  CreditManagerMockForFilterInterface,
+} from "../CreditManagerMockForFilter";
 
 const _abi = [
   {
@@ -189,3 +161,41 @@ const _abi = [
 
 const _bytecode =
   "0x608060405234801561001057600080fd5b50610713806100206000396000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c806351e3f1601161006657806351e3f16014610136578063570a7af21461019a578063aeb1e31c146101ce578063e1c8ef0d14610232578063e54fe9c8146102ca57610093565b80630fce70fb14610098578063134b4ac5146100b657806322841f01146100e45780632495a59914610102575b600080fd5b6100a061030e565b6040518082815260200191505060405180910390f35b6100e2600480360360208110156100cc57600080fd5b8101908080359060200190929190505050610318565b005b6100ec610322565b6040518082815260200191505060405180910390f35b61010a610328565b604051808273ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b6101986004803603604081101561014c57600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff16906020019092919050505061034c565b005b6101a2610411565b604051808273ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b610230600480360360408110156101e457600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610419565b005b6102c8600480360360a081101561024857600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff1690602001909291908035906020019092919080359060200190929190505050610541565b005b61030c600480360360208110156102e057600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610637565b005b6000600154905090565b8060018190555050565b60025481565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166351e3f16083836040518363ffffffff1660e01b8152600401808373ffffffffffffffffffffffffffffffffffffffff1681526020018273ffffffffffffffffffffffffffffffffffffffff16815260200192505050600060405180830381600087803b1580156103f557600080fd5b505af1158015610409573d6000803e3d6000fd5b505050505050565b600030905090565b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555081600360006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663cf33d955306040518263ffffffff1660e01b8152600401808273ffffffffffffffffffffffffffffffffffffffff168152602001915050600060405180830381600087803b15801561052557600080fd5b505af1158015610539573d6000803e3d6000fd5b505050505050565b600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663e1c8ef0d86868686866040518663ffffffff1660e01b8152600401808673ffffffffffffffffffffffffffffffffffffffff1681526020018573ffffffffffffffffffffffffffffffffffffffff1681526020018473ffffffffffffffffffffffffffffffffffffffff16815260200183815260200182815260200195505050505050600060405180830381600087803b15801561061857600080fd5b505af115801561062c573d6000803e3d6000fd5b505050505050505050565b600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663e54fe9c8826040518263ffffffff1660e01b8152600401808273ffffffffffffffffffffffffffffffffffffffff168152602001915050600060405180830381600087803b1580156106c257600080fd5b505af11580156106d6573d6000803e3d6000fd5b505050505056fea26469706673582212203b3d7a980018185f43a8e81010a24a33d407078e69f457cfc24db1b68aeb754d64736f6c63430007060033";
+
+export class CreditManagerMockForFilter__factory extends ContractFactory {
+  constructor(signer?: Signer) {
+    super(_abi, _bytecode, signer);
+  }
+
+  deploy(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<CreditManagerMockForFilter> {
+    return super.deploy(overrides || {}) as Promise<CreditManagerMockForFilter>;
+  }
+  getDeployTransaction(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): TransactionRequest {
+    return super.getDeployTransaction(overrides || {});
+  }
+  attach(address: string): CreditManagerMockForFilter {
+    return super.attach(address) as CreditManagerMockForFilter;
+  }
+  connect(signer: Signer): CreditManagerMockForFilter__factory {
+    return super.connect(signer) as CreditManagerMockForFilter__factory;
+  }
+  static readonly bytecode = _bytecode;
+  static readonly abi = _abi;
+  static createInterface(): CreditManagerMockForFilterInterface {
+    return new utils.Interface(_abi) as CreditManagerMockForFilterInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): CreditManagerMockForFilter {
+    return new Contract(
+      address,
+      _abi,
+      signerOrProvider
+    ) as CreditManagerMockForFilter;
+  }
+}

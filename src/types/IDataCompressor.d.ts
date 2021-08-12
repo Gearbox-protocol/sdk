@@ -9,15 +9,14 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IDataCompressorInterface extends ethers.utils.Interface {
   functions: {
@@ -106,56 +105,51 @@ interface IDataCompressorInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class IDataCompressor extends Contract {
+export class IDataCompressor extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: IDataCompressorInterface;
 
   functions: {
     getCreditAccountData(
-      _creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [
-          string,
-          string,
-          boolean,
-          string,
-          string,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[]
-        ] & {
-          addr: string;
-          borrower: string;
-          inUse: boolean;
-          creditManager: string;
-          underlyingToken: string;
-          borrowedAmountPlusInterest: BigNumber;
-          totalValue: BigNumber;
-          healthFactor: BigNumber;
-          borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
-            token: string;
-            balance: BigNumber;
-          })[];
-        }
-      ]
-    >;
-
-    "getCreditAccountData(address,address)"(
       _creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -237,53 +231,6 @@ export class IDataCompressor extends Contract {
       ]
     >;
 
-    "getCreditAccountDataExtended(address,address)"(
-      creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [
-          string,
-          string,
-          boolean,
-          string,
-          string,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[],
-          BigNumber,
-          BigNumber,
-          boolean,
-          BigNumber,
-          BigNumber,
-          BigNumber
-        ] & {
-          addr: string;
-          borrower: string;
-          inUse: boolean;
-          creditManager: string;
-          underlyingToken: string;
-          borrowedAmountPlusInterest: BigNumber;
-          totalValue: BigNumber;
-          healthFactor: BigNumber;
-          borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
-            token: string;
-            balance: BigNumber;
-          })[];
-          repayAmount: BigNumber;
-          liquidationAmount: BigNumber;
-          canBeClosed: boolean;
-          borrowedAmount: BigNumber;
-          cumulativeIndexAtOpen: BigNumber;
-          since: BigNumber;
-        }
-      ]
-    >;
-
     getCreditAccountList(
       borrower: string,
       overrides?: CallOverrides
@@ -318,80 +265,7 @@ export class IDataCompressor extends Contract {
       ]
     >;
 
-    "getCreditAccountList(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        ([
-          string,
-          string,
-          boolean,
-          string,
-          string,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[]
-        ] & {
-          addr: string;
-          borrower: string;
-          inUse: boolean;
-          creditManager: string;
-          underlyingToken: string;
-          borrowedAmountPlusInterest: BigNumber;
-          totalValue: BigNumber;
-          healthFactor: BigNumber;
-          borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
-            token: string;
-            balance: BigNumber;
-          })[];
-        })[]
-      ]
-    >;
-
     getCreditManagerData(
-      _creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [
-          string,
-          boolean,
-          string,
-          boolean,
-          boolean,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          string[],
-          ([string, string] & { allowedContract: string; adapter: string })[]
-        ] & {
-          addr: string;
-          hasAccount: boolean;
-          underlyingToken: string;
-          isWETH: boolean;
-          canBorrow: boolean;
-          borrowRate: BigNumber;
-          minAmount: BigNumber;
-          maxAmount: BigNumber;
-          maxLeverageFactor: BigNumber;
-          availableLiquidity: BigNumber;
-          allowedTokens: string[];
-          adapters: ([string, string] & {
-            allowedContract: string;
-            adapter: string;
-          })[];
-        }
-      ]
-    >;
-
-    "getCreditManagerData(address,address)"(
       _creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -468,84 +342,7 @@ export class IDataCompressor extends Contract {
       ]
     >;
 
-    "getCreditManagersList(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        ([
-          string,
-          boolean,
-          string,
-          boolean,
-          boolean,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          string[],
-          ([string, string] & { allowedContract: string; adapter: string })[]
-        ] & {
-          addr: string;
-          hasAccount: boolean;
-          underlyingToken: string;
-          isWETH: boolean;
-          canBorrow: boolean;
-          borrowRate: BigNumber;
-          minAmount: BigNumber;
-          maxAmount: BigNumber;
-          maxLeverageFactor: BigNumber;
-          availableLiquidity: BigNumber;
-          allowedTokens: string[];
-          adapters: ([string, string] & {
-            allowedContract: string;
-            adapter: string;
-          })[];
-        })[]
-      ]
-    >;
-
     getPoolData(
-      _pool: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [
-          string,
-          boolean,
-          string,
-          string,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber
-        ] & {
-          addr: string;
-          isWETH: boolean;
-          underlyingToken: string;
-          dieselToken: string;
-          linearCumulativeIndex: BigNumber;
-          availableLiquidity: BigNumber;
-          expectedLiquidity: BigNumber;
-          expectedLiquidityLimit: BigNumber;
-          totalBorrowed: BigNumber;
-          depositAPY_RAY: BigNumber;
-          borrowAPY_RAY: BigNumber;
-          dieselRate_RAY: BigNumber;
-          withdrawFee: BigNumber;
-          timestampLU: BigNumber;
-        }
-      ]
-    >;
-
-    "getPoolData(address)"(
       _pool: string,
       overrides?: CallOverrides
     ): Promise<
@@ -622,58 +419,7 @@ export class IDataCompressor extends Contract {
       ]
     >;
 
-    "getPoolsList()"(
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        ([
-          string,
-          boolean,
-          string,
-          string,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber
-        ] & {
-          addr: string;
-          isWETH: boolean;
-          underlyingToken: string;
-          dieselToken: string;
-          linearCumulativeIndex: BigNumber;
-          availableLiquidity: BigNumber;
-          expectedLiquidity: BigNumber;
-          expectedLiquidityLimit: BigNumber;
-          totalBorrowed: BigNumber;
-          depositAPY_RAY: BigNumber;
-          borrowAPY_RAY: BigNumber;
-          dieselRate_RAY: BigNumber;
-          withdrawFee: BigNumber;
-          timestampLU: BigNumber;
-        })[]
-      ]
-    >;
-
     getTokenData(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [string, string, number] & {
-          addr: string;
-          symbol: string;
-          decimals: number;
-        }
-      ]
-    >;
-
-    "getTokenData(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<
@@ -691,45 +437,9 @@ export class IDataCompressor extends Contract {
       borrower: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    "hasOpenedCreditAccount(address,address)"(
-      creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
   };
 
   getCreditAccountData(
-    _creditManager: string,
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      string,
-      string,
-      boolean,
-      string,
-      string,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[]
-    ] & {
-      addr: string;
-      borrower: string;
-      inUse: boolean;
-      creditManager: string;
-      underlyingToken: string;
-      borrowedAmountPlusInterest: BigNumber;
-      totalValue: BigNumber;
-      healthFactor: BigNumber;
-      borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
-    }
-  >;
-
-  "getCreditAccountData(address,address)"(
     _creditManager: string,
     borrower: string,
     overrides?: CallOverrides
@@ -801,48 +511,6 @@ export class IDataCompressor extends Contract {
     }
   >;
 
-  "getCreditAccountDataExtended(address,address)"(
-    creditManager: string,
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      string,
-      string,
-      boolean,
-      string,
-      string,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[],
-      BigNumber,
-      BigNumber,
-      boolean,
-      BigNumber,
-      BigNumber,
-      BigNumber
-    ] & {
-      addr: string;
-      borrower: string;
-      inUse: boolean;
-      creditManager: string;
-      underlyingToken: string;
-      borrowedAmountPlusInterest: BigNumber;
-      totalValue: BigNumber;
-      healthFactor: BigNumber;
-      borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
-      repayAmount: BigNumber;
-      liquidationAmount: BigNumber;
-      canBeClosed: boolean;
-      borrowedAmount: BigNumber;
-      cumulativeIndexAtOpen: BigNumber;
-      since: BigNumber;
-    }
-  >;
-
   getCreditAccountList(
     borrower: string,
     overrides?: CallOverrides
@@ -872,73 +540,7 @@ export class IDataCompressor extends Contract {
     })[]
   >;
 
-  "getCreditAccountList(address)"(
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<
-    ([
-      string,
-      string,
-      boolean,
-      string,
-      string,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[]
-    ] & {
-      addr: string;
-      borrower: string;
-      inUse: boolean;
-      creditManager: string;
-      underlyingToken: string;
-      borrowedAmountPlusInterest: BigNumber;
-      totalValue: BigNumber;
-      healthFactor: BigNumber;
-      borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
-    })[]
-  >;
-
   getCreditManagerData(
-    _creditManager: string,
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      string,
-      boolean,
-      string,
-      boolean,
-      boolean,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      string[],
-      ([string, string] & { allowedContract: string; adapter: string })[]
-    ] & {
-      addr: string;
-      hasAccount: boolean;
-      underlyingToken: string;
-      isWETH: boolean;
-      canBorrow: boolean;
-      borrowRate: BigNumber;
-      minAmount: BigNumber;
-      maxAmount: BigNumber;
-      maxLeverageFactor: BigNumber;
-      availableLiquidity: BigNumber;
-      allowedTokens: string[];
-      adapters: ([string, string] & {
-        allowedContract: string;
-        adapter: string;
-      })[];
-    }
-  >;
-
-  "getCreditManagerData(address,address)"(
     _creditManager: string,
     borrower: string,
     overrides?: CallOverrides
@@ -1011,80 +613,7 @@ export class IDataCompressor extends Contract {
     })[]
   >;
 
-  "getCreditManagersList(address)"(
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<
-    ([
-      string,
-      boolean,
-      string,
-      boolean,
-      boolean,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      string[],
-      ([string, string] & { allowedContract: string; adapter: string })[]
-    ] & {
-      addr: string;
-      hasAccount: boolean;
-      underlyingToken: string;
-      isWETH: boolean;
-      canBorrow: boolean;
-      borrowRate: BigNumber;
-      minAmount: BigNumber;
-      maxAmount: BigNumber;
-      maxLeverageFactor: BigNumber;
-      availableLiquidity: BigNumber;
-      allowedTokens: string[];
-      adapters: ([string, string] & {
-        allowedContract: string;
-        adapter: string;
-      })[];
-    })[]
-  >;
-
   getPoolData(
-    _pool: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      string,
-      boolean,
-      string,
-      string,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber
-    ] & {
-      addr: string;
-      isWETH: boolean;
-      underlyingToken: string;
-      dieselToken: string;
-      linearCumulativeIndex: BigNumber;
-      availableLiquidity: BigNumber;
-      expectedLiquidity: BigNumber;
-      expectedLiquidityLimit: BigNumber;
-      totalBorrowed: BigNumber;
-      depositAPY_RAY: BigNumber;
-      borrowAPY_RAY: BigNumber;
-      dieselRate_RAY: BigNumber;
-      withdrawFee: BigNumber;
-      timestampLU: BigNumber;
-    }
-  >;
-
-  "getPoolData(address)"(
     _pool: string,
     overrides?: CallOverrides
   ): Promise<
@@ -1157,54 +686,7 @@ export class IDataCompressor extends Contract {
     })[]
   >;
 
-  "getPoolsList()"(
-    overrides?: CallOverrides
-  ): Promise<
-    ([
-      string,
-      boolean,
-      string,
-      string,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber
-    ] & {
-      addr: string;
-      isWETH: boolean;
-      underlyingToken: string;
-      dieselToken: string;
-      linearCumulativeIndex: BigNumber;
-      availableLiquidity: BigNumber;
-      expectedLiquidity: BigNumber;
-      expectedLiquidityLimit: BigNumber;
-      totalBorrowed: BigNumber;
-      depositAPY_RAY: BigNumber;
-      borrowAPY_RAY: BigNumber;
-      dieselRate_RAY: BigNumber;
-      withdrawFee: BigNumber;
-      timestampLU: BigNumber;
-    })[]
-  >;
-
   getTokenData(
-    addr: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [string, string, number] & {
-      addr: string;
-      symbol: string;
-      decimals: number;
-    }
-  >;
-
-  "getTokenData(address)"(
     addr: string,
     overrides?: CallOverrides
   ): Promise<
@@ -1221,47 +703,8 @@ export class IDataCompressor extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  "hasOpenedCreditAccount(address,address)"(
-    creditManager: string,
-    borrower: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   callStatic: {
     getCreditAccountData(
-      _creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        string,
-        string,
-        boolean,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[]
-      ] & {
-        addr: string;
-        borrower: string;
-        inUse: boolean;
-        creditManager: string;
-        underlyingToken: string;
-        borrowedAmountPlusInterest: BigNumber;
-        totalValue: BigNumber;
-        healthFactor: BigNumber;
-        borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
-          token: string;
-          balance: BigNumber;
-        })[];
-      }
-    >;
-
-    "getCreditAccountData(address,address)"(
       _creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -1339,51 +782,6 @@ export class IDataCompressor extends Contract {
       }
     >;
 
-    "getCreditAccountDataExtended(address,address)"(
-      creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        string,
-        string,
-        boolean,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[],
-        BigNumber,
-        BigNumber,
-        boolean,
-        BigNumber,
-        BigNumber,
-        BigNumber
-      ] & {
-        addr: string;
-        borrower: string;
-        inUse: boolean;
-        creditManager: string;
-        underlyingToken: string;
-        borrowedAmountPlusInterest: BigNumber;
-        totalValue: BigNumber;
-        healthFactor: BigNumber;
-        borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
-          token: string;
-          balance: BigNumber;
-        })[];
-        repayAmount: BigNumber;
-        liquidationAmount: BigNumber;
-        canBeClosed: boolean;
-        borrowedAmount: BigNumber;
-        cumulativeIndexAtOpen: BigNumber;
-        since: BigNumber;
-      }
-    >;
-
     getCreditAccountList(
       borrower: string,
       overrides?: CallOverrides
@@ -1416,76 +814,7 @@ export class IDataCompressor extends Contract {
       })[]
     >;
 
-    "getCreditAccountList(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      ([
-        string,
-        string,
-        boolean,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[]
-      ] & {
-        addr: string;
-        borrower: string;
-        inUse: boolean;
-        creditManager: string;
-        underlyingToken: string;
-        borrowedAmountPlusInterest: BigNumber;
-        totalValue: BigNumber;
-        healthFactor: BigNumber;
-        borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
-          token: string;
-          balance: BigNumber;
-        })[];
-      })[]
-    >;
-
     getCreditManagerData(
-      _creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        string,
-        boolean,
-        string,
-        boolean,
-        boolean,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string[],
-        ([string, string] & { allowedContract: string; adapter: string })[]
-      ] & {
-        addr: string;
-        hasAccount: boolean;
-        underlyingToken: string;
-        isWETH: boolean;
-        canBorrow: boolean;
-        borrowRate: BigNumber;
-        minAmount: BigNumber;
-        maxAmount: BigNumber;
-        maxLeverageFactor: BigNumber;
-        availableLiquidity: BigNumber;
-        allowedTokens: string[];
-        adapters: ([string, string] & {
-          allowedContract: string;
-          adapter: string;
-        })[];
-      }
-    >;
-
-    "getCreditManagerData(address,address)"(
       _creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -1558,80 +887,7 @@ export class IDataCompressor extends Contract {
       })[]
     >;
 
-    "getCreditManagersList(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<
-      ([
-        string,
-        boolean,
-        string,
-        boolean,
-        boolean,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string[],
-        ([string, string] & { allowedContract: string; adapter: string })[]
-      ] & {
-        addr: string;
-        hasAccount: boolean;
-        underlyingToken: string;
-        isWETH: boolean;
-        canBorrow: boolean;
-        borrowRate: BigNumber;
-        minAmount: BigNumber;
-        maxAmount: BigNumber;
-        maxLeverageFactor: BigNumber;
-        availableLiquidity: BigNumber;
-        allowedTokens: string[];
-        adapters: ([string, string] & {
-          allowedContract: string;
-          adapter: string;
-        })[];
-      })[]
-    >;
-
     getPoolData(
-      _pool: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        string,
-        boolean,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber
-      ] & {
-        addr: string;
-        isWETH: boolean;
-        underlyingToken: string;
-        dieselToken: string;
-        linearCumulativeIndex: BigNumber;
-        availableLiquidity: BigNumber;
-        expectedLiquidity: BigNumber;
-        expectedLiquidityLimit: BigNumber;
-        totalBorrowed: BigNumber;
-        depositAPY_RAY: BigNumber;
-        borrowAPY_RAY: BigNumber;
-        dieselRate_RAY: BigNumber;
-        withdrawFee: BigNumber;
-        timestampLU: BigNumber;
-      }
-    >;
-
-    "getPoolData(address)"(
       _pool: string,
       overrides?: CallOverrides
     ): Promise<
@@ -1704,42 +960,6 @@ export class IDataCompressor extends Contract {
       })[]
     >;
 
-    "getPoolsList()"(
-      overrides?: CallOverrides
-    ): Promise<
-      ([
-        string,
-        boolean,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber
-      ] & {
-        addr: string;
-        isWETH: boolean;
-        underlyingToken: string;
-        dieselToken: string;
-        linearCumulativeIndex: BigNumber;
-        availableLiquidity: BigNumber;
-        expectedLiquidity: BigNumber;
-        expectedLiquidityLimit: BigNumber;
-        totalBorrowed: BigNumber;
-        depositAPY_RAY: BigNumber;
-        borrowAPY_RAY: BigNumber;
-        dieselRate_RAY: BigNumber;
-        withdrawFee: BigNumber;
-        timestampLU: BigNumber;
-      })[]
-    >;
-
     getTokenData(
       addr: string,
       overrides?: CallOverrides
@@ -1751,24 +971,7 @@ export class IDataCompressor extends Contract {
       }
     >;
 
-    "getTokenData(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, number] & {
-        addr: string;
-        symbol: string;
-        decimals: number;
-      }
-    >;
-
     hasOpenedCreditAccount(
-      creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "hasOpenedCreditAccount(address,address)"(
       creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -1784,19 +987,7 @@ export class IDataCompressor extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getCreditAccountData(address,address)"(
-      _creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getCreditAccountDataExtended(
-      creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getCreditAccountDataExtended(address,address)"(
       creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -1807,18 +998,7 @@ export class IDataCompressor extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getCreditAccountList(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getCreditManagerData(
-      _creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getCreditManagerData(address,address)"(
       _creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -1829,36 +1009,13 @@ export class IDataCompressor extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getCreditManagersList(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getPoolData(_pool: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getPoolData(address)"(
-      _pool: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     getPoolsList(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getPoolsList()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getTokenData(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getTokenData(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     hasOpenedCreditAccount(
-      creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "hasOpenedCreditAccount(address,address)"(
       creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -1872,19 +1029,7 @@ export class IDataCompressor extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getCreditAccountData(address,address)"(
-      _creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getCreditAccountDataExtended(
-      creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getCreditAccountDataExtended(address,address)"(
       creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -1895,18 +1040,7 @@ export class IDataCompressor extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getCreditAccountList(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getCreditManagerData(
-      _creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getCreditManagerData(address,address)"(
       _creditManager: string,
       borrower: string,
       overrides?: CallOverrides
@@ -1917,42 +1051,19 @@ export class IDataCompressor extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getCreditManagersList(address)"(
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getPoolData(
-      _pool: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getPoolData(address)"(
       _pool: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getPoolsList(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "getPoolsList()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getTokenData(
       addr: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getTokenData(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     hasOpenedCreditAccount(
-      creditManager: string,
-      borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "hasOpenedCreditAccount(address,address)"(
       creditManager: string,
       borrower: string,
       overrides?: CallOverrides

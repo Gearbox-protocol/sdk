@@ -2,19 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { IQuoter } from "../IQuoter";
-
-export class IQuoter__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IQuoter {
-    return new Contract(address, _abi, signerOrProvider) as IQuoter;
-  }
-}
+import type { IQuoter, IQuoterInterface } from "../IQuoter";
 
 const _abi = [
   {
@@ -144,3 +134,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class IQuoter__factory {
+  static readonly abi = _abi;
+  static createInterface(): IQuoterInterface {
+    return new utils.Interface(_abi) as IQuoterInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IQuoter {
+    return new Contract(address, _abi, signerOrProvider) as IQuoter;
+  }
+}

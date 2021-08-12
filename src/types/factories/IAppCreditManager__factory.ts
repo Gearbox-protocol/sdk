@@ -2,19 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { IAppCreditManager } from "../IAppCreditManager";
-
-export class IAppCreditManager__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IAppCreditManager {
-    return new Contract(address, _abi, signerOrProvider) as IAppCreditManager;
-  }
-}
+import type {
+  IAppCreditManager,
+  IAppCreditManagerInterface,
+} from "../IAppCreditManager";
 
 const _abi = [
   {
@@ -187,3 +180,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class IAppCreditManager__factory {
+  static readonly abi = _abi;
+  static createInterface(): IAppCreditManagerInterface {
+    return new utils.Interface(_abi) as IAppCreditManagerInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IAppCreditManager {
+    return new Contract(address, _abi, signerOrProvider) as IAppCreditManager;
+  }
+}

@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ICreditFilterInterface extends ethers.utils.Interface {
   functions: {
@@ -223,16 +222,46 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
 }
 
-export class ICreditFilter extends Contract {
+export class ICreditFilter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: ICreditFilterInterface;
 
@@ -240,25 +269,13 @@ export class ICreditFilter extends Contract {
     allowContract(
       allowedContract: string,
       adapter: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "allowContract(address,address)"(
-      allowedContract: string,
-      adapter: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     allowToken(
       token: string,
       liquidationThreshold: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "allowToken(address,uint256)"(
-      token: string,
-      liquidationThreshold: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     allowedContracts(
@@ -266,35 +283,16 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "allowedContracts(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     allowedContractsCount(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "allowedContractsCount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     allowedTokens(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "allowedTokens(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     allowedTokensCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "allowedTokensCount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     calcCreditAccountAccruedInterest(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "calcCreditAccountAccruedInterest(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -304,17 +302,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "calcCreditAccountHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     calcThresholdWeightedValue(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { total: BigNumber }>;
-
-    "calcThresholdWeightedValue(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { total: BigNumber }>;
@@ -324,21 +312,10 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { total: BigNumber }>;
 
-    "calcTotalValue(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { total: BigNumber }>;
-
     checkAndEnableToken(
       creditAccount: string,
       token: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "checkAndEnableToken(address,address)"(
-      creditAccount: string,
-      token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     checkCollateralChange(
@@ -347,26 +324,12 @@ export class ICreditFilter extends Contract {
       tokenOut: string,
       amountIn: BigNumberish,
       amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "checkCollateralChange(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     connectCreditManager(
       poolService: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "connectCreditManager(address)"(
-      poolService: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     contractToAdapter(
@@ -374,17 +337,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "contractToAdapter(address)"(
-      allowedContract: string,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     enabledTokens(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "enabledTokens(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -402,35 +355,12 @@ export class ICreditFilter extends Contract {
       }
     >;
 
-    "getCreditAccountTokenById(address,uint256)"(
-      creditAccount: string,
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, BigNumber, BigNumber] & {
-        token: string;
-        balance: BigNumber;
-        tv: BigNumber;
-        twv: BigNumber;
-      }
-    >;
-
     initEnabledTokens(
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "initEnabledTokens(address)"(
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     isTokenAllowed(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "isTokenAllowed(address)"(
       token: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -440,48 +370,24 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<[void]>;
 
-    "revertIfAdapterNotAllowed(address)"(
-      adapter: string,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
-
     revertIfTokenNotAllowed(
       token: string,
       overrides?: CallOverrides
     ): Promise<[void]>;
 
-    "revertIfTokenNotAllowed(address)"(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
-
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
-
-    "underlyingToken()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   allowContract(
     allowedContract: string,
     adapter: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "allowContract(address,address)"(
-    allowedContract: string,
-    adapter: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   allowToken(
     token: string,
     liquidationThreshold: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "allowToken(address,uint256)"(
-    token: string,
-    liquidationThreshold: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   allowedContracts(
@@ -489,32 +395,13 @@ export class ICreditFilter extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "allowedContracts(uint256)"(
-    id: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "allowedContractsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   allowedTokens(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  "allowedTokens(uint256)"(
-    id: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   allowedTokensCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "allowedTokensCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   calcCreditAccountAccruedInterest(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "calcCreditAccountAccruedInterest(address)"(
     creditAccount: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -524,17 +411,7 @@ export class ICreditFilter extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "calcCreditAccountHealthFactor(address)"(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   calcThresholdWeightedValue(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "calcThresholdWeightedValue(address)"(
     creditAccount: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -544,21 +421,10 @@ export class ICreditFilter extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "calcTotalValue(address)"(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   checkAndEnableToken(
     creditAccount: string,
     token: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "checkAndEnableToken(address,address)"(
-    creditAccount: string,
-    token: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   checkCollateralChange(
@@ -567,26 +433,12 @@ export class ICreditFilter extends Contract {
     tokenOut: string,
     amountIn: BigNumberish,
     amountOut: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "checkCollateralChange(address,address,address,uint256,uint256)"(
-    creditAccount: string,
-    tokenIn: string,
-    tokenOut: string,
-    amountIn: BigNumberish,
-    amountOut: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   connectCreditManager(
     poolService: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "connectCreditManager(address)"(
-    poolService: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   contractToAdapter(
@@ -594,17 +446,7 @@ export class ICreditFilter extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "contractToAdapter(address)"(
-    allowedContract: string,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   enabledTokens(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "enabledTokens(address)"(
     creditAccount: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -622,42 +464,14 @@ export class ICreditFilter extends Contract {
     }
   >;
 
-  "getCreditAccountTokenById(address,uint256)"(
-    creditAccount: string,
-    id: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber, BigNumber, BigNumber] & {
-      token: string;
-      balance: BigNumber;
-      tv: BigNumber;
-      twv: BigNumber;
-    }
-  >;
-
   initEnabledTokens(
     creditAccount: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "initEnabledTokens(address)"(
-    creditAccount: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   isTokenAllowed(token: string, overrides?: CallOverrides): Promise<boolean>;
 
-  "isTokenAllowed(address)"(
-    token: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   revertIfAdapterNotAllowed(
-    adapter: string,
-    overrides?: CallOverrides
-  ): Promise<void>;
-
-  "revertIfAdapterNotAllowed(address)"(
     adapter: string,
     overrides?: CallOverrides
   ): Promise<void>;
@@ -667,14 +481,7 @@ export class ICreditFilter extends Contract {
     overrides?: CallOverrides
   ): Promise<void>;
 
-  "revertIfTokenNotAllowed(address)"(
-    token: string,
-    overrides?: CallOverrides
-  ): Promise<void>;
-
   underlyingToken(overrides?: CallOverrides): Promise<string>;
-
-  "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     allowContract(
@@ -683,19 +490,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "allowContract(address,address)"(
-      allowedContract: string,
-      adapter: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     allowToken(
-      token: string,
-      liquidationThreshold: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "allowToken(address,uint256)"(
       token: string,
       liquidationThreshold: BigNumberish,
       overrides?: CallOverrides
@@ -706,32 +501,13 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "allowedContracts(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "allowedContractsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowedTokens(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    "allowedTokens(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     allowedTokensCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "allowedTokensCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     calcCreditAccountAccruedInterest(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcCreditAccountAccruedInterest(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -741,17 +517,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "calcCreditAccountHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calcThresholdWeightedValue(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcThresholdWeightedValue(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -761,18 +527,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "calcTotalValue(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     checkAndEnableToken(
-      creditAccount: string,
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "checkAndEnableToken(address,address)"(
       creditAccount: string,
       token: string,
       overrides?: CallOverrides
@@ -787,21 +542,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "checkCollateralChange(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     connectCreditManager(
-      poolService: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "connectCreditManager(address)"(
       poolService: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -811,17 +552,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "contractToAdapter(address)"(
-      allowedContract: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     enabledTokens(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "enabledTokens(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -839,42 +570,14 @@ export class ICreditFilter extends Contract {
       }
     >;
 
-    "getCreditAccountTokenById(address,uint256)"(
-      creditAccount: string,
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, BigNumber, BigNumber] & {
-        token: string;
-        balance: BigNumber;
-        tv: BigNumber;
-        twv: BigNumber;
-      }
-    >;
-
     initEnabledTokens(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "initEnabledTokens(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     isTokenAllowed(token: string, overrides?: CallOverrides): Promise<boolean>;
 
-    "isTokenAllowed(address)"(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     revertIfAdapterNotAllowed(
-      adapter: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "revertIfAdapterNotAllowed(address)"(
       adapter: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -884,53 +587,46 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "revertIfTokenNotAllowed(address)"(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     underlyingToken(overrides?: CallOverrides): Promise<string>;
-
-    "underlyingToken()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
     ContractAllowed(
-      protocol: string | null,
-      adapter: string | null
-    ): EventFilter;
+      protocol?: string | null,
+      adapter?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { protocol: string; adapter: string }
+    >;
 
     NewFastCheckParameters(
-      chiThreshold: null,
-      fastCheckDelay: null
-    ): EventFilter;
+      chiThreshold?: null,
+      fastCheckDelay?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber],
+      { chiThreshold: BigNumber; fastCheckDelay: BigNumber }
+    >;
 
-    TokenAllowed(token: string | null, liquidityThreshold: null): EventFilter;
+    TokenAllowed(
+      token?: string | null,
+      liquidityThreshold?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; liquidityThreshold: BigNumber }
+    >;
   };
 
   estimateGas: {
     allowContract(
       allowedContract: string,
       adapter: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "allowContract(address,address)"(
-      allowedContract: string,
-      adapter: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     allowToken(
       token: string,
       liquidationThreshold: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "allowToken(address,uint256)"(
-      token: string,
-      liquidationThreshold: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     allowedContracts(
@@ -938,35 +634,16 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "allowedContracts(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "allowedContractsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowedTokens(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "allowedTokens(uint256)"(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     allowedTokensCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "allowedTokensCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     calcCreditAccountAccruedInterest(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcCreditAccountAccruedInterest(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -976,17 +653,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "calcCreditAccountHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calcThresholdWeightedValue(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "calcThresholdWeightedValue(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -996,21 +663,10 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "calcTotalValue(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     checkAndEnableToken(
       creditAccount: string,
       token: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "checkAndEnableToken(address,address)"(
-      creditAccount: string,
-      token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     checkCollateralChange(
@@ -1019,26 +675,12 @@ export class ICreditFilter extends Contract {
       tokenOut: string,
       amountIn: BigNumberish,
       amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "checkCollateralChange(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     connectCreditManager(
       poolService: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "connectCreditManager(address)"(
-      poolService: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     contractToAdapter(
@@ -1046,17 +688,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "contractToAdapter(address)"(
-      allowedContract: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     enabledTokens(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "enabledTokens(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1067,20 +699,9 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getCreditAccountTokenById(address,uint256)"(
-      creditAccount: string,
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     initEnabledTokens(
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "initEnabledTokens(address)"(
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     isTokenAllowed(
@@ -1088,17 +709,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "isTokenAllowed(address)"(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     revertIfAdapterNotAllowed(
-      adapter: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "revertIfAdapterNotAllowed(address)"(
       adapter: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1108,47 +719,23 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "revertIfTokenNotAllowed(address)"(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "underlyingToken()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     allowContract(
       allowedContract: string,
       adapter: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "allowContract(address,address)"(
-      allowedContract: string,
-      adapter: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     allowToken(
       token: string,
       liquidationThreshold: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "allowToken(address,uint256)"(
-      token: string,
-      liquidationThreshold: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     allowedContracts(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "allowedContracts(uint256)"(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1157,16 +744,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "allowedContractsCount()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     allowedTokens(
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "allowedTokens(uint256)"(
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1175,16 +753,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "allowedTokensCount()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     calcCreditAccountAccruedInterest(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "calcCreditAccountAccruedInterest(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1194,17 +763,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "calcCreditAccountHealthFactor(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     calcThresholdWeightedValue(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "calcThresholdWeightedValue(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1214,21 +773,10 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "calcTotalValue(address)"(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     checkAndEnableToken(
       creditAccount: string,
       token: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "checkAndEnableToken(address,address)"(
-      creditAccount: string,
-      token: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     checkCollateralChange(
@@ -1237,26 +785,12 @@ export class ICreditFilter extends Contract {
       tokenOut: string,
       amountIn: BigNumberish,
       amountOut: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "checkCollateralChange(address,address,address,uint256,uint256)"(
-      creditAccount: string,
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     connectCreditManager(
       poolService: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "connectCreditManager(address)"(
-      poolService: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     contractToAdapter(
@@ -1264,17 +798,7 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "contractToAdapter(address)"(
-      allowedContract: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     enabledTokens(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "enabledTokens(address)"(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1285,28 +809,12 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getCreditAccountTokenById(address,uint256)"(
-      creditAccount: string,
-      id: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     initEnabledTokens(
       creditAccount: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "initEnabledTokens(address)"(
-      creditAccount: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     isTokenAllowed(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "isTokenAllowed(address)"(
       token: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1316,25 +824,11 @@ export class ICreditFilter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "revertIfAdapterNotAllowed(address)"(
-      adapter: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     revertIfTokenNotAllowed(
       token: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "revertIfTokenNotAllowed(address)"(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     underlyingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "underlyingToken()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
   };
 }

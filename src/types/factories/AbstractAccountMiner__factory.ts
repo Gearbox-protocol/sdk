@@ -2,23 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { AbstractAccountMiner } from "../AbstractAccountMiner";
-
-export class AbstractAccountMiner__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): AbstractAccountMiner {
-    return new Contract(
-      address,
-      _abi,
-      signerOrProvider
-    ) as AbstractAccountMiner;
-  }
-}
+import type {
+  AbstractAccountMiner,
+  AbstractAccountMinerInterface,
+} from "../AbstractAccountMiner";
 
 const _abi = [
   {
@@ -61,3 +50,20 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class AbstractAccountMiner__factory {
+  static readonly abi = _abi;
+  static createInterface(): AbstractAccountMinerInterface {
+    return new utils.Interface(_abi) as AbstractAccountMinerInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): AbstractAccountMiner {
+    return new Contract(
+      address,
+      _abi,
+      signerOrProvider
+    ) as AbstractAccountMiner;
+  }
+}

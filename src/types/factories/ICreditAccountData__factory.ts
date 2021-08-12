@@ -2,19 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { ICreditAccountData } from "../ICreditAccountData";
-
-export class ICreditAccountData__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): ICreditAccountData {
-    return new Contract(address, _abi, signerOrProvider) as ICreditAccountData;
-  }
-}
+import type {
+  ICreditAccountData,
+  ICreditAccountDataInterface,
+} from "../ICreditAccountData";
 
 const _abi = [
   {
@@ -212,3 +205,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class ICreditAccountData__factory {
+  static readonly abi = _abi;
+  static createInterface(): ICreditAccountDataInterface {
+    return new utils.Interface(_abi) as ICreditAccountDataInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): ICreditAccountData {
+    return new Contract(address, _abi, signerOrProvider) as ICreditAccountData;
+  }
+}

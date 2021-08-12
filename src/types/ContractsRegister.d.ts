@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ContractsRegisterInterface extends ethers.utils.Interface {
   functions: {
@@ -114,38 +113,58 @@ interface ContractsRegisterInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
-export class ContractsRegister extends Contract {
+export class ContractsRegister extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: ContractsRegisterInterface;
 
   functions: {
     addCreditManager(
       newCreditManager: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addCreditManager(address)"(
-      newCreditManager: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addPool(
       newPoolAddress: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addPool(address)"(
-      newPoolAddress: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     creditManagers(
@@ -153,82 +172,42 @@ export class ContractsRegister extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "creditManagers(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     getCreditManagers(overrides?: CallOverrides): Promise<[string[]]>;
-
-    "getCreditManagers()"(overrides?: CallOverrides): Promise<[string[]]>;
 
     getCreditManagersCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "getCreditManagersCount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     getPools(overrides?: CallOverrides): Promise<[string[]]>;
 
-    "getPools()"(overrides?: CallOverrides): Promise<[string[]]>;
-
     getPoolsCount(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "getPoolsCount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     isCreditManager(
       addr: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    "isCreditManager(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
     isPool(addr: string, overrides?: CallOverrides): Promise<[boolean]>;
 
-    "isPool(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    pause(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "pause()"(overrides?: Overrides): Promise<ContractTransaction>;
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
-    "paused()"(overrides?: CallOverrides): Promise<[boolean]>;
-
     pools(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
-    "pools(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    unpause(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   addCreditManager(
     newCreditManager: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addCreditManager(address)"(
-    newCreditManager: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addPool(
     newPoolAddress: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addPool(address)"(
-    newPoolAddress: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   creditManagers(
@@ -236,56 +215,29 @@ export class ContractsRegister extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "creditManagers(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   getCreditManagers(overrides?: CallOverrides): Promise<string[]>;
-
-  "getCreditManagers()"(overrides?: CallOverrides): Promise<string[]>;
 
   getCreditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "getCreditManagersCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   getPools(overrides?: CallOverrides): Promise<string[]>;
-
-  "getPools()"(overrides?: CallOverrides): Promise<string[]>;
 
   getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "getPoolsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   isCreditManager(addr: string, overrides?: CallOverrides): Promise<boolean>;
-
-  "isCreditManager(address)"(
-    addr: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
 
   isPool(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
-  "isPool(address)"(addr: string, overrides?: CallOverrides): Promise<boolean>;
-
-  pause(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "pause()"(overrides?: Overrides): Promise<ContractTransaction>;
+  pause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
-  "paused()"(overrides?: CallOverrides): Promise<boolean>;
-
   pools(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  "pools(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  unpause(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "unpause()"(overrides?: Overrides): Promise<ContractTransaction>;
+  unpause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     addCreditManager(
@@ -293,188 +245,101 @@ export class ContractsRegister extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "addCreditManager(address)"(
-      newCreditManager: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     addPool(newPoolAddress: string, overrides?: CallOverrides): Promise<void>;
 
-    "addPool(address)"(
-      newPoolAddress: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     creditManagers(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "creditManagers(uint256)"(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getCreditManagers(overrides?: CallOverrides): Promise<string[]>;
 
-    "getCreditManagers()"(overrides?: CallOverrides): Promise<string[]>;
-
     getCreditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getCreditManagersCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPools(overrides?: CallOverrides): Promise<string[]>;
 
-    "getPools()"(overrides?: CallOverrides): Promise<string[]>;
-
     getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getPoolsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     isCreditManager(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
-    "isCreditManager(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     isPool(addr: string, overrides?: CallOverrides): Promise<boolean>;
-
-    "isPool(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
 
     pause(overrides?: CallOverrides): Promise<void>;
 
-    "pause()"(overrides?: CallOverrides): Promise<void>;
-
     paused(overrides?: CallOverrides): Promise<boolean>;
-
-    "paused()"(overrides?: CallOverrides): Promise<boolean>;
 
     pools(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    "pools(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     unpause(overrides?: CallOverrides): Promise<void>;
-
-    "unpause()"(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
-    NewCreditManagerAdded(creditManager: string | null): EventFilter;
+    NewCreditManagerAdded(
+      creditManager?: string | null
+    ): TypedEventFilter<[string], { creditManager: string }>;
 
-    NewPoolAdded(pool: string | null): EventFilter;
+    NewPoolAdded(
+      pool?: string | null
+    ): TypedEventFilter<[string], { pool: string }>;
 
-    Paused(account: null): EventFilter;
+    Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
-    Unpaused(account: null): EventFilter;
+    Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
 
   estimateGas: {
     addCreditManager(
       newCreditManager: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "addCreditManager(address)"(
-      newCreditManager: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    addPool(newPoolAddress: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "addPool(address)"(
+    addPool(
       newPoolAddress: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     creditManagers(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "creditManagers(uint256)"(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCreditManagers(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getCreditManagers()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getCreditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getCreditManagersCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPools(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getPools()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getPoolsCount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     isCreditManager(
       addr: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "isCreditManager(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     isPool(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "isPool(address)"(
-      addr: string,
-      overrides?: CallOverrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    pause(overrides?: Overrides): Promise<BigNumber>;
-
-    "pause()"(overrides?: Overrides): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "paused()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     pools(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "pools(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    unpause(overrides?: Overrides): Promise<BigNumber>;
-
-    "unpause()"(overrides?: Overrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     addCreditManager(
       newCreditManager: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addCreditManager(address)"(
-      newCreditManager: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addPool(
       newPoolAddress: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addPool(address)"(
-      newPoolAddress: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     creditManagers(
@@ -482,39 +347,17 @@ export class ContractsRegister extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "creditManagers(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getCreditManagers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getCreditManagers()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     getCreditManagersCount(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getCreditManagersCount()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getPools(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getPools()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPoolsCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "getPoolsCount()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     isCreditManager(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "isCreditManager(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -524,31 +367,19 @@ export class ContractsRegister extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "isPool(address)"(
-      addr: string,
-      overrides?: CallOverrides
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    pause(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "pause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
-
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "paused()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pools(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "pools(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    unpause(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "unpause()"(overrides?: Overrides): Promise<PopulatedTransaction>;
   };
 }

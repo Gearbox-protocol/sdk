@@ -9,17 +9,16 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   PayableOverrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IWETHGatewayInterface extends ethers.utils.Interface {
   functions: {
@@ -81,16 +80,46 @@ interface IWETHGatewayInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class IWETHGateway extends Contract {
+export class IWETHGateway extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: IWETHGatewayInterface;
 
@@ -98,27 +127,14 @@ export class IWETHGateway extends Contract {
     addCollateralETH(
       creditManager: string,
       onBehalfOf: string,
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "addCollateralETH(address,address)"(
-      creditManager: string,
-      onBehalfOf: string,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addLiquidityETH(
       pool: string,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "addLiquidityETH(address,address,uint16)"(
-      pool: string,
-      onBehalfOf: string,
-      referralCode: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     openCreditAccountETH(
@@ -126,80 +142,40 @@ export class IWETHGateway extends Contract {
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "openCreditAccountETH(address,address,uint256,uint256)"(
-      creditManager: string,
-      onBehalfOf: string,
-      leverageFactor: BigNumberish,
-      referralCode: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeLiquidityETH(
       pool: string,
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "removeLiquidityETH(address,uint256,address)"(
-      pool: string,
-      amount: BigNumberish,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     repayCreditAccountETH(
       creditManager: string,
       to: string,
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "repayCreditAccountETH(address,address)"(
-      creditManager: string,
-      to: string,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     unwrapWETH(
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "unwrapWETH(address,uint256)"(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   addCollateralETH(
     creditManager: string,
     onBehalfOf: string,
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "addCollateralETH(address,address)"(
-    creditManager: string,
-    onBehalfOf: string,
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addLiquidityETH(
     pool: string,
     onBehalfOf: string,
     referralCode: BigNumberish,
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "addLiquidityETH(address,address,uint16)"(
-    pool: string,
-    onBehalfOf: string,
-    referralCode: BigNumberish,
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   openCreditAccountETH(
@@ -207,53 +183,26 @@ export class IWETHGateway extends Contract {
     onBehalfOf: string,
     leverageFactor: BigNumberish,
     referralCode: BigNumberish,
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "openCreditAccountETH(address,address,uint256,uint256)"(
-    creditManager: string,
-    onBehalfOf: string,
-    leverageFactor: BigNumberish,
-    referralCode: BigNumberish,
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeLiquidityETH(
     pool: string,
     amount: BigNumberish,
     to: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "removeLiquidityETH(address,uint256,address)"(
-    pool: string,
-    amount: BigNumberish,
-    to: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   repayCreditAccountETH(
     creditManager: string,
     to: string,
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "repayCreditAccountETH(address,address)"(
-    creditManager: string,
-    to: string,
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   unwrapWETH(
     to: string,
     amount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "unwrapWETH(address,uint256)"(
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -263,20 +212,7 @@ export class IWETHGateway extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "addCollateralETH(address,address)"(
-      creditManager: string,
-      onBehalfOf: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     addLiquidityETH(
-      pool: string,
-      onBehalfOf: string,
-      referralCode: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "addLiquidityETH(address,address,uint16)"(
       pool: string,
       onBehalfOf: string,
       referralCode: BigNumberish,
@@ -291,22 +227,7 @@ export class IWETHGateway extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "openCreditAccountETH(address,address,uint256,uint256)"(
-      creditManager: string,
-      onBehalfOf: string,
-      leverageFactor: BigNumberish,
-      referralCode: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     removeLiquidityETH(
-      pool: string,
-      amount: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "removeLiquidityETH(address,uint256,address)"(
       pool: string,
       amount: BigNumberish,
       to: string,
@@ -319,19 +240,7 @@ export class IWETHGateway extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "repayCreditAccountETH(address,address)"(
-      creditManager: string,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     unwrapWETH(
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "unwrapWETH(address,uint256)"(
       to: string,
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -344,27 +253,14 @@ export class IWETHGateway extends Contract {
     addCollateralETH(
       creditManager: string,
       onBehalfOf: string,
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "addCollateralETH(address,address)"(
-      creditManager: string,
-      onBehalfOf: string,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addLiquidityETH(
       pool: string,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "addLiquidityETH(address,address,uint16)"(
-      pool: string,
-      onBehalfOf: string,
-      referralCode: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     openCreditAccountETH(
@@ -372,53 +268,26 @@ export class IWETHGateway extends Contract {
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "openCreditAccountETH(address,address,uint256,uint256)"(
-      creditManager: string,
-      onBehalfOf: string,
-      leverageFactor: BigNumberish,
-      referralCode: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeLiquidityETH(
       pool: string,
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "removeLiquidityETH(address,uint256,address)"(
-      pool: string,
-      amount: BigNumberish,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     repayCreditAccountETH(
       creditManager: string,
       to: string,
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "repayCreditAccountETH(address,address)"(
-      creditManager: string,
-      to: string,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     unwrapWETH(
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "unwrapWETH(address,uint256)"(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -426,27 +295,14 @@ export class IWETHGateway extends Contract {
     addCollateralETH(
       creditManager: string,
       onBehalfOf: string,
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "addCollateralETH(address,address)"(
-      creditManager: string,
-      onBehalfOf: string,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addLiquidityETH(
       pool: string,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "addLiquidityETH(address,address,uint16)"(
-      pool: string,
-      onBehalfOf: string,
-      referralCode: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     openCreditAccountETH(
@@ -454,53 +310,26 @@ export class IWETHGateway extends Contract {
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "openCreditAccountETH(address,address,uint256,uint256)"(
-      creditManager: string,
-      onBehalfOf: string,
-      leverageFactor: BigNumberish,
-      referralCode: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityETH(
       pool: string,
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "removeLiquidityETH(address,uint256,address)"(
-      pool: string,
-      amount: BigNumberish,
-      to: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     repayCreditAccountETH(
       creditManager: string,
       to: string,
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "repayCreditAccountETH(address,address)"(
-      creditManager: string,
-      to: string,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     unwrapWETH(
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "unwrapWETH(address,uint256)"(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

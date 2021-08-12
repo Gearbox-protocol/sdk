@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CurveV1AdapterInterface extends ethers.utils.Interface {
   functions: {
@@ -62,99 +61,87 @@ interface CurveV1AdapterInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class CurveV1Adapter extends Contract {
+export class CurveV1Adapter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: CurveV1AdapterInterface;
 
   functions: {
     creditFilter(overrides?: CallOverrides): Promise<[string]>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<[string]>;
-
     curvePoolAddress(overrides?: CallOverrides): Promise<[string]>;
-
-    "curvePoolAddress()"(overrides?: CallOverrides): Promise<[string]>;
 
     exchange(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   creditFilter(overrides?: CallOverrides): Promise<string>;
 
-  "creditFilter()"(overrides?: CallOverrides): Promise<string>;
-
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  "creditManager()"(overrides?: CallOverrides): Promise<string>;
-
   curvePoolAddress(overrides?: CallOverrides): Promise<string>;
-
-  "curvePoolAddress()"(overrides?: CallOverrides): Promise<string>;
 
   exchange(
     i: BigNumberish,
     j: BigNumberish,
     dx: BigNumberish,
     min_dy: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "exchange(int128,int128,uint256,uint256)"(
-    i: BigNumberish,
-    j: BigNumberish,
-    dx: BigNumberish,
-    min_dy: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     creditFilter(overrides?: CallOverrides): Promise<string>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<string>;
-
     creditManager(overrides?: CallOverrides): Promise<string>;
-
-    "creditManager()"(overrides?: CallOverrides): Promise<string>;
 
     curvePoolAddress(overrides?: CallOverrides): Promise<string>;
 
-    "curvePoolAddress()"(overrides?: CallOverrides): Promise<string>;
-
     exchange(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "exchange(int128,int128,uint256,uint256)"(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
@@ -168,62 +155,32 @@ export class CurveV1Adapter extends Contract {
   estimateGas: {
     creditFilter(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     curvePoolAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "curvePoolAddress()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     exchange(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     creditFilter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     curvePoolAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "curvePoolAddress()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     exchange(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: BigNumberish,
-      j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

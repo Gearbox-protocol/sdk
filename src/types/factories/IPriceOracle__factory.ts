@@ -2,19 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { IPriceOracle } from "../IPriceOracle";
-
-export class IPriceOracle__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IPriceOracle {
-    return new Contract(address, _abi, signerOrProvider) as IPriceOracle;
-  }
-}
+import type { IPriceOracle, IPriceOracleInterface } from "../IPriceOracle";
 
 const _abi = [
   {
@@ -108,3 +98,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class IPriceOracle__factory {
+  static readonly abi = _abi;
+  static createInterface(): IPriceOracleInterface {
+    return new utils.Interface(_abi) as IPriceOracleInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IPriceOracle {
+    return new Contract(address, _abi, signerOrProvider) as IPriceOracle;
+  }
+}

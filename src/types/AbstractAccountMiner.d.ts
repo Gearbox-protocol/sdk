@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface AbstractAccountMinerInterface extends ethers.utils.Interface {
   functions: {
@@ -47,72 +46,75 @@ interface AbstractAccountMinerInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class AbstractAccountMiner extends Contract {
+export class AbstractAccountMiner extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: AbstractAccountMinerInterface;
 
   functions: {
     accountFactory(overrides?: CallOverrides): Promise<[string]>;
 
-    "accountFactory()"(overrides?: CallOverrides): Promise<[string]>;
-
     kind(overrides?: CallOverrides): Promise<[string]>;
-
-    "kind()"(overrides?: CallOverrides): Promise<[string]>;
 
     mineAccount(
       user: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "mineAccount(address)"(
-      user: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   accountFactory(overrides?: CallOverrides): Promise<string>;
 
-  "accountFactory()"(overrides?: CallOverrides): Promise<string>;
-
   kind(overrides?: CallOverrides): Promise<string>;
-
-  "kind()"(overrides?: CallOverrides): Promise<string>;
 
   mineAccount(
     user: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "mineAccount(address)"(
-    user: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     accountFactory(overrides?: CallOverrides): Promise<string>;
 
-    "accountFactory()"(overrides?: CallOverrides): Promise<string>;
-
     kind(overrides?: CallOverrides): Promise<string>;
 
-    "kind()"(overrides?: CallOverrides): Promise<string>;
-
     mineAccount(user: string, overrides?: CallOverrides): Promise<void>;
-
-    "mineAccount(address)"(
-      user: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
   filters: {};
@@ -120,39 +122,22 @@ export class AbstractAccountMiner extends Contract {
   estimateGas: {
     accountFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "accountFactory()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     kind(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "kind()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    mineAccount(user: string, overrides?: Overrides): Promise<BigNumber>;
-
-    "mineAccount(address)"(
+    mineAccount(
       user: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     accountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "accountFactory()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     kind(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "kind()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     mineAccount(
       user: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "mineAccount(address)"(
-      user: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

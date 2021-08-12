@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface UniswapV2AdapterInterface extends ethers.utils.Interface {
   functions: {
@@ -74,31 +73,55 @@ interface UniswapV2AdapterInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class UniswapV2Adapter extends Contract {
+export class UniswapV2Adapter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: UniswapV2AdapterInterface;
 
   functions: {
     creditFilter(overrides?: CallOverrides): Promise<[string]>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<[string]>;
-
     swapContract(overrides?: CallOverrides): Promise<[string]>;
-
-    "swapContract()"(overrides?: CallOverrides): Promise<[string]>;
 
     swapExactTokensForTokens(
       amountIn: BigNumberish,
@@ -106,16 +129,7 @@ export class UniswapV2Adapter extends Contract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: string[],
-      arg3: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapTokensForExactTokens(
@@ -124,30 +138,15 @@ export class UniswapV2Adapter extends Contract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      path: string[],
-      arg3: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   creditFilter(overrides?: CallOverrides): Promise<string>;
 
-  "creditFilter()"(overrides?: CallOverrides): Promise<string>;
-
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  "creditManager()"(overrides?: CallOverrides): Promise<string>;
-
   swapContract(overrides?: CallOverrides): Promise<string>;
-
-  "swapContract()"(overrides?: CallOverrides): Promise<string>;
 
   swapExactTokensForTokens(
     amountIn: BigNumberish,
@@ -155,16 +154,7 @@ export class UniswapV2Adapter extends Contract {
     path: string[],
     arg3: string,
     deadline: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-    amountIn: BigNumberish,
-    amountOutMin: BigNumberish,
-    path: string[],
-    arg3: string,
-    deadline: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapTokensForExactTokens(
@@ -173,30 +163,15 @@ export class UniswapV2Adapter extends Contract {
     path: string[],
     arg3: string,
     deadline: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
-    amountOut: BigNumberish,
-    amountInMax: BigNumberish,
-    path: string[],
-    arg3: string,
-    deadline: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     creditFilter(overrides?: CallOverrides): Promise<string>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<string>;
-
     creditManager(overrides?: CallOverrides): Promise<string>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<string>;
-
     swapContract(overrides?: CallOverrides): Promise<string>;
-
-    "swapContract()"(overrides?: CallOverrides): Promise<string>;
 
     swapExactTokensForTokens(
       amountIn: BigNumberish,
@@ -207,25 +182,7 @@ export class UniswapV2Adapter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: string[],
-      arg3: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     swapTokensForExactTokens(
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      path: string[],
-      arg3: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       path: string[],
@@ -240,15 +197,9 @@ export class UniswapV2Adapter extends Contract {
   estimateGas: {
     creditFilter(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     swapContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "swapContract()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     swapExactTokensForTokens(
       amountIn: BigNumberish,
@@ -256,16 +207,7 @@ export class UniswapV2Adapter extends Contract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: string[],
-      arg3: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapTokensForExactTokens(
@@ -274,31 +216,16 @@ export class UniswapV2Adapter extends Contract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      path: string[],
-      arg3: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     creditFilter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "creditFilter()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     swapContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "swapContract()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     swapExactTokensForTokens(
       amountIn: BigNumberish,
@@ -306,16 +233,7 @@ export class UniswapV2Adapter extends Contract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: string[],
-      arg3: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapTokensForExactTokens(
@@ -324,16 +242,7 @@ export class UniswapV2Adapter extends Contract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      path: string[],
-      arg3: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

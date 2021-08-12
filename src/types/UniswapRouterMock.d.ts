@@ -9,17 +9,16 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   PayableOverrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface UniswapRouterMockInterface extends ethers.utils.Interface {
   functions: {
@@ -312,43 +311,53 @@ interface UniswapRouterMockInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class UniswapRouterMock extends Contract {
+export class UniswapRouterMock extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: UniswapRouterMockInterface;
 
   functions: {
     WETH(overrides?: CallOverrides): Promise<[string]>;
 
-    "WETH()"(overrides?: CallOverrides): Promise<[string]>;
-
     addLiquidity(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: BigNumberish,
-      arg6: string,
-      arg7: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amountA: BigNumber;
-        amountB: BigNumber;
-        liquidity: BigNumber;
-      }
-    >;
-
-    "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -373,31 +382,12 @@ export class UniswapRouterMock extends Contract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     factory(overrides?: CallOverrides): Promise<[string]>;
 
-    "factory()"(overrides?: CallOverrides): Promise<[string]>;
-
     getAmountIn(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { amountIn: BigNumber }>;
-
-    "getAmountIn(uint256,uint256,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -411,20 +401,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { amountOut: BigNumber }>;
 
-    "getAmountOut(uint256,uint256,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
-
     getAmountsIn(
-      arg0: BigNumberish,
-      arg1: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
-
-    "getAmountsIn(uint256,address[])"(
       arg0: BigNumberish,
       arg1: string[],
       overrides?: CallOverrides
@@ -436,18 +413,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber[]]>;
 
-    "getAmountsOut(uint256,address[])"(
-      amountIn: BigNumberish,
-      path: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
-
     getRate(
-      path: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { rate: BigNumber }>;
-
-    "getRate(address[])"(
       path: string[],
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { rate: BigNumber }>;
@@ -459,27 +425,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { amountB: BigNumber }>;
 
-    "quote(uint256,uint256,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { amountB: BigNumber }>;
-
     removeLiquidity(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: string,
-      arg6: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
-    >;
-
-    "removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -504,29 +450,7 @@ export class UniswapRouterMock extends Contract {
       [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
     >;
 
-    "removeLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
-    >;
-
     removeLiquidityETHSupportingFeeOnTransferTokens(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { amountETH: BigNumber }>;
-
-    "removeLiquidityETHSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -552,37 +476,7 @@ export class UniswapRouterMock extends Contract {
       [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
     >;
 
-    "removeLiquidityETHWithPermit(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      arg6: boolean,
-      arg7: BigNumberish,
-      arg8: BytesLike,
-      arg9: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
-    >;
-
     removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      arg6: boolean,
-      arg7: BigNumberish,
-      arg8: BytesLike,
-      arg9: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { amountETH: BigNumber }>;
-
-    "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -613,35 +507,11 @@ export class UniswapRouterMock extends Contract {
       [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
     >;
 
-    "removeLiquidityWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: string,
-      arg6: BigNumberish,
-      arg7: boolean,
-      arg8: BigNumberish,
-      arg9: BytesLike,
-      arg10: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
-    >;
-
     setRate(
       tokenFrom: string,
       tokenTo: string,
       rate_RAY: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setRate(address,address,uint256)"(
-      tokenFrom: string,
-      tokenTo: string,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapETHForExactTokens(
@@ -649,15 +519,7 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "swapETHForExactTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapExactETHForTokens(
@@ -665,15 +527,7 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "swapExactETHForTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -681,27 +535,10 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<ContractTransaction>;
-
-    "swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapExactTokensForETH(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
-
-    "swapExactTokensForETH(uint256,uint256,address[],address,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: string[],
@@ -719,43 +556,16 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<[void]>;
 
-    "swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
-
     swapExactTokensForTokens(
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       path: string[],
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: string[],
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapExactTokensForTokensSupportingFeeOnTransferTokens(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
-
-    "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: string[],
@@ -773,57 +583,19 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber[]]>;
 
-    "swapTokensForExactETH(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
-
     swapTokensForExactTokens(
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       path: string[],
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      path: string[],
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   WETH(overrides?: CallOverrides): Promise<string>;
 
-  "WETH()"(overrides?: CallOverrides): Promise<string>;
-
   addLiquidity(
-    arg0: string,
-    arg1: string,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    arg4: BigNumberish,
-    arg5: BigNumberish,
-    arg6: string,
-    arg7: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber] & {
-      amountA: BigNumber;
-      amountB: BigNumber;
-      liquidity: BigNumber;
-    }
-  >;
-
-  "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
     arg0: string,
     arg1: string,
     arg2: BigNumberish,
@@ -848,31 +620,12 @@ export class UniswapRouterMock extends Contract {
     arg3: BigNumberish,
     arg4: string,
     arg5: BigNumberish,
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-    arg0: string,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    arg4: string,
-    arg5: BigNumberish,
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   factory(overrides?: CallOverrides): Promise<string>;
 
-  "factory()"(overrides?: CallOverrides): Promise<string>;
-
   getAmountIn(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "getAmountIn(uint256,uint256,uint256)"(
     arg0: BigNumberish,
     arg1: BigNumberish,
     arg2: BigNumberish,
@@ -886,20 +639,7 @@ export class UniswapRouterMock extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "getAmountOut(uint256,uint256,uint256)"(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   getAmountsIn(
-    arg0: BigNumberish,
-    arg1: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getAmountsIn(uint256,address[])"(
     arg0: BigNumberish,
     arg1: string[],
     overrides?: CallOverrides
@@ -911,18 +651,7 @@ export class UniswapRouterMock extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
-  "getAmountsOut(uint256,address[])"(
-    amountIn: BigNumberish,
-    path: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
   getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
-
-  "getRate(address[])"(
-    path: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   quote(
     arg0: BigNumberish,
@@ -931,27 +660,7 @@ export class UniswapRouterMock extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "quote(uint256,uint256,uint256)"(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   removeLiquidity(
-    arg0: string,
-    arg1: string,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    arg4: BigNumberish,
-    arg5: string,
-    arg6: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
-  >;
-
-  "removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
     arg0: string,
     arg1: string,
     arg2: BigNumberish,
@@ -976,29 +685,7 @@ export class UniswapRouterMock extends Contract {
     [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
   >;
 
-  "removeLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-    arg0: string,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    arg4: string,
-    arg5: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
-  >;
-
   removeLiquidityETHSupportingFeeOnTransferTokens(
-    arg0: string,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    arg4: string,
-    arg5: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "removeLiquidityETHSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256)"(
     arg0: string,
     arg1: BigNumberish,
     arg2: BigNumberish,
@@ -1024,37 +711,7 @@ export class UniswapRouterMock extends Contract {
     [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
   >;
 
-  "removeLiquidityETHWithPermit(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-    arg0: string,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    arg4: string,
-    arg5: BigNumberish,
-    arg6: boolean,
-    arg7: BigNumberish,
-    arg8: BytesLike,
-    arg9: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
-  >;
-
   removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-    arg0: string,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    arg4: string,
-    arg5: BigNumberish,
-    arg6: boolean,
-    arg7: BigNumberish,
-    arg8: BytesLike,
-    arg9: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
     arg0: string,
     arg1: BigNumberish,
     arg2: BigNumberish,
@@ -1085,35 +742,11 @@ export class UniswapRouterMock extends Contract {
     [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
   >;
 
-  "removeLiquidityWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-    arg0: string,
-    arg1: string,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    arg4: BigNumberish,
-    arg5: string,
-    arg6: BigNumberish,
-    arg7: boolean,
-    arg8: BigNumberish,
-    arg9: BytesLike,
-    arg10: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
-  >;
-
   setRate(
     tokenFrom: string,
     tokenTo: string,
     rate_RAY: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setRate(address,address,uint256)"(
-    tokenFrom: string,
-    tokenTo: string,
-    rate_RAY: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapETHForExactTokens(
@@ -1121,15 +754,7 @@ export class UniswapRouterMock extends Contract {
     arg1: string[],
     arg2: string,
     arg3: BigNumberish,
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "swapETHForExactTokens(uint256,address[],address,uint256)"(
-    arg0: BigNumberish,
-    arg1: string[],
-    arg2: string,
-    arg3: BigNumberish,
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapExactETHForTokens(
@@ -1137,15 +762,7 @@ export class UniswapRouterMock extends Contract {
     arg1: string[],
     arg2: string,
     arg3: BigNumberish,
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "swapExactETHForTokens(uint256,address[],address,uint256)"(
-    arg0: BigNumberish,
-    arg1: string[],
-    arg2: string,
-    arg3: BigNumberish,
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -1153,27 +770,10 @@ export class UniswapRouterMock extends Contract {
     arg1: string[],
     arg2: string,
     arg3: BigNumberish,
-    overrides?: PayableOverrides
-  ): Promise<ContractTransaction>;
-
-  "swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)"(
-    arg0: BigNumberish,
-    arg1: string[],
-    arg2: string,
-    arg3: BigNumberish,
-    overrides?: PayableOverrides
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapExactTokensForETH(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: string[],
-    arg3: string,
-    arg4: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "swapExactTokensForETH(uint256,uint256,address[],address,uint256)"(
     arg0: BigNumberish,
     arg1: BigNumberish,
     arg2: string[],
@@ -1191,43 +791,16 @@ export class UniswapRouterMock extends Contract {
     overrides?: CallOverrides
   ): Promise<void>;
 
-  "swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: string[],
-    arg3: string,
-    arg4: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<void>;
-
   swapExactTokensForTokens(
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     path: string[],
     to: string,
     deadline: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-    amountIn: BigNumberish,
-    amountOutMin: BigNumberish,
-    path: string[],
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapExactTokensForTokensSupportingFeeOnTransferTokens(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: string[],
-    arg3: string,
-    arg4: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<void>;
-
-  "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
     arg0: BigNumberish,
     arg1: BigNumberish,
     arg2: string[],
@@ -1245,37 +818,17 @@ export class UniswapRouterMock extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
-  "swapTokensForExactETH(uint256,uint256,address[],address,uint256)"(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: string[],
-    arg3: string,
-    arg4: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
   swapTokensForExactTokens(
     amountOut: BigNumberish,
     amountInMax: BigNumberish,
     path: string[],
     to: string,
     deadline: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
-    amountOut: BigNumberish,
-    amountInMax: BigNumberish,
-    path: string[],
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     WETH(overrides?: CallOverrides): Promise<string>;
-
-    "WETH()"(overrides?: CallOverrides): Promise<string>;
 
     addLiquidity(
       arg0: string,
@@ -1295,41 +848,7 @@ export class UniswapRouterMock extends Contract {
       }
     >;
 
-    "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: BigNumberish,
-      arg6: string,
-      arg7: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amountA: BigNumber;
-        amountB: BigNumber;
-        liquidity: BigNumber;
-      }
-    >;
-
     addLiquidityETH(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amountToken: BigNumber;
-        amountETH: BigNumber;
-        liquidity: BigNumber;
-      }
-    >;
-
-    "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -1347,16 +866,7 @@ export class UniswapRouterMock extends Contract {
 
     factory(overrides?: CallOverrides): Promise<string>;
 
-    "factory()"(overrides?: CallOverrides): Promise<string>;
-
     getAmountIn(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getAmountIn(uint256,uint256,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -1370,20 +880,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getAmountOut(uint256,uint256,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getAmountsIn(
-      arg0: BigNumberish,
-      arg1: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getAmountsIn(uint256,address[])"(
       arg0: BigNumberish,
       arg1: string[],
       overrides?: CallOverrides
@@ -1395,18 +892,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    "getAmountsOut(uint256,address[])"(
-      amountIn: BigNumberish,
-      path: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
     getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getRate(address[])"(
-      path: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     quote(
       arg0: BigNumberish,
@@ -1415,27 +901,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "quote(uint256,uint256,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     removeLiquidity(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: string,
-      arg6: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
-    >;
-
-    "removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -1460,29 +926,7 @@ export class UniswapRouterMock extends Contract {
       [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
     >;
 
-    "removeLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
-    >;
-
     removeLiquidityETHSupportingFeeOnTransferTokens(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "removeLiquidityETHSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -1508,37 +952,7 @@ export class UniswapRouterMock extends Contract {
       [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
     >;
 
-    "removeLiquidityETHWithPermit(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      arg6: boolean,
-      arg7: BigNumberish,
-      arg8: BytesLike,
-      arg9: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
-    >;
-
     removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      arg6: boolean,
-      arg7: BigNumberish,
-      arg8: BytesLike,
-      arg9: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -1569,23 +983,6 @@ export class UniswapRouterMock extends Contract {
       [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
     >;
 
-    "removeLiquidityWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: string,
-      arg6: BigNumberish,
-      arg7: boolean,
-      arg8: BigNumberish,
-      arg9: BytesLike,
-      arg10: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
-    >;
-
     setRate(
       tokenFrom: string,
       tokenTo: string,
@@ -1593,22 +990,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setRate(address,address,uint256)"(
-      tokenFrom: string,
-      tokenTo: string,
-      rate_RAY: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     swapETHForExactTokens(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "swapETHForExactTokens(uint256,address[],address,uint256)"(
       arg0: BigNumberish,
       arg1: string[],
       arg2: string,
@@ -1624,14 +1006,6 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    "swapExactETHForTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
     swapExactETHForTokensSupportingFeeOnTransferTokens(
       arg0: BigNumberish,
       arg1: string[],
@@ -1640,24 +1014,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     swapExactTokensForETH(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "swapExactTokensForETH(uint256,uint256,address[],address,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: string[],
@@ -1675,25 +1032,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     swapExactTokensForTokens(
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: string[],
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       path: string[],
@@ -1711,15 +1050,6 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     swapTokensForExactETH(
       arg0: BigNumberish,
       arg1: BigNumberish,
@@ -1729,25 +1059,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    "swapTokensForExactETH(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
     swapTokensForExactTokens(
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      path: string[],
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       path: string[],
@@ -1762,21 +1074,7 @@ export class UniswapRouterMock extends Contract {
   estimateGas: {
     WETH(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "WETH()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     addLiquidity(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: BigNumberish,
-      arg6: string,
-      arg7: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -1795,31 +1093,12 @@ export class UniswapRouterMock extends Contract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     factory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "factory()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getAmountIn(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getAmountIn(uint256,uint256,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -1833,20 +1112,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getAmountOut(uint256,uint256,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getAmountsIn(
-      arg0: BigNumberish,
-      arg1: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getAmountsIn(uint256,address[])"(
       arg0: BigNumberish,
       arg1: string[],
       overrides?: CallOverrides
@@ -1858,18 +1124,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getAmountsOut(uint256,address[])"(
-      amountIn: BigNumberish,
-      path: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getRate(address[])"(
-      path: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     quote(
       arg0: BigNumberish,
@@ -1878,25 +1133,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "quote(uint256,uint256,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     removeLiquidity(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: string,
-      arg6: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -1917,27 +1154,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "removeLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     removeLiquidityETHSupportingFeeOnTransferTokens(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "removeLiquidityETHSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -1961,35 +1178,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "removeLiquidityETHWithPermit(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      arg6: boolean,
-      arg7: BigNumberish,
-      arg8: BytesLike,
-      arg9: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      arg6: boolean,
-      arg7: BigNumberish,
-      arg8: BytesLike,
-      arg9: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -2018,33 +1207,11 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "removeLiquidityWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: string,
-      arg6: BigNumberish,
-      arg7: boolean,
-      arg8: BigNumberish,
-      arg9: BytesLike,
-      arg10: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     setRate(
       tokenFrom: string,
       tokenTo: string,
       rate_RAY: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setRate(address,address,uint256)"(
-      tokenFrom: string,
-      tokenTo: string,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapETHForExactTokens(
@@ -2052,15 +1219,7 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "swapETHForExactTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapExactETHForTokens(
@@ -2068,15 +1227,7 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "swapExactETHForTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -2084,27 +1235,10 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<BigNumber>;
-
-    "swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapExactTokensForETH(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "swapExactTokensForETH(uint256,uint256,address[],address,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: string[],
@@ -2122,43 +1256,16 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     swapExactTokensForTokens(
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       path: string[],
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: string[],
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapExactTokensForTokensSupportingFeeOnTransferTokens(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: string[],
@@ -2176,52 +1283,20 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "swapTokensForExactETH(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     swapTokensForExactTokens(
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       path: string[],
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      path: string[],
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     WETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "WETH()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     addLiquidity(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: BigNumberish,
-      arg6: string,
-      arg7: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -2240,31 +1315,12 @@ export class UniswapRouterMock extends Contract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "factory()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getAmountIn(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getAmountIn(uint256,uint256,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -2278,32 +1334,13 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getAmountOut(uint256,uint256,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getAmountsIn(
       arg0: BigNumberish,
       arg1: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getAmountsIn(uint256,address[])"(
-      arg0: BigNumberish,
-      arg1: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getAmountsOut(
-      amountIn: BigNumberish,
-      path: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getAmountsOut(uint256,address[])"(
       amountIn: BigNumberish,
       path: string[],
       overrides?: CallOverrides
@@ -2314,11 +1351,6 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getRate(address[])"(
-      path: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     quote(
       arg0: BigNumberish,
       arg1: BigNumberish,
@@ -2326,25 +1358,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "quote(uint256,uint256,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     removeLiquidity(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: string,
-      arg6: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -2365,27 +1379,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "removeLiquidityETH(address,uint256,uint256,uint256,address,uint256)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     removeLiquidityETHSupportingFeeOnTransferTokens(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "removeLiquidityETHSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -2409,35 +1403,7 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "removeLiquidityETHWithPermit(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      arg6: boolean,
-      arg7: BigNumberish,
-      arg8: BytesLike,
-      arg9: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-      arg0: string,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: string,
-      arg5: BigNumberish,
-      arg6: boolean,
-      arg7: BigNumberish,
-      arg8: BytesLike,
-      arg9: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
       arg0: string,
       arg1: BigNumberish,
       arg2: BigNumberish,
@@ -2466,33 +1432,11 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "removeLiquidityWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)"(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      arg4: BigNumberish,
-      arg5: string,
-      arg6: BigNumberish,
-      arg7: boolean,
-      arg8: BigNumberish,
-      arg9: BytesLike,
-      arg10: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     setRate(
       tokenFrom: string,
       tokenTo: string,
       rate_RAY: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setRate(address,address,uint256)"(
-      tokenFrom: string,
-      tokenTo: string,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapETHForExactTokens(
@@ -2500,15 +1444,7 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapETHForExactTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapExactETHForTokens(
@@ -2516,15 +1452,7 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapExactETHForTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -2532,27 +1460,10 @@ export class UniswapRouterMock extends Contract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: string[],
-      arg2: string,
-      arg3: BigNumberish,
-      overrides?: PayableOverrides
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapExactTokensForETH(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapExactTokensForETH(uint256,uint256,address[],address,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: string[],
@@ -2570,43 +1481,16 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     swapExactTokensForTokens(
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       path: string[],
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"(
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      path: string[],
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapExactTokensForTokensSupportingFeeOnTransferTokens(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"(
       arg0: BigNumberish,
       arg1: BigNumberish,
       arg2: string[],
@@ -2624,31 +1508,13 @@ export class UniswapRouterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "swapTokensForExactETH(uint256,uint256,address[],address,uint256)"(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: string[],
-      arg3: string,
-      arg4: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     swapTokensForExactTokens(
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       path: string[],
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)"(
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      path: string[],
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

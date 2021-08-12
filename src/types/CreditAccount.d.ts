@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CreditAccountInterface extends ethers.utils.Interface {
   functions: {
@@ -126,16 +125,46 @@ interface CreditAccountInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
-export class CreditAccount extends Contract {
+export class CreditAccount extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: CreditAccountInterface;
 
@@ -143,210 +172,110 @@ export class CreditAccount extends Contract {
     approveToken(
       token: string,
       swapContract: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "approveToken(address,address)"(
-      token: string,
-      swapContract: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     borrowedAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "borrowedAmount()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<[string]>;
-
     cumulativeIndexAtOpen(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "cumulativeIndexAtOpen()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     execute(
       destination: string,
       data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "execute(address,bytes)"(
-      destination: string,
-      data: BytesLike,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     initialize(
       _creditManager: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "initialize(address)"(
-      _creditManager: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    "owner()"(overrides?: CallOverrides): Promise<[string]>;
-
-    renounceOwnership(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<ContractTransaction>;
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     setGenericParameters(
       _borrowedAmount: BigNumberish,
       _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setGenericParameters(uint256,uint256)"(
-      _borrowedAmount: BigNumberish,
-      _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     since(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "since()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transfer(
       token: string,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "transfer(address,address,uint256)"(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     updateBorrowedAmount(
       _borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "updateBorrowedAmount(uint256)"(
-      _borrowedAmount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   approveToken(
     token: string,
     swapContract: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "approveToken(address,address)"(
-    token: string,
-    swapContract: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   borrowedAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "borrowedAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  "creditManager()"(overrides?: CallOverrides): Promise<string>;
-
   cumulativeIndexAtOpen(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "cumulativeIndexAtOpen()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   execute(
     destination: string,
     data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "execute(address,bytes)"(
-    destination: string,
-    data: BytesLike,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   initialize(
     _creditManager: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "initialize(address)"(
-    _creditManager: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  "owner()"(overrides?: CallOverrides): Promise<string>;
-
-  renounceOwnership(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "renounceOwnership()"(overrides?: Overrides): Promise<ContractTransaction>;
+  renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setGenericParameters(
     _borrowedAmount: BigNumberish,
     _cumulativeIndexAtOpen: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setGenericParameters(uint256,uint256)"(
-    _borrowedAmount: BigNumberish,
-    _cumulativeIndexAtOpen: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   since(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "since()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   transfer(
     token: string,
     to: string,
     amount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "transfer(address,address,uint256)"(
-    token: string,
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnership(
     newOwner: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "transferOwnership(address)"(
-    newOwner: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   updateBorrowedAmount(
     _borrowedAmount: BigNumberish,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "updateBorrowedAmount(uint256)"(
-    _borrowedAmount: BigNumberish,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -356,31 +285,13 @@ export class CreditAccount extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "approveToken(address,address)"(
-      token: string,
-      swapContract: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     borrowedAmount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "borrowedAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<string>;
-
     cumulativeIndexAtOpen(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "cumulativeIndexAtOpen()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     execute(
-      destination: string,
-      data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "execute(address,bytes)"(
       destination: string,
       data: BytesLike,
       overrides?: CallOverrides
@@ -391,18 +302,9 @@ export class CreditAccount extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "initialize(address)"(
-      _creditManager: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     owner(overrides?: CallOverrides): Promise<string>;
 
-    "owner()"(overrides?: CallOverrides): Promise<string>;
-
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    "renounceOwnership()"(overrides?: CallOverrides): Promise<void>;
 
     setGenericParameters(
       _borrowedAmount: BigNumberish,
@@ -410,24 +312,9 @@ export class CreditAccount extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setGenericParameters(uint256,uint256)"(
-      _borrowedAmount: BigNumberish,
-      _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     since(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "since()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     transfer(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "transfer(address,address,uint256)"(
       token: string,
       to: string,
       amount: BigNumberish,
@@ -439,17 +326,7 @@ export class CreditAccount extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     updateBorrowedAmount(
-      _borrowedAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "updateBorrowedAmount(uint256)"(
       _borrowedAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -457,114 +334,67 @@ export class CreditAccount extends Contract {
 
   filters: {
     OwnershipTransferred(
-      previousOwner: string | null,
-      newOwner: string | null
-    ): EventFilter;
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
   };
 
   estimateGas: {
     approveToken(
       token: string,
       swapContract: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "approveToken(address,address)"(
-      token: string,
-      swapContract: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     borrowedAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "borrowedAmount()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     cumulativeIndexAtOpen(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "cumulativeIndexAtOpen()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     execute(
       destination: string,
       data: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "execute(address,bytes)"(
-      destination: string,
-      data: BytesLike,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     initialize(
       _creditManager: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "initialize(address)"(
-      _creditManager: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "owner()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(overrides?: Overrides): Promise<BigNumber>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<BigNumber>;
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     setGenericParameters(
       _borrowedAmount: BigNumberish,
       _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setGenericParameters(uint256,uint256)"(
-      _borrowedAmount: BigNumberish,
-      _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     since(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "since()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
       token: string,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "transfer(address,address,uint256)"(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updateBorrowedAmount(
       _borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "updateBorrowedAmount(uint256)"(
-      _borrowedAmount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -572,111 +402,57 @@ export class CreditAccount extends Contract {
     approveToken(
       token: string,
       swapContract: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "approveToken(address,address)"(
-      token: string,
-      swapContract: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     borrowedAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "borrowedAmount()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "creditManager()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     cumulativeIndexAtOpen(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "cumulativeIndexAtOpen()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     execute(
       destination: string,
       data: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "execute(address,bytes)"(
-      destination: string,
-      data: BytesLike,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     initialize(
       _creditManager: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "initialize(address)"(
-      _creditManager: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "owner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<PopulatedTransaction>;
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     setGenericParameters(
       _borrowedAmount: BigNumberish,
       _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setGenericParameters(uint256,uint256)"(
-      _borrowedAmount: BigNumberish,
-      _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     since(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "since()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transfer(
       token: string,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "transfer(address,address,uint256)"(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updateBorrowedAmount(
       _borrowedAmount: BigNumberish,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "updateBorrowedAmount(uint256)"(
-      _borrowedAmount: BigNumberish,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -2,19 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { ACLTrait } from "../ACLTrait";
-
-export class ACLTrait__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): ACLTrait {
-    return new Contract(address, _abi, signerOrProvider) as ACLTrait;
-  }
-}
+import type { ACLTrait, ACLTraitInterface } from "../ACLTrait";
 
 const _abi = [
   {
@@ -71,3 +61,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class ACLTrait__factory {
+  static readonly abi = _abi;
+  static createInterface(): ACLTraitInterface {
+    return new utils.Interface(_abi) as ACLTraitInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): ACLTrait {
+    return new Contract(address, _abi, signerOrProvider) as ACLTrait;
+  }
+}

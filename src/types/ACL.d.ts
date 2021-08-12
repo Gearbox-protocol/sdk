@@ -9,16 +9,15 @@ import {
   BigNumber,
   BigNumberish,
   PopulatedTransaction,
-} from "ethers";
-import {
-  Contract,
+  BaseContract,
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "@ethersproject/contracts";
+} from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ACLInterface extends ethers.utils.Interface {
   functions: {
@@ -143,46 +142,61 @@ interface ACLInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "UnpausableAdminRemoved"): EventFragment;
 }
 
-export class ACL extends Contract {
+export class ACL extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: ACLInterface;
 
   functions: {
     addPausableAdmin(
       newAdmin: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addPausableAdmin(address)"(
-      newAdmin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addUnpausableAdmin(
       newAdmin: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "addUnpausableAdmin(address)"(
-      newAdmin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     isConfigurator(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "isConfigurator(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -192,75 +206,38 @@ export class ACL extends Contract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    "isPausableAdmin(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
     isUnpausableAdmin(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "isUnpausableAdmin(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    "owner()"(overrides?: CallOverrides): Promise<[string]>;
-
     pausableAdminSet(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "pausableAdminSet(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     removePausableAdmin(
       admin: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "removePausableAdmin(address)"(
-      admin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeUnpausableAdmin(
       admin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "removeUnpausableAdmin(address)"(
-      admin: string,
-      overrides?: Overrides
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    renounceOwnership(overrides?: Overrides): Promise<ContractTransaction>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<ContractTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     unpausableAdminSet(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "unpausableAdminSet(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -268,104 +245,47 @@ export class ACL extends Contract {
 
   addPausableAdmin(
     newAdmin: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addPausableAdmin(address)"(
-    newAdmin: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addUnpausableAdmin(
     newAdmin: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "addUnpausableAdmin(address)"(
-    newAdmin: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   isConfigurator(account: string, overrides?: CallOverrides): Promise<boolean>;
 
-  "isConfigurator(address)"(
-    account: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   isPausableAdmin(addr: string, overrides?: CallOverrides): Promise<boolean>;
-
-  "isPausableAdmin(address)"(
-    addr: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
 
   isUnpausableAdmin(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
-  "isUnpausableAdmin(address)"(
-    addr: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   owner(overrides?: CallOverrides): Promise<string>;
-
-  "owner()"(overrides?: CallOverrides): Promise<string>;
 
   pausableAdminSet(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-  "pausableAdminSet(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   removePausableAdmin(
     admin: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "removePausableAdmin(address)"(
-    admin: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeUnpausableAdmin(
     admin: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "removeUnpausableAdmin(address)"(
-    admin: string,
-    overrides?: Overrides
+  renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  renounceOwnership(overrides?: Overrides): Promise<ContractTransaction>;
-
-  "renounceOwnership()"(overrides?: Overrides): Promise<ContractTransaction>;
 
   transferOwnership(
     newOwner: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "transferOwnership(address)"(
-    newOwner: string,
-    overrides?: Overrides
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   unpausableAdminSet(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-  "unpausableAdminSet(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   callStatic: {
     addPausableAdmin(
-      newAdmin: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "addPausableAdmin(address)"(
       newAdmin: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -375,55 +295,23 @@ export class ACL extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "addUnpausableAdmin(address)"(
-      newAdmin: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     isConfigurator(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "isConfigurator(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     isPausableAdmin(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
-    "isPausableAdmin(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     isUnpausableAdmin(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "isUnpausableAdmin(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
-    "owner()"(overrides?: CallOverrides): Promise<string>;
-
     pausableAdminSet(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-    "pausableAdminSet(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     removePausableAdmin(
-      admin: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "removePausableAdmin(address)"(
       admin: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -433,21 +321,9 @@ export class ACL extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "removeUnpausableAdmin(address)"(
-      admin: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    "renounceOwnership()"(overrides?: CallOverrides): Promise<void>;
-
     transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "transferOwnership(address)"(
       newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -456,55 +332,46 @@ export class ACL extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    "unpausableAdminSet(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
   };
 
   filters: {
     OwnershipTransferred(
-      previousOwner: string | null,
-      newOwner: string | null
-    ): EventFilter;
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
+    >;
 
-    PausableAdminAdded(newAdmin: string | null): EventFilter;
+    PausableAdminAdded(
+      newAdmin?: string | null
+    ): TypedEventFilter<[string], { newAdmin: string }>;
 
-    PausableAdminRemoved(admin: string | null): EventFilter;
+    PausableAdminRemoved(
+      admin?: string | null
+    ): TypedEventFilter<[string], { admin: string }>;
 
-    UnpausableAdminAdded(newAdmin: string | null): EventFilter;
+    UnpausableAdminAdded(
+      newAdmin?: string | null
+    ): TypedEventFilter<[string], { newAdmin: string }>;
 
-    UnpausableAdminRemoved(admin: string | null): EventFilter;
+    UnpausableAdminRemoved(
+      admin?: string | null
+    ): TypedEventFilter<[string], { admin: string }>;
   };
 
   estimateGas: {
     addPausableAdmin(
       newAdmin: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "addPausableAdmin(address)"(
-      newAdmin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addUnpausableAdmin(
       newAdmin: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "addUnpausableAdmin(address)"(
-      newAdmin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     isConfigurator(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "isConfigurator(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -514,75 +381,38 @@ export class ACL extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "isPausableAdmin(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     isUnpausableAdmin(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "isUnpausableAdmin(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "owner()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     pausableAdminSet(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "pausableAdminSet(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     removePausableAdmin(
       admin: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "removePausableAdmin(address)"(
-      admin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeUnpausableAdmin(
       admin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "removeUnpausableAdmin(address)"(
-      admin: string,
-      overrides?: Overrides
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    renounceOwnership(overrides?: Overrides): Promise<BigNumber>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     unpausableAdminSet(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "unpausableAdminSet(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -591,30 +421,15 @@ export class ACL extends Contract {
   populateTransaction: {
     addPausableAdmin(
       newAdmin: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addPausableAdmin(address)"(
-      newAdmin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addUnpausableAdmin(
       newAdmin: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "addUnpausableAdmin(address)"(
-      newAdmin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     isConfigurator(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "isConfigurator(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -624,75 +439,38 @@ export class ACL extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "isPausableAdmin(address)"(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     isUnpausableAdmin(
-      addr: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "isUnpausableAdmin(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "owner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     pausableAdminSet(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "pausableAdminSet(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     removePausableAdmin(
       admin: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "removePausableAdmin(address)"(
-      admin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeUnpausableAdmin(
       admin: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "removeUnpausableAdmin(address)"(
-      admin: string,
-      overrides?: Overrides
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    renounceOwnership(overrides?: Overrides): Promise<PopulatedTransaction>;
-
-    "renounceOwnership()"(overrides?: Overrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "transferOwnership(address)"(
-      newOwner: string,
-      overrides?: Overrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     unpausableAdminSet(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "unpausableAdminSet(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

@@ -2,19 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { ICurvePool } from "../ICurvePool";
-
-export class ICurvePool__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): ICurvePool {
-    return new Contract(address, _abi, signerOrProvider) as ICurvePool;
-  }
-}
+import type { ICurvePool, ICurvePoolInterface } from "../ICurvePool";
 
 const _abi = [
   {
@@ -222,3 +212,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class ICurvePool__factory {
+  static readonly abi = _abi;
+  static createInterface(): ICurvePoolInterface {
+    return new utils.Interface(_abi) as ICurvePoolInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): ICurvePool {
+    return new Contract(address, _abi, signerOrProvider) as ICurvePool;
+  }
+}
