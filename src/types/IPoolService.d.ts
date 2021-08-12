@@ -22,6 +22,7 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface IPoolServiceInterface extends ethers.utils.Interface {
   functions: {
+    "_timestampLU()": FunctionFragment;
     "addLiquidity(uint256,address,uint256)": FunctionFragment;
     "availableLiquidity()": FunctionFragment;
     "borrowAPY_RAY()": FunctionFragment;
@@ -43,6 +44,10 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
     "withdrawFee()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "_timestampLU",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "addLiquidity",
     values: [BigNumberish, string, BigNumberish]
@@ -120,6 +125,10 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "_timestampLU",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "addLiquidity",
     data: BytesLike
@@ -228,6 +237,10 @@ export class IPoolService extends Contract {
   interface: IPoolServiceInterface;
 
   functions: {
+    _timestampLU(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "_timestampLU()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     addLiquidity(
       amount: BigNumberish,
       onBehalfOf: string,
@@ -367,6 +380,10 @@ export class IPoolService extends Contract {
     "withdrawFee()"(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
+  _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "_timestampLU()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   addLiquidity(
     amount: BigNumberish,
     onBehalfOf: string,
@@ -498,6 +515,10 @@ export class IPoolService extends Contract {
   "withdrawFee()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
+    _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "_timestampLU()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     addLiquidity(
       amount: BigNumberish,
       onBehalfOf: string,
@@ -674,6 +695,10 @@ export class IPoolService extends Contract {
   };
 
   estimateGas: {
+    _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "_timestampLU()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     addLiquidity(
       amount: BigNumberish,
       onBehalfOf: string,
@@ -812,6 +837,10 @@ export class IPoolService extends Contract {
   };
 
   populateTransaction: {
+    _timestampLU(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "_timestampLU()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     addLiquidity(
       amount: BigNumberish,
       onBehalfOf: string,

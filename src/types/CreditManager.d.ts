@@ -27,7 +27,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "addCollateral(address,address,uint256)": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "calcRepayAmount(address,bool)": FunctionFragment;
-    "closeCreditAccount(address,uint256)": FunctionFragment;
+    "closeCreditAccount(address,tuple[])": FunctionFragment;
     "creditAccounts(address)": FunctionFragment;
     "creditFilter()": FunctionFragment;
     "defaultSwapContract()": FunctionFragment;
@@ -81,7 +81,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "closeCreditAccount",
-    values: [string, BigNumberish]
+    values: [string, { path: string[]; amountOutMin: BigNumberish }[]]
   ): string;
   encodeFunctionData(
     functionFragment: "creditAccounts",
@@ -439,13 +439,13 @@ export class CreditManager extends Contract {
 
     closeCreditAccount(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "closeCreditAccount(address,uint256)"(
+    "closeCreditAccount(address,tuple[])"(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
@@ -757,13 +757,13 @@ export class CreditManager extends Contract {
 
   closeCreditAccount(
     to: string,
-    amountOutTolerance: BigNumberish,
+    paths: { path: string[]; amountOutMin: BigNumberish }[],
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "closeCreditAccount(address,uint256)"(
+  "closeCreditAccount(address,tuple[])"(
     to: string,
-    amountOutTolerance: BigNumberish,
+    paths: { path: string[]; amountOutMin: BigNumberish }[],
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
@@ -1075,13 +1075,13 @@ export class CreditManager extends Contract {
 
     closeCreditAccount(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "closeCreditAccount(address,uint256)"(
+    "closeCreditAccount(address,tuple[])"(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1407,13 +1407,13 @@ export class CreditManager extends Contract {
 
     closeCreditAccount(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "closeCreditAccount(address,uint256)"(
+    "closeCreditAccount(address,tuple[])"(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<BigNumber>;
 
@@ -1693,13 +1693,13 @@ export class CreditManager extends Contract {
 
     closeCreditAccount(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "closeCreditAccount(address,uint256)"(
+    "closeCreditAccount(address,tuple[])"(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 

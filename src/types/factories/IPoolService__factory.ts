@@ -201,6 +201,19 @@ const _abi = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "_timestampLU",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",

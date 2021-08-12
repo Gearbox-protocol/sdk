@@ -23,6 +23,7 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 interface CreditFilterMockInterface extends ethers.utils.Interface {
   functions: {
     "_allowedTokensMap(address)": FunctionFragment;
+    "_priceOracle()": FunctionFragment;
     "allowContract(address,address)": FunctionFragment;
     "allowToken(address,uint256)": FunctionFragment;
     "allowedAdapters(address)": FunctionFragment;
@@ -64,6 +65,10 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "_allowedTokensMap",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_priceOracle",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "allowContract",
@@ -203,6 +208,10 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "_allowedTokensMap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_priceOracle",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -376,6 +385,10 @@ export class CreditFilterMock extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    _priceOracle(overrides?: CallOverrides): Promise<[string]>;
+
+    "_priceOracle()"(overrides?: CallOverrides): Promise<[string]>;
 
     allowContract(
       allowedContract: string,
@@ -715,6 +728,10 @@ export class CreditFilterMock extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  _priceOracle(overrides?: CallOverrides): Promise<string>;
+
+  "_priceOracle()"(overrides?: CallOverrides): Promise<string>;
+
   allowContract(
     allowedContract: string,
     adapter: string,
@@ -1034,6 +1051,10 @@ export class CreditFilterMock extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    _priceOracle(overrides?: CallOverrides): Promise<string>;
+
+    "_priceOracle()"(overrides?: CallOverrides): Promise<string>;
 
     allowContract(
       allowedContract: string,
@@ -1377,6 +1398,10 @@ export class CreditFilterMock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    _priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "_priceOracle()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     allowContract(
       allowedContract: string,
       adapter: string,
@@ -1695,6 +1720,10 @@ export class CreditFilterMock extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    _priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "_priceOracle()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowContract(
       allowedContract: string,

@@ -37,6 +37,7 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "CF_ADAPTERS_ONLY()": FunctionFragment;
     "CF_CREDIT_MANAGERS_ONLY()": FunctionFragment;
     "CF_INCORRECT_CHI_THRESHOLD()": FunctionFragment;
+    "CF_INCORRECT_FAST_CHECK()": FunctionFragment;
     "CF_INCORRECT_LIQUIDATION_THRESHOLD()": FunctionFragment;
     "CF_OPERATION_LOW_HEALTH_FACTOR()": FunctionFragment;
     "CF_TOKEN_IS_NOT_ALLOWED()": FunctionFragment;
@@ -142,6 +143,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "CF_INCORRECT_CHI_THRESHOLD",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CF_INCORRECT_FAST_CHECK",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -371,6 +376,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "CF_INCORRECT_CHI_THRESHOLD",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CF_INCORRECT_FAST_CHECK",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -634,6 +643,10 @@ export class Errors extends Contract {
     "CF_INCORRECT_CHI_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    CF_INCORRECT_FAST_CHECK(overrides?: CallOverrides): Promise<[string]>;
+
+    "CF_INCORRECT_FAST_CHECK()"(overrides?: CallOverrides): Promise<[string]>;
 
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
@@ -966,6 +979,10 @@ export class Errors extends Contract {
 
   "CF_INCORRECT_CHI_THRESHOLD()"(overrides?: CallOverrides): Promise<string>;
 
+  CF_INCORRECT_FAST_CHECK(overrides?: CallOverrides): Promise<string>;
+
+  "CF_INCORRECT_FAST_CHECK()"(overrides?: CallOverrides): Promise<string>;
+
   CF_INCORRECT_LIQUIDATION_THRESHOLD(
     overrides?: CallOverrides
   ): Promise<string>;
@@ -1276,6 +1293,10 @@ export class Errors extends Contract {
     CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<string>;
 
     "CF_INCORRECT_CHI_THRESHOLD()"(overrides?: CallOverrides): Promise<string>;
+
+    CF_INCORRECT_FAST_CHECK(overrides?: CallOverrides): Promise<string>;
+
+    "CF_INCORRECT_FAST_CHECK()"(overrides?: CallOverrides): Promise<string>;
 
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
@@ -1606,6 +1627,10 @@ export class Errors extends Contract {
     "CF_INCORRECT_CHI_THRESHOLD()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    CF_INCORRECT_FAST_CHECK(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "CF_INCORRECT_FAST_CHECK()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
@@ -1996,6 +2021,14 @@ export class Errors extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "CF_INCORRECT_CHI_THRESHOLD()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CF_INCORRECT_FAST_CHECK(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "CF_INCORRECT_FAST_CHECK()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

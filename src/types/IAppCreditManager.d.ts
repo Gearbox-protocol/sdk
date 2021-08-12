@@ -24,8 +24,9 @@ interface IAppCreditManagerInterface extends ethers.utils.Interface {
   functions: {
     "addCollateral(address,address,uint256)": FunctionFragment;
     "calcRepayAmount(address,bool)": FunctionFragment;
-    "closeCreditAccount(address,uint256)": FunctionFragment;
+    "closeCreditAccount(address,tuple[])": FunctionFragment;
     "getCreditAccountOrRevert(address)": FunctionFragment;
+    "hasOpenedCreditAccount(address)": FunctionFragment;
     "increaseBorrowedAmount(uint256)": FunctionFragment;
     "openCreditAccount(uint256,address,uint256,uint256)": FunctionFragment;
     "repayCreditAccount(address)": FunctionFragment;
@@ -41,10 +42,14 @@ interface IAppCreditManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "closeCreditAccount",
-    values: [string, BigNumberish]
+    values: [string, { path: string[]; amountOutMin: BigNumberish }[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountOrRevert",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasOpenedCreditAccount",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -74,6 +79,10 @@ interface IAppCreditManagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountOrRevert",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "hasOpenedCreditAccount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -134,13 +143,13 @@ export class IAppCreditManager extends Contract {
 
     closeCreditAccount(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "closeCreditAccount(address,uint256)"(
+    "closeCreditAccount(address,tuple[])"(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
@@ -153,6 +162,16 @@ export class IAppCreditManager extends Contract {
       borrower: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    hasOpenedCreditAccount(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    "hasOpenedCreditAccount(address)"(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     increaseBorrowedAmount(
       amount: BigNumberish,
@@ -219,13 +238,13 @@ export class IAppCreditManager extends Contract {
 
   closeCreditAccount(
     to: string,
-    amountOutTolerance: BigNumberish,
+    paths: { path: string[]; amountOutMin: BigNumberish }[],
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "closeCreditAccount(address,uint256)"(
+  "closeCreditAccount(address,tuple[])"(
     to: string,
-    amountOutTolerance: BigNumberish,
+    paths: { path: string[]; amountOutMin: BigNumberish }[],
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
@@ -238,6 +257,16 @@ export class IAppCreditManager extends Contract {
     borrower: string,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  hasOpenedCreditAccount(
+    borrower: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  "hasOpenedCreditAccount(address)"(
+    borrower: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   increaseBorrowedAmount(
     amount: BigNumberish,
@@ -304,13 +333,13 @@ export class IAppCreditManager extends Contract {
 
     closeCreditAccount(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "closeCreditAccount(address,uint256)"(
+    "closeCreditAccount(address,tuple[])"(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -323,6 +352,16 @@ export class IAppCreditManager extends Contract {
       borrower: string,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    hasOpenedCreditAccount(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "hasOpenedCreditAccount(address)"(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     increaseBorrowedAmount(
       amount: BigNumberish,
@@ -389,13 +428,13 @@ export class IAppCreditManager extends Contract {
 
     closeCreditAccount(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "closeCreditAccount(address,uint256)"(
+    "closeCreditAccount(address,tuple[])"(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<BigNumber>;
 
@@ -405,6 +444,16 @@ export class IAppCreditManager extends Contract {
     ): Promise<BigNumber>;
 
     "getCreditAccountOrRevert(address)"(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasOpenedCreditAccount(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "hasOpenedCreditAccount(address)"(
       borrower: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -472,13 +521,13 @@ export class IAppCreditManager extends Contract {
 
     closeCreditAccount(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "closeCreditAccount(address,uint256)"(
+    "closeCreditAccount(address,tuple[])"(
       to: string,
-      amountOutTolerance: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
@@ -488,6 +537,16 @@ export class IAppCreditManager extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "getCreditAccountOrRevert(address)"(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasOpenedCreditAccount(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "hasOpenedCreditAccount(address)"(
       borrower: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

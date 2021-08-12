@@ -574,6 +574,11 @@ const _abi = [
             name: "withdrawFee",
             type: "uint256",
           },
+          {
+            internalType: "uint256",
+            name: "timestampLU",
+            type: "uint256",
+          },
         ],
         internalType: "struct DataTypes.PoolData",
         name: "",
@@ -654,6 +659,11 @@ const _abi = [
             name: "withdrawFee",
             type: "uint256",
           },
+          {
+            internalType: "uint256",
+            name: "timestampLU",
+            type: "uint256",
+          },
         ],
         internalType: "struct DataTypes.PoolData[]",
         name: "",
@@ -694,6 +704,30 @@ const _abi = [
         internalType: "struct DataTypes.TokenInfo",
         name: "",
         type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditManager",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "borrower",
+        type: "address",
+      },
+    ],
+    name: "hasOpenedCreditAccount",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",

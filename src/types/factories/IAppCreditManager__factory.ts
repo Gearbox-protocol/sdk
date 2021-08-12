@@ -72,9 +72,21 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "uint256",
-        name: "amountOutTolerance",
-        type: "uint256",
+        components: [
+          {
+            internalType: "address[]",
+            name: "path",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOutMin",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct DataTypes.Exchange[]",
+        name: "paths",
+        type: "tuple[]",
       },
     ],
     name: "closeCreditAccount",
@@ -96,6 +108,25 @@ const _abi = [
         internalType: "address",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "borrower",
+        type: "address",
+      },
+    ],
+    name: "hasOpenedCreditAccount",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",

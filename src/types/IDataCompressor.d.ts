@@ -29,6 +29,7 @@ interface IDataCompressorInterface extends ethers.utils.Interface {
     "getPoolData(address)": FunctionFragment;
     "getPoolsList()": FunctionFragment;
     "getTokenData(address)": FunctionFragment;
+    "hasOpenedCreditAccount(address,address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -59,6 +60,10 @@ interface IDataCompressorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "getTokenData",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasOpenedCreditAccount",
+    values: [string, string]
   ): string;
 
   decodeFunctionResult(
@@ -91,6 +96,10 @@ interface IDataCompressorInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getTokenData",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "hasOpenedCreditAccount",
     data: BytesLike
   ): Result;
 
@@ -515,6 +524,7 @@ export class IDataCompressor extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -530,6 +540,7 @@ export class IDataCompressor extends Contract {
           borrowAPY_RAY: BigNumber;
           dieselRate_RAY: BigNumber;
           withdrawFee: BigNumber;
+          timestampLU: BigNumber;
         }
       ]
     >;
@@ -552,6 +563,7 @@ export class IDataCompressor extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -567,6 +579,7 @@ export class IDataCompressor extends Contract {
           borrowAPY_RAY: BigNumber;
           dieselRate_RAY: BigNumber;
           withdrawFee: BigNumber;
+          timestampLU: BigNumber;
         }
       ]
     >;
@@ -588,6 +601,7 @@ export class IDataCompressor extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -603,6 +617,7 @@ export class IDataCompressor extends Contract {
           borrowAPY_RAY: BigNumber;
           dieselRate_RAY: BigNumber;
           withdrawFee: BigNumber;
+          timestampLU: BigNumber;
         })[]
       ]
     >;
@@ -624,6 +639,7 @@ export class IDataCompressor extends Contract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -639,6 +655,7 @@ export class IDataCompressor extends Contract {
           borrowAPY_RAY: BigNumber;
           dieselRate_RAY: BigNumber;
           withdrawFee: BigNumber;
+          timestampLU: BigNumber;
         })[]
       ]
     >;
@@ -668,6 +685,18 @@ export class IDataCompressor extends Contract {
         }
       ]
     >;
+
+    hasOpenedCreditAccount(
+      creditManager: string,
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    "hasOpenedCreditAccount(address,address)"(
+      creditManager: string,
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
   };
 
   getCreditAccountData(
@@ -1035,6 +1064,7 @@ export class IDataCompressor extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -1050,6 +1080,7 @@ export class IDataCompressor extends Contract {
       borrowAPY_RAY: BigNumber;
       dieselRate_RAY: BigNumber;
       withdrawFee: BigNumber;
+      timestampLU: BigNumber;
     }
   >;
 
@@ -1070,6 +1101,7 @@ export class IDataCompressor extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -1085,6 +1117,7 @@ export class IDataCompressor extends Contract {
       borrowAPY_RAY: BigNumber;
       dieselRate_RAY: BigNumber;
       withdrawFee: BigNumber;
+      timestampLU: BigNumber;
     }
   >;
 
@@ -1104,6 +1137,7 @@ export class IDataCompressor extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -1119,6 +1153,7 @@ export class IDataCompressor extends Contract {
       borrowAPY_RAY: BigNumber;
       dieselRate_RAY: BigNumber;
       withdrawFee: BigNumber;
+      timestampLU: BigNumber;
     })[]
   >;
 
@@ -1138,6 +1173,7 @@ export class IDataCompressor extends Contract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -1153,6 +1189,7 @@ export class IDataCompressor extends Contract {
       borrowAPY_RAY: BigNumber;
       dieselRate_RAY: BigNumber;
       withdrawFee: BigNumber;
+      timestampLU: BigNumber;
     })[]
   >;
 
@@ -1177,6 +1214,18 @@ export class IDataCompressor extends Contract {
       decimals: number;
     }
   >;
+
+  hasOpenedCreditAccount(
+    creditManager: string,
+    borrower: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  "hasOpenedCreditAccount(address,address)"(
+    creditManager: string,
+    borrower: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   callStatic: {
     getCreditAccountData(
@@ -1562,6 +1611,7 @@ export class IDataCompressor extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1577,6 +1627,7 @@ export class IDataCompressor extends Contract {
         borrowAPY_RAY: BigNumber;
         dieselRate_RAY: BigNumber;
         withdrawFee: BigNumber;
+        timestampLU: BigNumber;
       }
     >;
 
@@ -1597,6 +1648,7 @@ export class IDataCompressor extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1612,6 +1664,7 @@ export class IDataCompressor extends Contract {
         borrowAPY_RAY: BigNumber;
         dieselRate_RAY: BigNumber;
         withdrawFee: BigNumber;
+        timestampLU: BigNumber;
       }
     >;
 
@@ -1631,6 +1684,7 @@ export class IDataCompressor extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1646,6 +1700,7 @@ export class IDataCompressor extends Contract {
         borrowAPY_RAY: BigNumber;
         dieselRate_RAY: BigNumber;
         withdrawFee: BigNumber;
+        timestampLU: BigNumber;
       })[]
     >;
 
@@ -1665,6 +1720,7 @@ export class IDataCompressor extends Contract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1680,6 +1736,7 @@ export class IDataCompressor extends Contract {
         borrowAPY_RAY: BigNumber;
         dieselRate_RAY: BigNumber;
         withdrawFee: BigNumber;
+        timestampLU: BigNumber;
       })[]
     >;
 
@@ -1704,6 +1761,18 @@ export class IDataCompressor extends Contract {
         decimals: number;
       }
     >;
+
+    hasOpenedCreditAccount(
+      creditManager: string,
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "hasOpenedCreditAccount(address,address)"(
+      creditManager: string,
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
   };
 
   filters: {};
@@ -1780,6 +1849,18 @@ export class IDataCompressor extends Contract {
 
     "getTokenData(address)"(
       addr: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    hasOpenedCreditAccount(
+      creditManager: string,
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "hasOpenedCreditAccount(address,address)"(
+      creditManager: string,
+      borrower: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -1862,6 +1943,18 @@ export class IDataCompressor extends Contract {
 
     "getTokenData(address)"(
       addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasOpenedCreditAccount(
+      creditManager: string,
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "hasOpenedCreditAccount(address,address)"(
+      creditManager: string,
+      borrower: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

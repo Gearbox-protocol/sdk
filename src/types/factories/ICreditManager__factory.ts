@@ -297,9 +297,21 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "uint256",
-        name: "amountOutTolerance",
-        type: "uint256",
+        components: [
+          {
+            internalType: "address[]",
+            name: "path",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOutMin",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct DataTypes.Exchange[]",
+        name: "paths",
+        type: "tuple[]",
       },
     ],
     name: "closeCreditAccount",
