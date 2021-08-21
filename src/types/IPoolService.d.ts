@@ -21,6 +21,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IPoolServiceInterface extends ethers.utils.Interface {
   functions: {
+    "_cumulativeIndex_RAY()": FunctionFragment;
     "_timestampLU()": FunctionFragment;
     "addLiquidity(uint256,address,uint256)": FunctionFragment;
     "availableLiquidity()": FunctionFragment;
@@ -43,6 +44,10 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
     "withdrawFee()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "_cumulativeIndex_RAY",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "_timestampLU",
     values?: undefined
@@ -124,6 +129,10 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "_cumulativeIndex_RAY",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "_timestampLU",
     data: BytesLike
@@ -266,6 +275,8 @@ export class IPoolService extends BaseContract {
   interface: IPoolServiceInterface;
 
   functions: {
+    _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     _timestampLU(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     addLiquidity(
@@ -337,6 +348,8 @@ export class IPoolService extends BaseContract {
     withdrawFee(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
+  _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
   _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
 
   addLiquidity(
@@ -402,6 +415,8 @@ export class IPoolService extends BaseContract {
   withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
+    _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
     _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
 
     addLiquidity(
@@ -548,6 +563,8 @@ export class IPoolService extends BaseContract {
   };
 
   estimateGas: {
+    _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
     _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
 
     addLiquidity(
@@ -620,6 +637,10 @@ export class IPoolService extends BaseContract {
   };
 
   populateTransaction: {
+    _cumulativeIndex_RAY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     _timestampLU(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     addLiquidity(

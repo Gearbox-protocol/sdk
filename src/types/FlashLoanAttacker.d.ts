@@ -21,13 +21,17 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface FlashLoanAttackerInterface extends ethers.utils.Interface {
   functions: {
-    "attackClose(uint256,uint256)": FunctionFragment;
+    "attackClose(uint256,uint256,tuple[])": FunctionFragment;
     "attackRepay(uint256,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "attackClose",
-    values: [BigNumberish, BigNumberish]
+    values: [
+      BigNumberish,
+      BigNumberish,
+      { path: string[]; amountOutMin: BigNumberish }[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "attackRepay",
@@ -93,6 +97,7 @@ export class FlashLoanAttacker extends BaseContract {
     attackClose(
       amount: BigNumberish,
       leverage: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -106,6 +111,7 @@ export class FlashLoanAttacker extends BaseContract {
   attackClose(
     amount: BigNumberish,
     leverage: BigNumberish,
+    paths: { path: string[]; amountOutMin: BigNumberish }[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -119,6 +125,7 @@ export class FlashLoanAttacker extends BaseContract {
     attackClose(
       amount: BigNumberish,
       leverage: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -135,6 +142,7 @@ export class FlashLoanAttacker extends BaseContract {
     attackClose(
       amount: BigNumberish,
       leverage: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -149,6 +157,7 @@ export class FlashLoanAttacker extends BaseContract {
     attackClose(
       amount: BigNumberish,
       leverage: BigNumberish,
+      paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -38,6 +38,7 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "CF_INCORRECT_CHI_THRESHOLD()": FunctionFragment;
     "CF_INCORRECT_FAST_CHECK()": FunctionFragment;
     "CF_INCORRECT_LIQUIDATION_THRESHOLD()": FunctionFragment;
+    "CF_NON_TOKEN_CONTRACT()": FunctionFragment;
     "CF_OPERATION_LOW_HEALTH_FACTOR()": FunctionFragment;
     "CF_TOKEN_IS_NOT_ALLOWED()": FunctionFragment;
     "CF_TOO_MUCH_ALLOWED_TOKENS()": FunctionFragment;
@@ -150,6 +151,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "CF_INCORRECT_LIQUIDATION_THRESHOLD",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CF_NON_TOKEN_CONTRACT",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -383,6 +388,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "CF_INCORRECT_LIQUIDATION_THRESHOLD",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CF_NON_TOKEN_CONTRACT",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -635,6 +644,8 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    CF_NON_TOKEN_CONTRACT(overrides?: CallOverrides): Promise<[string]>;
+
     CF_OPERATION_LOW_HEALTH_FACTOR(
       overrides?: CallOverrides
     ): Promise<[string]>;
@@ -792,6 +803,8 @@ export class Errors extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  CF_NON_TOKEN_CONTRACT(overrides?: CallOverrides): Promise<string>;
+
   CF_OPERATION_LOW_HEALTH_FACTOR(overrides?: CallOverrides): Promise<string>;
 
   CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
@@ -946,6 +959,8 @@ export class Errors extends BaseContract {
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
     ): Promise<string>;
+
+    CF_NON_TOKEN_CONTRACT(overrides?: CallOverrides): Promise<string>;
 
     CF_OPERATION_LOW_HEALTH_FACTOR(overrides?: CallOverrides): Promise<string>;
 
@@ -1106,6 +1121,8 @@ export class Errors extends BaseContract {
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    CF_NON_TOKEN_CONTRACT(overrides?: CallOverrides): Promise<BigNumber>;
 
     CF_OPERATION_LOW_HEALTH_FACTOR(
       overrides?: CallOverrides
@@ -1292,6 +1309,10 @@ export class Errors extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     CF_INCORRECT_LIQUIDATION_THRESHOLD(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CF_NON_TOKEN_CONTRACT(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

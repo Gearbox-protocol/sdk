@@ -41,8 +41,8 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
     "contractToAdapter(address)": FunctionFragment;
     "creditManager()": FunctionFragment;
     "enabledTokens(address)": FunctionFragment;
-    "fastCheckBlock(address)": FunctionFragment;
-    "fastCheckDelay()": FunctionFragment;
+    "fastCheckCounter(address)": FunctionFragment;
+    "fastCheckMax()": FunctionFragment;
     "getCreditAccountTokenById(address,uint256)": FunctionFragment;
     "initEnabledTokens(address)": FunctionFragment;
     "isTokenAllowed(address)": FunctionFragment;
@@ -142,11 +142,11 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "fastCheckBlock",
+    functionFragment: "fastCheckCounter",
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "fastCheckDelay",
+    functionFragment: "fastCheckMax",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -283,11 +283,11 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "fastCheckBlock",
+    functionFragment: "fastCheckCounter",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "fastCheckDelay",
+    functionFragment: "fastCheckMax",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -497,12 +497,12 @@ export class CreditFilterMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    fastCheckBlock(
+    fastCheckCounter(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    fastCheckDelay(overrides?: CallOverrides): Promise<[BigNumber]>;
+    fastCheckMax(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getCreditAccountTokenById(
       creditAccount: string,
@@ -559,7 +559,7 @@ export class CreditFilterMock extends BaseContract {
 
     setupFastCheckParameters(
       _chiThreshold: BigNumberish,
-      _fastCheckDelay: BigNumberish,
+      _fastCheckMax: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -659,9 +659,9 @@ export class CreditFilterMock extends BaseContract {
 
   enabledTokens(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  fastCheckBlock(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+  fastCheckCounter(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  fastCheckDelay(overrides?: CallOverrides): Promise<BigNumber>;
+  fastCheckMax(overrides?: CallOverrides): Promise<BigNumber>;
 
   getCreditAccountTokenById(
     creditAccount: string,
@@ -715,7 +715,7 @@ export class CreditFilterMock extends BaseContract {
 
   setupFastCheckParameters(
     _chiThreshold: BigNumberish,
-    _fastCheckDelay: BigNumberish,
+    _fastCheckMax: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -818,9 +818,12 @@ export class CreditFilterMock extends BaseContract {
 
     enabledTokens(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    fastCheckBlock(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    fastCheckCounter(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    fastCheckDelay(overrides?: CallOverrides): Promise<BigNumber>;
+    fastCheckMax(overrides?: CallOverrides): Promise<BigNumber>;
 
     getCreditAccountTokenById(
       creditAccount: string,
@@ -872,7 +875,7 @@ export class CreditFilterMock extends BaseContract {
 
     setupFastCheckParameters(
       _chiThreshold: BigNumberish,
-      _fastCheckDelay: BigNumberish,
+      _fastCheckMax: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1010,9 +1013,12 @@ export class CreditFilterMock extends BaseContract {
 
     enabledTokens(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    fastCheckBlock(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    fastCheckCounter(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    fastCheckDelay(overrides?: CallOverrides): Promise<BigNumber>;
+    fastCheckMax(overrides?: CallOverrides): Promise<BigNumber>;
 
     getCreditAccountTokenById(
       creditAccount: string,
@@ -1062,7 +1068,7 @@ export class CreditFilterMock extends BaseContract {
 
     setupFastCheckParameters(
       _chiThreshold: BigNumberish,
-      _fastCheckDelay: BigNumberish,
+      _fastCheckMax: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1179,12 +1185,12 @@ export class CreditFilterMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    fastCheckBlock(
+    fastCheckCounter(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    fastCheckDelay(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    fastCheckMax(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getCreditAccountTokenById(
       creditAccount: string,
@@ -1234,7 +1240,7 @@ export class CreditFilterMock extends BaseContract {
 
     setupFastCheckParameters(
       _chiThreshold: BigNumberish,
-      _fastCheckDelay: BigNumberish,
+      _fastCheckMax: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

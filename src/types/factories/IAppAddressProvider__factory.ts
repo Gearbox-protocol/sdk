@@ -38,6 +38,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getPriceOracle",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getWETHGateway",
     outputs: [
       {

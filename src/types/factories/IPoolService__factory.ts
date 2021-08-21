@@ -192,6 +192,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "_cumulativeIndex_RAY",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "_timestampLU",
     outputs: [
       {

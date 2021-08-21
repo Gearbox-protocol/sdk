@@ -421,6 +421,7 @@ export class DataCompressor extends BaseContract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -436,6 +437,7 @@ export class DataCompressor extends BaseContract {
           borrowAPY_RAY: BigNumber;
           dieselRate_RAY: BigNumber;
           withdrawFee: BigNumber;
+          cumulativeIndex_RAY: BigNumber;
           timestampLU: BigNumber;
         }
       ]
@@ -459,6 +461,7 @@ export class DataCompressor extends BaseContract {
           BigNumber,
           BigNumber,
           BigNumber,
+          BigNumber,
           BigNumber
         ] & {
           addr: string;
@@ -474,6 +477,7 @@ export class DataCompressor extends BaseContract {
           borrowAPY_RAY: BigNumber;
           dieselRate_RAY: BigNumber;
           withdrawFee: BigNumber;
+          cumulativeIndex_RAY: BigNumber;
           timestampLU: BigNumber;
         })[]
       ]
@@ -715,6 +719,7 @@ export class DataCompressor extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -730,6 +735,7 @@ export class DataCompressor extends BaseContract {
       borrowAPY_RAY: BigNumber;
       dieselRate_RAY: BigNumber;
       withdrawFee: BigNumber;
+      cumulativeIndex_RAY: BigNumber;
       timestampLU: BigNumber;
     }
   >;
@@ -751,6 +757,7 @@ export class DataCompressor extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       addr: string;
@@ -766,6 +773,7 @@ export class DataCompressor extends BaseContract {
       borrowAPY_RAY: BigNumber;
       dieselRate_RAY: BigNumber;
       withdrawFee: BigNumber;
+      cumulativeIndex_RAY: BigNumber;
       timestampLU: BigNumber;
     })[]
   >;
@@ -1013,6 +1021,7 @@ export class DataCompressor extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1028,6 +1037,7 @@ export class DataCompressor extends BaseContract {
         borrowAPY_RAY: BigNumber;
         dieselRate_RAY: BigNumber;
         withdrawFee: BigNumber;
+        cumulativeIndex_RAY: BigNumber;
         timestampLU: BigNumber;
       }
     >;
@@ -1049,6 +1059,7 @@ export class DataCompressor extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         addr: string;
@@ -1064,6 +1075,7 @@ export class DataCompressor extends BaseContract {
         borrowAPY_RAY: BigNumber;
         dieselRate_RAY: BigNumber;
         withdrawFee: BigNumber;
+        cumulativeIndex_RAY: BigNumber;
         timestampLU: BigNumber;
       })[]
     >;

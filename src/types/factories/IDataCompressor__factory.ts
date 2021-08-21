@@ -569,6 +569,11 @@ const _abi = [
           },
           {
             internalType: "uint256",
+            name: "cumulativeIndex_RAY",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
             name: "timestampLU",
             type: "uint256",
           },
@@ -650,6 +655,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "withdrawFee",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "cumulativeIndex_RAY",
             type: "uint256",
           },
           {

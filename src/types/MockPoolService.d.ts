@@ -21,14 +21,19 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface MockPoolServiceInterface extends ethers.utils.Interface {
   functions: {
+    "_cumulativeIndex_RAY()": FunctionFragment;
+    "_expectedLiquidityLU()": FunctionFragment;
     "_timestampLU()": FunctionFragment;
     "addLiquidity(uint256,address,uint256)": FunctionFragment;
+    "addressProvider()": FunctionFragment;
     "availableLiquidity()": FunctionFragment;
     "borrowAPY_RAY()": FunctionFragment;
     "calcLinearCumulative_RAY()": FunctionFragment;
+    "calcLinearIndex_RAY()": FunctionFragment;
     "connectCreditManager(address)": FunctionFragment;
     "creditManagers(uint256)": FunctionFragment;
     "creditManagersCanBorrow(address)": FunctionFragment;
+    "creditManagersCanRepay(address)": FunctionFragment;
     "creditManagersCount()": FunctionFragment;
     "dieselToken()": FunctionFragment;
     "expectedLiquidity()": FunctionFragment;
@@ -36,22 +41,38 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     "forbidCreditManagerToBorrow(address)": FunctionFragment;
     "fromDiesel(uint256)": FunctionFragment;
     "getDieselRate_RAY()": FunctionFragment;
+    "interestRateModel()": FunctionFragment;
     "lendAccount()": FunctionFragment;
     "lendAmount()": FunctionFragment;
     "lendCreditAccount(uint256,address)": FunctionFragment;
     "newInterestRateModel(address)": FunctionFragment;
+    "pause()": FunctionFragment;
+    "paused()": FunctionFragment;
     "removeLiquidity(uint256,address)": FunctionFragment;
     "repayAmount()": FunctionFragment;
     "repayCreditAccount(uint256,uint256,uint256)": FunctionFragment;
     "repayLoss()": FunctionFragment;
     "repayProfit()": FunctionFragment;
     "setCumulative_RAY(uint256)": FunctionFragment;
+    "setExpectedLiquidityLimit(uint256)": FunctionFragment;
+    "setWithdrawFee(uint256)": FunctionFragment;
     "toDiesel(uint256)": FunctionFragment;
     "totalBorrowed()": FunctionFragment;
+    "treasuryAddress()": FunctionFragment;
     "underlyingToken()": FunctionFragment;
+    "unpause()": FunctionFragment;
     "withdrawFee()": FunctionFragment;
+    "withdrawMultiplier()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "_cumulativeIndex_RAY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_expectedLiquidityLU",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "_timestampLU",
     values?: undefined
@@ -59,6 +80,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "addLiquidity",
     values: [BigNumberish, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addressProvider",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "availableLiquidity",
@@ -73,6 +98,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "calcLinearIndex_RAY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "connectCreditManager",
     values: [string]
   ): string;
@@ -82,6 +111,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "creditManagersCanBorrow",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "creditManagersCanRepay",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -113,6 +146,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "interestRateModel",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "lendAccount",
     values?: undefined
   ): string;
@@ -128,6 +165,8 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     functionFragment: "newInterestRateModel",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "removeLiquidity",
     values: [BigNumberish, string]
@@ -150,6 +189,14 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "setExpectedLiquidityLimit",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setWithdrawFee",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "toDiesel",
     values: [BigNumberish]
   ): string;
@@ -158,20 +205,41 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "treasuryAddress",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "underlyingToken",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdrawFee",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawMultiplier",
+    values?: undefined
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "_cumulativeIndex_RAY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_expectedLiquidityLU",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "_timestampLU",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "addLiquidity",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addressProvider",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -187,6 +255,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "calcLinearIndex_RAY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "connectCreditManager",
     data: BytesLike
   ): Result;
@@ -196,6 +268,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManagersCanBorrow",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "creditManagersCanRepay",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -224,6 +300,10 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "interestRateModel",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "lendAccount",
     data: BytesLike
   ): Result;
@@ -236,6 +316,8 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     functionFragment: "newInterestRateModel",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidity",
     data: BytesLike
@@ -257,17 +339,34 @@ interface MockPoolServiceInterface extends ethers.utils.Interface {
     functionFragment: "setCumulative_RAY",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "setExpectedLiquidityLimit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setWithdrawFee",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "toDiesel", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalBorrowed",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "underlyingToken",
+    functionFragment: "treasuryAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "underlyingToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "withdrawFee",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawMultiplier",
     data: BytesLike
   ): Result;
 
@@ -338,6 +437,10 @@ export class MockPoolService extends BaseContract {
   interface: MockPoolServiceInterface;
 
   functions: {
+    _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    _expectedLiquidityLU(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     _timestampLU(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     addLiquidity(
@@ -347,11 +450,15 @@ export class MockPoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    addressProvider(overrides?: CallOverrides): Promise<[string]>;
+
     availableLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    calcLinearIndex_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     connectCreditManager(
       _creditManager: string,
@@ -364,6 +471,11 @@ export class MockPoolService extends BaseContract {
     ): Promise<[string]>;
 
     creditManagersCanBorrow(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    creditManagersCanRepay(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -388,6 +500,8 @@ export class MockPoolService extends BaseContract {
 
     getDieselRate_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    interestRateModel(overrides?: CallOverrides): Promise<[string]>;
+
     lendAccount(overrides?: CallOverrides): Promise<[string]>;
 
     lendAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -402,6 +516,12 @@ export class MockPoolService extends BaseContract {
       _interestRateModel: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     removeLiquidity(
       amount: BigNumberish,
@@ -427,6 +547,16 @@ export class MockPoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setExpectedLiquidityLimit(
+      num: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setWithdrawFee(
+      num: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     toDiesel(
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -434,10 +564,22 @@ export class MockPoolService extends BaseContract {
 
     totalBorrowed(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    treasuryAddress(overrides?: CallOverrides): Promise<[string]>;
+
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
 
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     withdrawFee(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    withdrawMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
+
+  _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+  _expectedLiquidityLU(overrides?: CallOverrides): Promise<BigNumber>;
 
   _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -448,11 +590,15 @@ export class MockPoolService extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  addressProvider(overrides?: CallOverrides): Promise<string>;
+
   availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
   borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
   calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+  calcLinearIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
   connectCreditManager(
     _creditManager: string,
@@ -465,6 +611,11 @@ export class MockPoolService extends BaseContract {
   ): Promise<string>;
 
   creditManagersCanBorrow(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  creditManagersCanRepay(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -489,6 +640,8 @@ export class MockPoolService extends BaseContract {
 
   getDieselRate_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
+  interestRateModel(overrides?: CallOverrides): Promise<string>;
+
   lendAccount(overrides?: CallOverrides): Promise<string>;
 
   lendAmount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -503,6 +656,12 @@ export class MockPoolService extends BaseContract {
     _interestRateModel: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  pause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  paused(overrides?: CallOverrides): Promise<boolean>;
 
   removeLiquidity(
     amount: BigNumberish,
@@ -528,15 +687,37 @@ export class MockPoolService extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setExpectedLiquidityLimit(
+    num: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setWithdrawFee(
+    num: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   toDiesel(amount: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
 
+  treasuryAddress(overrides?: CallOverrides): Promise<string>;
+
   underlyingToken(overrides?: CallOverrides): Promise<string>;
+
+  unpause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
 
+  withdrawMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
+    _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _expectedLiquidityLU(overrides?: CallOverrides): Promise<BigNumber>;
+
     _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
 
     addLiquidity(
@@ -546,11 +727,15 @@ export class MockPoolService extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    addressProvider(overrides?: CallOverrides): Promise<string>;
+
     availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calcLinearIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     connectCreditManager(
       _creditManager: string,
@@ -563,6 +748,11 @@ export class MockPoolService extends BaseContract {
     ): Promise<string>;
 
     creditManagersCanBorrow(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    creditManagersCanRepay(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -587,6 +777,8 @@ export class MockPoolService extends BaseContract {
 
     getDieselRate_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
+    interestRateModel(overrides?: CallOverrides): Promise<string>;
+
     lendAccount(overrides?: CallOverrides): Promise<string>;
 
     lendAmount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -601,6 +793,10 @@ export class MockPoolService extends BaseContract {
       _interestRateModel: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    pause(overrides?: CallOverrides): Promise<void>;
+
+    paused(overrides?: CallOverrides): Promise<boolean>;
 
     removeLiquidity(
       amount: BigNumberish,
@@ -626,6 +822,13 @@ export class MockPoolService extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setExpectedLiquidityLimit(
+      num: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setWithdrawFee(num: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
     toDiesel(
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -633,9 +836,15 @@ export class MockPoolService extends BaseContract {
 
     totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
 
+    treasuryAddress(overrides?: CallOverrides): Promise<string>;
+
     underlyingToken(overrides?: CallOverrides): Promise<string>;
 
+    unpause(overrides?: CallOverrides): Promise<void>;
+
     withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdrawMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -713,6 +922,10 @@ export class MockPoolService extends BaseContract {
   };
 
   estimateGas: {
+    _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _expectedLiquidityLU(overrides?: CallOverrides): Promise<BigNumber>;
+
     _timestampLU(overrides?: CallOverrides): Promise<BigNumber>;
 
     addLiquidity(
@@ -722,11 +935,15 @@ export class MockPoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
+
     availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calcLinearIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     connectCreditManager(
       _creditManager: string,
@@ -739,6 +956,11 @@ export class MockPoolService extends BaseContract {
     ): Promise<BigNumber>;
 
     creditManagersCanBorrow(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    creditManagersCanRepay(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -763,6 +985,8 @@ export class MockPoolService extends BaseContract {
 
     getDieselRate_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
+    interestRateModel(overrides?: CallOverrides): Promise<BigNumber>;
+
     lendAccount(overrides?: CallOverrides): Promise<BigNumber>;
 
     lendAmount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -777,6 +1001,12 @@ export class MockPoolService extends BaseContract {
       _interestRateModel: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     removeLiquidity(
       amount: BigNumberish,
@@ -802,6 +1032,16 @@ export class MockPoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setExpectedLiquidityLimit(
+      num: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setWithdrawFee(
+      num: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     toDiesel(
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -809,12 +1049,28 @@ export class MockPoolService extends BaseContract {
 
     totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
 
+    treasuryAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
 
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdrawMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    _cumulativeIndex_RAY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _expectedLiquidityLU(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     _timestampLU(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     addLiquidity(
@@ -824,6 +1080,8 @@ export class MockPoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     availableLiquidity(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -831,6 +1089,10 @@ export class MockPoolService extends BaseContract {
     borrowAPY_RAY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     calcLinearCumulative_RAY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    calcLinearIndex_RAY(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -845,6 +1107,11 @@ export class MockPoolService extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     creditManagersCanBorrow(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    creditManagersCanRepay(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -873,6 +1140,8 @@ export class MockPoolService extends BaseContract {
 
     getDieselRate_RAY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    interestRateModel(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     lendAccount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     lendAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -887,6 +1156,12 @@ export class MockPoolService extends BaseContract {
       _interestRateModel: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     removeLiquidity(
       amount: BigNumberish,
@@ -912,6 +1187,16 @@ export class MockPoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    setExpectedLiquidityLimit(
+      num: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setWithdrawFee(
+      num: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     toDiesel(
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -919,8 +1204,18 @@ export class MockPoolService extends BaseContract {
 
     totalBorrowed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    treasuryAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     underlyingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     withdrawFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdrawMultiplier(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }

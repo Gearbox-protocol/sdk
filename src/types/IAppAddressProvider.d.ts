@@ -22,6 +22,7 @@ interface IAppAddressProviderInterface extends ethers.utils.Interface {
   functions: {
     "getDataCompressor()": FunctionFragment;
     "getGearToken()": FunctionFragment;
+    "getPriceOracle()": FunctionFragment;
     "getWETHGateway()": FunctionFragment;
     "getWethToken()": FunctionFragment;
   };
@@ -32,6 +33,10 @@ interface IAppAddressProviderInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getGearToken",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPriceOracle",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -49,6 +54,10 @@ interface IAppAddressProviderInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getGearToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPriceOracle",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -111,6 +120,8 @@ export class IAppAddressProvider extends BaseContract {
 
     getGearToken(overrides?: CallOverrides): Promise<[string]>;
 
+    getPriceOracle(overrides?: CallOverrides): Promise<[string]>;
+
     getWETHGateway(overrides?: CallOverrides): Promise<[string]>;
 
     getWethToken(overrides?: CallOverrides): Promise<[string]>;
@@ -120,6 +131,8 @@ export class IAppAddressProvider extends BaseContract {
 
   getGearToken(overrides?: CallOverrides): Promise<string>;
 
+  getPriceOracle(overrides?: CallOverrides): Promise<string>;
+
   getWETHGateway(overrides?: CallOverrides): Promise<string>;
 
   getWethToken(overrides?: CallOverrides): Promise<string>;
@@ -128,6 +141,8 @@ export class IAppAddressProvider extends BaseContract {
     getDataCompressor(overrides?: CallOverrides): Promise<string>;
 
     getGearToken(overrides?: CallOverrides): Promise<string>;
+
+    getPriceOracle(overrides?: CallOverrides): Promise<string>;
 
     getWETHGateway(overrides?: CallOverrides): Promise<string>;
 
@@ -141,6 +156,8 @@ export class IAppAddressProvider extends BaseContract {
 
     getGearToken(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getPriceOracle(overrides?: CallOverrides): Promise<BigNumber>;
+
     getWETHGateway(overrides?: CallOverrides): Promise<BigNumber>;
 
     getWethToken(overrides?: CallOverrides): Promise<BigNumber>;
@@ -150,6 +167,8 @@ export class IAppAddressProvider extends BaseContract {
     getDataCompressor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getGearToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getPriceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getWETHGateway(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
