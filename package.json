@@ -1,6 +1,6 @@
 {
   "name": "@diesellabs/gearbox-sdk",
-  "version": "0.0.131",
+  "version": "0.0.132",
   "description": "Gearbox SDK",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "pub": "tsc && yarn publish"
+    "pub": "rm -rf ./src/types/hardhat.ts && tsc && yarn publish"
   },
   "dependencies": {
     "decimal.js-light": "^2.5.1",
