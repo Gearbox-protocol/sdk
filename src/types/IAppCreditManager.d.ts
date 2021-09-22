@@ -24,6 +24,7 @@ interface IAppCreditManagerInterface extends ethers.utils.Interface {
     "addCollateral(address,address,uint256)": FunctionFragment;
     "calcRepayAmount(address,bool)": FunctionFragment;
     "closeCreditAccount(address,tuple[])": FunctionFragment;
+    "defaultSwapContract()": FunctionFragment;
     "getCreditAccountOrRevert(address)": FunctionFragment;
     "hasOpenedCreditAccount(address)": FunctionFragment;
     "increaseBorrowedAmount(uint256)": FunctionFragment;
@@ -42,6 +43,10 @@ interface IAppCreditManagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "closeCreditAccount",
     values: [string, { path: string[]; amountOutMin: BigNumberish }[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "defaultSwapContract",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountOrRevert",
@@ -74,6 +79,10 @@ interface IAppCreditManagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "closeCreditAccount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "defaultSwapContract",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -163,6 +172,8 @@ export class IAppCreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    defaultSwapContract(overrides?: CallOverrides): Promise<[string]>;
+
     getCreditAccountOrRevert(
       borrower: string,
       overrides?: CallOverrides
@@ -210,6 +221,8 @@ export class IAppCreditManager extends BaseContract {
     paths: { path: string[]; amountOutMin: BigNumberish }[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  defaultSwapContract(overrides?: CallOverrides): Promise<string>;
 
   getCreditAccountOrRevert(
     borrower: string,
@@ -259,6 +272,8 @@ export class IAppCreditManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    defaultSwapContract(overrides?: CallOverrides): Promise<string>;
+
     getCreditAccountOrRevert(
       borrower: string,
       overrides?: CallOverrides
@@ -307,6 +322,8 @@ export class IAppCreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    defaultSwapContract(overrides?: CallOverrides): Promise<BigNumber>;
+
     getCreditAccountOrRevert(
       borrower: string,
       overrides?: CallOverrides
@@ -354,6 +371,10 @@ export class IAppCreditManager extends BaseContract {
       to: string,
       paths: { path: string[]; amountOutMin: BigNumberish }[],
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    defaultSwapContract(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCreditAccountOrRevert(

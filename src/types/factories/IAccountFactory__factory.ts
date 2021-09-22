@@ -69,11 +69,23 @@ const _abi = [
     type: "event",
   },
   {
-    inputs: [],
-    name: "connectMiner",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "TakeForever",
+    type: "event",
   },
   {
     inputs: [],
@@ -179,13 +191,7 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address payable",
-        name: "trader",
-        type: "address",
-      },
-    ],
+    inputs: [],
     name: "takeCreditAccount",
     outputs: [
       {

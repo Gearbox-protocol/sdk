@@ -22,11 +22,11 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface AddressProviderInterface extends ethers.utils.Interface {
   functions: {
     "ACCOUNT_FACTORY()": FunctionFragment;
-    "ACCOUNT_MINER()": FunctionFragment;
     "ACL()": FunctionFragment;
     "CONTRACTS_REGISTER()": FunctionFragment;
     "DATA_COMPRESSOR()": FunctionFragment;
     "GEAR_TOKEN()": FunctionFragment;
+    "LEVERAGED_ACTIONS()": FunctionFragment;
     "PRICE_ORACLE()": FunctionFragment;
     "TREASURY_CONTRACT()": FunctionFragment;
     "WETH_GATEWAY()": FunctionFragment;
@@ -34,10 +34,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     "addresses(bytes32)": FunctionFragment;
     "getACL()": FunctionFragment;
     "getAccountFactory()": FunctionFragment;
-    "getAccountMiner()": FunctionFragment;
     "getContractsRegister()": FunctionFragment;
     "getDataCompressor()": FunctionFragment;
     "getGearToken()": FunctionFragment;
+    "getLeveragedActions()": FunctionFragment;
     "getPriceOracle()": FunctionFragment;
     "getTreasuryContract()": FunctionFragment;
     "getWETHGateway()": FunctionFragment;
@@ -46,10 +46,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     "renounceOwnership()": FunctionFragment;
     "setACL(address)": FunctionFragment;
     "setAccountFactory(address)": FunctionFragment;
-    "setAccountMiner(address)": FunctionFragment;
     "setContractsRegister(address)": FunctionFragment;
     "setDataCompressor(address)": FunctionFragment;
     "setGearToken(address)": FunctionFragment;
+    "setLeveragedActions(address)": FunctionFragment;
     "setPriceOracle(address)": FunctionFragment;
     "setTreasuryContract(address)": FunctionFragment;
     "setWETHGateway(address)": FunctionFragment;
@@ -59,10 +59,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
 
   encodeFunctionData(
     functionFragment: "ACCOUNT_FACTORY",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "ACCOUNT_MINER",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "ACL", values?: undefined): string;
@@ -76,6 +72,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "GEAR_TOKEN",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "LEVERAGED_ACTIONS",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -104,10 +104,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getAccountMiner",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getContractsRegister",
     values?: undefined
   ): string;
@@ -117,6 +113,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getGearToken",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLeveragedActions",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -146,10 +146,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setAccountMiner",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setContractsRegister",
     values: [string]
   ): string;
@@ -159,6 +155,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setGearToken",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setLeveragedActions",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -186,10 +186,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     functionFragment: "ACCOUNT_FACTORY",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "ACCOUNT_MINER",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "ACL", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "CONTRACTS_REGISTER",
@@ -200,6 +196,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "GEAR_TOKEN", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "LEVERAGED_ACTIONS",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "PRICE_ORACLE",
     data: BytesLike
@@ -220,10 +220,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAccountMiner",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getContractsRegister",
     data: BytesLike
   ): Result;
@@ -233,6 +229,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getGearToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLeveragedActions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -262,10 +262,6 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setAccountMiner",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setContractsRegister",
     data: BytesLike
   ): Result;
@@ -275,6 +271,10 @@ interface AddressProviderInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setGearToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setLeveragedActions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -353,8 +353,6 @@ export class AddressProvider extends BaseContract {
   functions: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<[string]>;
 
-    ACCOUNT_MINER(overrides?: CallOverrides): Promise<[string]>;
-
     ACL(overrides?: CallOverrides): Promise<[string]>;
 
     CONTRACTS_REGISTER(overrides?: CallOverrides): Promise<[string]>;
@@ -362,6 +360,8 @@ export class AddressProvider extends BaseContract {
     DATA_COMPRESSOR(overrides?: CallOverrides): Promise<[string]>;
 
     GEAR_TOKEN(overrides?: CallOverrides): Promise<[string]>;
+
+    LEVERAGED_ACTIONS(overrides?: CallOverrides): Promise<[string]>;
 
     PRICE_ORACLE(overrides?: CallOverrides): Promise<[string]>;
 
@@ -377,13 +377,13 @@ export class AddressProvider extends BaseContract {
 
     getAccountFactory(overrides?: CallOverrides): Promise<[string]>;
 
-    getAccountMiner(overrides?: CallOverrides): Promise<[string]>;
-
     getContractsRegister(overrides?: CallOverrides): Promise<[string]>;
 
     getDataCompressor(overrides?: CallOverrides): Promise<[string]>;
 
     getGearToken(overrides?: CallOverrides): Promise<[string]>;
+
+    getLeveragedActions(overrides?: CallOverrides): Promise<[string]>;
 
     getPriceOracle(overrides?: CallOverrides): Promise<[string]>;
 
@@ -409,11 +409,6 @@ export class AddressProvider extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setAccountMiner(
-      _address: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     setContractsRegister(
       _address: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -425,6 +420,11 @@ export class AddressProvider extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setGearToken(
+      _address: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setLeveragedActions(
       _address: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -457,8 +457,6 @@ export class AddressProvider extends BaseContract {
 
   ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
 
-  ACCOUNT_MINER(overrides?: CallOverrides): Promise<string>;
-
   ACL(overrides?: CallOverrides): Promise<string>;
 
   CONTRACTS_REGISTER(overrides?: CallOverrides): Promise<string>;
@@ -466,6 +464,8 @@ export class AddressProvider extends BaseContract {
   DATA_COMPRESSOR(overrides?: CallOverrides): Promise<string>;
 
   GEAR_TOKEN(overrides?: CallOverrides): Promise<string>;
+
+  LEVERAGED_ACTIONS(overrides?: CallOverrides): Promise<string>;
 
   PRICE_ORACLE(overrides?: CallOverrides): Promise<string>;
 
@@ -481,13 +481,13 @@ export class AddressProvider extends BaseContract {
 
   getAccountFactory(overrides?: CallOverrides): Promise<string>;
 
-  getAccountMiner(overrides?: CallOverrides): Promise<string>;
-
   getContractsRegister(overrides?: CallOverrides): Promise<string>;
 
   getDataCompressor(overrides?: CallOverrides): Promise<string>;
 
   getGearToken(overrides?: CallOverrides): Promise<string>;
+
+  getLeveragedActions(overrides?: CallOverrides): Promise<string>;
 
   getPriceOracle(overrides?: CallOverrides): Promise<string>;
 
@@ -513,11 +513,6 @@ export class AddressProvider extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setAccountMiner(
-    _address: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   setContractsRegister(
     _address: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -529,6 +524,11 @@ export class AddressProvider extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setGearToken(
+    _address: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setLeveragedActions(
     _address: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -561,8 +561,6 @@ export class AddressProvider extends BaseContract {
   callStatic: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
 
-    ACCOUNT_MINER(overrides?: CallOverrides): Promise<string>;
-
     ACL(overrides?: CallOverrides): Promise<string>;
 
     CONTRACTS_REGISTER(overrides?: CallOverrides): Promise<string>;
@@ -570,6 +568,8 @@ export class AddressProvider extends BaseContract {
     DATA_COMPRESSOR(overrides?: CallOverrides): Promise<string>;
 
     GEAR_TOKEN(overrides?: CallOverrides): Promise<string>;
+
+    LEVERAGED_ACTIONS(overrides?: CallOverrides): Promise<string>;
 
     PRICE_ORACLE(overrides?: CallOverrides): Promise<string>;
 
@@ -585,13 +585,13 @@ export class AddressProvider extends BaseContract {
 
     getAccountFactory(overrides?: CallOverrides): Promise<string>;
 
-    getAccountMiner(overrides?: CallOverrides): Promise<string>;
-
     getContractsRegister(overrides?: CallOverrides): Promise<string>;
 
     getDataCompressor(overrides?: CallOverrides): Promise<string>;
 
     getGearToken(overrides?: CallOverrides): Promise<string>;
+
+    getLeveragedActions(overrides?: CallOverrides): Promise<string>;
 
     getPriceOracle(overrides?: CallOverrides): Promise<string>;
 
@@ -612,8 +612,6 @@ export class AddressProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setAccountMiner(_address: string, overrides?: CallOverrides): Promise<void>;
-
     setContractsRegister(
       _address: string,
       overrides?: CallOverrides
@@ -625,6 +623,11 @@ export class AddressProvider extends BaseContract {
     ): Promise<void>;
 
     setGearToken(_address: string, overrides?: CallOverrides): Promise<void>;
+
+    setLeveragedActions(
+      _address: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setPriceOracle(_address: string, overrides?: CallOverrides): Promise<void>;
 
@@ -664,8 +667,6 @@ export class AddressProvider extends BaseContract {
   estimateGas: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    ACCOUNT_MINER(overrides?: CallOverrides): Promise<BigNumber>;
-
     ACL(overrides?: CallOverrides): Promise<BigNumber>;
 
     CONTRACTS_REGISTER(overrides?: CallOverrides): Promise<BigNumber>;
@@ -673,6 +674,8 @@ export class AddressProvider extends BaseContract {
     DATA_COMPRESSOR(overrides?: CallOverrides): Promise<BigNumber>;
 
     GEAR_TOKEN(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LEVERAGED_ACTIONS(overrides?: CallOverrides): Promise<BigNumber>;
 
     PRICE_ORACLE(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -688,13 +691,13 @@ export class AddressProvider extends BaseContract {
 
     getAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAccountMiner(overrides?: CallOverrides): Promise<BigNumber>;
-
     getContractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
 
     getDataCompressor(overrides?: CallOverrides): Promise<BigNumber>;
 
     getGearToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLeveragedActions(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPriceOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -720,11 +723,6 @@ export class AddressProvider extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setAccountMiner(
-      _address: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     setContractsRegister(
       _address: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -736,6 +734,11 @@ export class AddressProvider extends BaseContract {
     ): Promise<BigNumber>;
 
     setGearToken(
+      _address: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setLeveragedActions(
       _address: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -769,8 +772,6 @@ export class AddressProvider extends BaseContract {
   populateTransaction: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    ACCOUNT_MINER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     ACL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     CONTRACTS_REGISTER(
@@ -780,6 +781,8 @@ export class AddressProvider extends BaseContract {
     DATA_COMPRESSOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     GEAR_TOKEN(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    LEVERAGED_ACTIONS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     PRICE_ORACLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -798,8 +801,6 @@ export class AddressProvider extends BaseContract {
 
     getAccountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getAccountMiner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getContractsRegister(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -807,6 +808,10 @@ export class AddressProvider extends BaseContract {
     getDataCompressor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getGearToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLeveragedActions(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getPriceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -834,11 +839,6 @@ export class AddressProvider extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setAccountMiner(
-      _address: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     setContractsRegister(
       _address: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -850,6 +850,11 @@ export class AddressProvider extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setGearToken(
+      _address: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setLeveragedActions(
       _address: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

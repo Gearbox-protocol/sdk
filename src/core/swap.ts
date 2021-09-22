@@ -1,1 +1,4 @@
-export type SwapType = "ExactTokensToTokens" | "TokensToExactTokens";
+export enum SwapType {
+  ExactInput = 1,
+  ExactOutput = 2,
+}

@@ -88,6 +88,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "defaultSwapContract",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -146,7 +159,7 @@ const _abi = [
         type: "uint256",
       },
       {
-        internalType: "address payable",
+        internalType: "address",
         name: "onBehalfOf",
         type: "address",
       },

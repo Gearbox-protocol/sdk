@@ -129,10 +129,7 @@ export class ICurvePool extends BaseContract {
   interface: ICurvePoolInterface;
 
   functions: {
-    coins(
-      arg0: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    coins(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     exchange(
       i: BigNumberish,
@@ -181,10 +178,7 @@ export class ICurvePool extends BaseContract {
     get_virtual_price(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
-  coins(
-    arg0: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  coins(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   exchange(
     i: BigNumberish,
@@ -285,10 +279,7 @@ export class ICurvePool extends BaseContract {
   filters: {};
 
   estimateGas: {
-    coins(
-      arg0: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    coins(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     exchange(
       i: BigNumberish,
@@ -340,7 +331,7 @@ export class ICurvePool extends BaseContract {
   populateTransaction: {
     coins(
       arg0: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     exchange(

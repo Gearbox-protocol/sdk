@@ -13,6 +13,8 @@ export interface PoolDataPayload {
   borrowAPY_RAY: BigNumberish;
   dieselRate_RAY: BigNumberish;
   withdrawFee: BigNumberish;
+  timestampLU?: BigNumberish;
+  cumulativeIndex_RAY?: BigNumberish
 }
 
 //

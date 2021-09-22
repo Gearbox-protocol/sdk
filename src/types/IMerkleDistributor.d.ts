@@ -21,7 +21,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IMerkleDistributorInterface extends ethers.utils.Interface {
   functions: {
-    "claim(uint256,address,uint256,bytes32[])": FunctionFragment;
+    "claim(uint256,uint256,bytes32[])": FunctionFragment;
     "isClaimed(uint256)": FunctionFragment;
     "merkleRoot()": FunctionFragment;
     "token()": FunctionFragment;
@@ -29,7 +29,7 @@ interface IMerkleDistributorInterface extends ethers.utils.Interface {
 
   encodeFunctionData(
     functionFragment: "claim",
-    values: [BigNumberish, string, BigNumberish, BytesLike[]]
+    values: [BigNumberish, BigNumberish, BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "isClaimed",
@@ -99,7 +99,6 @@ export class IMerkleDistributor extends BaseContract {
   functions: {
     claim(
       index: BigNumberish,
-      account: string,
       salt: BigNumberish,
       merkleProof: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -117,7 +116,6 @@ export class IMerkleDistributor extends BaseContract {
 
   claim(
     index: BigNumberish,
-    account: string,
     salt: BigNumberish,
     merkleProof: BytesLike[],
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -132,7 +130,6 @@ export class IMerkleDistributor extends BaseContract {
   callStatic: {
     claim(
       index: BigNumberish,
-      account: string,
       salt: BigNumberish,
       merkleProof: BytesLike[],
       overrides?: CallOverrides
@@ -158,7 +155,6 @@ export class IMerkleDistributor extends BaseContract {
   estimateGas: {
     claim(
       index: BigNumberish,
-      account: string,
       salt: BigNumberish,
       merkleProof: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -177,7 +173,6 @@ export class IMerkleDistributor extends BaseContract {
   populateTransaction: {
     claim(
       index: BigNumberish,
-      account: string,
       salt: BigNumberish,
       merkleProof: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }

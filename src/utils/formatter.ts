@@ -2,9 +2,10 @@ import { BigNumber, BigNumberish } from "ethers";
 import { PERCENTAGE_FACTOR, RAY } from "../core/constants";
 import Decimal from "decimal.js-light";
 
-
-export function rayToNumber(num: BigNumberish) : number {
-  return BigNumber.from(num).div(BigNumber.from(10).pow(21)).toNumber() / 1000000
+export function rayToNumber(num: BigNumberish): number {
+  return (
+    BigNumber.from(num).div(BigNumber.from(10).pow(21)).toNumber() / 1000000
+  );
 }
 
 export function formatRAY(num?: BigNumber): string {
@@ -37,11 +38,16 @@ export function formatBN(
         .toNumber()
     ) / 10000;
 
-  return toHumanFormat(number);
+  if (number < 1) {
+    precision = 3;
+  }
+
+  return toHumanFormat(number, precision);
 }
 
-export function toHumanFormat(num: number): string {
-  const round = (n: number) => (Math.floor(100 * n) / 100).toFixed(2);
+export function toHumanFormat(num: number, precision: number = 2): string {
+  const decs = precision === 3 ? 1000 : 100;
+  const round = (n: number) => (Math.floor(decs * n) / decs).toFixed(precision);
 
   if (num >= 1e9) {
     return round(num / 1e9) + "Bn";
@@ -58,17 +64,17 @@ export function toHumanFormat(num: number): string {
   return round(num);
 }
 
-export function toSignificant(num: BigNumber,  decimals: number) : string {
-  if (num.toString() === "1") return "0"
-  const divider = (new Decimal(10)).toPower(decimals)
-  const number = (new Decimal(num.toString())).div(divider)
-  return number.toSignificantDigits(6, 4).toString()
+export function toSignificant(num: BigNumber, decimals: number): string {
+  if (num.toString() === "1") return "0";
+  const divider = new Decimal(10).toPower(decimals);
+  const number = new Decimal(num.toString()).div(divider);
+  return number.toSignificantDigits(6, 4).toString();
 }
 
 export function toBN(num: string, decimals: number): BigNumber {
   if (num === "") return BigNumber.from(0);
-  const multiplier = (new Decimal(10)).toPower(decimals)
-  const number = (new Decimal(num)).mul(multiplier)
+  const multiplier = new Decimal(10).toPower(decimals);
+  const number = new Decimal(num).mul(multiplier);
   return BigNumber.from(number.toFixed(0));
 }
 
@@ -79,9 +85,7 @@ export function shortAddress(address?: string): string {
 }
 
 export function shortHash(address?: string): string {
-  return address === undefined
-      ? ""
-      : `${address.substr(0, 5)}...`;
+  return address === undefined ? "" : `${address.substr(0, 5)}...`;
 }
 
 export const formatRate = (rate: BigNumberish | undefined) =>
@@ -95,21 +99,18 @@ export const formatRate = (rate: BigNumberish | undefined) =>
       ).toFixed(2) + "%"
     : "0.00%";
 
-
-export function formatDate(date: Date) : string {
+export function formatDate(date: Date): string {
   var d = new Date(date),
-      month = '' + (d.getMonth() + 1),
-      day = '' + d.getDate(),
-      year = d.getFullYear();
+    month = "" + (d.getMonth() + 1),
+    day = "" + d.getDate(),
+    year = d.getFullYear();
 
-  if (month.length < 2)
-    month = '0' + month;
-  if (day.length < 2)
-    day = '0' + day;
+  if (month.length < 2) month = "0" + month;
+  if (day.length < 2) day = "0" + day;
 
-  return [year, month, day].join('-');
+  return [year, month, day].join("-");
 }
 
-export function formatHf(healthFactor: number) : string{
-  return (healthFactor / 10000).toFixed(2)
+export function formatHf(healthFactor: number): string {
+  return (healthFactor / 10000).toFixed(2);
 }

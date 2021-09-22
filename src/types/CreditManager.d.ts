@@ -25,6 +25,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "_calcClosePaymentsPure(uint256,bool,uint256,uint256,uint256)": FunctionFragment;
     "addCollateral(address,address,uint256)": FunctionFragment;
     "addressProvider()": FunctionFragment;
+    "approve(address,address)": FunctionFragment;
     "calcRepayAmount(address,bool)": FunctionFragment;
     "closeCreditAccount(address,tuple[])": FunctionFragment;
     "creditAccounts(address)": FunctionFragment;
@@ -37,7 +38,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "getCreditAccountOrRevert(address)": FunctionFragment;
     "hasOpenedCreditAccount(address)": FunctionFragment;
     "increaseBorrowedAmount(uint256)": FunctionFragment;
-    "liquidateCreditAccount(address,address)": FunctionFragment;
+    "liquidateCreditAccount(address,address,bool)": FunctionFragment;
     "liquidationDiscount()": FunctionFragment;
     "maxAmount()": FunctionFragment;
     "maxLeverageFactor()": FunctionFragment;
@@ -50,8 +51,8 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "provideCreditAccountAllowance(address,address,address)": FunctionFragment;
     "repayCreditAccount(address)": FunctionFragment;
     "repayCreditAccountETH(address,address)": FunctionFragment;
-    "setFees(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "setLimits(uint256,uint256)": FunctionFragment;
+    "setParams(uint256,uint256,uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "transferAccountOwnership(address)": FunctionFragment;
     "underlyingToken()": FunctionFragment;
     "unpause()": FunctionFragment;
     "wethAddress()": FunctionFragment;
@@ -73,6 +74,10 @@ interface CreditManagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "addressProvider",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approve",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "calcRepayAmount",
@@ -124,7 +129,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount",
-    values: [string, string]
+    values: [string, string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidationDiscount",
@@ -163,12 +168,20 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setFees",
-    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+    functionFragment: "setParams",
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
-    functionFragment: "setLimits",
-    values: [BigNumberish, BigNumberish]
+    functionFragment: "transferAccountOwnership",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "underlyingToken",
@@ -200,6 +213,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "addressProvider",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "calcRepayAmount",
     data: BytesLike
@@ -285,8 +299,11 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     functionFragment: "repayCreditAccountETH",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "setFees", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setLimits", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setParams", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferAccountOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "underlyingToken",
     data: BytesLike
@@ -307,11 +324,11 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "ExecuteOrder(address,address)": EventFragment;
     "IncreaseBorrowedAmount(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,uint256)": EventFragment;
-    "NewFees(uint256,uint256,uint256,uint256)": EventFragment;
-    "NewLimits(uint256,uint256)": EventFragment;
+    "NewParameters(uint256,uint256,uint256,uint256,uint256,uint256,uint256)": EventFragment;
     "OpenCreditAccount(address,address,address,uint256,uint256,uint256)": EventFragment;
     "Paused(address)": EventFragment;
     "RepayCreditAccount(address,address)": EventFragment;
+    "TransferAccount(address,address)": EventFragment;
     "Unpaused(address)": EventFragment;
   };
 
@@ -320,11 +337,11 @@ interface CreditManagerInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ExecuteOrder"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewFees"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewLimits"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewParameters"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RepayCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
@@ -413,6 +430,12 @@ export class CreditManager extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
 
+    approve(
+      targetContract: string,
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     calcRepayAmount(
       borrower: string,
       isLiquidated: boolean,
@@ -462,6 +485,7 @@ export class CreditManager extends BaseContract {
     liquidateCreditAccount(
       borrower: string,
       to: string,
+      force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -493,7 +517,7 @@ export class CreditManager extends BaseContract {
 
     provideCreditAccountAllowance(
       creditAccount: string,
-      toContract: string,
+      targetContract: string,
       token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -509,7 +533,10 @@ export class CreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setFees(
+    setParams(
+      _minAmount: BigNumberish,
+      _maxAmount: BigNumberish,
+      _maxLeverageFactor: BigNumberish,
       _feeSuccess: BigNumberish,
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
@@ -517,9 +544,8 @@ export class CreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setLimits(
-      newMinAmount: BigNumberish,
-      newMaxAmount: BigNumberish,
+    transferAccountOwnership(
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -575,6 +601,12 @@ export class CreditManager extends BaseContract {
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
 
+  approve(
+    targetContract: string,
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   calcRepayAmount(
     borrower: string,
     isLiquidated: boolean,
@@ -624,6 +656,7 @@ export class CreditManager extends BaseContract {
   liquidateCreditAccount(
     borrower: string,
     to: string,
+    force: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -655,7 +688,7 @@ export class CreditManager extends BaseContract {
 
   provideCreditAccountAllowance(
     creditAccount: string,
-    toContract: string,
+    targetContract: string,
     token: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -671,7 +704,10 @@ export class CreditManager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setFees(
+  setParams(
+    _minAmount: BigNumberish,
+    _maxAmount: BigNumberish,
+    _maxLeverageFactor: BigNumberish,
     _feeSuccess: BigNumberish,
     _feeInterest: BigNumberish,
     _feeLiquidation: BigNumberish,
@@ -679,9 +715,8 @@ export class CreditManager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setLimits(
-    newMinAmount: BigNumberish,
-    newMaxAmount: BigNumberish,
+  transferAccountOwnership(
+    newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -737,6 +772,12 @@ export class CreditManager extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<string>;
 
+    approve(
+      targetContract: string,
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     calcRepayAmount(
       borrower: string,
       isLiquidated: boolean,
@@ -786,6 +827,7 @@ export class CreditManager extends BaseContract {
     liquidateCreditAccount(
       borrower: string,
       to: string,
+      force: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -815,7 +857,7 @@ export class CreditManager extends BaseContract {
 
     provideCreditAccountAllowance(
       creditAccount: string,
-      toContract: string,
+      targetContract: string,
       token: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -828,7 +870,10 @@ export class CreditManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    setFees(
+    setParams(
+      _minAmount: BigNumberish,
+      _maxAmount: BigNumberish,
+      _maxLeverageFactor: BigNumberish,
       _feeSuccess: BigNumberish,
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
@@ -836,9 +881,8 @@ export class CreditManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setLimits(
-      newMinAmount: BigNumberish,
-      newMaxAmount: BigNumberish,
+    transferAccountOwnership(
+      newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -892,27 +936,33 @@ export class CreditManager extends BaseContract {
       { owner: string; liquidator: string; remainingFunds: BigNumber }
     >;
 
-    NewFees(
+    NewParameters(
+      minAmount?: null,
+      maxAmount?: null,
+      maxLeverage?: null,
       feeSuccess?: null,
       feeInterest?: null,
       feeLiquidation?: null,
       liquidationDiscount?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
+      [
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber
+      ],
       {
+        minAmount: BigNumber;
+        maxAmount: BigNumber;
+        maxLeverage: BigNumber;
         feeSuccess: BigNumber;
         feeInterest: BigNumber;
         feeLiquidation: BigNumber;
         liquidationDiscount: BigNumber;
       }
-    >;
-
-    NewLimits(
-      minAmount?: null,
-      maxAmount?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { minAmount: BigNumber; maxAmount: BigNumber }
     >;
 
     OpenCreditAccount(
@@ -940,6 +990,14 @@ export class CreditManager extends BaseContract {
       owner?: string | null,
       to?: string | null
     ): TypedEventFilter<[string, string], { owner: string; to: string }>;
+
+    TransferAccount(
+      oldOwner?: null,
+      newOwner?: null
+    ): TypedEventFilter<
+      [string, string],
+      { oldOwner: string; newOwner: string }
+    >;
 
     Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
@@ -969,6 +1027,12 @@ export class CreditManager extends BaseContract {
     ): Promise<BigNumber>;
 
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
+
+    approve(
+      targetContract: string,
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     calcRepayAmount(
       borrower: string,
@@ -1019,6 +1083,7 @@ export class CreditManager extends BaseContract {
     liquidateCreditAccount(
       borrower: string,
       to: string,
+      force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1050,7 +1115,7 @@ export class CreditManager extends BaseContract {
 
     provideCreditAccountAllowance(
       creditAccount: string,
-      toContract: string,
+      targetContract: string,
       token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1066,7 +1131,10 @@ export class CreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setFees(
+    setParams(
+      _minAmount: BigNumberish,
+      _maxAmount: BigNumberish,
+      _maxLeverageFactor: BigNumberish,
       _feeSuccess: BigNumberish,
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
@@ -1074,9 +1142,8 @@ export class CreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setLimits(
-      newMinAmount: BigNumberish,
-      newMaxAmount: BigNumberish,
+    transferAccountOwnership(
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1116,6 +1183,12 @@ export class CreditManager extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    approve(
+      targetContract: string,
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     calcRepayAmount(
       borrower: string,
@@ -1171,6 +1244,7 @@ export class CreditManager extends BaseContract {
     liquidateCreditAccount(
       borrower: string,
       to: string,
+      force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1204,7 +1278,7 @@ export class CreditManager extends BaseContract {
 
     provideCreditAccountAllowance(
       creditAccount: string,
-      toContract: string,
+      targetContract: string,
       token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1220,7 +1294,10 @@ export class CreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setFees(
+    setParams(
+      _minAmount: BigNumberish,
+      _maxAmount: BigNumberish,
+      _maxLeverageFactor: BigNumberish,
       _feeSuccess: BigNumberish,
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
@@ -1228,9 +1305,8 @@ export class CreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setLimits(
-      newMinAmount: BigNumberish,
-      newMaxAmount: BigNumberish,
+    transferAccountOwnership(
+      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

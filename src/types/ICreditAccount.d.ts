@@ -23,13 +23,16 @@ interface ICreditAccountInterface extends ethers.utils.Interface {
   functions: {
     "approveToken(address,address)": FunctionFragment;
     "borrowedAmount()": FunctionFragment;
+    "cancelAllowance(address,address)": FunctionFragment;
+    "connectTo(address)": FunctionFragment;
     "creditManager()": FunctionFragment;
     "cumulativeIndexAtOpen()": FunctionFragment;
     "execute(address,bytes)": FunctionFragment;
-    "initialize(address)": FunctionFragment;
+    "factory()": FunctionFragment;
+    "initialize()": FunctionFragment;
+    "safeTransfer(address,address,uint256)": FunctionFragment;
     "setGenericParameters(uint256,uint256)": FunctionFragment;
     "since()": FunctionFragment;
-    "transfer(address,address,uint256)": FunctionFragment;
     "updateBorrowedAmount(uint256)": FunctionFragment;
   };
 
@@ -42,6 +45,11 @@ interface ICreditAccountInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "cancelAllowance",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(functionFragment: "connectTo", values: [string]): string;
+  encodeFunctionData(
     functionFragment: "creditManager",
     values?: undefined
   ): string;
@@ -53,16 +61,20 @@ interface ICreditAccountInterface extends ethers.utils.Interface {
     functionFragment: "execute",
     values: [string, BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
+  encodeFunctionData(functionFragment: "factory", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "safeTransfer",
+    values: [string, string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "setGenericParameters",
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "since", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "transfer",
-    values: [string, string, BigNumberish]
-  ): string;
   encodeFunctionData(
     functionFragment: "updateBorrowedAmount",
     values: [BigNumberish]
@@ -77,6 +89,11 @@ interface ICreditAccountInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "cancelAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "connectTo", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "creditManager",
     data: BytesLike
   ): Result;
@@ -85,13 +102,17 @@ interface ICreditAccountInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "safeTransfer",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "setGenericParameters",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "since", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateBorrowedAmount",
     data: BytesLike
@@ -152,6 +173,17 @@ export class ICreditAccount extends BaseContract {
 
     borrowedAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    cancelAllowance(
+      token: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    connectTo(
+      _creditManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     cumulativeIndexAtOpen(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -162,8 +194,16 @@ export class ICreditAccount extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    factory(overrides?: CallOverrides): Promise<[string]>;
+
     initialize(
-      _creditManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    safeTransfer(
+      token: string,
+      to: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -174,13 +214,6 @@ export class ICreditAccount extends BaseContract {
     ): Promise<ContractTransaction>;
 
     since(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    transfer(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     updateBorrowedAmount(
       _borrowedAmount: BigNumberish,
@@ -196,6 +229,17 @@ export class ICreditAccount extends BaseContract {
 
   borrowedAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
+  cancelAllowance(
+    token: string,
+    targetContract: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  connectTo(
+    _creditManager: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   cumulativeIndexAtOpen(overrides?: CallOverrides): Promise<BigNumber>;
@@ -206,8 +250,16 @@ export class ICreditAccount extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  factory(overrides?: CallOverrides): Promise<string>;
+
   initialize(
-    _creditManager: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  safeTransfer(
+    token: string,
+    to: string,
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -218,13 +270,6 @@ export class ICreditAccount extends BaseContract {
   ): Promise<ContractTransaction>;
 
   since(overrides?: CallOverrides): Promise<BigNumber>;
-
-  transfer(
-    token: string,
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   updateBorrowedAmount(
     _borrowedAmount: BigNumberish,
@@ -240,6 +285,14 @@ export class ICreditAccount extends BaseContract {
 
     borrowedAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
+    cancelAllowance(
+      token: string,
+      targetContract: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    connectTo(_creditManager: string, overrides?: CallOverrides): Promise<void>;
+
     creditManager(overrides?: CallOverrides): Promise<string>;
 
     cumulativeIndexAtOpen(overrides?: CallOverrides): Promise<BigNumber>;
@@ -250,8 +303,14 @@ export class ICreditAccount extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    initialize(
-      _creditManager: string,
+    factory(overrides?: CallOverrides): Promise<string>;
+
+    initialize(overrides?: CallOverrides): Promise<void>;
+
+    safeTransfer(
+      token: string,
+      to: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -262,13 +321,6 @@ export class ICreditAccount extends BaseContract {
     ): Promise<void>;
 
     since(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transfer(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     updateBorrowedAmount(
       _borrowedAmount: BigNumberish,
@@ -287,6 +339,17 @@ export class ICreditAccount extends BaseContract {
 
     borrowedAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
+    cancelAllowance(
+      token: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    connectTo(
+      _creditManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     cumulativeIndexAtOpen(overrides?: CallOverrides): Promise<BigNumber>;
@@ -297,8 +360,16 @@ export class ICreditAccount extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    factory(overrides?: CallOverrides): Promise<BigNumber>;
+
     initialize(
-      _creditManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    safeTransfer(
+      token: string,
+      to: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -309,13 +380,6 @@ export class ICreditAccount extends BaseContract {
     ): Promise<BigNumber>;
 
     since(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transfer(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     updateBorrowedAmount(
       _borrowedAmount: BigNumberish,
@@ -332,6 +396,17 @@ export class ICreditAccount extends BaseContract {
 
     borrowedAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    cancelAllowance(
+      token: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    connectTo(
+      _creditManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     cumulativeIndexAtOpen(
@@ -344,8 +419,16 @@ export class ICreditAccount extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     initialize(
-      _creditManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    safeTransfer(
+      token: string,
+      to: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -356,13 +439,6 @@ export class ICreditAccount extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     since(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transfer(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     updateBorrowedAmount(
       _borrowedAmount: BigNumberish,

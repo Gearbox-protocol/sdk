@@ -21,7 +21,6 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IAccountFactoryInterface extends ethers.utils.Interface {
   functions: {
-    "connectMiner()": FunctionFragment;
     "countCreditAccounts()": FunctionFragment;
     "countCreditAccountsInStock()": FunctionFragment;
     "creditAccounts(uint256)": FunctionFragment;
@@ -29,13 +28,9 @@ interface IAccountFactoryInterface extends ethers.utils.Interface {
     "head()": FunctionFragment;
     "returnCreditAccount(address)": FunctionFragment;
     "tail()": FunctionFragment;
-    "takeCreditAccount(address)": FunctionFragment;
+    "takeCreditAccount()": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "connectMiner",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "countCreditAccounts",
     values?: undefined
@@ -57,13 +52,9 @@ interface IAccountFactoryInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "tail", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "takeCreditAccount",
-    values: [string]
+    values?: undefined
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "connectMiner",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "countCreditAccounts",
     data: BytesLike
@@ -93,12 +84,14 @@ interface IAccountFactoryInterface extends ethers.utils.Interface {
     "InitializeCreditAccount(address,address)": EventFragment;
     "NewCreditAccount(address)": EventFragment;
     "ReturnCreditAccount(address)": EventFragment;
+    "TakeForever(address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AccountMinerChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "InitializeCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ReturnCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TakeForever"): EventFragment;
 }
 
 export class IAccountFactory extends BaseContract {
@@ -145,10 +138,6 @@ export class IAccountFactory extends BaseContract {
   interface: IAccountFactoryInterface;
 
   functions: {
-    connectMiner(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     countCreditAccounts(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -173,14 +162,9 @@ export class IAccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<[string]>;
 
     takeCreditAccount(
-      trader: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
-
-  connectMiner(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -200,13 +184,10 @@ export class IAccountFactory extends BaseContract {
   tail(overrides?: CallOverrides): Promise<string>;
 
   takeCreditAccount(
-    trader: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    connectMiner(overrides?: CallOverrides): Promise<void>;
-
     countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
 
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<BigNumber>;
@@ -227,10 +208,7 @@ export class IAccountFactory extends BaseContract {
 
     tail(overrides?: CallOverrides): Promise<string>;
 
-    takeCreditAccount(
-      trader: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    takeCreditAccount(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -253,13 +231,17 @@ export class IAccountFactory extends BaseContract {
     ReturnCreditAccount(
       account?: string | null
     ): TypedEventFilter<[string], { account: string }>;
+
+    TakeForever(
+      creditAccount?: string | null,
+      to?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { creditAccount: string; to: string }
+    >;
   };
 
   estimateGas: {
-    connectMiner(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
 
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<BigNumber>;
@@ -284,16 +266,11 @@ export class IAccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<BigNumber>;
 
     takeCreditAccount(
-      trader: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    connectMiner(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     countCreditAccounts(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -322,7 +299,6 @@ export class IAccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     takeCreditAccount(
-      trader: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

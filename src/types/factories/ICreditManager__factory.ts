@@ -129,6 +129,24 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "minAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "maxAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "maxLeverage",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "feeSuccess",
         type: "uint256",
       },
@@ -151,26 +169,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "NewFees",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "minAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "maxAmount",
-        type: "uint256",
-      },
-    ],
-    name: "NewLimits",
+    name: "NewParameters",
     type: "event",
   },
   {
@@ -236,6 +235,25 @@ const _abi = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "oldOwner",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
+    ],
+    name: "TransferAccount",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -254,6 +272,24 @@ const _abi = [
       },
     ],
     name: "addCollateral",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "targetContract",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "approve",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -345,6 +381,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "defaultSwapContract",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -371,6 +420,45 @@ const _abi = [
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "feeInterest",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "feeLiquidation",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "feeSuccess",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -436,10 +524,28 @@ const _abi = [
         name: "to",
         type: "address",
       },
+      {
+        internalType: "bool",
+        name: "force",
+        type: "bool",
+      },
     ],
     name: "liquidateCreditAccount",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "liquidationDiscount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -482,6 +588,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "minHealthFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -489,7 +608,7 @@ const _abi = [
         type: "uint256",
       },
       {
-        internalType: "address payable",
+        internalType: "address",
         name: "onBehalfOf",
         type: "address",
       },
@@ -585,17 +704,12 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "_minAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_maxAmount",
-        type: "uint256",
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
       },
     ],
-    name: "setLimits",
+    name: "transferAccountOwnership",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

@@ -1,4 +1,4 @@
-import { TypedEvent } from "../types/ethers-v5/commons";
+import {TypedEvent} from "../types/commons";
 
 export const typedEventsComparator = (a: TypedEvent<any>, b: TypedEvent<any>) =>
   a.blockNumber === b.blockNumber

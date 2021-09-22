@@ -22,12 +22,12 @@ interface DataCompressorInterface extends ethers.utils.Interface {
   functions: {
     "WETHToken()": FunctionFragment;
     "addressProvider()": FunctionFragment;
+    "calcExpectedHf(address,address,uint256[])": FunctionFragment;
     "contractsRegister()": FunctionFragment;
     "getAdapter(address,address)": FunctionFragment;
     "getCreditAccountData(address,address)": FunctionFragment;
     "getCreditAccountDataExtended(address,address)": FunctionFragment;
     "getCreditAccountList(address)": FunctionFragment;
-    "getCreditAccountParameters(address)": FunctionFragment;
     "getCreditManagerData(address,address)": FunctionFragment;
     "getCreditManagersList(address)": FunctionFragment;
     "getPoolData(address)": FunctionFragment;
@@ -40,6 +40,10 @@ interface DataCompressorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "addressProvider",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calcExpectedHf",
+    values: [string, string, BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "contractsRegister",
@@ -59,10 +63,6 @@ interface DataCompressorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountList",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCreditAccountParameters",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -93,6 +93,10 @@ interface DataCompressorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "calcExpectedHf",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "contractsRegister",
     data: BytesLike
   ): Result;
@@ -107,10 +111,6 @@ interface DataCompressorInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountList",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCreditAccountParameters",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -188,6 +188,13 @@ export class DataCompressor extends BaseContract {
     WETHToken(overrides?: CallOverrides): Promise<[string]>;
 
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
+
+    calcExpectedHf(
+      _creditManager: string,
+      borrower: string,
+      balances: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     contractsRegister(overrides?: CallOverrides): Promise<[string]>;
 
@@ -311,18 +318,6 @@ export class DataCompressor extends BaseContract {
           })[];
         })[]
       ]
-    >;
-
-    getCreditAccountParameters(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, BigNumber, BigNumber] & {
-        _creditManager: string;
-        _borrowedAmount: BigNumber;
-        _cumulativeIndexAtOpen: BigNumber;
-        _since: BigNumber;
-      }
     >;
 
     getCreditManagerData(
@@ -507,6 +502,13 @@ export class DataCompressor extends BaseContract {
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
 
+  calcExpectedHf(
+    _creditManager: string,
+    borrower: string,
+    balances: BigNumberish[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   contractsRegister(overrides?: CallOverrides): Promise<string>;
 
   getAdapter(
@@ -614,18 +616,6 @@ export class DataCompressor extends BaseContract {
       borrowRate: BigNumber;
       balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
     })[]
-  >;
-
-  getCreditAccountParameters(
-    creditAccount: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber, BigNumber, BigNumber] & {
-      _creditManager: string;
-      _borrowedAmount: BigNumber;
-      _cumulativeIndexAtOpen: BigNumber;
-      _since: BigNumber;
-    }
   >;
 
   getCreditManagerData(
@@ -800,6 +790,13 @@ export class DataCompressor extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<string>;
 
+    calcExpectedHf(
+      _creditManager: string,
+      borrower: string,
+      balances: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     contractsRegister(overrides?: CallOverrides): Promise<string>;
 
     getAdapter(
@@ -916,18 +913,6 @@ export class DataCompressor extends BaseContract {
           balance: BigNumber;
         })[];
       })[]
-    >;
-
-    getCreditAccountParameters(
-      creditAccount: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, BigNumber, BigNumber] & {
-        _creditManager: string;
-        _borrowedAmount: BigNumber;
-        _cumulativeIndexAtOpen: BigNumber;
-        _since: BigNumber;
-      }
     >;
 
     getCreditManagerData(
@@ -1105,6 +1090,13 @@ export class DataCompressor extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
+    calcExpectedHf(
+      _creditManager: string,
+      borrower: string,
+      balances: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     contractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAdapter(
@@ -1127,11 +1119,6 @@ export class DataCompressor extends BaseContract {
 
     getCreditAccountList(
       borrower: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCreditAccountParameters(
-      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1164,6 +1151,13 @@ export class DataCompressor extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    calcExpectedHf(
+      _creditManager: string,
+      borrower: string,
+      balances: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     contractsRegister(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getAdapter(
@@ -1186,11 +1180,6 @@ export class DataCompressor extends BaseContract {
 
     getCreditAccountList(
       borrower: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCreditAccountParameters(
-      creditAccount: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -1,16 +1,27 @@
-export type NetworkError = "NetworkError";
-export type IncorrectEthAddressError = "IncorrectEthAddressError"
+export class NetworkError extends Error {
+  constructor() {
+    super("errors.networkError");
+  }
+}
+export class IncorrectEthAddressError extends Error {
+  constructor() {
+    super("errors.incorrectEthAddressError");
+  }
+}
 
-export type CommonError = IncorrectEthAddressError | NetworkError | undefined;
+export class PoolNotExistsError extends Error {
+  constructor() {
+    super("errors.poolDoesntExistsError");
+  }
+}
 
-export type PoolError = CommonError | "PoolDoesntExistsError";
-
-export type CreditAccountsError = NetworkError | undefined;
-
-export type CreditAccountError =
-  | CommonError
-  | "CreditManagerDoesntExistsError"
-  | "NoOpenedAccountsError";
-
-export type CardCollectionError = NetworkError | undefined;
-export type CardCustomisationError = CommonError;
+export class CreditManagerNotExistsError extends Error {
+  constructor() {
+    super("errors.creditManagerDoesntExistsError");
+  }
+}
+export class UserHasNotAccountError extends Error {
+  constructor() {
+    super("errors.noOpenedAccountsError");
+  }
+}

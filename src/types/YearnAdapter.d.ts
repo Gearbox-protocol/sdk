@@ -21,17 +21,34 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface YearnAdapterInterface extends ethers.utils.Interface {
   functions: {
+    "allowance(address,address)": FunctionFragment;
+    "approve(address,uint256)": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
     "creditFilter()": FunctionFragment;
     "creditManager()": FunctionFragment;
-    "deposit(uint256)": FunctionFragment;
-    "depositAll()": FunctionFragment;
-    "withdraw(uint256)": FunctionFragment;
-    "withdrawAll()": FunctionFragment;
-    "yToken()": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "deposit(uint256,address)": FunctionFragment;
+    "name()": FunctionFragment;
+    "pricePerShare()": FunctionFragment;
+    "symbol()": FunctionFragment;
+    "token()": FunctionFragment;
+    "totalSupply()": FunctionFragment;
+    "transfer(address,uint256)": FunctionFragment;
+    "transferFrom(address,address,uint256)": FunctionFragment;
+    "withdraw(uint256,address)": FunctionFragment;
     "yVault()": FunctionFragment;
   };
 
   encodeFunctionData(
+    functionFragment: "allowance",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approve",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(
     functionFragment: "creditFilter",
     values?: undefined
   ): string;
@@ -39,25 +56,39 @@ interface YearnAdapterInterface extends ethers.utils.Interface {
     functionFragment: "creditManager",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [BigNumberish]
+    values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pricePerShare",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+  encodeFunctionData(functionFragment: "token", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "totalSupply",
+    values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "depositAll",
-    values?: undefined
+    functionFragment: "transfer",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferFrom",
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish]
+    values: [BigNumberish, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawAll",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "yToken", values?: undefined): string;
   encodeFunctionData(functionFragment: "yVault", values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditFilter",
     data: BytesLike
@@ -66,17 +97,34 @@ interface YearnAdapterInterface extends ethers.utils.Interface {
     functionFragment: "creditManager",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "depositAll", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawAll",
+    functionFragment: "pricePerShare",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "yToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "totalSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "transferFrom",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "yVault", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "Approval(address,address,uint256)": EventFragment;
+    "Transfer(address,address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
 export class YearnAdapter extends BaseContract {
@@ -123,131 +171,438 @@ export class YearnAdapter extends BaseContract {
   interface: YearnAdapterInterface;
 
   functions: {
+    allowance(
+      owner: string,
+      spender: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    approve(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
     creditFilter(overrides?: CallOverrides): Promise<[string]>;
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    deposit(
-      _amount: BigNumberish,
+    decimals(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "deposit(uint256,address)"(
+      amount: BigNumberish,
+      arg1: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    depositAll(
+    "deposit(uint256)"(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    withdraw(
-      _shares: BigNumberish,
+    "deposit()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    withdrawAll(
+    name(overrides?: CallOverrides): Promise<[string]>;
+
+    pricePerShare(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    symbol(overrides?: CallOverrides): Promise<[string]>;
+
+    token(overrides?: CallOverrides): Promise<[string]>;
+
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    transfer(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    transferFrom(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    "withdraw(uint256,address)"(
+      maxShares: BigNumberish,
+      recipient: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    yToken(overrides?: CallOverrides): Promise<[string]>;
+    "withdraw(uint256)"(
+      maxShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "withdraw()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "withdraw(uint256,address,uint256)"(
+      maxShares: BigNumberish,
+      arg1: string,
+      maxLoss: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     yVault(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  allowance(
+    owner: string,
+    spender: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  approve(
+    arg0: string,
+    arg1: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   creditFilter(overrides?: CallOverrides): Promise<string>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  deposit(
-    _amount: BigNumberish,
+  decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "deposit(uint256,address)"(
+    amount: BigNumberish,
+    arg1: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  depositAll(
+  "deposit(uint256)"(
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  withdraw(
-    _shares: BigNumberish,
+  "deposit()"(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  withdrawAll(
+  name(overrides?: CallOverrides): Promise<string>;
+
+  pricePerShare(overrides?: CallOverrides): Promise<BigNumber>;
+
+  symbol(overrides?: CallOverrides): Promise<string>;
+
+  token(overrides?: CallOverrides): Promise<string>;
+
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  transfer(
+    arg0: string,
+    arg1: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  transferFrom(
+    arg0: string,
+    arg1: string,
+    arg2: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  "withdraw(uint256,address)"(
+    maxShares: BigNumberish,
+    recipient: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  yToken(overrides?: CallOverrides): Promise<string>;
+  "withdraw(uint256)"(
+    maxShares: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "withdraw()"(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "withdraw(uint256,address,uint256)"(
+    maxShares: BigNumberish,
+    arg1: string,
+    maxLoss: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   yVault(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    allowance(
+      owner: string,
+      spender: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     creditFilter(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
-    deposit(_amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
-    depositAll(overrides?: CallOverrides): Promise<void>;
+    "deposit(uint256,address)"(
+      amount: BigNumberish,
+      arg1: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    withdraw(_shares: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    "deposit(uint256)"(
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    withdrawAll(overrides?: CallOverrides): Promise<void>;
+    "deposit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    yToken(overrides?: CallOverrides): Promise<string>;
+    name(overrides?: CallOverrides): Promise<string>;
+
+    pricePerShare(overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<string>;
+
+    token(overrides?: CallOverrides): Promise<string>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    transferFrom(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "withdraw(uint256,address)"(
+      maxShares: BigNumberish,
+      recipient: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "withdraw(uint256)"(
+      maxShares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "withdraw()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "withdraw(uint256,address,uint256)"(
+      maxShares: BigNumberish,
+      arg1: string,
+      maxLoss: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     yVault(overrides?: CallOverrides): Promise<string>;
   };
 
-  filters: {};
+  filters: {
+    Approval(
+      owner?: string | null,
+      spender?: string | null,
+      value?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { owner: string; spender: string; value: BigNumber }
+    >;
+
+    Transfer(
+      from?: string | null,
+      to?: string | null,
+      value?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { from: string; to: string; value: BigNumber }
+    >;
+  };
 
   estimateGas: {
+    allowance(
+      owner: string,
+      spender: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    approve(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     creditFilter(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    deposit(
-      _amount: BigNumberish,
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "deposit(uint256,address)"(
+      amount: BigNumberish,
+      arg1: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    depositAll(
+    "deposit(uint256)"(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    withdraw(
-      _shares: BigNumberish,
+    "deposit()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    withdrawAll(
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pricePerShare(overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+    token(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    transfer(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    transferFrom(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "withdraw(uint256,address)"(
+      maxShares: BigNumberish,
+      recipient: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    yToken(overrides?: CallOverrides): Promise<BigNumber>;
+    "withdraw(uint256)"(
+      maxShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "withdraw()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "withdraw(uint256,address,uint256)"(
+      maxShares: BigNumberish,
+      arg1: string,
+      maxLoss: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     yVault(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    allowance(
+      owner: string,
+      spender: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approve(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     creditFilter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    deposit(
-      _amount: BigNumberish,
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "deposit(uint256,address)"(
+      amount: BigNumberish,
+      arg1: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    depositAll(
+    "deposit(uint256)"(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdraw(
-      _shares: BigNumberish,
+    "deposit()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdrawAll(
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pricePerShare(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    transfer(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    transferFrom(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "withdraw(uint256,address)"(
+      maxShares: BigNumberish,
+      recipient: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    yToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "withdraw(uint256)"(
+      maxShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "withdraw()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "withdraw(uint256,address,uint256)"(
+      maxShares: BigNumberish,
+      arg1: string,
+      maxLoss: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     yVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

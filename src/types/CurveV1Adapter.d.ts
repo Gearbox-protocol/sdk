@@ -21,12 +21,20 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CurveV1AdapterInterface extends ethers.utils.Interface {
   functions: {
+    "coins(uint256)": FunctionFragment;
     "creditFilter()": FunctionFragment;
     "creditManager()": FunctionFragment;
-    "curvePoolAddress()": FunctionFragment;
+    "curvePool()": FunctionFragment;
     "exchange(int128,int128,uint256,uint256)": FunctionFragment;
+    "exchange_underlying(int128,int128,uint256,uint256)": FunctionFragment;
+    "get_dx(int128,int128,uint256)": FunctionFragment;
+    "get_dx_underlying(int128,int128,uint256)": FunctionFragment;
+    "get_dy(int128,int128,uint256)": FunctionFragment;
+    "get_dy_underlying(int128,int128,uint256)": FunctionFragment;
+    "get_virtual_price()": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "coins", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "creditFilter",
     values?: undefined
@@ -35,15 +43,37 @@ interface CurveV1AdapterInterface extends ethers.utils.Interface {
     functionFragment: "creditManager",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "curvePoolAddress",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "curvePool", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "exchange",
     values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "exchange_underlying",
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "get_dx",
+    values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "get_dx_underlying",
+    values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "get_dy",
+    values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "get_dy_underlying",
+    values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "get_virtual_price",
+    values?: undefined
+  ): string;
 
+  decodeFunctionResult(functionFragment: "coins", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditFilter",
     data: BytesLike
@@ -52,11 +82,26 @@ interface CurveV1AdapterInterface extends ethers.utils.Interface {
     functionFragment: "creditManager",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "curvePool", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "exchange", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "curvePoolAddress",
+    functionFragment: "exchange_underlying",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "exchange", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "get_dx", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "get_dx_underlying",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "get_dy", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "get_dy_underlying",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "get_virtual_price",
+    data: BytesLike
+  ): Result;
 
   events: {};
 }
@@ -105,11 +150,13 @@ export class CurveV1Adapter extends BaseContract {
   interface: CurveV1AdapterInterface;
 
   functions: {
+    coins(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
     creditFilter(overrides?: CallOverrides): Promise<[string]>;
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    curvePoolAddress(overrides?: CallOverrides): Promise<[string]>;
+    curvePool(overrides?: CallOverrides): Promise<[string]>;
 
     exchange(
       i: BigNumberish,
@@ -118,13 +165,53 @@ export class CurveV1Adapter extends BaseContract {
       min_dy: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    exchange_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    get_dx(
+      i: BigNumberish,
+      j: BigNumberish,
+      dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    get_dx_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    get_dy(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    get_dy_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    get_virtual_price(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
+
+  coins(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   creditFilter(overrides?: CallOverrides): Promise<string>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  curvePoolAddress(overrides?: CallOverrides): Promise<string>;
+  curvePool(overrides?: CallOverrides): Promise<string>;
 
   exchange(
     i: BigNumberish,
@@ -134,12 +221,52 @@ export class CurveV1Adapter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  exchange_underlying(
+    i: BigNumberish,
+    j: BigNumberish,
+    dx: BigNumberish,
+    min_dy: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  get_dx(
+    i: BigNumberish,
+    j: BigNumberish,
+    dy: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  get_dx_underlying(
+    i: BigNumberish,
+    j: BigNumberish,
+    dy: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  get_dy(
+    i: BigNumberish,
+    j: BigNumberish,
+    dx: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  get_dy_underlying(
+    i: BigNumberish,
+    j: BigNumberish,
+    dx: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
+    coins(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
     creditFilter(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
-    curvePoolAddress(overrides?: CallOverrides): Promise<string>;
+    curvePool(overrides?: CallOverrides): Promise<string>;
 
     exchange(
       i: BigNumberish,
@@ -148,16 +275,56 @@ export class CurveV1Adapter extends BaseContract {
       min_dy: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    exchange_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    get_dx(
+      i: BigNumberish,
+      j: BigNumberish,
+      dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    get_dx_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    get_dy(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    get_dy_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
 
   estimateGas: {
+    coins(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
     creditFilter(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    curvePoolAddress(overrides?: CallOverrides): Promise<BigNumber>;
+    curvePool(overrides?: CallOverrides): Promise<BigNumber>;
 
     exchange(
       i: BigNumberish,
@@ -166,14 +333,57 @@ export class CurveV1Adapter extends BaseContract {
       min_dy: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    exchange_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    get_dx(
+      i: BigNumberish,
+      j: BigNumberish,
+      dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    get_dx_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    get_dy(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    get_dy_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    coins(
+      i: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     creditFilter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    curvePoolAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    curvePool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     exchange(
       i: BigNumberish,
@@ -182,5 +392,43 @@ export class CurveV1Adapter extends BaseContract {
       min_dy: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    exchange_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    get_dx(
+      i: BigNumberish,
+      j: BigNumberish,
+      dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    get_dx_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dy: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    get_dy(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    get_dy_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    get_virtual_price(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

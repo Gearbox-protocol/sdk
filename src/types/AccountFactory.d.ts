@@ -21,24 +21,31 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface AccountFactoryInterface extends ethers.utils.Interface {
   functions: {
-    "accountMiner()": FunctionFragment;
+    "_contractsRegister()": FunctionFragment;
     "addCreditAccount()": FunctionFragment;
-    "connectMiner()": FunctionFragment;
+    "addMiningApprovals(tuple[])": FunctionFragment;
+    "cancelAllowance(address,address,address)": FunctionFragment;
     "countCreditAccounts()": FunctionFragment;
     "countCreditAccountsInStock()": FunctionFragment;
     "creditAccounts(uint256)": FunctionFragment;
+    "finishMining()": FunctionFragment;
     "getNext(address)": FunctionFragment;
     "head()": FunctionFragment;
+    "isMiningFinished()": FunctionFragment;
+    "masterCreditAccount()": FunctionFragment;
+    "mineCreditAccount()": FunctionFragment;
+    "miningApprovals(uint256)": FunctionFragment;
     "pause()": FunctionFragment;
     "paused()": FunctionFragment;
     "returnCreditAccount(address)": FunctionFragment;
     "tail()": FunctionFragment;
-    "takeCreditAccount(address)": FunctionFragment;
+    "takeCreditAccount()": FunctionFragment;
+    "takeOut(address,address,address)": FunctionFragment;
     "unpause()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "accountMiner",
+    functionFragment: "_contractsRegister",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -46,8 +53,12 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "connectMiner",
-    values?: undefined
+    functionFragment: "addMiningApprovals",
+    values: [{ token: string; swapContract: string }[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "cancelAllowance",
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "countCreditAccounts",
@@ -61,8 +72,28 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     functionFragment: "creditAccounts",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "finishMining",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "getNext", values: [string]): string;
   encodeFunctionData(functionFragment: "head", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "isMiningFinished",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "masterCreditAccount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mineCreditAccount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "miningApprovals",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
@@ -72,12 +103,16 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "tail", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "takeCreditAccount",
-    values: [string]
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "takeOut",
+    values: [string, string, string]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
 
   decodeFunctionResult(
-    functionFragment: "accountMiner",
+    functionFragment: "_contractsRegister",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -85,7 +120,11 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "connectMiner",
+    functionFragment: "addMiningApprovals",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "cancelAllowance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -100,8 +139,28 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     functionFragment: "creditAccounts",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "finishMining",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getNext", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "head", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isMiningFinished",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "masterCreditAccount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mineCreditAccount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "miningApprovals",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
@@ -113,6 +172,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     functionFragment: "takeCreditAccount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "takeOut", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
 
   events: {
@@ -121,6 +181,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     "NewCreditAccount(address)": EventFragment;
     "Paused(address)": EventFragment;
     "ReturnCreditAccount(address)": EventFragment;
+    "TakeForever(address,address)": EventFragment;
     "Unpaused(address)": EventFragment;
   };
 
@@ -129,6 +190,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "NewCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ReturnCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TakeForever"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
@@ -176,13 +238,21 @@ export class AccountFactory extends BaseContract {
   interface: AccountFactoryInterface;
 
   functions: {
-    accountMiner(overrides?: CallOverrides): Promise<[string]>;
+    _contractsRegister(overrides?: CallOverrides): Promise<[string]>;
 
     addCreditAccount(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    connectMiner(
+    addMiningApprovals(
+      _miningApprovals: { token: string; swapContract: string }[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    cancelAllowance(
+      account: string,
+      token: string,
+      targetContract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -195,12 +265,29 @@ export class AccountFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    finishMining(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getNext(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     head(overrides?: CallOverrides): Promise<[string]>;
+
+    isMiningFinished(overrides?: CallOverrides): Promise<[boolean]>;
+
+    masterCreditAccount(overrides?: CallOverrides): Promise<[string]>;
+
+    mineCreditAccount(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    miningApprovals(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, string] & { token: string; swapContract: string }>;
 
     pause(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -216,7 +303,13 @@ export class AccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<[string]>;
 
     takeCreditAccount(
-      borrower: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    takeOut(
+      prev: string,
+      creditAccount: string,
+      to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -225,13 +318,21 @@ export class AccountFactory extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  accountMiner(overrides?: CallOverrides): Promise<string>;
+  _contractsRegister(overrides?: CallOverrides): Promise<string>;
 
   addCreditAccount(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  connectMiner(
+  addMiningApprovals(
+    _miningApprovals: { token: string; swapContract: string }[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  cancelAllowance(
+    account: string,
+    token: string,
+    targetContract: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -244,9 +345,26 @@ export class AccountFactory extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  finishMining(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getNext(creditAccount: string, overrides?: CallOverrides): Promise<string>;
 
   head(overrides?: CallOverrides): Promise<string>;
+
+  isMiningFinished(overrides?: CallOverrides): Promise<boolean>;
+
+  masterCreditAccount(overrides?: CallOverrides): Promise<string>;
+
+  mineCreditAccount(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  miningApprovals(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[string, string] & { token: string; swapContract: string }>;
 
   pause(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -262,7 +380,13 @@ export class AccountFactory extends BaseContract {
   tail(overrides?: CallOverrides): Promise<string>;
 
   takeCreditAccount(
-    borrower: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  takeOut(
+    prev: string,
+    creditAccount: string,
+    to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -271,11 +395,21 @@ export class AccountFactory extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    accountMiner(overrides?: CallOverrides): Promise<string>;
+    _contractsRegister(overrides?: CallOverrides): Promise<string>;
 
     addCreditAccount(overrides?: CallOverrides): Promise<void>;
 
-    connectMiner(overrides?: CallOverrides): Promise<void>;
+    addMiningApprovals(
+      _miningApprovals: { token: string; swapContract: string }[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    cancelAllowance(
+      account: string,
+      token: string,
+      targetContract: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -286,9 +420,22 @@ export class AccountFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    finishMining(overrides?: CallOverrides): Promise<void>;
+
     getNext(creditAccount: string, overrides?: CallOverrides): Promise<string>;
 
     head(overrides?: CallOverrides): Promise<string>;
+
+    isMiningFinished(overrides?: CallOverrides): Promise<boolean>;
+
+    masterCreditAccount(overrides?: CallOverrides): Promise<string>;
+
+    mineCreditAccount(overrides?: CallOverrides): Promise<void>;
+
+    miningApprovals(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, string] & { token: string; swapContract: string }>;
 
     pause(overrides?: CallOverrides): Promise<void>;
 
@@ -301,10 +448,14 @@ export class AccountFactory extends BaseContract {
 
     tail(overrides?: CallOverrides): Promise<string>;
 
-    takeCreditAccount(
-      borrower: string,
+    takeCreditAccount(overrides?: CallOverrides): Promise<string>;
+
+    takeOut(
+      prev: string,
+      creditAccount: string,
+      to: string,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
   };
@@ -332,17 +483,33 @@ export class AccountFactory extends BaseContract {
       account?: string | null
     ): TypedEventFilter<[string], { account: string }>;
 
+    TakeForever(
+      creditAccount?: string | null,
+      to?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { creditAccount: string; to: string }
+    >;
+
     Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
 
   estimateGas: {
-    accountMiner(overrides?: CallOverrides): Promise<BigNumber>;
+    _contractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
 
     addCreditAccount(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    connectMiner(
+    addMiningApprovals(
+      _miningApprovals: { token: string; swapContract: string }[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    cancelAllowance(
+      account: string,
+      token: string,
+      targetContract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -355,12 +522,29 @@ export class AccountFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    finishMining(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getNext(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     head(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isMiningFinished(overrides?: CallOverrides): Promise<BigNumber>;
+
+    masterCreditAccount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    mineCreditAccount(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    miningApprovals(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     pause(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -376,7 +560,13 @@ export class AccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<BigNumber>;
 
     takeCreditAccount(
-      borrower: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    takeOut(
+      prev: string,
+      creditAccount: string,
+      to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -386,13 +576,23 @@ export class AccountFactory extends BaseContract {
   };
 
   populateTransaction: {
-    accountMiner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    _contractsRegister(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     addCreditAccount(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    connectMiner(
+    addMiningApprovals(
+      _miningApprovals: { token: string; swapContract: string }[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    cancelAllowance(
+      account: string,
+      token: string,
+      targetContract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -409,12 +609,31 @@ export class AccountFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    finishMining(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getNext(
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     head(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isMiningFinished(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    masterCreditAccount(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    mineCreditAccount(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    miningApprovals(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     pause(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -430,7 +649,13 @@ export class AccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     takeCreditAccount(
-      borrower: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    takeOut(
+      prev: string,
+      creditAccount: string,
+      to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

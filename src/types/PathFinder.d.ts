@@ -21,10 +21,17 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface PathFinderInterface extends ethers.utils.Interface {
   functions: {
+    "addressProvider()": FunctionFragment;
     "bestUniPath(uint256,address,uint256,address,address,uint256,address[])": FunctionFragment;
-    "convertPathToPathV3(address[])": FunctionFragment;
+    "contractsRegister()": FunctionFragment;
+    "convertPathToPathV3(address[],uint256)": FunctionFragment;
+    "getClosurePaths(address,address,address,address[])": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "addressProvider",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "bestUniPath",
     values: [
@@ -38,16 +45,36 @@ interface PathFinderInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "contractsRegister",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "convertPathToPathV3",
-    values: [string[]]
+    values: [string[], BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getClosurePaths",
+    values: [string, string, string, string[]]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "addressProvider",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "bestUniPath",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "contractsRegister",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "convertPathToPathV3",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getClosurePaths",
     data: BytesLike
   ): Result;
 
@@ -98,6 +125,8 @@ export class PathFinder extends BaseContract {
   interface: PathFinderInterface;
 
   functions: {
+    addressProvider(overrides?: CallOverrides): Promise<[string]>;
+
     bestUniPath(
       swapInterface: BigNumberish,
       router: string,
@@ -109,11 +138,24 @@ export class PathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    contractsRegister(overrides?: CallOverrides): Promise<[string]>;
+
     convertPathToPathV3(
       path: string[],
+      swapType: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string] & { result: string }>;
+
+    getClosurePaths(
+      router: string,
+      _creditManager: string,
+      borrower: string,
+      connectorTokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
+
+  addressProvider(overrides?: CallOverrides): Promise<string>;
 
   bestUniPath(
     swapInterface: BigNumberish,
@@ -126,12 +168,25 @@ export class PathFinder extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  contractsRegister(overrides?: CallOverrides): Promise<string>;
+
   convertPathToPathV3(
     path: string[],
+    swapType: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
+  getClosurePaths(
+    router: string,
+    _creditManager: string,
+    borrower: string,
+    connectorTokens: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
+    addressProvider(overrides?: CallOverrides): Promise<string>;
+
     bestUniPath(
       swapInterface: BigNumberish,
       router: string,
@@ -149,15 +204,34 @@ export class PathFinder extends BaseContract {
       }
     >;
 
+    contractsRegister(overrides?: CallOverrides): Promise<string>;
+
     convertPathToPathV3(
       path: string[],
+      swapType: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    getClosurePaths(
+      router: string,
+      _creditManager: string,
+      borrower: string,
+      connectorTokens: string[],
+      overrides?: CallOverrides
+    ): Promise<
+      ([string[], BigNumber, BigNumber] & {
+        path: string[];
+        rate: BigNumber;
+        expectedAmount: BigNumber;
+      })[]
+    >;
   };
 
   filters: {};
 
   estimateGas: {
+    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
+
     bestUniPath(
       swapInterface: BigNumberish,
       router: string,
@@ -169,13 +243,26 @@ export class PathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    contractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
+
     convertPathToPathV3(
       path: string[],
+      swapType: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getClosurePaths(
+      router: string,
+      _creditManager: string,
+      borrower: string,
+      connectorTokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     bestUniPath(
       swapInterface: BigNumberish,
       router: string,
@@ -187,9 +274,20 @@ export class PathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    contractsRegister(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     convertPathToPathV3(
       path: string[],
+      swapType: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getClosurePaths(
+      router: string,
+      _creditManager: string,
+      borrower: string,
+      connectorTokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

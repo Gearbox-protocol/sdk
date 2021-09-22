@@ -25,6 +25,8 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "ACL_CALLER_NOT_PAUSABLE_ADMIN()": FunctionFragment;
     "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK()": FunctionFragment;
     "AF_CANT_TAKE_LAST_ACCOUNT()": FunctionFragment;
+    "AF_CREDIT_ACCOUNT_NOT_IN_STOCK()": FunctionFragment;
+    "AF_MINING_IS_FINISHED()": FunctionFragment;
     "AM_ACCOUNT_FACTORY_ALREADY_EXISTS()": FunctionFragment;
     "AM_ACCOUNT_FACTORY_ONLY()": FunctionFragment;
     "AM_BID_LOWER_THAN_MINIMAL()": FunctionFragment;
@@ -33,13 +35,18 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "AM_USER_HAS_NO_BIDS()": FunctionFragment;
     "AS_ADDRESS_NOT_FOUND()": FunctionFragment;
     "CA_CREDIT_MANAGER_ONLY()": FunctionFragment;
+    "CA_FACTORY_ONLY()": FunctionFragment;
     "CF_ADAPTERS_ONLY()": FunctionFragment;
+    "CF_CONTRACT_IS_NOT_IN_ALLOWED_LIST()": FunctionFragment;
     "CF_CREDIT_MANAGERS_ONLY()": FunctionFragment;
+    "CF_FAST_CHECK_NOT_COVERED_COLLATERAL_DROP()": FunctionFragment;
     "CF_INCORRECT_CHI_THRESHOLD()": FunctionFragment;
     "CF_INCORRECT_FAST_CHECK()": FunctionFragment;
     "CF_INCORRECT_LIQUIDATION_THRESHOLD()": FunctionFragment;
     "CF_NON_TOKEN_CONTRACT()": FunctionFragment;
     "CF_OPERATION_LOW_HEALTH_FACTOR()": FunctionFragment;
+    "CF_POOLS_ONLY()": FunctionFragment;
+    "CF_SOME_LIQUIDATION_THRESHOLD_MORE_THAN_NEW_ONE()": FunctionFragment;
     "CF_TOKEN_IS_NOT_ALLOWED()": FunctionFragment;
     "CF_TOO_MUCH_ALLOWED_TOKENS()": FunctionFragment;
     "CF_UNDERLYING_TOKEN_FILTER_CONFLICT()": FunctionFragment;
@@ -52,20 +59,28 @@ interface ErrorsInterface extends ethers.utils.Interface {
     "CM_INCORRECT_FEES()": FunctionFragment;
     "CM_INCORRECT_LEVERAGE_FACTOR()": FunctionFragment;
     "CM_INCORRECT_LIMITS()": FunctionFragment;
+    "CM_INCORRECT_NEW_OWNER()": FunctionFragment;
     "CM_MAX_LEVERAGE_IS_TOO_HIGH()": FunctionFragment;
     "CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN()": FunctionFragment;
     "CM_NO_OPEN_ACCOUNT()": FunctionFragment;
     "CM_SWAP_CONTRACT_IS_NOT_ALLOWED()": FunctionFragment;
+    "CM_TARGET_CONTRACT_iS_NOT_ALLOWED()": FunctionFragment;
+    "CM_TRANSFER_FAILED()": FunctionFragment;
     "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL()": FunctionFragment;
     "CM_WETH_GATEWAY_ONLY()": FunctionFragment;
-    "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT()": FunctionFragment;
-    "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY()": FunctionFragment;
+    "CM_YOU_HAVE_ALREADY_OPEN_CREDIT_ACCOUNT()": FunctionFragment;
+    "CR_CREDIT_ACCOUNT_MANAGERS_ONLY()": FunctionFragment;
+    "CR_CREDIT_MANAGER_ALREADY_ADDED()": FunctionFragment;
     "CR_POOL_ALREADY_ADDED()": FunctionFragment;
-    "CR_VA_MANAGER_ALREADY_ADDED()": FunctionFragment;
     "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN()": FunctionFragment;
+    "LA_INCORRECT_MSG()": FunctionFragment;
+    "LA_INCORRECT_VALUE()": FunctionFragment;
+    "LA_UNKNOWN_LP_INTERFACE()": FunctionFragment;
+    "LA_UNKNOWN_SWAP_INTERFACE()": FunctionFragment;
     "MATH_ADDITION_OVERFLOW()": FunctionFragment;
     "MATH_DIVISION_BY_ZERO()": FunctionFragment;
     "MATH_MULTIPLICATION_OVERFLOW()": FunctionFragment;
+    "NOT_IMPLEMENTED()": FunctionFragment;
     "POOL_CANT_ADD_CREDIT_MANAGER_TWICE()": FunctionFragment;
     "POOL_CREDIT_MANAGERS_ONLY()": FunctionFragment;
     "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER()": FunctionFragment;
@@ -102,6 +117,14 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "AF_CREDIT_ACCOUNT_NOT_IN_STOCK",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "AF_MINING_IS_FINISHED",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "AM_ACCOUNT_FACTORY_ALREADY_EXISTS",
     values?: undefined
   ): string;
@@ -134,11 +157,23 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "CA_FACTORY_ONLY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "CF_ADAPTERS_ONLY",
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "CF_CONTRACT_IS_NOT_IN_ALLOWED_LIST",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "CF_CREDIT_MANAGERS_ONLY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CF_FAST_CHECK_NOT_COVERED_COLLATERAL_DROP",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -159,6 +194,14 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "CF_OPERATION_LOW_HEALTH_FACTOR",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CF_POOLS_ONLY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CF_SOME_LIQUIDATION_THRESHOLD_MORE_THAN_NEW_ONE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -210,6 +253,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "CM_INCORRECT_NEW_OWNER",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "CM_MAX_LEVERAGE_IS_TOO_HIGH",
     values?: undefined
   ): string;
@@ -226,6 +273,14 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "CM_TARGET_CONTRACT_iS_NOT_ALLOWED",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CM_TRANSFER_FAILED",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL",
     values?: undefined
   ): string;
@@ -234,11 +289,15 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT",
+    functionFragment: "CM_YOU_HAVE_ALREADY_OPEN_CREDIT_ACCOUNT",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY",
+    functionFragment: "CR_CREDIT_ACCOUNT_MANAGERS_ONLY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CR_CREDIT_MANAGER_ALREADY_ADDED",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -246,11 +305,23 @@ interface ErrorsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "CR_VA_MANAGER_ALREADY_ADDED",
+    functionFragment: "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN",
+    functionFragment: "LA_INCORRECT_MSG",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "LA_INCORRECT_VALUE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "LA_UNKNOWN_LP_INTERFACE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "LA_UNKNOWN_SWAP_INTERFACE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -263,6 +334,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "MATH_MULTIPLICATION_OVERFLOW",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "NOT_IMPLEMENTED",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -339,6 +414,14 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "AF_CREDIT_ACCOUNT_NOT_IN_STOCK",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "AF_MINING_IS_FINISHED",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "AM_ACCOUNT_FACTORY_ALREADY_EXISTS",
     data: BytesLike
   ): Result;
@@ -371,11 +454,23 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "CA_FACTORY_ONLY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "CF_ADAPTERS_ONLY",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "CF_CONTRACT_IS_NOT_IN_ALLOWED_LIST",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "CF_CREDIT_MANAGERS_ONLY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CF_FAST_CHECK_NOT_COVERED_COLLATERAL_DROP",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -396,6 +491,14 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "CF_OPERATION_LOW_HEALTH_FACTOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CF_POOLS_ONLY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CF_SOME_LIQUIDATION_THRESHOLD_MORE_THAN_NEW_ONE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -447,6 +550,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "CM_INCORRECT_NEW_OWNER",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "CM_MAX_LEVERAGE_IS_TOO_HIGH",
     data: BytesLike
   ): Result;
@@ -463,6 +570,14 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "CM_TARGET_CONTRACT_iS_NOT_ALLOWED",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CM_TRANSFER_FAILED",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "CM_UNDERLYING_IS_NOT_IN_STABLE_POOL",
     data: BytesLike
   ): Result;
@@ -471,11 +586,15 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT",
+    functionFragment: "CM_YOU_HAVE_ALREADY_OPEN_CREDIT_ACCOUNT",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY",
+    functionFragment: "CR_CREDIT_ACCOUNT_MANAGERS_ONLY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CR_CREDIT_MANAGER_ALREADY_ADDED",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -483,11 +602,23 @@ interface ErrorsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "CR_VA_MANAGER_ALREADY_ADDED",
+    functionFragment: "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "IMMUTABLE_CONFIG_CHANGES_FORBIDDEN",
+    functionFragment: "LA_INCORRECT_MSG",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "LA_INCORRECT_VALUE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "LA_UNKNOWN_LP_INTERFACE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "LA_UNKNOWN_SWAP_INTERFACE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -500,6 +631,10 @@ interface ErrorsInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "MATH_MULTIPLICATION_OVERFLOW",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "NOT_IMPLEMENTED",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -614,6 +749,12 @@ export class Errors extends BaseContract {
 
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<[string]>;
 
+    AF_CREDIT_ACCOUNT_NOT_IN_STOCK(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    AF_MINING_IS_FINISHED(overrides?: CallOverrides): Promise<[string]>;
+
     AM_ACCOUNT_FACTORY_ALREADY_EXISTS(
       overrides?: CallOverrides
     ): Promise<[string]>;
@@ -632,9 +773,19 @@ export class Errors extends BaseContract {
 
     CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
+    CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<[string]>;
+
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
+    CF_CONTRACT_IS_NOT_IN_ALLOWED_LIST(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<[string]>;
+
+    CF_FAST_CHECK_NOT_COVERED_COLLATERAL_DROP(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<[string]>;
 
@@ -647,6 +798,12 @@ export class Errors extends BaseContract {
     CF_NON_TOKEN_CONTRACT(overrides?: CallOverrides): Promise<[string]>;
 
     CF_OPERATION_LOW_HEALTH_FACTOR(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    CF_POOLS_ONLY(overrides?: CallOverrides): Promise<[string]>;
+
+    CF_SOME_LIQUIDATION_THRESHOLD_MORE_THAN_NEW_ONE(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -684,6 +841,8 @@ export class Errors extends BaseContract {
 
     CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<[string]>;
 
+    CM_INCORRECT_NEW_OWNER(overrides?: CallOverrides): Promise<[string]>;
+
     CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<[string]>;
 
     CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
@@ -696,33 +855,51 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    CM_TARGET_CONTRACT_iS_NOT_ALLOWED(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    CM_TRANSFER_FAILED(overrides?: CallOverrides): Promise<[string]>;
+
     CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
-    CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
+    CM_YOU_HAVE_ALREADY_OPEN_CREDIT_ACCOUNT(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY(
+    CR_CREDIT_ACCOUNT_MANAGERS_ONLY(
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    CR_CREDIT_MANAGER_ALREADY_ADDED(
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<[string]>;
 
-    CR_VA_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<[string]>;
-
     IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    LA_INCORRECT_MSG(overrides?: CallOverrides): Promise<[string]>;
+
+    LA_INCORRECT_VALUE(overrides?: CallOverrides): Promise<[string]>;
+
+    LA_UNKNOWN_LP_INTERFACE(overrides?: CallOverrides): Promise<[string]>;
+
+    LA_UNKNOWN_SWAP_INTERFACE(overrides?: CallOverrides): Promise<[string]>;
 
     MATH_ADDITION_OVERFLOW(overrides?: CallOverrides): Promise<[string]>;
 
     MATH_DIVISION_BY_ZERO(overrides?: CallOverrides): Promise<[string]>;
 
     MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<[string]>;
+
+    NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<[string]>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
       overrides?: CallOverrides
@@ -775,6 +952,10 @@ export class Errors extends BaseContract {
 
   AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<string>;
 
+  AF_CREDIT_ACCOUNT_NOT_IN_STOCK(overrides?: CallOverrides): Promise<string>;
+
+  AF_MINING_IS_FINISHED(overrides?: CallOverrides): Promise<string>;
+
   AM_ACCOUNT_FACTORY_ALREADY_EXISTS(overrides?: CallOverrides): Promise<string>;
 
   AM_ACCOUNT_FACTORY_ONLY(overrides?: CallOverrides): Promise<string>;
@@ -791,9 +972,19 @@ export class Errors extends BaseContract {
 
   CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<string>;
 
+  CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<string>;
+
   CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<string>;
 
+  CF_CONTRACT_IS_NOT_IN_ALLOWED_LIST(
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+  CF_FAST_CHECK_NOT_COVERED_COLLATERAL_DROP(
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<string>;
 
@@ -806,6 +997,12 @@ export class Errors extends BaseContract {
   CF_NON_TOKEN_CONTRACT(overrides?: CallOverrides): Promise<string>;
 
   CF_OPERATION_LOW_HEALTH_FACTOR(overrides?: CallOverrides): Promise<string>;
+
+  CF_POOLS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+  CF_SOME_LIQUIDATION_THRESHOLD_MORE_THAN_NEW_ONE(
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
 
@@ -841,6 +1038,8 @@ export class Errors extends BaseContract {
 
   CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<string>;
 
+  CM_INCORRECT_NEW_OWNER(overrides?: CallOverrides): Promise<string>;
+
   CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<string>;
 
   CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
@@ -851,33 +1050,45 @@ export class Errors extends BaseContract {
 
   CM_SWAP_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
 
+  CM_TARGET_CONTRACT_iS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
+
+  CM_TRANSFER_FAILED(overrides?: CallOverrides): Promise<string>;
+
   CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
     overrides?: CallOverrides
   ): Promise<string>;
 
   CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<string>;
 
-  CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
+  CM_YOU_HAVE_ALREADY_OPEN_CREDIT_ACCOUNT(
     overrides?: CallOverrides
   ): Promise<string>;
 
-  CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY(
-    overrides?: CallOverrides
-  ): Promise<string>;
+  CR_CREDIT_ACCOUNT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+  CR_CREDIT_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
 
   CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
-
-  CR_VA_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
 
   IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
     overrides?: CallOverrides
   ): Promise<string>;
+
+  LA_INCORRECT_MSG(overrides?: CallOverrides): Promise<string>;
+
+  LA_INCORRECT_VALUE(overrides?: CallOverrides): Promise<string>;
+
+  LA_UNKNOWN_LP_INTERFACE(overrides?: CallOverrides): Promise<string>;
+
+  LA_UNKNOWN_SWAP_INTERFACE(overrides?: CallOverrides): Promise<string>;
 
   MATH_ADDITION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
 
   MATH_DIVISION_BY_ZERO(overrides?: CallOverrides): Promise<string>;
 
   MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
+
+  NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<string>;
 
   POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
     overrides?: CallOverrides
@@ -930,6 +1141,10 @@ export class Errors extends BaseContract {
 
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<string>;
 
+    AF_CREDIT_ACCOUNT_NOT_IN_STOCK(overrides?: CallOverrides): Promise<string>;
+
+    AF_MINING_IS_FINISHED(overrides?: CallOverrides): Promise<string>;
+
     AM_ACCOUNT_FACTORY_ALREADY_EXISTS(
       overrides?: CallOverrides
     ): Promise<string>;
@@ -948,9 +1163,19 @@ export class Errors extends BaseContract {
 
     CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<string>;
 
+    CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<string>;
+
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<string>;
 
+    CF_CONTRACT_IS_NOT_IN_ALLOWED_LIST(
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+    CF_FAST_CHECK_NOT_COVERED_COLLATERAL_DROP(
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<string>;
 
@@ -963,6 +1188,12 @@ export class Errors extends BaseContract {
     CF_NON_TOKEN_CONTRACT(overrides?: CallOverrides): Promise<string>;
 
     CF_OPERATION_LOW_HEALTH_FACTOR(overrides?: CallOverrides): Promise<string>;
+
+    CF_POOLS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+    CF_SOME_LIQUIDATION_THRESHOLD_MORE_THAN_NEW_ONE(
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     CF_TOKEN_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
 
@@ -998,6 +1229,8 @@ export class Errors extends BaseContract {
 
     CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<string>;
 
+    CM_INCORRECT_NEW_OWNER(overrides?: CallOverrides): Promise<string>;
+
     CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<string>;
 
     CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
@@ -1008,33 +1241,47 @@ export class Errors extends BaseContract {
 
     CM_SWAP_CONTRACT_IS_NOT_ALLOWED(overrides?: CallOverrides): Promise<string>;
 
+    CM_TARGET_CONTRACT_iS_NOT_ALLOWED(
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    CM_TRANSFER_FAILED(overrides?: CallOverrides): Promise<string>;
+
     CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
       overrides?: CallOverrides
     ): Promise<string>;
 
     CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<string>;
 
-    CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
+    CM_YOU_HAVE_ALREADY_OPEN_CREDIT_ACCOUNT(
       overrides?: CallOverrides
     ): Promise<string>;
 
-    CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY(
-      overrides?: CallOverrides
-    ): Promise<string>;
+    CR_CREDIT_ACCOUNT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<string>;
+
+    CR_CREDIT_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
 
     CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
-
-    CR_VA_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<string>;
 
     IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<string>;
+
+    LA_INCORRECT_MSG(overrides?: CallOverrides): Promise<string>;
+
+    LA_INCORRECT_VALUE(overrides?: CallOverrides): Promise<string>;
+
+    LA_UNKNOWN_LP_INTERFACE(overrides?: CallOverrides): Promise<string>;
+
+    LA_UNKNOWN_SWAP_INTERFACE(overrides?: CallOverrides): Promise<string>;
 
     MATH_ADDITION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
 
     MATH_DIVISION_BY_ZERO(overrides?: CallOverrides): Promise<string>;
 
     MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<string>;
+
+    NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<string>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
       overrides?: CallOverrides
@@ -1092,6 +1339,12 @@ export class Errors extends BaseContract {
 
     AF_CANT_TAKE_LAST_ACCOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
+    AF_CREDIT_ACCOUNT_NOT_IN_STOCK(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    AF_MINING_IS_FINISHED(overrides?: CallOverrides): Promise<BigNumber>;
+
     AM_ACCOUNT_FACTORY_ALREADY_EXISTS(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1110,9 +1363,19 @@ export class Errors extends BaseContract {
 
     CA_CREDIT_MANAGER_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
 
+    CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
+
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
 
+    CF_CONTRACT_IS_NOT_IN_ALLOWED_LIST(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     CF_CREDIT_MANAGERS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CF_FAST_CHECK_NOT_COVERED_COLLATERAL_DROP(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     CF_INCORRECT_CHI_THRESHOLD(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1125,6 +1388,12 @@ export class Errors extends BaseContract {
     CF_NON_TOKEN_CONTRACT(overrides?: CallOverrides): Promise<BigNumber>;
 
     CF_OPERATION_LOW_HEALTH_FACTOR(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    CF_POOLS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CF_SOME_LIQUIDATION_THRESHOLD_MORE_THAN_NEW_ONE(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1162,6 +1431,8 @@ export class Errors extends BaseContract {
 
     CM_INCORRECT_LIMITS(overrides?: CallOverrides): Promise<BigNumber>;
 
+    CM_INCORRECT_NEW_OWNER(overrides?: CallOverrides): Promise<BigNumber>;
+
     CM_MAX_LEVERAGE_IS_TOO_HIGH(overrides?: CallOverrides): Promise<BigNumber>;
 
     CM_NON_IMMUTABLE_CONFIG_IS_FORBIDDEN(
@@ -1174,33 +1445,51 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    CM_TARGET_CONTRACT_iS_NOT_ALLOWED(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    CM_TRANSFER_FAILED(overrides?: CallOverrides): Promise<BigNumber>;
+
     CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     CM_WETH_GATEWAY_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
 
-    CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
+    CM_YOU_HAVE_ALREADY_OPEN_CREDIT_ACCOUNT(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY(
+    CR_CREDIT_ACCOUNT_MANAGERS_ONLY(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    CR_CREDIT_MANAGER_ALREADY_ADDED(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<BigNumber>;
 
-    CR_VA_MANAGER_ALREADY_ADDED(overrides?: CallOverrides): Promise<BigNumber>;
-
     IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    LA_INCORRECT_MSG(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LA_INCORRECT_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LA_UNKNOWN_LP_INTERFACE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LA_UNKNOWN_SWAP_INTERFACE(overrides?: CallOverrides): Promise<BigNumber>;
 
     MATH_ADDITION_OVERFLOW(overrides?: CallOverrides): Promise<BigNumber>;
 
     MATH_DIVISION_BY_ZERO(overrides?: CallOverrides): Promise<BigNumber>;
 
     MATH_MULTIPLICATION_OVERFLOW(overrides?: CallOverrides): Promise<BigNumber>;
+
+    NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<BigNumber>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
       overrides?: CallOverrides
@@ -1262,6 +1551,14 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    AF_CREDIT_ACCOUNT_NOT_IN_STOCK(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    AF_MINING_IS_FINISHED(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     AM_ACCOUNT_FACTORY_ALREADY_EXISTS(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1294,9 +1591,19 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     CF_ADAPTERS_ONLY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    CF_CONTRACT_IS_NOT_IN_ALLOWED_LIST(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     CF_CREDIT_MANAGERS_ONLY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CF_FAST_CHECK_NOT_COVERED_COLLATERAL_DROP(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1317,6 +1624,12 @@ export class Errors extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     CF_OPERATION_LOW_HEALTH_FACTOR(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CF_POOLS_ONLY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    CF_SOME_LIQUIDATION_THRESHOLD_MORE_THAN_NEW_ONE(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1366,6 +1679,10 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    CM_INCORRECT_NEW_OWNER(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     CM_MAX_LEVERAGE_IS_TOO_HIGH(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1382,6 +1699,14 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    CM_TARGET_CONTRACT_iS_NOT_ALLOWED(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CM_TRANSFER_FAILED(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     CM_UNDERLYING_IS_NOT_IN_STABLE_POOL(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1390,11 +1715,15 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CM_YOU_HAVE_ALREADY_OPEN_VIRTUAL_ACCOUNT(
+    CM_YOU_HAVE_ALREADY_OPEN_CREDIT_ACCOUNT(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CR_ALLOWED_FOR_VIRTUAL_ACCOUNT_MANAGERS_ONLY(
+    CR_CREDIT_ACCOUNT_MANAGERS_ONLY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CR_CREDIT_MANAGER_ALREADY_ADDED(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1402,11 +1731,21 @@ export class Errors extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    CR_VA_MANAGER_ALREADY_ADDED(
+    IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    IMMUTABLE_CONFIG_CHANGES_FORBIDDEN(
+    LA_INCORRECT_MSG(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    LA_INCORRECT_VALUE(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    LA_UNKNOWN_LP_INTERFACE(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    LA_UNKNOWN_SWAP_INTERFACE(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1421,6 +1760,8 @@ export class Errors extends BaseContract {
     MATH_MULTIPLICATION_OVERFLOW(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
       overrides?: CallOverrides

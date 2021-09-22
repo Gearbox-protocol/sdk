@@ -23,7 +23,7 @@ interface AccountMiningInterface extends ethers.utils.Interface {
   functions: {
     "accountFactory()": FunctionFragment;
     "amount()": FunctionFragment;
-    "claim(uint256,address,uint256,bytes32[])": FunctionFragment;
+    "claim(uint256,uint256,bytes32[])": FunctionFragment;
     "isClaimed(uint256)": FunctionFragment;
     "merkleRoot()": FunctionFragment;
     "token()": FunctionFragment;
@@ -36,7 +36,7 @@ interface AccountMiningInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "amount", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "claim",
-    values: [BigNumberish, string, BigNumberish, BytesLike[]]
+    values: [BigNumberish, BigNumberish, BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "isClaimed",
@@ -115,7 +115,6 @@ export class AccountMining extends BaseContract {
 
     claim(
       index: BigNumberish,
-      account: string,
       salt: BigNumberish,
       merkleProof: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -137,7 +136,6 @@ export class AccountMining extends BaseContract {
 
   claim(
     index: BigNumberish,
-    account: string,
     salt: BigNumberish,
     merkleProof: BytesLike[],
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -156,7 +154,6 @@ export class AccountMining extends BaseContract {
 
     claim(
       index: BigNumberish,
-      account: string,
       salt: BigNumberish,
       merkleProof: BytesLike[],
       overrides?: CallOverrides
@@ -186,7 +183,6 @@ export class AccountMining extends BaseContract {
 
     claim(
       index: BigNumberish,
-      account: string,
       salt: BigNumberish,
       merkleProof: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -209,7 +205,6 @@ export class AccountMining extends BaseContract {
 
     claim(
       index: BigNumberish,
-      account: string,
       salt: BigNumberish,
       merkleProof: BytesLike[],
       overrides?: Overrides & { from?: string | Promise<string> }

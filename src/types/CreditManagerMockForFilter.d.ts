@@ -25,11 +25,21 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     "checkAndEnableToken(address,address)": FunctionFragment;
     "checkCollateralChange(address,address,address,uint256,uint256)": FunctionFragment;
     "connectFilter(address,address)": FunctionFragment;
+    "feeInterest()": FunctionFragment;
+    "feeLiquidation()": FunctionFragment;
+    "feeSuccess()": FunctionFragment;
     "healthFactor()": FunctionFragment;
     "initEnabledTokens(address)": FunctionFragment;
+    "liquidationDiscount()": FunctionFragment;
+    "maxLeverageFactor()": FunctionFragment;
+    "minHealthFactor()": FunctionFragment;
     "poolService()": FunctionFragment;
+    "setFeeLiquidation(uint256)": FunctionFragment;
     "setLinearCumulative(uint256)": FunctionFragment;
+    "setLiquidationDiscount(uint256)": FunctionFragment;
+    "setMaxLeverageFactor(uint256)": FunctionFragment;
     "underlyingToken()": FunctionFragment;
+    "updateUnderlyingTokenLiquidationThreshold()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -49,6 +59,18 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "feeInterest",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "feeLiquidation",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "feeSuccess",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "healthFactor",
     values?: undefined
   ): string;
@@ -57,15 +79,43 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "liquidationDiscount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxLeverageFactor",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "minHealthFactor",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "poolService",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setFeeLiquidation",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setLinearCumulative",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "setLiquidationDiscount",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMaxLeverageFactor",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "underlyingToken",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateUnderlyingTokenLiquidationThreshold",
     values?: undefined
   ): string;
 
@@ -86,6 +136,15 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "feeInterest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "feeLiquidation",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "feeSuccess", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "healthFactor",
     data: BytesLike
   ): Result;
@@ -94,7 +153,23 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "liquidationDiscount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "maxLeverageFactor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "minHealthFactor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "poolService",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setFeeLiquidation",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -102,7 +177,19 @@ interface CreditManagerMockForFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setLiquidationDiscount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxLeverageFactor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "underlyingToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateUnderlyingTokenLiquidationThreshold",
     data: BytesLike
   ): Result;
 
@@ -176,6 +263,12 @@ export class CreditManagerMockForFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    feeInterest(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    feeLiquidation(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    feeSuccess(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     healthFactor(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     initEnabledTokens(
@@ -183,14 +276,39 @@ export class CreditManagerMockForFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    liquidationDiscount(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    maxLeverageFactor(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    minHealthFactor(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     poolService(overrides?: CallOverrides): Promise<[string]>;
+
+    setFeeLiquidation(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     setLinearCumulative(
       newValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setLiquidationDiscount(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setMaxLeverageFactor(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     underlyingToken(overrides?: CallOverrides): Promise<[string]>;
+
+    updateUnderlyingTokenLiquidationThreshold(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
@@ -216,6 +334,12 @@ export class CreditManagerMockForFilter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
+
+  feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
+
+  feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
+
   healthFactor(overrides?: CallOverrides): Promise<BigNumber>;
 
   initEnabledTokens(
@@ -223,14 +347,39 @@ export class CreditManagerMockForFilter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxLeverageFactor(overrides?: CallOverrides): Promise<BigNumber>;
+
+  minHealthFactor(overrides?: CallOverrides): Promise<BigNumber>;
+
   poolService(overrides?: CallOverrides): Promise<string>;
+
+  setFeeLiquidation(
+    _value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setLinearCumulative(
     newValue: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setLiquidationDiscount(
+    _value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setMaxLeverageFactor(
+    _value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   underlyingToken(overrides?: CallOverrides): Promise<string>;
+
+  updateUnderlyingTokenLiquidationThreshold(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
@@ -256,6 +405,12 @@ export class CreditManagerMockForFilter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
+
     healthFactor(overrides?: CallOverrides): Promise<BigNumber>;
 
     initEnabledTokens(
@@ -263,14 +418,39 @@ export class CreditManagerMockForFilter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxLeverageFactor(overrides?: CallOverrides): Promise<BigNumber>;
+
+    minHealthFactor(overrides?: CallOverrides): Promise<BigNumber>;
+
     poolService(overrides?: CallOverrides): Promise<string>;
+
+    setFeeLiquidation(
+      _value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setLinearCumulative(
       newValue: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setLiquidationDiscount(
+      _value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMaxLeverageFactor(
+      _value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     underlyingToken(overrides?: CallOverrides): Promise<string>;
+
+    updateUnderlyingTokenLiquidationThreshold(
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
   filters: {};
@@ -299,6 +479,12 @@ export class CreditManagerMockForFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    feeInterest(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
+
+    feeSuccess(overrides?: CallOverrides): Promise<BigNumber>;
+
     healthFactor(overrides?: CallOverrides): Promise<BigNumber>;
 
     initEnabledTokens(
@@ -306,14 +492,39 @@ export class CreditManagerMockForFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    liquidationDiscount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxLeverageFactor(overrides?: CallOverrides): Promise<BigNumber>;
+
+    minHealthFactor(overrides?: CallOverrides): Promise<BigNumber>;
+
     poolService(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setFeeLiquidation(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     setLinearCumulative(
       newValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setLiquidationDiscount(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setMaxLeverageFactor(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    updateUnderlyingTokenLiquidationThreshold(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -342,6 +553,12 @@ export class CreditManagerMockForFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    feeInterest(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    feeLiquidation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    feeSuccess(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     healthFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initEnabledTokens(
@@ -349,13 +566,40 @@ export class CreditManagerMockForFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    liquidationDiscount(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxLeverageFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    minHealthFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     poolService(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setFeeLiquidation(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     setLinearCumulative(
       newValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    setLiquidationDiscount(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMaxLeverageFactor(
+      _value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     underlyingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    updateUnderlyingTokenLiquidationThreshold(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }
