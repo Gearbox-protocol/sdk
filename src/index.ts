@@ -33,4 +33,4 @@ export type {
   GearBeta
 } from "./types";
 
-export * from "./core/errors";
+export * from "./core/history";
