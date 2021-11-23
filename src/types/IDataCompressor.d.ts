@@ -20,6 +20,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IDataCompressorInterface extends ethers.utils.Interface {
   functions: {
+    "calcExpectedAtOpenHf(address,address,uint256,uint256)": FunctionFragment;
     "calcExpectedHf(address,address,uint256[])": FunctionFragment;
     "getCreditAccountData(address,address)": FunctionFragment;
     "getCreditAccountDataExtended(address,address)": FunctionFragment;
@@ -28,10 +29,14 @@ interface IDataCompressorInterface extends ethers.utils.Interface {
     "getCreditManagersList(address)": FunctionFragment;
     "getPoolData(address)": FunctionFragment;
     "getPoolsList()": FunctionFragment;
-    "getTokenData(address)": FunctionFragment;
+    "getTokenData(address[])": FunctionFragment;
     "hasOpenedCreditAccount(address,address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "calcExpectedAtOpenHf",
+    values: [string, string, BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "calcExpectedHf",
     values: [string, string, BigNumberish[]]
@@ -63,13 +68,17 @@ interface IDataCompressorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenData",
-    values: [string]
+    values: [string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "hasOpenedCreditAccount",
     values: [string, string]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "calcExpectedAtOpenHf",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "calcExpectedHf",
     data: BytesLike
@@ -158,6 +167,14 @@ export class IDataCompressor extends BaseContract {
   interface: IDataCompressorInterface;
 
   functions: {
+    calcExpectedAtOpenHf(
+      _creditManager: string,
+      token: string,
+      amount: BigNumberish,
+      borrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     calcExpectedHf(
       creditManager: string,
       borrower: string,
@@ -181,7 +198,11 @@ export class IDataCompressor extends BaseContract {
           BigNumber,
           BigNumber,
           BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[]
+          ([string, BigNumber, boolean] & {
+            token: string;
+            balance: BigNumber;
+            isAllowed: boolean;
+          })[]
         ] & {
           addr: string;
           borrower: string;
@@ -192,9 +213,10 @@ export class IDataCompressor extends BaseContract {
           totalValue: BigNumber;
           healthFactor: BigNumber;
           borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
+          balances: ([string, BigNumber, boolean] & {
             token: string;
             balance: BigNumber;
+            isAllowed: boolean;
           })[];
         }
       ]
@@ -216,7 +238,11 @@ export class IDataCompressor extends BaseContract {
           BigNumber,
           BigNumber,
           BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[],
+          ([string, BigNumber, boolean] & {
+            token: string;
+            balance: BigNumber;
+            isAllowed: boolean;
+          })[],
           BigNumber,
           BigNumber,
           boolean,
@@ -233,9 +259,10 @@ export class IDataCompressor extends BaseContract {
           totalValue: BigNumber;
           healthFactor: BigNumber;
           borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
+          balances: ([string, BigNumber, boolean] & {
             token: string;
             balance: BigNumber;
+            isAllowed: boolean;
           })[];
           repayAmount: BigNumber;
           liquidationAmount: BigNumber;
@@ -262,7 +289,11 @@ export class IDataCompressor extends BaseContract {
           BigNumber,
           BigNumber,
           BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[]
+          ([string, BigNumber, boolean] & {
+            token: string;
+            balance: BigNumber;
+            isAllowed: boolean;
+          })[]
         ] & {
           addr: string;
           borrower: string;
@@ -273,9 +304,10 @@ export class IDataCompressor extends BaseContract {
           totalValue: BigNumber;
           healthFactor: BigNumber;
           borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
+          balances: ([string, BigNumber, boolean] & {
             token: string;
             balance: BigNumber;
+            isAllowed: boolean;
           })[];
         })[]
       ]
@@ -440,15 +472,15 @@ export class IDataCompressor extends BaseContract {
     >;
 
     getTokenData(
-      addr: string,
+      addr: string[],
       overrides?: CallOverrides
     ): Promise<
       [
-        [string, string, number] & {
+        ([string, string, number] & {
           addr: string;
           symbol: string;
           decimals: number;
-        }
+        })[]
       ]
     >;
 
@@ -458,6 +490,14 @@ export class IDataCompressor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
   };
+
+  calcExpectedAtOpenHf(
+    _creditManager: string,
+    token: string,
+    amount: BigNumberish,
+    borrowedAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   calcExpectedHf(
     creditManager: string,
@@ -481,7 +521,11 @@ export class IDataCompressor extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[]
+      ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[]
     ] & {
       addr: string;
       borrower: string;
@@ -492,7 +536,11 @@ export class IDataCompressor extends BaseContract {
       totalValue: BigNumber;
       healthFactor: BigNumber;
       borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
+      balances: ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[];
     }
   >;
 
@@ -511,7 +559,11 @@ export class IDataCompressor extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[],
+      ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[],
       BigNumber,
       BigNumber,
       boolean,
@@ -528,7 +580,11 @@ export class IDataCompressor extends BaseContract {
       totalValue: BigNumber;
       healthFactor: BigNumber;
       borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
+      balances: ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[];
       repayAmount: BigNumber;
       liquidationAmount: BigNumber;
       canBeClosed: boolean;
@@ -552,7 +608,11 @@ export class IDataCompressor extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[]
+      ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[]
     ] & {
       addr: string;
       borrower: string;
@@ -563,7 +623,11 @@ export class IDataCompressor extends BaseContract {
       totalValue: BigNumber;
       healthFactor: BigNumber;
       borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
+      balances: ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[];
     })[]
   >;
 
@@ -718,14 +782,14 @@ export class IDataCompressor extends BaseContract {
   >;
 
   getTokenData(
-    addr: string,
+    addr: string[],
     overrides?: CallOverrides
   ): Promise<
-    [string, string, number] & {
+    ([string, string, number] & {
       addr: string;
       symbol: string;
       decimals: number;
-    }
+    })[]
   >;
 
   hasOpenedCreditAccount(
@@ -735,6 +799,14 @@ export class IDataCompressor extends BaseContract {
   ): Promise<boolean>;
 
   callStatic: {
+    calcExpectedAtOpenHf(
+      _creditManager: string,
+      token: string,
+      amount: BigNumberish,
+      borrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     calcExpectedHf(
       creditManager: string,
       borrower: string,
@@ -757,7 +829,11 @@ export class IDataCompressor extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[]
+        ([string, BigNumber, boolean] & {
+          token: string;
+          balance: BigNumber;
+          isAllowed: boolean;
+        })[]
       ] & {
         addr: string;
         borrower: string;
@@ -768,9 +844,10 @@ export class IDataCompressor extends BaseContract {
         totalValue: BigNumber;
         healthFactor: BigNumber;
         borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
+        balances: ([string, BigNumber, boolean] & {
           token: string;
           balance: BigNumber;
+          isAllowed: boolean;
         })[];
       }
     >;
@@ -790,7 +867,11 @@ export class IDataCompressor extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[],
+        ([string, BigNumber, boolean] & {
+          token: string;
+          balance: BigNumber;
+          isAllowed: boolean;
+        })[],
         BigNumber,
         BigNumber,
         boolean,
@@ -807,9 +888,10 @@ export class IDataCompressor extends BaseContract {
         totalValue: BigNumber;
         healthFactor: BigNumber;
         borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
+        balances: ([string, BigNumber, boolean] & {
           token: string;
           balance: BigNumber;
+          isAllowed: boolean;
         })[];
         repayAmount: BigNumber;
         liquidationAmount: BigNumber;
@@ -834,7 +916,11 @@ export class IDataCompressor extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[]
+        ([string, BigNumber, boolean] & {
+          token: string;
+          balance: BigNumber;
+          isAllowed: boolean;
+        })[]
       ] & {
         addr: string;
         borrower: string;
@@ -845,9 +931,10 @@ export class IDataCompressor extends BaseContract {
         totalValue: BigNumber;
         healthFactor: BigNumber;
         borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
+        balances: ([string, BigNumber, boolean] & {
           token: string;
           balance: BigNumber;
+          isAllowed: boolean;
         })[];
       })[]
     >;
@@ -1003,14 +1090,14 @@ export class IDataCompressor extends BaseContract {
     >;
 
     getTokenData(
-      addr: string,
+      addr: string[],
       overrides?: CallOverrides
     ): Promise<
-      [string, string, number] & {
+      ([string, string, number] & {
         addr: string;
         symbol: string;
         decimals: number;
-      }
+      })[]
     >;
 
     hasOpenedCreditAccount(
@@ -1023,6 +1110,14 @@ export class IDataCompressor extends BaseContract {
   filters: {};
 
   estimateGas: {
+    calcExpectedAtOpenHf(
+      _creditManager: string,
+      token: string,
+      amount: BigNumberish,
+      borrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     calcExpectedHf(
       creditManager: string,
       borrower: string,
@@ -1062,7 +1157,7 @@ export class IDataCompressor extends BaseContract {
 
     getPoolsList(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getTokenData(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getTokenData(addr: string[], overrides?: CallOverrides): Promise<BigNumber>;
 
     hasOpenedCreditAccount(
       creditManager: string,
@@ -1072,6 +1167,14 @@ export class IDataCompressor extends BaseContract {
   };
 
   populateTransaction: {
+    calcExpectedAtOpenHf(
+      _creditManager: string,
+      token: string,
+      amount: BigNumberish,
+      borrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     calcExpectedHf(
       creditManager: string,
       borrower: string,
@@ -1115,7 +1218,7 @@ export class IDataCompressor extends BaseContract {
     getPoolsList(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getTokenData(
-      addr: string,
+      addr: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

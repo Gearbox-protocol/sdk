@@ -191,7 +191,18 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_borrowedAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_cumulativeIndexAtOpen",
+        type: "uint256",
+      },
+    ],
     name: "takeCreditAccount",
     outputs: [
       {

@@ -11,6 +11,7 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
+  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -20,12 +21,32 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface YearnPriceFeedInterface extends ethers.utils.Interface {
   functions: {
+    "decimals()": FunctionFragment;
+    "decimalsDivider()": FunctionFragment;
+    "description()": FunctionFragment;
     "getRoundData(uint80)": FunctionFragment;
     "latestRoundData()": FunctionFragment;
+    "lowerBound()": FunctionFragment;
+    "maxExpectedAPY()": FunctionFragment;
+    "pause()": FunctionFragment;
+    "paused()": FunctionFragment;
     "priceFeed()": FunctionFragment;
+    "setLimiter(uint256,uint256)": FunctionFragment;
+    "timestampLimiter()": FunctionFragment;
+    "unpause()": FunctionFragment;
+    "version()": FunctionFragment;
     "yVault()": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "decimalsDivider",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "description",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getRoundData",
     values: [BigNumberish]
@@ -34,9 +55,38 @@ interface YearnPriceFeedInterface extends ethers.utils.Interface {
     functionFragment: "latestRoundData",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "lowerBound",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxExpectedAPY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(functionFragment: "priceFeed", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "setLimiter",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "timestampLimiter",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(functionFragment: "yVault", values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "decimalsDivider",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "description",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getRoundData",
     data: BytesLike
@@ -45,10 +95,30 @@ interface YearnPriceFeedInterface extends ethers.utils.Interface {
     functionFragment: "latestRoundData",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "lowerBound", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxExpectedAPY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "priceFeed", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setLimiter", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "timestampLimiter",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "yVault", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "Paused(address)": EventFragment;
+    "Unpaused(address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
 export class YearnPriceFeed extends BaseContract {
@@ -95,6 +165,12 @@ export class YearnPriceFeed extends BaseContract {
   interface: YearnPriceFeedInterface;
 
   functions: {
+    decimals(overrides?: CallOverrides): Promise<[number]>;
+
+    decimalsDivider(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    description(overrides?: CallOverrides): Promise<[string]>;
+
     getRoundData(
       _roundId: BigNumberish,
       overrides?: CallOverrides
@@ -120,10 +196,40 @@ export class YearnPriceFeed extends BaseContract {
       }
     >;
 
+    lowerBound(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    maxExpectedAPY(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<[boolean]>;
+
     priceFeed(overrides?: CallOverrides): Promise<[string]>;
+
+    setLimiter(
+      _lowerBound: BigNumberish,
+      _maxExpectedAPY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    timestampLimiter(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     yVault(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  decimals(overrides?: CallOverrides): Promise<number>;
+
+  decimalsDivider(overrides?: CallOverrides): Promise<BigNumber>;
+
+  description(overrides?: CallOverrides): Promise<string>;
 
   getRoundData(
     _roundId: BigNumberish,
@@ -150,11 +256,41 @@ export class YearnPriceFeed extends BaseContract {
     }
   >;
 
+  lowerBound(overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxExpectedAPY(overrides?: CallOverrides): Promise<BigNumber>;
+
+  pause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  paused(overrides?: CallOverrides): Promise<boolean>;
+
   priceFeed(overrides?: CallOverrides): Promise<string>;
+
+  setLimiter(
+    _lowerBound: BigNumberish,
+    _maxExpectedAPY: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  timestampLimiter(overrides?: CallOverrides): Promise<BigNumber>;
+
+  unpause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  version(overrides?: CallOverrides): Promise<BigNumber>;
 
   yVault(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    decimals(overrides?: CallOverrides): Promise<number>;
+
+    decimalsDivider(overrides?: CallOverrides): Promise<BigNumber>;
+
+    description(overrides?: CallOverrides): Promise<string>;
+
     getRoundData(
       _roundId: BigNumberish,
       overrides?: CallOverrides
@@ -180,14 +316,44 @@ export class YearnPriceFeed extends BaseContract {
       }
     >;
 
+    lowerBound(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxExpectedAPY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pause(overrides?: CallOverrides): Promise<void>;
+
+    paused(overrides?: CallOverrides): Promise<boolean>;
+
     priceFeed(overrides?: CallOverrides): Promise<string>;
+
+    setLimiter(
+      _lowerBound: BigNumberish,
+      _maxExpectedAPY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    timestampLimiter(overrides?: CallOverrides): Promise<BigNumber>;
+
+    unpause(overrides?: CallOverrides): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
 
     yVault(overrides?: CallOverrides): Promise<string>;
   };
 
-  filters: {};
+  filters: {
+    Paused(account?: null): TypedEventFilter<[string], { account: string }>;
+
+    Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
+  };
 
   estimateGas: {
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decimalsDivider(overrides?: CallOverrides): Promise<BigNumber>;
+
+    description(overrides?: CallOverrides): Promise<BigNumber>;
+
     getRoundData(
       _roundId: BigNumberish,
       overrides?: CallOverrides
@@ -195,12 +361,42 @@ export class YearnPriceFeed extends BaseContract {
 
     latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
 
+    lowerBound(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxExpectedAPY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    paused(overrides?: CallOverrides): Promise<BigNumber>;
+
     priceFeed(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setLimiter(
+      _lowerBound: BigNumberish,
+      _maxExpectedAPY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    timestampLimiter(overrides?: CallOverrides): Promise<BigNumber>;
+
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
 
     yVault(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    decimalsDivider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getRoundData(
       _roundId: BigNumberish,
       overrides?: CallOverrides
@@ -208,7 +404,31 @@ export class YearnPriceFeed extends BaseContract {
 
     latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    lowerBound(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    maxExpectedAPY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     priceFeed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setLimiter(
+      _lowerBound: BigNumberish,
+      _maxExpectedAPY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    timestampLimiter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     yVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

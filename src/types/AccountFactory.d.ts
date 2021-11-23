@@ -31,6 +31,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     "finishMining()": FunctionFragment;
     "getNext(address)": FunctionFragment;
     "head()": FunctionFragment;
+    "isCreditAccount(address)": FunctionFragment;
     "isMiningFinished()": FunctionFragment;
     "masterCreditAccount()": FunctionFragment;
     "mineCreditAccount()": FunctionFragment;
@@ -39,7 +40,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     "paused()": FunctionFragment;
     "returnCreditAccount(address)": FunctionFragment;
     "tail()": FunctionFragment;
-    "takeCreditAccount()": FunctionFragment;
+    "takeCreditAccount(uint256,uint256)": FunctionFragment;
     "takeOut(address,address,address)": FunctionFragment;
     "unpause()": FunctionFragment;
   };
@@ -79,6 +80,10 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "getNext", values: [string]): string;
   encodeFunctionData(functionFragment: "head", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "isCreditAccount",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "isMiningFinished",
     values?: undefined
   ): string;
@@ -103,7 +108,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "tail", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "takeCreditAccount",
-    values?: undefined
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "takeOut",
@@ -145,6 +150,10 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "getNext", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "head", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isCreditAccount",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "isMiningFinished",
     data: BytesLike
@@ -261,7 +270,7 @@ export class AccountFactory extends BaseContract {
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     creditAccounts(
-      arg0: BigNumberish,
+      id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -275,6 +284,11 @@ export class AccountFactory extends BaseContract {
     ): Promise<[string]>;
 
     head(overrides?: CallOverrides): Promise<[string]>;
+
+    isCreditAccount(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     isMiningFinished(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -303,6 +317,8 @@ export class AccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<[string]>;
 
     takeCreditAccount(
+      _borrowedAmount: BigNumberish,
+      _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -340,10 +356,7 @@ export class AccountFactory extends BaseContract {
 
   countCreditAccountsInStock(overrides?: CallOverrides): Promise<BigNumber>;
 
-  creditAccounts(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  creditAccounts(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   finishMining(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -352,6 +365,8 @@ export class AccountFactory extends BaseContract {
   getNext(creditAccount: string, overrides?: CallOverrides): Promise<string>;
 
   head(overrides?: CallOverrides): Promise<string>;
+
+  isCreditAccount(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
   isMiningFinished(overrides?: CallOverrides): Promise<boolean>;
 
@@ -380,6 +395,8 @@ export class AccountFactory extends BaseContract {
   tail(overrides?: CallOverrides): Promise<string>;
 
   takeCreditAccount(
+    _borrowedAmount: BigNumberish,
+    _cumulativeIndexAtOpen: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -416,7 +433,7 @@ export class AccountFactory extends BaseContract {
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditAccounts(
-      arg0: BigNumberish,
+      id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -425,6 +442,8 @@ export class AccountFactory extends BaseContract {
     getNext(creditAccount: string, overrides?: CallOverrides): Promise<string>;
 
     head(overrides?: CallOverrides): Promise<string>;
+
+    isCreditAccount(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
     isMiningFinished(overrides?: CallOverrides): Promise<boolean>;
 
@@ -448,7 +467,11 @@ export class AccountFactory extends BaseContract {
 
     tail(overrides?: CallOverrides): Promise<string>;
 
-    takeCreditAccount(overrides?: CallOverrides): Promise<string>;
+    takeCreditAccount(
+      _borrowedAmount: BigNumberish,
+      _cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     takeOut(
       prev: string,
@@ -518,7 +541,7 @@ export class AccountFactory extends BaseContract {
     countCreditAccountsInStock(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditAccounts(
-      arg0: BigNumberish,
+      id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -532,6 +555,11 @@ export class AccountFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     head(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isCreditAccount(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isMiningFinished(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -560,6 +588,8 @@ export class AccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<BigNumber>;
 
     takeCreditAccount(
+      _borrowedAmount: BigNumberish,
+      _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -605,7 +635,7 @@ export class AccountFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     creditAccounts(
-      arg0: BigNumberish,
+      id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -619,6 +649,11 @@ export class AccountFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     head(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isCreditAccount(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     isMiningFinished(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -649,6 +684,8 @@ export class AccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     takeCreditAccount(
+      _borrowedAmount: BigNumberish,
+      _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

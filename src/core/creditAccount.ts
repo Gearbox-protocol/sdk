@@ -44,8 +44,14 @@ export class CreditAccountData {
         .toNumber() / PERCENTAGE_FACTOR;
 
     (payload.balances || []).forEach((b) => {
-      this.balances[b.token] = BigNumber.from(b.balance);
-      this.allowedTokens.push(b.token);
+
+      console.log(b);
+
+      if (b.isAllowed) {
+        this.balances[b.token] = BigNumber.from(b.balance);
+        this.allowedTokens.push(b.token);
+      }
+
     });
   }
 

@@ -22,10 +22,11 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface LeveragedActionsInterface extends ethers.utils.Interface {
   functions: {
     "contractsRegister()": FunctionFragment;
-    "openLP(address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
+    "isTransferAllowed(address)": FunctionFragment;
+    "openLP(address,uint256,uint256,uint256,address,uint256,uint256)": FunctionFragment;
     "openLong(uint256,tuple,uint256)": FunctionFragment;
     "openShortCurve(address,int128,int128,uint256,uint256,tuple,uint256)": FunctionFragment;
-    "openShortUniV2(address,uint256,uint256,address[],tuple,uint256)": FunctionFragment;
+    "openShortUniV2(address,uint256,uint256,address[],uint256,tuple,uint256)": FunctionFragment;
     "openShortUniV3(address,tuple,tuple,uint256)": FunctionFragment;
     "wethGateway()": FunctionFragment;
     "wethToken()": FunctionFragment;
@@ -36,6 +37,10 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "isTransferAllowed",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "openLP",
     values: [
       string,
@@ -43,6 +48,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
       BigNumberish,
       BigNumberish,
       string,
+      BigNumberish,
       BigNumberish
     ]
   ): string;
@@ -58,6 +64,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       BigNumberish
     ]
@@ -78,6 +85,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       BigNumberish
     ]
@@ -89,6 +97,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
       BigNumberish,
       BigNumberish,
       string[],
+      BigNumberish,
       {
         creditManager: string;
         leverageFactor: BigNumberish;
@@ -97,6 +106,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       BigNumberish
     ]
@@ -120,6 +130,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       BigNumberish
     ]
@@ -132,6 +143,10 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "contractsRegister",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isTransferAllowed",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "openLP", data: BytesLike): Result;
@@ -207,12 +222,18 @@ export class LeveragedActions extends BaseContract {
   functions: {
     contractsRegister(overrides?: CallOverrides): Promise<[string]>;
 
+    isTransferAllowed(
+      creditManager: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     openLP(
       creditManager: string,
       leverageFactor: BigNumberish,
       amountIn: BigNumberish,
       lpInterface: BigNumberish,
       lpContract: string,
+      amountOutMin: BigNumberish,
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -227,6 +248,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -246,6 +268,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -256,6 +279,7 @@ export class LeveragedActions extends BaseContract {
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       path: string[],
+      deadline: BigNumberish,
       longParams: {
         creditManager: string;
         leverageFactor: BigNumberish;
@@ -264,6 +288,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -286,6 +311,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -298,12 +324,18 @@ export class LeveragedActions extends BaseContract {
 
   contractsRegister(overrides?: CallOverrides): Promise<string>;
 
+  isTransferAllowed(
+    creditManager: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   openLP(
     creditManager: string,
     leverageFactor: BigNumberish,
     amountIn: BigNumberish,
     lpInterface: BigNumberish,
     lpContract: string,
+    amountOutMin: BigNumberish,
     referralCode: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -318,6 +350,7 @@ export class LeveragedActions extends BaseContract {
       swapCalldata: BytesLike;
       lpInterface: BigNumberish;
       lpContract: string;
+      amountOutMin: BigNumberish;
     },
     referralCode: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -337,6 +370,7 @@ export class LeveragedActions extends BaseContract {
       swapCalldata: BytesLike;
       lpInterface: BigNumberish;
       lpContract: string;
+      amountOutMin: BigNumberish;
     },
     referralCode: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -347,6 +381,7 @@ export class LeveragedActions extends BaseContract {
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     path: string[],
+    deadline: BigNumberish,
     longParams: {
       creditManager: string;
       leverageFactor: BigNumberish;
@@ -355,6 +390,7 @@ export class LeveragedActions extends BaseContract {
       swapCalldata: BytesLike;
       lpInterface: BigNumberish;
       lpContract: string;
+      amountOutMin: BigNumberish;
     },
     referralCode: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -377,6 +413,7 @@ export class LeveragedActions extends BaseContract {
       swapCalldata: BytesLike;
       lpInterface: BigNumberish;
       lpContract: string;
+      amountOutMin: BigNumberish;
     },
     referralCode: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -389,12 +426,18 @@ export class LeveragedActions extends BaseContract {
   callStatic: {
     contractsRegister(overrides?: CallOverrides): Promise<string>;
 
+    isTransferAllowed(
+      creditManager: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     openLP(
       creditManager: string,
       leverageFactor: BigNumberish,
       amountIn: BigNumberish,
       lpInterface: BigNumberish,
       lpContract: string,
+      amountOutMin: BigNumberish,
       referralCode: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -409,6 +452,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: CallOverrides
@@ -428,6 +472,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: CallOverrides
@@ -438,6 +483,7 @@ export class LeveragedActions extends BaseContract {
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       path: string[],
+      deadline: BigNumberish,
       longParams: {
         creditManager: string;
         leverageFactor: BigNumberish;
@@ -446,6 +492,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: CallOverrides
@@ -468,6 +515,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: CallOverrides
@@ -506,12 +554,18 @@ export class LeveragedActions extends BaseContract {
   estimateGas: {
     contractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
 
+    isTransferAllowed(
+      creditManager: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     openLP(
       creditManager: string,
       leverageFactor: BigNumberish,
       amountIn: BigNumberish,
       lpInterface: BigNumberish,
       lpContract: string,
+      amountOutMin: BigNumberish,
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -526,6 +580,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -545,6 +600,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -555,6 +611,7 @@ export class LeveragedActions extends BaseContract {
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       path: string[],
+      deadline: BigNumberish,
       longParams: {
         creditManager: string;
         leverageFactor: BigNumberish;
@@ -563,6 +620,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -585,6 +643,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -598,12 +657,18 @@ export class LeveragedActions extends BaseContract {
   populateTransaction: {
     contractsRegister(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    isTransferAllowed(
+      creditManager: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     openLP(
       creditManager: string,
       leverageFactor: BigNumberish,
       amountIn: BigNumberish,
       lpInterface: BigNumberish,
       lpContract: string,
+      amountOutMin: BigNumberish,
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -618,6 +683,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -637,6 +703,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -647,6 +714,7 @@ export class LeveragedActions extends BaseContract {
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       path: string[],
+      deadline: BigNumberish,
       longParams: {
         creditManager: string;
         leverageFactor: BigNumberish;
@@ -655,6 +723,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -677,6 +746,7 @@ export class LeveragedActions extends BaseContract {
         swapCalldata: BytesLike;
         lpInterface: BigNumberish;
         lpContract: string;
+        amountOutMin: BigNumberish;
       },
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }

@@ -14,6 +14,40 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "_creditManager",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "borrowedAmount",
+        type: "uint256",
+      },
+    ],
+    name: "calcExpectedAtOpenHf",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "creditManager",
         type: "address",
       },
@@ -113,6 +147,11 @@ const _abi = [
                 name: "balance",
                 type: "uint256",
               },
+              {
+                internalType: "bool",
+                name: "isAllowed",
+                type: "bool",
+              },
             ],
             internalType: "struct DataTypes.TokenBalance[]",
             name: "balances",
@@ -200,6 +239,11 @@ const _abi = [
                 internalType: "uint256",
                 name: "balance",
                 type: "uint256",
+              },
+              {
+                internalType: "bool",
+                name: "isAllowed",
+                type: "bool",
               },
             ],
             internalType: "struct DataTypes.TokenBalance[]",
@@ -313,6 +357,11 @@ const _abi = [
                 internalType: "uint256",
                 name: "balance",
                 type: "uint256",
+              },
+              {
+                internalType: "bool",
+                name: "isAllowed",
+                type: "bool",
               },
             ],
             internalType: "struct DataTypes.TokenBalance[]",
@@ -708,9 +757,9 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
+        internalType: "address[]",
         name: "addr",
-        type: "address",
+        type: "address[]",
       },
     ],
     name: "getTokenData",
@@ -733,9 +782,9 @@ const _abi = [
             type: "uint8",
           },
         ],
-        internalType: "struct DataTypes.TokenInfo",
+        internalType: "struct DataTypes.TokenInfo[]",
         name: "",
-        type: "tuple",
+        type: "tuple[]",
       },
     ],
     stateMutability: "view",

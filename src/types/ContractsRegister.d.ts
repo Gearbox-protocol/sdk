@@ -181,11 +181,11 @@ export class ContractsRegister extends BaseContract {
     getPoolsCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     isCreditManager(
-      addr: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    isPool(addr: string, overrides?: CallOverrides): Promise<[boolean]>;
+    isPool(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     pause(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -223,9 +223,9 @@ export class ContractsRegister extends BaseContract {
 
   getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  isCreditManager(addr: string, overrides?: CallOverrides): Promise<boolean>;
+  isCreditManager(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-  isPool(addr: string, overrides?: CallOverrides): Promise<boolean>;
+  isPool(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   pause(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -260,9 +260,9 @@ export class ContractsRegister extends BaseContract {
 
     getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isCreditManager(addr: string, overrides?: CallOverrides): Promise<boolean>;
+    isCreditManager(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-    isPool(addr: string, overrides?: CallOverrides): Promise<boolean>;
+    isPool(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     pause(overrides?: CallOverrides): Promise<void>;
 
@@ -312,11 +312,11 @@ export class ContractsRegister extends BaseContract {
     getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
     isCreditManager(
-      addr: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    isPool(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+    isPool(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     pause(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -358,12 +358,12 @@ export class ContractsRegister extends BaseContract {
     getPoolsCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isCreditManager(
-      addr: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isPool(
-      addr: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

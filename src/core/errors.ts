@@ -1,3 +1,9 @@
+export interface MetamaskError {
+  code: number;
+  message: string;
+  data: string;
+}
+
 export class NetworkError extends Error {
   constructor() {
     super("errors.networkError");
@@ -23,5 +29,17 @@ export class CreditManagerNotExistsError extends Error {
 export class UserHasNotAccountError extends Error {
   constructor() {
     super("errors.noOpenedAccountsError");
+  }
+}
+
+export class PathNotFoundError extends Error {
+  constructor() {
+    super("errors.pathNotFoundError");
+  }
+}
+
+export class AccountsInAlllCreditManagersError extends Error {
+  constructor() {
+    super("errors.youOpenedAccountsInAllCreditManagersError");
   }
 }

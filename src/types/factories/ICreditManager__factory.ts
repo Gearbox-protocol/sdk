@@ -147,12 +147,6 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "feeSuccess",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
         name: "feeInterest",
         type: "uint256",
       },
@@ -238,13 +232,13 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "oldOwner",
         type: "address",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "newOwner",
         type: "address",
@@ -438,19 +432,6 @@ const _abi = [
   {
     inputs: [],
     name: "feeLiquidation",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "feeSuccess",
     outputs: [
       {
         internalType: "uint256",

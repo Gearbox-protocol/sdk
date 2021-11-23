@@ -28,7 +28,7 @@ interface IAccountFactoryInterface extends ethers.utils.Interface {
     "head()": FunctionFragment;
     "returnCreditAccount(address)": FunctionFragment;
     "tail()": FunctionFragment;
-    "takeCreditAccount()": FunctionFragment;
+    "takeCreditAccount(uint256,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -52,7 +52,7 @@ interface IAccountFactoryInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "tail", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "takeCreditAccount",
-    values?: undefined
+    values: [BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -162,6 +162,8 @@ export class IAccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<[string]>;
 
     takeCreditAccount(
+      _borrowedAmount: BigNumberish,
+      _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -184,6 +186,8 @@ export class IAccountFactory extends BaseContract {
   tail(overrides?: CallOverrides): Promise<string>;
 
   takeCreditAccount(
+    _borrowedAmount: BigNumberish,
+    _cumulativeIndexAtOpen: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -208,7 +212,11 @@ export class IAccountFactory extends BaseContract {
 
     tail(overrides?: CallOverrides): Promise<string>;
 
-    takeCreditAccount(overrides?: CallOverrides): Promise<string>;
+    takeCreditAccount(
+      _borrowedAmount: BigNumberish,
+      _cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
   };
 
   filters: {
@@ -266,6 +274,8 @@ export class IAccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<BigNumber>;
 
     takeCreditAccount(
+      _borrowedAmount: BigNumberish,
+      _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -299,6 +309,8 @@ export class IAccountFactory extends BaseContract {
     tail(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     takeCreditAccount(
+      _borrowedAmount: BigNumberish,
+      _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

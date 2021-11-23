@@ -31,37 +31,59 @@ export function formatBN(
     precision = 0;
   }
 
-  const number =
-    Math.floor(
-      BigNumber.from(num)
-        .div(BigNumber.from(10).pow((decimals || 18) - 4))
-        .toNumber()
-    ) / 10000;
+  if (BigNumber.from(num).lte(2)) {
+    num = BigNumber.from(0);
+  }
 
-  if (number < 1) {
+  const number = BigNumber.from(num).div(
+    BigNumber.from(10).pow((decimals || 18) - 6)
+  );
+
+  if (number.lte(10000) && !number.isZero()) {
     precision = 3;
+  }
+
+  if (number.lte(1000) && !number.isZero()) {
+    precision = 4;
+  }
+
+  if (number.lte(100) && !number.isZero()) {
+    precision = 5;
+  }
+
+  if (number.lte(10) && !number.isZero()) {
+    precision = 6;
   }
 
   return toHumanFormat(number, precision);
 }
 
-export function toHumanFormat(num: number, precision: number = 2): string {
-  const decs = precision === 3 ? 1000 : 100;
-  const round = (n: number) => (Math.floor(decs * n) / decs).toFixed(precision);
+export function formatBn4dig(num: BigNumber, precision: number = 2): string {
+  if (precision > 6) throw new Error("Incorrect precision");
 
-  if (num >= 1e9) {
-    return round(num / 1e9) + "Bn";
+  let numStr = num.toString();
+  if (numStr.length < 6) numStr = "0".repeat(6 - numStr.length) + numStr;
+  return numStr.length <= 6
+    ? "0." + numStr.slice(0, precision)
+    : numStr.slice(0, numStr.length - 6) +
+        "." +
+        numStr.slice(numStr.length - 6, numStr.length - 6 + precision);
+}
+
+export function toHumanFormat(num: BigNumber, precision: number = 2): string {
+  if (num.gte(1e15)) {
+    return formatBn4dig(num.div(1e9), precision) + "Bn";
   }
 
-  if (num >= 1e6) {
-    return round(num / 1e6) + "M";
+  if (num.gte(1e12)) {
+    return formatBn4dig(num.div(1e6), precision) + "M";
   }
 
-  if (num >= 1e3) {
-    return round(num / 1e3) + "K";
+  if (num.gte(1e9)) {
+    return formatBn4dig(num.div(1e3), precision) + "K";
   }
 
-  return round(num);
+  return formatBn4dig(num, precision);
 }
 
 export function toSignificant(num: BigNumber, decimals: number): string {

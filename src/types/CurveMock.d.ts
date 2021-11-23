@@ -21,18 +21,14 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CurveMockInterface extends ethers.utils.Interface {
   functions: {
-    "addCoin(address)": FunctionFragment;
     "coins(uint256)": FunctionFragment;
     "exchange(int128,int128,uint256,uint256)": FunctionFragment;
     "exchange_underlying(int128,int128,uint256,uint256)": FunctionFragment;
-    "get_dx(int128,int128,uint256)": FunctionFragment;
-    "get_dx_underlying(int128,int128,uint256)": FunctionFragment;
     "get_dy(int128,int128,uint256)": FunctionFragment;
     "get_dy_underlying(int128,int128,uint256)": FunctionFragment;
     "get_virtual_price()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "addCoin", values: [string]): string;
   encodeFunctionData(functionFragment: "coins", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "exchange",
@@ -41,14 +37,6 @@ interface CurveMockInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "exchange_underlying",
     values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "get_dx",
-    values: [BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "get_dx_underlying",
-    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "get_dy",
@@ -63,16 +51,10 @@ interface CurveMockInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
-  decodeFunctionResult(functionFragment: "addCoin", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "coins", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "exchange", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "exchange_underlying",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "get_dx", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "get_dx_underlying",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "get_dy", data: BytesLike): Result;
@@ -132,12 +114,7 @@ export class CurveMock extends BaseContract {
   interface: CurveMockInterface;
 
   functions: {
-    addCoin(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    coins(index: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+    coins(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     exchange(
       i: BigNumberish,
@@ -148,37 +125,23 @@ export class CurveMock extends BaseContract {
     ): Promise<ContractTransaction>;
 
     exchange_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
-
-    get_dx(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    get_dx_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     get_dy(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
       dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     get_dy_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
       dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -186,12 +149,7 @@ export class CurveMock extends BaseContract {
     get_virtual_price(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
-  addCoin(
-    token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  coins(index: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  coins(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   exchange(
     i: BigNumberish,
@@ -202,37 +160,23 @@ export class CurveMock extends BaseContract {
   ): Promise<ContractTransaction>;
 
   exchange_underlying(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    arg3: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<void>;
-
-  get_dx(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    arg2: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  get_dx_underlying(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    dy: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+    i: BigNumberish,
+    j: BigNumberish,
+    dx: BigNumberish,
+    min_dy: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   get_dy(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
+    i: BigNumberish,
+    j: BigNumberish,
     dx: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   get_dy_underlying(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
+    i: BigNumberish,
+    j: BigNumberish,
     dx: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -240,9 +184,7 @@ export class CurveMock extends BaseContract {
   get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
-    addCoin(token: string, overrides?: CallOverrides): Promise<void>;
-
-    coins(index: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    coins(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     exchange(
       i: BigNumberish,
@@ -253,37 +195,23 @@ export class CurveMock extends BaseContract {
     ): Promise<void>;
 
     exchange_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    get_dx(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    get_dx_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     get_dy(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
       dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     get_dy_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
       dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -294,12 +222,7 @@ export class CurveMock extends BaseContract {
   filters: {};
 
   estimateGas: {
-    addCoin(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    coins(index: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    coins(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     exchange(
       i: BigNumberish,
@@ -310,37 +233,23 @@ export class CurveMock extends BaseContract {
     ): Promise<BigNumber>;
 
     exchange_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    get_dx(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    get_dx_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     get_dy(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
       dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     get_dy_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
       dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -349,13 +258,8 @@ export class CurveMock extends BaseContract {
   };
 
   populateTransaction: {
-    addCoin(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     coins(
-      index: BigNumberish,
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -368,37 +272,23 @@ export class CurveMock extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     exchange_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      arg3: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    get_dx(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    get_dx_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
+      i: BigNumberish,
+      j: BigNumberish,
+      dx: BigNumberish,
+      min_dy: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     get_dy(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
       dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_dy_underlying(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      i: BigNumberish,
+      j: BigNumberish,
       dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

@@ -66,6 +66,16 @@ const _abi = [
         name: "_creditManager",
         type: "address",
       },
+      {
+        internalType: "uint256",
+        name: "_borrowedAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_cumulativeIndexAtOpen",
+        type: "uint256",
+      },
     ],
     name: "connectTo",
     outputs: [],
@@ -166,24 +176,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_borrowedAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_cumulativeIndexAtOpen",
-        type: "uint256",
-      },
-    ],
-    name: "setGenericParameters",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "since",
     outputs: [
@@ -203,8 +195,13 @@ const _abi = [
         name: "_borrowedAmount",
         type: "uint256",
       },
+      {
+        internalType: "uint256",
+        name: "_cumulativeIndexAtOpen",
+        type: "uint256",
+      },
     ],
-    name: "updateBorrowedAmount",
+    name: "updateParameters",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

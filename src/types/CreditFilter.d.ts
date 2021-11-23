@@ -22,19 +22,23 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface CreditFilterInterface extends ethers.utils.Interface {
   functions: {
     "_allowedTokensMap(address)": FunctionFragment;
+    "addressProvider()": FunctionFragment;
     "allowContract(address,address)": FunctionFragment;
+    "allowPlugin(address,bool)": FunctionFragment;
     "allowToken(address,uint256)": FunctionFragment;
+    "allowanceForAccountTransfers(address,address)": FunctionFragment;
     "allowedAdapters(address)": FunctionFragment;
     "allowedContracts(uint256)": FunctionFragment;
     "allowedContractsCount()": FunctionFragment;
+    "allowedPlugins(address)": FunctionFragment;
     "allowedTokens(uint256)": FunctionFragment;
     "allowedTokensCount()": FunctionFragment;
+    "approveAccountTransfers(address,bool)": FunctionFragment;
     "calcCreditAccountAccruedInterest(address)": FunctionFragment;
     "calcCreditAccountHealthFactor(address)": FunctionFragment;
     "calcMaxPossibleDrop(uint256,uint256)": FunctionFragment;
     "calcThresholdWeightedValue(address)": FunctionFragment;
     "calcTotalValue(address)": FunctionFragment;
-    "changeAllowedTokenState(address,bool)": FunctionFragment;
     "checkAndEnableToken(address,address)": FunctionFragment;
     "checkCollateralChange(address,address,address,uint256,uint256)": FunctionFragment;
     "checkMultiTokenCollateral(address,uint256[],uint256[],address[],address[])": FunctionFragment;
@@ -45,6 +49,7 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     "enabledTokens(address)": FunctionFragment;
     "fastCheckCounter(address)": FunctionFragment;
     "forbidContract(address)": FunctionFragment;
+    "forbidToken(address)": FunctionFragment;
     "getCreditAccountTokenById(address,uint256)": FunctionFragment;
     "hfCheckInterval()": FunctionFragment;
     "initEnabledTokens(address)": FunctionFragment;
@@ -54,6 +59,8 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     "paused()": FunctionFragment;
     "poolService()": FunctionFragment;
     "priceOracle()": FunctionFragment;
+    "revertIfAccountTransferIsNotAllowed(address,address)": FunctionFragment;
+    "revertIfCantIncreaseBorrowing(address,uint256)": FunctionFragment;
     "revertIfTokenNotAllowed(address)": FunctionFragment;
     "setFastCheckParameters(uint256,uint256)": FunctionFragment;
     "tokenMasksMap(address)": FunctionFragment;
@@ -68,12 +75,24 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "addressProvider",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "allowContract",
     values: [string, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "allowPlugin",
+    values: [string, boolean]
+  ): string;
+  encodeFunctionData(
     functionFragment: "allowToken",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowanceForAccountTransfers",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "allowedAdapters",
@@ -88,12 +107,20 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "allowedPlugins",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "allowedTokens",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "allowedTokensCount",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approveAccountTransfers",
+    values: [string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "calcCreditAccountAccruedInterest",
@@ -114,10 +141,6 @@ interface CreditFilterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calcTotalValue",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "changeAllowedTokenState",
-    values: [string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "checkAndEnableToken",
@@ -159,6 +182,7 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     functionFragment: "forbidContract",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "forbidToken", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountTokenById",
     values: [string, BigNumberish]
@@ -188,6 +212,14 @@ interface CreditFilterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "priceOracle",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "revertIfAccountTransferIsNotAllowed",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "revertIfCantIncreaseBorrowing",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "revertIfTokenNotAllowed",
@@ -220,10 +252,22 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "addressProvider",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "allowContract",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowPlugin",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "allowToken", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "allowanceForAccountTransfers",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "allowedAdapters",
     data: BytesLike
@@ -237,11 +281,19 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "allowedPlugins",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "allowedTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "allowedTokensCount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "approveAccountTransfers",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -262,10 +314,6 @@ interface CreditFilterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "calcTotalValue",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "changeAllowedTokenState",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -309,6 +357,10 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "forbidToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getCreditAccountTokenById",
     data: BytesLike
   ): Result;
@@ -336,6 +388,14 @@ interface CreditFilterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "priceOracle",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "revertIfAccountTransferIsNotAllowed",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "revertIfCantIncreaseBorrowing",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -370,6 +430,8 @@ interface CreditFilterInterface extends ethers.utils.Interface {
     "NewFastCheckParameters(uint256,uint256)": EventFragment;
     "Paused(address)": EventFragment;
     "TokenAllowed(address,uint256)": EventFragment;
+    "TransferAccountAllowed(address,address,bool)": EventFragment;
+    "TransferPluginAllowed(address,bool)": EventFragment;
     "Unpaused(address)": EventFragment;
   };
 
@@ -378,6 +440,8 @@ interface CreditFilterInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "NewFastCheckParameters"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferPluginAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
@@ -430,9 +494,17 @@ export class CreditFilter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    addressProvider(overrides?: CallOverrides): Promise<[string]>;
+
     allowContract(
       targetContract: string,
       adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    allowPlugin(
+      plugin: string,
+      state: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -441,6 +513,12 @@ export class CreditFilter extends BaseContract {
       liquidationThreshold: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    allowanceForAccountTransfers(
+      from: string,
+      to: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     allowedAdapters(
       arg0: string,
@@ -454,12 +532,20 @@ export class CreditFilter extends BaseContract {
 
     allowedContractsCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    allowedPlugins(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
     allowedTokens(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     allowedTokensCount(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    approveAccountTransfers(
+      from: string,
+      state: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     calcCreditAccountAccruedInterest(
       creditAccount: string,
@@ -486,12 +572,6 @@ export class CreditFilter extends BaseContract {
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { total: BigNumber }>;
-
-    changeAllowedTokenState(
-      token: string,
-      state: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     checkAndEnableToken(
       creditAccount: string,
@@ -546,6 +626,11 @@ export class CreditFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    forbidToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getCreditAccountTokenById(
       creditAccount: string,
       id: BigNumberish,
@@ -586,6 +671,18 @@ export class CreditFilter extends BaseContract {
 
     priceOracle(overrides?: CallOverrides): Promise<[string]>;
 
+    revertIfAccountTransferIsNotAllowed(
+      owner: string,
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<[void]>;
+
+    revertIfCantIncreaseBorrowing(
+      creditAccount: string,
+      minHealthFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[void]>;
+
     revertIfTokenNotAllowed(
       token: string,
       overrides?: CallOverrides
@@ -617,9 +714,17 @@ export class CreditFilter extends BaseContract {
 
   _allowedTokensMap(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
+  addressProvider(overrides?: CallOverrides): Promise<string>;
+
   allowContract(
     targetContract: string,
     adapter: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  allowPlugin(
+    plugin: string,
+    state: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -629,15 +734,29 @@ export class CreditFilter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  allowanceForAccountTransfers(
+    from: string,
+    to: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   allowedAdapters(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   allowedContracts(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
+  allowedPlugins(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
   allowedTokens(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   allowedTokensCount(overrides?: CallOverrides): Promise<BigNumber>;
+
+  approveAccountTransfers(
+    from: string,
+    state: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   calcCreditAccountAccruedInterest(
     creditAccount: string,
@@ -664,12 +783,6 @@ export class CreditFilter extends BaseContract {
     creditAccount: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  changeAllowedTokenState(
-    token: string,
-    state: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   checkAndEnableToken(
     creditAccount: string,
@@ -715,6 +828,11 @@ export class CreditFilter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  forbidToken(
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getCreditAccountTokenById(
     creditAccount: string,
     id: BigNumberish,
@@ -752,6 +870,18 @@ export class CreditFilter extends BaseContract {
 
   priceOracle(overrides?: CallOverrides): Promise<string>;
 
+  revertIfAccountTransferIsNotAllowed(
+    owner: string,
+    newOwner: string,
+    overrides?: CallOverrides
+  ): Promise<void>;
+
+  revertIfCantIncreaseBorrowing(
+    creditAccount: string,
+    minHealthFactor: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<void>;
+
   revertIfTokenNotAllowed(
     token: string,
     overrides?: CallOverrides
@@ -783,9 +913,17 @@ export class CreditFilter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    addressProvider(overrides?: CallOverrides): Promise<string>;
+
     allowContract(
       targetContract: string,
       adapter: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    allowPlugin(
+      plugin: string,
+      state: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -794,6 +932,12 @@ export class CreditFilter extends BaseContract {
       liquidationThreshold: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    allowanceForAccountTransfers(
+      from: string,
+      to: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     allowedAdapters(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -804,12 +948,20 @@ export class CreditFilter extends BaseContract {
 
     allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
+    allowedPlugins(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
     allowedTokens(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
     allowedTokensCount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    approveAccountTransfers(
+      from: string,
+      state: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     calcCreditAccountAccruedInterest(
       creditAccount: string,
@@ -836,12 +988,6 @@ export class CreditFilter extends BaseContract {
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    changeAllowedTokenState(
-      token: string,
-      state: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     checkAndEnableToken(
       creditAccount: string,
@@ -890,6 +1036,8 @@ export class CreditFilter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    forbidToken(token: string, overrides?: CallOverrides): Promise<void>;
+
     getCreditAccountTokenById(
       creditAccount: string,
       id: BigNumberish,
@@ -924,6 +1072,18 @@ export class CreditFilter extends BaseContract {
     poolService(overrides?: CallOverrides): Promise<string>;
 
     priceOracle(overrides?: CallOverrides): Promise<string>;
+
+    revertIfAccountTransferIsNotAllowed(
+      owner: string,
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    revertIfCantIncreaseBorrowing(
+      creditAccount: string,
+      minHealthFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     revertIfTokenNotAllowed(
       token: string,
@@ -980,6 +1140,20 @@ export class CreditFilter extends BaseContract {
       { token: string; liquidityThreshold: BigNumber }
     >;
 
+    TransferAccountAllowed(
+      from?: string | null,
+      to?: string | null,
+      state?: null
+    ): TypedEventFilter<
+      [string, string, boolean],
+      { from: string; to: string; state: boolean }
+    >;
+
+    TransferPluginAllowed(
+      pugin?: string | null,
+      state?: null
+    ): TypedEventFilter<[string, boolean], { pugin: string; state: boolean }>;
+
     Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
 
@@ -989,9 +1163,17 @@ export class CreditFilter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
+
     allowContract(
       targetContract: string,
       adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    allowPlugin(
+      plugin: string,
+      state: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -999,6 +1181,12 @@ export class CreditFilter extends BaseContract {
       token: string,
       liquidationThreshold: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    allowanceForAccountTransfers(
+      from: string,
+      to: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     allowedAdapters(
@@ -1013,12 +1201,20 @@ export class CreditFilter extends BaseContract {
 
     allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
+    allowedPlugins(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     allowedTokens(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     allowedTokensCount(overrides?: CallOverrides): Promise<BigNumber>;
+
+    approveAccountTransfers(
+      from: string,
+      state: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     calcCreditAccountAccruedInterest(
       creditAccount: string,
@@ -1044,12 +1240,6 @@ export class CreditFilter extends BaseContract {
     calcTotalValue(
       creditAccount: string,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    changeAllowedTokenState(
-      token: string,
-      state: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     checkAndEnableToken(
@@ -1102,6 +1292,11 @@ export class CreditFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    forbidToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getCreditAccountTokenById(
       creditAccount: string,
       id: BigNumberish,
@@ -1135,6 +1330,18 @@ export class CreditFilter extends BaseContract {
 
     priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
+    revertIfAccountTransferIsNotAllowed(
+      owner: string,
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    revertIfCantIncreaseBorrowing(
+      creditAccount: string,
+      minHealthFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     revertIfTokenNotAllowed(
       token: string,
       overrides?: CallOverrides
@@ -1167,9 +1374,17 @@ export class CreditFilter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     allowContract(
       targetContract: string,
       adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    allowPlugin(
+      plugin: string,
+      state: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1177,6 +1392,12 @@ export class CreditFilter extends BaseContract {
       token: string,
       liquidationThreshold: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    allowanceForAccountTransfers(
+      from: string,
+      to: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     allowedAdapters(
@@ -1193,6 +1414,11 @@ export class CreditFilter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    allowedPlugins(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     allowedTokens(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -1200,6 +1426,12 @@ export class CreditFilter extends BaseContract {
 
     allowedTokensCount(
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    approveAccountTransfers(
+      from: string,
+      state: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     calcCreditAccountAccruedInterest(
@@ -1226,12 +1458,6 @@ export class CreditFilter extends BaseContract {
     calcTotalValue(
       creditAccount: string,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    changeAllowedTokenState(
-      token: string,
-      state: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     checkAndEnableToken(
@@ -1287,6 +1513,11 @@ export class CreditFilter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    forbidToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getCreditAccountTokenById(
       creditAccount: string,
       id: BigNumberish,
@@ -1319,6 +1550,18 @@ export class CreditFilter extends BaseContract {
     poolService(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    revertIfAccountTransferIsNotAllowed(
+      owner: string,
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    revertIfCantIncreaseBorrowing(
+      creditAccount: string,
+      minHealthFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     revertIfTokenNotAllowed(
       token: string,

@@ -78,6 +78,50 @@ const _abi = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "state",
+        type: "bool",
+      },
+    ],
+    name: "TransferAccountAllowed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "pugin",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "state",
+        type: "bool",
+      },
+    ],
+    name: "TransferPluginAllowed",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -111,6 +155,30 @@ const _abi = [
     name: "allowToken",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "allowanceForAccountTransfers",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -175,6 +243,24 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "state",
+        type: "bool",
+      },
+    ],
+    name: "approveAccountTransfers",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -501,6 +587,42 @@ const _abi = [
         type: "address",
       },
     ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "onwer",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+    ],
+    name: "revertIfAccountTransferIsNotAllowed",
+    outputs: [],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "minHealthFactor",
+        type: "uint256",
+      },
+    ],
+    name: "revertIfCantIncreaseBorrowing",
+    outputs: [],
     stateMutability: "view",
     type: "function",
   },

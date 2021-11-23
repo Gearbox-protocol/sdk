@@ -215,13 +215,19 @@ interface GearTokenInterface extends ethers.utils.Interface {
     "Approval(address,address,uint256)": EventFragment;
     "DelegateChanged(address,address,address)": EventFragment;
     "DelegateVotesChanged(address,uint256,uint256)": EventFragment;
+    "MinerSet(address)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
+    "TransferAllowed()": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DelegateChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DelegateVotesChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MinerSet"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferAllowed"): EventFragment;
 }
 
 export class GearToken extends BaseContract {
@@ -621,6 +627,15 @@ export class GearToken extends BaseContract {
       { delegate: string; previousBalance: BigNumber; newBalance: BigNumber }
     >;
 
+    MinerSet(
+      miner?: string | null
+    ): TypedEventFilter<[string], { miner: string }>;
+
+    OwnershipTransferred(
+      owner?: string | null,
+      newOwner?: string | null
+    ): TypedEventFilter<[string, string], { owner: string; newOwner: string }>;
+
     Transfer(
       from?: string | null,
       to?: string | null,
@@ -629,6 +644,8 @@ export class GearToken extends BaseContract {
       [string, string, BigNumber],
       { from: string; to: string; amount: BigNumber }
     >;
+
+    TransferAllowed(): TypedEventFilter<[], {}>;
   };
 
   estimateGas: {

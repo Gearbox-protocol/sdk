@@ -28,6 +28,7 @@ interface PoolServiceInterface extends ethers.utils.Interface {
     "addressProvider()": FunctionFragment;
     "availableLiquidity()": FunctionFragment;
     "borrowAPY_RAY()": FunctionFragment;
+    "calcCumulativeIndexAtBorrowMore(uint256,uint256,uint256)": FunctionFragment;
     "calcLinearCumulative_RAY()": FunctionFragment;
     "calcLinearIndex_RAY(uint256,uint256,uint256)": FunctionFragment;
     "connectCreditManager(address)": FunctionFragment;
@@ -43,7 +44,6 @@ interface PoolServiceInterface extends ethers.utils.Interface {
     "getDieselRate_RAY()": FunctionFragment;
     "interestRateModel()": FunctionFragment;
     "lendCreditAccount(uint256,address)": FunctionFragment;
-    "newInterestRateModel(address)": FunctionFragment;
     "pause()": FunctionFragment;
     "paused()": FunctionFragment;
     "removeLiquidity(uint256,address)": FunctionFragment;
@@ -55,8 +55,8 @@ interface PoolServiceInterface extends ethers.utils.Interface {
     "treasuryAddress()": FunctionFragment;
     "underlyingToken()": FunctionFragment;
     "unpause()": FunctionFragment;
+    "updateInterestRateModel(address)": FunctionFragment;
     "withdrawFee()": FunctionFragment;
-    "withdrawMultiplier()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -86,6 +86,10 @@ interface PoolServiceInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "borrowAPY_RAY",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calcCumulativeIndexAtBorrowMore",
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcLinearCumulative_RAY",
@@ -147,10 +151,6 @@ interface PoolServiceInterface extends ethers.utils.Interface {
     functionFragment: "lendCreditAccount",
     values: [BigNumberish, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "newInterestRateModel",
-    values: [string]
-  ): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
@@ -187,11 +187,11 @@ interface PoolServiceInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "withdrawFee",
-    values?: undefined
+    functionFragment: "updateInterestRateModel",
+    values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawMultiplier",
+    functionFragment: "withdrawFee",
     values?: undefined
   ): string;
 
@@ -221,6 +221,10 @@ interface PoolServiceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "borrowAPY_RAY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "calcCumulativeIndexAtBorrowMore",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -280,10 +284,6 @@ interface PoolServiceInterface extends ethers.utils.Interface {
     functionFragment: "lendCreditAccount",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "newInterestRateModel",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
@@ -317,11 +317,11 @@ interface PoolServiceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawFee",
+    functionFragment: "updateInterestRateModel",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawMultiplier",
+    functionFragment: "withdrawFee",
     data: BytesLike
   ): Result;
 
@@ -332,6 +332,7 @@ interface PoolServiceInterface extends ethers.utils.Interface {
     "NewCreditManagerConnected(address)": EventFragment;
     "NewExpectedLiquidityLimit(uint256)": EventFragment;
     "NewInterestRateModel(address)": EventFragment;
+    "NewWithdrawFee(uint256)": EventFragment;
     "Paused(address)": EventFragment;
     "RemoveLiquidity(address,address,uint256)": EventFragment;
     "Repay(address,uint256,uint256,uint256)": EventFragment;
@@ -345,6 +346,7 @@ interface PoolServiceInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "NewCreditManagerConnected"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewExpectedLiquidityLimit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewInterestRateModel"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewWithdrawFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidity"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Repay"): EventFragment;
@@ -415,6 +417,13 @@ export class PoolService extends BaseContract {
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    calcCumulativeIndexAtBorrowMore(
+      amount: BigNumberish,
+      dAmount: BigNumberish,
+      cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     calcLinearIndex_RAY(
@@ -472,11 +481,6 @@ export class PoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    newInterestRateModel(
-      _interestRateModel: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     pause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -521,9 +525,12 @@ export class PoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    withdrawFee(overrides?: CallOverrides): Promise<[BigNumber]>;
+    updateInterestRateModel(
+      _interestRateModel: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    withdrawMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
+    withdrawFee(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
@@ -544,6 +551,13 @@ export class PoolService extends BaseContract {
   availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
   borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+  calcCumulativeIndexAtBorrowMore(
+    amount: BigNumberish,
+    dAmount: BigNumberish,
+    cumulativeIndexAtOpen: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -602,11 +616,6 @@ export class PoolService extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  newInterestRateModel(
-    _interestRateModel: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   pause(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -648,9 +657,12 @@ export class PoolService extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
+  updateInterestRateModel(
+    _interestRateModel: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  withdrawMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
+  withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     _cumulativeIndex_RAY(overrides?: CallOverrides): Promise<BigNumber>;
@@ -671,6 +683,13 @@ export class PoolService extends BaseContract {
     availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calcCumulativeIndexAtBorrowMore(
+      amount: BigNumberish,
+      dAmount: BigNumberish,
+      cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -729,11 +748,6 @@ export class PoolService extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    newInterestRateModel(
-      _interestRateModel: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     pause(overrides?: CallOverrides): Promise<void>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
@@ -771,9 +785,12 @@ export class PoolService extends BaseContract {
 
     unpause(overrides?: CallOverrides): Promise<void>;
 
-    withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
+    updateInterestRateModel(
+      _interestRateModel: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    withdrawMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
+    withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -816,6 +833,10 @@ export class PoolService extends BaseContract {
     NewInterestRateModel(
       newInterestRateModel?: string | null
     ): TypedEventFilter<[string], { newInterestRateModel: string }>;
+
+    NewWithdrawFee(
+      fee?: null
+    ): TypedEventFilter<[BigNumber], { fee: BigNumber }>;
 
     Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
@@ -874,6 +895,13 @@ export class PoolService extends BaseContract {
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
+    calcCumulativeIndexAtBorrowMore(
+      amount: BigNumberish,
+      dAmount: BigNumberish,
+      cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     calcLinearIndex_RAY(
@@ -931,11 +959,6 @@ export class PoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    newInterestRateModel(
-      _interestRateModel: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     pause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -980,9 +1003,12 @@ export class PoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
+    updateInterestRateModel(
+      _interestRateModel: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    withdrawMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
+    withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1010,6 +1036,13 @@ export class PoolService extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    calcCumulativeIndexAtBorrowMore(
+      amount: BigNumberish,
+      dAmount: BigNumberish,
+      cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     calcLinearCumulative_RAY(
       overrides?: CallOverrides
@@ -1074,11 +1107,6 @@ export class PoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    newInterestRateModel(
-      _interestRateModel: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     pause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1123,10 +1151,11 @@ export class PoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdrawFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdrawMultiplier(
-      overrides?: CallOverrides
+    updateInterestRateModel(
+      _interestRateModel: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    withdrawFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

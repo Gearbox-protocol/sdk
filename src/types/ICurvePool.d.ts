@@ -24,8 +24,6 @@ interface ICurvePoolInterface extends ethers.utils.Interface {
     "coins(uint256)": FunctionFragment;
     "exchange(int128,int128,uint256,uint256)": FunctionFragment;
     "exchange_underlying(int128,int128,uint256,uint256)": FunctionFragment;
-    "get_dx(int128,int128,uint256)": FunctionFragment;
-    "get_dx_underlying(int128,int128,uint256)": FunctionFragment;
     "get_dy(int128,int128,uint256)": FunctionFragment;
     "get_dy_underlying(int128,int128,uint256)": FunctionFragment;
     "get_virtual_price()": FunctionFragment;
@@ -39,14 +37,6 @@ interface ICurvePoolInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "exchange_underlying",
     values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "get_dx",
-    values: [BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "get_dx_underlying",
-    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "get_dy",
@@ -65,11 +55,6 @@ interface ICurvePoolInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "exchange", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "exchange_underlying",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "get_dx", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "get_dx_underlying",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "get_dy", data: BytesLike): Result;
@@ -147,20 +132,6 @@ export class ICurvePool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    get_dx(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    get_dx_underlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     get_dy(
       i: BigNumberish,
       j: BigNumberish,
@@ -196,20 +167,6 @@ export class ICurvePool extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  get_dx(
-    i: BigNumberish,
-    j: BigNumberish,
-    dy: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  get_dx_underlying(
-    i: BigNumberish,
-    j: BigNumberish,
-    dy: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   get_dy(
     i: BigNumberish,
     j: BigNumberish,
@@ -244,20 +201,6 @@ export class ICurvePool extends BaseContract {
       min_dy: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    get_dx(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    get_dx_underlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     get_dy(
       i: BigNumberish,
@@ -297,20 +240,6 @@ export class ICurvePool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    get_dx(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    get_dx_underlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     get_dy(
       i: BigNumberish,
       j: BigNumberish,
@@ -348,20 +277,6 @@ export class ICurvePool extends BaseContract {
       dx: BigNumberish,
       min_dy: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    get_dx(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    get_dx_underlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      dy: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_dy(

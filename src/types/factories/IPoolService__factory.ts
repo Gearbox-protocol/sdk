@@ -119,6 +119,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "uint256",
+        name: "fee",
+        type: "uint256",
+      },
+    ],
+    name: "NewWithdrawFee",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "sender",
@@ -255,6 +268,35 @@ const _abi = [
   {
     inputs: [],
     name: "borrowAPY_RAY",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "dAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "cumulativeIndexAtOpen",
+        type: "uint256",
+      },
+    ],
+    name: "calcCumulativeIndexAtBorrowMore",
     outputs: [
       {
         internalType: "uint256",

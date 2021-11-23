@@ -26,6 +26,7 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
     "addLiquidity(uint256,address,uint256)": FunctionFragment;
     "availableLiquidity()": FunctionFragment;
     "borrowAPY_RAY()": FunctionFragment;
+    "calcCumulativeIndexAtBorrowMore(uint256,uint256,uint256)": FunctionFragment;
     "calcLinearCumulative_RAY()": FunctionFragment;
     "creditManagers(uint256)": FunctionFragment;
     "creditManagersCanBorrow(address)": FunctionFragment;
@@ -63,6 +64,10 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "borrowAPY_RAY",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calcCumulativeIndexAtBorrowMore",
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcLinearCumulative_RAY",
@@ -150,6 +155,10 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "calcCumulativeIndexAtBorrowMore",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "calcLinearCumulative_RAY",
     data: BytesLike
   ): Result;
@@ -215,6 +224,7 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
     "NewCreditManagerConnected(address)": EventFragment;
     "NewExpectedLiquidityLimit(uint256)": EventFragment;
     "NewInterestRateModel(address)": EventFragment;
+    "NewWithdrawFee(uint256)": EventFragment;
     "RemoveLiquidity(address,address,uint256)": EventFragment;
     "Repay(address,uint256,uint256,uint256)": EventFragment;
     "UncoveredLoss(address,uint256)": EventFragment;
@@ -226,6 +236,7 @@ interface IPoolServiceInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "NewCreditManagerConnected"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewExpectedLiquidityLimit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewInterestRateModel"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewWithdrawFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidity"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Repay"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "UncoveredLoss"): EventFragment;
@@ -289,6 +300,13 @@ export class IPoolService extends BaseContract {
     availableLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    calcCumulativeIndexAtBorrowMore(
+      amount: BigNumberish,
+      dAmount: BigNumberish,
+      cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -363,6 +381,13 @@ export class IPoolService extends BaseContract {
 
   borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
+  calcCumulativeIndexAtBorrowMore(
+    amount: BigNumberish,
+    dAmount: BigNumberish,
+    cumulativeIndexAtOpen: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
   creditManagers(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
@@ -429,6 +454,13 @@ export class IPoolService extends BaseContract {
     availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calcCumulativeIndexAtBorrowMore(
+      amount: BigNumberish,
+      dAmount: BigNumberish,
+      cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -529,6 +561,10 @@ export class IPoolService extends BaseContract {
       newInterestRateModel?: string | null
     ): TypedEventFilter<[string], { newInterestRateModel: string }>;
 
+    NewWithdrawFee(
+      fee?: null
+    ): TypedEventFilter<[BigNumber], { fee: BigNumber }>;
+
     RemoveLiquidity(
       sender?: string | null,
       to?: string | null,
@@ -577,6 +613,13 @@ export class IPoolService extends BaseContract {
     availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calcCumulativeIndexAtBorrowMore(
+      amount: BigNumberish,
+      dAmount: BigNumberish,
+      cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -655,6 +698,13 @@ export class IPoolService extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     borrowAPY_RAY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    calcCumulativeIndexAtBorrowMore(
+      amount: BigNumberish,
+      dAmount: BigNumberish,
+      cumulativeIndexAtOpen: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     calcLinearCumulative_RAY(
       overrides?: CallOverrides

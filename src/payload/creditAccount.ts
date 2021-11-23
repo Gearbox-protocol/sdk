@@ -3,6 +3,7 @@ import {BigNumberish} from "ethers";
 export interface TokenBalancePayload {
   token: string;
   balance: BigNumberish;
+  isAllowed: boolean;
 }
 
 export interface CreditAccountDataPayload {

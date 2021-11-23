@@ -4,8 +4,6 @@
  * (c) Gearbox.fi, 2021
  */
 
-import { getStatic } from "@diesellabs/gearbox-static";
-
 export const SUSHISWAP_MAINNET = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F";
 export const UNISWAP_V2_ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 export const UNISWAP_V3_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
@@ -14,8 +12,13 @@ export const UNISWAP_V3_QUOTER = "0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6";
 export const CURVE_3POOL_ADDRESS = "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7";
 export const CURVE_STETH_ADDRESS = "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022";
 
-export const YEARN_DAI_ADDRESS = "0xdA816459F1AB5631232FE5e97a05BBBb94970c95";
-export const YEARN_USDC_ADDRESS = "0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9";
+export const YEARN_DAI_ADDRESS = "0xdA816459F1AB5631232FE5e97a05BBBb94970c95"; // "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d" //
+export const YEARN_USDC_ADDRESS = "0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9"; // "0xdbC43Ba45381e02825b14322cDdd15eC4B3164E6"//
+
+export const YEARN_DAI_KOVAN_MOCK =
+  "0xe5267045739E4d6FcA15BB4a79190012F146893b";
+export const YEARN_USDC_KOVAN_MOCK =
+  "0x980E4d8A22105c2a2fA2252B7685F32fc7564512";
 
 export const SUSHISWAP_KOVAN = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506";
 
@@ -55,45 +58,54 @@ export const knownContracts: Record<string, AdapterParams> = {
   [UNISWAP_V2_ROUTER]: {
     name: "UniswapV2",
     type: AdapterInterface.UniswapV2,
-    icon: getStatic("/protocols/uniswap.svg")
+    icon: "/protocols/uniswap.png",
   },
   [UNISWAP_V3_ROUTER]: {
     name: "UniswapV3",
     quoter: UNISWAP_V3_QUOTER,
     type: AdapterInterface.UniswapV3,
-    icon: getStatic("/protocols/uniswap.svg")
+    icon: "/protocols/uniswap.png",
   },
   [SUSHISWAP_MAINNET]: {
     name: "Sushiswap",
     type: AdapterInterface.UniswapV2,
-    icon: getStatic("/protocols/sushi.svg")
+    icon: "/protocols/sushi.svg",
   },
   [CURVE_3POOL_ADDRESS]: {
     name: "Curve 3pool",
     type: AdapterInterface.CurveV1,
     nCoins: 3,
-    icon: getStatic("/protocols/curve.svg")
+    icon: "/protocols/curve.svg",
   },
   [CURVE_STETH_ADDRESS]: {
     name: "Curve stETH",
     type: AdapterInterface.CurveV1,
     nCoins: 2,
-    icon: getStatic("/protocols/curve.svg")
+    icon: "/protocols/curve.svg",
   },
   [YEARN_DAI_ADDRESS]: {
     name: "Yearn DAI",
     type: AdapterInterface.YearnV2,
-    icon: getStatic("/protocols/yearn.svg")
+    icon: "/protocols/yearn.svg",
+  },
+  [YEARN_DAI_KOVAN_MOCK]: {
+    name: "Yearn DAI",
+    type: AdapterInterface.YearnV2,
+    icon: "/protocols/yearn.svg",
   },
   [YEARN_USDC_ADDRESS]: {
     name: "Yearn USDC",
     type: AdapterInterface.YearnV2,
-    icon: getStatic("/protocols/yearn.svg")
+    icon: "/protocols/yearn.svg",
   },
-
+  [YEARN_USDC_KOVAN_MOCK]: {
+    name: "Yearn USDC",
+    type: AdapterInterface.YearnV2,
+    icon: "/protocols/yearn.svg",
+  },
   [SUSHISWAP_KOVAN]: {
     name: "Sushiswap",
     type: AdapterInterface.UniswapV2,
-    icon: getStatic("/protocols/sushi.svg")
+    icon: "/protocols/sushi.svg",
   },
 };

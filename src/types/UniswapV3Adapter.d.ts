@@ -27,7 +27,7 @@ interface UniswapV3AdapterInterface extends ethers.utils.Interface {
     "exactInputSingle(tuple)": FunctionFragment;
     "exactOutput(tuple)": FunctionFragment;
     "exactOutputSingle(tuple)": FunctionFragment;
-    "swapContract()": FunctionFragment;
+    "router()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -92,10 +92,7 @@ interface UniswapV3AdapterInterface extends ethers.utils.Interface {
       }
     ]
   ): string;
-  encodeFunctionData(
-    functionFragment: "swapContract",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "router", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "creditFilter",
@@ -118,10 +115,7 @@ interface UniswapV3AdapterInterface extends ethers.utils.Interface {
     functionFragment: "exactOutputSingle",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapContract",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "router", data: BytesLike): Result;
 
   events: {};
 }
@@ -224,7 +218,7 @@ export class UniswapV3Adapter extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    swapContract(overrides?: CallOverrides): Promise<[string]>;
+    router(overrides?: CallOverrides): Promise<[string]>;
   };
 
   creditFilter(overrides?: CallOverrides): Promise<string>;
@@ -281,7 +275,7 @@ export class UniswapV3Adapter extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  swapContract(overrides?: CallOverrides): Promise<string>;
+  router(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     creditFilter(overrides?: CallOverrides): Promise<string>;
@@ -338,7 +332,7 @@ export class UniswapV3Adapter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    swapContract(overrides?: CallOverrides): Promise<string>;
+    router(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
@@ -398,7 +392,7 @@ export class UniswapV3Adapter extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    swapContract(overrides?: CallOverrides): Promise<BigNumber>;
+    router(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -456,6 +450,6 @@ export class UniswapV3Adapter extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    swapContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    router(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

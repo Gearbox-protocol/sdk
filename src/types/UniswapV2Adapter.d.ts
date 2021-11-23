@@ -39,7 +39,7 @@ interface UniswapV2AdapterInterface extends ethers.utils.Interface {
     "removeLiquidityETHWithPermit(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)": FunctionFragment;
     "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)": FunctionFragment;
     "removeLiquidityWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)": FunctionFragment;
-    "swapContract()": FunctionFragment;
+    "router()": FunctionFragment;
     "swapETHForExactTokens(uint256,address[],address,uint256)": FunctionFragment;
     "swapExactETHForTokens(uint256,address[],address,uint256)": FunctionFragment;
     "swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)": FunctionFragment;
@@ -185,10 +185,7 @@ interface UniswapV2AdapterInterface extends ethers.utils.Interface {
       BytesLike
     ]
   ): string;
-  encodeFunctionData(
-    functionFragment: "swapContract",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "router", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "swapETHForExactTokens",
     values: [BigNumberish, string[], string, BigNumberish]
@@ -285,10 +282,7 @@ interface UniswapV2AdapterInterface extends ethers.utils.Interface {
     functionFragment: "removeLiquidityWithPermit",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapContract",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "router", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "swapETHForExactTokens",
     data: BytesLike
@@ -510,7 +504,7 @@ export class UniswapV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    swapContract(overrides?: CallOverrides): Promise<[string]>;
+    router(overrides?: CallOverrides): Promise<[string]>;
 
     swapETHForExactTokens(
       amountOut: BigNumberish,
@@ -728,7 +722,7 @@ export class UniswapV2Adapter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  swapContract(overrides?: CallOverrides): Promise<string>;
+  router(overrides?: CallOverrides): Promise<string>;
 
   swapETHForExactTokens(
     amountOut: BigNumberish,
@@ -966,7 +960,7 @@ export class UniswapV2Adapter extends BaseContract {
       [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
     >;
 
-    swapContract(overrides?: CallOverrides): Promise<string>;
+    router(overrides?: CallOverrides): Promise<string>;
 
     swapETHForExactTokens(
       amountOut: BigNumberish,
@@ -1187,7 +1181,7 @@ export class UniswapV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    swapContract(overrides?: CallOverrides): Promise<BigNumber>;
+    router(overrides?: CallOverrides): Promise<BigNumber>;
 
     swapETHForExactTokens(
       amountOut: BigNumberish,
@@ -1406,7 +1400,7 @@ export class UniswapV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    swapContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    router(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     swapETHForExactTokens(
       amountOut: BigNumberish,

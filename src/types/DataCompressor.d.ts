@@ -22,6 +22,7 @@ interface DataCompressorInterface extends ethers.utils.Interface {
   functions: {
     "WETHToken()": FunctionFragment;
     "addressProvider()": FunctionFragment;
+    "calcExpectedAtOpenHf(address,address,uint256,uint256)": FunctionFragment;
     "calcExpectedHf(address,address,uint256[])": FunctionFragment;
     "contractsRegister()": FunctionFragment;
     "getAdapter(address,address)": FunctionFragment;
@@ -32,7 +33,7 @@ interface DataCompressorInterface extends ethers.utils.Interface {
     "getCreditManagersList(address)": FunctionFragment;
     "getPoolData(address)": FunctionFragment;
     "getPoolsList()": FunctionFragment;
-    "getTokenData(address)": FunctionFragment;
+    "getTokenData(address[])": FunctionFragment;
     "hasOpenedCreditAccount(address,address)": FunctionFragment;
   };
 
@@ -40,6 +41,10 @@ interface DataCompressorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "addressProvider",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calcExpectedAtOpenHf",
+    values: [string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcExpectedHf",
@@ -80,7 +85,7 @@ interface DataCompressorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenData",
-    values: [string]
+    values: [string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "hasOpenedCreditAccount",
@@ -90,6 +95,10 @@ interface DataCompressorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "WETHToken", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addressProvider",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "calcExpectedAtOpenHf",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -189,6 +198,14 @@ export class DataCompressor extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
 
+    calcExpectedAtOpenHf(
+      _creditManager: string,
+      token: string,
+      amount: BigNumberish,
+      borrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     calcExpectedHf(
       _creditManager: string,
       borrower: string,
@@ -220,7 +237,11 @@ export class DataCompressor extends BaseContract {
           BigNumber,
           BigNumber,
           BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[]
+          ([string, BigNumber, boolean] & {
+            token: string;
+            balance: BigNumber;
+            isAllowed: boolean;
+          })[]
         ] & {
           addr: string;
           borrower: string;
@@ -231,9 +252,10 @@ export class DataCompressor extends BaseContract {
           totalValue: BigNumber;
           healthFactor: BigNumber;
           borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
+          balances: ([string, BigNumber, boolean] & {
             token: string;
             balance: BigNumber;
+            isAllowed: boolean;
           })[];
         }
       ]
@@ -255,7 +277,11 @@ export class DataCompressor extends BaseContract {
           BigNumber,
           BigNumber,
           BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[],
+          ([string, BigNumber, boolean] & {
+            token: string;
+            balance: BigNumber;
+            isAllowed: boolean;
+          })[],
           BigNumber,
           BigNumber,
           boolean,
@@ -272,9 +298,10 @@ export class DataCompressor extends BaseContract {
           totalValue: BigNumber;
           healthFactor: BigNumber;
           borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
+          balances: ([string, BigNumber, boolean] & {
             token: string;
             balance: BigNumber;
+            isAllowed: boolean;
           })[];
           repayAmount: BigNumber;
           liquidationAmount: BigNumber;
@@ -301,7 +328,11 @@ export class DataCompressor extends BaseContract {
           BigNumber,
           BigNumber,
           BigNumber,
-          ([string, BigNumber] & { token: string; balance: BigNumber })[]
+          ([string, BigNumber, boolean] & {
+            token: string;
+            balance: BigNumber;
+            isAllowed: boolean;
+          })[]
         ] & {
           addr: string;
           borrower: string;
@@ -312,9 +343,10 @@ export class DataCompressor extends BaseContract {
           totalValue: BigNumber;
           healthFactor: BigNumber;
           borrowRate: BigNumber;
-          balances: ([string, BigNumber] & {
+          balances: ([string, BigNumber, boolean] & {
             token: string;
             balance: BigNumber;
+            isAllowed: boolean;
           })[];
         })[]
       ]
@@ -479,15 +511,15 @@ export class DataCompressor extends BaseContract {
     >;
 
     getTokenData(
-      addr: string,
+      addr: string[],
       overrides?: CallOverrides
     ): Promise<
       [
-        [string, string, number] & {
+        ([string, string, number] & {
           addr: string;
           symbol: string;
           decimals: number;
-        }
+        })[]
       ]
     >;
 
@@ -501,6 +533,14 @@ export class DataCompressor extends BaseContract {
   WETHToken(overrides?: CallOverrides): Promise<string>;
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
+
+  calcExpectedAtOpenHf(
+    _creditManager: string,
+    token: string,
+    amount: BigNumberish,
+    borrowedAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   calcExpectedHf(
     _creditManager: string,
@@ -532,7 +572,11 @@ export class DataCompressor extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[]
+      ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[]
     ] & {
       addr: string;
       borrower: string;
@@ -543,7 +587,11 @@ export class DataCompressor extends BaseContract {
       totalValue: BigNumber;
       healthFactor: BigNumber;
       borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
+      balances: ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[];
     }
   >;
 
@@ -562,7 +610,11 @@ export class DataCompressor extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[],
+      ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[],
       BigNumber,
       BigNumber,
       boolean,
@@ -579,7 +631,11 @@ export class DataCompressor extends BaseContract {
       totalValue: BigNumber;
       healthFactor: BigNumber;
       borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
+      balances: ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[];
       repayAmount: BigNumber;
       liquidationAmount: BigNumber;
       canBeClosed: boolean;
@@ -603,7 +659,11 @@ export class DataCompressor extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      ([string, BigNumber] & { token: string; balance: BigNumber })[]
+      ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[]
     ] & {
       addr: string;
       borrower: string;
@@ -614,7 +674,11 @@ export class DataCompressor extends BaseContract {
       totalValue: BigNumber;
       healthFactor: BigNumber;
       borrowRate: BigNumber;
-      balances: ([string, BigNumber] & { token: string; balance: BigNumber })[];
+      balances: ([string, BigNumber, boolean] & {
+        token: string;
+        balance: BigNumber;
+        isAllowed: boolean;
+      })[];
     })[]
   >;
 
@@ -769,14 +833,14 @@ export class DataCompressor extends BaseContract {
   >;
 
   getTokenData(
-    addr: string,
+    addr: string[],
     overrides?: CallOverrides
   ): Promise<
-    [string, string, number] & {
+    ([string, string, number] & {
       addr: string;
       symbol: string;
       decimals: number;
-    }
+    })[]
   >;
 
   hasOpenedCreditAccount(
@@ -789,6 +853,14 @@ export class DataCompressor extends BaseContract {
     WETHToken(overrides?: CallOverrides): Promise<string>;
 
     addressProvider(overrides?: CallOverrides): Promise<string>;
+
+    calcExpectedAtOpenHf(
+      _creditManager: string,
+      token: string,
+      amount: BigNumberish,
+      borrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     calcExpectedHf(
       _creditManager: string,
@@ -820,7 +892,11 @@ export class DataCompressor extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[]
+        ([string, BigNumber, boolean] & {
+          token: string;
+          balance: BigNumber;
+          isAllowed: boolean;
+        })[]
       ] & {
         addr: string;
         borrower: string;
@@ -831,9 +907,10 @@ export class DataCompressor extends BaseContract {
         totalValue: BigNumber;
         healthFactor: BigNumber;
         borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
+        balances: ([string, BigNumber, boolean] & {
           token: string;
           balance: BigNumber;
+          isAllowed: boolean;
         })[];
       }
     >;
@@ -853,7 +930,11 @@ export class DataCompressor extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[],
+        ([string, BigNumber, boolean] & {
+          token: string;
+          balance: BigNumber;
+          isAllowed: boolean;
+        })[],
         BigNumber,
         BigNumber,
         boolean,
@@ -870,9 +951,10 @@ export class DataCompressor extends BaseContract {
         totalValue: BigNumber;
         healthFactor: BigNumber;
         borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
+        balances: ([string, BigNumber, boolean] & {
           token: string;
           balance: BigNumber;
+          isAllowed: boolean;
         })[];
         repayAmount: BigNumber;
         liquidationAmount: BigNumber;
@@ -897,7 +979,11 @@ export class DataCompressor extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        ([string, BigNumber] & { token: string; balance: BigNumber })[]
+        ([string, BigNumber, boolean] & {
+          token: string;
+          balance: BigNumber;
+          isAllowed: boolean;
+        })[]
       ] & {
         addr: string;
         borrower: string;
@@ -908,9 +994,10 @@ export class DataCompressor extends BaseContract {
         totalValue: BigNumber;
         healthFactor: BigNumber;
         borrowRate: BigNumber;
-        balances: ([string, BigNumber] & {
+        balances: ([string, BigNumber, boolean] & {
           token: string;
           balance: BigNumber;
+          isAllowed: boolean;
         })[];
       })[]
     >;
@@ -1066,14 +1153,14 @@ export class DataCompressor extends BaseContract {
     >;
 
     getTokenData(
-      addr: string,
+      addr: string[],
       overrides?: CallOverrides
     ): Promise<
-      [string, string, number] & {
+      ([string, string, number] & {
         addr: string;
         symbol: string;
         decimals: number;
-      }
+      })[]
     >;
 
     hasOpenedCreditAccount(
@@ -1089,6 +1176,14 @@ export class DataCompressor extends BaseContract {
     WETHToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calcExpectedAtOpenHf(
+      _creditManager: string,
+      token: string,
+      amount: BigNumberish,
+      borrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     calcExpectedHf(
       _creditManager: string,
@@ -1137,7 +1232,7 @@ export class DataCompressor extends BaseContract {
 
     getPoolsList(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getTokenData(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getTokenData(addr: string[], overrides?: CallOverrides): Promise<BigNumber>;
 
     hasOpenedCreditAccount(
       _creditManager: string,
@@ -1150,6 +1245,14 @@ export class DataCompressor extends BaseContract {
     WETHToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    calcExpectedAtOpenHf(
+      _creditManager: string,
+      token: string,
+      amount: BigNumberish,
+      borrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     calcExpectedHf(
       _creditManager: string,
@@ -1202,7 +1305,7 @@ export class DataCompressor extends BaseContract {
     getPoolsList(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getTokenData(
-      addr: string,
+      addr: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

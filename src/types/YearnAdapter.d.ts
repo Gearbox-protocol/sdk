@@ -189,7 +189,7 @@ export class YearnAdapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    decimals(overrides?: CallOverrides): Promise<[BigNumber]>;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
     "deposit(uint256,address)"(
       amount: BigNumberish,
@@ -231,7 +231,7 @@ export class YearnAdapter extends BaseContract {
 
     "withdraw(uint256,address)"(
       maxShares: BigNumberish,
-      recipient: string,
+      arg1: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -272,7 +272,7 @@ export class YearnAdapter extends BaseContract {
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  decimals(overrides?: CallOverrides): Promise<BigNumber>;
+  decimals(overrides?: CallOverrides): Promise<number>;
 
   "deposit(uint256,address)"(
     amount: BigNumberish,
@@ -314,7 +314,7 @@ export class YearnAdapter extends BaseContract {
 
   "withdraw(uint256,address)"(
     maxShares: BigNumberish,
-    recipient: string,
+    arg1: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -355,7 +355,7 @@ export class YearnAdapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+    decimals(overrides?: CallOverrides): Promise<number>;
 
     "deposit(uint256,address)"(
       amount: BigNumberish,
@@ -395,7 +395,7 @@ export class YearnAdapter extends BaseContract {
 
     "withdraw(uint256,address)"(
       maxShares: BigNumberish,
-      recipient: string,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -497,7 +497,7 @@ export class YearnAdapter extends BaseContract {
 
     "withdraw(uint256,address)"(
       maxShares: BigNumberish,
-      recipient: string,
+      arg1: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -584,7 +584,7 @@ export class YearnAdapter extends BaseContract {
 
     "withdraw(uint256,address)"(
       maxShares: BigNumberish,
-      recipient: string,
+      arg1: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

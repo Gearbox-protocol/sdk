@@ -92,64 +92,6 @@
         },
         {
           "internalType": "uint256",
-          "name": "dy",
-          "type": "uint256"
-        }
-      ],
-      "name": "get_dx",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "int128",
-          "name": "i",
-          "type": "int128"
-        },
-        {
-          "internalType": "int128",
-          "name": "j",
-          "type": "int128"
-        },
-        {
-          "internalType": "uint256",
-          "name": "dy",
-          "type": "uint256"
-        }
-      ],
-      "name": "get_dx_underlying",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "int128",
-          "name": "i",
-          "type": "int128"
-        },
-        {
-          "internalType": "int128",
-          "name": "j",
-          "type": "int128"
-        },
-        {
-          "internalType": "uint256",
           "name": "dx",
           "type": "uint256"
         }

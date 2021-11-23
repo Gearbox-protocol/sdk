@@ -164,7 +164,7 @@ export class IYVault extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    decimals(overrides?: CallOverrides): Promise<[BigNumber]>;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
 
     "deposit(uint256,address)"(
       _amount: BigNumberish,
@@ -241,7 +241,7 @@ export class IYVault extends BaseContract {
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  decimals(overrides?: CallOverrides): Promise<BigNumber>;
+  decimals(overrides?: CallOverrides): Promise<number>;
 
   "deposit(uint256,address)"(
     _amount: BigNumberish,
@@ -318,7 +318,7 @@ export class IYVault extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+    decimals(overrides?: CallOverrides): Promise<number>;
 
     "deposit(uint256,address)"(
       _amount: BigNumberish,

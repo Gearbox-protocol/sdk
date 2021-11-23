@@ -3,7 +3,9 @@ export * from "./core/creditAccount";
 export * from "./core/creditManager";
 export * from "./core/creditSession";
 export * from "./core/contracts";
+export * from "./core/events";
 export * from "./core/pool";
+export * from "./core/operations";
 export * from "./core/swap";
 export * from "./core/token";
 export * from "./core/trade";
@@ -25,7 +27,6 @@ export type {
   IAppPoolService,
   IAppCreditManager,
   IAppERC20,
-  ICreditAccountData,
   IAppAddressProvider,
   IDataCompressor,
   IWETHGateway,

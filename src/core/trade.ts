@@ -15,6 +15,9 @@ export class TradePath {
   public readonly path: Array<string>;
   public readonly expectedAmount: BigNumber;
   public readonly pathUniV3: BytesLike | undefined;
+  public readonly i: number | undefined;
+  public readonly j: number | undefined;
+  public readonly operationName: string | undefined;
 
   constructor(params: {
     swapType: SwapType;
@@ -22,6 +25,9 @@ export class TradePath {
     path: Array<string>;
     expectedAmount: BigNumber;
     pathUniV3?: BytesLike;
+    i?: number;
+    j?: number;
+    operationName?: string;
   }) {
     this.swapType = params.swapType;
     this.amount = params.amount;
@@ -32,6 +38,9 @@ export class TradePath {
       params.swapType !== SwapType.ExactInput
         ? params.expectedAmount.mul(WAD).div(params.amount)
         : WAD.mul(params.amount).div(params.expectedAmount);
+    this.i = params.i;
+    this.j = params.j;
+    this.operationName = params.operationName;
   }
 
   getExpectedAmountWithSlippage(slippage: number): BigNumber {
