@@ -8,6 +8,7 @@ export * from "./core/pool";
 export * from "./core/operations";
 export * from "./core/swap";
 export * from "./core/token";
+export * from "./core/tokenDistributor";
 export * from "./core/trade";
 export * from "./payload/creditAccount";
 export * from "./payload/creditManager";
