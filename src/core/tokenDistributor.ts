@@ -3,6 +3,7 @@ import { BigNumberish } from "ethers";
 export interface TokenShare {
   holder: string;
   amount: BigNumberish;
+  share: number;
   isCompany: boolean;
 }
 
