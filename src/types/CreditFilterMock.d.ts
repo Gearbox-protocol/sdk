@@ -21,7 +21,6 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CreditFilterMockInterface extends ethers.utils.Interface {
   functions: {
-    "_allowedTokensMap(address)": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "allowContract(address,address)": FunctionFragment;
     "allowPlugin(address,bool)": FunctionFragment;
@@ -69,13 +68,11 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
     "underlyingToken()": FunctionFragment;
     "unpause()": FunctionFragment;
     "updateUnderlyingTokenLiquidationThreshold()": FunctionFragment;
+    "upgradePriceOracle()": FunctionFragment;
+    "version()": FunctionFragment;
     "wethAddress()": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "_allowedTokensMap",
-    values: [string]
-  ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
     values?: undefined
@@ -253,14 +250,15 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "upgradePriceOracle",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
+  encodeFunctionData(
     functionFragment: "wethAddress",
     values?: undefined
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "_allowedTokensMap",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "addressProvider",
     data: BytesLike
@@ -438,6 +436,11 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "upgradePriceOracle",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "wethAddress",
     data: BytesLike
   ): Result;
@@ -447,7 +450,9 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
     "ContractForbidden(address)": EventFragment;
     "NewFastCheckParameters(uint256,uint256)": EventFragment;
     "Paused(address)": EventFragment;
+    "PriceOracleUpdated(address)": EventFragment;
     "TokenAllowed(address,uint256)": EventFragment;
+    "TokenForbidden(address)": EventFragment;
     "TransferAccountAllowed(address,address,bool)": EventFragment;
     "TransferPluginAllowed(address,bool)": EventFragment;
     "Unpaused(address)": EventFragment;
@@ -457,7 +462,9 @@ interface CreditFilterMockInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewFastCheckParameters"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PriceOracleUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferPluginAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
@@ -507,11 +514,6 @@ export class CreditFilterMock extends BaseContract {
   interface: CreditFilterMockInterface;
 
   functions: {
-    _allowedTokensMap(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
 
     allowContract(
@@ -669,10 +671,7 @@ export class CreditFilterMock extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    isTokenAllowed(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    isTokenAllowed(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     liquidationThresholds(
       arg0: string,
@@ -739,10 +738,14 @@ export class CreditFilterMock extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    upgradePriceOracle(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     wethAddress(overrides?: CallOverrides): Promise<[string]>;
   };
-
-  _allowedTokensMap(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
 
@@ -883,7 +886,7 @@ export class CreditFilterMock extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  isTokenAllowed(token: string, overrides?: CallOverrides): Promise<boolean>;
+  isTokenAllowed(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   liquidationThresholds(
     arg0: string,
@@ -947,14 +950,15 @@ export class CreditFilterMock extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  upgradePriceOracle(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   wethAddress(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    _allowedTokensMap(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     addressProvider(overrides?: CallOverrides): Promise<string>;
 
     allowContract(
@@ -1100,7 +1104,7 @@ export class CreditFilterMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    isTokenAllowed(token: string, overrides?: CallOverrides): Promise<boolean>;
+    isTokenAllowed(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     liquidationThresholds(
       arg0: string,
@@ -1160,6 +1164,10 @@ export class CreditFilterMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    upgradePriceOracle(overrides?: CallOverrides): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     wethAddress(overrides?: CallOverrides): Promise<string>;
   };
 
@@ -1186,6 +1194,10 @@ export class CreditFilterMock extends BaseContract {
 
     Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
+    PriceOracleUpdated(
+      newPriceOracle?: string | null
+    ): TypedEventFilter<[string], { newPriceOracle: string }>;
+
     TokenAllowed(
       token?: string | null,
       liquidityThreshold?: null
@@ -1193,6 +1205,10 @@ export class CreditFilterMock extends BaseContract {
       [string, BigNumber],
       { token: string; liquidityThreshold: BigNumber }
     >;
+
+    TokenForbidden(
+      token?: string | null
+    ): TypedEventFilter<[string], { token: string }>;
 
     TransferAccountAllowed(
       from?: string | null,
@@ -1212,11 +1228,6 @@ export class CreditFilterMock extends BaseContract {
   };
 
   estimateGas: {
-    _allowedTokensMap(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowContract(
@@ -1364,10 +1375,7 @@ export class CreditFilterMock extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    isTokenAllowed(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isTokenAllowed(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     liquidationThresholds(
       arg0: string,
@@ -1431,15 +1439,16 @@ export class CreditFilterMock extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    upgradePriceOracle(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     wethAddress(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    _allowedTokensMap(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowContract(
@@ -1598,7 +1607,7 @@ export class CreditFilterMock extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     isTokenAllowed(
-      token: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1666,6 +1675,12 @@ export class CreditFilterMock extends BaseContract {
     updateUnderlyingTokenLiquidationThreshold(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    upgradePriceOracle(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

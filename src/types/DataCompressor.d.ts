@@ -35,6 +35,7 @@ interface DataCompressorInterface extends ethers.utils.Interface {
     "getPoolsList()": FunctionFragment;
     "getTokenData(address[])": FunctionFragment;
     "hasOpenedCreditAccount(address,address)": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "WETHToken", values?: undefined): string;
@@ -91,6 +92,7 @@ interface DataCompressorInterface extends ethers.utils.Interface {
     functionFragment: "hasOpenedCreditAccount",
     values: [string, string]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "WETHToken", data: BytesLike): Result;
   decodeFunctionResult(
@@ -146,6 +148,7 @@ interface DataCompressorInterface extends ethers.utils.Interface {
     functionFragment: "hasOpenedCreditAccount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {};
 }
@@ -528,6 +531,8 @@ export class DataCompressor extends BaseContract {
       borrower: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   WETHToken(overrides?: CallOverrides): Promise<string>;
@@ -849,6 +854,8 @@ export class DataCompressor extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     WETHToken(overrides?: CallOverrides): Promise<string>;
 
@@ -1168,6 +1175,8 @@ export class DataCompressor extends BaseContract {
       borrower: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
@@ -1239,6 +1248,8 @@ export class DataCompressor extends BaseContract {
       borrower: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1314,5 +1325,7 @@ export class DataCompressor extends BaseContract {
       borrower: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

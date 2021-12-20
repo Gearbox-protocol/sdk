@@ -1,8 +1,8 @@
-import { BigNumberish } from "ethers";
+import {BigNumber} from "ethers";
 
 export interface TokenShare {
   holder: string;
-  amount: BigNumberish;
+  amount: BigNumber;
   share: number;
   isCompany: boolean;
 }

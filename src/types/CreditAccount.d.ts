@@ -33,6 +33,7 @@ interface CreditAccountInterface extends ethers.utils.Interface {
     "safeTransfer(address,address,uint256)": FunctionFragment;
     "since()": FunctionFragment;
     "updateParameters(uint256,uint256)": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -77,6 +78,7 @@ interface CreditAccountInterface extends ethers.utils.Interface {
     functionFragment: "updateParameters",
     values: [BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "approveToken",
@@ -111,6 +113,7 @@ interface CreditAccountInterface extends ethers.utils.Interface {
     functionFragment: "updateParameters",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {};
 }
@@ -210,6 +213,8 @@ export class CreditAccount extends BaseContract {
       _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   approveToken(
@@ -264,6 +269,8 @@ export class CreditAccount extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     approveToken(
       token: string,
@@ -314,6 +321,8 @@ export class CreditAccount extends BaseContract {
       _cumulativeIndexAtOpen: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
@@ -370,6 +379,8 @@ export class CreditAccount extends BaseContract {
       _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -426,5 +437,7 @@ export class CreditAccount extends BaseContract {
       _cumulativeIndexAtOpen: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

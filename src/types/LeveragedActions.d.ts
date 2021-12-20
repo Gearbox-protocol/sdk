@@ -28,6 +28,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
     "openShortCurve(address,int128,int128,uint256,uint256,tuple,uint256)": FunctionFragment;
     "openShortUniV2(address,uint256,uint256,address[],uint256,tuple,uint256)": FunctionFragment;
     "openShortUniV3(address,tuple,tuple,uint256)": FunctionFragment;
+    "version()": FunctionFragment;
     "wethGateway()": FunctionFragment;
     "wethToken()": FunctionFragment;
   };
@@ -135,6 +136,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
       BigNumberish
     ]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "wethGateway",
     values?: undefined
@@ -163,6 +165,7 @@ interface LeveragedActionsInterface extends ethers.utils.Interface {
     functionFragment: "openShortUniV3",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "wethGateway",
     data: BytesLike
@@ -317,6 +320,8 @@ export class LeveragedActions extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     wethGateway(overrides?: CallOverrides): Promise<[string]>;
 
     wethToken(overrides?: CallOverrides): Promise<[string]>;
@@ -419,6 +424,8 @@ export class LeveragedActions extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   wethGateway(overrides?: CallOverrides): Promise<string>;
 
   wethToken(overrides?: CallOverrides): Promise<string>;
@@ -520,6 +527,8 @@ export class LeveragedActions extends BaseContract {
       referralCode: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
 
     wethGateway(overrides?: CallOverrides): Promise<string>;
 
@@ -649,6 +658,8 @@ export class LeveragedActions extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     wethGateway(overrides?: CallOverrides): Promise<BigNumber>;
 
     wethToken(overrides?: CallOverrides): Promise<BigNumber>;
@@ -751,6 +762,8 @@ export class LeveragedActions extends BaseContract {
       referralCode: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     wethGateway(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

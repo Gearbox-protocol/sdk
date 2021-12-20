@@ -61,6 +61,7 @@ interface TestPoolServiceInterface extends ethers.utils.Interface {
     "unpause()": FunctionFragment;
     "updateBorrowRate()": FunctionFragment;
     "updateInterestRateModel(address)": FunctionFragment;
+    "version()": FunctionFragment;
     "withdrawFee()": FunctionFragment;
   };
 
@@ -215,6 +216,7 @@ interface TestPoolServiceInterface extends ethers.utils.Interface {
     functionFragment: "updateInterestRateModel",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdrawFee",
     values?: undefined
@@ -365,6 +367,7 @@ interface TestPoolServiceInterface extends ethers.utils.Interface {
     functionFragment: "updateInterestRateModel",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawFee",
     data: BytesLike
@@ -590,6 +593,8 @@ export class TestPoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     withdrawFee(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
@@ -737,6 +742,8 @@ export class TestPoolService extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
@@ -877,6 +884,8 @@ export class TestPoolService extends BaseContract {
       _interestRateModel: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -1111,6 +1120,8 @@ export class TestPoolService extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -1275,6 +1286,8 @@ export class TestPoolService extends BaseContract {
       _interestRateModel: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdrawFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

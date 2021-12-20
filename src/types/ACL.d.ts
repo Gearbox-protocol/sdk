@@ -33,6 +33,7 @@ interface ACLInterface extends ethers.utils.Interface {
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "unpausableAdminSet(address)": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -80,6 +81,7 @@ interface ACLInterface extends ethers.utils.Interface {
     functionFragment: "unpausableAdminSet",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "addPausableAdmin",
@@ -126,6 +128,7 @@ interface ACLInterface extends ethers.utils.Interface {
     functionFragment: "unpausableAdminSet",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
@@ -241,6 +244,8 @@ export class ACL extends BaseContract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   addPausableAdmin(
@@ -283,6 +288,8 @@ export class ACL extends BaseContract {
   ): Promise<ContractTransaction>;
 
   unpausableAdminSet(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  version(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     addPausableAdmin(
@@ -332,6 +339,8 @@ export class ACL extends BaseContract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -416,6 +425,8 @@ export class ACL extends BaseContract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -474,5 +485,7 @@ export class ACL extends BaseContract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

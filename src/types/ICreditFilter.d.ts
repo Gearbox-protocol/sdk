@@ -287,7 +287,9 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
     "ContractAllowed(address,address)": EventFragment;
     "ContractForbidden(address)": EventFragment;
     "NewFastCheckParameters(uint256,uint256)": EventFragment;
+    "PriceOracleUpdated(address)": EventFragment;
     "TokenAllowed(address,uint256)": EventFragment;
+    "TokenForbidden(address)": EventFragment;
     "TransferAccountAllowed(address,address,bool)": EventFragment;
     "TransferPluginAllowed(address,bool)": EventFragment;
   };
@@ -295,7 +297,9 @@ interface ICreditFilterInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ContractAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewFastCheckParameters"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PriceOracleUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferPluginAllowed"): EventFragment;
 }
@@ -821,6 +825,10 @@ export class ICreditFilter extends BaseContract {
       { chiThreshold: BigNumber; fastCheckDelay: BigNumber }
     >;
 
+    PriceOracleUpdated(
+      newPriceOracle?: string | null
+    ): TypedEventFilter<[string], { newPriceOracle: string }>;
+
     TokenAllowed(
       token?: string | null,
       liquidityThreshold?: null
@@ -828,6 +836,10 @@ export class ICreditFilter extends BaseContract {
       [string, BigNumber],
       { token: string; liquidityThreshold: BigNumber }
     >;
+
+    TokenForbidden(
+      token?: string | null
+    ): TypedEventFilter<[string], { token: string }>;
 
     TransferAccountAllowed(
       from?: string | null,

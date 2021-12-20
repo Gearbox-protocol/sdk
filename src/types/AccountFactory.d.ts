@@ -43,6 +43,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     "takeCreditAccount(uint256,uint256)": FunctionFragment;
     "takeOut(address,address,address)": FunctionFragment;
     "unpause()": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -115,6 +116,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
     values: [string, string, string]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "_contractsRegister",
@@ -183,6 +185,7 @@ interface AccountFactoryInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "takeOut", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
     "AccountMinerChanged(address)": EventFragment;
@@ -332,6 +335,8 @@ export class AccountFactory extends BaseContract {
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   _contractsRegister(overrides?: CallOverrides): Promise<string>;
@@ -411,6 +416,8 @@ export class AccountFactory extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     _contractsRegister(overrides?: CallOverrides): Promise<string>;
 
@@ -481,6 +488,8 @@ export class AccountFactory extends BaseContract {
     ): Promise<void>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -603,6 +612,8 @@ export class AccountFactory extends BaseContract {
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -699,5 +710,7 @@ export class AccountFactory extends BaseContract {
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

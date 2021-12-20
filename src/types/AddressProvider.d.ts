@@ -55,6 +55,7 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     "setWETHGateway(address)": FunctionFragment;
     "setWethToken(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -181,6 +182,7 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "ACCOUNT_FACTORY",
@@ -297,13 +299,16 @@ interface AddressProviderInterface extends ethers.utils.Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
     "AddressSet(bytes32,address)": EventFragment;
+    "Claimed(uint256,address,uint256,bytes32)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddressSet"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Claimed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
@@ -453,6 +458,8 @@ export class AddressProvider extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
@@ -558,6 +565,8 @@ export class AddressProvider extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     ACCOUNT_FACTORY(overrides?: CallOverrides): Promise<string>;
 
@@ -644,6 +653,8 @@ export class AddressProvider extends BaseContract {
       newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -653,6 +664,16 @@ export class AddressProvider extends BaseContract {
     ): TypedEventFilter<
       [string, string],
       { service: string; newAddress: string }
+    >;
+
+    Claimed(
+      user_id?: null,
+      account?: null,
+      amount?: null,
+      leaf?: null
+    ): TypedEventFilter<
+      [BigNumber, string, BigNumber, string],
+      { user_id: BigNumber; account: string; amount: BigNumber; leaf: string }
     >;
 
     OwnershipTransferred(
@@ -767,6 +788,8 @@ export class AddressProvider extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -883,5 +906,7 @@ export class AddressProvider extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

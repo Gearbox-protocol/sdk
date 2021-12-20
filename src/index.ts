@@ -32,7 +32,6 @@ export type {
   IAppAddressProvider,
   IDataCompressor,
   IWETHGateway,
-  GearBeta
 } from "./types";
 
 export * from "./core/history";

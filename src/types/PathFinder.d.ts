@@ -26,6 +26,10 @@ interface PathFinderInterface extends ethers.utils.Interface {
     "contractsRegister()": FunctionFragment;
     "convertPathToPathV3(address[],uint256)": FunctionFragment;
     "getClosurePaths(address,address,address,address[])": FunctionFragment;
+    "getPrices(address[])": FunctionFragment;
+    "priceOracle()": FunctionFragment;
+    "version()": FunctionFragment;
+    "wethToken()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -56,6 +60,13 @@ interface PathFinderInterface extends ethers.utils.Interface {
     functionFragment: "getClosurePaths",
     values: [string, string, string, string[]]
   ): string;
+  encodeFunctionData(functionFragment: "getPrices", values: [string[]]): string;
+  encodeFunctionData(
+    functionFragment: "priceOracle",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
+  encodeFunctionData(functionFragment: "wethToken", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "addressProvider",
@@ -77,6 +88,13 @@ interface PathFinderInterface extends ethers.utils.Interface {
     functionFragment: "getClosurePaths",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getPrices", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "priceOracle",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "wethToken", data: BytesLike): Result;
 
   events: {};
 }
@@ -153,6 +171,17 @@ export class PathFinder extends BaseContract {
       connectorTokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getPrices(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    priceOracle(overrides?: CallOverrides): Promise<[string]>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    wethToken(overrides?: CallOverrides): Promise<[string]>;
   };
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
@@ -183,6 +212,17 @@ export class PathFinder extends BaseContract {
     connectorTokens: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  getPrices(
+    tokens: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  priceOracle(overrides?: CallOverrides): Promise<string>;
+
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
+  wethToken(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     addressProvider(overrides?: CallOverrides): Promise<string>;
@@ -225,6 +265,17 @@ export class PathFinder extends BaseContract {
         expectedAmount: BigNumber;
       })[]
     >;
+
+    getPrices(
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    priceOracle(overrides?: CallOverrides): Promise<string>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    wethToken(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
@@ -258,6 +309,17 @@ export class PathFinder extends BaseContract {
       connectorTokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    getPrices(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    wethToken(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -289,5 +351,16 @@ export class PathFinder extends BaseContract {
       connectorTokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    getPrices(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    wethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

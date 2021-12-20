@@ -27,6 +27,7 @@ interface LinearInterestRateModelInterface extends ethers.utils.Interface {
     "_U_Optimal_inverted_WAD()": FunctionFragment;
     "calcBorrowRate(uint256,uint256)": FunctionFragment;
     "getModelParameters()": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -57,6 +58,7 @@ interface LinearInterestRateModelInterface extends ethers.utils.Interface {
     functionFragment: "getModelParameters",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "_R_base_RAY",
@@ -86,6 +88,7 @@ interface LinearInterestRateModelInterface extends ethers.utils.Interface {
     functionFragment: "getModelParameters",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {};
 }
@@ -160,6 +163,8 @@ export class LinearInterestRateModel extends BaseContract {
         R_slope2: BigNumber;
       }
     >;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   _R_base_RAY(overrides?: CallOverrides): Promise<BigNumber>;
@@ -189,6 +194,8 @@ export class LinearInterestRateModel extends BaseContract {
     }
   >;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     _R_base_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -216,6 +223,8 @@ export class LinearInterestRateModel extends BaseContract {
         R_slope2: BigNumber;
       }
     >;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
@@ -238,6 +247,8 @@ export class LinearInterestRateModel extends BaseContract {
     ): Promise<BigNumber>;
 
     getModelParameters(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -262,5 +273,7 @@ export class LinearInterestRateModel extends BaseContract {
     getModelParameters(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

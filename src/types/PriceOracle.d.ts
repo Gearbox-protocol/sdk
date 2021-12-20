@@ -30,6 +30,7 @@ interface PriceOracleInterface extends ethers.utils.Interface {
     "paused()": FunctionFragment;
     "priceFeeds(address)": FunctionFragment;
     "unpause()": FunctionFragment;
+    "version()": FunctionFragment;
     "wethAddress()": FunctionFragment;
   };
 
@@ -57,6 +58,7 @@ interface PriceOracleInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(functionFragment: "priceFeeds", values: [string]): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "wethAddress",
     values?: undefined
@@ -83,6 +85,7 @@ interface PriceOracleInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "priceFeeds", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "wethAddress",
     data: BytesLike
@@ -184,6 +187,8 @@ export class PriceOracle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     wethAddress(overrides?: CallOverrides): Promise<[string]>;
   };
 
@@ -225,6 +230,8 @@ export class PriceOracle extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   wethAddress(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
@@ -264,6 +271,8 @@ export class PriceOracle extends BaseContract {
     priceFeeds(arg0: string, overrides?: CallOverrides): Promise<string>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
 
     wethAddress(overrides?: CallOverrides): Promise<string>;
   };
@@ -321,6 +330,8 @@ export class PriceOracle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     wethAddress(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -368,6 +379,8 @@ export class PriceOracle extends BaseContract {
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

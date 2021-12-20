@@ -53,6 +53,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     "transferAccountOwnership(address)": FunctionFragment;
     "underlyingToken()": FunctionFragment;
     "unpause()": FunctionFragment;
+    "version()": FunctionFragment;
     "wethAddress()": FunctionFragment;
     "wethGateway()": FunctionFragment;
   };
@@ -177,6 +178,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "wethAddress",
     values?: undefined
@@ -293,6 +295,7 @@ interface CreditManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "wethAddress",
     data: BytesLike
@@ -534,6 +537,8 @@ export class CreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     wethAddress(overrides?: CallOverrides): Promise<[string]>;
 
     wethGateway(overrides?: CallOverrides): Promise<[string]>;
@@ -700,6 +705,8 @@ export class CreditManager extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   wethAddress(overrides?: CallOverrides): Promise<string>;
 
   wethGateway(overrides?: CallOverrides): Promise<string>;
@@ -858,6 +865,8 @@ export class CreditManager extends BaseContract {
     underlyingToken(overrides?: CallOverrides): Promise<string>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
 
     wethAddress(overrides?: CallOverrides): Promise<string>;
 
@@ -1107,6 +1116,8 @@ export class CreditManager extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     wethAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     wethGateway(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1264,6 +1275,8 @@ export class CreditManager extends BaseContract {
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

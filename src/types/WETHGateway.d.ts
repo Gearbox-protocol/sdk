@@ -28,6 +28,7 @@ interface WETHGatewayInterface extends ethers.utils.Interface {
     "removeLiquidityETH(address,uint256,address)": FunctionFragment;
     "repayCreditAccountETH(address,address)": FunctionFragment;
     "unwrapWETH(address,uint256)": FunctionFragment;
+    "version()": FunctionFragment;
     "wethAddress()": FunctionFragment;
   };
 
@@ -55,6 +56,7 @@ interface WETHGatewayInterface extends ethers.utils.Interface {
     functionFragment: "unwrapWETH",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "wethAddress",
     values?: undefined
@@ -81,12 +83,17 @@ interface WETHGatewayInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unwrapWETH", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "wethAddress",
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "WithdrawETH(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "WithdrawETH"): EventFragment;
 }
 
 export class WETHGateway extends BaseContract {
@@ -173,6 +180,8 @@ export class WETHGateway extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     wethAddress(overrides?: CallOverrides): Promise<[string]>;
   };
 
@@ -215,6 +224,8 @@ export class WETHGateway extends BaseContract {
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  version(overrides?: CallOverrides): Promise<BigNumber>;
 
   wethAddress(overrides?: CallOverrides): Promise<string>;
 
@@ -259,10 +270,17 @@ export class WETHGateway extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     wethAddress(overrides?: CallOverrides): Promise<string>;
   };
 
-  filters: {};
+  filters: {
+    WithdrawETH(
+      pool?: string | null,
+      to?: string | null
+    ): TypedEventFilter<[string, string], { pool: string; to: string }>;
+  };
 
   estimateGas: {
     addCollateralETH(
@@ -304,6 +322,8 @@ export class WETHGateway extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
 
     wethAddress(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -348,6 +368,8 @@ export class WETHGateway extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     wethAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

@@ -64,6 +64,19 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "newPriceOracle",
+        type: "address",
+      },
+    ],
+    name: "PriceOracleUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "token",
         type: "address",
       },
@@ -75,6 +88,19 @@ const _abi = [
       },
     ],
     name: "TokenAllowed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "TokenForbidden",
     type: "event",
   },
   {
