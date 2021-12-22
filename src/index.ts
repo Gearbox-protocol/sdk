@@ -4,7 +4,7 @@ export * from "./core/creditManager";
 export * from "./core/creditSession";
 export * from "./core/contracts";
 export * from "./core/events";
-usdexport * from "./core/errors";
+export * from "./core/errors";
 export * from "./core/pool";
 export * from "./core/operations";
 export * from "./core/oracles";
