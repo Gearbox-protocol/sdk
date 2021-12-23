@@ -25,6 +25,7 @@ interface PathFinderInterface extends ethers.utils.Interface {
     "bestUniPath(uint256,address,uint256,address,address,uint256,address[])": FunctionFragment;
     "contractsRegister()": FunctionFragment;
     "convertPathToPathV3(address[],uint256)": FunctionFragment;
+    "ethToUsdPriceFeed()": FunctionFragment;
     "getClosurePaths(address,address,address,address[])": FunctionFragment;
     "getPrices(address[])": FunctionFragment;
     "priceOracle()": FunctionFragment;
@@ -57,6 +58,10 @@ interface PathFinderInterface extends ethers.utils.Interface {
     values: [string[], BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "ethToUsdPriceFeed",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getClosurePaths",
     values: [string, string, string, string[]]
   ): string;
@@ -82,6 +87,10 @@ interface PathFinderInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "convertPathToPathV3",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "ethToUsdPriceFeed",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -164,6 +173,8 @@ export class PathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string] & { result: string }>;
 
+    ethToUsdPriceFeed(overrides?: CallOverrides): Promise<[string]>;
+
     getClosurePaths(
       router: string,
       _creditManager: string,
@@ -174,8 +185,8 @@ export class PathFinder extends BaseContract {
 
     getPrices(
       tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { prices: BigNumber[] }>;
 
     priceOracle(overrides?: CallOverrides): Promise<[string]>;
 
@@ -205,6 +216,8 @@ export class PathFinder extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  ethToUsdPriceFeed(overrides?: CallOverrides): Promise<string>;
+
   getClosurePaths(
     router: string,
     _creditManager: string,
@@ -213,10 +226,7 @@ export class PathFinder extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getPrices(
-    tokens: string[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  getPrices(tokens: string[], overrides?: CallOverrides): Promise<BigNumber[]>;
 
   priceOracle(overrides?: CallOverrides): Promise<string>;
 
@@ -251,6 +261,8 @@ export class PathFinder extends BaseContract {
       swapType: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    ethToUsdPriceFeed(overrides?: CallOverrides): Promise<string>;
 
     getClosurePaths(
       router: string,
@@ -302,6 +314,8 @@ export class PathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    ethToUsdPriceFeed(overrides?: CallOverrides): Promise<BigNumber>;
+
     getClosurePaths(
       router: string,
       _creditManager: string,
@@ -310,10 +324,7 @@ export class PathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getPrices(
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    getPrices(tokens: string[], overrides?: CallOverrides): Promise<BigNumber>;
 
     priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -344,6 +355,8 @@ export class PathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    ethToUsdPriceFeed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getClosurePaths(
       router: string,
       _creditManager: string,
@@ -354,7 +367,7 @@ export class PathFinder extends BaseContract {
 
     getPrices(
       tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;

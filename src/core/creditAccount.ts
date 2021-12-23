@@ -22,6 +22,7 @@ export class CreditAccountData {
   public borrowRate: number;
   public readonly allowedTokens: Array<string> = [];
   public balances: Record<string, BigNumber> = {};
+  public allBalances: Record<string, BigNumber> = {};
 
   constructor(payload: CreditAccountDataPayload) {
     this.id = payload.creditManager;
@@ -45,13 +46,12 @@ export class CreditAccountData {
 
     (payload.balances || []).forEach((b) => {
 
-      console.log(b);
-
       if (b.isAllowed) {
         this.balances[b.token] = BigNumber.from(b.balance);
         this.allowedTokens.push(b.token);
       }
 
+      this.allBalances[b.token] = BigNumber.from(b.balance);
     });
   }
 
@@ -61,7 +61,7 @@ export class CreditAccountData {
   ): Array<Balance> {
     const priceCalc = (addr: string, amount: BigNumber) =>
       amount
-        .mul(Math.floor(1000 * prices[tokens[addr]?.symbol || ""] || 0))
+        .mul(Math.floor(1000 * prices[addr.toLowerCase() || ""] || 0))
         .div(BigNumber.from(10).pow(tokens[addr]?.decimals || 18));
 
     const tokensAbcComparator = (t1?: TokenData, t2?: TokenData) =>
