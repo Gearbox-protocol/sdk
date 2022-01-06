@@ -21,6 +21,7 @@ export class CreditAccountData {
   public healthFactor: number;
   public borrowRate: number;
   public readonly allowedTokens: Array<string> = [];
+  public readonly allTokens: Array<string> = [];
   public balances: Record<string, BigNumber> = {};
   public allBalances: Record<string, BigNumber> = {};
 
@@ -45,13 +46,13 @@ export class CreditAccountData {
         .toNumber() / PERCENTAGE_FACTOR;
 
     (payload.balances || []).forEach((b) => {
-
       if (b.isAllowed) {
         this.balances[b.token] = BigNumber.from(b.balance);
         this.allowedTokens.push(b.token);
       }
 
       this.allBalances[b.token] = BigNumber.from(b.balance);
+      this.allTokens.push(b.token);
     });
   }
 

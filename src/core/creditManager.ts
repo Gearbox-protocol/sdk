@@ -24,9 +24,12 @@ export class CreditManagerData {
   public readonly availableLiquidity: BigNumber;
   public readonly allowedTokens: Array<string>;
   public readonly adapters: Record<string, string> = {};
-  public readonly hasAccount: boolean;
+  public readonly contractETH?: IAppCreditManager;
 
-  constructor(payload: CreditManagerDataPayload) {
+  constructor(
+    payload: CreditManagerDataPayload,
+    contractETH?: IAppCreditManager
+  ) {
     this.id = payload.addr;
     this.address = payload.addr;
 
@@ -50,7 +53,7 @@ export class CreditManagerData {
       this.adapters[a.allowedContract] = a.adapter;
     });
 
-    this.hasAccount = payload.hasAccount || false;
+    this.contractETH = contractETH;
   }
 
   validateOpenAccount(
@@ -79,18 +82,6 @@ export class CreditManagerData {
       return "Insufficient liquidity in the pool";
 
     return null;
-  }
-}
-
-export class CreditManagerDataExtended extends CreditManagerData {
-  public readonly contractETH: IAppCreditManager;
-
-  constructor(
-    payload: CreditManagerDataPayload,
-    contractETH: IAppCreditManager
-  ) {
-    super(payload);
-    this.contractETH = contractETH;
   }
 }
 

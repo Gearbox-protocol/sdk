@@ -3,18 +3,26 @@ import { BigNumber } from "ethers";
 import { formatBN } from "../utils/formatter";
 import { LEVERAGE_DECIMALS } from "./constants";
 
-export abstract class EVMEvent {
-  public readonly block: number;
-  public readonly txHash: string;
-  abstract toString(tokenData: Record<string, TokenData>): string;
-
-  constructor(block: number, txHash: string) {
-    this.block = block;
-    this.txHash = txHash;
-  }
+export interface Display {
+  toString(tokenData: Record<string, TokenData>): string;
 }
 
-export class EventAddLiquidity extends EVMEvent {
+export abstract class EventOrTx implements Display {
+  public readonly block: number;
+  public readonly txHash: string;
+  public isPending: boolean;
+  abstract toString(tokenData: Record<string, TokenData>): string;
+
+  constructor({block: number, txHash: string, isPending?: booolean}) {
+    this.block = block;
+    this.txHash = txHash;
+    this.isPending = false;
+  }
+
+
+}
+
+export class EventAddLiquidity extends EventOrTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
 
@@ -31,13 +39,13 @@ export class EventAddLiquidity extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `You deposit ${formatBN(this.amount, token?.decimals || 18)} ${
+    return `Deposit ${formatBN(this.amount, token?.decimals || 18)} ${
       token?.symbol || ""
     } to ${token?.symbol} pool`;
   }
 }
 
-export class EventRemoveLiquidity extends EVMEvent {
+export class EventRemoveLiquidity extends EventOrTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
   public readonly dieselToken: string;
@@ -58,13 +66,13 @@ export class EventRemoveLiquidity extends EVMEvent {
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
     const dtoken = tokenData[this.dieselToken];
-    return `You withdrawn ${formatBN(this.amount, dtoken?.decimals || 18)} ${
+    return `Withdraw ${formatBN(this.amount, dtoken?.decimals || 18)} ${
       dtoken?.symbol || ""
     } from ${token?.symbol} pool`;
   }
 }
 
-export class EventOpenCreditAccount extends EVMEvent {
+export class EventOpenCreditAccount extends EventOrTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
   public readonly leverage: number;
@@ -84,7 +92,7 @@ export class EventOpenCreditAccount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `You open credit account ${formatBN(
+    return `Open credit account ${formatBN(
       this.amount,
       token?.decimals || 18
     )} ${token?.symbol} x${this.leverage.toFixed(2)} ⇒ 
@@ -97,7 +105,7 @@ export class EventOpenCreditAccount extends EVMEvent {
   }
 }
 
-export class EventCloseCreditAccount extends EVMEvent {
+export class EventCloseCreditAccount extends EventOrTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
 
@@ -114,14 +122,14 @@ export class EventCloseCreditAccount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `You closed ${token?.symbol} credit account and got ${formatBN(
+    return `Close ${token?.symbol} credit account and got ${formatBN(
       this.amount,
       token?.decimals || 18
     )} ${token?.symbol} as remaining funds`;
   }
 }
 
-export class EventLiquidateCreditAccount extends EVMEvent {
+export class EventLiquidateCreditAccount extends EventOrTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
 
@@ -138,16 +146,14 @@ export class EventLiquidateCreditAccount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `Your  ${
-      token?.symbol
-    } credit account was liquidated and you got ${formatBN(
+    return `${token?.symbol} credit account was liquidated. You got ${formatBN(
       this.amount,
       token?.decimals || 18
     )} ${token?.symbol} as remaining funds`;
   }
 }
 
-export class EventRepayCreditAccount extends EVMEvent {
+export class EventRepayCreditAccount extends EventOrTx {
   public readonly underlyingToken: string;
 
   constructor(block: number, txHash: string, underlyingToken: string) {
@@ -157,11 +163,11 @@ export class EventRepayCreditAccount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `You repaid ${token?.symbol} credit account`;
+    return `Repay ${token?.symbol} credit account`;
   }
 }
 
-export class EventAddCollateral extends EVMEvent {
+export class EventAddCollateral extends EventOrTx {
   public readonly amount: BigNumber;
   public readonly addedToken: string;
   public readonly underlyingToken: string;
@@ -183,13 +189,13 @@ export class EventAddCollateral extends EVMEvent {
   toString(tokenData: Record<string, TokenData>): string {
     const addedToken = tokenData[this.addedToken];
     const token = tokenData[this.underlyingToken];
-    return `You added ${formatBN(this.amount, addedToken.decimals)} ${
+    return `Added ${formatBN(this.amount, addedToken.decimals)} ${
       addedToken.symbol
-    } as collateral to your ${token?.symbol} credit account`;
+    } as collateral to ${token?.symbol} credit account`;
   }
 }
 
-export class EventIncreaseBorrowAmount extends EVMEvent {
+export class EventIncreaseBorrowAmount extends EventOrTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
 
@@ -206,7 +212,7 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `You increased your borrowing amount to ${formatBN(
+    return `Borrowed amount was increased for ${formatBN(
       this.amount,
       token?.decimals || 18
     )} ${token?.symbol} for  ${token?.symbol} credit account`;
