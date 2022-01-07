@@ -173,8 +173,7 @@ export class EventRepayCreditAccount extends EVMEvent {
     this.creditManager = creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+  toString(_tokenData: Record<string, TokenData>): string {
     return `${getContractName(this.creditManager)}: credit account was repaid`;
   }
 }
@@ -182,7 +181,6 @@ export class EventRepayCreditAccount extends EVMEvent {
 export class EventAddCollateral extends EVMEvent {
   public readonly amount: BigNumber;
   public readonly addedToken: string;
-  public readonly underlyingToken: string;
   public readonly creditManager: string;
 
   constructor(
@@ -191,19 +189,17 @@ export class EventAddCollateral extends EVMEvent {
     txHash: string,
     amount: BigNumber,
     addedToken: string,
-    underlyingToken: string,
     creditManager: string
   ) {
     super({ block, txHash });
     this.amount = amount;
-    this.underlyingToken = underlyingToken;
+
     this.addedToken = addedToken;
     this.creditManager = creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
     const addedToken = tokenData[this.addedToken];
-    const token = tokenData[this.underlyingToken];
     return `${getContractName(this.creditManager)}: Added ${formatBN(
       this.amount,
       addedToken.decimals
