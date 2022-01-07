@@ -12,6 +12,7 @@ export * from "./core/swap";
 export * from "./core/token";
 export * from "./core/tokenDistributor";
 export * from "./core/trade";
+export * from "./core/transactions";
 export * from "./payload/creditAccount";
 export * from "./payload/creditManager";
 export * from "./payload/creditSession";
