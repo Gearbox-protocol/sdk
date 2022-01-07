@@ -2,97 +2,93 @@ import { TokenData } from "./token";
 import { BigNumber } from "ethers";
 import { formatBN } from "../utils/formatter";
 import { LEVERAGE_DECIMALS } from "./constants";
+import { EVMEvent } from "./eventOrTx";
+import { getContractName } from "./contractsRegister";
 
-export interface Display {
-  toString(tokenData: Record<string, TokenData>): string;
-}
-
-export abstract class EventOrTx implements Display {
-  public readonly block: number;
-  public readonly txHash: string;
-  public isPending: boolean;
-  abstract toString(tokenData: Record<string, TokenData>): string;
-
-  constructor({block: number, txHash: string, isPending?: booolean}) {
-    this.block = block;
-    this.txHash = txHash;
-    this.isPending = false;
-  }
-
-
-}
-
-export class EventAddLiquidity extends EventOrTx {
+// POOL EVENTS
+export class EventAddLiquidity extends EVMEvent {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
+  public readonly pool: string;
 
   constructor(
     block: number,
     txHash: string,
     amount: BigNumber,
-    underlyingToken: string
+    underlyingToken: string,
+    pool: string
   ) {
-    super(block, txHash);
+    super({ block, txHash });
     this.amount = amount;
     this.underlyingToken = underlyingToken;
+    this.pool = pool;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `Deposit ${formatBN(this.amount, token?.decimals || 18)} ${
-      token?.symbol || ""
-    } to ${token?.symbol} pool`;
+    return `${getContractName(this.pool)}: Deposit ${formatBN(
+      this.amount,
+      token?.decimals || 18
+    )} ${token?.symbol || ""}`;
   }
 }
 
-export class EventRemoveLiquidity extends EventOrTx {
+export class EventRemoveLiquidity extends EVMEvent {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
   public readonly dieselToken: string;
+  public readonly pool: string;
 
   constructor(
     block: number,
     txHash: string,
     amount: BigNumber,
     underlyingToken: string,
-    dieselToken: string
+    dieselToken: string,
+    pool: string
   ) {
-    super(block, txHash);
+    super({ block, txHash });
     this.amount = amount;
     this.underlyingToken = underlyingToken;
     this.dieselToken = dieselToken;
+    this.pool = pool;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
     const dtoken = tokenData[this.dieselToken];
-    return `Withdraw ${formatBN(this.amount, dtoken?.decimals || 18)} ${
-      dtoken?.symbol || ""
-    } from ${token?.symbol} pool`;
+    return `${getContractName(this.pool)}: Withdraw ${formatBN(
+      this.amount,
+      dtoken?.decimals || 18
+    )} ${dtoken?.symbol || ""}`;
   }
 }
 
-export class EventOpenCreditAccount extends EventOrTx {
+// CREDIT MANAGER EVENTS
+
+export class EventOpenCreditAccount extends EVMEvent {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
   public readonly leverage: number;
+  public readonly creditManager: string;
 
   constructor(
     block: number,
     txHash: string,
     amount: BigNumber,
     underlyingToken: string,
-    leverage: number
+    leverage: number,
+    creditManager: string
   ) {
-    super(block, txHash);
+    super({ block, txHash });
     this.amount = amount;
     this.underlyingToken = underlyingToken;
     this.leverage = leverage;
+    this.creditManager = creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `Open credit account ${formatBN(
+    return `${getContractName(this.creditManager)}: Open account ${formatBN(
       this.amount,
       token?.decimals || 18
     )} ${token?.symbol} x${this.leverage.toFixed(2)} ⇒ 
@@ -105,72 +101,89 @@ export class EventOpenCreditAccount extends EventOrTx {
   }
 }
 
-export class EventCloseCreditAccount extends EventOrTx {
+export class EventCloseCreditAccount extends EVMEvent {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
+  public readonly creditManager: string;
 
   constructor(
     block: number,
     txHash: string,
     amount: BigNumber,
-    underlyingToken: string
+    underlyingToken: string,
+    creditManager: string
   ) {
-    super(block, txHash);
+    super({ block, txHash });
     this.amount = amount;
     this.underlyingToken = underlyingToken;
+    this.creditManager = creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `Close ${token?.symbol} credit account and got ${formatBN(
-      this.amount,
-      token?.decimals || 18
-    )} ${token?.symbol} as remaining funds`;
+    return `${getContractName(this.creditManager)}: Close ${
+      token?.symbol
+    } credit account and got ${formatBN(this.amount, token?.decimals || 18)} ${
+      token?.symbol
+    } as remaining funds`;
   }
 }
 
-export class EventLiquidateCreditAccount extends EventOrTx {
+export class EventLiquidateCreditAccount extends EVMEvent {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
+  public readonly creditManager: string;
 
   constructor(
     block: number,
     txHash: string,
     amount: BigNumber,
-    underlyingToken: string
+    underlyingToken: string,
+    creditManager: string
   ) {
-    super(block, txHash);
+    super({ block, txHash });
     this.amount = amount;
     this.underlyingToken = underlyingToken;
+    this.creditManager = creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `${token?.symbol} credit account was liquidated. You got ${formatBN(
+    return `${getContractName(
+      this.creditManager
+    )}: Your credit account was liquidated. ${formatBN(
       this.amount,
       token?.decimals || 18
-    )} ${token?.symbol} as remaining funds`;
+    )} ${token?.symbol} were paid back as remaining funds`;
   }
 }
 
-export class EventRepayCreditAccount extends EventOrTx {
+export class EventRepayCreditAccount extends EVMEvent {
   public readonly underlyingToken: string;
+  public readonly creditManager: string;
 
-  constructor(block: number, txHash: string, underlyingToken: string) {
-    super(block, txHash);
+  constructor(
+    block: number,
+    txHash: string,
+    underlyingToken: string,
+    creditManager: string
+  ) {
+    super({ block, txHash });
     this.underlyingToken = underlyingToken;
+    this.creditManager = creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `Repay ${token?.symbol} credit account`;
+    return `${getContractName(this.creditManager)}: credit account was repaid`;
   }
 }
 
-export class EventAddCollateral extends EventOrTx {
+export class EventAddCollateral extends EVMEvent {
   public readonly amount: BigNumber;
   public readonly addedToken: string;
   public readonly underlyingToken: string;
+  public readonly creditManager: string;
 
   constructor(
     block: number,
@@ -178,43 +191,51 @@ export class EventAddCollateral extends EventOrTx {
     txHash: string,
     amount: BigNumber,
     addedToken: string,
-    underlyingToken: string
+    underlyingToken: string,
+    creditManager: string
   ) {
-    super(block, txHash);
+    super({ block, txHash });
     this.amount = amount;
     this.underlyingToken = underlyingToken;
     this.addedToken = addedToken;
+    this.creditManager = creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
     const addedToken = tokenData[this.addedToken];
     const token = tokenData[this.underlyingToken];
-    return `Added ${formatBN(this.amount, addedToken.decimals)} ${
-      addedToken.symbol
-    } as collateral to ${token?.symbol} credit account`;
+    return `${getContractName(this.creditManager)}: Added ${formatBN(
+      this.amount,
+      addedToken.decimals
+    )} ${addedToken.symbol} as collateral`;
   }
 }
 
-export class EventIncreaseBorrowAmount extends EventOrTx {
+export class EventIncreaseBorrowAmount extends EVMEvent {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
+  public readonly creditManager: string;
 
   constructor(
     block: number,
     txHash: string,
     amount: BigNumber,
-    underlyingToken: string
+    underlyingToken: string,
+    creditManager: string
   ) {
-    super(block, txHash);
+    super({ block, txHash });
     this.amount = amount;
     this.underlyingToken = underlyingToken;
+    this.creditManager = creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `Borrowed amount was increased for ${formatBN(
+    return `${getContractName(
+      this.creditManager
+    )}: Borrowed amount was increased for ${formatBN(
       this.amount,
       token?.decimals || 18
-    )} ${token?.symbol} for  ${token?.symbol} credit account`;
+    )} ${token?.symbol}`;
   }
 }
