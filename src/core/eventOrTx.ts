@@ -25,6 +25,20 @@ export abstract class EventOrTx implements Display {
   public get txStatus() {
     return this._txStatus;
   }
+
+  public compare(item: EventOrTx): number {
+    if (this.isPending && !item.isPending) {
+      return -1;
+    }
+
+    if (!this.isPending && item.isPending) {
+      return 1;
+    }
+
+    return this.block > item.block ? -1 : 1;
+  }
+
+  public abstract toString(tokenData: Record<string, TokenData>): string;
 }
 
 export abstract class EVMEvent extends EventOrTx {
@@ -34,8 +48,12 @@ export abstract class EVMEvent extends EventOrTx {
 }
 
 export abstract class EVMTx extends EventOrTx {
-  constructor(opts: { block?: number; txHash: string; txStatus: TxStatus }) {
-    super({ ...opts, block: opts.block || 0 });
+  constructor(opts: { block?: number; txHash: string; txStatus?: TxStatus }) {
+    super({
+      ...opts,
+      block: opts.block || 0,
+      txStatus: opts.txStatus || "pending",
+    });
     if (this.txStatus !== "pending" && this.block === 0) {
       throw new Error("Block not specified for non-pending tx");
     }

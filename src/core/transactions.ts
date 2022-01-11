@@ -47,7 +47,7 @@ export class TxAddLiquidity extends EVMTx {
 
   constructor(opts: {
     block?: number;
-    txStatus: TxStatus;
+    txStatus?: TxStatus;
     txHash: string;
     amount: BigNumber;
     underlyingToken: string;
@@ -82,7 +82,7 @@ export class TxRemoveLiquidity extends EVMTx {
 
   constructor(opts: {
     block?: number;
-    txStatus: TxStatus;
+    txStatus?: TxStatus;
     txHash: string;
     amount: BigNumber;
     dieselToken: string;
@@ -114,21 +114,21 @@ export class TXSwap extends EVMTx {
   public readonly protocol: string;
   public readonly operation: string;
   public readonly amountFrom: BigNumber;
-  public readonly amountTo: BigNumber;
+  public readonly amountTo?: BigNumber;
   public readonly tokenFrom: string;
-  public readonly tokenTo: string;
+  public readonly tokenTo?: string;
   public readonly creditManager: string;
 
   constructor(opts: {
     block?: number;
-    txStatus: TxStatus;
+    txStatus?: TxStatus;
     txHash: string;
     protocol: string;
     operation: string;
     amountFrom: BigNumber;
-    amountTo: BigNumber;
+    amountTo?: BigNumber;
     tokenFrom: string;
-    tokenTo: string;
+    tokenTo?: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
@@ -143,14 +143,20 @@ export class TXSwap extends EVMTx {
 
   toString(tokenData: Record<string, TokenData>): string {
     const tokenFrom = tokenData[this.tokenFrom];
-    const tokenTo = tokenData[this.tokenTo];
-    return `${getContractName(this.creditManager)}: ${
+
+    let toPart = "";
+    if (this.tokenTo && this.amountTo) {
+      const tokenTo = tokenData[this.tokenTo];
+      toPart = ` ⇒  ${formatBN(this.amountTo, tokenTo?.decimals || 18)} ${
+        tokenTo?.symbol || ""
+      }`;
+    }
+
+    return `Credit account ${getContractName(this.creditManager)}: ${
       this.operation
     } ${formatBN(this.amountFrom, tokenFrom?.decimals || 18)} ${
       tokenFrom?.symbol || ""
-    } ⇒  ${formatBN(this.amountTo, tokenTo?.decimals || 18)} ${
-      tokenTo?.symbol || ""
-    } on ${getContractName(this.protocol)}`;
+    } ${toPart} on ${getContractName(this.protocol)}`;
   }
 
   serialize(): TxSerialized {
@@ -168,7 +174,7 @@ export class TxAddCollateral extends EVMTx {
 
   constructor(opts: {
     block?: number;
-    txStatus: TxStatus;
+    txStatus?: TxStatus;
     txHash: string;
     amount: BigNumber;
     addedToken: string;
@@ -182,10 +188,11 @@ export class TxAddCollateral extends EVMTx {
 
   toString(tokenData: Record<string, TokenData>): string {
     const addedToken = tokenData[this.addedToken];
-    return `${getContractName(this.creditManager)}: Added ${formatBN(
-      this.amount,
-      addedToken.decimals
-    )} ${addedToken.symbol} as collateral`;
+    return `Credit account ${getContractName(
+      this.creditManager
+    )}: Added ${formatBN(this.amount, addedToken.decimals)} ${
+      addedToken.symbol
+    } as collateral`;
   }
 
   serialize(): TxSerialized {
@@ -203,7 +210,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
 
   constructor(opts: {
     block?: number;
-    txStatus: TxStatus;
+    txStatus?: TxStatus;
     txHash: string;
     amount: BigNumber;
     underlyingToken: string;
@@ -217,7 +224,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `${getContractName(
+    return `Credit account ${getContractName(
       this.creditManager
     )}: Borrowed amount was increased for ${formatBN(
       this.amount,

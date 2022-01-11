@@ -26,7 +26,7 @@ export class EventAddLiquidity extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `${getContractName(this.pool)}: Deposit ${formatBN(
+    return `Pool ${getContractName(this.pool)}: Deposit ${formatBN(
       this.amount,
       token?.decimals || 18
     )} ${token?.symbol || ""}`;
@@ -56,7 +56,7 @@ export class EventRemoveLiquidity extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const dtoken = tokenData[this.dieselToken];
-    return `${getContractName(this.pool)}: Withdraw ${formatBN(
+    return `Pool ${getContractName(this.pool)}: withdraw ${formatBN(
       this.amount,
       dtoken?.decimals || 18
     )} ${dtoken?.symbol || ""}`;
@@ -88,10 +88,11 @@ export class EventOpenCreditAccount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `${getContractName(this.creditManager)}: Open account ${formatBN(
-      this.amount,
-      token?.decimals || 18
-    )} ${token?.symbol} x${this.leverage.toFixed(2)} ⇒ 
+    return `Pool ${getContractName(
+      this.creditManager
+    )}: open account ${formatBN(this.amount, token?.decimals || 18)} ${
+      token?.symbol
+    } x ${this.leverage.toFixed(2)} ⇒ 
     ${formatBN(
       this.amount
         .mul(Math.floor(this.leverage * LEVERAGE_DECIMALS))
@@ -121,9 +122,9 @@ export class EventCloseCreditAccount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `${getContractName(this.creditManager)}: Close ${
-      token?.symbol
-    } credit account and got ${formatBN(this.amount, token?.decimals || 18)} ${
+    return `Credit account ${getContractName(
+      this.creditManager
+    )}: was closed and got ${formatBN(this.amount, token?.decimals || 18)} ${
       token?.symbol
     } as remaining funds`;
   }
@@ -149,12 +150,11 @@ export class EventLiquidateCreditAccount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `${getContractName(
+    return `Credit account ${getContractName(
       this.creditManager
-    )}: Your credit account was liquidated. ${formatBN(
-      this.amount,
-      token?.decimals || 18
-    )} ${token?.symbol} were paid back as remaining funds`;
+    )}: was liquidated. ${formatBN(this.amount, token?.decimals || 18)} ${
+      token?.symbol
+    } were paid back as remaining funds`;
   }
 }
 
@@ -174,7 +174,7 @@ export class EventRepayCreditAccount extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `${getContractName(this.creditManager)}: credit account was repaid`;
+    return `Credit account ${getContractName(this.creditManager)}: was repaid`;
   }
 }
 
@@ -200,10 +200,11 @@ export class EventAddCollateral extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const addedToken = tokenData[this.addedToken];
-    return `${getContractName(this.creditManager)}: Added ${formatBN(
-      this.amount,
-      addedToken.decimals
-    )} ${addedToken.symbol} as collateral`;
+    return `Credit account ${getContractName(
+      this.creditManager
+    )}: added ${formatBN(this.amount, addedToken.decimals)} ${
+      addedToken.symbol
+    } as collateral`;
   }
 }
 
@@ -227,9 +228,9 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken];
-    return `${getContractName(
+    return `Credit account ${getContractName(
       this.creditManager
-    )}: Borrowed amount was increased for ${formatBN(
+    )}: borrowed amount was increased for ${formatBN(
       this.amount,
       token?.decimals || 18
     )} ${token?.symbol}`;
