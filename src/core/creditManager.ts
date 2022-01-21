@@ -1,5 +1,5 @@
-import { BigNumber } from "ethers";
-import { IAppCreditManager } from "../types";
+import {BigNumber, ethers, Signer} from "ethers";
+import {IAppCreditManager, IAppCreditManager__factory} from "../types";
 import { formatBN } from "../utils/formatter";
 import {
   PERCENTAGE_FACTOR,
@@ -24,11 +24,9 @@ export class CreditManagerData {
   public readonly availableLiquidity: BigNumber;
   public readonly allowedTokens: Array<string>;
   public readonly adapters: Record<string, string> = {};
-  public readonly contractETH?: IAppCreditManager;
 
   constructor(
     payload: CreditManagerDataPayload,
-    contractETH?: IAppCreditManager
   ) {
     this.id = payload.addr;
     this.address = payload.addr;
@@ -53,7 +51,6 @@ export class CreditManagerData {
       this.adapters[a.allowedContract] = a.adapter;
     });
 
-    this.contractETH = contractETH;
   }
 
   validateOpenAccount(
@@ -83,16 +80,17 @@ export class CreditManagerData {
 
     return null;
   }
+
+  getContractETH(signer: Signer | ethers.providers.Provider) : IAppCreditManager {
+    return IAppCreditManager__factory.connect(this.address, signer)
+  }
 }
 
 export function calcMaxIncreaseBorrow(
-  healthFactor: number | undefined,
-  borrowAmountPlusInterest?: BigNumber,
-  maxLeverageFactor?: number
+  healthFactor: number,
+  borrowAmountPlusInterest: BigNumber,
+  maxLeverageFactor: number
 ): BigNumber {
-  if (!healthFactor || !borrowAmountPlusInterest || !maxLeverageFactor)
-    return BigNumber.from(0);
-
   const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
 
   const minHealthFactor = Math.floor(
@@ -100,8 +98,6 @@ export function calcMaxIncreaseBorrow(
       maxLeverageFactor
   );
 
-  console.log("HFPer", healthFactorPercentage);
-  console.log("minHealthFactor", minHealthFactor);
 
   const result = borrowAmountPlusInterest
     .mul(healthFactorPercentage - minHealthFactor)

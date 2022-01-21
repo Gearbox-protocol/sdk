@@ -24,6 +24,7 @@ export class CreditAccountData {
   public readonly allTokens: Array<string> = [];
   public balances: Record<string, BigNumber> = {};
   public allBalances: Record<string, BigNumber> = {};
+  public isDeleting: boolean;
 
   constructor(payload: CreditAccountDataPayload) {
     this.id = payload.creditManager;
@@ -54,6 +55,8 @@ export class CreditAccountData {
       this.allBalances[b.token] = BigNumber.from(b.balance);
       this.allTokens.push(b.token);
     });
+
+    this.isDeleting = false;
   }
 
   balancesSorted(

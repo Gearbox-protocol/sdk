@@ -305,6 +305,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PoolService__factory>;
     getContractFactory(
+      name: "Multicall2",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Multicall2__factory>;
+    getContractFactory(
       name: "PathFinder",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PathFinder__factory>;

@@ -37,3 +37,5 @@ export type {
 } from "./types";
 
 export * from "./core/history";
+export { MultiCallContract} from "./utils/multicall";
+export { callRepeater } from "./utils/repeater"

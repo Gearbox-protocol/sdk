@@ -1,5 +1,5 @@
-import { BigNumber } from "ethers";
-import { IAppPoolService } from "../types";
+import { BigNumber, Signer } from "ethers";
+import { IAppPoolService, IPoolService__factory } from "../types";
 import { PoolDataPayload } from "../payload/pool";
 import { rayToNumber } from "../utils/formatter";
 
@@ -48,14 +48,9 @@ export class PoolData {
     this.timestampLU = BigNumber.from(payload.timestampLU || 0);
     this.cumulativeIndex_RAY = BigNumber.from(payload.cumulativeIndex_RAY || 0);
   }
-}
 
-export class PoolDataExtended extends PoolData {
-  public readonly contractETH: IAppPoolService;
-
-  constructor(payload: PoolDataPayload, contractETH: IAppPoolService) {
-    super(payload);
-    this.contractETH = contractETH;
+  getContractETH(signer: Signer): IAppPoolService {
+    return IPoolService__factory.connect(this.address, signer);
   }
 }
 

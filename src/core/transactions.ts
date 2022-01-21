@@ -3,6 +3,7 @@ import { TokenData } from "./token";
 import { formatBN } from "../utils/formatter";
 import { EVMTx, TxStatus } from "./eventOrTx";
 import { getContractName } from "./contractsRegister";
+import { LEVERAGE_DECIMALS } from "./constants";
 
 export interface TxSerialized {
   type:
@@ -10,7 +11,11 @@ export interface TxSerialized {
     | "TxRemoveLiquidity"
     | "TxSwap"
     | "TxAddCollateral"
-    | "TxIncreaseBorrowAmount";
+    | "TxIncreaseBorrowAmount"
+    | "TxOpenAccount"
+    | "TxRepayAccount"
+    | "TxCloseAccount"
+    | "TxApprove";
   content: string;
 }
 
@@ -33,6 +38,14 @@ export class TxSerializer {
           return new TxAddCollateral(params);
         case "TxIncreaseBorrowAmount":
           return new TxIncreaseBorrowAmount(params);
+        case "TxOpenAccount":
+          return new TxOpenAccount(params);
+        case "TxRepayAccount":
+          return new TxRepayAccount(params);
+        case "TxCloseAccount":
+          return new TxCloseAccount(params);
+        case "TxApprove":
+          return new TxApprove(params);
         default:
           throw new Error("Unknown transaction for parsing");
       }
@@ -235,6 +248,132 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxIncreaseBorrowAmount",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+export class TxOpenAccount extends EVMTx {
+  public readonly amount: BigNumber;
+  public readonly underlyingToken: string;
+  public readonly leverage: number;
+  public readonly creditManager: string;
+
+  constructor(opts: {
+    block?: number;
+    txStatus?: TxStatus;
+    txHash: string;
+    amount: BigNumber;
+    underlyingToken: string;
+    leverage: number;
+    creditManager: string;
+  }) {
+    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    this.amount = BigNumber.from(opts.amount);
+    this.underlyingToken = opts.underlyingToken;
+    this.leverage = opts.leverage;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(tokenData: Record<string, TokenData>): string {
+    const token = tokenData[this.underlyingToken];
+    return `Credit account ${getContractName(
+      this.creditManager
+    )}: opening ${formatBN(this.amount, token?.decimals || 18)} ${
+      token?.symbol
+    } x ${this.leverage.toFixed(2)} ⇒ 
+    ${formatBN(
+      this.amount
+        .mul(Math.floor(this.leverage * LEVERAGE_DECIMALS))
+        .div(LEVERAGE_DECIMALS),
+      token?.decimals || 18
+    )} ${token?.symbol}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxOpenAccount",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+export class TxRepayAccount extends EVMTx {
+  public readonly creditManager: string;
+
+  constructor(opts: {
+    block?: number;
+    txStatus?: TxStatus;
+    txHash: string;
+    creditManager: string;
+  }) {
+    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(_tokenData: Record<string, TokenData>): string {
+    return `Credit account ${getContractName(
+      this.creditManager
+    )}: Repaying account`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxRepayAccount",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+export class TxCloseAccount extends EVMTx {
+  public readonly creditManager: string;
+
+  constructor(opts: {
+    block?: number;
+    txStatus?: TxStatus;
+    txHash: string;
+    creditManager: string;
+  }) {
+    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(_tokenData: Record<string, TokenData>): string {
+    return `Credit account ${getContractName(
+      this.creditManager
+    )}: Closing account`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxCloseAccount",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+export class TxApprove extends EVMTx {
+  public readonly token: string;
+
+  constructor(opts: {
+    block?: number;
+    txStatus?: TxStatus;
+    txHash: string;
+
+    token: string;
+  }) {
+    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    this.token = opts.token;
+  }
+
+  toString(tokenData: Record<string, TokenData>): string {
+    const token = tokenData[this.token];
+    return `Approve ${token?.symbol}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxApprove",
       content: JSON.stringify(this),
     };
   }

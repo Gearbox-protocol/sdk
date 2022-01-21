@@ -31,7 +31,6 @@ interface YearnPriceFeedInterface extends ethers.utils.Interface {
     "paused()": FunctionFragment;
     "priceFeed()": FunctionFragment;
     "setLimiter(uint256,uint256)": FunctionFragment;
-    "timestampLimiter()": FunctionFragment;
     "unpause()": FunctionFragment;
     "upperBound()": FunctionFragment;
     "version()": FunctionFragment;
@@ -66,10 +65,6 @@ interface YearnPriceFeedInterface extends ethers.utils.Interface {
     functionFragment: "setLimiter",
     values: [BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "timestampLimiter",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "upperBound",
@@ -100,10 +95,6 @@ interface YearnPriceFeedInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "priceFeed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setLimiter", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "timestampLimiter",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "upperBound", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
@@ -203,8 +194,6 @@ export class YearnPriceFeed extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    timestampLimiter(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -255,8 +244,6 @@ export class YearnPriceFeed extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  timestampLimiter(overrides?: CallOverrides): Promise<BigNumber>;
-
   unpause(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -304,8 +291,6 @@ export class YearnPriceFeed extends BaseContract {
       _upperBound: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    timestampLimiter(overrides?: CallOverrides): Promise<BigNumber>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
 
@@ -360,8 +345,6 @@ export class YearnPriceFeed extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    timestampLimiter(overrides?: CallOverrides): Promise<BigNumber>;
-
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -402,8 +385,6 @@ export class YearnPriceFeed extends BaseContract {
       _upperBound: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    timestampLimiter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
