@@ -557,17 +557,18 @@ export class EventContractAllowed extends EVMEvent {
     creditManager: string;
     protocol: string;
     adapter: string;
-    updateType: EventContractAllowedStatus;
+    status: EventContractAllowedStatus;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
     this.creditManager = opts.creditManager;
     this.protocol = opts.protocol;
     this.adapter = opts.adapter;
-    this.status = opts.updateType;
+    this.status = opts.status;
   }
 
   toString(_: Record<string, TokenData>): string {
     let msg = `Credit manager ${getContractName(this.creditManager)} updated `;
+
     switch (this.status) {
       case "Connected":
         return `${msg}: ${getContractName(
