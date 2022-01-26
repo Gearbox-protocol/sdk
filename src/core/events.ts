@@ -129,12 +129,12 @@ export class EventAddLiquidity extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     pool: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.pool = opts.pool;
   }
@@ -157,13 +157,13 @@ export class EventRemoveLiquidity extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     dieselToken: string;
     pool: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.dieselToken = opts.dieselToken;
     this.pool = opts.pool;
@@ -189,13 +189,13 @@ export class EventOpenCreditAccount extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     leverage: number;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.leverage = opts.leverage;
     this.creditManager = opts.creditManager;
@@ -225,12 +225,12 @@ export class EventCloseCreditAccount extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
   }
@@ -253,12 +253,12 @@ export class EventLiquidateCreditAccount extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
   }
@@ -301,12 +301,12 @@ export class EventAddCollateral extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     addedToken: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
 
     this.addedToken = opts.addedToken;
     this.creditManager = opts.creditManager;
@@ -330,12 +330,12 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
   }
@@ -382,14 +382,14 @@ export class EventCMNewParameters extends EVMEvent {
     txHash: string;
     creditManager: string;
     underlyingToken: string;
-    minAmount: BigNumber;
-    maxAmount: BigNumber;
+    minAmount: string;
+    maxAmount: string;
     maxLeverage: number;
     feeInterest: number;
     feeLiquidation: number;
     liquidationDiscount: number;
-    prevMinAmount: BigNumber;
-    prevMaxAmount: BigNumber;
+    prevMinAmount: string;
+    prevMaxAmount: string;
     prevMaxLeverage: number;
     prevFeeInterest: number;
     prevFeeLiquidation: number;
@@ -398,15 +398,15 @@ export class EventCMNewParameters extends EVMEvent {
     super({ block: opts.block, txHash: opts.txHash });
     this.creditManager = opts.creditManager;
     this.underlyingToken = opts.underlyingToken;
-    this.minAmount = opts.minAmount;
-    this.maxAmount = opts.maxAmount;
+    this.minAmount = BigNumber.from(opts.minAmount);
+    this.maxAmount = BigNumber.from(opts.maxAmount);
     this.maxLeverage = opts.maxLeverage;
     this.feeInterest = opts.feeInterest;
     this.feeLiquidation = opts.feeLiquidation;
     this.liquidationDiscount = opts.liquidationDiscount;
 
-    this.prevMinAmount = opts.prevMinAmount;
-    this.prevMaxAmount = opts.prevMaxAmount;
+    this.prevMinAmount = BigNumber.from(opts.prevMinAmount);
+    this.prevMaxAmount = BigNumber.from(opts.prevMaxAmount);
     this.prevMaxLeverage = opts.prevMaxLeverage;
     this.prevFeeInterest = opts.prevFeeInterest;
     this.prevFeeLiquidation = opts.prevFeeLiquidation;
@@ -808,15 +808,15 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
     block: number;
     txHash: string;
     pool: string;
-    underlyingToken: string;
-    newLimit: BigNumber;
-    prevLimit: BigNumber;
+    token: string;
+    newLimit: string;
+    oldLimit: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
     this.pool = opts.pool;
-    this.underlyingToken = opts.underlyingToken;
-    this.newLimit = opts.newLimit;
-    this.prevLimit = opts.prevLimit;
+    this.underlyingToken = opts.token;
+    this.newLimit = BigNumber.from(opts.newLimit);
+    this.prevLimit = BigNumber.from(opts.oldLimit);
   }
 
   toString(tokenData: Record<string, TokenData>): string {
@@ -828,7 +828,7 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
       this.newLimit.gt(this.prevLimit) ? "increased" : "decreased"
     }: ${formatBN(this.prevLimit, token.decimals)} ${
       token.symbol
-    } => ${formatBN(this.newLimit, token.decimals)} ${token.symbol} => `;
+    } => ${formatBN(this.newLimit, token.decimals)} ${token.symbol}`;
   }
 }
 
@@ -846,14 +846,14 @@ export class EventNewWithdrawFee extends EVMEvent {
     txHash: string;
     pool: string;
     underlyingToken: string;
-    newLimit: BigNumber;
-    prevLimit: BigNumber;
+    newLimit: string;
+    prevLimit: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
-    this.newFee = opts.newLimit;
-    this.prevFee = opts.prevLimit;
+    this.newFee = BigNumber.from(opts.newLimit);
+    this.prevFee = BigNumber.from(opts.prevLimit);
   }
 
   toString(tokenData: Record<string, TokenData>): string {
