@@ -36,7 +36,7 @@ export interface EventSerialized {
     | "EventPausableAdminRemoved"
     | "EventUnPausableAdminAdded"
     | "EventUnPausableAdminRemoved"
-    | "EventTransferOwnership";
+    | "EventOwnershipTransferred";
 
   content: any;
 }
@@ -107,7 +107,7 @@ export class EventParser {
         return new EventUnPausableAdminAdded(params);
       case "EventUnPausableAdminRemoved":
         return new EventUnPausableAdminRemoved(params);
-      case "EventTransferOwnership":
+      case "EventOwnershipTransferred":
         return new EventTransferOwnership(params);
 
       default:
@@ -116,7 +116,10 @@ export class EventParser {
   }
 
   static deserializeArray(data: Array<EventSerialized>): Array<EVMEvent> {
-    return data.map((e) => EventParser.deserialize(e));
+    return data.map((e) => {
+      console.log(e);
+      return EventParser.deserialize(e);
+    });
   }
 }
 
@@ -856,14 +859,14 @@ export class EventNewWithdrawFee extends EVMEvent {
     txHash: string;
     pool: string;
     underlyingToken: string;
-    newLimit: string;
-    prevLimit: string;
+    newFee: string;
+    oldFee: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
-    this.newFee = BigNumber.from(opts.newLimit);
-    this.prevFee = BigNumber.from(opts.prevLimit);
+    this.newFee = BigNumber.from(opts.newFee);
+    this.prevFee = BigNumber.from(opts.oldFee);
   }
 
   toString(tokenData: Record<string, TokenData>): string {
