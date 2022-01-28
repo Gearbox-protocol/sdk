@@ -117,7 +117,6 @@ export class EventParser {
 
   static deserializeArray(data: Array<EventSerialized>): Array<EVMEvent> {
     return data.map((e) => {
-      console.log(e);
       return EventParser.deserialize(e);
     });
   }
