@@ -36,7 +36,7 @@ export interface EventSerialized {
     | "EventPausableAdminRemoved"
     | "EventUnPausableAdminAdded"
     | "EventUnPausableAdminRemoved"
-    | "EventTransferOwnership";
+    | "EventOwnershipTransferred";
 
   content: any;
 }
@@ -107,7 +107,7 @@ export class EventParser {
         return new EventUnPausableAdminAdded(params);
       case "EventUnPausableAdminRemoved":
         return new EventUnPausableAdminRemoved(params);
-      case "EventTransferOwnership":
+      case "EventOwnershipTransferred":
         return new EventTransferOwnership(params);
 
       default:
@@ -116,7 +116,9 @@ export class EventParser {
   }
 
   static deserializeArray(data: Array<EventSerialized>): Array<EVMEvent> {
-    return data.map((e) => EventParser.deserialize(e));
+    return data.map((e) => {
+      return EventParser.deserialize(e);
+    });
   }
 }
 
@@ -129,22 +131,23 @@ export class EventAddLiquidity extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     pool: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.pool = opts.pool;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+
     return `Pool ${getContractName(this.pool)}: Deposit ${formatBN(
       this.amount,
-      token?.decimals || 18
-    )} ${token?.symbol || ""}`;
+      decimals
+    )} ${symbol}`;
   }
 }
 
@@ -157,24 +160,25 @@ export class EventRemoveLiquidity extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     dieselToken: string;
     pool: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.dieselToken = opts.dieselToken;
     this.pool = opts.pool;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const dtoken = tokenData[this.dieselToken];
+    const { decimals = 18, symbol } = tokenData[this.dieselToken] || {};
+
     return `Pool ${getContractName(this.pool)}: withdraw ${formatBN(
       this.amount,
-      dtoken?.decimals || 18
-    )} ${dtoken?.symbol || ""}`;
+      decimals
+    )} ${symbol}`;
   }
 }
 
@@ -189,31 +193,33 @@ export class EventOpenCreditAccount extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     leverage: number;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.leverage = opts.leverage;
     this.creditManager = opts.creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+
     return `Credit account ${getContractName(
       this.creditManager
-    )}: open ${formatBN(this.amount, token?.decimals || 18)} ${
-      token?.symbol
-    } x ${this.leverage.toFixed(2)} ⇒ 
+    )}: open ${formatBN(
+      this.amount,
+      decimals
+    )} ${symbol} x ${this.leverage.toFixed(2)} ⇒ 
     ${formatBN(
       this.amount
-        .mul(Math.floor(this.leverage * LEVERAGE_DECIMALS))
+        .mul(Math.floor(this.leverage + LEVERAGE_DECIMALS))
         .div(LEVERAGE_DECIMALS),
-      token?.decimals || 18
-    )} ${token?.symbol}`;
+      decimals + 2
+    )} ${symbol}`;
   }
 }
 
@@ -225,23 +231,25 @@ export class EventCloseCreditAccount extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+
     return `Credit account ${getContractName(
       this.creditManager
-    )}: was closed and got ${formatBN(this.amount, token?.decimals || 18)} ${
-      token?.symbol
-    } as remaining funds`;
+    )}: was closed and got ${formatBN(
+      this.amount,
+      decimals
+    )} ${symbol} as remaining funds`;
   }
 }
 
@@ -253,23 +261,25 @@ export class EventLiquidateCreditAccount extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+
     return `Credit account ${getContractName(
       this.creditManager
-    )}: was liquidated. ${formatBN(this.amount, token?.decimals || 18)} ${
-      token?.symbol
-    } were paid back as remaining funds`;
+    )}: was liquidated. ${formatBN(
+      this.amount,
+      decimals
+    )} ${symbol} were paid back as remaining funds`;
   }
 }
 
@@ -301,24 +311,23 @@ export class EventAddCollateral extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     addedToken: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
 
     this.addedToken = opts.addedToken;
     this.creditManager = opts.creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const addedToken = tokenData[this.addedToken];
+    const { decimals = 18, symbol } = tokenData[this.addedToken] || {};
+
     return `Credit account ${getContractName(
       this.creditManager
-    )}: added ${formatBN(this.amount, addedToken.decimals)} ${
-      addedToken.symbol
-    } as collateral`;
+    )}: added ${formatBN(this.amount, decimals)} ${symbol} as collateral`;
   }
 }
 
@@ -330,24 +339,25 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
   constructor(opts: {
     block: number;
     txHash: string;
-    amount: BigNumber;
+    amount: string;
     underlyingToken: string;
     creditManager: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
-    this.amount = opts.amount;
+    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+
     return `Credit account ${getContractName(
       this.creditManager
     )}: borrowed amount was increased for ${formatBN(
       this.amount,
-      token?.decimals || 18
-    )} ${token?.symbol}`;
+      decimals
+    )} ${symbol}`;
   }
 }
 
@@ -382,14 +392,14 @@ export class EventCMNewParameters extends EVMEvent {
     txHash: string;
     creditManager: string;
     underlyingToken: string;
-    minAmount: BigNumber;
-    maxAmount: BigNumber;
+    minAmount: string;
+    maxAmount: string;
     maxLeverage: number;
     feeInterest: number;
     feeLiquidation: number;
     liquidationDiscount: number;
-    prevMinAmount: BigNumber;
-    prevMaxAmount: BigNumber;
+    prevMinAmount: string;
+    prevMaxAmount: string;
     prevMaxLeverage: number;
     prevFeeInterest: number;
     prevFeeLiquidation: number;
@@ -398,15 +408,15 @@ export class EventCMNewParameters extends EVMEvent {
     super({ block: opts.block, txHash: opts.txHash });
     this.creditManager = opts.creditManager;
     this.underlyingToken = opts.underlyingToken;
-    this.minAmount = opts.minAmount;
-    this.maxAmount = opts.maxAmount;
+    this.minAmount = BigNumber.from(opts.minAmount);
+    this.maxAmount = BigNumber.from(opts.maxAmount);
     this.maxLeverage = opts.maxLeverage;
     this.feeInterest = opts.feeInterest;
     this.feeLiquidation = opts.feeLiquidation;
     this.liquidationDiscount = opts.liquidationDiscount;
 
-    this.prevMinAmount = opts.prevMinAmount;
-    this.prevMaxAmount = opts.prevMaxAmount;
+    this.prevMinAmount = BigNumber.from(opts.prevMinAmount);
+    this.prevMaxAmount = BigNumber.from(opts.prevMaxAmount);
     this.prevMaxLeverage = opts.prevMaxLeverage;
     this.prevFeeInterest = opts.prevFeeInterest;
     this.prevFeeLiquidation = opts.prevFeeLiquidation;
@@ -454,9 +464,6 @@ export class EventCMNewParameters extends EVMEvent {
         100 - this.prevLiquidationDiscount / 100
       }% => ${100 - this.liquidationDiscount / 100}, `;
     }
-
-    // Remove trailing comma
-    msg = msg.trimRight();
 
     return msg.slice(0, msg.length - 2);
   }
@@ -557,24 +564,25 @@ export class EventContractAllowed extends EVMEvent {
     creditManager: string;
     protocol: string;
     adapter: string;
-    updateType: EventContractAllowedStatus;
+    status: EventContractAllowedStatus;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
     this.creditManager = opts.creditManager;
     this.protocol = opts.protocol;
     this.adapter = opts.adapter;
-    this.status = opts.updateType;
+    this.status = opts.status;
   }
 
   toString(_: Record<string, TokenData>): string {
-    let msg = `Credit manager ${getContractName(this.creditManager)} updated `;
+    let msg = `Credit manager ${getContractName(this.creditManager)} updated`;
+
     switch (this.status) {
       case "Connected":
-        return `${msg}: ${getContractName(
+        return `${msg} : ${getContractName(
           this.protocol
         )} was connected. Adapter at: ${this.adapter}`;
       case "AdapterUpdate":
-        return `${msg}: ${getContractName(
+        return `${msg} : ${getContractName(
           this.protocol
         )} adapter was updated. New adapter:  ${this.adapter}`;
     }
@@ -603,7 +611,7 @@ export class EventContractForbidden extends EVMEvent {
   toString(_: Record<string, TokenData>): string {
     return `Credit manager ${getContractName(
       this.creditManager
-    )} updated: ${getContractName(this.protocol)} `;
+    )} updated: ${getContractName(this.protocol)}`;
   }
 }
 
@@ -646,9 +654,6 @@ export class EventNewFastCheckParameters extends EVMEvent {
       msg += `fast check delay: ${this.prevFastCheckDelay} => ${this.fastCheckDelay}, `;
     }
 
-    // Remove trailing comma
-    msg = msg.trimRight();
-
     return msg.slice(0, msg.length - 2);
   }
 }
@@ -675,7 +680,7 @@ export class EventPriceOracleUpdated extends EVMEvent {
       this.creditManager
     )} updated: price oracle was updated. New price oracle ${getContractName(
       this.priceOracle
-    )} `;
+    )}`;
   }
 }
 
@@ -808,26 +813,34 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
     txHash: string;
     pool: string;
     underlyingToken: string;
-    newLimit: BigNumber;
-    prevLimit: BigNumber;
+    newLimit: string;
+    oldLimit: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
-    this.newLimit = opts.newLimit;
-    this.prevLimit = opts.prevLimit;
+    this.newLimit = BigNumber.from(opts.newLimit);
+    this.prevLimit = BigNumber.from(opts.oldLimit);
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
 
-    return `Pool ${getContractName(
-      this.pool
-    )} updated: expected liquidity limit was ${
-      this.newLimit.gt(this.prevLimit) ? "increased" : "decreased"
-    }: ${formatBN(this.prevLimit, token.decimals)} ${
-      token.symbol
-    } => ${formatBN(this.newLimit, token.decimals)} ${token.symbol} => `;
+    return this.prevLimit.isZero()
+      ? `Pool ${getContractName(
+          this.pool
+        )} updated: expected liquidity limit was set to ${formatBN(
+          this.newLimit,
+          decimals
+        )} ${symbol}`
+      : `Pool ${getContractName(
+          this.pool
+        )} updated: expected liquidity limit was ${
+          this.newLimit.gt(this.prevLimit) ? "increased" : "decreased"
+        }: ${formatBN(this.prevLimit, decimals)} ${symbol} => ${formatBN(
+          this.newLimit,
+          decimals
+        )} ${symbol}`;
   }
 }
 
@@ -845,25 +858,32 @@ export class EventNewWithdrawFee extends EVMEvent {
     txHash: string;
     pool: string;
     underlyingToken: string;
-    newLimit: BigNumber;
-    prevLimit: BigNumber;
+    newFee: string;
+    oldFee: string;
   }) {
     super({ block: opts.block, txHash: opts.txHash });
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
-    this.newFee = opts.newLimit;
-    this.prevFee = opts.prevLimit;
+    this.newFee = BigNumber.from(opts.newFee);
+    this.prevFee = BigNumber.from(opts.oldFee);
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
 
-    return `Pool ${getContractName(this.pool)} updated: withdraw fee was ${
-      this.newFee.gt(this.prevFee) ? "increased" : "decreased"
-    }: ${formatBN(this.prevFee, token.decimals)} ${token.symbol} => ${formatBN(
-      this.newFee,
-      token.decimals
-    )} ${token.symbol} => `;
+    return this.prevFee.isZero()
+      ? `Pool ${getContractName(
+          this.pool
+        )} updated: withdraw fee was set to: ${formatBN(
+          this.newFee,
+          decimals
+        )} ${symbol}`
+      : `Pool ${getContractName(this.pool)} updated: withdraw fee was ${
+          this.newFee.gt(this.prevFee) ? "increased" : "decreased"
+        }: ${formatBN(this.prevFee, decimals)} ${symbol} => ${formatBN(
+          this.newFee,
+          decimals
+        )} ${symbol}`;
   }
 }
 
@@ -886,11 +906,11 @@ export class EventNewPriceFeed extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.token];
+    const { symbol } = tokenData[this.token] || {};
 
-    return `PriceOracle: oracle for ${
-      token.symbol
-    } was updated to ${getContractName(this.priceFeed)} `;
+    return `PriceOracle: oracle for ${symbol} was updated to ${getContractName(
+      this.priceFeed
+    )}`;
   }
 }
 
@@ -913,7 +933,7 @@ export class EventTakeForever extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `AccountFactory: account ${this.creditAccount} was taken forever and transferred to ${this.to} `;
+    return `AccountFactory: account ${this.creditAccount} was taken forever and transferred to ${this.to}`;
   }
 }
 
@@ -927,7 +947,7 @@ export class EventPaused extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `${getContractName(this.contract)} was paused `;
+    return `${getContractName(this.contract)} was paused`;
   }
 }
 
@@ -940,7 +960,7 @@ export class EventUnPaused extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `${getContractName(this.contract)} was unpaused `;
+    return `${getContractName(this.contract)} was unpaused`;
   }
 }
 
@@ -956,7 +976,7 @@ export class EventPausableAdminAdded extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `ACL: pausable admin ${this.admin} was added `;
+    return `ACL: pausable admin ${this.admin} was added`;
   }
 }
 
@@ -972,7 +992,7 @@ export class EventPausableAdminRemoved extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `ACL: pausable admin ${this.admin} was removed `;
+    return `ACL: pausable admin ${this.admin} was removed`;
   }
 }
 
@@ -988,7 +1008,7 @@ export class EventUnPausableAdminAdded extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `ACL: unpausable admin ${this.admin} was added `;
+    return `ACL: unpausable admin ${this.admin} was added`;
   }
 }
 
@@ -1003,7 +1023,7 @@ export class EventUnPausableAdminRemoved extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `ACL: unpausable admin ${this.admin} was removed `;
+    return `ACL: unpausable admin ${this.admin} was removed`;
   }
 }
 
@@ -1017,6 +1037,6 @@ export class EventTransferOwnership extends EVMEvent {
   }
 
   toString(_tokenData: Record<string, TokenData>): string {
-    return `ACL: configurator was changed to ${this.newOwner} `;
+    return `ACL: configurator was changed to ${this.newOwner}`;
   }
 }
