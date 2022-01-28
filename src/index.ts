@@ -10,6 +10,7 @@ export * from "./core/operations";
 export * from "./core/oracles";
 export * from "./core/swap";
 export * from "./core/token";
+export * from "./core/tokenData";
 export * from "./core/tokenDistributor";
 export * from "./core/trade";
 export * from "./core/transactions";

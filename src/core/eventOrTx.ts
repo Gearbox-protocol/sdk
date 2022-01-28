@@ -1,4 +1,4 @@
-import { TokenData } from "./token";
+import { TokenData } from "./tokenData";
 import { TxSerialized } from "./transactions";
 
 export interface Display {

@@ -1,4 +1,4 @@
-import { TokenData } from "./token";
+import { TokenData } from "./tokenData";
 import { BigNumber } from "ethers";
 import { formatBN } from "../utils/formatter";
 import { LEVERAGE_DECIMALS } from "./constants";
