@@ -34,8 +34,8 @@ export interface EventSerialized {
     | "EventUnPaused"
     | "EventPausableAdminAdded"
     | "EventPausableAdminRemoved"
-    | "EventUnPausableAdminAdded"
-    | "EventUnPausableAdminRemoved"
+    | "EventUnpausableAdminAdded"
+    | "EventUnpausableAdminRemoved"
     | "EventOwnershipTransferred";
 
   content: any;
@@ -103,9 +103,9 @@ export class EventParser {
         return new EventPausableAdminAdded(params);
       case "EventPausableAdminRemoved":
         return new EventPausableAdminRemoved(params);
-      case "EventUnPausableAdminAdded":
+      case "EventUnpausableAdminAdded":
         return new EventUnPausableAdminAdded(params);
-      case "EventUnPausableAdminRemoved":
+      case "EventUnpausableAdminRemoved":
         return new EventUnPausableAdminRemoved(params);
       case "EventOwnershipTransferred":
         return new EventTransferOwnership(params);
