@@ -39,12 +39,10 @@ export interface TokenAllowance {
   allowance: BigNumber;
 }
 
-export type TokenType = "core" | "stable" | "volatile";
+export type TokenType = "core" | "stable" | "volatile" | "lp";
 
-export interface TokenPriceFeedData {
+export interface TokenSavedData {
   address: string;
-  priceFeedETH?: string;
-  priceFeedUSD: string
   type: TokenType;
 }
 
