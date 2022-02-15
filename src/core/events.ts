@@ -43,7 +43,7 @@ export interface EventSerialized {
 
 export class EventParser {
   static serialize(items: Array<EVMTx>): string {
-    return JSON.stringify(items.map((i) => i.serialize()));
+    return JSON.stringify(items.map(i => i.serialize()));
   }
 
   static deserialize(data: EventSerialized): EVMEvent {
@@ -116,7 +116,7 @@ export class EventParser {
   }
 
   static deserializeArray(data: Array<EventSerialized>): Array<EVMEvent> {
-    return data.map((e) => {
+    return data.map(e => {
       return EventParser.deserialize(e);
     });
   }
@@ -436,9 +436,9 @@ export class EventCMNewParameters extends EVMEvent {
 
     if (this.maxAmount !== this.prevMaxAmount) {
       msg += `max amount: ${formatBN(
-        this.prevMinAmount,
+        this.prevMaxAmount,
         token.decimals
-      )} => ${formatBN(this.minAmount, token.decimals)} ${token.symbol}, `;
+      )} => ${formatBN(this.maxAmount, token.decimals)} ${token.symbol}, `;
     }
 
     if (this.maxLeverage !== this.prevMaxLeverage) {
@@ -450,19 +450,19 @@ export class EventCMNewParameters extends EVMEvent {
     if (this.feeInterest !== this.prevFeeInterest) {
       msg += `interest fee: ${this.prevFeeInterest / 100}% => ${
         this.feeInterest / 100
-      }, `;
+      }%, `;
     }
 
     if (this.feeLiquidation !== this.prevFeeLiquidation) {
       msg += `liquidation fee: ${this.prevFeeLiquidation / 100}% => ${
         this.feeLiquidation / 100
-      }, `;
+      }%, `;
     }
 
     if (this.liquidationDiscount !== this.prevLiquidationDiscount) {
       msg += `liquidation premium: ${
         100 - this.prevLiquidationDiscount / 100
-      }% => ${100 - this.liquidationDiscount / 100}, `;
+      }% => ${100 - this.liquidationDiscount / 100}%, `;
     }
 
     return msg.slice(0, msg.length - 2);
@@ -505,17 +505,17 @@ export class EventTokenAllowed extends EVMEvent {
       case "NewToken":
         return `${msg}: New token allowed: ${
           token.symbol
-        }, liquidation threshold: ${this.liquidityThreshold / 100}`;
+        }, liquidation threshold: ${this.liquidityThreshold / 100}%`;
       case "Allowed":
         return `${msg}: ${
           token.symbol
         } is allowed now, liquidation threshold: ${
           this.liquidityThreshold / 100
-        }`;
+        }%`;
       case "LTUpdated":
         return `${msg}: ${token.symbol} liquidation threshold: ${
           (this.prevLiquidationThreshold || 0) / 100
-        } => ${this.liquidityThreshold / 100}`;
+        } => ${this.liquidityThreshold / 100}%`;
     }
   }
 }
@@ -850,8 +850,8 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
 export class EventNewWithdrawFee extends EVMEvent {
   public readonly pool: string;
   public readonly underlyingToken: string;
-  public readonly newFee: BigNumber;
-  public readonly prevFee: BigNumber;
+  public readonly newFee: number;
+  public readonly prevFee: number;
 
   constructor(opts: {
     block: number;
@@ -864,26 +864,18 @@ export class EventNewWithdrawFee extends EVMEvent {
     super({ block: opts.block, txHash: opts.txHash });
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
-    this.newFee = BigNumber.from(opts.newFee);
-    this.prevFee = BigNumber.from(opts.oldFee);
+    this.newFee = Number(opts.newFee);
+    this.prevFee = Number(opts.oldFee);
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
-
-    return this.prevFee.isZero()
-      ? `Pool ${getContractName(
-          this.pool
-        )} updated: withdraw fee was set to: ${formatBN(
-          this.newFee,
-          decimals
-        )} ${symbol}`
+  toString(_tokenData: Record<string, TokenData>): string {
+    return this.prevFee === 0
+      ? `Pool ${getContractName(this.pool)} updated: withdraw fee was set to: ${
+          this.newFee / 100
+        }%`
       : `Pool ${getContractName(this.pool)} updated: withdraw fee was ${
-          this.newFee.gt(this.prevFee) ? "increased" : "decreased"
-        }: ${formatBN(this.prevFee, decimals)} ${symbol} => ${formatBN(
-          this.newFee,
-          decimals
-        )} ${symbol}`;
+          this.newFee > this.prevFee ? "increased" : "decreased"
+        }: ${this.prevFee / 100}% => ${this.newFee / 100}%`;
   }
 }
 
