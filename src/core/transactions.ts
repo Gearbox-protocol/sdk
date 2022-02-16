@@ -21,11 +21,11 @@ export interface TxSerialized {
 
 export class TxSerializer {
   static serialize(items: Array<EVMTx>): string {
-    return JSON.stringify(items.map((i) => i.serialize()));
+    return JSON.stringify(items.map(i => i.serialize()));
   }
 
   static deserialize(data: string): Array<EVMTx> {
-    return (JSON.parse(data) as Array<TxSerialized>).map((e) => {
+    return (JSON.parse(data) as Array<TxSerialized>).map(e => {
       const params = JSON.parse(e.content);
       switch (e.type) {
         case "TxAddLiquidity":
@@ -59,6 +59,7 @@ export class TxAddLiquidity extends EVMTx {
   public readonly pool: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
@@ -66,7 +67,12 @@ export class TxAddLiquidity extends EVMTx {
     underlyingToken: string;
     pool: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.pool = opts.pool;
@@ -83,7 +89,7 @@ export class TxAddLiquidity extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxAddLiquidity",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }
@@ -94,6 +100,7 @@ export class TxRemoveLiquidity extends EVMTx {
   public readonly pool: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
@@ -101,7 +108,12 @@ export class TxRemoveLiquidity extends EVMTx {
     dieselToken: string;
     pool: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.amount = opts.amount;
     this.dieselToken = opts.dieselToken;
     this.pool = opts.pool;
@@ -118,7 +130,7 @@ export class TxRemoveLiquidity extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxRemoveLiquidity",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }
@@ -133,6 +145,7 @@ export class TXSwap extends EVMTx {
   public readonly creditManager: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
@@ -144,7 +157,12 @@ export class TXSwap extends EVMTx {
     tokenTo?: string;
     creditManager: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.protocol = opts.protocol;
     this.operation = opts.operation;
     this.amountFrom = opts.amountFrom;
@@ -175,7 +193,7 @@ export class TXSwap extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxSwap",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }
@@ -186,6 +204,7 @@ export class TxAddCollateral extends EVMTx {
   public readonly creditManager: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
@@ -193,7 +212,12 @@ export class TxAddCollateral extends EVMTx {
     addedToken: string;
     creditManager: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.amount = opts.amount;
     this.addedToken = opts.addedToken;
     this.creditManager = opts.creditManager;
@@ -211,7 +235,7 @@ export class TxAddCollateral extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxAddCollateral",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }
@@ -222,6 +246,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   public readonly creditManager: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
@@ -229,7 +254,12 @@ export class TxIncreaseBorrowAmount extends EVMTx {
     underlyingToken: string;
     creditManager: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
@@ -248,7 +278,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxIncreaseBorrowAmount",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }
@@ -260,6 +290,7 @@ export class TxOpenAccount extends EVMTx {
   public readonly creditManager: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
@@ -268,7 +299,12 @@ export class TxOpenAccount extends EVMTx {
     leverage: number;
     creditManager: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.leverage = opts.leverage;
@@ -293,7 +329,7 @@ export class TxOpenAccount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxOpenAccount",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }
@@ -302,12 +338,18 @@ export class TxRepayAccount extends EVMTx {
   public readonly creditManager: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
     creditManager: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.creditManager = opts.creditManager;
   }
 
@@ -320,7 +362,7 @@ export class TxRepayAccount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxRepayAccount",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }
@@ -329,12 +371,18 @@ export class TxCloseAccount extends EVMTx {
   public readonly creditManager: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
     creditManager: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.creditManager = opts.creditManager;
   }
 
@@ -347,7 +395,7 @@ export class TxCloseAccount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxCloseAccount",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }
@@ -356,13 +404,19 @@ export class TxApprove extends EVMTx {
   public readonly token: string;
 
   constructor(opts: {
+    timestamp: number;
     block?: number;
     txStatus?: TxStatus;
     txHash: string;
 
     token: string;
   }) {
-    super({ block: opts.block, txHash: opts.txHash, txStatus: opts.txStatus });
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp
+    });
     this.token = opts.token;
   }
 
@@ -374,7 +428,7 @@ export class TxApprove extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxApprove",
-      content: JSON.stringify(this),
+      content: JSON.stringify(this)
     };
   }
 }

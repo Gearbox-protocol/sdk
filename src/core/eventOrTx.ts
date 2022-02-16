@@ -10,12 +10,19 @@ export type TxStatus = "pending" | "success" | "reverted";
 export abstract class EventOrTx implements Display {
   public block: number;
   public readonly txHash: string;
+  public readonly timestamp: number;
   protected _txStatus: TxStatus;
 
-  constructor(opts: { block: number; txHash: string; txStatus: TxStatus }) {
+  constructor(opts: {
+    block: number;
+    txHash: string;
+    txStatus: TxStatus;
+    timestamp: number;
+  }) {
     this.block = opts.block;
     this.txHash = opts.txHash;
     this._txStatus = opts.txStatus;
+    this.timestamp = opts.timestamp;
   }
 
   public get isPending(): boolean {
@@ -42,17 +49,23 @@ export abstract class EventOrTx implements Display {
 }
 
 export abstract class EVMEvent extends EventOrTx {
-  constructor(opts: { block: number; txHash: string }) {
+  constructor(opts: { block: number; txHash: string; timestamp: number }) {
     super({ ...opts, txStatus: "success" });
   }
 }
 
 export abstract class EVMTx extends EventOrTx {
-  constructor(opts: { block?: number; txHash: string; txStatus?: TxStatus }) {
+  constructor(opts: {
+    block?: number;
+    txHash: string;
+    txStatus?: TxStatus;
+    timestamp: number;
+  }) {
     super({
-      ...opts,
       block: opts.block || 0,
       txStatus: opts.txStatus || "pending",
+      txHash: opts.txHash,
+      timestamp: opts.timestamp || 0
     });
     if (this.txStatus !== "pending" && this.block === 0) {
       throw new Error("Block not specified for non-pending tx");
