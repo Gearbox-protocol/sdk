@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { TokenData } from "./tokenData";
 import { formatBN } from "../utils/formatter";
-import { EVMTx, TxStatus } from "./eventOrTx";
+import { EVMTx, EVMTxProps } from "./eventOrTx";
 import { getContractName } from "./contractsRegister";
 import { LEVERAGE_DECIMALS } from "./constants";
 
@@ -53,20 +53,18 @@ export class TxSerializer {
   }
 }
 
+interface AddLiquidityProps extends EVMTxProps {
+  amount: BigNumber;
+  underlyingToken: string;
+  pool: string;
+}
+
 export class TxAddLiquidity extends EVMTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
   public readonly pool: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-    amount: BigNumber;
-    underlyingToken: string;
-    pool: string;
-  }) {
+  constructor(opts: AddLiquidityProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
@@ -94,20 +92,17 @@ export class TxAddLiquidity extends EVMTx {
   }
 }
 
+interface RemoveLiquidityProps extends EVMTxProps {
+  amount: BigNumber;
+  dieselToken: string;
+  pool: string;
+}
 export class TxRemoveLiquidity extends EVMTx {
   public readonly amount: BigNumber;
   public readonly dieselToken: string;
   public readonly pool: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-    amount: BigNumber;
-    dieselToken: string;
-    pool: string;
-  }) {
+  constructor(opts: RemoveLiquidityProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
@@ -135,6 +130,15 @@ export class TxRemoveLiquidity extends EVMTx {
   }
 }
 
+interface SwapProps extends EVMTxProps {
+  protocol: string;
+  operation: string;
+  amountFrom: BigNumber;
+  amountTo?: BigNumber;
+  tokenFrom: string;
+  tokenTo?: string;
+  creditManager: string;
+}
 export class TXSwap extends EVMTx {
   public readonly protocol: string;
   public readonly operation: string;
@@ -144,19 +148,7 @@ export class TXSwap extends EVMTx {
   public readonly tokenTo?: string;
   public readonly creditManager: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-    protocol: string;
-    operation: string;
-    amountFrom: BigNumber;
-    amountTo?: BigNumber;
-    tokenFrom: string;
-    tokenTo?: string;
-    creditManager: string;
-  }) {
+  constructor(opts: SwapProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
@@ -198,20 +190,17 @@ export class TXSwap extends EVMTx {
   }
 }
 
+interface AddCollateralProps extends EVMTxProps {
+  amount: BigNumber;
+  addedToken: string;
+  creditManager: string;
+}
 export class TxAddCollateral extends EVMTx {
   public readonly amount: BigNumber;
   public readonly addedToken: string;
   public readonly creditManager: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-    amount: BigNumber;
-    addedToken: string;
-    creditManager: string;
-  }) {
+  constructor(opts: AddCollateralProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
@@ -240,20 +229,17 @@ export class TxAddCollateral extends EVMTx {
   }
 }
 
+interface IncreaseBorrowAmountProps extends EVMTxProps {
+  amount: BigNumber;
+  underlyingToken: string;
+  creditManager: string;
+}
 export class TxIncreaseBorrowAmount extends EVMTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
   public readonly creditManager: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-    amount: BigNumber;
-    underlyingToken: string;
-    creditManager: string;
-  }) {
+  constructor(opts: IncreaseBorrowAmountProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
@@ -283,22 +269,19 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   }
 }
 
+interface OpenAccountProps extends EVMTxProps {
+  amount: BigNumber;
+  underlyingToken: string;
+  leverage: number;
+  creditManager: string;
+}
 export class TxOpenAccount extends EVMTx {
   public readonly amount: BigNumber;
   public readonly underlyingToken: string;
   public readonly leverage: number;
   public readonly creditManager: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-    amount: BigNumber;
-    underlyingToken: string;
-    leverage: number;
-    creditManager: string;
-  }) {
+  constructor(opts: OpenAccountProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
@@ -334,16 +317,13 @@ export class TxOpenAccount extends EVMTx {
   }
 }
 
+interface RepayAccountProps extends EVMTxProps {
+  creditManager: string;
+}
 export class TxRepayAccount extends EVMTx {
   public readonly creditManager: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-    creditManager: string;
-  }) {
+  constructor(opts: RepayAccountProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
@@ -367,16 +347,13 @@ export class TxRepayAccount extends EVMTx {
   }
 }
 
+interface CloseAccountProps extends EVMTxProps {
+  creditManager: string;
+}
 export class TxCloseAccount extends EVMTx {
   public readonly creditManager: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-    creditManager: string;
-  }) {
+  constructor(opts: CloseAccountProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
@@ -400,17 +377,13 @@ export class TxCloseAccount extends EVMTx {
   }
 }
 
+interface ApproveProps extends EVMTxProps {
+  token: string;
+}
 export class TxApprove extends EVMTx {
   public readonly token: string;
 
-  constructor(opts: {
-    timestamp: number;
-    block?: number;
-    txStatus?: TxStatus;
-    txHash: string;
-
-    token: string;
-  }) {
+  constructor(opts: ApproveProps) {
     super({
       block: opts.block,
       txHash: opts.txHash,
