@@ -7,15 +7,24 @@ export interface Display {
 
 export type TxStatus = "pending" | "success" | "reverted";
 
+export interface EventOrTxProps {
+  block: number;
+  txHash: string;
+  txStatus: TxStatus;
+  timestamp: number;
+}
+
 export abstract class EventOrTx implements Display {
   public block: number;
   public readonly txHash: string;
+  public readonly timestamp: number;
   protected _txStatus: TxStatus;
 
-  constructor(opts: { block: number; txHash: string; txStatus: TxStatus }) {
-    this.block = opts.block;
-    this.txHash = opts.txHash;
-    this._txStatus = opts.txStatus;
+  constructor({ block, txHash, txStatus, timestamp = 0 }: EventOrTxProps) {
+    this.block = block;
+    this.txHash = txHash;
+    this._txStatus = txStatus;
+    this.timestamp = timestamp;
   }
 
   public get isPending(): boolean {
@@ -41,18 +50,30 @@ export abstract class EventOrTx implements Display {
   public abstract toString(tokenData: Record<string, TokenData>): string;
 }
 
+export type EVMEventProps = Omit<EventOrTxProps, "txStatus">;
+
 export abstract class EVMEvent extends EventOrTx {
-  constructor(opts: { block: number; txHash: string }) {
+  constructor(opts: EVMEventProps) {
     super({ ...opts, txStatus: "success" });
   }
 }
 
+type OptionalFields = "block" | "txStatus";
+export type EVMTxProps = Omit<EventOrTxProps, OptionalFields> &
+  Partial<Pick<EventOrTxProps, OptionalFields>>;
+
 export abstract class EVMTx extends EventOrTx {
-  constructor(opts: { block?: number; txHash: string; txStatus?: TxStatus }) {
+  constructor({
+    txHash,
+    block = 0,
+    txStatus = "pending",
+    timestamp = 0
+  }: EVMTxProps) {
     super({
-      ...opts,
-      block: opts.block || 0,
-      txStatus: opts.txStatus || "pending",
+      block: block,
+      txStatus: txStatus,
+      txHash: txHash,
+      timestamp: timestamp
     });
     if (this.txStatus !== "pending" && this.block === 0) {
       throw new Error("Block not specified for non-pending tx");
