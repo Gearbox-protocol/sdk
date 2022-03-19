@@ -98,7 +98,7 @@ export const tokenDataByNetwork: Record<
     },
 
     FTM: {
-      address: "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e",
+      address: "0x4E15361FD6b4BB609Fa63C81A2be19d873717870",
       type: "volatile",
     },
 
@@ -134,7 +134,7 @@ export const tokenDataByNetwork: Record<
     },
 
     LUSD: {
-      address: "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e",
+      address: "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0",
       type: "stable",
     },
 
