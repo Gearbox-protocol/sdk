@@ -110,12 +110,12 @@ export const tokenDataByNetwork: Record<
     MIM: {
       address: "0x99d8a9c45b2eca8864373a26d1459e3dff1e17f3",
 
-      type: "volatile",
+      type: "stable",
     },
 
     FRAX: {
       address: "0x853d955acef822db058eb8505911ed77f175b99e",
-      type: "volatile",
+      type: "stable",
     },
 
     FXS: {
@@ -135,7 +135,7 @@ export const tokenDataByNetwork: Record<
 
     LUSD: {
       address: "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e",
-      type: "volatile",
+      type: "stable",
     },
 
     SPELL: {
@@ -145,12 +145,12 @@ export const tokenDataByNetwork: Record<
 
     SUSD: {
       address: "0x57ab1e02fee23774580c119740129eac7081e9d3",
-      type: "volatile",
+      type: "stable",
     },
 
     GUSD: {
       address: "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd",
-      type: "volatile",
+      type: "stable",
     },
 
     // YEARN TOKENS
