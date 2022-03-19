@@ -141,7 +141,7 @@ export const tokenDataByNetwork: Record<
     SPELL: {
       address: "0x090185f2135308BaD17527004364eBcC2D37e5F6",
       type: "volatile",
-    }
+    },
 
     SUSD: {
       address: "0x57ab1e02fee23774580c119740129eac7081e9d3",
@@ -173,7 +173,7 @@ export const tokenDataByNetwork: Record<
 
     // CURVE LP TOKENS
 
-    3Crv: {
+    "3Crv": {
       address: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
       type: "lp",
     },
