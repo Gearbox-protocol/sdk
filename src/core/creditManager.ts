@@ -1,14 +1,14 @@
-import {BigNumber, ethers, Signer} from "ethers";
-import {IAppCreditManager, IAppCreditManager__factory} from "../types";
+import { BigNumber, ethers, Signer } from "ethers";
+import { IAppCreditManager, IAppCreditManager__factory } from "../types";
 import { formatBN } from "../utils/formatter";
 import {
   PERCENTAGE_FACTOR,
   RAY,
-  UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
+  UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD
 } from "./constants";
 import {
   CreditManagerDataPayload,
-  CreditManagerStatPayload,
+  CreditManagerStatPayload
 } from "../payload/creditManager";
 
 export class CreditManagerData {
@@ -25,9 +25,7 @@ export class CreditManagerData {
   public readonly allowedTokens: Array<string>;
   public readonly adapters: Record<string, string> = {};
 
-  constructor(
-    payload: CreditManagerDataPayload,
-  ) {
+  constructor(payload: CreditManagerDataPayload) {
     this.id = payload.addr;
     this.address = payload.addr;
 
@@ -47,10 +45,9 @@ export class CreditManagerData {
     ).toNumber();
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
     this.allowedTokens = payload.allowedTokens || [];
-    payload.adapters?.forEach((a) => {
+    payload.adapters?.forEach(a => {
       this.adapters[a.allowedContract] = a.adapter;
     });
-
   }
 
   validateOpenAccount(
@@ -81,8 +78,14 @@ export class CreditManagerData {
     return null;
   }
 
-  getContractETH(signer: Signer | ethers.providers.Provider) : IAppCreditManager {
-    return IAppCreditManager__factory.connect(this.address, signer)
+  getContractETH(
+    signer: Signer | ethers.providers.Provider
+  ): IAppCreditManager {
+    return IAppCreditManager__factory.connect(this.address, signer);
+  }
+
+  get isPaused(): boolean {
+    return false;
   }
 }
 
@@ -97,7 +100,6 @@ export function calcMaxIncreaseBorrow(
     (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD * (maxLeverageFactor + 100)) /
       maxLeverageFactor
   );
-
 
   const result = borrowAmountPlusInterest
     .mul(healthFactorPercentage - minHealthFactor)
