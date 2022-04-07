@@ -52,6 +52,10 @@ export class PoolData {
   getContractETH(signer: Signer): IAppPoolService {
     return IPoolService__factory.connect(this.address, signer);
   }
+
+  get isPaused(): boolean {
+    return false;
+  }
 }
 
 export interface PoolsStat {

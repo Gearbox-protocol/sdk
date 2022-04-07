@@ -17,6 +17,7 @@ export declare class CreditManagerData {
     constructor(payload: CreditManagerDataPayload);
     validateOpenAccount(balance: BigNumber, decimals: number, amount_BN: BigNumber, leverage: number): string | null;
     getContractETH(signer: Signer | ethers.providers.Provider): IAppCreditManager;
+    get isPaused(): boolean;
 }
 export declare function calcMaxIncreaseBorrow(healthFactor: number, borrowAmountPlusInterest: BigNumber, maxLeverageFactor: number): BigNumber;
 export declare function calcHealthFactorAfterIncreasingBorrow(healthFactor: number | undefined, borrowAmountPlusInterest: BigNumber | undefined, additional: BigNumber): number;

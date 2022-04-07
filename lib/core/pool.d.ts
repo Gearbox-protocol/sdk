@@ -21,6 +21,7 @@ export declare class PoolData {
     readonly cumulativeIndex_RAY: BigNumber;
     constructor(payload: PoolDataPayload);
     getContractETH(signer: Signer): IAppPoolService;
+    get isPaused(): boolean;
 }
 export interface PoolsStat {
     tvl: number;
