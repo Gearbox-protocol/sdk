@@ -142,6 +142,11 @@ export const tokenDataByNetwork: Record<
       type: "stable"
     },
 
+    LUNA: {
+      address: "0xd2877702675e6ceb975b4a1dff9fb7baf4c91ea9",
+      type: "volatile"
+    },
+
     // YEARN TOKENS
     yvDAI: {
       address: "0xdA816459F1AB5631232FE5e97a05BBBb94970c95",
