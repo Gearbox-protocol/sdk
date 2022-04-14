@@ -1,5 +1,6 @@
-import { Multicall2 } from "../types/Multicall2";
 import { ethers } from "ethers";
+import { Multicall2 } from "../types/Multicall2";
+
 import { Multicall2__factory } from "../types/factories/Multicall2__factory";
 
 export interface CallData<T extends ethers.utils.Interface> {
