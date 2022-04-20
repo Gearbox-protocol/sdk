@@ -72,7 +72,7 @@ export declare const supportedTokens: {
     LUSD: {
         type: string;
     };
-    SUSD: {
+    sUSD: {
         type: string;
     };
     GUSD: {
