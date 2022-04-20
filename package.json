@@ -1,6 +1,6 @@
 {
   "name": "@gearbox-protocol/sdk",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Gearbox SDK",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
