@@ -81,6 +81,9 @@ export declare const supportedTokens: {
     LUNA: {
         type: string;
     };
+    LQTY: {
+        type: string;
+    };
     yvDAI: {
         type: string;
     };

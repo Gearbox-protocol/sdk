@@ -1,6 +1,6 @@
 import { BigNumber } from "ethers";
 import { OracleType, TokenPriceFeedData } from "../core/oracles";
-import { NetworkType, WAD } from "./constants";
+import { WAD } from "./constants";
 import { SupportedTokens } from "./token";
 
 export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
@@ -385,6 +385,38 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
         curveSymbol: "crvPlain3andSUSD",
         lowerBound: BigNumber.from("101780000"),
         upperBound: BigNumber.from("106870000")
+      }
+    },
+
+    // CVX tokens
+    cvx3Crv: {
+      priceFeedUSD: {
+        type: OracleType.LIKE_CURVE_LP_ORACLE,
+        curveSymbol: "3Crv"
+      }
+    },
+    cvxsteCRV: {
+      priceFeedUSD: {
+        type: OracleType.LIKE_CURVE_LP_ORACLE,
+        curveSymbol: "steCRV"
+      }
+    },
+    cvxFRAX3CRV: {
+      priceFeedUSD: {
+        type: OracleType.LIKE_CURVE_LP_ORACLE,
+        curveSymbol: "FRAX3CRV"
+      }
+    },
+    cvxcrvPlain3andSUSD: {
+      priceFeedUSD: {
+        type: OracleType.LIKE_CURVE_LP_ORACLE,
+        curveSymbol: "crvPlain3andSUSD"
+      }
+    },
+    cvxgusd3CRV: {
+      priceFeedUSD: {
+        type: OracleType.LIKE_CURVE_LP_ORACLE,
+        curveSymbol: "gusd3CRV"
       }
     }
   };

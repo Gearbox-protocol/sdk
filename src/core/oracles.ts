@@ -1,4 +1,5 @@
 import { BigNumber } from "ethers";
+import { SupportedTokens } from "./token";
 
 export interface PriceFeed {
   token: string;
@@ -11,6 +12,7 @@ export enum OracleType {
   CURVE_LP_ORACLE,
   YEARN_CURVE_LP_ORACLE,
   ZERO_ORACLE,
+  LIKE_CURVE_LP_ORACLE
 }
 
 export type PriceFeedData =
@@ -28,16 +30,20 @@ export type PriceFeedData =
     }
   | {
       type: OracleType.CURVE_LP_ORACLE;
-      assets: Array<string>
+      assets: Array<string>;
     }
   | {
       type: OracleType.YEARN_CURVE_LP_ORACLE;
-      curveSymbol: string;
+      curveSymbol: SupportedTokens;
       lowerBound: BigNumber;
       upperBound: BigNumber;
     }
   | {
       type: OracleType.ZERO_ORACLE;
+    }
+  | {
+      type: OracleType.LIKE_CURVE_LP_ORACLE;
+      curveSymbol: SupportedTokens;
     };
 
 export type TokenPriceFeedData = {
