@@ -304,11 +304,11 @@ export const tokenDataByNetwork: Record<
     yvWBTC: "",
 
     // CURVE LP TOKENS
-    "3Crv": "",
-    steCRV: "",
+    "3Crv": "0x769C784D1e958672bDef04cf12Fd5399b3db0f27",
+    steCRV: "0xF695d3aa358D5087A0C157DBb9449d4f0d8E534a",
     FRAX3CRV: "",
     LUSD3CRV: "",
-    crvPlain3andSUSD: "",
+    crvPlain3andSUSD: "0x032f1cE00865F3499C0052ceBA5F2348842416DB",
     gusd3CRV: "",
 
     // CONVEX LP TOKENS
