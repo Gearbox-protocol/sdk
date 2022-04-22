@@ -26,7 +26,7 @@ export * from "./utils/events";
 export * from "./utils/math";
 export * from "./core/creditCard";
 export * from "./payload/graphPayload";
-export * from "./types/index"
+export * from "./types/index";
 
 export type {
   IAppPoolService,
@@ -34,9 +34,10 @@ export type {
   IAppERC20,
   IAppAddressProvider,
   IDataCompressor,
-  IWETHGateway,
+  IWETHGateway
 } from "./types";
 
 export * from "./core/history";
-export { MultiCallContract} from "./utils/multicall";
-export { callRepeater } from "./utils/repeater"
+export { MultiCallContract } from "./utils/multicall";
+export { callRepeater } from "./utils/repeater";
+export { getContractName } from "./core/contractsRegister";
