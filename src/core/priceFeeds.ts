@@ -307,45 +307,45 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
     yvDAI: {
       priceFeedETH: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        priceFeed: "0x773616E4d11A78F511299002da57A0a94577F1f4",
-        lowerBound: WAD.mul(1015).div(1000),
-        upperBound: WAD.mul(1030).div(1000)
+        token: "DAI",
+        lowerBound: WAD,
+        upperBound: WAD.mul(10)
       },
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        priceFeed: "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
-        lowerBound: WAD.mul(1015).div(1000),
-        upperBound: WAD.mul(1030).div(1000)
+        token: "DAI",
+        lowerBound: WAD,
+        upperBound: WAD.mul(10)
       }
     },
     yvUSDC: {
       priceFeedETH: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        priceFeed: "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+        token: "USDC",
         lowerBound: BigNumber.from(1000000),
-        upperBound: BigNumber.from(1030000)
+        upperBound: BigNumber.from(100000000)
       },
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        priceFeed: "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+        token: "USDC",
         lowerBound: BigNumber.from(1000000),
-        upperBound: BigNumber.from(1030000)
+        upperBound: BigNumber.from(100000000)
       }
     },
     yvWETH: {
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        priceFeed: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-        lowerBound: WAD.mul(1008).div(1000),
-        upperBound: WAD.mul(1059).div(1000)
+        token: "WETH",
+        lowerBound: WAD,
+        upperBound: WAD.mul(10)
       }
     },
     yvWBTC: {
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        priceFeed: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-        lowerBound: BigNumber.from("101780000"),
-        upperBound: BigNumber.from("106870000")
+        token: "WBTC",
+        lowerBound: BigNumber.from("100000000"),
+        upperBound: BigNumber.from("10000000000")
       }
     },
 
@@ -398,24 +398,24 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
       priceFeedUSD: {
         type: OracleType.YEARN_CURVE_LP_ORACLE,
         curveSymbol: "steCRV",
-        lowerBound: BigNumber.from("1060263876405898945"),
-        upperBound: BigNumber.from("1090263876405898945")
+        lowerBound: WAD,
+        upperBound: WAD.mul(100)
       }
     },
     yvCurve_FRAX: {
       priceFeedUSD: {
         type: OracleType.YEARN_CURVE_LP_ORACLE,
         curveSymbol: "FRAX3CRV",
-        lowerBound: BigNumber.from("1102262133144500000"),
-        upperBound: BigNumber.from("1108262133144500000")
+        lowerBound: WAD,
+        upperBound: WAD.mul(100)
       }
     },
     yvCurve_d3pool: {
       priceFeedUSD: {
         type: OracleType.YEARN_CURVE_LP_ORACLE,
         curveSymbol: "crvPlain3andSUSD",
-        lowerBound: BigNumber.from("101780000"),
-        upperBound: BigNumber.from("106870000")
+        lowerBound: BigNumber.from("100000000"),
+        upperBound: BigNumber.from("10000000000")
       }
     },
 

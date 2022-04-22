@@ -23,7 +23,7 @@ export type PriceFeedData =
     }
   | {
       type: OracleType.YEARN_TOKEN_ORACLE;
-      priceFeed: string;
+      token: SupportedTokens;
       priceFeedKovan?: string;
       lowerBound: BigNumber;
       upperBound: BigNumber;
