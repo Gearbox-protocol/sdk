@@ -381,7 +381,7 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
     crvPlain3andSUSD: {
       priceFeedUSD: {
         type: OracleType.CURVE_LP_ORACLE,
-        assets: ["DAI", "USDC", "USDT", "SUSD"]
+        assets: ["DAI", "USDC", "USDT", "sUSD"]
       }
     },
 

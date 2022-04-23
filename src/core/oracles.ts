@@ -30,7 +30,7 @@ export type PriceFeedData =
     }
   | {
       type: OracleType.CURVE_LP_ORACLE;
-      assets: Array<string>;
+      assets: Array<SupportedTokens>;
     }
   | {
       type: OracleType.YEARN_CURVE_LP_ORACLE;
