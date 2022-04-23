@@ -300,8 +300,8 @@ export const tokenDataByNetwork: Record<
     // YEARN TOKENS
     yvDAI: "0xe5267045739E4d6FcA15BB4a79190012F146893b",
     yvUSDC: "0x980E4d8A22105c2a2fA2252B7685F32fc7564512",
-    yvWETH: "",
-    yvWBTC: "",
+    yvWETH: "0xB8f3CC38753db078b86e31647bE0A752cfd30A4b",
+    yvWBTC: "0x66359b29F7b142A3C7158e2F809aCD4407A6Ae75",
 
     // CURVE LP TOKENS
     "3Crv": "0x769C784D1e958672bDef04cf12Fd5399b3db0f27",
@@ -319,7 +319,7 @@ export const tokenDataByNetwork: Record<
     cvxgusd3CRV: "",
 
     // YEARN- CURVE TOKENS
-    yvCurve_stETH: "",
+    yvCurve_stETH: "0xdDc2FA328321573Bc2647C0135D75012c522CDAC",
     yvCurve_FRAX: "",
     yvCurve_d3pool: ""
   }
