@@ -24,7 +24,7 @@ export declare type PriceFeedData = {
     upperBound: BigNumber;
 } | {
     type: OracleType.CURVE_LP_ORACLE;
-    assets: Array<string>;
+    assets: Array<SupportedTokens>;
 } | {
     type: OracleType.YEARN_CURVE_LP_ORACLE;
     curveSymbol: SupportedTokens;

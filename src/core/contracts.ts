@@ -37,11 +37,11 @@ export const YEARN_CURVE_STETH_ADDRESS =
   "0xdCD90C7f6324cfa40d7169ef80b12031770B4325";
 
 // KOVAN
-export const YEARN_DAI_KOVAN_MOCK = tokenDataByNetwork.Kovan.DAI;
-export const YEARN_USDC_KOVAN_MOCK = tokenDataByNetwork.Kovan.USDC;
-export const YEARN_WETH_KOVAN_MOCK = tokenDataByNetwork.Kovan.WETH;
-export const YEARN_WBTC_KOVAN_MOCK = tokenDataByNetwork.Kovan.WBTC;
-export const YEARN_3POOL_KOVAN_MOCK = tokenDataByNetwork.Kovan["3Crv"];
+export const YEARN_DAI_KOVAN_MOCK = tokenDataByNetwork.Kovan.yvDAI;
+export const YEARN_USDC_KOVAN_MOCK = tokenDataByNetwork.Kovan.yvUSDC;
+export const YEARN_WETH_KOVAN_MOCK = tokenDataByNetwork.Kovan.yvWETH;
+export const YEARN_WBTC_KOVAN_MOCK = tokenDataByNetwork.Kovan.yvWBTC;
+export const YEARN_3POOL_KOVAN_MOCK = tokenDataByNetwork.Kovan.yvCurve_stETH;
 
 export const SUSHISWAP_MAINNET = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F";
 export const SUSHISWAP_KOVAN = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506";
