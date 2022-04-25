@@ -2,7 +2,7 @@ import { BigNumber } from "ethers";
 import { TokenDataPayload } from "../payload/token";
 import { STATIC_TOKEN } from "../config";
 import { NetworkType } from "./constants";
-import { tokenDataByNetwork } from "./token";
+import { SupportedTokens, tokenDataByNetwork } from "./token";
 
 export class TokenData {
   public readonly id: string;
@@ -42,7 +42,6 @@ export interface TokenAllowance {
 export type TokenType = "core" | "stable" | "volatile" | "lp";
 
 export interface TokenSavedData {
-  address: string;
   type: TokenType;
 }
 
@@ -51,7 +50,7 @@ export const WETHToken: Record<NetworkType, string> = {
   Kovan: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
 };
 
-export const connectors: Record<NetworkType, Array<string>> = {
+export const connectors: Record<NetworkType, Array<SupportedTokens>> = {
   Mainnet: [
     "WETH",
     "1INCH",
@@ -74,7 +73,7 @@ export function getConnectors(networkType: NetworkType) {
     const result =
       e === "WETH"
         ? WETHToken[networkType]
-        : tokenDataByNetwork[networkType][e]?.address;
+        : tokenDataByNetwork[networkType][e];
 
     if (!result) {
       throw new Error(`connector token ${e} not found`);

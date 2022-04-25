@@ -1,5 +1,5 @@
-import { Multicall2 } from "../types/Multicall2";
 import { ethers } from "ethers";
+import { Multicall2 } from "../types/Multicall2";
 export interface CallData<T extends ethers.utils.Interface> {
     method: keyof T["functions"];
     params?: any;
