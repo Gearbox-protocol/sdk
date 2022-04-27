@@ -14,6 +14,7 @@ export declare class CreditManagerData {
     readonly availableLiquidity: BigNumber;
     readonly allowedTokens: Array<string>;
     readonly adapters: Record<string, string>;
+    readonly version: number;
     constructor(payload: CreditManagerDataPayload);
     validateOpenAccount(balance: BigNumber, decimals: number, amount_BN: BigNumber, leverage: number): string | null;
     getContractETH(signer: Signer | ethers.providers.Provider): IAppCreditManager;
