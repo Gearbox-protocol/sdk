@@ -21,6 +21,7 @@ export declare class CreditAccountData {
     balances: Record<string, BigNumber>;
     allBalances: Record<string, BigNumber>;
     isDeleting: boolean;
+    version: number;
     constructor(payload: CreditAccountDataPayload);
     balancesSorted(prices: Record<string, number>, tokens: Record<string, TokenData>): Array<Balance>;
 }

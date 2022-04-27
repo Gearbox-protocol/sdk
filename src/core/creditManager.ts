@@ -24,6 +24,7 @@ export class CreditManagerData {
   public readonly availableLiquidity: BigNumber;
   public readonly allowedTokens: Array<string>;
   public readonly adapters: Record<string, string> = {};
+  public readonly version: number = 1;
 
   constructor(payload: CreditManagerDataPayload) {
     this.id = payload.addr;

@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import {
   CreditAccountDataExtendedPayload,
-  CreditAccountDataPayload,
+  CreditAccountDataPayload
 } from "../payload/creditAccount";
 import { PERCENTAGE_FACTOR, RAY } from "./constants";
 import { TokenData } from "./tokenData";
@@ -25,6 +25,7 @@ export class CreditAccountData {
   public balances: Record<string, BigNumber> = {};
   public allBalances: Record<string, BigNumber> = {};
   public isDeleting: boolean;
+  public readonly version: number = 1;
 
   constructor(payload: CreditAccountDataPayload) {
     this.id = payload.creditManager;
@@ -46,7 +47,7 @@ export class CreditAccountData {
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
 
-    (payload.balances || []).forEach((b) => {
+    (payload.balances || []).forEach(b => {
       if (b.isAllowed) {
         this.balances[b.token] = BigNumber.from(b.balance);
         this.allowedTokens.push(b.token);
