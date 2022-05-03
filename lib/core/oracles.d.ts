@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { SupportedTokens } from "./token";
 export interface PriceFeed {
     token: string;
@@ -20,16 +19,12 @@ export declare type PriceFeedData = {
     type: OracleType.YEARN_TOKEN_ORACLE;
     token: SupportedTokens;
     priceFeedKovan?: string;
-    lowerBound: BigNumber;
-    upperBound: BigNumber;
 } | {
     type: OracleType.CURVE_LP_ORACLE;
     assets: Array<SupportedTokens>;
 } | {
     type: OracleType.YEARN_CURVE_LP_ORACLE;
     curveSymbol: SupportedTokens;
-    lowerBound: BigNumber;
-    upperBound: BigNumber;
 } | {
     type: OracleType.ZERO_ORACLE;
 } | {
