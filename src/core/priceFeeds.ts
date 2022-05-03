@@ -1,6 +1,4 @@
-import { BigNumber } from "ethers";
 import { OracleType, TokenPriceFeedData } from "../core/oracles";
-import { WAD } from "./constants";
 import { SupportedTokens } from "./token";
 
 export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
@@ -307,45 +305,33 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
     yvDAI: {
       priceFeedETH: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        token: "DAI",
-        lowerBound: WAD,
-        upperBound: WAD.mul(10)
+        token: "DAI"
       },
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        token: "DAI",
-        lowerBound: WAD,
-        upperBound: WAD.mul(10)
+        token: "DAI"
       }
     },
     yvUSDC: {
       priceFeedETH: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        token: "USDC",
-        lowerBound: BigNumber.from(1000000),
-        upperBound: BigNumber.from(100000000)
+        token: "USDC"
       },
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        token: "USDC",
-        lowerBound: BigNumber.from(1000000),
-        upperBound: BigNumber.from(100000000)
+        token: "USDC"
       }
     },
     yvWETH: {
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        token: "WETH",
-        lowerBound: WAD,
-        upperBound: WAD.mul(10)
+        token: "WETH"
       }
     },
     yvWBTC: {
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        token: "WBTC",
-        lowerBound: BigNumber.from("100000000"),
-        upperBound: BigNumber.from("10000000000")
+        token: "WBTC"
       }
     },
 
@@ -397,25 +383,19 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
     yvCurve_stETH: {
       priceFeedUSD: {
         type: OracleType.YEARN_CURVE_LP_ORACLE,
-        curveSymbol: "steCRV",
-        lowerBound: WAD,
-        upperBound: WAD.mul(100)
+        curveSymbol: "steCRV"
       }
     },
     yvCurve_FRAX: {
       priceFeedUSD: {
         type: OracleType.YEARN_CURVE_LP_ORACLE,
-        curveSymbol: "FRAX3CRV",
-        lowerBound: WAD,
-        upperBound: WAD.mul(100)
+        curveSymbol: "FRAX3CRV"
       }
     },
     yvCurve_d3pool: {
       priceFeedUSD: {
         type: OracleType.YEARN_CURVE_LP_ORACLE,
-        curveSymbol: "crvPlain3andSUSD",
-        lowerBound: BigNumber.from("100000000"),
-        upperBound: BigNumber.from("10000000000")
+        curveSymbol: "crvPlain3andSUSD"
       }
     },
 
