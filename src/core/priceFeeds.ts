@@ -305,7 +305,8 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
     yvDAI: {
       priceFeedETH: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        token: "DAI"
+        token: "DAI",
+        deployedKovan: ""
       },
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,
@@ -315,7 +316,8 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
     yvUSDC: {
       priceFeedETH: {
         type: OracleType.YEARN_TOKEN_ORACLE,
-        token: "USDC"
+        token: "USDC",
+        deployedKovan: ""
       },
       priceFeedUSD: {
         type: OracleType.YEARN_TOKEN_ORACLE,

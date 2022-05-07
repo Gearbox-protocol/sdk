@@ -18,7 +18,6 @@ export declare type PriceFeedData = {
 } | {
     type: OracleType.YEARN_TOKEN_ORACLE;
     token: SupportedTokens;
-    priceFeedKovan?: string;
 } | {
     type: OracleType.CURVE_LP_ORACLE;
     assets: Array<SupportedTokens>;

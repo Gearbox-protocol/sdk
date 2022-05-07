@@ -1,197 +1,308 @@
 import { NetworkType } from "./constants";
 
-export const supportedTokens = {
+export interface TokenData {
+  type: "volatile" | "stable" | "core" | "lp";
+  priority: number;
+}
+
+enum Priority {
+  CONNECTOR = 0,
+  NORMAL_TOKEN,
+  CURVE_LP_OR_YEARN,
+  META_CURVE_LP_OR_YEARN_ON_CURVE,
+  CONVEX_OR_YEARN_ON_META_CURVE_LP
+}
+
+export type SupportedTokens =
+  | "1INCH"
+  | "AAVE"
+  | "COMP"
+  | "CRV"
+  | "DAI"
+  | "DPI"
+  | "FEI"
+  | "LINK"
+  | "SNX"
+  | "SUSHI"
+  | "UNI"
+  | "USDC"
+  | "USDT"
+  | "WBTC"
+  | "WETH"
+  | "YFI"
+
+  // NEW TOKENS
+  | "STETH"
+  | "FTM"
+  | "CVX"
+  | "FRAX"
+  | "FXS"
+  | "LDO"
+  | "SPELL"
+  | "LUSD"
+  | "sUSD"
+  | "GUSD"
+  | "LUNA"
+  | "LQTY"
+
+  // YEARN
+  | "yvDAI"
+  | "yvUSDC"
+  | "yvWETH"
+  | "yvWBTC"
+
+  // CURVE LP TOKENS
+  | "3Crv"
+  | "steCRV"
+  | "FRAX3CRV"
+  | "LUSD3CRV"
+  | "crvPlain3andSUSD"
+  | "gusd3CRV"
+
+  // CONVEX LP TOKENS
+  | "cvx3Crv"
+  | "cvxsteCRV"
+  | "cvxFRAX3CRV"
+  | "cvxcrvPlain3andSUSD"
+  | "cvxgusd3CRV"
+
+  // YEARN- CURVE TOKENS
+  | "yvCurve_stETH"
+  | "yvCurve_FRAX";
+
+export const supportedTokens: Record<SupportedTokens, TokenData> = {
   "1INCH": {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   AAVE: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   COMP: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   CRV: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   DAI: {
-    type: "stable"
+    type: "stable",
+    priority: Priority.CONNECTOR
   },
 
   DPI: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   FEI: {
-    type: "stable"
+    type: "stable",
+    priority: Priority.NORMAL_TOKEN
   },
 
   LINK: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   SNX: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   SUSHI: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   UNI: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   USDC: {
-    type: "stable"
+    type: "stable",
+    priority: Priority.CONNECTOR
   },
 
   USDT: {
-    type: "stable"
+    type: "stable",
+    priority: Priority.NORMAL_TOKEN
   },
 
   WBTC: {
-    type: "core"
+    type: "core",
+    priority: Priority.CONNECTOR
   },
 
   WETH: {
-    type: "core"
+    type: "core",
+    priority: Priority.CONNECTOR
   },
 
   YFI: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   /// UPDATE
   STETH: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   FTM: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   CVX: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   FRAX: {
-    type: "stable"
+    type: "stable",
+    priority: Priority.NORMAL_TOKEN
   },
 
   FXS: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   LDO: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   SPELL: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   LUSD: {
-    type: "stable"
+    type: "stable",
+    priority: Priority.NORMAL_TOKEN
   },
 
   sUSD: {
-    type: "stable"
+    type: "stable",
+    priority: Priority.NORMAL_TOKEN
   },
 
   GUSD: {
-    type: "stable"
+    type: "stable",
+    priority: Priority.NORMAL_TOKEN
   },
 
   LUNA: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
   LQTY: {
-    type: "volatile"
+    type: "volatile",
+    priority: Priority.NORMAL_TOKEN
   },
 
   // YEARN TOKENS
   yvDAI: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CURVE_LP_OR_YEARN
   },
 
   yvUSDC: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CURVE_LP_OR_YEARN
   },
 
   yvWETH: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CURVE_LP_OR_YEARN
   },
 
   yvWBTC: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CURVE_LP_OR_YEARN
   },
 
   // CURVE LP TOKENS
 
   "3Crv": {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CURVE_LP_OR_YEARN
   },
 
   steCRV: {
-    type: "lp"
-  },
-
-  FRAX3CRV: {
-    type: "lp"
-  },
-
-  LUSD3CRV: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CURVE_LP_OR_YEARN
   },
 
   crvPlain3andSUSD: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CURVE_LP_OR_YEARN
+  },
+
+  //  META CURVE LP TOKENS
+
+  FRAX3CRV: {
+    type: "lp",
+    priority: Priority.META_CURVE_LP_OR_YEARN_ON_CURVE
+  },
+
+  LUSD3CRV: {
+    type: "lp",
+    priority: Priority.META_CURVE_LP_OR_YEARN_ON_CURVE
   },
 
   gusd3CRV: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.META_CURVE_LP_OR_YEARN_ON_CURVE
   },
 
   // CONVEX LP TOKENS
 
   cvx3Crv: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
   },
 
   cvxsteCRV: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
   },
 
   cvxFRAX3CRV: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
   },
 
   cvxcrvPlain3andSUSD: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
   },
 
   cvxgusd3CRV: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
   },
 
   // YEARN- CURVE TOKENS
   yvCurve_stETH: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
   },
   yvCurve_FRAX: {
-    type: "lp"
-  },
-
-  yvCurve_d3pool: {
-    type: "lp"
+    type: "lp",
+    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
   }
 };
-
-export type SupportedTokens = keyof typeof supportedTokens;
 
 export const tokenDataByNetwork: Record<
   NetworkType,
@@ -199,9 +310,6 @@ export const tokenDataByNetwork: Record<
 > = {
   //
   // MAINNET NETWORK
-  // 1INCH  ETH  AAVE  BADGER  BAL  BTC  COMP  CREAM  CRV
-  // DAI  DPI  GRT  LINK  SNX  SRM  SUSHI  UNI USDC
-  // USDT  YFI  ZRX
   Mainnet: {
     "1INCH": "0x111111111117dc0aa78b770fa6a738034120c302",
     AAVE: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
@@ -296,7 +404,7 @@ export const tokenDataByNetwork: Record<
     GUSD: "0x3cee6494bf400F8C24871dBD331B9436a9CfaBbb",
     LUNA: "0x9dc1D71fAeE18bF77C6166aBC8b218D3336919F1",
     LQTY: "0xC948BB323d753B37eA8195DeAFE904138Df11fbC",
-    
+
     // YEARN TOKENS
     yvDAI: "0xe5267045739E4d6FcA15BB4a79190012F146893b",
     yvUSDC: "0x980E4d8A22105c2a2fA2252B7685F32fc7564512",
