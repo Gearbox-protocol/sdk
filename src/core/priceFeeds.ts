@@ -394,12 +394,6 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
         curveSymbol: "FRAX3CRV"
       }
     },
-    yvCurve_d3pool: {
-      priceFeedUSD: {
-        type: OracleType.YEARN_CURVE_LP_ORACLE,
-        curveSymbol: "crvPlain3andSUSD"
-      }
-    },
 
     // CVX tokens
     cvx3Crv: {

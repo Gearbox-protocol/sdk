@@ -1,16 +1,29 @@
 import { NetworkType } from "./constants";
 
-export interface TokenData {
-  type: "volatile" | "stable" | "core" | "lp";
-  priority: number;
+enum TokenType {
+  CONNECTOR,
+  NORMAL_TOKEN,
+  CURVE_LP,
+  META_CURVE_LP,
+  YEARN_VAULT,
+  YEARN_VAULT_OF_CURVE_LP,
+  YEARN_VAULT_OF_META_CURVE_LP,
+  CONVEX_PHANTOM
 }
 
-enum Priority {
-  CONNECTOR = 0,
-  NORMAL_TOKEN,
-  CURVE_LP_OR_YEARN,
-  META_CURVE_LP_OR_YEARN_ON_CURVE,
-  CONVEX_OR_YEARN_ON_META_CURVE_LP
+export const priority = {
+  [TokenType.CONNECTOR]: 1,
+  [TokenType.NORMAL_TOKEN]: 2,
+  [TokenType.CURVE_LP]: 3,
+  [TokenType.YEARN_VAULT]: 3,
+  [TokenType.META_CURVE_LP]: 4,
+  [TokenType.YEARN_VAULT_OF_CURVE_LP]: 4,
+  [TokenType.CONVEX_PHANTOM]: 5,
+  [TokenType.YEARN_VAULT_OF_META_CURVE_LP]: 5
+};
+
+export interface TokenDataI {
+  type: TokenType;
 }
 
 export type SupportedTokens =
@@ -70,237 +83,192 @@ export type SupportedTokens =
   | "yvCurve_stETH"
   | "yvCurve_FRAX";
 
-export const supportedTokens: Record<SupportedTokens, TokenData> = {
+export const supportedTokens: Record<SupportedTokens, TokenDataI> = {
   "1INCH": {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   AAVE: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   COMP: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   CRV: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   DAI: {
-    type: "stable",
-    priority: Priority.CONNECTOR
+    type: TokenType.CONNECTOR
   },
 
   DPI: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   FEI: {
-    type: "stable",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   LINK: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   SNX: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   SUSHI: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   UNI: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   USDC: {
-    type: "stable",
-    priority: Priority.CONNECTOR
+    type: TokenType.CONNECTOR
   },
 
   USDT: {
-    type: "stable",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   WBTC: {
-    type: "core",
-    priority: Priority.CONNECTOR
+    type: TokenType.CONNECTOR
   },
 
   WETH: {
-    type: "core",
-    priority: Priority.CONNECTOR
+    type: TokenType.CONNECTOR
   },
 
   YFI: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   /// UPDATE
   STETH: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   FTM: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   CVX: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   FRAX: {
-    type: "stable",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   FXS: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   LDO: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   SPELL: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   LUSD: {
-    type: "stable",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   sUSD: {
-    type: "stable",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   GUSD: {
-    type: "stable",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   LUNA: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
   LQTY: {
-    type: "volatile",
-    priority: Priority.NORMAL_TOKEN
+    type: TokenType.NORMAL_TOKEN
   },
 
   // YEARN TOKENS
   yvDAI: {
-    type: "lp",
-    priority: Priority.CURVE_LP_OR_YEARN
+    type: TokenType.YEARN_VAULT
   },
 
   yvUSDC: {
-    type: "lp",
-    priority: Priority.CURVE_LP_OR_YEARN
+    type: TokenType.YEARN_VAULT
   },
 
   yvWETH: {
-    type: "lp",
-    priority: Priority.CURVE_LP_OR_YEARN
+    type: TokenType.YEARN_VAULT
   },
 
   yvWBTC: {
-    type: "lp",
-    priority: Priority.CURVE_LP_OR_YEARN
+    type: TokenType.YEARN_VAULT
   },
 
   // CURVE LP TOKENS
 
   "3Crv": {
-    type: "lp",
-    priority: Priority.CURVE_LP_OR_YEARN
+    type: TokenType.CURVE_LP
   },
 
   steCRV: {
-    type: "lp",
-    priority: Priority.CURVE_LP_OR_YEARN
+    type: TokenType.CURVE_LP
   },
 
   crvPlain3andSUSD: {
-    type: "lp",
-    priority: Priority.CURVE_LP_OR_YEARN
+    type: TokenType.CURVE_LP
   },
 
   //  META CURVE LP TOKENS
 
   FRAX3CRV: {
-    type: "lp",
-    priority: Priority.META_CURVE_LP_OR_YEARN_ON_CURVE
+    type: TokenType.META_CURVE_LP
   },
 
   LUSD3CRV: {
-    type: "lp",
-    priority: Priority.META_CURVE_LP_OR_YEARN_ON_CURVE
+    type: TokenType.META_CURVE_LP
   },
 
   gusd3CRV: {
-    type: "lp",
-    priority: Priority.META_CURVE_LP_OR_YEARN_ON_CURVE
+    type: TokenType.META_CURVE_LP
   },
 
   // CONVEX LP TOKENS
 
   cvx3Crv: {
-    type: "lp",
-    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
+    type: TokenType.CONVEX_PHANTOM
   },
 
   cvxsteCRV: {
-    type: "lp",
-    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
+    type: TokenType.CONVEX_PHANTOM
   },
 
   cvxFRAX3CRV: {
-    type: "lp",
-    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
+    type: TokenType.CONVEX_PHANTOM
   },
 
   cvxcrvPlain3andSUSD: {
-    type: "lp",
-    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
+    type: TokenType.CONVEX_PHANTOM
   },
 
   cvxgusd3CRV: {
-    type: "lp",
-    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
+    type: TokenType.CONVEX_PHANTOM
   },
 
   // YEARN- CURVE TOKENS
   yvCurve_stETH: {
-    type: "lp",
-    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
+    type: TokenType.YEARN_VAULT_OF_CURVE_LP
   },
   yvCurve_FRAX: {
-    type: "lp",
-    priority: Priority.CONVEX_OR_YEARN_ON_META_CURVE_LP
+    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP
   }
 };
 
@@ -365,8 +333,7 @@ export const tokenDataByNetwork: Record<
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
-    yvCurve_FRAX: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
-    yvCurve_d3pool: "0x16825039dfe2a5b01F3E1E6a2BBF9a576c6F95c4"
+    yvCurve_FRAX: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139"
   },
 
   //
@@ -428,7 +395,6 @@ export const tokenDataByNetwork: Record<
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdDc2FA328321573Bc2647C0135D75012c522CDAC",
-    yvCurve_FRAX: "",
-    yvCurve_d3pool: ""
+    yvCurve_FRAX: ""
   }
 };
