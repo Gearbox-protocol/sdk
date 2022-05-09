@@ -1,197 +1,276 @@
 import { NetworkType } from "./constants";
 
-export const supportedTokens = {
+enum TokenType {
+  CONNECTOR,
+  NORMAL_TOKEN,
+  CURVE_LP,
+  META_CURVE_LP,
+  YEARN_VAULT,
+  YEARN_VAULT_OF_CURVE_LP,
+  YEARN_VAULT_OF_META_CURVE_LP,
+  CONVEX_PHANTOM
+}
+
+export const priority = {
+  [TokenType.CONNECTOR]: 1,
+  [TokenType.NORMAL_TOKEN]: 2,
+  [TokenType.CURVE_LP]: 3,
+  [TokenType.YEARN_VAULT]: 3,
+  [TokenType.META_CURVE_LP]: 4,
+  [TokenType.YEARN_VAULT_OF_CURVE_LP]: 4,
+  [TokenType.CONVEX_PHANTOM]: 5,
+  [TokenType.YEARN_VAULT_OF_META_CURVE_LP]: 5
+};
+
+export interface TokenDataI {
+  type: TokenType;
+}
+
+export type SupportedTokens =
+  | "1INCH"
+  | "AAVE"
+  | "COMP"
+  | "CRV"
+  | "DAI"
+  | "DPI"
+  | "FEI"
+  | "LINK"
+  | "SNX"
+  | "SUSHI"
+  | "UNI"
+  | "USDC"
+  | "USDT"
+  | "WBTC"
+  | "WETH"
+  | "YFI"
+
+  // NEW TOKENS
+  | "STETH"
+  | "FTM"
+  | "CVX"
+  | "FRAX"
+  | "FXS"
+  | "LDO"
+  | "SPELL"
+  | "LUSD"
+  | "sUSD"
+  | "GUSD"
+  | "LUNA"
+  | "LQTY"
+
+  // YEARN
+  | "yvDAI"
+  | "yvUSDC"
+  | "yvWETH"
+  | "yvWBTC"
+
+  // CURVE LP TOKENS
+  | "3Crv"
+  | "steCRV"
+  | "FRAX3CRV"
+  | "LUSD3CRV"
+  | "crvPlain3andSUSD"
+  | "gusd3CRV"
+
+  // CONVEX LP TOKENS
+  | "cvx3Crv"
+  | "cvxsteCRV"
+  | "cvxFRAX3CRV"
+  | "cvxcrvPlain3andSUSD"
+  | "cvxgusd3CRV"
+
+  // YEARN- CURVE TOKENS
+  | "yvCurve_stETH"
+  | "yvCurve_FRAX";
+
+export const supportedTokens: Record<SupportedTokens, TokenDataI> = {
   "1INCH": {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   AAVE: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   COMP: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   CRV: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   DAI: {
-    type: "stable"
+    type: TokenType.CONNECTOR
   },
 
   DPI: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   FEI: {
-    type: "stable"
+    type: TokenType.NORMAL_TOKEN
   },
 
   LINK: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   SNX: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   SUSHI: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   UNI: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   USDC: {
-    type: "stable"
+    type: TokenType.CONNECTOR
   },
 
   USDT: {
-    type: "stable"
+    type: TokenType.NORMAL_TOKEN
   },
 
   WBTC: {
-    type: "core"
+    type: TokenType.CONNECTOR
   },
 
   WETH: {
-    type: "core"
+    type: TokenType.CONNECTOR
   },
 
   YFI: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   /// UPDATE
   STETH: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   FTM: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   CVX: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   FRAX: {
-    type: "stable"
+    type: TokenType.NORMAL_TOKEN
   },
 
   FXS: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   LDO: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   SPELL: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   LUSD: {
-    type: "stable"
+    type: TokenType.NORMAL_TOKEN
   },
 
   sUSD: {
-    type: "stable"
+    type: TokenType.NORMAL_TOKEN
   },
 
   GUSD: {
-    type: "stable"
+    type: TokenType.NORMAL_TOKEN
   },
 
   LUNA: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
   LQTY: {
-    type: "volatile"
+    type: TokenType.NORMAL_TOKEN
   },
 
   // YEARN TOKENS
   yvDAI: {
-    type: "lp"
+    type: TokenType.YEARN_VAULT
   },
 
   yvUSDC: {
-    type: "lp"
+    type: TokenType.YEARN_VAULT
   },
 
   yvWETH: {
-    type: "lp"
+    type: TokenType.YEARN_VAULT
   },
 
   yvWBTC: {
-    type: "lp"
+    type: TokenType.YEARN_VAULT
   },
 
   // CURVE LP TOKENS
 
   "3Crv": {
-    type: "lp"
+    type: TokenType.CURVE_LP
   },
 
   steCRV: {
-    type: "lp"
-  },
-
-  FRAX3CRV: {
-    type: "lp"
-  },
-
-  LUSD3CRV: {
-    type: "lp"
+    type: TokenType.CURVE_LP
   },
 
   crvPlain3andSUSD: {
-    type: "lp"
+    type: TokenType.CURVE_LP
+  },
+
+  //  META CURVE LP TOKENS
+
+  FRAX3CRV: {
+    type: TokenType.META_CURVE_LP
+  },
+
+  LUSD3CRV: {
+    type: TokenType.META_CURVE_LP
   },
 
   gusd3CRV: {
-    type: "lp"
+    type: TokenType.META_CURVE_LP
   },
 
   // CONVEX LP TOKENS
 
   cvx3Crv: {
-    type: "lp"
+    type: TokenType.CONVEX_PHANTOM
   },
 
   cvxsteCRV: {
-    type: "lp"
+    type: TokenType.CONVEX_PHANTOM
   },
 
   cvxFRAX3CRV: {
-    type: "lp"
+    type: TokenType.CONVEX_PHANTOM
   },
 
   cvxcrvPlain3andSUSD: {
-    type: "lp"
+    type: TokenType.CONVEX_PHANTOM
   },
 
   cvxgusd3CRV: {
-    type: "lp"
+    type: TokenType.CONVEX_PHANTOM
   },
 
   // YEARN- CURVE TOKENS
   yvCurve_stETH: {
-    type: "lp"
+    type: TokenType.YEARN_VAULT_OF_CURVE_LP
   },
   yvCurve_FRAX: {
-    type: "lp"
-  },
-
-  yvCurve_d3pool: {
-    type: "lp"
+    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP
   }
 };
-
-export type SupportedTokens = keyof typeof supportedTokens;
 
 export const tokenDataByNetwork: Record<
   NetworkType,
@@ -199,9 +278,6 @@ export const tokenDataByNetwork: Record<
 > = {
   //
   // MAINNET NETWORK
-  // 1INCH  ETH  AAVE  BADGER  BAL  BTC  COMP  CREAM  CRV
-  // DAI  DPI  GRT  LINK  SNX  SRM  SUSHI  UNI USDC
-  // USDT  YFI  ZRX
   Mainnet: {
     "1INCH": "0x111111111117dc0aa78b770fa6a738034120c302",
     AAVE: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
@@ -257,8 +333,7 @@ export const tokenDataByNetwork: Record<
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
-    yvCurve_FRAX: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
-    yvCurve_d3pool: "0x16825039dfe2a5b01F3E1E6a2BBF9a576c6F95c4"
+    yvCurve_FRAX: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139"
   },
 
   //
@@ -296,7 +371,7 @@ export const tokenDataByNetwork: Record<
     GUSD: "0x3cee6494bf400F8C24871dBD331B9436a9CfaBbb",
     LUNA: "0x9dc1D71fAeE18bF77C6166aBC8b218D3336919F1",
     LQTY: "0xC948BB323d753B37eA8195DeAFE904138Df11fbC",
-    
+
     // YEARN TOKENS
     yvDAI: "0xe5267045739E4d6FcA15BB4a79190012F146893b",
     yvUSDC: "0x980E4d8A22105c2a2fA2252B7685F32fc7564512",
@@ -320,7 +395,6 @@ export const tokenDataByNetwork: Record<
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdDc2FA328321573Bc2647C0135D75012c522CDAC",
-    yvCurve_FRAX: "",
-    yvCurve_d3pool: ""
+    yvCurve_FRAX: ""
   }
 };
