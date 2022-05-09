@@ -30,6 +30,12 @@ export interface PathAsset {
 export class ConnectorPathAsset implements PathAsset {
   getBestPath(p: Path): Promise<Path> {
     console.log(p);
+    // How to unwrap 
+    // set balance of current token to 0
+    // add balnace what we get 
+    // add call
+    // create new Paths
+    // return maxValuable(new Paths.getBestPath())
     throw new Error("Method not implemented.");
   }
 }
