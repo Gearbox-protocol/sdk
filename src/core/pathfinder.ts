@@ -12,6 +12,15 @@ export interface Path {
   creditManager: CreditManagerData;
 
   getBestPath(p: Path): Promise<Path>;
+  // Get balances and keep non-zero only
+  // Find token with highest priority
+  // Get token type of this token
+  // switch (type) {
+  //  case TokenType.YearnValut:
+  //     const assetPathClass = new YearnVaultPathAsset(tokenData);
+  //     return assetPathClass.getBestPath(this);
+  //     ...
+  //}
 }
 
 export interface PathAsset {
