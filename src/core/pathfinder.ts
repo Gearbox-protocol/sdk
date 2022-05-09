@@ -11,7 +11,7 @@ export interface Path {
   pool: SupportedTokens;
   creditManager: CreditManagerData;
 
-  getBestPath(p: Path): Promise<Path>;
+  getBestPath(): Promise<Path>;
   // Get balances and keep non-zero only
   // Find token with highest priority
   // Get token type of this token
