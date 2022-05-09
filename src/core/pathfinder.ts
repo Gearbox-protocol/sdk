@@ -6,7 +6,7 @@ import { SupportedTokens } from "./token";
 export interface Path {
   calls: Array<MultiCall>;
   balances: Record<SupportedTokens, BigNumber>;
-  usedTokens: Array<SupportedTokens>;
+//   usedTokens: Array<SupportedTokens>;
   gasUsed: number;
   pool: SupportedTokens;
   creditManager: CreditManagerData;

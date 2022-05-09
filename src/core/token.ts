@@ -22,9 +22,31 @@ export const priority = {
   [TokenType.YEARN_VAULT_OF_META_CURVE_LP]: 5
 };
 
-export interface TokenDataI {
-  type: TokenType;
-}
+export type TokenDataI =
+  | {
+      type: TokenType.CONNECTOR;
+    }
+  | {
+      type: TokenType.NORMAL_TOKEN;
+    }
+  | {
+      type: TokenType.CURVE_LP;
+    }
+  | {
+      type: TokenType.YEARN_VAULT;
+    }
+  | {
+      type: TokenType.META_CURVE_LP;
+    }
+  | {
+      type: TokenType.YEARN_VAULT_OF_CURVE_LP;
+    }
+  | {
+      type: TokenType.CONVEX_PHANTOM;
+    }
+  | {
+      type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
+    };
 
 export type SupportedTokens =
   | "1INCH"
