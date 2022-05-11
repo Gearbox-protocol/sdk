@@ -2,12 +2,18 @@ import { BigNumber } from "ethers";
 import { CreditManagerData } from "./creditManager";
 import { MultiCall } from "./multicall";
 import { SupportedTokens } from "./token";
-export interface Path {
-    calls: Array<MultiCall>;
-    balances: Record<SupportedTokens, BigNumber>;
-    gasUsed: number;
-    pool: SupportedTokens;
-    creditManager: CreditManagerData;
+export declare class Path {
+    readonly calls: Array<MultiCall>;
+    readonly balances: Record<SupportedTokens, BigNumber>;
+    protected _gasUsed: number;
+    readonly pool: SupportedTokens;
+    readonly creditManager: CreditManagerData;
+    constructor(opts: {
+        gasUsed: number;
+        balances: Record<SupportedTokens, BigNumber>;
+        pool: SupportedTokens;
+        creditManager: CreditManagerData;
+    });
     getBestPath(): Promise<Path>;
 }
 export interface PathAsset {

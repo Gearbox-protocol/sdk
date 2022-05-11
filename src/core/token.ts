@@ -36,6 +36,7 @@ export type TokenDataI =
     }
   | {
       type: TokenType.YEARN_VAULT;
+      underlying: SupportedTokens,
     }
   | {
       type: TokenType.META_CURVE_LP;
@@ -222,19 +223,23 @@ export const supportedTokens: Record<SupportedTokens, TokenDataI> = {
 
   // YEARN TOKENS
   yvDAI: {
-    type: TokenType.YEARN_VAULT
+    type: TokenType.YEARN_VAULT,
+    underlying: "DAI",
   },
 
   yvUSDC: {
-    type: TokenType.YEARN_VAULT
+    type: TokenType.YEARN_VAULT,
+    underlying: "USDC"
   },
 
   yvWETH: {
-    type: TokenType.YEARN_VAULT
+    type: TokenType.YEARN_VAULT,
+    underlying: "WETH",
   },
 
   yvWBTC: {
-    type: TokenType.YEARN_VAULT
+    type: TokenType.YEARN_VAULT,
+    underlying: "WBTC"
   },
 
   // CURVE LP TOKENS

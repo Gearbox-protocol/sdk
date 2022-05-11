@@ -19,6 +19,7 @@ export declare type TokenDataI = {
     type: TokenType.CURVE_LP;
 } | {
     type: TokenType.YEARN_VAULT;
+    underlying: SupportedTokens;
 } | {
     type: TokenType.META_CURVE_LP;
 } | {
