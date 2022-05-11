@@ -5,11 +5,10 @@ import { SupportedTokens } from "./token";
 export interface Path {
     calls: Array<MultiCall>;
     balances: Record<SupportedTokens, BigNumber>;
-    usedTokens: Array<SupportedTokens>;
     gasUsed: number;
     pool: SupportedTokens;
     creditManager: CreditManagerData;
-    getBestPath(p: Path): Promise<Path>;
+    getBestPath(): Promise<Path>;
 }
 export interface PathAsset {
     getBestPath(p: Path): Promise<Path>;
