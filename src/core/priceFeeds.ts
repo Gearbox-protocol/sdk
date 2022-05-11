@@ -278,6 +278,9 @@ export const priceFeedsByNetwork: Record<SupportedTokens, TokenPriceFeedData> =
         type: OracleType.CHAINLINK_ORACLE,
         address: "0x4e844125952d32acdf339be976c98e22f6f318db",
         kovan: "0x6204148EF888786A2988E7b09c8e0A67e32cb387"
+      },
+      priceFeedUSD: {
+        type: OracleType.ZERO_ORACLE
       }
 
       // ADD ETH-> DAI Oracle!
