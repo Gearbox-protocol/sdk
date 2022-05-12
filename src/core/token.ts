@@ -8,18 +8,20 @@ enum TokenType {
   YEARN_VAULT,
   YEARN_VAULT_OF_CURVE_LP,
   YEARN_VAULT_OF_META_CURVE_LP,
-  CONVEX_PHANTOM
+  CONVEX_LP_TOKEN,
+  CONVEX_STAKED_PHANTOM_TOKEN,
 }
 
-export const priority = {
+export const priority : Record<TokenType, number> = {
   [TokenType.CONNECTOR]: 1,
   [TokenType.NORMAL_TOKEN]: 2,
   [TokenType.CURVE_LP]: 3,
   [TokenType.YEARN_VAULT]: 3,
   [TokenType.META_CURVE_LP]: 4,
   [TokenType.YEARN_VAULT_OF_CURVE_LP]: 4,
-  [TokenType.CONVEX_PHANTOM]: 5,
-  [TokenType.YEARN_VAULT_OF_META_CURVE_LP]: 5
+  [TokenType.CONVEX_LP_TOKEN]: 5,
+  [TokenType.YEARN_VAULT_OF_META_CURVE_LP]: 5,
+  [TokenType.CONVEX_STAKED_PHANTOM_TOKEN]: 5
 };
 
 export type TokenDataI =
@@ -34,6 +36,7 @@ export type TokenDataI =
     }
   | {
       type: TokenType.YEARN_VAULT;
+      underlying: SupportedTokens,
     }
   | {
       type: TokenType.META_CURVE_LP;
@@ -42,7 +45,7 @@ export type TokenDataI =
       type: TokenType.YEARN_VAULT_OF_CURVE_LP;
     }
   | {
-      type: TokenType.CONVEX_PHANTOM;
+      type: TokenType.CONVEX_LP_TOKEN;
     }
   | {
       type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
@@ -220,19 +223,23 @@ export const supportedTokens: Record<SupportedTokens, TokenDataI> = {
 
   // YEARN TOKENS
   yvDAI: {
-    type: TokenType.YEARN_VAULT
+    type: TokenType.YEARN_VAULT,
+    underlying: "DAI",
   },
 
   yvUSDC: {
-    type: TokenType.YEARN_VAULT
+    type: TokenType.YEARN_VAULT,
+    underlying: "USDC"
   },
 
   yvWETH: {
-    type: TokenType.YEARN_VAULT
+    type: TokenType.YEARN_VAULT,
+    underlying: "WETH",
   },
 
   yvWBTC: {
-    type: TokenType.YEARN_VAULT
+    type: TokenType.YEARN_VAULT,
+    underlying: "WBTC"
   },
 
   // CURVE LP TOKENS
@@ -266,23 +273,23 @@ export const supportedTokens: Record<SupportedTokens, TokenDataI> = {
   // CONVEX LP TOKENS
 
   cvx3Crv: {
-    type: TokenType.CONVEX_PHANTOM
+    type: TokenType.CONVEX_LP_TOKEN
   },
 
   cvxsteCRV: {
-    type: TokenType.CONVEX_PHANTOM
+    type: TokenType.CONVEX_LP_TOKEN
   },
 
   cvxFRAX3CRV: {
-    type: TokenType.CONVEX_PHANTOM
+    type: TokenType.CONVEX_LP_TOKEN
   },
 
   cvxcrvPlain3andSUSD: {
-    type: TokenType.CONVEX_PHANTOM
+    type: TokenType.CONVEX_LP_TOKEN
   },
 
   cvxgusd3CRV: {
-    type: TokenType.CONVEX_PHANTOM
+    type: TokenType.CONVEX_LP_TOKEN
   },
 
   // YEARN- CURVE TOKENS
@@ -352,6 +359,9 @@ export const tokenDataByNetwork: Record<
     cvxFRAX3CRV: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
     cvxcrvPlain3andSUSD: "0x11D200ef1409cecA8D6d23e6496550f707772F11",
     cvxgusd3CRV: "0x15c2471ef46Fa721990730cfa526BcFb45574576",
+
+    // CONVEX PHANTOM TOKEN ADDRESSES
+    // <Provide them here>
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",

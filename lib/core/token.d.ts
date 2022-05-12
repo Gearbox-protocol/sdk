@@ -7,18 +7,10 @@ declare enum TokenType {
     YEARN_VAULT = 4,
     YEARN_VAULT_OF_CURVE_LP = 5,
     YEARN_VAULT_OF_META_CURVE_LP = 6,
-    CONVEX_PHANTOM = 7
+    CONVEX_LP_TOKEN = 7,
+    CONVEX_STAKED_PHANTOM_TOKEN = 8
 }
-export declare const priority: {
-    0: number;
-    1: number;
-    2: number;
-    4: number;
-    3: number;
-    5: number;
-    7: number;
-    6: number;
-};
+export declare const priority: Record<TokenType, number>;
 export declare type TokenDataI = {
     type: TokenType.CONNECTOR;
 } | {
@@ -27,12 +19,13 @@ export declare type TokenDataI = {
     type: TokenType.CURVE_LP;
 } | {
     type: TokenType.YEARN_VAULT;
+    underlying: SupportedTokens;
 } | {
     type: TokenType.META_CURVE_LP;
 } | {
     type: TokenType.YEARN_VAULT_OF_CURVE_LP;
 } | {
-    type: TokenType.CONVEX_PHANTOM;
+    type: TokenType.CONVEX_LP_TOKEN;
 } | {
     type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
 };
