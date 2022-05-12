@@ -1,6 +1,6 @@
 {
   "name": "@gearbox-protocol/sdk",
-  "version": "0.0.39",
+  "version": "0.0.41",
   "description": "Gearbox SDK",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -21,7 +21,7 @@
     "@types/node": "^14.0.23",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
-    "ethers": "^5.4.5",
+    "ethers": "^5.6.5",
     "jest": "^26.1.0",
     "prettier": "^2.3.0",
     "ts-node": "^10.1.0",
