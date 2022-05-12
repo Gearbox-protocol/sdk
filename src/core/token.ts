@@ -1,4 +1,5 @@
 import { NetworkType } from "./constants";
+import { ConvexPoolContract } from "./contracts";
 
 enum TokenType {
   CONNECTOR,
@@ -9,10 +10,10 @@ enum TokenType {
   YEARN_VAULT_OF_CURVE_LP,
   YEARN_VAULT_OF_META_CURVE_LP,
   CONVEX_LP_TOKEN,
-  CONVEX_STAKED_PHANTOM_TOKEN,
+  CONVEX_STAKED_PHANTOM_TOKEN
 }
 
-export const priority : Record<TokenType, number> = {
+export const priority: Record<TokenType, number> = {
   [TokenType.CONNECTOR]: 1,
   [TokenType.NORMAL_TOKEN]: 2,
   [TokenType.CURVE_LP]: 3,
@@ -24,34 +25,7 @@ export const priority : Record<TokenType, number> = {
   [TokenType.CONVEX_STAKED_PHANTOM_TOKEN]: 5
 };
 
-export type TokenDataI =
-  | {
-      type: TokenType.CONNECTOR;
-    }
-  | {
-      type: TokenType.NORMAL_TOKEN;
-    }
-  | {
-      type: TokenType.CURVE_LP;
-    }
-  | {
-      type: TokenType.YEARN_VAULT;
-      underlying: SupportedTokens,
-    }
-  | {
-      type: TokenType.META_CURVE_LP;
-    }
-  | {
-      type: TokenType.YEARN_VAULT_OF_CURVE_LP;
-    }
-  | {
-      type: TokenType.CONVEX_LP_TOKEN;
-    }
-  | {
-      type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
-    };
-
-export type SupportedTokens =
+export type NormalToken =
   | "1INCH"
   | "AAVE"
   | "COMP"
@@ -81,229 +55,384 @@ export type SupportedTokens =
   | "sUSD"
   | "GUSD"
   | "LUNA"
-  | "LQTY"
+  | "LQTY";
 
-  // YEARN
-  | "yvDAI"
-  | "yvUSDC"
-  | "yvWETH"
-  | "yvWBTC"
-
-  // CURVE LP TOKENS
+export type CurveLPToken =
   | "3Crv"
   | "steCRV"
   | "FRAX3CRV"
   | "LUSD3CRV"
   | "crvPlain3andSUSD"
-  | "gusd3CRV"
+  | "gusd3CRV";
 
-  // CONVEX LP TOKENS
+export type YearnLPToken =
+  | "yvDAI"
+  | "yvUSDC"
+  | "yvWETH"
+  | "yvWBTC"
+  | "yvCurve_stETH"
+  | "yvCurve_FRAX";
+
+export type ConvexLPToken =
   | "cvx3Crv"
   | "cvxsteCRV"
   | "cvxFRAX3CRV"
   | "cvxcrvPlain3andSUSD"
-  | "cvxgusd3CRV"
+  | "cvxgusd3CRV";
 
-  // YEARN- CURVE TOKENS
-  | "yvCurve_stETH"
-  | "yvCurve_FRAX";
+export type ConvexStakedPhantomToken =
+  | "stkcvx3Crv"
+  | "stkcvxsteCRV"
+  | "stkcvxFRAX3CRV"
+  | "stkcvxcrvPlain3andSUSD"
+  | "stkcvxgusd3CRV";
 
-export const supportedTokens: Record<SupportedTokens, TokenDataI> = {
+export type SupportedToken =
+  | NormalToken
+  | YearnLPToken
+  | CurveLPToken
+  | ConvexLPToken
+  | ConvexStakedPhantomToken;
+
+export type TokenDataI =
+  | {
+      symbol: NormalToken;
+      type: TokenType.CONNECTOR;
+    }
+  | {
+      symbol: NormalToken;
+      type: TokenType.NORMAL_TOKEN;
+    }
+  | {
+      symbol: CurveLPToken;
+      type: TokenType.CURVE_LP;
+    }
+  | {
+      symbol: YearnLPToken;
+      type: TokenType.YEARN_VAULT;
+      underlying: NormalToken;
+    }
+  | {
+      symbol: CurveLPToken;
+      type: TokenType.META_CURVE_LP;
+    }
+  | {
+      symbol: YearnLPToken;
+      type: TokenType.YEARN_VAULT_OF_CURVE_LP;
+      underlying: CurveLPToken;
+    }
+  | {
+      symbol: YearnLPToken;
+      type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
+      underlying: CurveLPToken;
+    }
+  | {
+      symbol: ConvexLPToken;
+      type: TokenType.CONVEX_LP_TOKEN;
+      pool: ConvexPoolContract;
+      underlying: CurveLPToken;
+      stakedToken: ConvexStakedPhantomToken;
+    }
+  | {
+      symbol: ConvexStakedPhantomToken;
+      type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN;
+      pool: ConvexPoolContract;
+      underlying: CurveLPToken;
+      lpToken: ConvexLPToken;
+    };
+
+export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   "1INCH": {
+    symbol: "1INCH",
     type: TokenType.NORMAL_TOKEN
   },
 
   AAVE: {
+    symbol: "AAVE",
     type: TokenType.NORMAL_TOKEN
   },
 
   COMP: {
+    symbol: "COMP",
     type: TokenType.NORMAL_TOKEN
   },
 
   CRV: {
+    symbol: "CRV",
     type: TokenType.NORMAL_TOKEN
   },
 
   DAI: {
+    symbol: "DAI",
     type: TokenType.CONNECTOR
   },
 
   DPI: {
+    symbol: "DPI",
     type: TokenType.NORMAL_TOKEN
   },
 
   FEI: {
+    symbol: "FEI",
     type: TokenType.NORMAL_TOKEN
   },
 
   LINK: {
+    symbol: "LINK",
     type: TokenType.NORMAL_TOKEN
   },
 
   SNX: {
+    symbol: "SNX",
     type: TokenType.NORMAL_TOKEN
   },
 
   SUSHI: {
+    symbol: "SUSHI",
     type: TokenType.NORMAL_TOKEN
   },
 
   UNI: {
+    symbol: "UNI",
     type: TokenType.NORMAL_TOKEN
   },
 
   USDC: {
+    symbol: "USDC",
     type: TokenType.CONNECTOR
   },
 
   USDT: {
+    symbol: "USDT",
     type: TokenType.NORMAL_TOKEN
   },
 
   WBTC: {
+    symbol: "WBTC",
     type: TokenType.CONNECTOR
   },
 
   WETH: {
+    symbol: "WETH",
     type: TokenType.CONNECTOR
   },
 
   YFI: {
+    symbol: "YFI",
     type: TokenType.NORMAL_TOKEN
   },
 
   /// UPDATE
   STETH: {
+    symbol: "STETH",
     type: TokenType.NORMAL_TOKEN
   },
 
   FTM: {
+    symbol: "FTM",
     type: TokenType.NORMAL_TOKEN
   },
 
   CVX: {
+    symbol: "CVX",
     type: TokenType.NORMAL_TOKEN
   },
 
   FRAX: {
+    symbol: "FRAX",
     type: TokenType.NORMAL_TOKEN
   },
 
   FXS: {
+    symbol: "FXS",
     type: TokenType.NORMAL_TOKEN
   },
 
   LDO: {
+    symbol: "LDO",
     type: TokenType.NORMAL_TOKEN
   },
 
   SPELL: {
+    symbol: "SPELL",
     type: TokenType.NORMAL_TOKEN
   },
 
   LUSD: {
+    symbol: "LUSD",
     type: TokenType.NORMAL_TOKEN
   },
 
   sUSD: {
+    symbol: "sUSD",
     type: TokenType.NORMAL_TOKEN
   },
 
   GUSD: {
+    symbol: "GUSD",
     type: TokenType.NORMAL_TOKEN
   },
 
   LUNA: {
+    symbol: "LUNA",
     type: TokenType.NORMAL_TOKEN
   },
   LQTY: {
+    symbol: "LQTY",
     type: TokenType.NORMAL_TOKEN
   },
 
   // YEARN TOKENS
   yvDAI: {
+    symbol: "yvDAI",
     type: TokenType.YEARN_VAULT,
-    underlying: "DAI",
+    underlying: "DAI"
   },
 
   yvUSDC: {
+    symbol: "yvUSDC",
     type: TokenType.YEARN_VAULT,
     underlying: "USDC"
   },
 
   yvWETH: {
+    symbol: "yvWETH",
     type: TokenType.YEARN_VAULT,
-    underlying: "WETH",
+    underlying: "WETH"
   },
 
   yvWBTC: {
+    symbol: "yvWBTC",
     type: TokenType.YEARN_VAULT,
     underlying: "WBTC"
   },
 
   // CURVE LP TOKENS
-
   "3Crv": {
-    type: TokenType.CURVE_LP
+    symbol: "3Crv",
+    type: TokenType.CURVE_LP,
   },
 
   steCRV: {
+    symbol: "steCRV",
     type: TokenType.CURVE_LP
   },
 
   crvPlain3andSUSD: {
+    symbol: "crvPlain3andSUSD",
     type: TokenType.CURVE_LP
   },
 
   //  META CURVE LP TOKENS
-
   FRAX3CRV: {
+    symbol: "FRAX3CRV",
     type: TokenType.META_CURVE_LP
   },
 
   LUSD3CRV: {
+    symbol: "LUSD3CRV",
     type: TokenType.META_CURVE_LP
   },
 
   gusd3CRV: {
+    symbol: "gusd3CRV",
     type: TokenType.META_CURVE_LP
   },
 
   // CONVEX LP TOKENS
-
   cvx3Crv: {
-    type: TokenType.CONVEX_LP_TOKEN
+    symbol: "cvx3Crv",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_3CRV",
+    underlying: "3Crv",
+    stakedToken: "stkcvx3Crv",
   },
 
   cvxsteCRV: {
-    type: TokenType.CONVEX_LP_TOKEN
+    symbol: "cvxsteCRV",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_STECRV",
+    underlying: "steCRV",
+    stakedToken: "stkcvxsteCRV",
   },
 
   cvxFRAX3CRV: {
-    type: TokenType.CONVEX_LP_TOKEN
+    symbol: "cvxFRAX3CRV",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_FRAX3CRV",
+    underlying: "FRAX3CRV",
+    stakedToken: "stkcvxFRAX3CRV",
   },
 
   cvxcrvPlain3andSUSD: {
-    type: TokenType.CONVEX_LP_TOKEN
+    symbol: "cvxcrvPlain3andSUSD",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_SUSD",
+    underlying: "crvPlain3andSUSD",
+    stakedToken: "stkcvxcrvPlain3andSUSD",
   },
 
   cvxgusd3CRV: {
-    type: TokenType.CONVEX_LP_TOKEN
+    symbol: "cvxgusd3CRV",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_GUSD",
+    underlying: "gusd3CRV",
+    stakedToken: "stkcvxgusd3CRV"
   },
 
   // YEARN- CURVE TOKENS
   yvCurve_stETH: {
-    type: TokenType.YEARN_VAULT_OF_CURVE_LP
+    symbol: "yvCurve_stETH",
+    type: TokenType.YEARN_VAULT_OF_CURVE_LP,
+    underlying: "steCRV"
   },
   yvCurve_FRAX: {
-    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP
+    symbol: "yvCurve_FRAX",
+    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP,
+    underlying: "FRAX3CRV"
+  },
+
+  // STAKED CONVEX
+  stkcvx3Crv: {
+    symbol: "stkcvx3Crv",
+    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    pool: "CONVEX_3CRV",
+    underlying: "3Crv",
+    lpToken: "cvx3Crv",
+  },
+  stkcvxsteCRV: {
+    symbol: "stkcvxsteCRV",
+    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    pool: "CONVEX_STECRV",
+    underlying: "steCRV",
+    lpToken: "cvxsteCRV",
+  },
+  stkcvxFRAX3CRV: {
+    symbol: "stkcvxFRAX3CRV",
+    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    pool: "CONVEX_FRAX3CRV",
+    underlying: "FRAX3CRV",
+    lpToken: "cvxFRAX3CRV",
+  },
+  stkcvxcrvPlain3andSUSD: {
+    symbol: "stkcvxcrvPlain3andSUSD",
+    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    pool: "CONVEX_SUSD",
+    underlying: "crvPlain3andSUSD",
+    lpToken: "cvxcrvPlain3andSUSD",
+  },
+  stkcvxgusd3CRV: {
+    symbol: "stkcvxgusd3CRV",
+    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    pool: "CONVEX_GUSD",
+    underlying: "gusd3CRV",
+    lpToken: "cvxgusd3CRV"
   }
 };
 
 export const tokenDataByNetwork: Record<
   NetworkType,
-  Record<SupportedTokens, string>
+  Record<SupportedToken, string>
 > = {
   //
   // MAINNET NETWORK
@@ -361,7 +490,11 @@ export const tokenDataByNetwork: Record<
     cvxgusd3CRV: "0x15c2471ef46Fa721990730cfa526BcFb45574576",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
-    // <Provide them here>
+    stkcvx3Crv: "",
+    stkcvxsteCRV: "",
+    stkcvxFRAX3CRV: "",
+    stkcvxcrvPlain3andSUSD: "",
+    stkcvxgusd3CRV: "",
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
@@ -424,6 +557,13 @@ export const tokenDataByNetwork: Record<
     cvxFRAX3CRV: "",
     cvxcrvPlain3andSUSD: "",
     cvxgusd3CRV: "",
+
+    // CONVEX PHANTOM TOKEN ADDRESSES
+    stkcvx3Crv: "",
+    stkcvxsteCRV: "",
+    stkcvxFRAX3CRV: "",
+    stkcvxcrvPlain3andSUSD: "",
+    stkcvxgusd3CRV: "",
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdDc2FA328321573Bc2647C0135D75012c522CDAC",

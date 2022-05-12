@@ -1,4 +1,4 @@
-import { SupportedTokens } from "./token";
+import { SupportedToken } from "./token";
 export interface PriceFeed {
     token: string;
     priceFeed: string;
@@ -17,20 +17,20 @@ export declare type PriceFeedData = {
     kovan?: string;
 } | {
     type: OracleType.YEARN_TOKEN_ORACLE;
-    token: SupportedTokens;
+    token: SupportedToken;
     deployed?: string;
     deployedKovan?: string;
 } | {
     type: OracleType.CURVE_LP_ORACLE;
-    assets: Array<SupportedTokens>;
+    assets: Array<SupportedToken>;
 } | {
     type: OracleType.YEARN_CURVE_LP_ORACLE;
-    curveSymbol: SupportedTokens;
+    curveSymbol: SupportedToken;
 } | {
     type: OracleType.ZERO_ORACLE;
 } | {
     type: OracleType.LIKE_CURVE_LP_ORACLE;
-    curveSymbol: SupportedTokens;
+    curveSymbol: SupportedToken;
 };
 export declare type TokenPriceFeedData = {
     priceFeedETH?: PriceFeedData;

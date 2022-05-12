@@ -1,17 +1,17 @@
 import { BigNumber } from "ethers";
 import { CreditManagerData } from "./creditManager";
 import { MultiCall } from "./multicall";
-import { SupportedTokens } from "./token";
+import { SupportedToken } from "./token";
 export declare class Path {
     readonly calls: Array<MultiCall>;
-    readonly balances: Record<SupportedTokens, BigNumber>;
+    readonly balances: Record<SupportedToken, BigNumber>;
     protected _gasUsed: number;
-    readonly pool: SupportedTokens;
+    readonly pool: SupportedToken;
     readonly creditManager: CreditManagerData;
     constructor(opts: {
         gasUsed: number;
-        balances: Record<SupportedTokens, BigNumber>;
-        pool: SupportedTokens;
+        balances: Record<SupportedToken, BigNumber>;
+        pool: SupportedToken;
         creditManager: CreditManagerData;
     });
     getBestPath(): Promise<Path>;

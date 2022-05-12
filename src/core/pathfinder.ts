@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { CreditManagerData } from "./creditManager";
 import { MultiCall } from "./multicall";
-import { SupportedTokens } from "./token";
+import { SupportedToken } from "./token";
 
 // const path = new Path({gasUsed:0, balances: creditAccount.balances, })
 // const closurePath = await path.getBestPath();
@@ -15,16 +15,16 @@ import { SupportedTokens } from "./token";
 
 export class Path {
   public readonly calls: Array<MultiCall> = [];
-  public readonly balances: Record<SupportedTokens, BigNumber>;
+  public readonly balances: Record<SupportedToken, BigNumber>;
   //   usedTokens: Array<SupportedTokens>;
   protected _gasUsed: number;
-  public readonly pool: SupportedTokens;
+  public readonly pool: SupportedToken;
   public readonly creditManager: CreditManagerData;
 
   constructor(opts: {
     gasUsed: number;
-    balances: Record<SupportedTokens, BigNumber>;
-    pool: SupportedTokens;
+    balances: Record<SupportedToken, BigNumber>;
+    pool: SupportedToken;
     creditManager: CreditManagerData;
   }) {
     this._gasUsed = opts.gasUsed;

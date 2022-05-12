@@ -1,11 +1,4 @@
-import {
-  CURVE_3POOL_ADDRESS, SUSHISWAP_KOVAN,
-  SUSHISWAP_MAINNET,
-  UNISWAP_V2_ROUTER,
-  UNISWAP_V3_ROUTER,
-  YEARN_DAI_ADDRESS, YEARN_DAI_KOVAN_MOCK,
-  YEARN_USDC_ADDRESS, YEARN_USDC_KOVAN_MOCK,
-} from "./contracts";
+
 
 export const deployedContracts: Record<string, string> = {
   // MAINNET
@@ -20,12 +13,12 @@ export const deployedContracts: Record<string, string> = {
 
 
 
-  [UNISWAP_V2_ROUTER]: "Uniswap V2",
-  [UNISWAP_V3_ROUTER]: "Uniswap V3",
-  [CURVE_3POOL_ADDRESS]: "Curve 3Pool",
-  [SUSHISWAP_MAINNET]: "Sushiswap",
-  [YEARN_DAI_ADDRESS]: "Yearn DAI",
-  [YEARN_USDC_ADDRESS]: "Yearn USDC",
+  // [UNISWAP_V2_ROUTER]: "Uniswap V2",
+  // [UNISWAP_V3_ROUTER]: "Uniswap V3",
+  // [CURVE_3POOL_ADDRESS]: "Curve 3Pool",
+  // [SUSHISWAP_MAINNET]: "Sushiswap",
+  // [YEARN_DAI_ADDRESS]: "Yearn DAI",
+  // [YEARN_USDC_ADDRESS]: "Yearn USDC",
 
   // KOVAN
   "0xc40B71BCcb749D91923654571f715Bf1FC464E66": "DAI",
@@ -36,9 +29,9 @@ export const deployedContracts: Record<string, string> = {
   "0x600073357c29d169aAF3E543A4519749830553F1": "WETH",
   "0xdBAd1361d9A03B81Be8D3a54Ef0dc9e39a1bA5b3": "USDC",
   "0x50d1fA47b0D88BA0D108148B8481b4A762eFB99e": "DAI",
-  [YEARN_DAI_KOVAN_MOCK]: "Yearn DAI",
-  [YEARN_USDC_KOVAN_MOCK]: "Yearn USDC",
-  [SUSHISWAP_KOVAN]: "Sushiswap"
+  // [YEARN_DAI_KOVAN_MOCK]: "Yearn DAI",
+  // [YEARN_USDC_KOVAN_MOCK]: "Yearn USDC",
+  // [SUSHISWAP_KOVAN]: "Sushiswap"
 };
 
 

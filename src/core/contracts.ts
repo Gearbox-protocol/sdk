@@ -4,19 +4,35 @@
  * (c) Gearbox.fi, 2021
  */
 
+import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
-import { tokenDataByNetwork } from "./token";
+import { Protocols } from "./protocols";
+import {
+  CurveLPToken,
+  NormalToken,
+  tokenDataByNetwork
+} from "./token";
 
-export type SupportedContracts =
+export type CurvePoolContract =  | "CURVE_3POOL"
+| "CURVE_STETH_GATEWAY"
+| "CURVE_FRAX"
+| "CURVE_LUSD"
+| "CURVE_GUSD"
+| "CURVE_SUSD"
+
+
+export type ConvexPoolContract =   
+| "CONVEX_3CRV"
+| "CONVEX_GUSD"
+| "CONVEX_SUSD"
+| "CONVEX_STECRV"
+| "CONVEX_FRAX3CRV"
+
+export type SupportedContract =
   | "UNISWAP_V2_ROUTER"
   | "UNISWAP_V3_ROUTER"
   | "SUSHISWAP_ROUTER"
-  | "CURVE_3POOL"
-  | "CURVE_STETH"
-  | "CURVE_FRAX"
-  | "CURVE_LUSD"
-  | "CURVE_GUSD"
-  | "CURVE_SUSD"
+  | CurvePoolContract
   | "YEARN_DAI"
   | "YEARN_USDC"
   | "YEARN_WETH"
@@ -24,17 +40,13 @@ export type SupportedContracts =
   | "YEARN_CURVE_FRAX"
   | "YEARN_CURVE_STETH"
   | "CONVEX_BOOSTER"
-  | "CONVEX_3CRV"
-  | "CONVEX_GUSD"
-  | "CONVEX_SUSD"
-  | "CONVEX_STECRV"
-  | "CONVEX_FRAX3CRV"
+  | ConvexPoolContract
   | "CONVEX_CLAIM_ZAP"
-  | "LIDO_STETH";
+  | "LIDO_STETH_GATEWAY";
 
 export const contractsByNetwork: Record<
   NetworkType,
-  Record<SupportedContracts, string>
+  Record<SupportedContract, string>
 > = {
   Mainnet: {
     UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
@@ -43,7 +55,7 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3POOL: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", // SEPARATE TOKEN
-    CURVE_STETH: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022", // SEPARATE TOKEN
+    CURVE_STETH_GATEWAY: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022", // SEPARATE TOKEN
     CURVE_FRAX: tokenDataByNetwork.Mainnet.FRAX3CRV,
     CURVE_LUSD: tokenDataByNetwork.Mainnet.LUSD3CRV,
     CURVE_SUSD: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // SEPARATE TOKEN
@@ -67,7 +79,7 @@ export const contractsByNetwork: Record<
     CONVEX_CLAIM_ZAP: "0x92Cf9E5e4D1Dfbf7dA0d2BB3e884a68416a65070",
 
     // LIDO
-    LIDO_STETH: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"
+    LIDO_STETH_GATEWAY: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"
   },
   Kovan: {
     UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
@@ -76,7 +88,7 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3POOL: "0x769C784D1e958672bDef04cf12Fd5399b3db0f27",
-    CURVE_STETH: "0xF695d3aa358D5087A0C157DBb9449d4f0d8E534a",
+    CURVE_STETH_GATEWAY: "0xF695d3aa358D5087A0C157DBb9449d4f0d8E534a",
     CURVE_FRAX: "",
     CURVE_LUSD: tokenDataByNetwork.Kovan.LUSD3CRV,
     CURVE_SUSD: "0x032f1cE00865F3499C0052ceBA5F2348842416DB", // SEPARATE TOKEN
@@ -100,101 +112,161 @@ export const contractsByNetwork: Record<
     CONVEX_CLAIM_ZAP: "",
 
     // LIDO
-    LIDO_STETH: ""
+    LIDO_STETH_GATEWAY: ""
   }
 };
 
-export enum AdapterInterface {
-  NO_SWAP, // 0 - 1
-  UNISWAP_V2, // 1 - 2
-  UNISWAP_V3, // 2 - 4
-  CURVE_V1_2ASSETS, // 3 - 8
-  CURVE_V1_3ASSETS, // 4 - 16
-  CURVE_V1_4ASSETS, // 5 - 32
-  CURVE_V1_STETH, // 6 - 64
-  YEARN_V2, // 7 - 128
-  CONVEX_V1_BASE_REWARD_POOL, // 8 - 256
-  CONVEX_V1_BOOSTER, // 9 - 512
-  CONVEX_V1_CLAIM_ZAP, // 10 - 1024
-  LIDO_V1 // 11 - 2048
-}
-
-export type AdapterParams =
-  | {
-      name: string;
-      type: AdapterInterface.UNISWAP_V2;
-      icon: string;
-    }
-  | {
-      name: string;
-      type: AdapterInterface.UNISWAP_V3;
-      quoter: string;
-      icon: string;
-    }
-  | {
-      name: string;
-      type: AdapterInterface.CURVE_V1_2ASSETS;
-      nCoins: number;
-      icon: string;
-    }
-  | {
-      name: string;
-      type: AdapterInterface.CURVE_V1_3ASSETS;
-      nCoins: number;
-      icon: string;
-    }
-  | {
-      name: string;
-      type: AdapterInterface.YEARN_V2;
-      icon: string;
-    }
-  | {
-      name: string;
-      type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
-      stakedToken: string;
-      stakedTokenKovan?: string;
-    };
-
 export const UNISWAP_V3_QUOTER = "0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6";
 
-export const knownContracts: Record<SupportedContracts, AdapterParams> = {
+export type ContractParams =
+  | {
+      protocol: Protocols.Uniswap | Protocols.Sushiswap;
+      type: AdapterInterface.UNISWAP_V2_ROUTER;
+    }
+  | {
+      protocol: Protocols.Uniswap;
+      type: AdapterInterface.UNISWAP_V3_ROUTER;
+      quoter: string;
+    }
+  | {
+      protocol: Protocols.Curve;
+      type:
+        | AdapterInterface.CURVE_V1_2ASSETS
+        | AdapterInterface.CURVE_V1_3ASSETS
+        | AdapterInterface.CURVE_V1_4ASSETS;
+      lpToken: CurveLPToken;
+      tokens: Array<NormalToken | CurveLPToken>;
+    }
+  | {
+      protocol: Protocols.Curve;
+      type: AdapterInterface.CURVE_V1_STECRV_POOL;
+      pool: string;
+      poolKovan?: string;
+    }
+  | {
+      protocol: Protocols.Yearn;
+      type: AdapterInterface.YEARN_V2;
+    }
+  | {
+      protocol: Protocols.Convex;
+      type:
+        | AdapterInterface.CONVEX_V1_BOOSTER
+        | AdapterInterface.CONVEX_V1_CLAIM_ZAP;
+    }
+  | {
+      protocol: Protocols.Convex;
+      type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
+    }
+  | {
+      protocol: Protocols.Lido;
+      type: AdapterInterface.LIDO_V1;
+    };
+
+export const knownContracts: Record<SupportedContract, ContractParams> = {
   UNISWAP_V2_ROUTER: {
-    name: "UniswapV2",
-    type: AdapterInterface.UNISWAP_V2,
-    icon: "/protocols/uniswap.png"
+    protocol: Protocols.Uniswap,
+    type: AdapterInterface.UNISWAP_V2_ROUTER
   },
   UNISWAP_V3_ROUTER: {
-    name: "UniswapV3",
+    protocol: Protocols.Uniswap,
     quoter: UNISWAP_V3_QUOTER,
-    type: AdapterInterface.UNISWAP_V3,
-    icon: "/protocols/uniswap.png"
+    type: AdapterInterface.UNISWAP_V3_ROUTER
   },
   SUSHISWAP_ROUTER: {
-    name: "Sushiswap",
-    type: AdapterInterface.UNISWAP_V2,
-    icon: "/protocols/sushi.svg"
+    protocol: Protocols.Sushiswap,
+    type: AdapterInterface.UNISWAP_V2_ROUTER
   },
   CURVE_3POOL: {
-    name: "Curve 3pool",
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_3ASSETS,
-    nCoins: 3,
-    icon: "/protocols/curve.svg"
+    lpToken: "3Crv",
+    tokens: ["DAI", "USDC", "USDT"]
   },
-  CURVE_STETH: {
-    name: "Curve stETH",
+  CURVE_STETH_GATEWAY: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_STECRV_POOL,
+    pool: "",
+    poolKovan: ""
+  },
+  CURVE_FRAX: {
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
-    nCoins: 2,
-    icon: "/protocols/curve.svg"
+    lpToken: "FRAX3CRV",
+    tokens: ["3Crv", "FRAX"]
+  },
+  CURVE_LUSD: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "LUSD3CRV",
+    tokens: ["3Crv", "FRAX"]
+  },
+  CURVE_SUSD: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "crvPlain3andSUSD",
+    tokens: ["3Crv", "FRAX"]
+  },
+  CURVE_GUSD: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "gusd3CRV",
+    tokens: ["3Crv", "FRAX"]
   },
   YEARN_DAI: {
-    name: "Yearn DAI",
-    type: AdapterInterface.YEARN_V2,
-    icon: "/protocols/yearn.svg"
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2
   },
 
   YEARN_USDC: {
-    name: "Yearn USDC",
-    type: AdapterInterface.YEARN_V2,
-    icon: "/protocols/yearn.svg"
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2
+  },
+  YEARN_WETH: {
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2
+  },
+  YEARN_WBTC: {
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2
+  },
+  YEARN_CURVE_FRAX: {
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2
+  },
+  YEARN_CURVE_STETH: {
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2
+  },
+  CONVEX_BOOSTER: {
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BOOSTER
+  },
+  CONVEX_3CRV: {
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+  },
+  CONVEX_GUSD: {
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+  },
+  CONVEX_SUSD: {
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+  },
+  CONVEX_STECRV: {
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+  },
+  CONVEX_FRAX3CRV: {
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+  },
+  CONVEX_CLAIM_ZAP: {
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_CLAIM_ZAP
+  },
+  LIDO_STETH_GATEWAY: {
+    protocol: Protocols.Lido,
+    type: AdapterInterface.LIDO_V1
   }
 };

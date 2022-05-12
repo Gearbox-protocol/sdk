@@ -2,7 +2,7 @@ import { BigNumber } from "ethers";
 import { TokenDataPayload } from "../payload/token";
 import { STATIC_TOKEN } from "../config";
 import { NetworkType } from "./constants";
-import { SupportedTokens, tokenDataByNetwork } from "./token";
+import { SupportedToken, tokenDataByNetwork } from "./token";
 
 export class TokenData {
   public readonly id: string;
@@ -50,7 +50,7 @@ export const WETHToken: Record<NetworkType, string> = {
   Kovan: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
 };
 
-export const connectors: Record<NetworkType, Array<SupportedTokens>> = {
+export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Mainnet: [
     "WETH",
     "1INCH",

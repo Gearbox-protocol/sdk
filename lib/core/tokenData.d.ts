@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { TokenDataPayload } from "../payload/token";
 import { NetworkType } from "./constants";
-import { SupportedTokens } from "./token";
+import { SupportedToken } from "./token";
 export declare class TokenData {
     readonly id: string;
     readonly symbol: string;
@@ -24,5 +24,5 @@ export interface TokenSavedData {
     type: TokenType;
 }
 export declare const WETHToken: Record<NetworkType, string>;
-export declare const connectors: Record<NetworkType, Array<SupportedTokens>>;
+export declare const connectors: Record<NetworkType, Array<SupportedToken>>;
 export declare function getConnectors(networkType: NetworkType): string[];

@@ -43,4 +43,4 @@ export * from "./core/history";
 export { MultiCallContract } from "./utils/multicall";
 export { callRepeater } from "./utils/repeater";
 export { getContractName } from "./core/contractsRegister";
-export { AdapterInterface } from "./core/contracts";
+export { AdapterInterface } from "./core/adapters";
