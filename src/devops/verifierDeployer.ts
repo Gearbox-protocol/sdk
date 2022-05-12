@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2021. Gearbox
  */
-import verifierJson from "../.verifier.json";
 import { LoggedDeployer } from "./loggedDeployer";
 import * as fs from "fs";
 import { config as dotEnvConfig } from "dotenv";
-import { providers } from "ethers";
 import axios from "axios";
 const hre = require("hardhat");
+
+const VERIFIER_FILE = "./.verifier.json"
 
 dotEnvConfig({ path: ".env" });
 
@@ -22,20 +22,25 @@ export class Verifier extends LoggedDeployer {
 
   constructor() {
     super();
-    this.verifier = verifierJson;
+    // this.verifier = verifierJson;
+    // JSON.parse("")
     this.apiKey = process.env.ETHERSCAN_API_KEY || "";
     if (this.apiKey === "") throw new Error("No etherscan API provided");
   }
 
   addContract(c: VerifyRequest) {
+
+    // Add logic to check if address is already exists
     this.verifier.push(c);
     this._saveVerifier();
   }
 
+  
+
   async deploy() {
     this.enableLogs();
 
-    for (let i = 0; i < verifierJson.length; i++) {
+    for (let i = 0; i < this.verifier.length; i++) {
       const params = this.verifier.shift();
 
       const url = `https://api-kovan.etherscan.io/api?module=contract&action=getabi&address=${params?.address}&apikey=${this.apiKey}`;
@@ -56,19 +61,19 @@ export class Verifier extends LoggedDeployer {
   }
 
   protected _saveVerifier() {
-    fs.writeFileSync("./.verifier.json", JSON.stringify(this.verifier));
+    fs.writeFileSync(VERIFIER_FILE, JSON.stringify(this.verifier));
     this._logger.debug("Deploy progress was saved into .verifier.json");
   }
 }
 
-const verifier = new Verifier();
+// const verifier = new Verifier();
 
-verifier
-  .deploy()
-  .then(() => {
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+// verifier
+//   .deploy()
+//   .then(() => {
+//     process.exit(0);
+//   })
+//   .catch((error) => {
+//     console.error(error);
+//     process.exit(1);
+//   });
