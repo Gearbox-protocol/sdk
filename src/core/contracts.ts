@@ -7,38 +7,38 @@
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
-import {
-  CurveLPToken,
-  NormalToken,
-  tokenDataByNetwork
-} from "./token";
+import { CurveLPToken, NormalToken, tokenDataByNetwork } from "./token";
 
-export type CurvePoolContract =  | "CURVE_3POOL"
-| "CURVE_STETH_GATEWAY"
-| "CURVE_FRAX"
-| "CURVE_LUSD"
-| "CURVE_GUSD"
-| "CURVE_SUSD"
+export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
+export type CurvePoolContract =
+  | "CURVE_3POOL"
+  | "CURVE_STETH_GATEWAY"
+  | "CURVE_FRAX"
+  | "CURVE_LUSD"
+  | "CURVE_GUSD"
+  | "CURVE_SUSD";
 
-export type ConvexPoolContract =   
-| "CONVEX_3CRV"
-| "CONVEX_GUSD"
-| "CONVEX_SUSD"
-| "CONVEX_STECRV"
-| "CONVEX_FRAX3CRV"
-
-export type SupportedContract =
-  | "UNISWAP_V2_ROUTER"
-  | "UNISWAP_V3_ROUTER"
-  | "SUSHISWAP_ROUTER"
-  | CurvePoolContract
+export type YearnVaultContract =
   | "YEARN_DAI"
   | "YEARN_USDC"
   | "YEARN_WETH"
   | "YEARN_WBTC"
   | "YEARN_CURVE_FRAX"
-  | "YEARN_CURVE_STETH"
+  | "YEARN_CURVE_STETH";
+
+export type ConvexPoolContract =
+  | "CONVEX_3CRV"
+  | "CONVEX_GUSD"
+  | "CONVEX_SUSD"
+  | "CONVEX_STECRV"
+  | "CONVEX_FRAX3CRV";
+
+export type SupportedContract =
+  | UniswapV2Contract
+  | "UNISWAP_V3_ROUTER"
+  | CurvePoolContract
+  | YearnVaultContract
   | "CONVEX_BOOSTER"
   | ConvexPoolContract
   | "CONVEX_CLAIM_ZAP"
