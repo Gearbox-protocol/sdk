@@ -1,10 +1,12 @@
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
-import { CurveLPToken, NormalToken } from "./token";
+import { ConvexStakedPhantomToken, CurveLPToken, NormalToken } from "./token";
+export declare type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 export declare type CurvePoolContract = "CURVE_3POOL" | "CURVE_STETH_GATEWAY" | "CURVE_FRAX" | "CURVE_LUSD" | "CURVE_GUSD" | "CURVE_SUSD";
+export declare type YearnVaultContract = "YEARN_DAI" | "YEARN_USDC" | "YEARN_WETH" | "YEARN_WBTC" | "YEARN_CURVE_FRAX" | "YEARN_CURVE_STETH";
 export declare type ConvexPoolContract = "CONVEX_3CRV" | "CONVEX_GUSD" | "CONVEX_SUSD" | "CONVEX_STECRV" | "CONVEX_FRAX3CRV";
-export declare type SupportedContract = "UNISWAP_V2_ROUTER" | "UNISWAP_V3_ROUTER" | "SUSHISWAP_ROUTER" | CurvePoolContract | "YEARN_DAI" | "YEARN_USDC" | "YEARN_WETH" | "YEARN_WBTC" | "YEARN_CURVE_FRAX" | "YEARN_CURVE_STETH" | "CONVEX_BOOSTER" | ConvexPoolContract | "CONVEX_CLAIM_ZAP" | "LIDO_STETH_GATEWAY";
+export declare type SupportedContract = UniswapV2Contract | "UNISWAP_V3_ROUTER" | CurvePoolContract | YearnVaultContract | "CONVEX_BOOSTER" | ConvexPoolContract | "CONVEX_CLAIM_ZAP" | "LIDO_STETH_GATEWAY";
 export declare const contractsByNetwork: Record<NetworkType, Record<SupportedContract, string>>;
 export declare const UNISWAP_V3_QUOTER = "0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6";
 export declare type ContractParams = {
@@ -33,8 +35,9 @@ export declare type ContractParams = {
 } | {
     protocol: Protocols.Convex;
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
+    stakedToken: ConvexStakedPhantomToken;
 } | {
     protocol: Protocols.Lido;
     type: AdapterInterface.LIDO_V1;
 };
-export declare const knownContracts: Record<SupportedContract, ContractParams>;
+export declare const contractParams: Record<SupportedContract, ContractParams>;

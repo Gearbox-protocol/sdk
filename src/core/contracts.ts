@@ -7,7 +7,12 @@
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
-import { CurveLPToken, NormalToken, tokenDataByNetwork } from "./token";
+import {
+  ConvexStakedPhantomToken,
+  CurveLPToken,
+  NormalToken,
+  tokenDataByNetwork
+} from "./token";
 
 export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
@@ -156,13 +161,14 @@ export type ContractParams =
   | {
       protocol: Protocols.Convex;
       type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
+      stakedToken: ConvexStakedPhantomToken;
     }
   | {
       protocol: Protocols.Lido;
       type: AdapterInterface.LIDO_V1;
     };
 
-export const knownContracts: Record<SupportedContract, ContractParams> = {
+export const contractParams: Record<SupportedContract, ContractParams> = {
   UNISWAP_V2_ROUTER: {
     protocol: Protocols.Uniswap,
     type: AdapterInterface.UNISWAP_V2_ROUTER
@@ -243,23 +249,28 @@ export const knownContracts: Record<SupportedContract, ContractParams> = {
   },
   CONVEX_3CRV: {
     protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvx3Crv"
   },
   CONVEX_GUSD: {
     protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxgusd3CRV"
   },
   CONVEX_SUSD: {
     protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvPlain3andSUSD"
   },
   CONVEX_STECRV: {
     protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxsteCRV"
   },
   CONVEX_FRAX3CRV: {
     protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxFRAX3CRV"
   },
   CONVEX_CLAIM_ZAP: {
     protocol: Protocols.Convex,

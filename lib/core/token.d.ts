@@ -1,5 +1,6 @@
 import { NetworkType } from "./constants";
 import { ConvexPoolContract } from "./contracts";
+import { TradeAction } from "./tradeTypes";
 declare enum TokenType {
     CONNECTOR = 0,
     NORMAL_TOKEN = 1,
@@ -21,39 +22,51 @@ export declare type SupportedToken = NormalToken | YearnLPToken | CurveLPToken |
 export declare type TokenDataI = {
     symbol: NormalToken;
     type: TokenType.CONNECTOR;
+    swapActions: Array<TradeAction>;
+    lpActions?: Array<TradeAction>;
 } | {
     symbol: NormalToken;
     type: TokenType.NORMAL_TOKEN;
+    swapActions: Array<TradeAction>;
+    lpActions?: Array<TradeAction>;
 } | {
     symbol: CurveLPToken;
     type: TokenType.CURVE_LP;
+    swapActions?: Array<TradeAction>;
+    lpActions: Array<TradeAction>;
 } | {
     symbol: YearnLPToken;
     type: TokenType.YEARN_VAULT;
     underlying: NormalToken;
+    lpActions: Array<TradeAction>;
 } | {
     symbol: CurveLPToken;
     type: TokenType.META_CURVE_LP;
+    lpActions: Array<TradeAction>;
 } | {
     symbol: YearnLPToken;
     type: TokenType.YEARN_VAULT_OF_CURVE_LP;
     underlying: CurveLPToken;
+    lpActions: Array<TradeAction>;
 } | {
     symbol: YearnLPToken;
     type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
     underlying: CurveLPToken;
+    lpActions: Array<TradeAction>;
 } | {
     symbol: ConvexLPToken;
     type: TokenType.CONVEX_LP_TOKEN;
     pool: ConvexPoolContract;
     underlying: CurveLPToken;
     stakedToken: ConvexStakedPhantomToken;
+    lpActions: Array<TradeAction>;
 } | {
     symbol: ConvexStakedPhantomToken;
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN;
     pool: ConvexPoolContract;
     underlying: CurveLPToken;
     lpToken: ConvexLPToken;
+    lpActions: Array<TradeAction>;
 };
 export declare const supportedTokens: Record<SupportedToken, TokenDataI>;
 export declare const tokenDataByNetwork: Record<NetworkType, Record<SupportedToken, string>>;
