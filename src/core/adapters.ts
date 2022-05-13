@@ -10,7 +10,9 @@ export enum AdapterInterface {
     CONVEX_V1_BASE_REWARD_POOL, // 8 - 256
     CONVEX_V1_BOOSTER, // 9 - 512
     CONVEX_V1_CLAIM_ZAP, // 10 - 1024
-    LIDO_V1 // 11 - 2048
+    LIDO_V1, // 11 - 2048
+    CURVE_V1_META_ZAP,
+    CURVE_V1_ETH_WHATEVER
   }
   
   

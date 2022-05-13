@@ -2,6 +2,8 @@ import { OracleType, TokenPriceFeedData } from "../core/oracles";
 import { SupportedToken } from "./token";
 
 export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
+  ETH:{},
+
   "1INCH": {
     priceFeedETH: {
       type: OracleType.CHAINLINK_ORACLE,

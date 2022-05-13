@@ -39,11 +39,11 @@ export interface TokenAllowance {
   allowance: BigNumber;
 }
 
-export type TokenType = "core" | "stable" | "volatile" | "lp";
+// export type TokenType = "core" | "stable" | "volatile" | "lp";
 
-export interface TokenSavedData {
-  type: TokenType;
-}
+// export interface TokenSavedData {
+//   type: TokenType;
+// }
 
 export const WETHToken: Record<NetworkType, string> = {
   Mainnet: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
