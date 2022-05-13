@@ -5,9 +5,11 @@ import { LoggedDeployer } from "./loggedDeployer";
 import * as fs from "fs";
 import { config as dotEnvConfig } from "dotenv";
 import axios from "axios";
-const hre = require("hardhat");
+import path from "path";
+import hre from 'hardhat';
 
-const VERIFIER_FILE = "./.verifier.json"
+
+const VERIFIER_FILE = path.join(process.cwd(), './.verifier.json');
 
 dotEnvConfig({ path: ".env" });
 
@@ -22,8 +24,8 @@ export class Verifier extends LoggedDeployer {
 
   constructor() {
     super();
-    // this.verifier = verifierJson;
-    // JSON.parse("")
+    this.verifier = require(VERIFIER_FILE);
+    
     this.apiKey = process.env.ETHERSCAN_API_KEY || "";
     if (this.apiKey === "") throw new Error("No etherscan API provided");
   }
@@ -31,11 +33,45 @@ export class Verifier extends LoggedDeployer {
   addContract(c: VerifyRequest) {
 
     // Add logic to check if address is already exists
-    this.verifier.push(c);
+    // Overwriting info for now
+    let exisitingIndex = -1;
+    this.verifier.filter((request, index) => {
+      if(request.address == c.address){
+        exisitingIndex = index
+        return [request]
+      }else{
+        return []
+      }
+    },[]);
+
+    if(exisitingIndex > -1){
+      this.verifier[exisitingIndex] = c
+    }else{
+      this.verifier.push(c);
+    }
+
     this._saveVerifier();
   }
 
+  baseUrl(networkName: string) : String {
+    switch(networkName){
+      case 'mainnet':
+        return "https://api.etherscan.io";
+      case 'kovan':
+        return "https://api-kovan.etherscan.io";
+      default:
+        return "https://api.etherscan.io";
+    }
+  }
   
+
+  async isVerified(address: string | undefined) : Promise<boolean> {
+
+    const networkName = await hre.network.name
+    const url = `${this.baseUrl(networkName)}/api?module=contract&action=getabi&address=${address}&apikey=${this.apiKey}`;
+    const isVerified = await axios.get(url);
+    return isVerified.data && isVerified.data.status === '1';
+  } 
 
   async deploy() {
     this.enableLogs();
@@ -43,13 +79,9 @@ export class Verifier extends LoggedDeployer {
     for (let i = 0; i < this.verifier.length; i++) {
       const params = this.verifier.shift();
 
-      const url = `https://api-kovan.etherscan.io/api?module=contract&action=getabi&address=${params?.address}&apikey=${this.apiKey}`;
+      const isVerified = await this.isVerified(params?.address);
 
-      const isVerified = await axios.get(url);
-
-      console.log(isVerified.data)
-
-      if (isVerified.data.status === '1') {
+      if (isVerified) {
         this._logger.debug(`${params?.address} is already verified`);
       } else {
         this._logger.info(`Verifing: ${params?.address}`);
