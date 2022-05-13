@@ -99,19 +99,19 @@ export type TokenDataI =
   | {
       symbol: NormalToken;
       type: TokenType.CONNECTOR;
-      trades: Array<TradeAction>;
+      swapActions: Array<TradeAction>;
       lpActions?: Array<TradeAction>;
     }
   | {
       symbol: NormalToken;
       type: TokenType.NORMAL_TOKEN;
-      trades: Array<TradeAction>;
+      swapActions: Array<TradeAction>;
       lpActions?: Array<TradeAction>;
     }
   | {
       symbol: CurveLPToken;
       type: TokenType.CURVE_LP;
-      trades?: Array<TradeAction>;
+      swapActions?: Array<TradeAction>;
       lpActions: Array<TradeAction>;
     }
   | {
@@ -158,7 +158,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   "1INCH": {
     symbol: "1INCH",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -177,7 +177,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   AAVE: {
     symbol: "AAVE",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -196,7 +196,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   COMP: {
     symbol: "COMP",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -215,7 +215,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   CRV: {
     symbol: "CRV",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -234,7 +234,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   DAI: {
     symbol: "DAI",
     type: TokenType.CONNECTOR,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -270,7 +270,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   DPI: {
     symbol: "DPI",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -289,7 +289,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FEI: {
     symbol: "FEI",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -308,7 +308,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LINK: {
     symbol: "LINK",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -327,7 +327,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   SNX: {
     symbol: "SNX",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -346,7 +346,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   SUSHI: {
     symbol: "SUSHI",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER"
@@ -357,7 +357,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   UNI: {
     symbol: "UNI",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -372,7 +372,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   USDC: {
     symbol: "USDC",
     type: TokenType.CONNECTOR,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -396,7 +396,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   USDT: {
     symbol: "USDT",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -420,7 +420,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   WBTC: {
     symbol: "WBTC",
     type: TokenType.CONNECTOR,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -439,7 +439,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   WETH: {
     symbol: "WETH",
     type: TokenType.CONNECTOR,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -463,7 +463,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   YFI: {
     symbol: "YFI",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -483,7 +483,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   STETH: {
     symbol: "STETH",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_STETH_GATEWAY",
@@ -495,7 +495,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FTM: {
     symbol: "FTM",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -519,7 +519,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   CVX: {
     symbol: "CVX",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -543,7 +543,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FRAX: {
     symbol: "FRAX",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -567,7 +567,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FXS: {
     symbol: "FXS",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -586,7 +586,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LDO: {
     symbol: "LDO",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -605,7 +605,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   SPELL: {
     symbol: "SPELL",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -624,7 +624,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LUSD: {
     symbol: "LUSD",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -643,7 +643,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   sUSD: {
     symbol: "sUSD",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -662,7 +662,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   GUSD: {
     symbol: "GUSD",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -681,7 +681,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LUNA: {
     symbol: "LUNA",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
@@ -699,7 +699,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LQTY: {
     symbol: "LQTY",
     type: TokenType.NORMAL_TOKEN,
-    trades: [
+    swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
