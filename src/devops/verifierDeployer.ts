@@ -6,8 +6,8 @@ import * as fs from "fs";
 import { config as dotEnvConfig } from "dotenv";
 import axios from "axios";
 import path from "path";
+import hre from 'hardhat';
 
-const hre = require("hardhat");
 
 const VERIFIER_FILE = path.join(process.cwd(), './.verifier.json');
 
@@ -53,11 +53,11 @@ export class Verifier extends LoggedDeployer {
     this._saveVerifier();
   }
 
-  baseUrl(chainId: any) : String {
-    switch(chainId){
-      case 1:
+  baseUrl(networkName: string) : String {
+    switch(networkName){
+      case 'mainnet':
         return "https://api.etherscan.io";
-      case 42:
+      case 'kovan':
         return "https://api-kovan.etherscan.io";
       default:
         return "https://api.etherscan.io";
@@ -67,12 +67,9 @@ export class Verifier extends LoggedDeployer {
 
   async isVerified(address: string | undefined) : Promise<boolean> {
 
-    const chainId = await hre.network.config.chainId
-
-    const url = `${this.baseUrl(chainId)}/api?module=contract&action=getabi&address=${address}&apikey=${this.apiKey}`;
-
+    const networkName = await hre.network.name
+    const url = `${this.baseUrl(networkName)}/api?module=contract&action=getabi&address=${address}&apikey=${this.apiKey}`;
     const isVerified = await axios.get(url);
-
     return isVerified.data && isVerified.data.status === '1';
   } 
 

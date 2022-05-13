@@ -8,7 +8,7 @@ export declare class Verifier extends LoggedDeployer {
     protected apiKey: string;
     constructor();
     addContract(c: VerifyRequest): void;
-    baseUrl(chainId: any): String;
+    baseUrl(networkName: string): String;
     isVerified(address: string | undefined): Promise<boolean>;
     deploy(): Promise<void>;
     protected _saveVerifier(): void;
