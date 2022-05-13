@@ -18,6 +18,7 @@ export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
 export type CurvePoolContract =
   | "CURVE_3POOL"
+  | "CURVE_STETH"
   | "CURVE_STETH_GATEWAY"
   | "CURVE_FRAX"
   | "CURVE_LUSD"
@@ -47,6 +48,7 @@ export type SupportedContract =
   | "CONVEX_BOOSTER"
   | ConvexPoolContract
   | "CONVEX_CLAIM_ZAP"
+  | "LIDO_STETH"
   | "LIDO_STETH_GATEWAY";
 
 export const contractsByNetwork: Record<
@@ -60,7 +62,8 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3POOL: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", // SEPARATE TOKEN
-    CURVE_STETH_GATEWAY: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022", // SEPARATE TOKEN
+    CURVE_STETH: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022", // SEPARATE TOKEN
+    CURVE_STETH_GATEWAY: "",
     CURVE_FRAX: tokenDataByNetwork.Mainnet.FRAX3CRV,
     CURVE_LUSD: tokenDataByNetwork.Mainnet.LUSD3CRV,
     CURVE_SUSD: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // SEPARATE TOKEN
@@ -84,7 +87,8 @@ export const contractsByNetwork: Record<
     CONVEX_CLAIM_ZAP: "0x92Cf9E5e4D1Dfbf7dA0d2BB3e884a68416a65070",
 
     // LIDO
-    LIDO_STETH_GATEWAY: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"
+    LIDO_STETH: tokenDataByNetwork.Mainnet.STETH,
+    LIDO_STETH_GATEWAY: ""
   },
   Kovan: {
     UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
@@ -93,7 +97,8 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3POOL: "0x769C784D1e958672bDef04cf12Fd5399b3db0f27",
-    CURVE_STETH_GATEWAY: "0xF695d3aa358D5087A0C157DBb9449d4f0d8E534a",
+    CURVE_STETH: "0xF695d3aa358D5087A0C157DBb9449d4f0d8E534a",
+    CURVE_STETH_GATEWAY: "",
     CURVE_FRAX: "",
     CURVE_LUSD: tokenDataByNetwork.Kovan.LUSD3CRV,
     CURVE_SUSD: "0x032f1cE00865F3499C0052ceBA5F2348842416DB", // SEPARATE TOKEN
@@ -117,6 +122,7 @@ export const contractsByNetwork: Record<
     CONVEX_CLAIM_ZAP: "",
 
     // LIDO
+    LIDO_STETH: tokenDataByNetwork.Kovan.STETH,
     LIDO_STETH_GATEWAY: ""
   }
 };
@@ -141,6 +147,12 @@ export type ContractParams =
         | AdapterInterface.CURVE_V1_4ASSETS;
       lpToken: CurveLPToken;
       tokens: Array<NormalToken | CurveLPToken>;
+    }
+  | {
+      protocol: Protocols.Curve;
+      type: AdapterInterface.CURVE_V1_STECRV_POOL;
+      lpToken: "steCRV";
+      tokens: ["WETH", "STETH"];
     }
   | {
       protocol: Protocols.Curve;
@@ -187,6 +199,12 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "3Crv",
     tokens: ["DAI", "USDC", "USDT"]
+  },
+  CURVE_STETH: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_STECRV_POOL,
+    lpToken: "steCRV",
+    tokens: ["WETH", "STETH"]
   },
   CURVE_STETH_GATEWAY: {
     protocol: Protocols.Curve,
@@ -275,6 +293,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   CONVEX_CLAIM_ZAP: {
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_CLAIM_ZAP
+  },
+  LIDO_STETH: {
+    protocol: Protocols.Lido,
+    type: AdapterInterface.LIDO_V1
   },
   LIDO_STETH_GATEWAY: {
     protocol: Protocols.Lido,
