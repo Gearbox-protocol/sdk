@@ -28,7 +28,6 @@ export * from "./utils/math";
 export * from "./core/creditCard";
 export * from "./payload/graphPayload";
 export * from "./types/index";
-export * from "./devops/verifierDeployer";
 
 export type {
   IAppPoolService,
