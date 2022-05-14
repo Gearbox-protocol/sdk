@@ -19,10 +19,6 @@ export interface TokenAllowance {
     id: string;
     allowance: BigNumber;
 }
-export declare type TokenType = "core" | "stable" | "volatile" | "lp";
-export interface TokenSavedData {
-    type: TokenType;
-}
 export declare const WETHToken: Record<NetworkType, string>;
 export declare const connectors: Record<NetworkType, Array<SupportedToken>>;
 export declare function getConnectors(networkType: NetworkType): string[];

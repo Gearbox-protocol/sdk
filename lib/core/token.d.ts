@@ -1,7 +1,7 @@
 import { NetworkType } from "./constants";
 import { ConvexPoolContract } from "./contracts";
 import { TradeAction } from "./tradeTypes";
-declare enum TokenType {
+export declare enum TokenType {
     CONNECTOR = 0,
     NORMAL_TOKEN = 1,
     CURVE_LP = 2,
@@ -70,4 +70,3 @@ export declare type TokenDataI = {
 };
 export declare const supportedTokens: Record<SupportedToken, TokenDataI>;
 export declare const tokenDataByNetwork: Record<NetworkType, Record<SupportedToken, string>>;
-export {};

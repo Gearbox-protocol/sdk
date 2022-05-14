@@ -2,7 +2,7 @@ import { NetworkType } from "./constants";
 import { ConvexPoolContract } from "./contracts";
 import { TradeAction, TradeType } from "./tradeTypes";
 
-enum TokenType {
+export enum TokenType {
   CONNECTOR,
   NORMAL_TOKEN,
   CURVE_LP,
