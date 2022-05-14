@@ -1,7 +1,6 @@
 import {
   ConvexPoolContract,
   CurvePoolContract,
-  SupportedContract,
   UniswapV2Contract,
   YearnVaultContract
 } from "./contracts";

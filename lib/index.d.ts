@@ -28,7 +28,6 @@ export * from "./utils/math";
 export * from "./core/creditCard";
 export * from "./payload/graphPayload";
 export * from "./types/index";
-export * from "./devops/verifierDeployer";
 export type { IAppPoolService, IAppCreditManager, IAppERC20, IAppAddressProvider, IDataCompressor, IWETHGateway } from "./types";
 export * from "./core/history";
 export { MultiCallContract } from "./utils/multicall";
