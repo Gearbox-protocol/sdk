@@ -390,7 +390,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       curveSymbol: "steCRV"
     }
   },
-  yvCurve_FRAX: {
+  yvCURVE_FRAX_POOL: {
     priceFeedUSD: {
       type: OracleType.YEARN_CURVE_LP_ORACLE,
       curveSymbol: "FRAX3CRV"
