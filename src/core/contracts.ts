@@ -7,12 +7,8 @@
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
-import {
-  ConvexStakedPhantomToken,
-  CurveLPToken,
-  NormalToken,
-  tokenDataByNetwork
-} from "./token";
+import { CurveLPToken, NormalToken, ConvexStakedPhantomToken, tokenDataByNetwork } from "./token";
+
 
 export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
@@ -210,13 +206,13 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "LUSD3CRV",
-    tokens: ["3Crv", "FRAX"]
+    tokens: ["3Crv", "LUSD"]
   },
   CURVE_SUSD_POOL: {
     protocol: Protocols.Curve,
-    type: AdapterInterface.CURVE_V1_2ASSETS,
+    type: AdapterInterface.CURVE_V1_4ASSETS,
     lpToken: "crvPlain3andSUSD",
-    tokens: ["3Crv", "FRAX"]
+    tokens: ["DAI", "USDC", "USDT", "sUSD"]
   },
   CURVE_GUSD_POOL: {
     protocol: Protocols.Curve,
