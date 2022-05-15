@@ -9,7 +9,6 @@ import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
 import { CurveLPToken, NormalToken, ConvexStakedPhantomToken, tokenDataByNetwork } from "./token";
 
-
 export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
 export type CurvePoolContract =
@@ -18,7 +17,13 @@ export type CurvePoolContract =
   | "CURVE_FRAX_POOL"
   | "CURVE_LUSD_POOL"
   | "CURVE_GUSD_POOL"
-  | "CURVE_SUSD_POOL";
+  | "CURVE_SUSD_POOL"
+  | "CURVE_GUSD_DEPOSIT"
+  | "CURVE_SUSD_DEPOSIT"
+  | "CURVE_CVX_ETH_POOL"
+  | "CURVE_YFI_ETH_POOL"
+  | "CURVE_CRV_ETH_POOL"
+  | "CURVE_META_ZAP";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -61,6 +66,12 @@ export const contractsByNetwork: Record<
     CURVE_LUSD_POOL: tokenDataByNetwork.Mainnet.LUSD3CRV,
     CURVE_SUSD_POOL: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // SEPARATE TOKEN
     CURVE_GUSD_POOL: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", // SEPARATE TOKEN
+    CURVE_SUSD_DEPOSIT: "0xFCBa3E75865d2d561BE8D220616520c171F12851",
+    CURVE_GUSD_DEPOSIT: "0x64448B78561690B70E17CBE8029a3e5c1bB7136e",
+    CURVE_CVX_ETH_POOL: "0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4",
+    CURVE_YFI_ETH_POOL: "0xC26b89A667578ec7b3f11b2F98d6Fd15C07C54ba",
+    CURVE_CRV_ETH_POOL: "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511",
+    CURVE_META_ZAP: "0xA79828DF1850E8a3A3064576f380D90aECDD3359",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Mainnet.yvDAI,
@@ -94,6 +105,12 @@ export const contractsByNetwork: Record<
     CURVE_LUSD_POOL: tokenDataByNetwork.Kovan.LUSD3CRV,
     CURVE_SUSD_POOL: "0x032f1cE00865F3499C0052ceBA5F2348842416DB", // SEPARATE TOKEN
     CURVE_GUSD_POOL: "",
+    CURVE_SUSD_DEPOSIT: "",
+    CURVE_GUSD_DEPOSIT: "",
+    CURVE_CVX_ETH_POOL: "",
+    CURVE_YFI_ETH_POOL: "",
+    CURVE_CRV_ETH_POOL: "",
+    CURVE_META_ZAP: "",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Kovan.yvDAI,
@@ -151,6 +168,16 @@ export type ContractParams =
       tokens: Array<NormalToken | CurveLPToken>;
     }
   | CurveSteCRVPoolParams
+  | {
+      protocol: Protocols.Curve;
+      type:
+        | AdapterInterface.CURVE_V1_ETH_WHATEVER
+      tokens: Array<NormalToken | CurveLPToken>;
+    }
+  | {
+      protocol: Protocols.Curve;
+      type: AdapterInterface.CURVE_V1_META_ZAP;
+    }
   | {
       protocol: Protocols.Yearn;
       type: AdapterInterface.YEARN_V2;
@@ -220,11 +247,44 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     lpToken: "gusd3CRV",
     tokens: ["3Crv", "FRAX"]
   },
+  CURVE_SUSD_DEPOSIT: {
+    protocol: Protocols.Curve,
+    // TODO Need to check
+    type: AdapterInterface.CURVE_V1_4ASSETS,
+    lpToken: "crvPlain3andSUSD",
+    tokens: ["DAI", "USDC", "USDT", "FRAX"]
+  },
+  CURVE_GUSD_DEPOSIT: {
+    protocol: Protocols.Curve,
+    // TODO Need to check
+    type: AdapterInterface.CURVE_V1_4ASSETS,
+    lpToken: "gusd3CRV",
+    tokens: ["DAI", "USDC", "USDT", "FRAX"]
+  },
+  CURVE_CVX_ETH_POOL: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_ETH_WHATEVER,
+    tokens: ["CVX", "WETH"]
+  },
+  CURVE_YFI_ETH_POOL: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_ETH_WHATEVER,
+    tokens: ["YFI", "WETH"]
+  },
+  CURVE_CRV_ETH_POOL: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_ETH_WHATEVER,
+    tokens: ["CRV", "WETH"]
+  },
+  CURVE_META_ZAP: {
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_META_ZAP,
+  },
+
   YEARN_DAI_VAULT: {
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2
   },
-
   YEARN_USDC_VAULT: {
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2

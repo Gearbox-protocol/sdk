@@ -1,6 +1,8 @@
-import { NetworkType } from "./constants";
-import { ConvexPoolContract } from "./contracts";
-import { TradeAction, TradeType } from "./tradeTypes";
+import {ADDRESS_0x0, NetworkType} from "./constants";
+import {ConvexPoolContract} from "./contracts";
+import {TradeAction, TradeType} from "./tradeTypes";
+import {PartialRecord} from "../utils/types";
+import {BigNumber} from "ethers";
 
 export enum TokenType {
   CONNECTOR,
@@ -26,7 +28,15 @@ export const priority: Record<TokenType, number> = {
   [TokenType.CONVEX_STAKED_PHANTOM_TOKEN]: 5
 };
 
+export const curve3CrvUnderlyingTokenIndex: PartialRecord<SupportedToken, BigNumber> = {
+  DAI: BigNumber.from(0),
+  USDC: BigNumber.from(1),
+  USDT: BigNumber.from(2)
+}
+
 export type NormalToken =
+  // seth can only swap to eth
+  | "ETH"
   | "1INCH"
   | "AAVE"
   | "COMP"
@@ -155,6 +165,13 @@ export type TokenDataI =
     };
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
+  ETH: {
+    symbol: "ETH",
+    type: TokenType.NORMAL_TOKEN,
+    // wrap
+    swapActions: []
+  },
+
   "1INCH": {
     symbol: "1INCH",
     type: TokenType.NORMAL_TOKEN,
@@ -243,20 +260,20 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         type: TradeType.UniswapV2Swap,
         contract: "UNISWAP_V2_ROUTER"
       },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      },
+      // {
+      //   type: TradeType.UniswapV2Swap,
+      //   contract: "SUSHISWAP_ROUTER"
+      // },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_3CRV_POOL",
         tokenOut: ["USDC", "USDT"]
       },
-      {
-        type: TradeType.CurveExchange,
-        contract: "CURVE_SUSD_POOL",
-        tokenOut: ["USDC", "USDT", "sUSD"]
-      },
+      // {
+      //   type: TradeType.CurveExchange,
+      //   contract: "CURVE_SUSD_POOL",
+      //   tokenOut: ["USDC", "USDT", "sUSD"]
+      // },
     ],
     lpActions: [
       {
@@ -266,8 +283,13 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       },
       {
         type: TradeType.CurveDepositLP,
-        contract: "CURVE_SUSD_POOL",
+        contract: "CURVE_SUSD_DEPOSIT",
         tokenOut: "crvPlain3andSUSD"
+      },
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_SUSD_DEPOSIT",
+        tokenOut: "gusd3CRV"
       },
       {
         type: TradeType.YearnDeposit,
@@ -391,20 +413,20 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         type: TradeType.UniswapV2Swap,
         contract: "UNISWAP_V2_ROUTER"
       },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      },
+      // {
+      //   type: TradeType.UniswapV2Swap,
+      //   contract: "SUSHISWAP_ROUTER"
+      // },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_3CRV_POOL",
         tokenOut: ["DAI", "USDT"]
       },
-      {
-        type: TradeType.CurveExchange,
-        contract: "CURVE_SUSD_POOL",
-        tokenOut: ["DAI", "USDT", "sUSD"]
-      }
+      // {
+      //   type: TradeType.CurveExchange,
+      //   contract: "CURVE_SUSD_POOL",
+      //   tokenOut: ["DAI", "USDT", "sUSD"]
+      // }
     ],
     lpActions: [
         {
@@ -414,8 +436,13 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_SUSD_POOL",
+          contract: "CURVE_SUSD_DEPOSIT",
           tokenOut: "crvPlain3andSUSD"
+        },
+        {
+          type: TradeType.CurveDepositLP,
+          contract: "CURVE_GUSD_DEPOSIT",
+          tokenOut: "gusd3CRV"
         },
         {
           type: TradeType.YearnDeposit,
@@ -460,8 +487,13 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_SUSD_POOL",
+          contract: "CURVE_SUSD_DEPOSIT",
           tokenOut: "crvPlain3andSUSD"
+        },
+        {
+          type: TradeType.CurveDepositLP,
+          contract: "CURVE_GUSD_DEPOSIT",
+          tokenOut: "gusd3CRV"
         }
     ]
   },
@@ -740,17 +772,17 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     symbol: "sUSD",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
-      {
-        type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        {
+          type: TradeType.UniswapV3Swap,
+          contract: "UNISWAP_V3_ROUTER"
         },
         {
-        type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+          type: TradeType.UniswapV2Swap,
+          contract: "UNISWAP_V2_ROUTER"
         },
         {
-        type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+          type: TradeType.UniswapV2Swap,
+          contract: "SUSHISWAP_ROUTER"
         },
         {
           type: TradeType.CurveExchange,
@@ -762,6 +794,11 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         {
           type: TradeType.CurveDepositLP,
           contract: "CURVE_SUSD_POOL",
+          tokenOut: "crvPlain3andSUSD"
+        },
+        {
+          type: TradeType.CurveDepositLP,
+          contract: "CURVE_SUSD_DEPOSIT",
           tokenOut: "crvPlain3andSUSD"
         }
     ]
@@ -793,6 +830,11 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         {
           type: TradeType.CurveDepositLP,
           contract: "CURVE_GUSD_POOL",
+          tokenOut: "gusd3CRV"
+        },
+        {
+          type: TradeType.CurveDepositLP,
+          contract: "CURVE_GUSD_DEPOSIT",
           tokenOut: "gusd3CRV"
         }
     ]
@@ -943,6 +985,11 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
           tokenOut: ["DAI", "USDC", "USDT", "sUSD"]
         },
         {
+          type: TradeType.CurveWithdrawLP,
+          contract: "CURVE_SUSD_DEPOSIT",
+          tokenOut: ["DAI", "USDC", "USDT", "sUSD"]
+        },
+        {
           type: TradeType.ConvexDepositLP,
           contract: "CONVEX_BOOSTER",
           tokenOut: "cvxcrvPlain3andSUSD"
@@ -994,6 +1041,11 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     symbol: "gusd3CRV",
     type: TokenType.META_CURVE_LP,
     lpActions: [
+        {
+          type: TradeType.CurveWithdrawLP,
+          contract: "CURVE_GUSD_DEPOSIT",
+          tokenOut: ["DAI", "USDC", "USDT", "sUSD"]
+        },
         {
           type: TradeType.CurveWithdrawLP,
           contract: "CURVE_GUSD_POOL",
@@ -1244,6 +1296,8 @@ export const tokenDataByNetwork: Record<
   //
   // MAINNET NETWORK
   Mainnet: {
+    ETH: ADDRESS_0x0,
+
     "1INCH": "0x111111111117dc0aa78b770fa6a738034120c302",
     AAVE: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
     COMP: "0xc00e94cb662c3520282e6f5717214004a7f26888",
@@ -1313,6 +1367,8 @@ export const tokenDataByNetwork: Record<
   // DAI  LINK  REP  SNX  USDC  WBTC  ZRX
   //
   Kovan: {
+    ETH: ADDRESS_0x0,
+
     "1INCH": "0x6601ce61E41cd6760E763555A806AB5578EB2a9E",
     AAVE: "0xed2eAe2533bc70dB9030174a7F085e0853289726",
     COMP: "0x90F7A59Fa3993bBc6bA4C6c4ef515958a5bF8a24",

@@ -10,5 +10,7 @@ export declare enum AdapterInterface {
     CONVEX_V1_BASE_REWARD_POOL = 8,
     CONVEX_V1_BOOSTER = 9,
     CONVEX_V1_CLAIM_ZAP = 10,
-    LIDO_V1 = 11
+    LIDO_V1 = 11,
+    CURVE_V1_META_ZAP = 12,
+    CURVE_V1_ETH_WHATEVER = 13
 }
