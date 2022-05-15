@@ -10,9 +10,12 @@ export declare enum TradeType {
     YearnDeposit = 6,
     YearnWithdraw = 7,
     LidoStake = 8,
-    ConvexDeposit = 9,
+    ConvexDepositLP = 9,
     ConvexStake = 10,
-    ConvexDepositAndStake = 11
+    ConvexDepositLPAndStake = 11,
+    ConvexWithdrawLP = 12,
+    ConvexWithdraw = 13,
+    ConvexWithdrawAndUnwrap = 14
 }
 export declare type TradeAction = {
     type: TradeType.UniswapV2Swap;
@@ -45,15 +48,27 @@ export declare type TradeAction = {
     contract: "LIDO_STETH_GATEWAY";
     tokenOut: NormalToken;
 } | {
-    type: TradeType.ConvexDeposit;
-    contract: ConvexPoolContract;
+    type: TradeType.ConvexDepositLP;
+    contract: "CONVEX_BOOSTER";
     tokenOut: ConvexLPToken;
 } | {
     type: TradeType.ConvexStake;
     contract: ConvexPoolContract;
     tokenOut: ConvexStakedPhantomToken;
 } | {
-    type: TradeType.ConvexDepositAndStake;
-    contract: ConvexPoolContract;
+    type: TradeType.ConvexDepositLPAndStake;
+    contract: "CONVEX_BOOSTER";
     tokenOut: ConvexStakedPhantomToken;
+} | {
+    type: TradeType.ConvexWithdrawLP;
+    contract: "CONVEX_BOOSTER";
+    tokenOut: CurveLPToken;
+} | {
+    type: TradeType.ConvexWithdraw;
+    contract: ConvexPoolContract;
+    tokenOut: ConvexLPToken;
+} | {
+    type: TradeType.ConvexWithdrawAndUnwrap;
+    contract: ConvexPoolContract;
+    tokenOut: CurveLPToken;
 };

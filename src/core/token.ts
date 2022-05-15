@@ -254,7 +254,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       },
       {
         type: TradeType.CurveExchange,
-        contract: "CURVE_SUSD",
+        contract: "CURVE_SUSD_POOL",
         tokenOut: ["USDC", "USDT", "sUSD"]
       },
     ],
@@ -266,7 +266,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       },
       {
         type: TradeType.CurveDepositLP,
-        contract: "CURVE_SUSD",
+        contract: "CURVE_SUSD_POOL",
         tokenOut: "crvPlain3andSUSD"
       },
       {
@@ -402,24 +402,24 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       },
       {
         type: TradeType.CurveExchange,
-        contract: "CURVE_SUSD",
+        contract: "CURVE_SUSD_POOL",
         tokenOut: ["DAI", "USDT", "sUSD"]
       }
     ],
     lpActions: [
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_3POOL",
+          contract: "CURVE_3CRV_POOL",
           tokenOut: "3Crv"
         },
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_SUSD",
+          contract: "CURVE_SUSD_POOL",
           tokenOut: "crvPlain3andSUSD"
         },
         {
           type: TradeType.YearnDeposit,
-          contract: "YEARN_USDC",
+          contract: "YEARN_USDC_VAULT",
           tokenOut: "yvUSDC"
         }
     ]
@@ -448,19 +448,19 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       },
       {
         type: TradeType.CurveExchange,
-        contract: "CURVE_SUSD",
+        contract: "CURVE_SUSD_POOL",
         tokenOut: ["DAI", "USDC", "sUSD"]
       },
     ],
     lpActions: [
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_3POOL",
+          contract: "CURVE_3CRV_POOL",
           tokenOut: "3Crv"
         },
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_SUSD",
+          contract: "CURVE_SUSD_POOL",
           tokenOut: "crvPlain3andSUSD"
         }
     ]
@@ -486,7 +486,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.YearnDeposit,
-          contract: "YEARN_WBTC",
+          contract: "YEARN_WBTC_VAULT",
           tokenOut: "yvWBTC"
         }
     ]
@@ -517,7 +517,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       lpActions: [
           {
             type: TradeType.YearnDeposit,
-            contract: "YEARN_WETH",
+            contract: "YEARN_WETH_VAULT",
             tokenOut: "yvWETH"
           },
           {
@@ -642,7 +642,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_FRAX",
+          contract: "CURVE_FRAX_POOL",
           tokenOut: "FRAX3CRV"
         }
     ]
@@ -723,14 +723,14 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.CurveExchange,
-          contract: "CURVE_LUSD",
+          contract: "CURVE_LUSD_POOL",
           tokenOut: ["3Crv"]
         }
     ],
     lpActions: [
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_LUSD",
+          contract: "CURVE_LUSD_POOL",
           tokenOut: "LUSD3CRV"
         }
     ]
@@ -754,14 +754,14 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.CurveExchange,
-          contract: "CURVE_SUSD",
+          contract: "CURVE_SUSD_POOL",
           tokenOut: ["DAI", "USDT", "USDC"]
         }
     ],
     lpActions: [
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_SUSD",
+          contract: "CURVE_SUSD_POOL",
           tokenOut: "crvPlain3andSUSD"
         }
     ]
@@ -785,14 +785,14 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
             type: TradeType.CurveExchange,
-            contract: "CURVE_GUSD",
+            contract: "CURVE_GUSD_POOL",
             tokenOut: ["3Crv"]
         }
     ],
     lpActions: [
         {
           type: TradeType.CurveDepositLP,
-          contract: "CURVE_GUSD",
+          contract: "CURVE_GUSD_POOL",
           tokenOut: "gusd3CRV"
         }
     ]
@@ -939,7 +939,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.CurveWithdrawLP,
-          contract: "CURVE_SUSD",
+          contract: "CURVE_SUSD_POOL",
           tokenOut: ["DAI", "USDC", "USDT", "sUSD"]
         },
         {
@@ -962,7 +962,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.CurveWithdrawLP,
-          contract: "CURVE_FRAX",
+          contract: "CURVE_FRAX_POOL",
           tokenOut: ["FRAX", "3Crv"]
         },
         {
@@ -984,7 +984,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.CurveWithdrawLP,
-          contract: "CURVE_LUSD",
+          contract: "CURVE_LUSD_POOL",
           tokenOut: ["LUSD", "3Crv"]
         }
     ]
@@ -996,7 +996,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.CurveWithdrawLP,
-          contract: "CURVE_GUSD",
+          contract: "CURVE_GUSD_POOL",
           tokenOut: ["GUSD", "3Crv"]
         },
         {
@@ -1027,7 +1027,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.ConvexStake,
-          contract: "CONVEX_3CRV",
+          contract: "CONVEX_3CRV_POOL",
           tokenOut: "stkcvx3Crv"
         }
     ]
@@ -1047,7 +1047,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.ConvexStake,
-          contract: "CONVEX_STECRV",
+          contract: "CONVEX_STECRV_POOL",
           tokenOut: "stkcvxsteCRV"
         }
     ]
@@ -1067,7 +1067,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.ConvexStake,
-          contract: "CONVEX_FRAX3CRV",
+          contract: "CONVEX_FRAX3CRV_POOL",
           tokenOut: "stkcvxFRAX3CRV"
         }
     ]
@@ -1087,7 +1087,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.ConvexStake,
-          contract: "CONVEX_SUSD",
+          contract: "CONVEX_SUSD_POOL",
           tokenOut: "stkcvxcrvPlain3andSUSD"
         }
     ]
@@ -1107,7 +1107,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         },
         {
           type: TradeType.ConvexStake,
-          contract: "CONVEX_GUSD",
+          contract: "CONVEX_GUSD_POOL",
           tokenOut: "stkcvxgusd3CRV"
         }
     ]
@@ -1121,7 +1121,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.YearnWithdraw,
-          contract: "YEARN_CURVE_STETH",
+          contract: "YEARN_CURVE_STETH_VAULT",
           tokenOut: "steCRV"
         }
     ]
@@ -1133,7 +1133,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.YearnWithdraw,
-          contract: "YEARN_CURVE_FRAX",
+          contract: "YEARN_CURVE_FRAX_VAULT",
           tokenOut: "FRAX3CRV"
         }
     ]
@@ -1149,12 +1149,12 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_3CRV",
+          contract: "CONVEX_3CRV_POOL",
           tokenOut: "cvx3Crv"
         },
         {
           type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_3CRV",
+          contract: "CONVEX_3CRV_POOL",
           tokenOut: "3Crv"
         }
     ]
@@ -1168,12 +1168,12 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_STECRV",
+          contract: "CONVEX_STECRV_POOL",
           tokenOut: "cvxsteCRV"
         },
         {
           type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_STECRV",
+          contract: "CONVEX_STECRV_POOL",
           tokenOut: "steCRV"
         }
     ]
@@ -1187,12 +1187,12 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_FRAX3CRV",
+          contract: "CONVEX_FRAX3CRV_POOL",
           tokenOut: "cvxFRAX3CRV"
         },
         {
           type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_FRAX3CRV",
+          contract: "CONVEX_FRAX3CRV_POOL",
           tokenOut: "FRAX3CRV"
         }
     ]
@@ -1206,12 +1206,12 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_SUSD",
+          contract: "CONVEX_SUSD_POOL",
           tokenOut: "cvxcrvPlain3andSUSD"
         },
         {
           type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_SUSD",
+          contract: "CONVEX_SUSD_POOL",
           tokenOut: "crvPlain3andSUSD"
         }
     ]
@@ -1225,12 +1225,12 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     lpActions: [
         {
           type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_GUSD",
+          contract: "CONVEX_GUSD_POOL",
           tokenOut: "cvxgusd3CRV"
         },
         {
           type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_GUSD",
+          contract: "CONVEX_GUSD_POOL",
           tokenOut: "gusd3CRV"
         }
     ]
