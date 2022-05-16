@@ -6,6 +6,7 @@ export * from "./core/contracts";
 export * from "./core/events";
 export * from "./core/errors";
 export * from "./core/pool";
+export * from "./core/protocols";
 export * from "./core/priceFeeds";
 export * from "./core/operations";
 export * from "./core/oracles";
