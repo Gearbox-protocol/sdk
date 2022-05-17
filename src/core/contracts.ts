@@ -7,8 +7,12 @@
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
-import { CurveLPToken, NormalToken, ConvexStakedPhantomToken, tokenDataByNetwork } from "./token";
-
+import {
+  CurveLPToken,
+  NormalToken,
+  ConvexStakedPhantomToken,
+  tokenDataByNetwork
+} from "./token";
 
 export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 

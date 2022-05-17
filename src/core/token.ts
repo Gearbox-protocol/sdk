@@ -95,67 +95,96 @@ export type SupportedToken =
   | ConvexLPToken
   | ConvexStakedPhantomToken;
 
+export interface TokenBase {
+  addr: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+type NormalConnectorTokenData = {
+  symbol: NormalToken;
+  type: TokenType.CONNECTOR;
+  swapActions: Array<TradeAction>;
+  lpActions?: Array<TradeAction>;
+} & TokenBase;
+
+type NormalTokenData = {
+  symbol: NormalToken;
+  type: TokenType.NORMAL_TOKEN;
+  swapActions: Array<TradeAction>;
+  lpActions?: Array<TradeAction>;
+} & TokenBase;
+
+type CurveLPTokenData = {
+  symbol: CurveLPToken;
+  type: TokenType.CURVE_LP;
+  swapActions?: Array<TradeAction>;
+  lpActions: Array<TradeAction>;
+} & TokenBase;
+
+type MetaCurveLPTokenData = {
+  symbol: CurveLPToken;
+  type: TokenType.META_CURVE_LP;
+  lpActions: Array<TradeAction>;
+} & TokenBase;
+
+type YearnVaultTokenData = {
+  symbol: YearnLPToken;
+  type: TokenType.YEARN_VAULT;
+  underlying: NormalToken;
+  lpActions: Array<TradeAction>;
+} & TokenBase;
+
+type YearnVaultOfCurveLPTokenData = {
+  symbol: YearnLPToken;
+  type: TokenType.YEARN_VAULT_OF_CURVE_LP;
+  underlying: CurveLPToken;
+  lpActions: Array<TradeAction>;
+} & TokenBase;
+
+type YearnVaultOfMetaCurveLPTokenData = {
+  symbol: YearnLPToken;
+  type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
+  underlying: CurveLPToken;
+  lpActions: Array<TradeAction>;
+} & TokenBase;
+
+type ConvexLPTokenData = {
+  symbol: ConvexLPToken;
+  type: TokenType.CONVEX_LP_TOKEN;
+  pool: ConvexPoolContract;
+  underlying: CurveLPToken;
+  stakedToken: ConvexStakedPhantomToken;
+  lpActions: Array<TradeAction>;
+} & TokenBase;
+
+type ConvexPhantomTokenData = {
+  symbol: ConvexStakedPhantomToken;
+  type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN;
+  pool: ConvexPoolContract;
+  underlying: CurveLPToken;
+  lpToken: ConvexLPToken;
+  lpActions: Array<TradeAction>;
+} & TokenBase;
+
 export type TokenDataI =
-  | {
-      symbol: NormalToken;
-      type: TokenType.CONNECTOR;
-      swapActions: Array<TradeAction>;
-      lpActions?: Array<TradeAction>;
-    }
-  | {
-      symbol: NormalToken;
-      type: TokenType.NORMAL_TOKEN;
-      swapActions: Array<TradeAction>;
-      lpActions?: Array<TradeAction>;
-    }
-  | {
-      symbol: CurveLPToken;
-      type: TokenType.CURVE_LP;
-      swapActions?: Array<TradeAction>;
-      lpActions: Array<TradeAction>;
-    }
-  | {
-      symbol: YearnLPToken;
-      type: TokenType.YEARN_VAULT;
-      underlying: NormalToken;
-      lpActions: Array<TradeAction>;
-    }
-  | {
-      symbol: CurveLPToken;
-      type: TokenType.META_CURVE_LP;
-      lpActions: Array<TradeAction>;
-    }
-  | {
-      symbol: YearnLPToken;
-      type: TokenType.YEARN_VAULT_OF_CURVE_LP;
-      underlying: CurveLPToken;
-      lpActions: Array<TradeAction>;
-    }
-  | {
-      symbol: YearnLPToken;
-      type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
-      underlying: CurveLPToken;
-      lpActions: Array<TradeAction>;
-    }
-  | {
-      symbol: ConvexLPToken;
-      type: TokenType.CONVEX_LP_TOKEN;
-      pool: ConvexPoolContract;
-      underlying: CurveLPToken;
-      stakedToken: ConvexStakedPhantomToken;
-      lpActions: Array<TradeAction>;
-    }
-  | {
-      symbol: ConvexStakedPhantomToken;
-      type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN;
-      pool: ConvexPoolContract;
-      underlying: CurveLPToken;
-      lpToken: ConvexLPToken;
-      lpActions: Array<TradeAction>;
-    };
+  | NormalConnectorTokenData
+  | NormalTokenData
+  | CurveLPTokenData
+  | MetaCurveLPTokenData
+  | YearnVaultTokenData
+  | YearnVaultOfCurveLPTokenData
+  | YearnVaultOfMetaCurveLPTokenData
+  | ConvexLPTokenData
+  | ConvexPhantomTokenData;
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   "1INCH": {
+    name: "1INCH",
+    decimals: 18,
+    addr: "0x111111111117dC0aa78b770fA6A738034120C302",
+
     symbol: "1INCH",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -170,11 +199,15 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER"
-      },
+      }
     ]
   },
 
   AAVE: {
+    name: "AAVE",
+    decimals: 18,
+    addr: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+
     symbol: "AAVE",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -189,11 +222,15 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER"
-      },
+      }
     ]
   },
 
   COMP: {
+    name: "COMP",
+    decimals: 18,
+    addr: "0xc00e94Cb662C3520282E6f5717214004A7f26888",
+
     symbol: "COMP",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -208,11 +245,15 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER"
-      },
+      }
     ]
   },
 
   CRV: {
+    name: "CRV",
+    decimals: 18,
+    addr: "0xD533a949740bb3306d119CC777fa900bA034cd52",
+
     symbol: "CRV",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -227,11 +268,15 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER"
-      },
+      }
     ]
   },
 
   DAI: {
+    name: "DAI",
+    decimals: 18,
+    addr: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+
     symbol: "DAI",
     type: TokenType.CONNECTOR,
     swapActions: [
@@ -256,7 +301,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_SUSD_POOL",
         tokenOut: ["USDC", "USDT", "sUSD"]
-      },
+      }
     ],
     lpActions: [
       {
@@ -278,6 +323,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   DPI: {
+    name: "DPI",
+    decimals: 18,
+    addr: "0x1494CA1F11D487c2bBe4543E90080AeBa4BA3C2b",
+
     symbol: "DPI",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -297,6 +346,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   FEI: {
+    name: "FEI",
+    decimals: 18,
+    addr: "0x956F47F50A910163D8BF957Cf5846D573E7f87CA",
+
     symbol: "FEI",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -316,6 +369,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   LINK: {
+    name: "LINK",
+    decimals: 18,
+    addr: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+
     symbol: "LINK",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -335,6 +392,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   SNX: {
+    name: "SNX",
+    decimals: 18,
+    addr: "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
+
     symbol: "SNX",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -354,6 +415,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   SUSHI: {
+    name: "SUSHI",
+    decimals: 18,
+    addr: "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2",
+
     symbol: "SUSHI",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -365,6 +430,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   UNI: {
+    name: "UNI",
+    decimals: 18,
+    addr: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+
     symbol: "UNI",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -380,6 +449,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   USDC: {
+    name: "USDC",
+    decimals: 6,
+    addr: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+
     symbol: "USDC",
     type: TokenType.CONNECTOR,
     swapActions: [
@@ -407,25 +480,29 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       }
     ],
     lpActions: [
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_3CRV_POOL",
-          tokenOut: "3Crv"
-        },
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_SUSD_POOL",
-          tokenOut: "crvPlain3andSUSD"
-        },
-        {
-          type: TradeType.YearnDeposit,
-          contract: "YEARN_USDC_VAULT",
-          tokenOut: "yvUSDC"
-        }
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_3CRV_POOL",
+        tokenOut: "3Crv"
+      },
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_SUSD_POOL",
+        tokenOut: "crvPlain3andSUSD"
+      },
+      {
+        type: TradeType.YearnDeposit,
+        contract: "YEARN_USDC_VAULT",
+        tokenOut: "yvUSDC"
+      }
     ]
   },
 
   USDT: {
+    name: "USDT",
+    decimals: 6,
+    addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+
     symbol: "USDT",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -450,23 +527,27 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_SUSD_POOL",
         tokenOut: ["DAI", "USDC", "sUSD"]
-      },
+      }
     ],
     lpActions: [
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_3CRV_POOL",
-          tokenOut: "3Crv"
-        },
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_SUSD_POOL",
-          tokenOut: "crvPlain3andSUSD"
-        }
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_3CRV_POOL",
+        tokenOut: "3Crv"
+      },
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_SUSD_POOL",
+        tokenOut: "crvPlain3andSUSD"
+      }
     ]
   },
 
   WBTC: {
+    name: "WBTC",
+    decimals: 8,
+    addr: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+
     symbol: "WBTC",
     type: TokenType.CONNECTOR,
     swapActions: [
@@ -484,15 +565,19 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       }
     ],
     lpActions: [
-        {
-          type: TradeType.YearnDeposit,
-          contract: "YEARN_WBTC_VAULT",
-          tokenOut: "yvWBTC"
-        }
+      {
+        type: TradeType.YearnDeposit,
+        contract: "YEARN_WBTC_VAULT",
+        tokenOut: "yvWBTC"
+      }
     ]
   },
 
   WETH: {
+    name: "WETH",
+    decimals: 18,
+    addr: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+
     symbol: "WETH",
     type: TokenType.CONNECTOR,
     swapActions: [
@@ -513,22 +598,26 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         contract: "CURVE_STETH_GATEWAY",
         tokenOut: ["STETH"]
       }
-      ],
-      lpActions: [
-          {
-            type: TradeType.YearnDeposit,
-            contract: "YEARN_WETH_VAULT",
-            tokenOut: "yvWETH"
-          },
-          {
-            type: TradeType.CurveDepositLP,
-            contract: "CURVE_STETH_GATEWAY",
-            tokenOut: "steCRV"
-          },
-      ]
+    ],
+    lpActions: [
+      {
+        type: TradeType.YearnDeposit,
+        contract: "YEARN_WETH_VAULT",
+        tokenOut: "yvWETH"
+      },
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_STETH_GATEWAY",
+        tokenOut: "steCRV"
+      }
+    ]
   },
 
   YFI: {
+    name: "YFI",
+    decimals: 18,
+    addr: "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+
     symbol: "YFI",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -549,37 +638,45 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
 
   /// UPDATE
   STETH: {
+    name: "stETH",
+    decimals: 18,
+    addr: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+
     symbol: "STETH",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
-        {
-          type: TradeType.UniswapV3Swap,
-          contract: "UNISWAP_V3_ROUTER"
-        },
-        {
-          type: TradeType.UniswapV2Swap,
-          contract: "UNISWAP_V2_ROUTER"
-        },
-        {
-          type: TradeType.UniswapV2Swap,
-          contract: "SUSHISWAP_ROUTER"
-        },
-        {
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER"
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER"
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER"
+      },
+      {
         type: TradeType.CurveExchange,
         contract: "CURVE_STETH_GATEWAY",
         tokenOut: ["WETH"]
-        }
+      }
     ],
     lpActions: [
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_STETH_GATEWAY",
-          tokenOut: "steCRV"
-        },
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_STETH_GATEWAY",
+        tokenOut: "steCRV"
+      }
     ]
   },
 
   FTM: {
+    name: "FTM",
+    decimals: 18,
+    addr: "0x4E15361FD6b4BB609Fa63C81A2be19d873717870",
+
     symbol: "FTM",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -599,6 +696,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   CVX: {
+    name: "CVX",
+    decimals: 18,
+    addr: "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",
+
     symbol: "CVX",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -618,6 +719,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   FRAX: {
+    name: "FRAX",
+    decimals: 18,
+    addr: "0x853d955aCEf822Db058eb8505911ED77F175b99e",
+
     symbol: "FRAX",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -640,15 +745,19 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       }
     ],
     lpActions: [
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_FRAX_POOL",
-          tokenOut: "FRAX3CRV"
-        }
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_FRAX_POOL",
+        tokenOut: "FRAX3CRV"
+      }
     ]
   },
 
   FXS: {
+    name: "FXS",
+    decimals: 18,
+    addr: "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0",
+
     symbol: "FXS",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -668,6 +777,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   LDO: {
+    name: "LDO",
+    decimals: 18,
+    addr: "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32",
+
     symbol: "LDO",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -687,6 +800,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   SPELL: {
+    name: "SPELL",
+    decimals: 18,
+    addr: "0x090185f2135308BaD17527004364eBcC2D37e5F6",
+
     symbol: "SPELL",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -706,99 +823,115 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   LUSD: {
+    name: "LUSD",
+    decimals: 18,
+    addr: "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0",
+
     symbol: "LUSD",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
-        {
-            type: TradeType.UniswapV3Swap,
-            contract: "UNISWAP_V3_ROUTER"
-        },
-        {
-            type: TradeType.UniswapV2Swap,
-            contract: "UNISWAP_V2_ROUTER"
-        },
-        {
-            type: TradeType.UniswapV2Swap,
-            contract: "SUSHISWAP_ROUTER"
-        },
-        {
-          type: TradeType.CurveExchange,
-          contract: "CURVE_LUSD_POOL",
-          tokenOut: ["3Crv"]
-        }
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER"
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER"
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER"
+      },
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_LUSD_POOL",
+        tokenOut: ["3Crv"]
+      }
     ],
     lpActions: [
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_LUSD_POOL",
-          tokenOut: "LUSD3CRV"
-        }
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_LUSD_POOL",
+        tokenOut: "LUSD3CRV"
+      }
     ]
   },
 
   sUSD: {
+    name: "sUSD",
+    decimals: 18,
+    addr: "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
+
     symbol: "sUSD",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
         contract: "UNISWAP_V3_ROUTER"
-        },
-        {
+      },
+      {
         type: TradeType.UniswapV2Swap,
         contract: "UNISWAP_V2_ROUTER"
-        },
-        {
+      },
+      {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER"
-        },
-        {
-          type: TradeType.CurveExchange,
-          contract: "CURVE_SUSD_POOL",
-          tokenOut: ["DAI", "USDT", "USDC"]
-        }
+      },
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_SUSD_POOL",
+        tokenOut: ["DAI", "USDT", "USDC"]
+      }
     ],
     lpActions: [
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_SUSD_POOL",
-          tokenOut: "crvPlain3andSUSD"
-        }
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_SUSD_POOL",
+        tokenOut: "crvPlain3andSUSD"
+      }
     ]
   },
 
   GUSD: {
+    name: "GUSD",
+    decimals: 18,
+    addr: "0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd",
+
     symbol: "GUSD",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
-        {
-            type: TradeType.UniswapV3Swap,
-            contract: "UNISWAP_V3_ROUTER"
-        },
-        {
-            type: TradeType.UniswapV2Swap,
-            contract: "UNISWAP_V2_ROUTER"
-        },
-        {
-            type: TradeType.UniswapV2Swap,
-            contract: "SUSHISWAP_ROUTER"
-        },
-        {
-            type: TradeType.CurveExchange,
-            contract: "CURVE_GUSD_POOL",
-            tokenOut: ["3Crv"]
-        }
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER"
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER"
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER"
+      },
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_GUSD_POOL",
+        tokenOut: ["3Crv"]
+      }
     ],
     lpActions: [
-        {
-          type: TradeType.CurveDepositLP,
-          contract: "CURVE_GUSD_POOL",
-          tokenOut: "gusd3CRV"
-        }
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_GUSD_POOL",
+        tokenOut: "gusd3CRV"
+      }
     ]
   },
 
   LUNA: {
+    name: "LUNA",
+    decimals: 18,
+    addr: "0xd2877702675e6cEb975b4A1dFf9fb7BAF4C91ea9",
+
     symbol: "LUNA",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -817,6 +950,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
     ]
   },
   LQTY: {
+    name: "LQTY",
+    decimals: 18,
+    addr: "0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D",
+
     symbol: "LQTY",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
@@ -837,6 +974,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
 
   // YEARN TOKENS
   yvDAI: {
+    name: "yvDAI",
+    decimals: 18,
+    addr: "0xdA816459F1AB5631232FE5e97a05BBBb94970c95",
+
     symbol: "yvDAI",
     type: TokenType.YEARN_VAULT,
     underlying: "DAI",
@@ -850,6 +991,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   yvUSDC: {
+    name: "yvUSDC",
+    decimals: 6,
+    addr: "0xa354F35829Ae975e850e23e9615b11Da1B3dC4DE",
+
     symbol: "yvUSDC",
     type: TokenType.YEARN_VAULT,
     underlying: "USDC",
@@ -863,6 +1008,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   yvWETH: {
+    name: "yvWETH",
+    decimals: 18,
+    addr: "0xa258C4606Ca8206D8aA700cE2143D7db854D168c",
+
     symbol: "yvWETH",
     type: TokenType.YEARN_VAULT,
     underlying: "WETH",
@@ -876,6 +1025,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   yvWBTC: {
+    name: "yvWBTC",
+    decimals: 8,
+    addr: "0xA696a63cc78DfFa1a63E9E50587C197387FF6C7E",
+
     symbol: "yvWBTC",
     type: TokenType.YEARN_VAULT,
     underlying: "WBTC",
@@ -890,6 +1043,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
 
   // CURVE LP TOKENS
   "3Crv": {
+    name: "3Crv",
+    decimals: 18,
+    addr: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+
     symbol: "3Crv",
     type: TokenType.CURVE_LP,
     lpActions: [
@@ -912,6 +1069,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   steCRV: {
+    name: "steCRV",
+    decimals: 18,
+    addr: "0x06325440D014e39736583c165C2963BA99fAf14E",
+
     symbol: "steCRV",
     type: TokenType.CURVE_LP,
     lpActions: [
@@ -934,305 +1095,374 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   },
 
   crvPlain3andSUSD: {
+    name: "crvPlain3andSUSD",
+    decimals: 18,
+    addr: "0xC25a3A3b969415c80451098fa907EC722572917F",
+
     symbol: "crvPlain3andSUSD",
     type: TokenType.CURVE_LP,
     lpActions: [
-        {
-          type: TradeType.CurveWithdrawLP,
-          contract: "CURVE_SUSD_POOL",
-          tokenOut: ["DAI", "USDC", "USDT", "sUSD"]
-        },
-        {
-          type: TradeType.ConvexDepositLP,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "cvxcrvPlain3andSUSD"
-        },
-        {
-          type: TradeType.ConvexDepositLPAndStake,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "stkcvxcrvPlain3andSUSD"
-        }
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_SUSD_POOL",
+        tokenOut: ["DAI", "USDC", "USDT", "sUSD"]
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxcrvPlain3andSUSD"
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxcrvPlain3andSUSD"
+      }
     ]
   },
 
   //  META CURVE LP TOKENS
   FRAX3CRV: {
+    name: "FRAX3CRV-f",
+    decimals: 18,
+    addr: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+
     symbol: "FRAX3CRV",
     type: TokenType.META_CURVE_LP,
     lpActions: [
-        {
-          type: TradeType.CurveWithdrawLP,
-          contract: "CURVE_FRAX_POOL",
-          tokenOut: ["FRAX", "3Crv"]
-        },
-        {
-          type: TradeType.ConvexDepositLP,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "cvxFRAX3CRV"
-        },
-        {
-          type: TradeType.ConvexDepositLPAndStake,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "stkcvxFRAX3CRV"
-        }
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_FRAX_POOL",
+        tokenOut: ["FRAX", "3Crv"]
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxFRAX3CRV"
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxFRAX3CRV"
+      }
     ]
   },
 
   LUSD3CRV: {
+    name: "LUSD3CRV-f",
+    decimals: 18,
+    addr: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA",
+
     symbol: "LUSD3CRV",
     type: TokenType.META_CURVE_LP,
     lpActions: [
-        {
-          type: TradeType.CurveWithdrawLP,
-          contract: "CURVE_LUSD_POOL",
-          tokenOut: ["LUSD", "3Crv"]
-        }
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_LUSD_POOL",
+        tokenOut: ["LUSD", "3Crv"]
+      }
     ]
   },
 
   gusd3CRV: {
+    name: "gusd3CRV",
+    decimals: 18,
+    addr: "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+
     symbol: "gusd3CRV",
     type: TokenType.META_CURVE_LP,
     lpActions: [
-        {
-          type: TradeType.CurveWithdrawLP,
-          contract: "CURVE_GUSD_POOL",
-          tokenOut: ["GUSD", "3Crv"]
-        },
-        {
-          type: TradeType.ConvexDepositLP,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "cvxgusd3CRV"
-        },
-        {
-          type: TradeType.ConvexDepositLPAndStake,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "stkcvxgusd3CRV"
-        }
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_GUSD_POOL",
+        tokenOut: ["GUSD", "3Crv"]
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxgusd3CRV"
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxgusd3CRV"
+      }
     ]
   },
 
   // CONVEX LP TOKENS
   cvx3Crv: {
+    name: "cvx3Crv",
+    decimals: 18,
+    addr: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+
     symbol: "cvx3Crv",
     type: TokenType.CONVEX_LP_TOKEN,
     pool: "CONVEX_3CRV_POOL",
     underlying: "3Crv",
     stakedToken: "stkcvx3Crv",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdrawLP,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "3Crv"
-        },
-        {
-          type: TradeType.ConvexStake,
-          contract: "CONVEX_3CRV_POOL",
-          tokenOut: "stkcvx3Crv"
-        }
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "3Crv"
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_3CRV_POOL",
+        tokenOut: "stkcvx3Crv"
+      }
     ]
   },
 
   cvxsteCRV: {
+    name: "cvxsteCRV",
+    decimals: 18,
+    addr: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+
     symbol: "cvxsteCRV",
     type: TokenType.CONVEX_LP_TOKEN,
     pool: "CONVEX_STECRV_POOL",
     underlying: "steCRV",
     stakedToken: "stkcvxsteCRV",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdrawLP,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "steCRV"
-        },
-        {
-          type: TradeType.ConvexStake,
-          contract: "CONVEX_STECRV_POOL",
-          tokenOut: "stkcvxsteCRV"
-        }
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "steCRV"
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_STECRV_POOL",
+        tokenOut: "stkcvxsteCRV"
+      }
     ]
   },
 
   cvxFRAX3CRV: {
+    name: "cvxFRAX3CRV-f",
+    decimals: 18,
+    addr: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+
     symbol: "cvxFRAX3CRV",
     type: TokenType.CONVEX_LP_TOKEN,
     pool: "CONVEX_FRAX3CRV_POOL",
     underlying: "FRAX3CRV",
     stakedToken: "stkcvxFRAX3CRV",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdrawLP,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "FRAX3CRV"
-        },
-        {
-          type: TradeType.ConvexStake,
-          contract: "CONVEX_FRAX3CRV_POOL",
-          tokenOut: "stkcvxFRAX3CRV"
-        }
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "FRAX3CRV"
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_FRAX3CRV_POOL",
+        tokenOut: "stkcvxFRAX3CRV"
+      }
     ]
   },
 
   cvxcrvPlain3andSUSD: {
+    name: "cvxcrvPlain3andSUSD",
+    decimals: 18,
+    addr: "0x11D200ef1409cecA8D6d23e6496550f707772F11",
+
     symbol: "cvxcrvPlain3andSUSD",
     type: TokenType.CONVEX_LP_TOKEN,
     pool: "CONVEX_SUSD_POOL",
     underlying: "crvPlain3andSUSD",
     stakedToken: "stkcvxcrvPlain3andSUSD",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdrawLP,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "crvPlain3andSUSD"
-        },
-        {
-          type: TradeType.ConvexStake,
-          contract: "CONVEX_SUSD_POOL",
-          tokenOut: "stkcvxcrvPlain3andSUSD"
-        }
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "crvPlain3andSUSD"
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_SUSD_POOL",
+        tokenOut: "stkcvxcrvPlain3andSUSD"
+      }
     ]
   },
 
   cvxgusd3CRV: {
+    name: "cvxgusd3CRV",
+    decimals: 18,
+    addr: "0x15c2471ef46Fa721990730cfa526BcFb45574576",
+
     symbol: "cvxgusd3CRV",
     type: TokenType.CONVEX_LP_TOKEN,
     pool: "CONVEX_GUSD_POOL",
     underlying: "gusd3CRV",
     stakedToken: "stkcvxgusd3CRV",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdrawLP,
-          contract: "CONVEX_BOOSTER",
-          tokenOut: "gusd3CRV"
-        },
-        {
-          type: TradeType.ConvexStake,
-          contract: "CONVEX_GUSD_POOL",
-          tokenOut: "stkcvxgusd3CRV"
-        }
-    ]
-  },
-
-  // YEARN- CURVE TOKENS
-  yvCurve_stETH: {
-    symbol: "yvCurve_stETH",
-    type: TokenType.YEARN_VAULT_OF_CURVE_LP,
-    underlying: "steCRV",
-    lpActions: [
-        {
-          type: TradeType.YearnWithdraw,
-          contract: "YEARN_CURVE_STETH_VAULT",
-          tokenOut: "steCRV"
-        }
-    ]
-  },
-  yvCURVE_FRAX_POOL: {
-    symbol: "yvCURVE_FRAX_POOL",
-    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP,
-    underlying: "FRAX3CRV",
-    lpActions: [
-        {
-          type: TradeType.YearnWithdraw,
-          contract: "YEARN_CURVE_FRAX_VAULT",
-          tokenOut: "FRAX3CRV"
-        }
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "gusd3CRV"
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_GUSD_POOL",
+        tokenOut: "stkcvxgusd3CRV"
+      }
     ]
   },
 
   // STAKED CONVEX
   stkcvx3Crv: {
+    name: "stkcvx3Crv",
+    decimals: 18,
+    addr: "0xDbA28Ee5b201AaE8E0BfE889E95cC8DC4559e02B",
+
     symbol: "stkcvx3Crv",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
     pool: "CONVEX_3CRV_POOL",
     underlying: "3Crv",
     lpToken: "cvx3Crv",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_3CRV_POOL",
-          tokenOut: "cvx3Crv"
-        },
-        {
-          type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_3CRV_POOL",
-          tokenOut: "3Crv"
-        }
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_3CRV_POOL",
+        tokenOut: "cvx3Crv"
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_3CRV_POOL",
+        tokenOut: "3Crv"
+      }
     ]
   },
+
   stkcvxsteCRV: {
+    name: "stkcvxsteCRV",
+    decimals: 18,
+    addr: "0xC0e0492f1157B051fEca7e34c089c6E45a1D6480",
+
     symbol: "stkcvxsteCRV",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
     pool: "CONVEX_STECRV_POOL",
     underlying: "steCRV",
     lpToken: "cvxsteCRV",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_STECRV_POOL",
-          tokenOut: "cvxsteCRV"
-        },
-        {
-          type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_STECRV_POOL",
-          tokenOut: "steCRV"
-        }
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_STECRV_POOL",
+        tokenOut: "cvxsteCRV"
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_STECRV_POOL",
+        tokenOut: "steCRV"
+      }
     ]
   },
+
   stkcvxFRAX3CRV: {
+    name: "stkcvxFRAX3CRV-f",
+    decimals: 18,
+    addr: "0x6738e27899ffCF76aeadA4B4612CC4a07BD6562A",
+
     symbol: "stkcvxFRAX3CRV",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
     pool: "CONVEX_FRAX3CRV_POOL",
     underlying: "FRAX3CRV",
     lpToken: "cvxFRAX3CRV",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_FRAX3CRV_POOL",
-          tokenOut: "cvxFRAX3CRV"
-        },
-        {
-          type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_FRAX3CRV_POOL",
-          tokenOut: "FRAX3CRV"
-        }
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_FRAX3CRV_POOL",
+        tokenOut: "cvxFRAX3CRV"
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_FRAX3CRV_POOL",
+        tokenOut: "FRAX3CRV"
+      }
     ]
   },
+
   stkcvxcrvPlain3andSUSD: {
+    name: "stkcvxcrvPlain3andSUSD",
+    decimals: 18,
+    addr: "0xdb2Bc1Fd98721bF4AD1bACE1Cab1cF5B4cf61d4c",
+
     symbol: "stkcvxcrvPlain3andSUSD",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
     pool: "CONVEX_SUSD_POOL",
     underlying: "crvPlain3andSUSD",
     lpToken: "cvxcrvPlain3andSUSD",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_SUSD_POOL",
-          tokenOut: "cvxcrvPlain3andSUSD"
-        },
-        {
-          type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_SUSD_POOL",
-          tokenOut: "crvPlain3andSUSD"
-        }
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_SUSD_POOL",
+        tokenOut: "cvxcrvPlain3andSUSD"
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_SUSD_POOL",
+        tokenOut: "crvPlain3andSUSD"
+      }
     ]
   },
+
   stkcvxgusd3CRV: {
+    name: "stkcvxgusd3CRV",
+    decimals: 18,
+    addr: "0xc8124E539fD1F9E5E2F561f14aAAc5899681E274",
+
     symbol: "stkcvxgusd3CRV",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
     pool: "CONVEX_GUSD_POOL",
     underlying: "gusd3CRV",
     lpToken: "cvxgusd3CRV",
     lpActions: [
-        {
-          type: TradeType.ConvexWithdraw,
-          contract: "CONVEX_GUSD_POOL",
-          tokenOut: "cvxgusd3CRV"
-        },
-        {
-          type: TradeType.ConvexWithdrawAndUnwrap,
-          contract: "CONVEX_GUSD_POOL",
-          tokenOut: "gusd3CRV"
-        }
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_GUSD_POOL",
+        tokenOut: "cvxgusd3CRV"
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_GUSD_POOL",
+        tokenOut: "gusd3CRV"
+      }
+    ]
+  },
+
+  // YEARN- CURVE TOKENS
+  yvCurve_stETH: {
+    name: "yvCurve-stETH",
+    decimals: 18,
+    addr: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
+
+    symbol: "yvCurve_stETH",
+    type: TokenType.YEARN_VAULT_OF_CURVE_LP,
+    underlying: "steCRV",
+    lpActions: [
+      {
+        type: TradeType.YearnWithdraw,
+        contract: "YEARN_CURVE_STETH_VAULT",
+        tokenOut: "steCRV"
+      }
+    ]
+  },
+
+  yvCURVE_FRAX_POOL: {
+    name: "yvCurve-FRAX",
+    decimals: 18,
+    addr: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
+
+    symbol: "yvCURVE_FRAX_POOL",
+    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP,
+    underlying: "FRAX3CRV",
+    lpActions: [
+      {
+        type: TradeType.YearnWithdraw,
+        contract: "YEARN_CURVE_FRAX_VAULT",
+        tokenOut: "FRAX3CRV"
+      }
     ]
   }
 };

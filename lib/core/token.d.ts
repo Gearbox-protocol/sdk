@@ -19,54 +19,70 @@ export declare type YearnLPToken = "yvDAI" | "yvUSDC" | "yvWETH" | "yvWBTC" | "y
 export declare type ConvexLPToken = "cvx3Crv" | "cvxsteCRV" | "cvxFRAX3CRV" | "cvxcrvPlain3andSUSD" | "cvxgusd3CRV";
 export declare type ConvexStakedPhantomToken = "stkcvx3Crv" | "stkcvxsteCRV" | "stkcvxFRAX3CRV" | "stkcvxcrvPlain3andSUSD" | "stkcvxgusd3CRV";
 export declare type SupportedToken = NormalToken | YearnLPToken | CurveLPToken | ConvexLPToken | ConvexStakedPhantomToken;
-export declare type TokenDataI = {
+export interface TokenBase {
+    addr: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+}
+declare type NormalConnectorTokenData = {
     symbol: NormalToken;
     type: TokenType.CONNECTOR;
     swapActions: Array<TradeAction>;
     lpActions?: Array<TradeAction>;
-} | {
+} & TokenBase;
+declare type NormalTokenData = {
     symbol: NormalToken;
     type: TokenType.NORMAL_TOKEN;
     swapActions: Array<TradeAction>;
     lpActions?: Array<TradeAction>;
-} | {
+} & TokenBase;
+declare type CurveLPTokenData = {
     symbol: CurveLPToken;
     type: TokenType.CURVE_LP;
     swapActions?: Array<TradeAction>;
     lpActions: Array<TradeAction>;
-} | {
+} & TokenBase;
+declare type MetaCurveLPTokenData = {
+    symbol: CurveLPToken;
+    type: TokenType.META_CURVE_LP;
+    lpActions: Array<TradeAction>;
+} & TokenBase;
+declare type YearnVaultTokenData = {
     symbol: YearnLPToken;
     type: TokenType.YEARN_VAULT;
     underlying: NormalToken;
     lpActions: Array<TradeAction>;
-} | {
-    symbol: CurveLPToken;
-    type: TokenType.META_CURVE_LP;
-    lpActions: Array<TradeAction>;
-} | {
+} & TokenBase;
+declare type YearnVaultOfCurveLPTokenData = {
     symbol: YearnLPToken;
     type: TokenType.YEARN_VAULT_OF_CURVE_LP;
     underlying: CurveLPToken;
     lpActions: Array<TradeAction>;
-} | {
+} & TokenBase;
+declare type YearnVaultOfMetaCurveLPTokenData = {
     symbol: YearnLPToken;
     type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
     underlying: CurveLPToken;
     lpActions: Array<TradeAction>;
-} | {
+} & TokenBase;
+declare type ConvexLPTokenData = {
     symbol: ConvexLPToken;
     type: TokenType.CONVEX_LP_TOKEN;
     pool: ConvexPoolContract;
     underlying: CurveLPToken;
     stakedToken: ConvexStakedPhantomToken;
     lpActions: Array<TradeAction>;
-} | {
+} & TokenBase;
+declare type ConvexPhantomTokenData = {
     symbol: ConvexStakedPhantomToken;
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN;
     pool: ConvexPoolContract;
     underlying: CurveLPToken;
     lpToken: ConvexLPToken;
     lpActions: Array<TradeAction>;
-};
+} & TokenBase;
+export declare type TokenDataI = NormalConnectorTokenData | NormalTokenData | CurveLPTokenData | MetaCurveLPTokenData | YearnVaultTokenData | YearnVaultOfCurveLPTokenData | YearnVaultOfMetaCurveLPTokenData | ConvexLPTokenData | ConvexPhantomTokenData;
 export declare const supportedTokens: Record<SupportedToken, TokenDataI>;
 export declare const tokenDataByNetwork: Record<NetworkType, Record<SupportedToken, string>>;
+export {};
