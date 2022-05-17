@@ -123,6 +123,7 @@ export interface CurveSteCRVPoolParams {
   protocol: Protocols.Curve;
   type: AdapterInterface.CURVE_V1_STECRV_POOL;
   pool: Record<NetworkType, string>;
+  lpToken: "steCRV";
 }
 
 export interface LidoParams {
@@ -194,7 +195,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
       Kovan: "0xF695d3aa358D5087A0C157DBb9449d4f0d8E534a"
-    }
+    },
+    lpToken: "steCRV"
   },
   CURVE_FRAX_POOL: {
     protocol: Protocols.Curve,
