@@ -145,7 +145,8 @@ export class EventAddLiquidity extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+    const { decimals = 18, symbol } =
+      tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Pool ${getContractName(this.pool)}: Deposit ${formatBN(
       this.amount,
@@ -179,7 +180,8 @@ export class EventRemoveLiquidity extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.dieselToken] || {};
+    const { decimals = 18, symbol } =
+      tokenData[this.dieselToken.toLowerCase()] || {};
 
     return `Pool ${getContractName(this.pool)}: withdraw ${formatBN(
       this.amount,
@@ -215,7 +217,8 @@ export class EventOpenCreditAccount extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+    const { decimals = 18, symbol } =
+      tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
       this.creditManager
@@ -254,7 +257,8 @@ export class EventCloseCreditAccount extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+    const { decimals = 18, symbol } =
+      tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
       this.creditManager
@@ -287,7 +291,8 @@ export class EventLiquidateCreditAccount extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+    const { decimals = 18, symbol } =
+      tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
       this.creditManager
@@ -316,7 +321,7 @@ export class EventRepayCreditAccount extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `Credit account ${getContractName(this.creditManager)}: was repaid`;
   }
 }
@@ -374,7 +379,8 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+    const { decimals = 18, symbol } =
+      tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
       this.creditManager
@@ -451,7 +457,7 @@ export class EventCMNewParameters extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const token = tokenData[this.underlyingToken.toLowerCase()];
     let msg = `Credit manager ${getContractName(this.creditManager)} updated: `;
 
     if (this.minAmount !== this.prevMinAmount) {
@@ -529,7 +535,7 @@ export class EventTokenAllowed extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.token];
+    const token = tokenData[this.token.toLowerCase()];
     let msg = `Credit manager ${getContractName(this.creditManager)} updated `;
     switch (this.status) {
       case "NewToken":
@@ -573,7 +579,7 @@ export class EventTokenForbidden extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.token];
+    const token = tokenData[this.token.toLowerCase()];
     return `Credit manager ${getContractName(this.creditManager)} updated ${
       token.symbol
     } forbidden`;
@@ -894,7 +900,8 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.underlyingToken] || {};
+    const { decimals = 18, symbol } =
+      tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return this.prevLimit.isZero()
       ? `Pool ${getContractName(
@@ -942,7 +949,7 @@ export class EventNewWithdrawFee extends EVMEvent {
     this.prevFee = Number(opts.oldFee);
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return this.prevFee === 0
       ? `Pool ${getContractName(this.pool)} updated: withdraw fee was set to: ${
           this.newFee / 100
@@ -1005,7 +1012,7 @@ export class EventTakeForever extends EVMEvent {
     this.to = opts.to;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `AccountFactory: account ${this.creditAccount} was taken forever and transferred to ${this.to}`;
   }
 }
@@ -1027,7 +1034,7 @@ export class EventPaused extends EVMEvent {
     this.contract = opts.contract;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `${getContractName(this.contract)} was paused`;
   }
 }
@@ -1047,7 +1054,7 @@ export class EventUnPaused extends EVMEvent {
     this.contract = opts.contract;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `${getContractName(this.contract)} was unpaused`;
   }
 }
@@ -1070,7 +1077,7 @@ export class EventPausableAdminAdded extends EVMEvent {
     this.admin = opts.admin;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `ACL: pausable admin ${this.admin} was added`;
   }
 }
@@ -1093,7 +1100,7 @@ export class EventPausableAdminRemoved extends EVMEvent {
     this.admin = opts.admin;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `ACL: pausable admin ${this.admin} was removed`;
   }
 }
@@ -1116,7 +1123,7 @@ export class EventUnPausableAdminAdded extends EVMEvent {
     this.admin = opts.admin;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `ACL: unpausable admin ${this.admin} was added`;
   }
 }
@@ -1139,7 +1146,7 @@ export class EventUnPausableAdminRemoved extends EVMEvent {
     this.admin = opts.admin;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `ACL: unpausable admin ${this.admin} was removed`;
   }
 }
@@ -1161,7 +1168,7 @@ export class EventTransferOwnership extends EVMEvent {
     this.newOwner = opts.admin;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `ACL: configurator was changed to ${this.newOwner}`;
   }
 }

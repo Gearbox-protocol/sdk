@@ -64,25 +64,39 @@ export class CreditAccountData {
     prices: Record<string, number>,
     tokens: Record<string, TokenData>
   ): Array<Balance> {
-    const priceCalc = (addr: string, amount: BigNumber) =>
-      amount
-        .mul(Math.floor(1000 * prices[addr.toLowerCase() || ""] || 0))
-        .div(BigNumber.from(10).pow(tokens[addr]?.decimals || 18));
+    const priceCalc = (addr: string, amount: BigNumber) => {
+      const price = prices[addr] || 0;
+      const { decimals = 18 } = tokens[addr] || {};
 
-    const tokensAbcComparator = (t1?: TokenData, t2?: TokenData) =>
-      (t1?.symbol || "") > (t2?.symbol || "") ? 1 : -1;
+      return amount
+        .mul(Math.floor(1000 * price))
+        .div(BigNumber.from(10).pow(decimals));
+    };
 
-    return tokens
-      ? Object.entries(this.balances || [])
-          .sort(([addr1, amount1], [addr2, amount2]) => {
-            return priceCalc(addr1, amount1).eq(priceCalc(addr2, amount2))
-              ? tokensAbcComparator(tokens[addr1], tokens[addr2])
-              : priceCalc(addr1, amount1).gt(priceCalc(addr2, amount2))
-              ? -1
-              : 1;
-          })
-          .map(([address, balance]) => ({ address, balance }))
-      : [];
+    const tokensAbcComparator = (t1?: TokenData, t2?: TokenData) => {
+      const { symbol: symbol1 = "" } = t1 || {};
+      const { symbol: symbol2 = "" } = t2 || {};
+
+      return symbol1 > symbol2 ? 1 : -1;
+    };
+
+    const safeBalances = this.balances || [];
+
+    return Object.entries(safeBalances)
+      .sort(([addr1, amount1], [addr2, amount2]) => {
+        const addr1Lc = addr1.toLowerCase();
+        const addr2Lc = addr2.toLowerCase();
+
+        const price1 = priceCalc(addr1Lc, amount1);
+        const price2 = priceCalc(addr2Lc, amount2);
+
+        return price1.eq(price2)
+          ? tokensAbcComparator(tokens[addr1Lc], tokens[addr2Lc])
+          : price1.gt(price2)
+          ? -1
+          : 1;
+      })
+      .map(([address, balance]) => ({ address, balance }));
   }
 }
 

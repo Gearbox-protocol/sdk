@@ -1,5 +1,3 @@
-
-
 export const deployedContracts: Record<string, string> = {
   // MAINNET
   "0x24946bCbBd028D5ABb62ad9B635EB1b1a67AF668": "DAI",
@@ -10,8 +8,6 @@ export const deployedContracts: Record<string, string> = {
   "0x968f9a68a98819E2e6Bb910466e191A7b6cf02F0": "WETH",
   "0xB2A015c71c17bCAC6af36645DEad8c572bA08A08": "WBTC",
   "0xC38478B0A4bAFE964C3526EEFF534d70E1E09017": "WBTC",
-
-
 
   // [UNISWAP_V2_ROUTER]: "Uniswap V2",
   // [UNISWAP_V3_ROUTER]: "Uniswap V3",
@@ -28,13 +24,11 @@ export const deployedContracts: Record<string, string> = {
   "0xe04b4db67127d1930D36f16B51653120C4285708": "WBTC",
   "0x600073357c29d169aAF3E543A4519749830553F1": "WETH",
   "0xdBAd1361d9A03B81Be8D3a54Ef0dc9e39a1bA5b3": "USDC",
-  "0x50d1fA47b0D88BA0D108148B8481b4A762eFB99e": "DAI",
+  "0x50d1fA47b0D88BA0D108148B8481b4A762eFB99e": "DAI"
   // [YEARN_DAI_VAULT_KOVAN_MOCK]: "Yearn DAI",
   // [YEARN_USDC_VAULT_KOVAN_MOCK]: "Yearn USDC",
   // [SUSHISWAP_KOVAN]: "Sushiswap"
 };
-
-
 
 export function getContractName(address: string): string {
   Object.entries(deployedContracts).forEach(([addr, name]) => {
