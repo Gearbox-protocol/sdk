@@ -11,7 +11,8 @@ export enum TokenType {
   YEARN_VAULT_OF_CURVE_LP,
   YEARN_VAULT_OF_META_CURVE_LP,
   CONVEX_LP_TOKEN,
-  CONVEX_STAKED_PHANTOM_TOKEN
+  CONVEX_STAKED_PHANTOM_TOKEN,
+  DIESEL_LP_TOKEN
 }
 
 export const priority: Record<TokenType, number> = {
@@ -23,7 +24,8 @@ export const priority: Record<TokenType, number> = {
   [TokenType.YEARN_VAULT_OF_CURVE_LP]: 4,
   [TokenType.CONVEX_LP_TOKEN]: 5,
   [TokenType.YEARN_VAULT_OF_META_CURVE_LP]: 5,
-  [TokenType.CONVEX_STAKED_PHANTOM_TOKEN]: 5
+  [TokenType.CONVEX_STAKED_PHANTOM_TOKEN]: 5,
+  [TokenType.DIESEL_LP_TOKEN]: 6
 };
 
 export type NormalToken =
@@ -88,15 +90,19 @@ export type ConvexStakedPhantomToken =
   | "stkcvxcrvPlain3andSUSD"
   | "stkcvxgusd3CRV";
 
+export type DieselToken = "dDAI" | "dUSDC" | "dWBTC" | "dWETH";
+export type GearboxToken = "GEAR";
+
 export type SupportedToken =
   | NormalToken
   | YearnLPToken
   | CurveLPToken
   | ConvexLPToken
-  | ConvexStakedPhantomToken;
+  | ConvexStakedPhantomToken
+  | DieselToken
+  | GearboxToken;
 
 export interface TokenBase {
-  addr: string;
   name: string;
   symbol: string;
   decimals: number;
@@ -168,6 +174,16 @@ type ConvexPhantomTokenData = {
   lpActions: Array<TradeAction>;
 } & TokenBase;
 
+type DieselTokenData = {
+  symbol: DieselToken;
+  type: TokenType.DIESEL_LP_TOKEN;
+} & TokenBase;
+
+type GearboxTokenData = {
+  symbol: GearboxToken;
+  type: TokenType.NORMAL_TOKEN;
+} & TokenBase;
+
 export type TokenDataI =
   | NormalConnectorTokenData
   | NormalTokenData
@@ -177,13 +193,14 @@ export type TokenDataI =
   | YearnVaultOfCurveLPTokenData
   | YearnVaultOfMetaCurveLPTokenData
   | ConvexLPTokenData
-  | ConvexPhantomTokenData;
+  | ConvexPhantomTokenData
+  | DieselTokenData
+  | GearboxTokenData;
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   "1INCH": {
     name: "1INCH",
     decimals: 18,
-    addr: "0x111111111117dC0aa78b770fA6A738034120C302",
 
     symbol: "1INCH",
     type: TokenType.NORMAL_TOKEN,
@@ -206,7 +223,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   AAVE: {
     name: "AAVE",
     decimals: 18,
-    addr: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
 
     symbol: "AAVE",
     type: TokenType.NORMAL_TOKEN,
@@ -229,7 +245,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   COMP: {
     name: "COMP",
     decimals: 18,
-    addr: "0xc00e94Cb662C3520282E6f5717214004A7f26888",
 
     symbol: "COMP",
     type: TokenType.NORMAL_TOKEN,
@@ -252,7 +267,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   CRV: {
     name: "CRV",
     decimals: 18,
-    addr: "0xD533a949740bb3306d119CC777fa900bA034cd52",
 
     symbol: "CRV",
     type: TokenType.NORMAL_TOKEN,
@@ -275,7 +289,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   DAI: {
     name: "DAI",
     decimals: 18,
-    addr: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
 
     symbol: "DAI",
     type: TokenType.CONNECTOR,
@@ -325,7 +338,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   DPI: {
     name: "DPI",
     decimals: 18,
-    addr: "0x1494CA1F11D487c2bBe4543E90080AeBa4BA3C2b",
 
     symbol: "DPI",
     type: TokenType.NORMAL_TOKEN,
@@ -348,7 +360,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FEI: {
     name: "FEI",
     decimals: 18,
-    addr: "0x956F47F50A910163D8BF957Cf5846D573E7f87CA",
 
     symbol: "FEI",
     type: TokenType.NORMAL_TOKEN,
@@ -371,7 +382,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LINK: {
     name: "LINK",
     decimals: 18,
-    addr: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
 
     symbol: "LINK",
     type: TokenType.NORMAL_TOKEN,
@@ -394,7 +404,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   SNX: {
     name: "SNX",
     decimals: 18,
-    addr: "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
 
     symbol: "SNX",
     type: TokenType.NORMAL_TOKEN,
@@ -417,7 +426,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   SUSHI: {
     name: "SUSHI",
     decimals: 18,
-    addr: "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2",
 
     symbol: "SUSHI",
     type: TokenType.NORMAL_TOKEN,
@@ -432,7 +440,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   UNI: {
     name: "UNI",
     decimals: 18,
-    addr: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
 
     symbol: "UNI",
     type: TokenType.NORMAL_TOKEN,
@@ -451,7 +458,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   USDC: {
     name: "USDC",
     decimals: 6,
-    addr: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 
     symbol: "USDC",
     type: TokenType.CONNECTOR,
@@ -501,7 +507,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   USDT: {
     name: "USDT",
     decimals: 6,
-    addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 
     symbol: "USDT",
     type: TokenType.NORMAL_TOKEN,
@@ -546,7 +551,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   WBTC: {
     name: "WBTC",
     decimals: 8,
-    addr: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
 
     symbol: "WBTC",
     type: TokenType.CONNECTOR,
@@ -576,7 +580,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   WETH: {
     name: "WETH",
     decimals: 18,
-    addr: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 
     symbol: "WETH",
     type: TokenType.CONNECTOR,
@@ -616,7 +619,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   YFI: {
     name: "YFI",
     decimals: 18,
-    addr: "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
 
     symbol: "YFI",
     type: TokenType.NORMAL_TOKEN,
@@ -640,7 +642,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   STETH: {
     name: "stETH",
     decimals: 18,
-    addr: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
 
     symbol: "STETH",
     type: TokenType.NORMAL_TOKEN,
@@ -675,7 +676,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FTM: {
     name: "FTM",
     decimals: 18,
-    addr: "0x4E15361FD6b4BB609Fa63C81A2be19d873717870",
 
     symbol: "FTM",
     type: TokenType.NORMAL_TOKEN,
@@ -698,7 +698,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   CVX: {
     name: "CVX",
     decimals: 18,
-    addr: "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",
 
     symbol: "CVX",
     type: TokenType.NORMAL_TOKEN,
@@ -721,7 +720,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FRAX: {
     name: "FRAX",
     decimals: 18,
-    addr: "0x853d955aCEf822Db058eb8505911ED77F175b99e",
 
     symbol: "FRAX",
     type: TokenType.NORMAL_TOKEN,
@@ -756,7 +754,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FXS: {
     name: "FXS",
     decimals: 18,
-    addr: "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0",
 
     symbol: "FXS",
     type: TokenType.NORMAL_TOKEN,
@@ -779,7 +776,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LDO: {
     name: "LDO",
     decimals: 18,
-    addr: "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32",
 
     symbol: "LDO",
     type: TokenType.NORMAL_TOKEN,
@@ -802,7 +798,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   SPELL: {
     name: "SPELL",
     decimals: 18,
-    addr: "0x090185f2135308BaD17527004364eBcC2D37e5F6",
 
     symbol: "SPELL",
     type: TokenType.NORMAL_TOKEN,
@@ -825,7 +820,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LUSD: {
     name: "LUSD",
     decimals: 18,
-    addr: "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0",
 
     symbol: "LUSD",
     type: TokenType.NORMAL_TOKEN,
@@ -860,7 +854,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   sUSD: {
     name: "sUSD",
     decimals: 18,
-    addr: "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
 
     symbol: "sUSD",
     type: TokenType.NORMAL_TOKEN,
@@ -895,7 +888,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   GUSD: {
     name: "GUSD",
     decimals: 18,
-    addr: "0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd",
 
     symbol: "GUSD",
     type: TokenType.NORMAL_TOKEN,
@@ -930,7 +922,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LUNA: {
     name: "LUNA",
     decimals: 18,
-    addr: "0xd2877702675e6cEb975b4A1dFf9fb7BAF4C91ea9",
 
     symbol: "LUNA",
     type: TokenType.NORMAL_TOKEN,
@@ -949,10 +940,10 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
       }
     ]
   },
+
   LQTY: {
     name: "LQTY",
     decimals: 18,
-    addr: "0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D",
 
     symbol: "LQTY",
     type: TokenType.NORMAL_TOKEN,
@@ -976,7 +967,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   yvDAI: {
     name: "yvDAI",
     decimals: 18,
-    addr: "0xdA816459F1AB5631232FE5e97a05BBBb94970c95",
 
     symbol: "yvDAI",
     type: TokenType.YEARN_VAULT,
@@ -993,7 +983,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   yvUSDC: {
     name: "yvUSDC",
     decimals: 6,
-    addr: "0xa354F35829Ae975e850e23e9615b11Da1B3dC4DE",
 
     symbol: "yvUSDC",
     type: TokenType.YEARN_VAULT,
@@ -1010,7 +999,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   yvWETH: {
     name: "yvWETH",
     decimals: 18,
-    addr: "0xa258C4606Ca8206D8aA700cE2143D7db854D168c",
 
     symbol: "yvWETH",
     type: TokenType.YEARN_VAULT,
@@ -1027,7 +1015,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   yvWBTC: {
     name: "yvWBTC",
     decimals: 8,
-    addr: "0xA696a63cc78DfFa1a63E9E50587C197387FF6C7E",
 
     symbol: "yvWBTC",
     type: TokenType.YEARN_VAULT,
@@ -1045,7 +1032,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   "3Crv": {
     name: "3Crv",
     decimals: 18,
-    addr: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
 
     symbol: "3Crv",
     type: TokenType.CURVE_LP,
@@ -1071,7 +1057,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   steCRV: {
     name: "steCRV",
     decimals: 18,
-    addr: "0x06325440D014e39736583c165C2963BA99fAf14E",
 
     symbol: "steCRV",
     type: TokenType.CURVE_LP,
@@ -1097,7 +1082,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   crvPlain3andSUSD: {
     name: "crvPlain3andSUSD",
     decimals: 18,
-    addr: "0xC25a3A3b969415c80451098fa907EC722572917F",
 
     symbol: "crvPlain3andSUSD",
     type: TokenType.CURVE_LP,
@@ -1124,7 +1108,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   FRAX3CRV: {
     name: "FRAX3CRV-f",
     decimals: 18,
-    addr: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
 
     symbol: "FRAX3CRV",
     type: TokenType.META_CURVE_LP,
@@ -1150,7 +1133,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   LUSD3CRV: {
     name: "LUSD3CRV-f",
     decimals: 18,
-    addr: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA",
 
     symbol: "LUSD3CRV",
     type: TokenType.META_CURVE_LP,
@@ -1166,7 +1148,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   gusd3CRV: {
     name: "gusd3CRV",
     decimals: 18,
-    addr: "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
 
     symbol: "gusd3CRV",
     type: TokenType.META_CURVE_LP,
@@ -1193,7 +1174,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   cvx3Crv: {
     name: "cvx3Crv",
     decimals: 18,
-    addr: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
 
     symbol: "cvx3Crv",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -1217,7 +1197,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   cvxsteCRV: {
     name: "cvxsteCRV",
     decimals: 18,
-    addr: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
 
     symbol: "cvxsteCRV",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -1241,7 +1220,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   cvxFRAX3CRV: {
     name: "cvxFRAX3CRV-f",
     decimals: 18,
-    addr: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
 
     symbol: "cvxFRAX3CRV",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -1265,7 +1243,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   cvxcrvPlain3andSUSD: {
     name: "cvxcrvPlain3andSUSD",
     decimals: 18,
-    addr: "0x11D200ef1409cecA8D6d23e6496550f707772F11",
 
     symbol: "cvxcrvPlain3andSUSD",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -1289,7 +1266,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   cvxgusd3CRV: {
     name: "cvxgusd3CRV",
     decimals: 18,
-    addr: "0x15c2471ef46Fa721990730cfa526BcFb45574576",
 
     symbol: "cvxgusd3CRV",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -1314,7 +1290,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   stkcvx3Crv: {
     name: "stkcvx3Crv",
     decimals: 18,
-    addr: "0xDbA28Ee5b201AaE8E0BfE889E95cC8DC4559e02B",
 
     symbol: "stkcvx3Crv",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
@@ -1338,7 +1313,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   stkcvxsteCRV: {
     name: "stkcvxsteCRV",
     decimals: 18,
-    addr: "0xC0e0492f1157B051fEca7e34c089c6E45a1D6480",
 
     symbol: "stkcvxsteCRV",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
@@ -1362,7 +1336,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   stkcvxFRAX3CRV: {
     name: "stkcvxFRAX3CRV-f",
     decimals: 18,
-    addr: "0x6738e27899ffCF76aeadA4B4612CC4a07BD6562A",
 
     symbol: "stkcvxFRAX3CRV",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
@@ -1386,7 +1359,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   stkcvxcrvPlain3andSUSD: {
     name: "stkcvxcrvPlain3andSUSD",
     decimals: 18,
-    addr: "0xdb2Bc1Fd98721bF4AD1bACE1Cab1cF5B4cf61d4c",
 
     symbol: "stkcvxcrvPlain3andSUSD",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
@@ -1410,7 +1382,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   stkcvxgusd3CRV: {
     name: "stkcvxgusd3CRV",
     decimals: 18,
-    addr: "0xc8124E539fD1F9E5E2F561f14aAAc5899681E274",
 
     symbol: "stkcvxgusd3CRV",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
@@ -1435,7 +1406,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   yvCurve_stETH: {
     name: "yvCurve-stETH",
     decimals: 18,
-    addr: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
 
     symbol: "yvCurve_stETH",
     type: TokenType.YEARN_VAULT_OF_CURVE_LP,
@@ -1452,7 +1422,6 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   yvCURVE_FRAX_POOL: {
     name: "yvCurve-FRAX",
     decimals: 18,
-    addr: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
 
     symbol: "yvCURVE_FRAX_POOL",
     type: TokenType.YEARN_VAULT_OF_META_CURVE_LP,
@@ -1464,6 +1433,47 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
         tokenOut: "FRAX3CRV"
       }
     ]
+  },
+
+  //GEARBOX
+  dDAI: {
+    name: "dDAI",
+    decimals: 18,
+
+    symbol: "dDAI",
+    type: TokenType.DIESEL_LP_TOKEN
+  },
+
+  dUSDC: {
+    name: "dUSDC",
+    decimals: 6,
+
+    symbol: "dUSDC",
+    type: TokenType.DIESEL_LP_TOKEN
+  },
+
+  dWBTC: {
+    name: "dWBTC",
+    decimals: 8,
+
+    symbol: "dWBTC",
+    type: TokenType.DIESEL_LP_TOKEN
+  },
+
+  dWETH: {
+    name: "dWETH",
+    decimals: 18,
+
+    symbol: "dWETH",
+    type: TokenType.DIESEL_LP_TOKEN
+  },
+
+  GEAR: {
+    name: "GEAR",
+    decimals: 18,
+
+    symbol: "GEAR",
+    type: TokenType.NORMAL_TOKEN
   }
 };
 
@@ -1535,7 +1545,15 @@ export const tokenDataByNetwork: Record<
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
-    yvCURVE_FRAX_POOL: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139"
+    yvCURVE_FRAX_POOL: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
+
+    //GEARBOX
+    dDAI: "0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA",
+    dUSDC: "0xc411dB5f5Eb3f7d552F9B8454B2D74097ccdE6E3",
+    dWBTC: "0xe753260F1955e8678DCeA8887759e07aa57E8c54",
+    dWETH: "0xF21fc650C1B34eb0FDE786D52d23dA99Db3D6278",
+
+    GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D"
   },
 
   //
@@ -1604,6 +1622,14 @@ export const tokenDataByNetwork: Record<
 
     // YEARN- CURVE TOKENS
     yvCurve_stETH: "0xdDc2FA328321573Bc2647C0135D75012c522CDAC",
-    yvCURVE_FRAX_POOL: ""
+    yvCURVE_FRAX_POOL: "",
+
+    //GEARBOX
+    dDAI: "0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA",
+    dUSDC: "0xc411dB5f5Eb3f7d552F9B8454B2D74097ccdE6E3",
+    dWBTC: "0xe753260F1955e8678DCeA8887759e07aa57E8c54",
+    dWETH: "0xF21fc650C1B34eb0FDE786D52d23dA99Db3D6278",
+
+    GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D"
   }
 };
