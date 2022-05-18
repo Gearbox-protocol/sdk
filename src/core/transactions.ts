@@ -169,7 +169,7 @@ export class TXSwap extends EVMTx {
 
     let toPart = "";
     if (this.tokenTo && this.amountTo) {
-      const tokenTo = tokenData[this.tokenTo];
+      const tokenTo = tokenData[this.tokenTo.toLowerCase()];
       toPart = ` ⇒  ${formatBN(this.amountTo, tokenTo?.decimals || 18)} ${
         tokenTo?.symbol || ""
       }`;

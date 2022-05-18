@@ -349,7 +349,8 @@ export class EventAddCollateral extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } = tokenData[this.addedToken] || {};
+    const { decimals = 18, symbol } =
+      tokenData[this.addedToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
       this.creditManager
@@ -982,7 +983,7 @@ export class EventNewPriceFeed extends EVMEvent {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const { symbol } = tokenData[this.token] || {};
+    const { symbol } = tokenData[this.token.toLowerCase()] || {};
 
     return `PriceOracle: oracle for ${symbol} was updated to ${getContractName(
       this.priceFeed

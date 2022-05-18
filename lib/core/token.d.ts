@@ -19,9 +19,9 @@ export declare type CurveLPToken = "3Crv" | "steCRV" | "FRAX3CRV" | "LUSD3CRV" |
 export declare type YearnLPToken = "yvDAI" | "yvUSDC" | "yvWETH" | "yvWBTC" | "yvCurve_stETH" | "yvCURVE_FRAX_POOL";
 export declare type ConvexLPToken = "cvx3Crv" | "cvxsteCRV" | "cvxFRAX3CRV" | "cvxcrvPlain3andSUSD" | "cvxgusd3CRV";
 export declare type ConvexStakedPhantomToken = "stkcvx3Crv" | "stkcvxsteCRV" | "stkcvxFRAX3CRV" | "stkcvxcrvPlain3andSUSD" | "stkcvxgusd3CRV";
-export declare type DieselToken = "dDAI" | "dUSDC" | "dWBTC" | "dWETH";
+export declare type DieselTokenTypes = "dDAI" | "dUSDC" | "dWBTC" | "dWETH";
 export declare type GearboxToken = "GEAR";
-export declare type SupportedToken = NormalToken | YearnLPToken | CurveLPToken | ConvexLPToken | ConvexStakedPhantomToken | DieselToken | GearboxToken;
+export declare type SupportedToken = NormalToken | YearnLPToken | CurveLPToken | ConvexLPToken | ConvexStakedPhantomToken | DieselTokenTypes | GearboxToken;
 export interface TokenBase {
     name: string;
     symbol: string;
@@ -85,7 +85,7 @@ declare type ConvexPhantomTokenData = {
     lpActions: Array<TradeAction>;
 } & TokenBase;
 declare type DieselTokenData = {
-    symbol: DieselToken;
+    symbol: DieselTokenTypes;
     type: TokenType.DIESEL_LP_TOKEN;
 } & TokenBase;
 declare type GearboxTokenData = {
@@ -95,4 +95,5 @@ declare type GearboxTokenData = {
 export declare type TokenDataI = NormalConnectorTokenData | NormalTokenData | CurveLPTokenData | MetaCurveLPTokenData | YearnVaultTokenData | YearnVaultOfCurveLPTokenData | YearnVaultOfMetaCurveLPTokenData | ConvexLPTokenData | ConvexPhantomTokenData | DieselTokenData | GearboxTokenData;
 export declare const supportedTokens: Record<SupportedToken, TokenDataI>;
 export declare const tokenDataByNetwork: Record<NetworkType, Record<SupportedToken, string>>;
+export declare const tokenDataByAddress: Record<string, SupportedToken>;
 export {};

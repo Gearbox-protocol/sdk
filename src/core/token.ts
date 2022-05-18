@@ -1,3 +1,4 @@
+import { objectEntries, keyToLowercase, swapKeyValue } from "../utils/mappers";
 import { NetworkType } from "./constants";
 import { ConvexPoolContract } from "./contracts";
 import { TradeAction, TradeType } from "./tradeTypes";
@@ -90,7 +91,7 @@ export type ConvexStakedPhantomToken =
   | "stkcvxcrvPlain3andSUSD"
   | "stkcvxgusd3CRV";
 
-export type DieselToken = "dDAI" | "dUSDC" | "dWBTC" | "dWETH";
+export type DieselTokenTypes = "dDAI" | "dUSDC" | "dWBTC" | "dWETH";
 export type GearboxToken = "GEAR";
 
 export type SupportedToken =
@@ -99,7 +100,7 @@ export type SupportedToken =
   | CurveLPToken
   | ConvexLPToken
   | ConvexStakedPhantomToken
-  | DieselToken
+  | DieselTokenTypes
   | GearboxToken;
 
 export interface TokenBase {
@@ -175,7 +176,7 @@ type ConvexPhantomTokenData = {
 } & TokenBase;
 
 type DieselTokenData = {
-  symbol: DieselToken;
+  symbol: DieselTokenTypes;
   type: TokenType.DIESEL_LP_TOKEN;
 } & TokenBase;
 
@@ -1633,3 +1634,9 @@ export const tokenDataByNetwork: Record<
     GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D"
   }
 };
+
+export const tokenDataByAddress = objectEntries(tokenDataByNetwork).reduce<
+  Record<string, SupportedToken>
+>((sum, [_, tokens]) => {
+  return { ...sum, ...keyToLowercase(swapKeyValue(tokens)) };
+}, {});

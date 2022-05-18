@@ -458,5 +458,71 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       type: OracleType.LIKE_CURVE_LP_ORACLE,
       curveSymbol: "gusd3CRV"
     }
+  },
+
+  //GEARBOX
+  dDAI: {
+    priceFeedETH: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    },
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    }
+  },
+
+  dUSDC: {
+    priceFeedETH: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    },
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    }
+  },
+
+  dWBTC: {
+    priceFeedETH: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    },
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    }
+  },
+
+  dWETH: {
+    priceFeedETH: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    },
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    }
+  },
+
+  GEAR: {
+    priceFeedETH: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    },
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: "",
+      kovan: ""
+    }
   }
 };
