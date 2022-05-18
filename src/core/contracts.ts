@@ -220,11 +220,11 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve stETH",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
-    lpToken: "steCRV",
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
       Kovan: "0xF695d3aa358D5087A0C157DBb9449d4f0d8E534a"
-    }
+    },
+    lpToken: "steCRV"
   },
   CURVE_FRAX_POOL: {
     name: "Curve FRAX",
@@ -331,11 +331,11 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Lido STETH",
     protocol: Protocols.Lido,
     type: AdapterInterface.LIDO_V1,
-    lpToken: "steCRV",
     contract: {
       Mainnet: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
       Kovan: ""
-    }
+    },
+    lpToken: "steCRV"
   }
 };
 
