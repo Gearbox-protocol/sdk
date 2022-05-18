@@ -9,37 +9,48 @@ export declare type ConvexPoolContract = "CONVEX_3CRV_POOL" | "CONVEX_GUSD_POOL"
 export declare type SupportedContract = UniswapV2Contract | "UNISWAP_V3_ROUTER" | CurvePoolContract | YearnVaultContract | "CONVEX_BOOSTER" | ConvexPoolContract | "CONVEX_CLAIM_ZAP" | "LIDO_STETH_GATEWAY";
 export declare const contractsByNetwork: Record<NetworkType, Record<SupportedContract, string>>;
 export declare const UNISWAP_V3_QUOTER = "0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6";
-export interface CurveSteCRVPoolParams {
-    protocol: Protocols.Curve;
-    type: AdapterInterface.CURVE_V1_STECRV_POOL;
-    pool: Record<NetworkType, string>;
+export interface BaseContractParams {
+    name: string;
 }
-export interface LidoParams {
-    protocol: Protocols.Lido;
-    type: AdapterInterface.LIDO_V1;
-    contract: Record<NetworkType, string>;
-}
-export declare type ContractParams = {
+declare type UniswapV2Params = {
     protocol: Protocols.Uniswap | Protocols.Sushiswap;
     type: AdapterInterface.UNISWAP_V2_ROUTER;
-} | {
+} & BaseContractParams;
+declare type UniswapV3Params = {
     protocol: Protocols.Uniswap;
     type: AdapterInterface.UNISWAP_V3_ROUTER;
     quoter: string;
-} | {
+} & BaseContractParams;
+declare type CurveParams = {
     protocol: Protocols.Curve;
     type: AdapterInterface.CURVE_V1_2ASSETS | AdapterInterface.CURVE_V1_3ASSETS | AdapterInterface.CURVE_V1_4ASSETS;
     lpToken: CurveLPToken;
     tokens: Array<NormalToken | CurveLPToken>;
-} | CurveSteCRVPoolParams | {
+} & BaseContractParams;
+export declare type CurveSteCRVPoolParams = {
+    protocol: Protocols.Curve;
+    type: AdapterInterface.CURVE_V1_STECRV_POOL;
+    pool: Record<NetworkType, string>;
+} & BaseContractParams;
+declare type YearnParams = {
     protocol: Protocols.Yearn;
     type: AdapterInterface.YEARN_V2;
-} | {
+} & BaseContractParams;
+declare type ConvexParams = {
     protocol: Protocols.Convex;
     type: AdapterInterface.CONVEX_V1_BOOSTER | AdapterInterface.CONVEX_V1_CLAIM_ZAP;
-} | {
+} & BaseContractParams;
+declare type ConvexPoolParams = {
     protocol: Protocols.Convex;
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
     stakedToken: ConvexStakedPhantomToken;
-} | LidoParams;
+} & BaseContractParams;
+export declare type LidoParams = {
+    protocol: Protocols.Lido;
+    type: AdapterInterface.LIDO_V1;
+    contract: Record<NetworkType, string>;
+} & BaseContractParams;
+export declare type ContractParams = UniswapV2Params | UniswapV3Params | CurveParams | CurveSteCRVPoolParams | YearnParams | ConvexParams | ConvexPoolParams | LidoParams;
 export declare const contractParams: Record<SupportedContract, ContractParams>;
+export declare const contractsByAddress: Record<string, SupportedContract>;
+export {};

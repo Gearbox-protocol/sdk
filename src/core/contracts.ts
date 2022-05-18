@@ -3,7 +3,7 @@
  * Gearbox. Generalized leverage protocol, which allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
  * (c) Gearbox.fi, 2021
  */
-
+import { objectEntries, keyToLowercase, swapKeyValue } from "../utils/mappers";
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
@@ -123,76 +123,99 @@ export const contractsByNetwork: Record<
 
 export const UNISWAP_V3_QUOTER = "0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6";
 
-export interface CurveSteCRVPoolParams {
+export interface BaseContractParams {
+  name: string;
+}
+
+type UniswapV2Params = {
+  protocol: Protocols.Uniswap | Protocols.Sushiswap;
+  type: AdapterInterface.UNISWAP_V2_ROUTER;
+} & BaseContractParams;
+
+type UniswapV3Params = {
+  protocol: Protocols.Uniswap;
+  type: AdapterInterface.UNISWAP_V3_ROUTER;
+  quoter: string;
+} & BaseContractParams;
+
+type CurveParams = {
+  protocol: Protocols.Curve;
+  type:
+    | AdapterInterface.CURVE_V1_2ASSETS
+    | AdapterInterface.CURVE_V1_3ASSETS
+    | AdapterInterface.CURVE_V1_4ASSETS;
+  lpToken: CurveLPToken;
+  tokens: Array<NormalToken | CurveLPToken>;
+} & BaseContractParams;
+
+export type CurveSteCRVPoolParams = {
   protocol: Protocols.Curve;
   type: AdapterInterface.CURVE_V1_STECRV_POOL;
   pool: Record<NetworkType, string>;
-}
+} & BaseContractParams;
 
-export interface LidoParams {
+type YearnParams = {
+  protocol: Protocols.Yearn;
+  type: AdapterInterface.YEARN_V2;
+} & BaseContractParams;
+
+type ConvexParams = {
+  protocol: Protocols.Convex;
+  type:
+    | AdapterInterface.CONVEX_V1_BOOSTER
+    | AdapterInterface.CONVEX_V1_CLAIM_ZAP;
+} & BaseContractParams;
+
+type ConvexPoolParams = {
+  protocol: Protocols.Convex;
+  type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
+  stakedToken: ConvexStakedPhantomToken;
+} & BaseContractParams;
+
+export type LidoParams = {
   protocol: Protocols.Lido;
   type: AdapterInterface.LIDO_V1;
   contract: Record<NetworkType, string>;
-}
+} & BaseContractParams;
 
 export type ContractParams =
-  | {
-      protocol: Protocols.Uniswap | Protocols.Sushiswap;
-      type: AdapterInterface.UNISWAP_V2_ROUTER;
-    }
-  | {
-      protocol: Protocols.Uniswap;
-      type: AdapterInterface.UNISWAP_V3_ROUTER;
-      quoter: string;
-    }
-  | {
-      protocol: Protocols.Curve;
-      type:
-        | AdapterInterface.CURVE_V1_2ASSETS
-        | AdapterInterface.CURVE_V1_3ASSETS
-        | AdapterInterface.CURVE_V1_4ASSETS;
-      lpToken: CurveLPToken;
-      tokens: Array<NormalToken | CurveLPToken>;
-    }
+  | UniswapV2Params
+  | UniswapV3Params
+  | CurveParams
   | CurveSteCRVPoolParams
-  | {
-      protocol: Protocols.Yearn;
-      type: AdapterInterface.YEARN_V2;
-    }
-  | {
-      protocol: Protocols.Convex;
-      type:
-        | AdapterInterface.CONVEX_V1_BOOSTER
-        | AdapterInterface.CONVEX_V1_CLAIM_ZAP;
-    }
-  | {
-      protocol: Protocols.Convex;
-      type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
-      stakedToken: ConvexStakedPhantomToken;
-    }
+  | YearnParams
+  | ConvexParams
+  | ConvexPoolParams
   | LidoParams;
 
 export const contractParams: Record<SupportedContract, ContractParams> = {
   UNISWAP_V2_ROUTER: {
+    name: "Uniswap V2",
     protocol: Protocols.Uniswap,
     type: AdapterInterface.UNISWAP_V2_ROUTER
   },
   UNISWAP_V3_ROUTER: {
+    name: "Uniswap V3",
     protocol: Protocols.Uniswap,
     quoter: UNISWAP_V3_QUOTER,
     type: AdapterInterface.UNISWAP_V3_ROUTER
   },
+
   SUSHISWAP_ROUTER: {
+    name: "Sushiswap",
     protocol: Protocols.Sushiswap,
     type: AdapterInterface.UNISWAP_V2_ROUTER
   },
+
   CURVE_3CRV_POOL: {
+    name: "Curve 3Pool",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "3Crv",
     tokens: ["DAI", "USDC", "USDT"]
   },
   CURVE_STETH_GATEWAY: {
+    name: "Curve stETH",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     pool: {
@@ -201,88 +224,108 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     }
   },
   CURVE_FRAX_POOL: {
+    name: "Curve FRAX",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "FRAX3CRV",
     tokens: ["3Crv", "FRAX"]
   },
   CURVE_LUSD_POOL: {
+    name: "Curve LUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "LUSD3CRV",
     tokens: ["3Crv", "LUSD"]
   },
   CURVE_SUSD_POOL: {
+    name: "Curve SUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_4ASSETS,
     lpToken: "crvPlain3andSUSD",
     tokens: ["DAI", "USDC", "USDT", "sUSD"]
   },
   CURVE_GUSD_POOL: {
+    name: "Curve GUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "gusd3CRV",
     tokens: ["3Crv", "FRAX"]
   },
+
   YEARN_DAI_VAULT: {
+    name: "Yearn DAI",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2
   },
-
   YEARN_USDC_VAULT: {
+    name: "Yearn USDC",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2
   },
   YEARN_WETH_VAULT: {
+    name: "Yearn WETH",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2
   },
   YEARN_WBTC_VAULT: {
+    name: "Yearn WBTC",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2
   },
   YEARN_CURVE_FRAX_VAULT: {
+    name: "Yearn Curve FRAX",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2
   },
   YEARN_CURVE_STETH_VAULT: {
+    name: "Yearn Curve STETH",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2
   },
+
   CONVEX_BOOSTER: {
+    name: "Convex BOOSTER",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BOOSTER
   },
   CONVEX_3CRV_POOL: {
+    name: "Convex 3crv",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvx3Crv"
   },
   CONVEX_GUSD_POOL: {
+    name: "Convex GUSD",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxgusd3CRV"
   },
   CONVEX_SUSD_POOL: {
+    name: "Convex SUSD",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxcrvPlain3andSUSD"
   },
   CONVEX_STECRV_POOL: {
+    name: "Convex STECRV",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxsteCRV"
   },
   CONVEX_FRAX3CRV_POOL: {
+    name: "Convex FRAX3CRV",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxFRAX3CRV"
   },
   CONVEX_CLAIM_ZAP: {
+    name: "Convex ZAP",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_CLAIM_ZAP
   },
+
   LIDO_STETH_GATEWAY: {
+    name: "Lido STETH",
     protocol: Protocols.Lido,
     type: AdapterInterface.LIDO_V1,
     contract: {
@@ -291,3 +334,9 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     }
   }
 };
+
+export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
+  Record<string, SupportedContract>
+>((sum, [_, contracts]) => {
+  return { ...sum, ...keyToLowercase(swapKeyValue(contracts)) };
+}, {});

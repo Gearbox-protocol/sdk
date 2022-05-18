@@ -1,3 +1,6 @@
+import { keyToLowercase } from "../utils/mappers";
+import { contractsByAddress, contractParams } from "./contracts";
+
 export const deployedContracts: Record<string, string> = {
   // MAINNET
   "0x24946bCbBd028D5ABb62ad9B635EB1b1a67AF668": "DAI",
@@ -30,9 +33,20 @@ export const deployedContracts: Record<string, string> = {
   // [SUSHISWAP_KOVAN]: "Sushiswap"
 };
 
+const contractNames = Object.entries(contractsByAddress).reduce<
+  Record<string, string>
+>((sum, [addr, cSymbol]) => {
+  const params = contractParams[cSymbol];
+  if (!params) return sum;
+
+  return { ...sum, [addr]: params.name };
+}, {});
+
+const contractsFullList = {
+  ...keyToLowercase(deployedContracts),
+  ...contractNames
+};
+
 export function getContractName(address: string): string {
-  Object.entries(deployedContracts).forEach(([addr, name]) => {
-    deployedContracts[addr.toLowerCase()] = name;
-  });
-  return deployedContracts[address.toLowerCase()] || address;
+  return contractsFullList[address.toLowerCase()] || address;
 }
