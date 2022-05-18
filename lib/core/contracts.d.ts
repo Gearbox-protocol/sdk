@@ -31,6 +31,7 @@ export declare type CurveSteCRVPoolParams = {
     protocol: Protocols.Curve;
     type: AdapterInterface.CURVE_V1_STECRV_POOL;
     pool: Record<NetworkType, string>;
+    lpToken: "steCRV";
 } & BaseContractParams;
 declare type YearnParams = {
     protocol: Protocols.Yearn;
@@ -49,6 +50,7 @@ export declare type LidoParams = {
     protocol: Protocols.Lido;
     type: AdapterInterface.LIDO_V1;
     contract: Record<NetworkType, string>;
+    lpToken: "steCRV";
 } & BaseContractParams;
 export declare type ContractParams = UniswapV2Params | UniswapV3Params | CurveParams | CurveSteCRVPoolParams | YearnParams | ConvexParams | ConvexPoolParams | LidoParams;
 export declare const contractParams: Record<SupportedContract, ContractParams>;
