@@ -2,6 +2,8 @@ import { objectEntries, keyToLowercase, swapKeyValue } from "../utils/mappers";
 import { NetworkType } from "./constants";
 import { ConvexPoolContract } from "./contracts";
 import { TradeAction, TradeType } from "./tradeTypes";
+import { PartialRecord } from "../utils/types";
+import { BigNumber } from "ethers";
 
 export enum TokenType {
   CONNECTOR,
@@ -28,6 +30,14 @@ export const priority: Record<TokenType, number> = {
   [TokenType.CONVEX_STAKED_PHANTOM_TOKEN]: 5,
   [TokenType.DIESEL_LP_TOKEN]: 6
 };
+
+export const Curve3CrvUnderlyingTokenIndex: PartialRecord<SupportedToken, BigNumber> = {
+  DAI: BigNumber.from(0),
+  USDC: BigNumber.from(1),
+  USDT: BigNumber.from(2)
+}
+
+export const ConnectorTokens: Array<SupportedToken> = ["DAI", "USDC", "WETH", "WBTC"];
 
 export type NormalToken =
   | "1INCH"
@@ -182,6 +192,7 @@ type DieselTokenData = {
 
 type GearboxTokenData = {
   symbol: GearboxToken;
+  swapActions?: Array<TradeAction>;
   type: TokenType.NORMAL_TOKEN;
 } & TokenBase;
 
@@ -199,6 +210,7 @@ export type TokenDataI =
   | GearboxTokenData;
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
+
   "1INCH": {
     name: "1INCH",
     decimals: 18,

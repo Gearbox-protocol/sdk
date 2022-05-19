@@ -34,10 +34,12 @@ export type TradeAction =
   | {
       type: TradeType.UniswapV2Swap;
       contract: UniswapV2Contract;
+      tokenOut?: NormalToken;
     }
   | {
       type: TradeType.UniswapV3Swap;
       contract: "UNISWAP_V3_ROUTER";
+      tokenOut?: NormalToken;
     }
   | {
       type: TradeType.CurveExchange;
