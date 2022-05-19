@@ -103,7 +103,7 @@ interface RepayAccountProps extends EVMTxProps {
 export declare class TxRepayAccount extends EVMTx {
     readonly creditManager: string;
     constructor(opts: RepayAccountProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
     serialize(): TxSerialized;
 }
 interface CloseAccountProps extends EVMTxProps {
@@ -112,7 +112,7 @@ interface CloseAccountProps extends EVMTxProps {
 export declare class TxCloseAccount extends EVMTx {
     readonly creditManager: string;
     constructor(opts: CloseAccountProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
     serialize(): TxSerialized;
 }
 interface ApproveProps extends EVMTxProps {

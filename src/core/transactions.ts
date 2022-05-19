@@ -77,7 +77,7 @@ export class TxAddLiquidity extends EVMTx {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const token = tokenData[this.underlyingToken.toLowerCase()];
     return `${getContractName(this.pool)}: Deposit ${formatBN(
       this.amount,
       token?.decimals || 18
@@ -115,7 +115,7 @@ export class TxRemoveLiquidity extends EVMTx {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const dtoken = tokenData[this.dieselToken];
+    const dtoken = tokenData[this.dieselToken.toLowerCase()];
     return `${getContractName(this.pool)}: Withdraw ${formatBN(
       this.amount,
       dtoken?.decimals || 18
@@ -165,11 +165,11 @@ export class TXSwap extends EVMTx {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const tokenFrom = tokenData[this.tokenFrom];
+    const tokenFrom = tokenData[this.tokenFrom.toLowerCase()];
 
     let toPart = "";
     if (this.tokenTo && this.amountTo) {
-      const tokenTo = tokenData[this.tokenTo];
+      const tokenTo = tokenData[this.tokenTo.toLowerCase()];
       toPart = ` ⇒  ${formatBN(this.amountTo, tokenTo?.decimals || 18)} ${
         tokenTo?.symbol || ""
       }`;
@@ -213,7 +213,7 @@ export class TxAddCollateral extends EVMTx {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const addedToken = tokenData[this.addedToken];
+    const addedToken = tokenData[this.addedToken.toLowerCase()];
     return `Credit account ${getContractName(
       this.creditManager
     )}: Added ${formatBN(this.amount, addedToken.decimals)} ${
@@ -252,7 +252,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const token = tokenData[this.underlyingToken.toLowerCase()];
     return `Credit account ${getContractName(
       this.creditManager
     )}: Borrowed amount was increased for ${formatBN(
@@ -295,7 +295,7 @@ export class TxOpenAccount extends EVMTx {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken];
+    const token = tokenData[this.underlyingToken.toLowerCase()];
     return `Credit account ${getContractName(
       this.creditManager
     )}: opening ${formatBN(this.amount, token?.decimals || 18)} ${
@@ -333,7 +333,7 @@ export class TxRepayAccount extends EVMTx {
     this.creditManager = opts.creditManager;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `Credit account ${getContractName(
       this.creditManager
     )}: Repaying account`;
@@ -363,7 +363,7 @@ export class TxCloseAccount extends EVMTx {
     this.creditManager = opts.creditManager;
   }
 
-  toString(_tokenData: Record<string, TokenData>): string {
+  toString(_: Record<string, TokenData>): string {
     return `Credit account ${getContractName(
       this.creditManager
     )}: Closing account`;
@@ -394,7 +394,7 @@ export class TxApprove extends EVMTx {
   }
 
   toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.token];
+    const token = tokenData[this.token.toLowerCase()];
     return `Approve ${token?.symbol}`;
   }
 

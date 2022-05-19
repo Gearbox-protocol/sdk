@@ -82,7 +82,7 @@ export declare class EventRepayCreditAccount extends EVMEvent {
     readonly underlyingToken: string;
     readonly creditManager: string;
     constructor(opts: RepayCreditAccountProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface AddCollateralProps extends EVMEventProps {
     amount: string;
@@ -288,7 +288,7 @@ export declare class EventNewWithdrawFee extends EVMEvent {
     readonly newFee: number;
     readonly prevFee: number;
     constructor(opts: NewWithdrawFeeProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface NewPriceFeedProps extends EVMEventProps {
     token: string;
@@ -308,7 +308,7 @@ export declare class EventTakeForever extends EVMEvent {
     readonly creditAccount: string;
     readonly to: string;
     constructor(opts: TakeForeverProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface PausedProps extends EVMEventProps {
     contract: string;
@@ -316,7 +316,7 @@ interface PausedProps extends EVMEventProps {
 export declare class EventPaused extends EVMEvent {
     readonly contract: string;
     constructor(opts: PausedProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface UnPausedProps extends EVMEventProps {
     contract: string;
@@ -324,7 +324,7 @@ interface UnPausedProps extends EVMEventProps {
 export declare class EventUnPaused extends EVMEvent {
     readonly contract: string;
     constructor(opts: UnPausedProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface PausableAdminAddedProps extends EVMEventProps {
     admin: string;
@@ -332,7 +332,7 @@ interface PausableAdminAddedProps extends EVMEventProps {
 export declare class EventPausableAdminAdded extends EVMEvent {
     readonly admin: string;
     constructor(opts: PausableAdminAddedProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface PausableAdminRemovedProps extends EVMEventProps {
     admin: string;
@@ -340,7 +340,7 @@ interface PausableAdminRemovedProps extends EVMEventProps {
 export declare class EventPausableAdminRemoved extends EVMEvent {
     readonly admin: string;
     constructor(opts: PausableAdminRemovedProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface UnPausableAdminAddedProps extends EVMEventProps {
     admin: string;
@@ -348,7 +348,7 @@ interface UnPausableAdminAddedProps extends EVMEventProps {
 export declare class EventUnPausableAdminAdded extends EVMEvent {
     readonly admin: string;
     constructor(opts: UnPausableAdminAddedProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface UnPausableAdminRemovedProps extends EVMEventProps {
     admin: string;
@@ -356,7 +356,7 @@ interface UnPausableAdminRemovedProps extends EVMEventProps {
 export declare class EventUnPausableAdminRemoved extends EVMEvent {
     readonly admin: string;
     constructor(opts: UnPausableAdminRemovedProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 interface TransferOwnershipProps extends EVMEventProps {
     admin: string;
@@ -364,6 +364,6 @@ interface TransferOwnershipProps extends EVMEventProps {
 export declare class EventTransferOwnership extends EVMEvent {
     readonly newOwner: string;
     constructor(opts: TransferOwnershipProps);
-    toString(_tokenData: Record<string, TokenData>): string;
+    toString(_: Record<string, TokenData>): string;
 }
 export {};
