@@ -220,6 +220,15 @@ export abstract class PathAsset {
             case TradeType.CurveExchange:
                 if (swapAction.tokenOut!.includes(p.pool as NormalToken)) {
                     return await this.getCurveExchangeData(adapterAddress, currentToken, currentBalance, nextToken, p);
+                } else {
+                    return {
+                        callData: {
+                            targetContract: "",
+                            callData: ""
+                        },
+                        amountOut: BigNumber.from(0),
+                        gasLimit: BigNumber.from(0)
+                    };
                 }
 
             default:

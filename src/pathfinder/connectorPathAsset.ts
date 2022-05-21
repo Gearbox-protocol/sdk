@@ -1,5 +1,4 @@
 import {BigNumber} from "ethers";
-import {MultiCall} from "../core/multicall";
 import {
     SupportedToken,
     supportedTokens,
@@ -20,28 +19,27 @@ export class ConnectorPathAsset extends PathAsset {
         const nextToken: SupportedToken = p.pool;
         const nextTokenAddress: string = tokenDataByNetwork[p.networkType][nextToken];
 
-        let callData: MultiCall = {
-            targetContract: "",
-            callData: ""
+        let exchangeData: ExchangeData = {
+            callData: {
+                targetContract: "",
+                callData: ""
+            },
+            amountOut: BigNumber.from(0),
+            gasLimit: BigNumber.from(0),
         };
-        let gasLimit: BigNumber = BigNumber.from(0);
-        let maxAmountOut: BigNumber = BigNumber.from(0);
-
         for (let swapAction of currentTokenData.swapActions) {
-            const exchangeData: ExchangeData = await this.getExchangeData(swapAction, currentTokenAddress, currentToken, currentBalance, nextTokenAddress, nextToken, p);
+            const tmpExchangeData: ExchangeData = await this.getExchangeData(swapAction, currentTokenAddress, currentToken, currentBalance, nextTokenAddress, nextToken, p);
 
-            if (exchangeData.amountOut > maxAmountOut) {
-                callData = exchangeData.callData;
-                maxAmountOut = exchangeData.amountOut;
-                gasLimit = exchangeData.gasLimit;
+            if (tmpExchangeData.amountOut > exchangeData.amountOut) {
+                exchangeData = tmpExchangeData;
             }
         }
 
-        if (callData.targetContract != "") {
-            p.balances[nextToken].add(maxAmountOut);
+        if (exchangeData.callData.targetContract != "") {
+            p.balances[nextToken].add(exchangeData.amountOut);
             p.balances[currentToken] = BigNumber.from(1);
-            p.totalGasLimit.add(gasLimit);
-            p.calls.push(callData);
+            p.totalGasLimit.add(exchangeData.gasLimit);
+            p.calls.push(exchangeData.callData);
         }
 
         return await p.getBestPath();
