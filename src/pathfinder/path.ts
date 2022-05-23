@@ -22,7 +22,7 @@ import {
     CurveV1Adapter__factory,
     IQuoter__factory,
     UniswapV2Adapter__factory,
-    UniswapV3Adapter__factory
+    UniswapV3Adapter__factory, YearnAdapter__factory
 } from "../types";
 import {contractsByNetwork, SupportedContract, UNISWAP_V3_QUOTER} from "../core/contracts";
 import {TradeAction, TradeType} from "../core/tradeTypes";
@@ -138,7 +138,7 @@ export class Path {
     }
 }
 
-export interface ExchangeData {
+export interface ActionData {
     callData: MultiCall;
     amountOut: BigNumber;
     gasLimit: BigNumber;
@@ -148,7 +148,7 @@ export abstract class PathAsset {
     abstract getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
 
 
-    async getUniswapV2SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ExchangeData> {
+    async getUniswapV2SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData> {
 
         const deadline = Math.floor(Date.now() / 1000) + 1200;
         const uniswapV2Adapter = UniswapV2Adapter__factory.connect(adapterAddress, p.provider);
@@ -165,7 +165,7 @@ export abstract class PathAsset {
         return { callData: call, amountOut: amountOut, gasLimit: gasLimit };
     }
 
-    async getUniswapV3SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ExchangeData> {
+    async getUniswapV3SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData> {
         const uniswapV3Adapter = UniswapV3Adapter__factory.connect(adapterAddress, p.provider);
         const iQuoter = IQuoter__factory.connect(UNISWAP_V3_QUOTER, p.provider);
         const amountOut: BigNumber = await iQuoter.callStatic.quoteExactInputSingle(currentTokenAddress, nextTokenAddress, 3000, currentBalance, 0);
@@ -189,7 +189,7 @@ export abstract class PathAsset {
         return { callData: call, amountOut: amountOut, gasLimit: gasLimit };
     }
 
-    async getCurveExchangeData(adapterAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextToken: SupportedToken, p: Path): Promise<ExchangeData> {
+    async getCurveActionData(adapterAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextToken: SupportedToken, p: Path): Promise<ActionData> {
         const curve3CrvPool = CurveV1Adapter__factory.connect(adapterAddress, p.provider);
         const currentIndex: BigNumber = Curve3CrvUnderlyingTokenIndex[currentToken]!;
         const outputIndex: BigNumber = Curve3CrvUnderlyingTokenIndex[nextToken]!;
@@ -204,7 +204,7 @@ export abstract class PathAsset {
         return { callData: call, amountOut: amountOut, gasLimit: gasLimit };
     }
 
-    async getExchangeData(swapAction: TradeAction, currentTokenAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextTokenAddress: string, nextToken: SupportedToken, p: Path): Promise<ExchangeData> {
+    async getActionData(swapAction: TradeAction, currentTokenAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextTokenAddress: string, nextToken: SupportedToken, p: Path): Promise<ActionData> {
         const actionType: TradeType = swapAction.type;
         const actionContract: SupportedContract = swapAction.contract;
         const actionContractAddress: string = contractsByNetwork[p.networkType][actionContract];
@@ -219,7 +219,7 @@ export abstract class PathAsset {
 
             case TradeType.CurveExchange:
                 if (swapAction.tokenOut!.includes(p.pool as NormalToken)) {
-                    return await this.getCurveExchangeData(adapterAddress, currentToken, currentBalance, nextToken, p);
+                    return await this.getCurveActionData(adapterAddress, currentToken, currentBalance, nextToken, p);
                 } else {
                     return {
                         callData: {
@@ -233,6 +233,27 @@ export abstract class PathAsset {
 
             default:
                 throw Error(`TradeType not supported. ${actionType}`);
+        }
+    }
+
+    async getYearnActionData(lpAction: TradeAction, currentBalance: BigNumber, p: Path): Promise<ActionData> {
+        // Yearn Vault only has one lp action
+        const actionContract: SupportedContract = lpAction.contract;
+        const allowedContract: string = contractsByNetwork[p.networkType][actionContract];
+        // For Yearn Vault the token address is the contract to withdraw
+        const adapterAddress = p.creditManager.adapters[allowedContract];
+        const call: MultiCall = {
+            targetContract: adapterAddress,
+            callData: YearnAdapter__factory.createInterface().encodeFunctionData('withdraw', [currentBalance, p.creditAccount.addr])
+        };
+
+        const IYVault = YearnAdapter__factory.connect(allowedContract, p.provider);
+        const price: BigNumber = await IYVault.pricePerShare(); // get price
+        const gasLimit: BigNumber = await IYVault.estimateGas["withdraw(uint256,address)"](currentBalance, p.creditAccount.addr);
+        return {
+            callData: call,
+            amountOut: currentBalance.mul(price),
+            gasLimit: gasLimit
         }
     }
 }

@@ -6,7 +6,7 @@ import {
     TokenDataI,
     TokenType
 } from "../core/token";
-import {Path, PathAsset, ExchangeData} from "./path";
+import {Path, PathAsset, ActionData} from "./path";
 
 export class ConnectorPathAsset extends PathAsset {
     async getBestPath(currentToken: SupportedToken, p: Path): Promise<Path> {
@@ -19,7 +19,7 @@ export class ConnectorPathAsset extends PathAsset {
         const nextToken: SupportedToken = p.pool;
         const nextTokenAddress: string = tokenDataByNetwork[p.networkType][nextToken];
 
-        let exchangeData: ExchangeData = {
+        let actionData: ActionData = {
             callData: {
                 targetContract: "",
                 callData: ""
@@ -28,18 +28,18 @@ export class ConnectorPathAsset extends PathAsset {
             gasLimit: BigNumber.from(0),
         };
         for (let swapAction of currentTokenData.swapActions) {
-            const tmpExchangeData: ExchangeData = await this.getExchangeData(swapAction, currentTokenAddress, currentToken, currentBalance, nextTokenAddress, nextToken, p);
+            const tmpActionData: ActionData = await this.getActionData(swapAction, currentTokenAddress, currentToken, currentBalance, nextTokenAddress, nextToken, p);
 
-            if (tmpExchangeData.amountOut > exchangeData.amountOut) {
-                exchangeData = tmpExchangeData;
+            if (tmpActionData.amountOut > actionData.amountOut) {
+                actionData = tmpActionData;
             }
         }
 
-        if (exchangeData.callData.targetContract != "") {
-            p.balances[nextToken].add(exchangeData.amountOut);
+        if (actionData.callData.targetContract != "") {
+            p.balances[nextToken].add(actionData.amountOut);
             p.balances[currentToken] = BigNumber.from(1);
-            p.totalGasLimit.add(exchangeData.gasLimit);
-            p.calls.push(exchangeData.callData);
+            p.totalGasLimit.add(actionData.gasLimit);
+            p.calls.push(actionData.callData);
         }
 
         return await p.getBestPath();
@@ -57,10 +57,10 @@ export class ConnectorPathAsset extends PathAsset {
 
         let maxAmountOut: BigNumber = BigNumber.from(0);
         for (let swapAction of currentTokenData.swapActions) {
-            const exchangeData: ExchangeData = await this.getExchangeData(swapAction, currentTokenAddress, currentToken, currentBalance, nextTokenAddress, nextToken, p);
+            const actionData: ActionData = await this.getActionData(swapAction, currentTokenAddress, currentToken, currentBalance, nextTokenAddress, nextToken, p);
 
-            if (exchangeData.amountOut > maxAmountOut) {
-                maxAmountOut = exchangeData.amountOut;
+            if (actionData.amountOut > maxAmountOut) {
+                maxAmountOut = actionData.amountOut;
             }
         }
 

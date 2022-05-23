@@ -26,15 +26,16 @@ export declare class Path {
     private comparedByPriority;
     getBestPath(): Promise<Path>;
 }
-export interface ExchangeData {
+export interface ActionData {
     callData: MultiCall;
     amountOut: BigNumber;
     gasLimit: BigNumber;
 }
 export declare abstract class PathAsset {
     abstract getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-    getUniswapV2SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ExchangeData>;
-    getUniswapV3SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ExchangeData>;
-    getCurveExchangeData(adapterAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextToken: SupportedToken, p: Path): Promise<ExchangeData>;
-    getExchangeData(swapAction: TradeAction, currentTokenAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextTokenAddress: string, nextToken: SupportedToken, p: Path): Promise<ExchangeData>;
+    getUniswapV2SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData>;
+    getUniswapV3SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData>;
+    getCurveActionData(adapterAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextToken: SupportedToken, p: Path): Promise<ActionData>;
+    getActionData(swapAction: TradeAction, currentTokenAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextTokenAddress: string, nextToken: SupportedToken, p: Path): Promise<ActionData>;
+    getYearnActionData(lpAction: TradeAction, currentBalance: BigNumber, p: Path): Promise<ActionData>;
 }

@@ -7,7 +7,7 @@ import {
     TokenDataI,
     TokenType
 } from "../core/token";
-import {ExchangeData, Path, PathAsset} from "./path";
+import {ActionData, Path, PathAsset} from "./path";
 import {ConnectorPathAsset} from "./connectorPathAsset";
 
 export class NormalTokenPathAsset extends PathAsset {
@@ -18,7 +18,7 @@ export class NormalTokenPathAsset extends PathAsset {
         const currentTokenAddress: string = tokenDataByNetwork[p.networkType][currentToken];
         const currentTokenData: TokenDataI = supportedTokens[currentToken] as ConnectorDataI;
 
-        let exchangeData: ExchangeData = {
+        let actionData: ActionData = {
             callData: {
                 targetContract: "",
                 callData: ""
@@ -34,34 +34,34 @@ export class NormalTokenPathAsset extends PathAsset {
             const connTokenAddress: string = tokenDataByNetwork[p.networkType][connToken];
 
             for (let swapAction of currentTokenData.swapActions!) {
-               const tmpExchangeData: ExchangeData = await this.getExchangeData(swapAction, currentTokenAddress, currentToken, currentBalance, connTokenAddress, connToken, p);
+               const tmpActionData: ActionData = await this.getActionData(swapAction, currentTokenAddress, currentToken, currentBalance, connTokenAddress, connToken, p);
 
                 // compute connToken to pool token
                 if (connToken != p.pool) {
                     const connectorPathAsset = new ConnectorPathAsset();
-                    const poolAmountOut: BigNumber = await connectorPathAsset.getMaxPoolAmount(connToken, exchangeData.amountOut, p);
+                    const poolAmountOut: BigNumber = await connectorPathAsset.getMaxPoolAmount(connToken, actionData.amountOut, p);
                     if (poolAmountOut > maxPoolAmountOut) {
                         maxPoolAmountOut = poolAmountOut;
 
-                        exchangeData = tmpExchangeData;
+                        actionData = tmpActionData;
                         nextToken = connToken;
                     }
                 } else {
-                   if (exchangeData.amountOut > maxPoolAmountOut) {
-                       maxPoolAmountOut = exchangeData.amountOut;
+                   if (actionData.amountOut > maxPoolAmountOut) {
+                       maxPoolAmountOut = actionData.amountOut;
 
-                       exchangeData = tmpExchangeData;
+                       actionData = tmpActionData;
                        nextToken = p.pool;
                    }
                 }
             }
         }
 
-        if (exchangeData.callData.targetContract != "") {
-            p.balances[nextToken].add(exchangeData.amountOut);
+        if (actionData.callData.targetContract != "") {
+            p.balances[nextToken].add(actionData.amountOut);
             p.balances[currentToken] = BigNumber.from(1);
-            p.totalGasLimit.add(exchangeData.gasLimit);
-            p.calls.push(exchangeData.callData);
+            p.totalGasLimit.add(actionData.gasLimit);
+            p.calls.push(actionData.callData);
         }
         return await p.getBestPath();
     }
