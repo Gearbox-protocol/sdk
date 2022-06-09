@@ -35,11 +35,11 @@ export const deployedContracts: Record<string, string> = {
 
 const contractNames = Object.entries(contractsByAddress).reduce<
   Record<string, string>
->((sum, [addr, cSymbol]) => {
+>((acc, [addr, cSymbol]) => {
   const params = contractParams[cSymbol];
-  if (!params) return sum;
+  if (!params) return acc;
 
-  return { ...sum, [addr]: params.name };
+  return { ...acc, [addr]: params.name };
 }, {});
 
 const contractsFullList = {

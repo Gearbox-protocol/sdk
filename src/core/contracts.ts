@@ -341,6 +341,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
 
 export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
   Record<string, SupportedContract>
->((sum, [_, contracts]) => {
-  return { ...sum, ...keyToLowercase(swapKeyValue(contracts)) };
+>((acc, [_, contracts]) => {
+  return { ...acc, ...keyToLowercase(swapKeyValue(contracts)) };
 }, {});

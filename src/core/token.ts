@@ -1637,6 +1637,6 @@ export const tokenDataByNetwork: Record<
 
 export const tokenDataByAddress = objectEntries(tokenDataByNetwork).reduce<
   Record<string, SupportedToken>
->((sum, [_, tokens]) => {
-  return { ...sum, ...keyToLowercase(swapKeyValue(tokens)) };
+>((acc, [_, tokens]) => {
+  return { ...acc, ...keyToLowercase(swapKeyValue(tokens)) };
 }, {});
