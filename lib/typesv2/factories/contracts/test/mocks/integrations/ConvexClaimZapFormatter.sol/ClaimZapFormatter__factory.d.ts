@@ -1,0 +1,40 @@
+import { Signer, ContractFactory, Overrides } from "ethers";
+import type { Provider, TransactionRequest } from "@ethersproject/providers";
+import type { ClaimZapFormatter, ClaimZapFormatterInterface } from "../../../../../../contracts/test/mocks/integrations/ConvexClaimZapFormatter.sol/ClaimZapFormatter";
+declare type ClaimZapFormatterConstructorParams = [signer?: Signer] | ConstructorParameters<typeof ContractFactory>;
+export declare class ClaimZapFormatter__factory extends ContractFactory {
+    constructor(...args: ClaimZapFormatterConstructorParams);
+    deploy(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ClaimZapFormatter>;
+    getDeployTransaction(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): TransactionRequest;
+    attach(address: string): ClaimZapFormatter;
+    connect(signer: Signer): ClaimZapFormatter__factory;
+    static readonly bytecode = "0x608060405234801561001057600080fd5b506102e5806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80635a7b87f214610030575b600080fd5b6101d9600480360361012081101561004757600080fd5b810190808035906020019064010000000081111561006457600080fd5b82018360208201111561007657600080fd5b8035906020019184602083028401116401000000008311171561009857600080fd5b9091929391929390803590602001906401000000008111156100b957600080fd5b8201836020820111156100cb57600080fd5b803590602001918460208302840111640100000000831117156100ed57600080fd5b90919293919293908035906020019064010000000081111561010e57600080fd5b82018360208201111561012057600080fd5b8035906020019184602083028401116401000000008311171561014257600080fd5b90919293919293908035906020019064010000000081111561016357600080fd5b82018360208201111561017557600080fd5b8035906020019184602083028401116401000000008311171561019757600080fd5b90919293919293908035906020019092919080359060200190929190803590602001909291908035906020019092919080359060200190929190505050610254565b6040518080602001828103825283818151815260200191508051906020019080838360005b838110156102195780820151818401526020810190506101fe565b50505050905090810190601f1680156102465780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b60606000368080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f8201169050808301925050505050505090509d9c5050505050505050505050505056fea264697066735822122029ab5a73f680b051fecfd765c89943c9e9ad5babe8cdc3215377b871e9ae6ffc64736f6c634300080a0033";
+    static readonly abi: ({
+        inputs: never[];
+        stateMutability: string;
+        type: string;
+        name?: undefined;
+        outputs?: undefined;
+    } | {
+        inputs: {
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        name: string;
+        outputs: {
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        stateMutability: string;
+        type: string;
+    })[];
+    static createInterface(): ClaimZapFormatterInterface;
+    static connect(address: string, signerOrProvider: Signer | Provider): ClaimZapFormatter;
+}
+export {};
