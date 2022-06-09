@@ -2,22 +2,36 @@ import { BigNumberish } from "ethers";
 
 export interface AdapterPayload {
   allowedContract: string;
-  adapter: string
+  adapter: string;
 }
 
 export interface CreditManagerDataPayload {
   addr: string;
-  hasAccount?: boolean;
-  underlyingToken?: string;
+  underlying?: string;
+
   isWETH?: boolean;
   canBorrow?: boolean;
+
   borrowRate?: BigNumberish;
   minAmount?: BigNumberish;
   maxAmount?: BigNumberish;
-  maxLeverageFactor?: BigNumberish;
+
+  maxLeverageFactor?: BigNumberish; // for V1 only
   availableLiquidity?: BigNumberish;
-  allowedTokens?: Array<string>;
+
+  collateralTokens?: Array<string>;
   adapters?: Array<AdapterPayload>;
+
+  liquidationThresholds?: Array<BigNumberish>;
+
+  version?: number;
+
+  creditFacade?: string; // V2 only: address of creditFacade
+  isDegenMode?: boolean; // V2 only: true if contract is in Degen mode
+  degenNFT?: string; // V2 only: degenNFT, address(0) if not in degen mode
+
+  isIncreaseDebtForbidden?: boolean; // V2 only: true if increasing debt is forbidden
+  forbiddenTokenMask?: BigNumberish; // V2 only: mask which forbids some particular tokens
 }
 
 export interface CreditManagerStatPayload {

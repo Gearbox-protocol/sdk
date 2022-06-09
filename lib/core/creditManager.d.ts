@@ -14,8 +14,14 @@ export declare class CreditManagerData {
     readonly availableLiquidity: BigNumber;
     readonly allowedTokens: Array<string>;
     readonly adapters: Record<string, string>;
+    readonly liquidationThresholds: Array<BigNumber>;
     readonly version: number;
-    constructor(payload: CreditManagerDataPayload);
+    readonly creditFacade: string;
+    readonly isDegenMode: boolean;
+    readonly degenNFT: string;
+    readonly isIncreaseDebtForbidden: boolean;
+    readonly forbiddenTokenMask: BigNumber;
+    constructor({ addr, underlying, isWETH, canBorrow, borrowRate, minAmount, maxAmount, maxLeverageFactor, availableLiquidity, collateralTokens, adapters, liquidationThresholds, version, creditFacade, isDegenMode, degenNFT, isIncreaseDebtForbidden, forbiddenTokenMask }: CreditManagerDataPayload);
     validateOpenAccount(balance: BigNumber, decimals: number, amount_BN: BigNumber, leverage: number): string | null;
     getContractETH(signer: Signer | ethers.providers.Provider): IAppCreditManager;
     get isPaused(): boolean;

@@ -5,8 +5,7 @@ export interface AdapterPayload {
 }
 export interface CreditManagerDataPayload {
     addr: string;
-    hasAccount?: boolean;
-    underlyingToken?: string;
+    underlying?: string;
     isWETH?: boolean;
     canBorrow?: boolean;
     borrowRate?: BigNumberish;
@@ -14,8 +13,15 @@ export interface CreditManagerDataPayload {
     maxAmount?: BigNumberish;
     maxLeverageFactor?: BigNumberish;
     availableLiquidity?: BigNumberish;
-    allowedTokens?: Array<string>;
+    collateralTokens?: Array<string>;
     adapters?: Array<AdapterPayload>;
+    liquidationThresholds?: Array<BigNumberish>;
+    version?: number;
+    creditFacade?: string;
+    isDegenMode?: boolean;
+    degenNFT?: string;
+    isIncreaseDebtForbidden?: boolean;
+    forbiddenTokenMask?: BigNumberish;
 }
 export interface CreditManagerStatPayload {
     addr: string;
