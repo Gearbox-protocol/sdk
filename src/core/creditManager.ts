@@ -93,6 +93,10 @@ export class CreditManagerData {
     this.forbiddenTokenMask = BigNumber.from(forbiddenTokenMask);
   }
 
+  contractToAdapter(contractAddress: string): string | undefined {
+    return this.adapters[contractAddress];
+  }
+
   validateOpenAccount(
     balance: BigNumber,
     decimals: number,
