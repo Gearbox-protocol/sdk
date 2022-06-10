@@ -1,15 +1,20 @@
 import { BigNumber, ethers, Signer } from "ethers";
-import { IAppCreditManager, IAppCreditManager__factory } from "../types";
+
 import { formatBN } from "../utils/formatter";
+import {
+  CreditManagerDataPayload,
+  CreditManagerStatPayload
+} from "../payload/creditManager";
+
+import { IAppCreditManager, IAppCreditManager__factory } from "../types";
+import { ICreditFacade__factory } from "../typesV2";
+
+import { MultiCall } from "./multicall";
 import {
   PERCENTAGE_FACTOR,
   RAY,
   UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD
 } from "./constants";
-import {
-  CreditManagerDataPayload,
-  CreditManagerStatPayload
-} from "../payload/creditManager";
 
 export class CreditManagerData {
   public readonly id: string;
@@ -95,6 +100,40 @@ export class CreditManagerData {
 
   contractToAdapter(contractAddress: string): string | undefined {
     return this.adapters[contractAddress];
+  }
+
+  encodeAddCollateral(
+    accountAddress: string,
+    tokenAddress: string,
+    amount: BigNumber
+  ): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
+        "addCollateral",
+        [accountAddress, tokenAddress, amount]
+      )
+    };
+  }
+
+  encodeIncreaseDebt(amount: BigNumber): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
+        "increaseDebt",
+        [amount]
+      )
+    };
+  }
+
+  encodeDecreaseDebt(amount: BigNumber): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
+        "decreaseDebt",
+        [amount]
+      )
+    };
   }
 
   validateOpenAccount(

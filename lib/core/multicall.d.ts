@@ -1,5 +1,5 @@
 import { BytesLike } from "ethers";
 export interface MultiCall {
-    targetContract: string;
+    target: string;
     callData: BytesLike;
 }
