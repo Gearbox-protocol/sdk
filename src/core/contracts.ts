@@ -3,7 +3,12 @@
  * Gearbox. Generalized leverage protocol, which allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
  * (c) Gearbox.fi, 2021
  */
-import { objectEntries, keyToLowercase, swapKeyValue } from "../utils/mappers";
+import {
+  objectEntries,
+  keyToLowercase,
+  swapKeyValue,
+  filterEmptyKeys
+} from "../utils/mappers";
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
@@ -342,5 +347,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
 export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
   Record<string, SupportedContract>
 >((acc, [_, contracts]) => {
-  return { ...acc, ...keyToLowercase(swapKeyValue(contracts)) };
+  return {
+    ...acc,
+    ...filterEmptyKeys(keyToLowercase(swapKeyValue(contracts)))
+  };
 }, {});

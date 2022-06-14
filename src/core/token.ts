@@ -1,4 +1,9 @@
-import { objectEntries, keyToLowercase, swapKeyValue } from "../utils/mappers";
+import {
+  objectEntries,
+  keyToLowercase,
+  swapKeyValue,
+  filterEmptyKeys
+} from "../utils/mappers";
 import { NetworkType } from "./constants";
 import { ConvexPoolContract } from "./contracts";
 import { TradeAction, TradeType } from "./tradeTypes";
@@ -1638,5 +1643,5 @@ export const tokenDataByNetwork: Record<
 export const tokenDataByAddress = objectEntries(tokenDataByNetwork).reduce<
   Record<string, SupportedToken>
 >((acc, [_, tokens]) => {
-  return { ...acc, ...keyToLowercase(swapKeyValue(tokens)) };
+  return { ...acc, ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens))) };
 }, {});
