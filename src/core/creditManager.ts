@@ -107,6 +107,8 @@ export class CreditManagerData {
     tokenAddress: string,
     amount: BigNumber
   ): MultiCall {
+    if (this.version !== 2)
+      throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
       callData: ICreditFacade__factory.createInterface().encodeFunctionData(
@@ -117,6 +119,8 @@ export class CreditManagerData {
   }
 
   encodeIncreaseDebt(amount: BigNumber): MultiCall {
+    if (this.version !== 2)
+      throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
       callData: ICreditFacade__factory.createInterface().encodeFunctionData(
@@ -127,6 +131,8 @@ export class CreditManagerData {
   }
 
   encodeDecreaseDebt(amount: BigNumber): MultiCall {
+    if (this.version !== 2)
+      throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
       callData: ICreditFacade__factory.createInterface().encodeFunctionData(
