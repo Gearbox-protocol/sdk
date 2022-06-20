@@ -1,6 +1,8 @@
 import { NetworkType } from "./constants";
 import { ConvexPoolContract } from "./contracts";
 import { TradeAction } from "./tradeTypes";
+import { PartialRecord } from "../utils/types";
+import { BigNumber } from "ethers";
 export declare enum TokenType {
     CONNECTOR = 0,
     NORMAL_TOKEN = 1,
@@ -14,6 +16,8 @@ export declare enum TokenType {
     DIESEL_LP_TOKEN = 9
 }
 export declare const priority: Record<TokenType, number>;
+export declare const Curve3CrvUnderlyingTokenIndex: PartialRecord<SupportedToken, BigNumber>;
+export declare const ConnectorTokens: Array<SupportedToken>;
 export declare type NormalToken = "1INCH" | "AAVE" | "COMP" | "CRV" | "DAI" | "DPI" | "FEI" | "LINK" | "SNX" | "SUSHI" | "UNI" | "USDC" | "USDT" | "WBTC" | "WETH" | "YFI" | "STETH" | "FTM" | "CVX" | "FRAX" | "FXS" | "LDO" | "SPELL" | "LUSD" | "sUSD" | "GUSD" | "LUNA" | "LQTY";
 export declare type CurveLPToken = "3Crv" | "steCRV" | "FRAX3CRV" | "LUSD3CRV" | "crvPlain3andSUSD" | "gusd3CRV";
 export declare type YearnLPToken = "yvDAI" | "yvUSDC" | "yvWETH" | "yvWBTC" | "yvCurve_stETH" | "yvCURVE_FRAX_POOL";
@@ -90,6 +94,7 @@ declare type DieselTokenData = {
 } & TokenBase;
 declare type GearboxTokenData = {
     symbol: GearboxToken;
+    swapActions?: Array<TradeAction>;
     type: TokenType.NORMAL_TOKEN;
 } & TokenBase;
 export declare type TokenDataI = NormalConnectorTokenData | NormalTokenData | CurveLPTokenData | MetaCurveLPTokenData | YearnVaultTokenData | YearnVaultOfCurveLPTokenData | YearnVaultOfMetaCurveLPTokenData | ConvexLPTokenData | ConvexPhantomTokenData | DieselTokenData | GearboxTokenData;
