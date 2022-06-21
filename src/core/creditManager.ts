@@ -1,6 +1,5 @@
 import { BigNumber, ethers, Signer } from "ethers";
 
-import { formatBN } from "../utils/formatter";
 import {
   CreditManagerDataPayload,
   CreditManagerStatPayload
@@ -16,7 +15,13 @@ import {
   UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
   LEVERAGE_DECIMALS
 } from "./constants";
-import { TokenData } from "./tokenData";
+import { OpenAccountError } from "./errors";
+
+export type OpenAccountErrors =
+  | "insufficientPoolLiquidity"
+  | "leverageGreaterMax"
+  | "amountGreaterMax"
+  | "amountLessMin";
 
 export class CreditManagerData {
   public readonly id: string;
@@ -144,69 +149,18 @@ export class CreditManagerData {
     };
   }
 
-  validateOpenAccount(
-    balance: BigNumber,
-    decimals: number,
-    amount_BN: BigNumber,
-    leverage: number
-  ): string | null {
-    if (balance.lt(amount_BN)) return "Insufficient funds";
-
-    if (amount_BN.lt(this.minAmount))
-      return `Amount is less than minimal (${formatBN(
-        this.minAmount,
-        decimals
-      )})`;
-
-    if (amount_BN.gt(this.maxAmount))
-      return `Amount is greater than maximum (${formatBN(
-        this.maxAmount,
-        decimals
-      )})`;
-
-    if (leverage > this.maxLeverageFactor) return `Leverage is bigger than max`;
-
-    if (
-      amount_BN.mul(leverage).div(LEVERAGE_DECIMALS).gt(this.availableLiquidity)
-    )
-      return "Insufficient liquidity in the pool";
-
-    return null;
-  }
-
-  validateOpenAccountV2(
-    balances: Record<string, BigNumber>,
-    amounts: Array<{ tokenAddress: string; amount: BigNumber }>,
-    totalAmount: BigNumber,
-    underlyingDecimals: number,
-    leverage: number,
-    tokens: Record<string, TokenData>
-  ): string | null {
-    for (const { tokenAddress, amount } of amounts) {
-      const balance = balances[tokenAddress];
-      const token = tokens[tokenAddress];
-
-      if (!balance || !token) return "Unknown token in list";
-
-      if (balance.lt(amount)) return `Insufficient funds (${token.symbol})`;
-
-      if (amount.lte(10))
-        return `Zero balances are not allowed (${token.symbol})`;
-    }
-
+  validateOpenAccount(totalAmount: BigNumber, leverage: number): true {
     if (totalAmount.lt(this.minAmount))
-      return `Total amount is less than minimal (${formatBN(
-        this.minAmount,
-        underlyingDecimals
-      )})`;
+      throw new OpenAccountError("amountLessMin", this.minAmount);
 
     if (totalAmount.gt(this.maxAmount))
-      return `Total amount greater than maximum (${formatBN(
-        this.maxAmount,
-        underlyingDecimals
-      )})`;
+      throw new OpenAccountError("amountGreaterMax", this.maxAmount);
 
-    if (leverage > this.maxLeverageFactor) return `Leverage is bigger than max`;
+    if (leverage > this.maxLeverageFactor)
+      throw new OpenAccountError(
+        "leverageGreaterMax",
+        BigNumber.from(this.maxLeverageFactor)
+      );
 
     if (
       totalAmount
@@ -214,9 +168,12 @@ export class CreditManagerData {
         .div(LEVERAGE_DECIMALS)
         .gt(this.availableLiquidity)
     )
-      return "Insufficient liquidity in the pool";
+      throw new OpenAccountError(
+        "insufficientPoolLiquidity",
+        BigNumber.from(this.availableLiquidity)
+      );
 
-    return null;
+    return true;
   }
 
   getContractETH(

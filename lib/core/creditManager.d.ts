@@ -27,7 +27,7 @@ export declare class CreditManagerData {
     encodeAddCollateral(accountAddress: string, tokenAddress: string, amount: BigNumber): MultiCall;
     encodeIncreaseDebt(amount: BigNumber): MultiCall;
     encodeDecreaseDebt(amount: BigNumber): MultiCall;
-    validateOpenAccount(balance: BigNumber, decimals: number, amount_BN: BigNumber, leverage: number): string | null;
+    validateOpenAccount(totalAmount: BigNumber, leverage: number): true;
     getContractETH(signer: Signer | ethers.providers.Provider): IAppCreditManager;
     get isPaused(): boolean;
 }

@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 export interface MetamaskError {
     code: number;
     message: string;
@@ -23,4 +24,13 @@ export declare class PathNotFoundError extends Error {
 }
 export declare class AccountsInAlllCreditManagersError extends Error {
     constructor();
+}
+export declare type OpenAccountErrorTypes = "insufficientPoolLiquidity" | "leverageGreaterMax" | "amountGreaterMax" | "amountLessMin";
+export declare class OpenAccountError extends Error {
+    message: OpenAccountErrorTypes;
+    payload: {
+        amount: BigNumber;
+    };
+    constructor(errorType: OpenAccountErrorTypes, amount: BigNumber);
+    static isOpenAccountError(e: unknown): e is OpenAccountError;
 }
