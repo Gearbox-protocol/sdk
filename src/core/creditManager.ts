@@ -17,12 +17,6 @@ import {
 } from "./constants";
 import { OpenAccountError } from "./errors";
 
-export type OpenAccountErrors =
-  | "insufficientPoolLiquidity"
-  | "leverageGreaterMax"
-  | "amountGreaterMax"
-  | "amountLessMin";
-
 export class CreditManagerData {
   public readonly id: string;
   public readonly address: string;

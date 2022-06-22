@@ -1,4 +1,5 @@
 export * from "./core/constants";
+export * from "./core/price";
 export * from "./core/creditAccount";
 export * from "./core/creditManager";
 export * from "./core/creditSession";
