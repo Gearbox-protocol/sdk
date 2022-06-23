@@ -22,6 +22,7 @@ export type CurvePoolContract =
   | "CURVE_FRAX_POOL"
   | "CURVE_LUSD_POOL"
   | "CURVE_GUSD_POOL"
+  | "CURVE_SUSD_DEPOSIT"
   | "CURVE_SUSD_POOL";
 
 export type YearnVaultContract =
@@ -64,6 +65,7 @@ export const contractsByNetwork: Record<
     CURVE_FRAX_POOL: tokenDataByNetwork.Mainnet.FRAX3CRV,
     CURVE_LUSD_POOL: tokenDataByNetwork.Mainnet.LUSD3CRV,
     CURVE_SUSD_POOL: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // SEPARATE TOKEN
+    CURVE_SUSD_DEPOSIT: "0xFCBa3E75865d2d561BE8D220616520c171F12851",
     CURVE_GUSD_POOL: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", // SEPARATE TOKEN
 
     // YEARN
@@ -97,6 +99,7 @@ export const contractsByNetwork: Record<
     CURVE_FRAX_POOL: "",
     CURVE_LUSD_POOL: tokenDataByNetwork.Kovan.LUSD3CRV,
     CURVE_SUSD_POOL: "0x032f1cE00865F3499C0052ceBA5F2348842416DB", // SEPARATE TOKEN
+    CURVE_SUSD_DEPOSIT: "",
     CURVE_GUSD_POOL: "",
 
     // YEARN
@@ -247,12 +250,19 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     lpToken: "crvPlain3andSUSD",
     tokens: ["DAI", "USDC", "USDT", "sUSD"]
   },
+  CURVE_SUSD_DEPOSIT: {
+      name: "Curve SUSD Deposit",
+      protocol: Protocols.Curve,
+      type: AdapterInterface.CURVE_V1_4ASSETS,
+      lpToken: "crvPlain3andSUSD",
+      tokens: ["DAI", "USDC", "USDT", "sUSD"]
+  },
   CURVE_GUSD_POOL: {
     name: "Curve GUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "gusd3CRV",
-    tokens: ["3Crv", "FRAX"]
+    tokens: ["3Crv", "GUSD"]
   },
 
   YEARN_DAI_VAULT: {
