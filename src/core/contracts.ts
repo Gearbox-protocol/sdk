@@ -158,6 +158,14 @@ export type CurveSteCRVPoolParams = {
   lpToken: "steCRV";
 } & BaseContractParams;
 
+export type CurveDepositParams = {
+  protocol: Protocols.Curve;
+  type: AdapterInterface.CURVE_V1_DEPOSIT;
+  pool: Record<NetworkType, string>;
+  lpToken: CurveLPToken;
+  nCoins: number
+} & BaseContractParams;
+
 type YearnParams = {
   protocol: Protocols.Yearn;
   type: AdapterInterface.YEARN_V2;
@@ -188,6 +196,7 @@ export type ContractParams =
   | UniswapV3Params
   | CurveParams
   | CurveSteCRVPoolParams
+  | CurveDepositParams
   | YearnParams
   | ConvexParams
   | ConvexPoolParams
@@ -253,9 +262,13 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   CURVE_SUSD_DEPOSIT: {
       name: "Curve SUSD Deposit",
       protocol: Protocols.Curve,
-      type: AdapterInterface.CURVE_V1_4ASSETS,
+      type: AdapterInterface.CURVE_V1_DEPOSIT,
       lpToken: "crvPlain3andSUSD",
-      tokens: ["DAI", "USDC", "USDT", "sUSD"]
+      pool: {
+          Mainnet: "0x22eE18aca7F3Ee920D01F25dA85840D12d98E8Ca",
+          Kovan: ""
+      },
+      nCoins: 4
   },
   CURVE_GUSD_POOL: {
     name: "Curve GUSD",
