@@ -118,7 +118,7 @@ export const contractsByNetwork: Record<NetworkType,
         CONVEX_CLAIM_ZAP: "",
 
         // LIDO
-        LIDO_STETH_GATEWAY: "",
+        LIDO_STETH_GATEWAY: "0x0aaEB0372c2a32088D4F2c9a6ECfB3fFc7Fa2ffF",
 
 
     }
