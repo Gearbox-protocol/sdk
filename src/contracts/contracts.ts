@@ -93,7 +93,7 @@ export const contractsByNetwork: Record<NetworkType,
 
         // CURVE
         CURVE_3CRV_POOL: "0x48364De693fdE2D4AB0A6D5EAB9c5e5f79D77e47",
-        CURVE_STETH_GATEWAY: "",
+        CURVE_STETH_GATEWAY: "0x464C874c54Bf8d48e1CcbA20636837E5EfBBA4B0",
         CURVE_FRAX_POOL: tokenDataByNetwork.Kovan.FRAX3CRV,
         CURVE_LUSD_POOL: tokenDataByNetwork.Kovan.LUSD3CRV,
         CURVE_SUSD_POOL: "0x446973eC709A3e2ce2845988E9BF737Fb1eF4aDD", // SEPARATE TOKEN
