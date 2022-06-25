@@ -1,9 +1,11 @@
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "./constants";
 import { Protocols } from "./protocols";
-import { CurveLPToken, NormalToken, ConvexStakedPhantomToken } from "./token";
+import { ConvexStakedPhantomToken } from "../tokens/convex";
+import { CurveLPToken } from "../tokens/curveLP";
+import { NormalToken } from "../tokens/normal";
 export declare type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
-export declare type CurvePoolContract = "CURVE_3CRV_POOL" | "CURVE_STETH_GATEWAY" | "CURVE_FRAX_POOL" | "CURVE_LUSD_POOL" | "CURVE_GUSD_POOL" | "CURVE_SUSD_POOL";
+export declare type CurvePoolContract = "CURVE_3CRV_POOL" | "CURVE_STETH_GATEWAY" | "CURVE_FRAX_POOL" | "CURVE_LUSD_POOL" | "CURVE_GUSD_POOL" | "CURVE_SUSD_POOL" | "CURVE_SUSD_DEPOSIT";
 export declare type YearnVaultContract = "YEARN_DAI_VAULT" | "YEARN_USDC_VAULT" | "YEARN_WETH_VAULT" | "YEARN_WBTC_VAULT" | "YEARN_CURVE_FRAX_VAULT" | "YEARN_CURVE_STETH_VAULT";
 export declare type ConvexPoolContract = "CONVEX_3CRV_POOL" | "CONVEX_GUSD_POOL" | "CONVEX_SUSD_POOL" | "CONVEX_STECRV_POOL" | "CONVEX_FRAX3CRV_POOL";
 export declare type SupportedContract = UniswapV2Contract | "UNISWAP_V3_ROUTER" | CurvePoolContract | YearnVaultContract | "CONVEX_BOOSTER" | ConvexPoolContract | "CONVEX_CLAIM_ZAP" | "LIDO_STETH_GATEWAY";
@@ -21,11 +23,12 @@ declare type UniswapV3Params = {
     type: AdapterInterface.UNISWAP_V3_ROUTER;
     quoter: string;
 } & BaseContractParams;
-declare type CurveParams = {
+export declare type CurveParams = {
     protocol: Protocols.Curve;
-    type: AdapterInterface.CURVE_V1_2ASSETS | AdapterInterface.CURVE_V1_3ASSETS | AdapterInterface.CURVE_V1_4ASSETS;
+    type: AdapterInterface.CURVE_V1_2ASSETS | AdapterInterface.CURVE_V1_3ASSETS | AdapterInterface.CURVE_V1_4ASSETS | AdapterInterface.CURVE_V1_WRAPPER;
     lpToken: CurveLPToken;
     tokens: Array<NormalToken | CurveLPToken>;
+    wrapper?: CurvePoolContract;
 } & BaseContractParams;
 export declare type CurveSteCRVPoolParams = {
     protocol: Protocols.Curve;

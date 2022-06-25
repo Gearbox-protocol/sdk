@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { TokenData } from "./tokenData";
+import { TokenData } from "../tokens/tokenData";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
 export interface TxSerialized {
     type: "TxAddLiquidity" | "TxRemoveLiquidity" | "TxSwap" | "TxAddCollateral" | "TxIncreaseBorrowAmount" | "TxOpenAccount" | "TxRepayAccount" | "TxCloseAccount" | "TxApprove";

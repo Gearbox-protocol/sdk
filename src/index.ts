@@ -11,8 +11,8 @@ export * from "./core/priceFeeds";
 export * from "./core/operations";
 export * from "./core/oracles";
 export * from "./core/swap";
-export * from "./core/token";
-export * from "./core/tokenData";
+export * from "./tokens/token";
+export * from "./tokens/tokenData";
 export * from "./core/tokenDistributor";
 export * from "./core/trade";
 export * from "./core/transactions";
@@ -30,18 +30,11 @@ export * from "./core/creditCard";
 export * from "./payload/graphPayload";
 export * from "./types/index";
 
-export type {
-  IAppPoolService,
-  IAppCreditManager,
-  IAppERC20,
-  IAppAddressProvider,
-  IDataCompressor,
-  IWETHGateway
-} from "./types";
+export type {IDataCompressor, IWETHGateway} from "./types";
 
 export * from "./core/history";
-export { MultiCallContract } from "./utils/multicall";
-export { callRepeater } from "./utils/repeater";
-export { getContractName } from "./core/contractsRegister";
-export { AdapterInterface } from "./core/adapters";
-export { objectEntries, swapKeyValue, keyToLowercase } from "./utils/mappers";
+export {MultiCallContract} from "./utils/multicall";
+export {callRepeater} from "./utils/repeater";
+export {getContractName} from "./core/contractsRegister";
+export {AdapterInterface} from "./core/adapters";
+export {objectEntries, swapKeyValue, keyToLowercase} from "./utils/mappers";

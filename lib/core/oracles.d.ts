@@ -1,4 +1,4 @@
-import { SupportedToken } from "./token";
+import { SupportedToken } from "../tokens/token";
 export interface PriceFeed {
     token: string;
     priceFeed: string;

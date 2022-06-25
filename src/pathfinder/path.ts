@@ -1,71 +1,42 @@
 import {BigNumber, ethers} from "ethers";
 import {CreditManagerData} from "../core/creditManager";
 import {MultiCall} from "../core/multicall";
-import {
-    Curve3CrvUnderlyingTokenIndex, NormalToken,
-    priority,
-    SupportedToken,
-    supportedTokens,
-    TokenType
-} from "../core/token";
+import {SupportedToken, supportedTokens, TokenType} from "../tokens/token";
 import {NetworkType} from "../core/constants";
 import {CreditAccountData} from "../core/creditAccount";
-import {ConnectorPathAsset} from "./connectorPathAsset";
-import {YearnVaultPathAsset} from "./yearnVaultPathAsset";
-import {ConvexLPTokenPathAsset} from "./convexLPTokenPathAsset";
-import {CurveLPPathAsset} from "./curveLPPathAsset";
-import {MetaCurveLPPathAsset} from "./metaCurveLPPathAsset";
-import {NormalTokenPathAsset} from "./normalTokenPathAsset";
-import {YearnVaultOfCurveLPPathAsset} from "./yearnVaultOfCurveLPPathAsset";
-import {YearnVaultOfMetaCurveLPPathAsset} from "./yearnVaultOfMetaCurveLPPathAsset";
-import {
-    CurveV1Adapter__factory,
-    IQuoter__factory,
-    UniswapV2Adapter__factory,
-    UniswapV3Adapter__factory, YearnAdapter__factory
-} from "../types";
-import {contractsByNetwork, SupportedContract, UNISWAP_V3_QUOTER} from "../core/contracts";
-import {TradeAction, TradeType} from "../core/tradeTypes";
 
+import {PathFinder__factory, UniswapV2Adapter__factory} from "../types";
+import {priority} from "./priority";
+import {YearnLPToken} from "../tokens/yearn";
+import {YearnVaultPathFinder} from "./yVault";
+import {ConvexLPPathFinder} from "./convexLP";
+import {CurvePathFinder} from "./curveLP";
+import {CurveLPToken} from "../tokens/curveLP";
+import {PartialRecord} from "../utils/types";
+import {detectNetwork} from "../utils/network";
+import {pathFindersByNetwork} from "./contracts";
 
 export class Path {
     public readonly calls: Array<MultiCall> = [];
-    public readonly balances: Record<SupportedToken, BigNumber>;
-    public readonly pool: SupportedToken;
+    public readonly balances: PartialRecord<SupportedToken, BigNumber>;
+    public readonly underlying: SupportedToken;
     public readonly creditManager: CreditManagerData;
     public readonly creditAccount: CreditAccountData;
     public readonly networkType: NetworkType;
     public readonly provider: ethers.providers.Provider;
-    public readonly totalGasLimit: BigNumber;
-
-
-    // Path is for selling all assets in the credit account, it will return the calls data to sell all the assets, the amount of pool token will got after selling and the total gas limit for all the calls.
-    // This is an example to describe how to use Path:
-    // const path = new Path({gasUsed:0, balances: creditAccount.balances, })
-    // const closurePath = await path.getBestPath();
-    // closurePath.calls -> multicalls (!)
-    // closurePath.balances[path.pool] = (X)
-    // closurePath.balances[!path.pool] = 0 / 1;
-    //
-    // balances: the balance of each asset in the credit account
-    // pool: the pool token
-    // creditManager: credit manager data
-    // creditAccount: credit account data
-    // networkType: network type (Mainnet, Kovan)
-    // provider: ehters rpc provider
-    // totalGasLimit: the base gas limit, you can pass zero for not adding any base gas limit
+    public totalGasLimit: number;
 
     constructor(opts: {
-        balances: Record<SupportedToken, BigNumber>;
-        pool: SupportedToken;
+        balances: PartialRecord<SupportedToken, BigNumber>;
+        underlying: SupportedToken;
         creditManager: CreditManagerData;
         creditAccount: CreditAccountData;
         networkType: NetworkType;
         provider: ethers.providers.Provider;
-        totalGasLimit: BigNumber;
+        totalGasLimit: number;
     }) {
         this.balances = opts.balances;
-        this.pool = opts.pool;
+        this.underlying = opts.underlying;
         this.creditManager = opts.creditManager;
         this.creditAccount = opts.creditAccount;
         this.networkType = opts.networkType;
@@ -73,9 +44,24 @@ export class Path {
         this.totalGasLimit = opts.totalGasLimit;
     }
 
-    private comparedByPriority([tokenA, _balanceA]: [string, BigNumber], [tokenB, _balanceB]: [string, BigNumber]): number {
-        const priorityTokenA = priority[supportedTokens[tokenA as SupportedToken].type];
-        const priorityTokenB = priority[supportedTokens[tokenB as SupportedToken].type];
+    public popBalance(token: SupportedToken): BigNumber {
+        const currentBalance = this.balances[token];
+
+        if (currentBalance === undefined || currentBalance.gt(1))
+            return BigNumber.from(0);
+
+        this.balances[token] = BigNumber.from(1);
+        return currentBalance.sub(1);
+    }
+
+    private comparedByPriority(
+        [tokenA, _balanceA]: [string, BigNumber],
+        [tokenB, _balanceB]: [string, BigNumber]
+    ): number {
+        const priorityTokenA =
+            priority[supportedTokens[tokenA as SupportedToken].type];
+        const priorityTokenB =
+            priority[supportedTokens[tokenB as SupportedToken].type];
 
         if (priorityTokenA > priorityTokenB) {
             return -1;
@@ -85,56 +71,76 @@ export class Path {
         return 0;
     }
 
-    async getBestPath(): Promise<Path> {
-        const existingTokens = Object.entries(this.balances).filter(([_token, balance]) => balance.gt(1)).sort(this.comparedByPriority);
+    static async findBestPath(
+        creditAccount: CreditAccountData,
+        creditManager: CreditManagerData,
+        provider: ethers.providers.Provider
+    ) {
+        const networkType = await detectNetwork(provider)
+        const initialPath = new Path({
+            balances: {}, // {...creditAccount.balances},
+            creditAccount,
+            creditManager,
+            networkType,
+            provider,
+            underlying: "DAI", // creditManager.underlyingToken
+            totalGasLimit: 0
+        });
 
-        if (existingTokens.length == 1) {
-            return this;
-        }
+        const lpPaths = await initialPath.withdrawTokens();
+        const pathFinder = PathFinder__factory.connect(
+            pathFindersByNetwork[networkType].PATH_FINDER,
+            provider
+        );
+
+        console.log(lpPaths)
+        console.log(pathFinder);
+        // const bestPath = await pathFinder.bestPath();
+    }
+
+    async withdrawTokens(): Promise<Array<Path>> {
+        const existingTokens = Object.entries(this.balances)
+            .filter(([_token, balance]) => balance.gt(1))
+            .sort(this.comparedByPriority);
+
+        // TODO: Add checks for lenght
+        if (existingTokens.length === 0)
+            throw new Error("No tokens with balance >1");
 
         const nextToken = existingTokens.at(0)![0] as SupportedToken;
-        let pathAsset: PathAsset;
+        let lpPathFinder: LPWithdrawPathFinder;
         // Get balances and keep non-zero only
         // Find token with highest priority
         // Get token type of this token
         switch (supportedTokens[nextToken].type) {
+            case TokenType.NORMAL_TOKEN:
             case TokenType.CONNECTOR:
-                pathAsset = new ConnectorPathAsset();
-                break;
+                return [this];
 
+            case TokenType.YEARN_VAULT_OF_CURVE_LP:
+            case TokenType.YEARN_VAULT_OF_META_CURVE_LP:
             case TokenType.YEARN_VAULT:
-                pathAsset = new YearnVaultPathAsset();
+                lpPathFinder = new YearnVaultPathFinder(nextToken as YearnLPToken);
                 break;
 
             case TokenType.CONVEX_LP_TOKEN:
-                pathAsset = new ConvexLPTokenPathAsset();
-                break;
-
-            case TokenType.CURVE_LP:
-                pathAsset = new CurveLPPathAsset();
+                lpPathFinder = new ConvexLPPathFinder();
                 break;
 
             case TokenType.META_CURVE_LP:
-                pathAsset = new MetaCurveLPPathAsset();
-                break;
-
-            case TokenType.NORMAL_TOKEN:
-                pathAsset = new NormalTokenPathAsset();
-                break;
-
-            case TokenType.YEARN_VAULT_OF_CURVE_LP:
-                pathAsset = new YearnVaultOfCurveLPPathAsset();
-                break;
-
-            case TokenType.YEARN_VAULT_OF_META_CURVE_LP:
-                pathAsset = new YearnVaultOfMetaCurveLPPathAsset();
+            case TokenType.CURVE_LP:
+                lpPathFinder = new CurvePathFinder(nextToken as CurveLPToken);
                 break;
 
             default:
                 throw new Error("Token type not supported yet");
         }
 
-        return await pathAsset.getBestPath(nextToken, this);
+        return await lpPathFinder.findWithdrawPaths(this);
+    }
+
+    clone(): Path {
+        return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
     }
 }
 
@@ -142,118 +148,48 @@ export interface ActionData {
     callData: MultiCall;
     amountOut: BigNumber;
     gasLimit: BigNumber;
-};
+}
 
-export abstract class PathAsset {
-    abstract getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
+export abstract class LPWithdrawPathFinder {
+    abstract findWithdrawPaths(p: Path): Promise<Array<Path>>;
 
-
-    async getUniswapV2SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData> {
-
+    async getUniswapV2SwapData(
+        adapterAddress: string,
+        currentTokenAddress: string,
+        currentBalance: BigNumber,
+        nextTokenAddress: string,
+        p: Path
+    ): Promise<ActionData> {
         const deadline = Math.floor(Date.now() / 1000) + 1200;
-        const uniswapV2Adapter = UniswapV2Adapter__factory.connect(adapterAddress, p.provider);
+        const uniswapV2Adapter = UniswapV2Adapter__factory.connect(
+            adapterAddress,
+            p.provider
+        );
         const path: Array<string> = [currentTokenAddress, nextTokenAddress];
-        const amountsOut: Array<BigNumber> = await uniswapV2Adapter.getAmountsOut(currentBalance, path);
+        const amountsOut: Array<BigNumber> = await uniswapV2Adapter.getAmountsOut(
+            currentBalance,
+            path
+        );
 
         const amountOut: BigNumber = amountsOut[amountsOut.length - 1];
-        const gasLimit: BigNumber = await uniswapV2Adapter.estimateGas.swapExactTokensForTokens(currentBalance, amountOut, path, p.creditAccount.addr, deadline);
+        const gasLimit: BigNumber =
+            await uniswapV2Adapter.estimateGas.swapExactTokensForTokens(
+                currentBalance,
+                amountOut,
+                path,
+                p.creditAccount.addr,
+                deadline
+            );
         const call: MultiCall = {
             targetContract: adapterAddress,
-            callData: UniswapV2Adapter__factory.createInterface().encodeFunctionData("swapExactTokensForTokens", [currentBalance, amountOut, path, p.creditAccount.addr, deadline])
-        }
-
-        return { callData: call, amountOut: amountOut, gasLimit: gasLimit };
-    }
-
-    async getUniswapV3SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData> {
-        const uniswapV3Adapter = UniswapV3Adapter__factory.connect(adapterAddress, p.provider);
-        const iQuoter = IQuoter__factory.connect(UNISWAP_V3_QUOTER, p.provider);
-        const amountOut: BigNumber = await iQuoter.callStatic.quoteExactInputSingle(currentTokenAddress, nextTokenAddress, 3000, currentBalance, 0);
-        const deadline = Math.floor(Date.now() / 1000) + 1200;
-        const exactInputSingleOrder = {
-            "tokenIn": currentTokenAddress,
-            "tokenOut": nextTokenAddress,
-            "fee": 3000,
-            "recipient": p.creditAccount.addr,
-            "amountIn": currentBalance,
-            "amountOutMinimum": amountOut,
-            "deadline": deadline,
-            "sqrtPriceLimitX96": 0
-        };
-        const call: MultiCall = {
-            targetContract: adapterAddress,
-            callData: UniswapV3Adapter__factory.createInterface().encodeFunctionData("exactInputSingle", [exactInputSingleOrder])
-        }
-        const gasLimit: BigNumber = await uniswapV3Adapter.estimateGas.exactInputSingle(exactInputSingleOrder);
-
-        return { callData: call, amountOut: amountOut, gasLimit: gasLimit };
-    }
-
-    async getCurveActionData(adapterAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextToken: SupportedToken, p: Path): Promise<ActionData> {
-        const curve3CrvPool = CurveV1Adapter__factory.connect(adapterAddress, p.provider);
-        const currentIndex: BigNumber = Curve3CrvUnderlyingTokenIndex[currentToken]!;
-        const outputIndex: BigNumber = Curve3CrvUnderlyingTokenIndex[nextToken]!;
-
-        const amountOut: BigNumber = await curve3CrvPool.get_dy_underlying(currentIndex, outputIndex, currentBalance);
-        const gasLimit: BigNumber = await curve3CrvPool.estimateGas.exchange_underlying(currentIndex, outputIndex, currentBalance, amountOut);
-        const call: MultiCall = {
-            targetContract: adapterAddress,
-            callData: CurveV1Adapter__factory.createInterface().encodeFunctionData("exchange_underlying", [currentIndex, outputIndex, currentBalance, amountOut])
+            callData: UniswapV2Adapter__factory.createInterface().encodeFunctionData(
+                "swapExactTokensForTokens",
+                [currentBalance, amountOut, path, p.creditAccount.addr, deadline]
+            )
         };
 
-        return { callData: call, amountOut: amountOut, gasLimit: gasLimit };
+        return {callData: call, amountOut: amountOut, gasLimit: gasLimit};
     }
 
-    async getActionData(swapAction: TradeAction, currentTokenAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextTokenAddress: string, nextToken: SupportedToken, p: Path): Promise<ActionData> {
-        const actionType: TradeType = swapAction.type;
-        const actionContract: SupportedContract = swapAction.contract;
-        const actionContractAddress: string = contractsByNetwork[p.networkType][actionContract];
-        const adapterAddress: string = p.creditManager.adapters[actionContractAddress];
-
-        switch (actionType) {
-            case TradeType.UniswapV2Swap:
-                return await this.getUniswapV2SwapData(adapterAddress, currentTokenAddress, currentBalance, nextTokenAddress, p);
-
-            case TradeType.UniswapV3Swap:
-                return await this.getUniswapV3SwapData(adapterAddress, currentTokenAddress, currentBalance, nextTokenAddress, p);
-
-            case TradeType.CurveExchange:
-                if (swapAction.tokenOut!.includes(p.pool as NormalToken)) {
-                    return await this.getCurveActionData(adapterAddress, currentToken, currentBalance, nextToken, p);
-                } else {
-                    return {
-                        callData: {
-                            targetContract: "",
-                            callData: ""
-                        },
-                        amountOut: BigNumber.from(0),
-                        gasLimit: BigNumber.from(0)
-                    };
-                }
-
-            default:
-                throw Error(`TradeType not supported. ${actionType}`);
-        }
-    }
-
-    async getYearnActionData(lpAction: TradeAction, currentBalance: BigNumber, p: Path): Promise<ActionData> {
-        // Yearn Vault only has one lp action
-        const actionContract: SupportedContract = lpAction.contract;
-        const allowedContract: string = contractsByNetwork[p.networkType][actionContract];
-        // For Yearn Vault the token address is the contract to withdraw
-        const adapterAddress = p.creditManager.adapters[allowedContract];
-        const call: MultiCall = {
-            targetContract: adapterAddress,
-            callData: YearnAdapter__factory.createInterface().encodeFunctionData('withdraw', [currentBalance, p.creditAccount.addr])
-        };
-
-        const IYVault = YearnAdapter__factory.connect(allowedContract, p.provider);
-        const price: BigNumber = await IYVault.pricePerShare(); // get price
-        const gasLimit: BigNumber = await IYVault.estimateGas["withdraw(uint256,address)"](currentBalance, p.creditAccount.addr);
-        return {
-            callData: call,
-            amountOut: currentBalance.mul(price),
-            gasLimit: gasLimit
-        }
-    }
+   
 }

@@ -1,6 +1,6 @@
 import { BigNumber, ethers, Signer } from "ethers";
-import { IAppCreditManager } from "../types";
 import { CreditManagerDataPayload, CreditManagerStatPayload } from "../payload/creditManager";
+import { ICreditManager } from "../types";
 export declare class CreditManagerData {
     readonly id: string;
     readonly address: string;
@@ -17,7 +17,7 @@ export declare class CreditManagerData {
     readonly version: number;
     constructor(payload: CreditManagerDataPayload);
     validateOpenAccount(balance: BigNumber, decimals: number, amount_BN: BigNumber, leverage: number): string | null;
-    getContractETH(signer: Signer | ethers.providers.Provider): IAppCreditManager;
+    getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager;
     get isPaused(): boolean;
 }
 export declare function calcMaxIncreaseBorrow(healthFactor: number, borrowAmountPlusInterest: BigNumber, maxLeverageFactor: number): BigNumber;

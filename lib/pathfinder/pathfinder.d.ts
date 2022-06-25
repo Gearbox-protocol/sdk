@@ -1,28 +1,24 @@
 import { BigNumber } from "ethers";
-import { SupportedToken } from "../core/token";
-import { Path, PathAsset } from "./path";
+import { CreditManagerData } from "./creditManager";
+import { MultiCall } from "./multicall";
+import { SupportedToken } from "./token";
+export declare class Path {
+    readonly calls: Array<MultiCall>;
+    readonly balances: Record<SupportedToken, BigNumber>;
+    protected _gasUsed: number;
+    readonly pool: SupportedToken;
+    readonly creditManager: CreditManagerData;
+    constructor(opts: {
+        gasUsed: number;
+        balances: Record<SupportedToken, BigNumber>;
+        pool: SupportedToken;
+        creditManager: CreditManagerData;
+    });
+    getBestPath(): Promise<Path>;
+}
+export interface PathAsset {
+    getBestPath(p: Path): Promise<Path>;
+}
 export declare class ConnectorPathAsset implements PathAsset {
-    getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-    getMaxPoolAmount(currentToken: SupportedToken, currentBalance: BigNumber, p: Path): Promise<[BigNumber, BigNumber]>;
-}
-export declare class YearnVaultPathAsset implements PathAsset {
-    getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-}
-export declare class ConvexLPTokenPathAsset implements PathAsset {
-    getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-}
-export declare class CurveLPPathAsset implements PathAsset {
-    getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-}
-export declare class MetaCurveLPPathAsset implements PathAsset {
-    getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-}
-export declare class NormalTokenPathAsset implements PathAsset {
-    getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-}
-export declare class YearnVaultOfCurveLPPathAsset implements PathAsset {
-    getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-}
-export declare class YearnVaultOfMetaCurveLPPathAsset implements PathAsset {
-    getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
+    getBestPath(p: Path): Promise<Path>;
 }

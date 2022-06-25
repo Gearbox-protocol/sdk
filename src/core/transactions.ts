@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { TokenData } from "./tokenData";
+import { TokenData } from "../tokens/tokenData";
 import { formatBN } from "../utils/formatter";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
 import { getContractName } from "./contractsRegister";
