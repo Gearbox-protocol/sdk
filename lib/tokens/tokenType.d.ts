@@ -1,0 +1,12 @@
+export declare enum TokenType {
+    CONNECTOR = 0,
+    NORMAL_TOKEN = 1,
+    CURVE_LP = 2,
+    META_CURVE_LP = 3,
+    YEARN_VAULT = 4,
+    YEARN_VAULT_OF_CURVE_LP = 5,
+    YEARN_VAULT_OF_META_CURVE_LP = 6,
+    CONVEX_LP_TOKEN = 7,
+    CONVEX_STAKED_PHANTOM_TOKEN = 8,
+    DIESEL_LP_TOKEN = 9
+}

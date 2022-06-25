@@ -1,5 +1,6 @@
-import {TokenBase, TokenType} from "./token";
+import {TokenBase} from "./token";
 import {TradeAction} from "../core/tradeTypes";
+import {TokenType} from "./tokenType";
 
 export type DieselTokenTypes = "dDAI" | "dUSDC" | "dWBTC" | "dWETH";
 export type GearboxToken = "GEAR";

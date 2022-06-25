@@ -1,4 +1,4 @@
-import {TokenType} from "../tokens/token";
+import {TokenType} from "../tokens/tokenType";
 
 export const priority: Record<TokenType, number> = {
     [TokenType.CONNECTOR]: 1,

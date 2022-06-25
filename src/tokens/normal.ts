@@ -1,5 +1,6 @@
 import {TradeAction, TradeType} from "../core/tradeTypes";
-import {TokenBase, TokenType} from "./token";
+import {TokenBase} from "./token";
+import {TokenType} from "./tokenType";
 
 export type NormalToken =
     | "1INCH"

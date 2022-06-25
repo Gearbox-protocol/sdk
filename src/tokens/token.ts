@@ -18,19 +18,6 @@ import {
 } from "./convex";
 import {DieselTokenData, DieselTokenTypes, GearboxToken, GearboxTokenData, gearTokens} from "./gear";
 
-export enum TokenType {
-    CONNECTOR,
-    NORMAL_TOKEN,
-    CURVE_LP,
-    META_CURVE_LP,
-    YEARN_VAULT,
-    YEARN_VAULT_OF_CURVE_LP,
-    YEARN_VAULT_OF_META_CURVE_LP,
-    CONVEX_LP_TOKEN,
-    CONVEX_STAKED_PHANTOM_TOKEN,
-    DIESEL_LP_TOKEN
-}
-
 
 export type SupportedToken =
     | NormalToken
@@ -187,12 +174,12 @@ export const tokenDataByNetwork: Record<NetworkType,
         yvWBTC: "0x66359b29F7b142A3C7158e2F809aCD4407A6Ae75",
 
         // CURVE LP TOKENS
-        "3Crv": "0xD969Aebdb5A9266954BB3A7646859fCA69233528",
-        steCRV: "",
-        FRAX3CRV: "",
-        LUSD3CRV: "",
-        crvPlain3andSUSD: "",
-        gusd3CRV: "",
+        "3Crv": "0x8eA3677599d5199c2c93c468fD2Fa6F102d3605b",
+        steCRV: "0x6636910D55D34505c08d53932Da526FB18D3869C",
+        FRAX3CRV: "0x76508F5398E50EFEC53d5Afd4B506990B43AdBFB",
+        LUSD3CRV: "0x04366d7ee3210B9eAd6f36696220d697b7885ED7",
+        crvPlain3andSUSD: "0x540f5ea2A0601e27368661CB231AE04c23A14C24",
+        gusd3CRV: "0x428A500D8209fef5a1b5a0A35C9412b71F03aAdA",
 
         // CONVEX LP TOKENS
         cvx3Crv: "",

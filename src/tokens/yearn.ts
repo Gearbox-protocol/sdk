@@ -1,7 +1,8 @@
 import {TradeAction, TradeType} from "../core/tradeTypes";
-import {TokenBase, TokenType} from "./token";
+import {TokenBase} from "./token";
 import {CurveLPToken} from "./curveLP";
 import {NormalToken} from "./normal";
+import {TokenType} from "./tokenType";
 
 export type YearnLPToken =
     | "yvDAI"

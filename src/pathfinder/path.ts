@@ -1,7 +1,7 @@
 import {BigNumber, ethers} from "ethers";
 import {CreditManagerData} from "../core/creditManager";
 import {MultiCall} from "../core/multicall";
-import {SupportedToken, supportedTokens, TokenType} from "../tokens/token";
+import {SupportedToken, supportedTokens} from "../tokens/token";
 import {NetworkType} from "../core/constants";
 import {CreditAccountData} from "../core/creditAccount";
 
@@ -15,6 +15,7 @@ import {CurveLPToken} from "../tokens/curveLP";
 import {PartialRecord} from "../utils/types";
 import {detectNetwork} from "../utils/network";
 import {pathFindersByNetwork} from "./contracts";
+import {TokenType} from "../tokens/tokenType";
 
 export class Path {
     public readonly calls: Array<MultiCall> = [];
@@ -191,5 +192,5 @@ export abstract class LPWithdrawPathFinder {
         return {callData: call, amountOut: amountOut, gasLimit: gasLimit};
     }
 
-   
+
 }

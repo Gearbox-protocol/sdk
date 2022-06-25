@@ -1,7 +1,8 @@
 import {TradeAction, TradeType} from "../core/tradeTypes";
-import {TokenBase, TokenType} from "./token";
+import {TokenBase} from "./token";
 import {ConvexPoolContract} from "../core/contracts";
 import {CurveLPToken} from "./curveLP";
+import {TokenType} from "./tokenType";
 
 export type ConvexLPToken =
     | "cvx3Crv"

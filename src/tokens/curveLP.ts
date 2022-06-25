@@ -1,7 +1,8 @@
 import {TradeAction, TradeType} from "../core/tradeTypes";
-import {SupportedToken, TokenBase, TokenType} from "./token";
+import {SupportedToken, TokenBase} from "./token";
 import {PartialRecord} from "../utils/types";
 import {BigNumber} from "ethers";
+import {TokenType} from "./tokenType";
 
 export type CurveLPToken =
     | "3Crv"

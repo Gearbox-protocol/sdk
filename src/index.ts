@@ -38,3 +38,4 @@ export {callRepeater} from "./utils/repeater";
 export {getContractName} from "./core/contractsRegister";
 export {AdapterInterface} from "./core/adapters";
 export {objectEntries, swapKeyValue, keyToLowercase} from "./utils/mappers";
+export {TokenType} from "./tokens/tokenType";

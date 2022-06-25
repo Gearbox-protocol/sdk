@@ -84,7 +84,7 @@ export const contractsByNetwork: Record<NetworkType,
 
         // LIDO
         LIDO_STETH_GATEWAY: "0x55045Eaae19d92680E02231e4Ce7bBEB4814ca64",
-        
+
     },
     Kovan: {
         UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
@@ -92,12 +92,12 @@ export const contractsByNetwork: Record<NetworkType,
         SUSHISWAP_ROUTER: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
 
         // CURVE
-        CURVE_3CRV_POOL: "",
+        CURVE_3CRV_POOL: "0x5544FDA32B8F64262295DD0720A4D36BEB3F438c",
         CURVE_STETH_GATEWAY: "",
-        CURVE_FRAX_POOL: "",
+        CURVE_FRAX_POOL: tokenDataByNetwork.Kovan.FRAX3CRV,
         CURVE_LUSD_POOL: tokenDataByNetwork.Kovan.LUSD3CRV,
-        CURVE_SUSD_POOL: "", // SEPARATE TOKEN
-        CURVE_GUSD_POOL: "",
+        CURVE_SUSD_POOL: "0xf4fD22A7c99D389e4ddBb8185B59F9D6eF6775c0", // SEPARATE TOKEN
+        CURVE_GUSD_POOL: "0xeB9D96059bd466EBbd0E5EeBdD596566f31EbB7B",
 
         // YEARN
         YEARN_DAI_VAULT: tokenDataByNetwork.Kovan.yvDAI,
