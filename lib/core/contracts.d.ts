@@ -52,7 +52,6 @@ declare type ConvexPoolParams = {
 export declare type LidoParams = {
     protocol: Protocols.Lido;
     type: AdapterInterface.LIDO_V1;
-    contract: Record<NetworkType, string>;
     lpToken: "steCRV";
 } & BaseContractParams;
 export declare type ContractParams = UniswapV2Params | UniswapV3Params | CurveParams | CurveSteCRVPoolParams | YearnParams | ConvexParams | ConvexPoolParams | LidoParams;

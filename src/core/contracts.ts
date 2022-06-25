@@ -181,7 +181,7 @@ type ConvexPoolParams = {
 export type LidoParams = {
     protocol: Protocols.Lido;
     type: AdapterInterface.LIDO_V1;
-    contract: Record<NetworkType, string>;
+    // contract: Record<NetworkType, string>;
     lpToken: "steCRV";
 } & BaseContractParams;
 
@@ -227,7 +227,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         type: AdapterInterface.CURVE_V1_STECRV_POOL,
         pool: {
             Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-            Kovan: "0xF695d3aa358D5087A0C157DBb9449d4f0d8E534a"
+            Kovan: "0x39311C60F6EC014b2c954aD469CE61946A3Ee460"
         },
         lpToken: "steCRV"
     },
@@ -347,10 +347,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         name: "Lido STETH",
         protocol: Protocols.Lido,
         type: AdapterInterface.LIDO_V1,
-        contract: {
-            Mainnet: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
-            Kovan: ""
-        },
+        // contract: {
+        //     Mainnet: "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+        //     Kovan: ""
+        // },
         lpToken: "steCRV"
     }
 };
