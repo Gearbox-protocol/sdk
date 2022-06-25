@@ -1,6 +1,6 @@
-import { TradeAction } from "../core/tradeTypes";
+import { TradeAction } from "../pathfinder/tradeTypes";
 import { TokenBase } from "./token";
-import { ConvexPoolContract } from "../core/contracts";
+import { ConvexPoolContract } from "../contracts/contracts";
 import { CurveLPToken } from "./curveLP";
 import { TokenType } from "./tokenType";
 export declare type ConvexLPToken = "cvx3Crv" | "cvxsteCRV" | "cvxFRAX3CRV" | "cvxcrvPlain3andSUSD" | "cvxgusd3CRV";

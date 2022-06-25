@@ -1,9 +1,9 @@
-import { TradeAction } from "../core/tradeTypes";
+import { TradeAction } from "../pathfinder/tradeTypes";
 import { TokenBase } from "./token";
 import { CurveLPToken } from "./curveLP";
 import { NormalToken } from "./normal";
 import { TokenType } from "./tokenType";
-export declare type YearnLPToken = "yvDAI" | "yvUSDC" | "yvWETH" | "yvWBTC" | "yvCurve_stETH" | "yvCURVE_FRAX_POOL";
+export declare type YearnLPToken = "yvDAI" | "yvUSDC" | "yvWETH" | "yvWBTC" | "yvCurve_stETH" | "yvCurve_FRAX";
 export declare type YearnVaultTokenData = {
     symbol: YearnLPToken;
     type: TokenType.YEARN_VAULT;

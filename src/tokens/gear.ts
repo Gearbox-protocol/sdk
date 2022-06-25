@@ -1,5 +1,5 @@
 import {TokenBase} from "./token";
-import {TradeAction} from "../core/tradeTypes";
+import {TradeAction} from "../pathfinder/tradeTypes";
 import {TokenType} from "./tokenType";
 
 export type DieselTokenTypes = "dDAI" | "dUSDC" | "dWBTC" | "dWETH";

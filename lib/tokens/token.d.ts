@@ -13,4 +13,4 @@ export interface TokenBase {
 export declare type TokenDataI = NormalTokenData | CurveLPTokenData | MetaCurveLPTokenData | YearnVaultTokenData | YearnVaultOfCurveLPTokenData | YearnVaultOfMetaCurveLPTokenData | ConvexLPTokenData | ConvexPhantomTokenData | DieselTokenData | GearboxTokenData;
 export declare const supportedTokens: Record<SupportedToken, TokenDataI>;
 export declare const tokenDataByNetwork: Record<NetworkType, Record<SupportedToken, string>>;
-export declare const tokenDataByAddress: Record<string, SupportedToken>;
+export declare const tokenSymbolByAddress: Record<string, SupportedToken>;

@@ -1,7 +1,7 @@
 import {LPWithdrawPathFinder, Path} from "./path";
 import {ConvexLPToken, convexTokens} from "../tokens/convex";
 
-export class ConvexLPPathFinder extends LPWithdrawPathFinder {
+export class ConvexLPPathFinder implements LPWithdrawPathFinder {
     async findWithdrawPaths(p: Path): Promise<Array<Path>> {
         const pids = new Set<number>();
 

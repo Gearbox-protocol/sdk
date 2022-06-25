@@ -1,4 +1,4 @@
-import { ConvexPoolContract, CurvePoolContract, UniswapV2Contract, YearnVaultContract } from "./contracts";
+import { ConvexPoolContract, CurvePoolContract, UniswapV2Contract, YearnVaultContract } from "../contracts/contracts";
 import { NormalToken } from "../tokens/normal";
 import { CurveLPToken } from "../tokens/curveLP";
 import { YearnLPToken } from "../tokens/yearn";

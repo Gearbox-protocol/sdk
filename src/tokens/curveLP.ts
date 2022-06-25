@@ -1,4 +1,4 @@
-import {TradeAction, TradeType} from "../core/tradeTypes";
+import {TradeAction, TradeType} from "../pathfinder/tradeTypes";
 import {SupportedToken, TokenBase} from "./token";
 import {PartialRecord} from "../utils/types";
 import {BigNumber} from "ethers";

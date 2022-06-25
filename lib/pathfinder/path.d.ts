@@ -29,12 +29,6 @@ export declare class Path {
     withdrawTokens(): Promise<Array<Path>>;
     clone(): Path;
 }
-export interface ActionData {
-    callData: MultiCall;
-    amountOut: BigNumber;
-    gasLimit: BigNumber;
-}
-export declare abstract class LPWithdrawPathFinder {
-    abstract findWithdrawPaths(p: Path): Promise<Array<Path>>;
-    getUniswapV2SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData>;
+export interface LPWithdrawPathFinder {
+    findWithdrawPaths(p: Path): Promise<Array<Path>>;
 }

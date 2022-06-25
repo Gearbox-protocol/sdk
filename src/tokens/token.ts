@@ -1,7 +1,12 @@
 import {keyToLowercase, objectEntries, swapKeyValue} from "../utils/mappers";
 import {NetworkType} from "../core/constants";
 import {NormalToken, NormalTokenData, normalTokens} from "./normal";
-import {CurveLPToken, CurveLPTokenData, curveTokens, MetaCurveLPTokenData} from "./curveLP";
+import {
+    CurveLPToken,
+    CurveLPTokenData,
+    curveTokens,
+    MetaCurveLPTokenData
+} from "./curveLP";
 import {
     YearnLPToken,
     yearnTokens,
@@ -16,8 +21,13 @@ import {
     ConvexStakedPhantomToken,
     convexTokens
 } from "./convex";
-import {DieselTokenData, DieselTokenTypes, GearboxToken, GearboxTokenData, gearTokens} from "./gear";
-
+import {
+    DieselTokenData,
+    DieselTokenTypes,
+    GearboxToken,
+    GearboxTokenData,
+    gearTokens
+} from "./gear";
 
 export type SupportedToken =
     | NormalToken
@@ -120,7 +130,7 @@ export const tokenDataByNetwork: Record<NetworkType,
 
         // YEARN- CURVE TOKENS
         yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
-        yvCURVE_FRAX_POOL: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
+        yvCurve_FRAX: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
 
         //GEARBOX
         dDAI: "0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA",
@@ -177,7 +187,7 @@ export const tokenDataByNetwork: Record<NetworkType,
         "3Crv": "0x8eA3677599d5199c2c93c468fD2Fa6F102d3605b",
         steCRV: "0x6636910D55D34505c08d53932Da526FB18D3869C",
         FRAX3CRV: "0x76508F5398E50EFEC53d5Afd4B506990B43AdBFB",
-        LUSD3CRV: "0x04366d7ee3210B9eAd6f36696220d697b7885ED7",
+        LUSD3CRV: "0x2b72b528723DEe00e9BB02839f0794A66594922E",
         crvPlain3andSUSD: "0x540f5ea2A0601e27368661CB231AE04c23A14C24",
         gusd3CRV: "0x428A500D8209fef5a1b5a0A35C9412b71F03aAdA",
 
@@ -197,7 +207,7 @@ export const tokenDataByNetwork: Record<NetworkType,
 
         // YEARN- CURVE TOKENS
         yvCurve_stETH: "",
-        yvCURVE_FRAX_POOL: "",
+        yvCurve_FRAX: "",
 
         //GEARBOX
         dDAI: "0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA",
@@ -209,6 +219,6 @@ export const tokenDataByNetwork: Record<NetworkType,
     }
 };
 
-export const tokenDataByAddress = objectEntries(tokenDataByNetwork).reduce<Record<string, SupportedToken>>((sum, [_, tokens]) => {
+export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<Record<string, SupportedToken>>((sum, [_, tokens]) => {
     return {...sum, ...keyToLowercase(swapKeyValue(tokens))};
 }, {});

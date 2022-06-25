@@ -1,11 +1,15 @@
 import {BigNumber, ethers} from "ethers";
 import {CreditManagerData} from "../core/creditManager";
 import {MultiCall} from "../core/multicall";
-import {SupportedToken, supportedTokens} from "../tokens/token";
+import {
+    SupportedToken,
+    supportedTokens,
+    tokenSymbolByAddress
+} from "../tokens/token";
 import {NetworkType} from "../core/constants";
 import {CreditAccountData} from "../core/creditAccount";
 
-import {PathFinder__factory, UniswapV2Adapter__factory} from "../types";
+import {PathFinder__factory} from "../types";
 import {priority} from "./priority";
 import {YearnLPToken} from "../tokens/yearn";
 import {YearnVaultPathFinder} from "./yVault";
@@ -77,9 +81,21 @@ export class Path {
         creditManager: CreditManagerData,
         provider: ethers.providers.Provider
     ) {
-        const networkType = await detectNetwork(provider)
+        const networkType = await detectNetwork(provider);
+
+        const balances = Object.entries(creditAccount.balances)
+            .map(([address, balance]) => ({
+                token: tokenSymbolByAddress[address.toLowerCase()],
+                balance
+            }))
+            .filter(t => t.balance.gt(1))
+            .reduce(
+                (obj, curValue) => ({...obj, [curValue.token]: curValue.balance}),
+                {}
+            );
+
         const initialPath = new Path({
-            balances: {}, // {...creditAccount.balances},
+            balances,
             creditAccount,
             creditManager,
             networkType,
@@ -94,7 +110,7 @@ export class Path {
             provider
         );
 
-        console.log(lpPaths)
+        console.log(lpPaths);
         console.log(pathFinder);
         // const bestPath = await pathFinder.bestPath();
     }
@@ -145,52 +161,6 @@ export class Path {
     }
 }
 
-export interface ActionData {
-    callData: MultiCall;
-    amountOut: BigNumber;
-    gasLimit: BigNumber;
-}
-
-export abstract class LPWithdrawPathFinder {
-    abstract findWithdrawPaths(p: Path): Promise<Array<Path>>;
-
-    async getUniswapV2SwapData(
-        adapterAddress: string,
-        currentTokenAddress: string,
-        currentBalance: BigNumber,
-        nextTokenAddress: string,
-        p: Path
-    ): Promise<ActionData> {
-        const deadline = Math.floor(Date.now() / 1000) + 1200;
-        const uniswapV2Adapter = UniswapV2Adapter__factory.connect(
-            adapterAddress,
-            p.provider
-        );
-        const path: Array<string> = [currentTokenAddress, nextTokenAddress];
-        const amountsOut: Array<BigNumber> = await uniswapV2Adapter.getAmountsOut(
-            currentBalance,
-            path
-        );
-
-        const amountOut: BigNumber = amountsOut[amountsOut.length - 1];
-        const gasLimit: BigNumber =
-            await uniswapV2Adapter.estimateGas.swapExactTokensForTokens(
-                currentBalance,
-                amountOut,
-                path,
-                p.creditAccount.addr,
-                deadline
-            );
-        const call: MultiCall = {
-            targetContract: adapterAddress,
-            callData: UniswapV2Adapter__factory.createInterface().encodeFunctionData(
-                "swapExactTokensForTokens",
-                [currentBalance, amountOut, path, p.creditAccount.addr, deadline]
-            )
-        };
-
-        return {callData: call, amountOut: amountOut, gasLimit: gasLimit};
-    }
-
-
+export interface LPWithdrawPathFinder {
+    findWithdrawPaths(p: Path): Promise<Array<Path>>;
 }

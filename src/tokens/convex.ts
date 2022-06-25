@@ -1,6 +1,6 @@
-import {TradeAction, TradeType} from "../core/tradeTypes";
+import {TradeAction, TradeType} from "../pathfinder/tradeTypes";
 import {TokenBase} from "./token";
-import {ConvexPoolContract} from "../core/contracts";
+import {ConvexPoolContract} from "../contracts/contracts";
 import {CurveLPToken} from "./curveLP";
 import {TokenType} from "./tokenType";
 

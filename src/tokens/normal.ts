@@ -1,4 +1,4 @@
-import {TradeAction, TradeType} from "../core/tradeTypes";
+import {TradeAction, TradeType} from "../pathfinder/tradeTypes";
 import {TokenBase} from "./token";
 import {TokenType} from "./tokenType";
 

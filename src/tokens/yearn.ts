@@ -1,4 +1,4 @@
-import {TradeAction, TradeType} from "../core/tradeTypes";
+import {TradeAction, TradeType} from "../pathfinder/tradeTypes";
 import {TokenBase} from "./token";
 import {CurveLPToken} from "./curveLP";
 import {NormalToken} from "./normal";
@@ -10,7 +10,7 @@ export type YearnLPToken =
     | "yvWETH"
     | "yvWBTC"
     | "yvCurve_stETH"
-    | "yvCURVE_FRAX_POOL";
+    | "yvCurve_FRAX";
 
 export type YearnVaultTokenData = {
     symbol: YearnLPToken;
@@ -119,11 +119,11 @@ export const yearnTokens: Record<YearnLPToken,
         ]
     },
 
-    yvCURVE_FRAX_POOL: {
+    yvCurve_FRAX: {
         name: "yvCurve-FRAX",
         decimals: 18,
 
-        symbol: "yvCURVE_FRAX_POOL",
+        symbol: "yvCurve_FRAX",
         type: TokenType.YEARN_VAULT_OF_META_CURVE_LP,
         underlying: "FRAX3CRV",
         lpActions: [

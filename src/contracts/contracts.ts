@@ -5,7 +5,7 @@
  */
 import {keyToLowercase, objectEntries, swapKeyValue} from "../utils/mappers";
 import {AdapterInterface} from "./adapters";
-import {NetworkType} from "./constants";
+import {NetworkType} from "../core/constants";
 import {Protocols} from "./protocols";
 import {tokenDataByNetwork} from "../tokens/token";
 import {ConvexStakedPhantomToken} from "../tokens/convex";
@@ -69,7 +69,7 @@ export const contractsByNetwork: Record<NetworkType,
         YEARN_USDC_VAULT: tokenDataByNetwork.Mainnet.yvUSDC,
         YEARN_WETH_VAULT: tokenDataByNetwork.Mainnet.yvWETH,
         YEARN_WBTC_VAULT: tokenDataByNetwork.Mainnet.yvWBTC,
-        YEARN_CURVE_FRAX_VAULT: tokenDataByNetwork.Mainnet.yvCURVE_FRAX_POOL,
+        YEARN_CURVE_FRAX_VAULT: tokenDataByNetwork.Mainnet.yvCurve_FRAX,
         YEARN_CURVE_STETH_VAULT: tokenDataByNetwork.Mainnet.yvCurve_stETH,
 
         // CONVEX
@@ -105,7 +105,7 @@ export const contractsByNetwork: Record<NetworkType,
         YEARN_USDC_VAULT: tokenDataByNetwork.Kovan.yvUSDC,
         YEARN_WETH_VAULT: tokenDataByNetwork.Kovan.yvWETH,
         YEARN_WBTC_VAULT: tokenDataByNetwork.Kovan.yvWBTC,
-        YEARN_CURVE_FRAX_VAULT: tokenDataByNetwork.Kovan.yvCURVE_FRAX_POOL,
+        YEARN_CURVE_FRAX_VAULT: tokenDataByNetwork.Kovan.yvCurve_FRAX,
         YEARN_CURVE_STETH_VAULT: tokenDataByNetwork.Kovan.yvCurve_stETH,
 
         // CONVEX

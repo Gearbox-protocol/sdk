@@ -1,4 +1,4 @@
 import { LPWithdrawPathFinder, Path } from "./path";
-export declare class ConvexLPPathFinder extends LPWithdrawPathFinder {
+export declare class ConvexLPPathFinder implements LPWithdrawPathFinder {
     findWithdrawPaths(p: Path): Promise<Array<Path>>;
 }

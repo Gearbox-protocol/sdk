@@ -1,18 +1,17 @@
 import {LPWithdrawPathFinder, Path} from "./path";
 import {CurveLPToken, curveTokens} from "../tokens/curveLP";
-import {contractParams, contractsByAddress, CurveParams, CurvePoolContract} from "../core/contracts";
-import {TradeType} from "../core/tradeTypes";
+import {contractParams, contractsByAddress, CurveParams, CurvePoolContract} from "../contracts/contracts";
+import {TradeType} from "./tradeTypes";
 import {CallData, MultiCallContract} from "../utils/multicall";
 import {ICurvePool__factory} from "../types";
 import {ICurvePoolInterface} from "../types/contracts/integrations/curve/ICurvePool";
 import {BigNumber} from "ethers";
 
-export class CurvePathFinder extends LPWithdrawPathFinder {
+export class CurvePathFinder implements LPWithdrawPathFinder {
     lpToken: CurveLPToken;
     contract: CurvePoolContract;
 
     constructor(token: CurveLPToken) {
-        super();
         this.lpToken = token;
         const curvePools = curveTokens[this.lpToken].lpActions.filter(
             a => a.type == TradeType.CurveWithdrawLP

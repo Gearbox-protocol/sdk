@@ -14,12 +14,11 @@ interface WithdrawBalance {
     balance: BigNumber;
 }
 
-export class YearnVaultPathFinder extends LPWithdrawPathFinder {
+export class YearnVaultPathFinder implements LPWithdrawPathFinder {
     _vault: YearnLPToken;
     token: NormalToken | CurveLPToken;
 
     constructor(vault: YearnLPToken) {
-        super();
         this._vault = vault;
 
         const currentTokenData = yearnTokens[vault];
