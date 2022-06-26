@@ -59,7 +59,7 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3CRV_POOL: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", // SEPARATE TOKEN
-    CURVE_STETH_GATEWAY: "0xB949Ef5b39164537ee97BF17b968e465368C97AD", // SEPARATE TOKEN
+    CURVE_STETH_GATEWAY: "0xE91Af09e2F11eB7548a7C246C5f80e2D80da88C3", // SEPARATE TOKEN
     CURVE_FRAX_POOL: tokenDataByNetwork.Mainnet.FRAX3CRV,
     CURVE_LUSD_POOL: tokenDataByNetwork.Mainnet.LUSD3CRV,
     CURVE_SUSD_POOL: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // SEPARATE TOKEN
@@ -225,7 +225,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-      Kovan: "0x485B855a1B5e05e31e635344aF345C426CA5ae3F"
+      Kovan: "0x6db94f454d7e2d2e25e4B2A8231E00925bD08a98"
     },
     lpToken: "steCRV"
   },
