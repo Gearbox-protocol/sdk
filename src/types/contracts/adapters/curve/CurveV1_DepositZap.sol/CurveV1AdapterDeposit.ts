@@ -22,11 +22,13 @@ import type {
   OnEvent,
 } from "../../../../common";
 
-export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
+export interface CurveV1AdapterDepositInterface extends utils.Interface {
   functions: {
     "A()": FunctionFragment;
     "A_precise()": FunctionFragment;
-    "add_liquidity(uint256[3],uint256)": FunctionFragment;
+    "_gearboxAdapterType()": FunctionFragment;
+    "_gearboxAdapterVersion()": FunctionFragment;
+    "add_all_liquidity_one_coin(int128,uint256)": FunctionFragment;
     "admin()": FunctionFragment;
     "admin_balances(uint256)": FunctionFragment;
     "admin_fee()": FunctionFragment;
@@ -35,47 +37,53 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     "balances(int128)": FunctionFragment;
     "balances(uint256)": FunctionFragment;
     "block_timestamp_last()": FunctionFragment;
-    "calc_token_amount(uint256[3],bool)": FunctionFragment;
     "calc_withdraw_one_coin(uint256,int128)": FunctionFragment;
     "coins(int128)": FunctionFragment;
     "coins(uint256)": FunctionFragment;
+    "creditFacade()": FunctionFragment;
+    "creditManager()": FunctionFragment;
     "decimals()": FunctionFragment;
     "exchange(int128,int128,uint256,uint256)": FunctionFragment;
+    "exchange_all(int128,int128,uint256)": FunctionFragment;
+    "exchange_all_underlying(int128,int128,uint256)": FunctionFragment;
     "exchange_underlying(int128,int128,uint256,uint256)": FunctionFragment;
     "fee()": FunctionFragment;
     "future_A()": FunctionFragment;
     "future_A_time()": FunctionFragment;
-    "get_balances()": FunctionFragment;
     "get_dy(int128,int128,uint256)": FunctionFragment;
     "get_dy_underlying(int128,int128,uint256)": FunctionFragment;
-    "get_previous_balances()": FunctionFragment;
-    "get_price_cumulative_last()": FunctionFragment;
-    "get_twap_balances(uint256[3],uint256[3],uint256)": FunctionFragment;
     "get_virtual_price()": FunctionFragment;
     "initial_A()": FunctionFragment;
     "initial_A_time()": FunctionFragment;
     "lp_token()": FunctionFragment;
-    "mintLP(address,uint256)": FunctionFragment;
+    "metapoolBase()": FunctionFragment;
+    "nCoins()": FunctionFragment;
     "name()": FunctionFragment;
-    "remove_liquidity(uint256,uint256[3])": FunctionFragment;
-    "remove_liquidity_imbalance(uint256[3],uint256)": FunctionFragment;
+    "remove_all_liquidity_one_coin(int128,uint256)": FunctionFragment;
     "remove_liquidity_one_coin(uint256,int128,uint256)": FunctionFragment;
-    "setRate(int128,int128,uint256)": FunctionFragment;
-    "setRateUnderlying(int128,int128,uint256)": FunctionFragment;
-    "set_virtual_price(uint256)": FunctionFragment;
     "symbol()": FunctionFragment;
+    "targetContract()": FunctionFragment;
     "token()": FunctionFragment;
+    "token0()": FunctionFragment;
+    "token1()": FunctionFragment;
+    "token2()": FunctionFragment;
+    "token3()": FunctionFragment;
     "totalSupply()": FunctionFragment;
+    "underlying0()": FunctionFragment;
+    "underlying1()": FunctionFragment;
+    "underlying2()": FunctionFragment;
+    "underlying3()": FunctionFragment;
     "underlying_coins(int128)": FunctionFragment;
     "underlying_coins(uint256)": FunctionFragment;
-    "virtualPrice()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "A"
       | "A_precise"
-      | "add_liquidity"
+      | "_gearboxAdapterType"
+      | "_gearboxAdapterVersion"
+      | "add_all_liquidity_one_coin"
       | "admin"
       | "admin_balances"
       | "admin_fee"
@@ -84,47 +92,59 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
       | "balances(int128)"
       | "balances(uint256)"
       | "block_timestamp_last"
-      | "calc_token_amount"
       | "calc_withdraw_one_coin"
       | "coins(int128)"
       | "coins(uint256)"
+      | "creditFacade"
+      | "creditManager"
       | "decimals"
       | "exchange"
+      | "exchange_all"
+      | "exchange_all_underlying"
       | "exchange_underlying"
       | "fee"
       | "future_A"
       | "future_A_time"
-      | "get_balances"
       | "get_dy"
       | "get_dy_underlying"
-      | "get_previous_balances"
-      | "get_price_cumulative_last"
-      | "get_twap_balances"
       | "get_virtual_price"
       | "initial_A"
       | "initial_A_time"
       | "lp_token"
-      | "mintLP"
+      | "metapoolBase"
+      | "nCoins"
       | "name"
-      | "remove_liquidity"
-      | "remove_liquidity_imbalance"
+      | "remove_all_liquidity_one_coin"
       | "remove_liquidity_one_coin"
-      | "setRate"
-      | "setRateUnderlying"
-      | "set_virtual_price"
       | "symbol"
+      | "targetContract"
       | "token"
+      | "token0"
+      | "token1"
+      | "token2"
+      | "token3"
       | "totalSupply"
+      | "underlying0"
+      | "underlying1"
+      | "underlying2"
+      | "underlying3"
       | "underlying_coins(int128)"
       | "underlying_coins(uint256)"
-      | "virtualPrice"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "A", values?: undefined): string;
   encodeFunctionData(functionFragment: "A_precise", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "add_liquidity",
-    values: [[BigNumberish, BigNumberish, BigNumberish], BigNumberish]
+    functionFragment: "_gearboxAdapterType",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_gearboxAdapterVersion",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "add_all_liquidity_one_coin",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "admin", values?: undefined): string;
   encodeFunctionData(
@@ -150,10 +170,6 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "calc_token_amount",
-    values: [[BigNumberish, BigNumberish, BigNumberish], boolean]
-  ): string;
-  encodeFunctionData(
     functionFragment: "calc_withdraw_one_coin",
     values: [BigNumberish, BigNumberish]
   ): string;
@@ -165,10 +181,26 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     functionFragment: "coins(uint256)",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "creditFacade",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "creditManager",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "exchange",
     values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "exchange_all",
+    values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "exchange_all_underlying",
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "exchange_underlying",
@@ -181,32 +213,12 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "get_balances",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "get_dy",
     values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "get_dy_underlying",
     values: [BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "get_previous_balances",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "get_price_cumulative_last",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "get_twap_balances",
-    values: [
-      [BigNumberish, BigNumberish, BigNumberish],
-      [BigNumberish, BigNumberish, BigNumberish],
-      BigNumberish
-    ]
   ): string;
   encodeFunctionData(
     functionFragment: "get_virtual_price",
@@ -219,38 +231,47 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "lp_token", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "mintLP",
-    values: [string, BigNumberish]
+    functionFragment: "metapoolBase",
+    values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "nCoins", values?: undefined): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "remove_liquidity",
-    values: [BigNumberish, [BigNumberish, BigNumberish, BigNumberish]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "remove_liquidity_imbalance",
-    values: [[BigNumberish, BigNumberish, BigNumberish], BigNumberish]
+    functionFragment: "remove_all_liquidity_one_coin",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "remove_liquidity_one_coin",
     values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "setRate",
-    values: [BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setRateUnderlying",
-    values: [BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "set_virtual_price",
-    values: [BigNumberish]
-  ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "targetContract",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
+  encodeFunctionData(functionFragment: "token0", values?: undefined): string;
+  encodeFunctionData(functionFragment: "token1", values?: undefined): string;
+  encodeFunctionData(functionFragment: "token2", values?: undefined): string;
+  encodeFunctionData(functionFragment: "token3", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "underlying0",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "underlying1",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "underlying2",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "underlying3",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -261,15 +282,19 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     functionFragment: "underlying_coins(uint256)",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "virtualPrice",
-    values?: undefined
-  ): string;
 
   decodeFunctionResult(functionFragment: "A", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "A_precise", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "add_liquidity",
+    functionFragment: "_gearboxAdapterType",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_gearboxAdapterVersion",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "add_all_liquidity_one_coin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
@@ -293,10 +318,6 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "calc_token_amount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "calc_withdraw_one_coin",
     data: BytesLike
   ): Result;
@@ -308,8 +329,24 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     functionFragment: "coins(uint256)",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "creditFacade",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "creditManager",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "exchange", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "exchange_all",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "exchange_all_underlying",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "exchange_underlying",
     data: BytesLike
@@ -320,25 +357,9 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     functionFragment: "future_A_time",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "get_balances",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "get_dy", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "get_dy_underlying",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "get_previous_balances",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "get_price_cumulative_last",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "get_twap_balances",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -351,33 +372,48 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "lp_token", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "mintLP", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "remove_liquidity",
+    functionFragment: "metapoolBase",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "nCoins", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "remove_liquidity_imbalance",
+    functionFragment: "remove_all_liquidity_one_coin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "remove_liquidity_one_coin",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "setRate", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "setRateUnderlying",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "set_virtual_price",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "targetContract",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "token1", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "token2", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "token3", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "underlying0",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "underlying1",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "underlying2",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "underlying3",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -388,20 +424,16 @@ export interface CurveV1Mock_3AssetsInterface extends utils.Interface {
     functionFragment: "underlying_coins(uint256)",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "virtualPrice",
-    data: BytesLike
-  ): Result;
 
   events: {};
 }
 
-export interface CurveV1Mock_3Assets extends BaseContract {
+export interface CurveV1AdapterDeposit extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: CurveV1Mock_3AssetsInterface;
+  interface: CurveV1AdapterDepositInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -427,28 +459,32 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     A_precise(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    add_liquidity(
-      amounts: [BigNumberish, BigNumberish, BigNumberish],
-      min_mint_amount: BigNumberish,
+    _gearboxAdapterType(overrides?: CallOverrides): Promise<[number]>;
+
+    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
+
+    add_all_liquidity_one_coin(
+      i: BigNumberish,
+      rateMinRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     admin(overrides?: CallOverrides): Promise<[string]>;
 
     admin_balances(
-      arg0: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     admin_fee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     allowance(
-      arg0: string,
-      arg1: string,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    balanceOf(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "balances(int128)"(
       i: BigNumberish,
@@ -462,15 +498,9 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     block_timestamp_last(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    calc_token_amount(
-      arg0: [BigNumberish, BigNumberish, BigNumberish],
-      arg1: boolean,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     calc_withdraw_one_coin(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      _burn_amount: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -484,21 +514,39 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    creditFacade(overrides?: CallOverrides): Promise<[string]>;
+
+    creditManager(overrides?: CallOverrides): Promise<[string]>;
+
     decimals(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     exchange(
       i: BigNumberish,
       j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    exchange_all(
+      i: BigNumberish,
+      j: BigNumberish,
+      rateMinRAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    exchange_all_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      rateMinRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     exchange_underlying(
       i: BigNumberish,
       j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -507,10 +555,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
     future_A(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     future_A_time(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    get_balances(
-      overrides?: CallOverrides
-    ): Promise<[[BigNumber, BigNumber, BigNumber]]>;
 
     get_dy(
       i: BigNumberish,
@@ -526,21 +570,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    get_previous_balances(
-      overrides?: CallOverrides
-    ): Promise<[[BigNumber, BigNumber, BigNumber]]>;
-
-    get_price_cumulative_last(
-      overrides?: CallOverrides
-    ): Promise<[[BigNumber, BigNumber, BigNumber]]>;
-
-    get_twap_balances(
-      _first_balances: [BigNumberish, BigNumberish, BigNumberish],
-      arg1: [BigNumberish, BigNumberish, BigNumberish],
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[[BigNumber, BigNumber, BigNumber]]>;
-
     get_virtual_price(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     initial_A(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -549,57 +578,48 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     lp_token(overrides?: CallOverrides): Promise<[string]>;
 
-    mintLP(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    metapoolBase(overrides?: CallOverrides): Promise<[string]>;
+
+    nCoins(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
-    remove_liquidity(
-      _amount: BigNumberish,
-      min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    remove_liquidity_imbalance(
-      amounts: [BigNumberish, BigNumberish, BigNumberish],
-      max_burn_amount: BigNumberish,
+    remove_all_liquidity_one_coin(
+      i: BigNumberish,
+      minRateRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     remove_liquidity_one_coin(
-      _token_amount: BigNumberish,
+      arg0: BigNumberish,
       i: BigNumberish,
-      min_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setRate(
-      i: BigNumberish,
-      j: BigNumberish,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setRateUnderlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    set_virtual_price(
-      _price: BigNumberish,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
+    targetContract(overrides?: CallOverrides): Promise<[string]>;
+
     token(overrides?: CallOverrides): Promise<[string]>;
 
+    token0(overrides?: CallOverrides): Promise<[string]>;
+
+    token1(overrides?: CallOverrides): Promise<[string]>;
+
+    token2(overrides?: CallOverrides): Promise<[string]>;
+
+    token3(overrides?: CallOverrides): Promise<[string]>;
+
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    underlying0(overrides?: CallOverrides): Promise<[string]>;
+
+    underlying1(overrides?: CallOverrides): Promise<[string]>;
+
+    underlying2(overrides?: CallOverrides): Promise<[string]>;
+
+    underlying3(overrides?: CallOverrides): Promise<[string]>;
 
     "underlying_coins(int128)"(
       i: BigNumberish,
@@ -610,36 +630,38 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    virtualPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   A(overrides?: CallOverrides): Promise<BigNumber>;
 
   A_precise(overrides?: CallOverrides): Promise<BigNumber>;
 
-  add_liquidity(
-    amounts: [BigNumberish, BigNumberish, BigNumberish],
-    min_mint_amount: BigNumberish,
+  _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
+
+  _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
+
+  add_all_liquidity_one_coin(
+    i: BigNumberish,
+    rateMinRAY: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   admin(overrides?: CallOverrides): Promise<string>;
 
   admin_balances(
-    arg0: BigNumberish,
+    i: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   admin_fee(overrides?: CallOverrides): Promise<BigNumber>;
 
   allowance(
-    arg0: string,
-    arg1: string,
+    owner: string,
+    spender: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+  balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   "balances(int128)"(
     i: BigNumberish,
@@ -653,15 +675,9 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
   block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
 
-  calc_token_amount(
-    arg0: [BigNumberish, BigNumberish, BigNumberish],
-    arg1: boolean,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   calc_withdraw_one_coin(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
+    _burn_amount: BigNumberish,
+    i: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -669,21 +685,39 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
   "coins(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+  creditFacade(overrides?: CallOverrides): Promise<string>;
+
+  creditManager(overrides?: CallOverrides): Promise<string>;
+
   decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
   exchange(
     i: BigNumberish,
     j: BigNumberish,
-    dx: BigNumberish,
-    min_dy: BigNumberish,
+    arg2: BigNumberish,
+    arg3: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  exchange_all(
+    i: BigNumberish,
+    j: BigNumberish,
+    rateMinRAY: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  exchange_all_underlying(
+    i: BigNumberish,
+    j: BigNumberish,
+    rateMinRAY: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   exchange_underlying(
     i: BigNumberish,
     j: BigNumberish,
-    dx: BigNumberish,
-    min_dy: BigNumberish,
+    arg2: BigNumberish,
+    arg3: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -692,10 +726,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
   future_A(overrides?: CallOverrides): Promise<BigNumber>;
 
   future_A_time(overrides?: CallOverrides): Promise<BigNumber>;
-
-  get_balances(
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   get_dy(
     i: BigNumberish,
@@ -711,21 +741,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  get_previous_balances(
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber, BigNumber]>;
-
-  get_price_cumulative_last(
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber, BigNumber]>;
-
-  get_twap_balances(
-    _first_balances: [BigNumberish, BigNumberish, BigNumberish],
-    arg1: [BigNumberish, BigNumberish, BigNumberish],
-    arg2: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber, BigNumber]>;
-
   get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
 
   initial_A(overrides?: CallOverrides): Promise<BigNumber>;
@@ -734,57 +749,48 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
   lp_token(overrides?: CallOverrides): Promise<string>;
 
-  mintLP(
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  metapoolBase(overrides?: CallOverrides): Promise<string>;
+
+  nCoins(overrides?: CallOverrides): Promise<BigNumber>;
 
   name(overrides?: CallOverrides): Promise<string>;
 
-  remove_liquidity(
-    _amount: BigNumberish,
-    min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  remove_liquidity_imbalance(
-    amounts: [BigNumberish, BigNumberish, BigNumberish],
-    max_burn_amount: BigNumberish,
+  remove_all_liquidity_one_coin(
+    i: BigNumberish,
+    minRateRAY: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   remove_liquidity_one_coin(
-    _token_amount: BigNumberish,
+    arg0: BigNumberish,
     i: BigNumberish,
-    min_amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setRate(
-    i: BigNumberish,
-    j: BigNumberish,
-    rate_RAY: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setRateUnderlying(
-    i: BigNumberish,
-    j: BigNumberish,
-    rate_RAY: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  set_virtual_price(
-    _price: BigNumberish,
+    arg2: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
 
+  targetContract(overrides?: CallOverrides): Promise<string>;
+
   token(overrides?: CallOverrides): Promise<string>;
 
+  token0(overrides?: CallOverrides): Promise<string>;
+
+  token1(overrides?: CallOverrides): Promise<string>;
+
+  token2(overrides?: CallOverrides): Promise<string>;
+
+  token3(overrides?: CallOverrides): Promise<string>;
+
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  underlying0(overrides?: CallOverrides): Promise<string>;
+
+  underlying1(overrides?: CallOverrides): Promise<string>;
+
+  underlying2(overrides?: CallOverrides): Promise<string>;
+
+  underlying3(overrides?: CallOverrides): Promise<string>;
 
   "underlying_coins(int128)"(
     i: BigNumberish,
@@ -796,35 +802,37 @@ export interface CurveV1Mock_3Assets extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  virtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
-
   callStatic: {
     A(overrides?: CallOverrides): Promise<BigNumber>;
 
     A_precise(overrides?: CallOverrides): Promise<BigNumber>;
 
-    add_liquidity(
-      amounts: [BigNumberish, BigNumberish, BigNumberish],
-      min_mint_amount: BigNumberish,
+    _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
+
+    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
+
+    add_all_liquidity_one_coin(
+      i: BigNumberish,
+      rateMinRAY: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     admin(overrides?: CallOverrides): Promise<string>;
 
     admin_balances(
-      arg0: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     admin_fee(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
-      arg0: string,
-      arg1: string,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "balances(int128)"(
       i: BigNumberish,
@@ -838,15 +846,9 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
 
-    calc_token_amount(
-      arg0: [BigNumberish, BigNumberish, BigNumberish],
-      arg1: boolean,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calc_withdraw_one_coin(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      _burn_amount: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -860,21 +862,39 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    creditFacade(overrides?: CallOverrides): Promise<string>;
+
+    creditManager(overrides?: CallOverrides): Promise<string>;
+
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     exchange(
       i: BigNumberish,
       j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    exchange_all(
+      i: BigNumberish,
+      j: BigNumberish,
+      rateMinRAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    exchange_all_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      rateMinRAY: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     exchange_underlying(
       i: BigNumberish,
       j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -883,10 +903,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
     future_A(overrides?: CallOverrides): Promise<BigNumber>;
 
     future_A_time(overrides?: CallOverrides): Promise<BigNumber>;
-
-    get_balances(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     get_dy(
       i: BigNumberish,
@@ -902,21 +918,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    get_previous_balances(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber]>;
-
-    get_price_cumulative_last(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber]>;
-
-    get_twap_balances(
-      _first_balances: [BigNumberish, BigNumberish, BigNumberish],
-      arg1: [BigNumberish, BigNumberish, BigNumberish],
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber]>;
-
     get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
 
     initial_A(overrides?: CallOverrides): Promise<BigNumber>;
@@ -925,57 +926,48 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     lp_token(overrides?: CallOverrides): Promise<string>;
 
-    mintLP(
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    metapoolBase(overrides?: CallOverrides): Promise<string>;
+
+    nCoins(overrides?: CallOverrides): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
-    remove_liquidity(
-      _amount: BigNumberish,
-      min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    remove_liquidity_imbalance(
-      amounts: [BigNumberish, BigNumberish, BigNumberish],
-      max_burn_amount: BigNumberish,
+    remove_all_liquidity_one_coin(
+      i: BigNumberish,
+      minRateRAY: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     remove_liquidity_one_coin(
-      _token_amount: BigNumberish,
+      arg0: BigNumberish,
       i: BigNumberish,
-      min_amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setRate(
-      i: BigNumberish,
-      j: BigNumberish,
-      rate_RAY: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setRateUnderlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      rate_RAY: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    set_virtual_price(
-      _price: BigNumberish,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
+    targetContract(overrides?: CallOverrides): Promise<string>;
+
     token(overrides?: CallOverrides): Promise<string>;
 
+    token0(overrides?: CallOverrides): Promise<string>;
+
+    token1(overrides?: CallOverrides): Promise<string>;
+
+    token2(overrides?: CallOverrides): Promise<string>;
+
+    token3(overrides?: CallOverrides): Promise<string>;
+
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    underlying0(overrides?: CallOverrides): Promise<string>;
+
+    underlying1(overrides?: CallOverrides): Promise<string>;
+
+    underlying2(overrides?: CallOverrides): Promise<string>;
+
+    underlying3(overrides?: CallOverrides): Promise<string>;
 
     "underlying_coins(int128)"(
       i: BigNumberish,
@@ -986,8 +978,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    virtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
@@ -997,28 +987,32 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     A_precise(overrides?: CallOverrides): Promise<BigNumber>;
 
-    add_liquidity(
-      amounts: [BigNumberish, BigNumberish, BigNumberish],
-      min_mint_amount: BigNumberish,
+    _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
+
+    add_all_liquidity_one_coin(
+      i: BigNumberish,
+      rateMinRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     admin(overrides?: CallOverrides): Promise<BigNumber>;
 
     admin_balances(
-      arg0: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     admin_fee(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
-      arg0: string,
-      arg1: string,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "balances(int128)"(
       i: BigNumberish,
@@ -1032,15 +1026,9 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
 
-    calc_token_amount(
-      arg0: [BigNumberish, BigNumberish, BigNumberish],
-      arg1: boolean,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calc_withdraw_one_coin(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      _burn_amount: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1054,21 +1042,39 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
+
+    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
+
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     exchange(
       i: BigNumberish,
       j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    exchange_all(
+      i: BigNumberish,
+      j: BigNumberish,
+      rateMinRAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    exchange_all_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      rateMinRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     exchange_underlying(
       i: BigNumberish,
       j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1077,8 +1083,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
     future_A(overrides?: CallOverrides): Promise<BigNumber>;
 
     future_A_time(overrides?: CallOverrides): Promise<BigNumber>;
-
-    get_balances(overrides?: CallOverrides): Promise<BigNumber>;
 
     get_dy(
       i: BigNumberish,
@@ -1091,17 +1095,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    get_previous_balances(overrides?: CallOverrides): Promise<BigNumber>;
-
-    get_price_cumulative_last(overrides?: CallOverrides): Promise<BigNumber>;
-
-    get_twap_balances(
-      _first_balances: [BigNumberish, BigNumberish, BigNumberish],
-      arg1: [BigNumberish, BigNumberish, BigNumberish],
-      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1113,57 +1106,48 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     lp_token(overrides?: CallOverrides): Promise<BigNumber>;
 
-    mintLP(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    metapoolBase(overrides?: CallOverrides): Promise<BigNumber>;
+
+    nCoins(overrides?: CallOverrides): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
-    remove_liquidity(
-      _amount: BigNumberish,
-      min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    remove_liquidity_imbalance(
-      amounts: [BigNumberish, BigNumberish, BigNumberish],
-      max_burn_amount: BigNumberish,
+    remove_all_liquidity_one_coin(
+      i: BigNumberish,
+      minRateRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     remove_liquidity_one_coin(
-      _token_amount: BigNumberish,
+      arg0: BigNumberish,
       i: BigNumberish,
-      min_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setRate(
-      i: BigNumberish,
-      j: BigNumberish,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setRateUnderlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    set_virtual_price(
-      _price: BigNumberish,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
+    targetContract(overrides?: CallOverrides): Promise<BigNumber>;
+
     token(overrides?: CallOverrides): Promise<BigNumber>;
 
+    token0(overrides?: CallOverrides): Promise<BigNumber>;
+
+    token1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    token2(overrides?: CallOverrides): Promise<BigNumber>;
+
+    token3(overrides?: CallOverrides): Promise<BigNumber>;
+
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    underlying0(overrides?: CallOverrides): Promise<BigNumber>;
+
+    underlying1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    underlying2(overrides?: CallOverrides): Promise<BigNumber>;
+
+    underlying3(overrides?: CallOverrides): Promise<BigNumber>;
 
     "underlying_coins(int128)"(
       i: BigNumberish,
@@ -1174,8 +1158,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    virtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1183,29 +1165,37 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     A_precise(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    add_liquidity(
-      amounts: [BigNumberish, BigNumberish, BigNumberish],
-      min_mint_amount: BigNumberish,
+    _gearboxAdapterType(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _gearboxAdapterVersion(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    add_all_liquidity_one_coin(
+      i: BigNumberish,
+      rateMinRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     admin_balances(
-      arg0: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     admin_fee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
-      arg0: string,
-      arg1: string,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
-      arg0: string,
+      account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1223,15 +1213,9 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    calc_token_amount(
-      arg0: [BigNumberish, BigNumberish, BigNumberish],
-      arg1: boolean,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     calc_withdraw_one_coin(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      _burn_amount: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1245,21 +1229,39 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     exchange(
       i: BigNumberish,
       j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    exchange_all(
+      i: BigNumberish,
+      j: BigNumberish,
+      rateMinRAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    exchange_all_underlying(
+      i: BigNumberish,
+      j: BigNumberish,
+      rateMinRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     exchange_underlying(
       i: BigNumberish,
       j: BigNumberish,
-      dx: BigNumberish,
-      min_dy: BigNumberish,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1268,8 +1270,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
     future_A(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     future_A_time(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    get_balances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     get_dy(
       i: BigNumberish,
@@ -1285,21 +1285,6 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    get_previous_balances(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    get_price_cumulative_last(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    get_twap_balances(
-      _first_balances: [BigNumberish, BigNumberish, BigNumberish],
-      arg1: [BigNumberish, BigNumberish, BigNumberish],
-      arg2: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     get_virtual_price(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initial_A(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1308,57 +1293,48 @@ export interface CurveV1Mock_3Assets extends BaseContract {
 
     lp_token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    mintLP(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    metapoolBase(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    nCoins(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    remove_liquidity(
-      _amount: BigNumberish,
-      min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    remove_liquidity_imbalance(
-      amounts: [BigNumberish, BigNumberish, BigNumberish],
-      max_burn_amount: BigNumberish,
+    remove_all_liquidity_one_coin(
+      i: BigNumberish,
+      minRateRAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     remove_liquidity_one_coin(
-      _token_amount: BigNumberish,
+      arg0: BigNumberish,
       i: BigNumberish,
-      min_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setRate(
-      i: BigNumberish,
-      j: BigNumberish,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setRateUnderlying(
-      i: BigNumberish,
-      j: BigNumberish,
-      rate_RAY: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    set_virtual_price(
-      _price: BigNumberish,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    token0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    token1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    token2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    token3(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    underlying0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    underlying1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    underlying2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    underlying3(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "underlying_coins(int128)"(
       i: BigNumberish,
@@ -1369,7 +1345,5 @@ export interface CurveV1Mock_3Assets extends BaseContract {
       i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    virtualPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

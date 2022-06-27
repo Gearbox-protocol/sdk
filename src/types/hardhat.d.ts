@@ -101,6 +101,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CurveV1AdapterBase__factory>;
     getContractFactory(
+      name: "CurveV1AdapterDeposit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CurveV1AdapterDeposit__factory>;
+    getContractFactory(
       name: "CurveV1AdapterStETH",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CurveV1AdapterStETH__factory>;
@@ -1111,6 +1115,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.CurveV1AdapterBase>;
+    getContractAt(
+      name: "CurveV1AdapterDeposit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CurveV1AdapterDeposit>;
     getContractAt(
       name: "CurveV1AdapterStETH",
       address: string,
