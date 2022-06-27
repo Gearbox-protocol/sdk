@@ -82,14 +82,17 @@ export function sortBalances(
     const addr1Lc = addr1.toLowerCase();
     const addr2Lc = addr2.toLowerCase();
 
-    const price1 = prices[addr1Lc] || 1;
-    const price2 = prices[addr1Lc] || 1;
+    const token1 = tokens[addr1Lc];
+    const token2 = tokens[addr2Lc];
 
-    const assetValue1 = priceCalc(price1, amount1, tokens[addr1Lc]);
-    const assetValue2 = priceCalc(price2, amount2, tokens[addr1Lc]);
+    const price1 = prices[addr1Lc] || 1;
+    const price2 = prices[addr2Lc] || 1;
+
+    const assetValue1 = priceCalc(price1, amount1, token1);
+    const assetValue2 = priceCalc(price2, amount2, token2);
 
     return assetValue1.eq(assetValue2)
-      ? tokensAbcComparator(tokens[addr1Lc], tokens[addr2Lc])
+      ? tokensAbcComparator(token1, token2)
       : assetValue1.gt(assetValue2)
       ? -1
       : 1;
