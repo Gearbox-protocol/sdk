@@ -10,8 +10,7 @@ export * from "./contracts/protocols";
 export * from "./oracles/priceFeeds";
 export * from "./core/operations";
 export * from "./oracles/oracles";
-export * from "./tokens/token";
-export * from "./tokens/tokenData";
+
 export * from "./core/tokenDistributor";
 export * from "./pathfinder/trade";
 export * from "./core/transactions";
@@ -28,13 +27,24 @@ export * from "./utils/math";
 export * from "./payload/graphPayload";
 export * from "./types/index";
 
-export type {IDataCompressor, IWETHGateway} from "./types";
+export type { IDataCompressor, IWETHGateway } from "./types";
+
+// Tokens
+export { TokenType } from "./tokens/tokenType";
+export * from "./tokens/token";
+export * from "./tokens/tokenData";
+export * from "./tokens/connectors";
+export * from "./tokens/convex";
+export * from "./tokens/curveLP";
+export * from "./tokens/gear";
+export * from "./tokens/normal";
+export * from "./tokens/yearn";
 
 export * from "./core/history";
-export {MultiCallContract} from "./utils/multicall";
-export {callRepeater} from "./utils/repeater";
-export {getContractName} from "./contracts/contractsRegister";
-export {AdapterInterface} from "./contracts/adapters";
-export {objectEntries, swapKeyValue, keyToLowercase} from "./utils/mappers";
-export {TokenType} from "./tokens/tokenType";
-export {SwapType} from "./pathfinder/tradeTypes";
+export { MultiCallContract } from "./utils/multicall";
+export { callRepeater } from "./utils/repeater";
+export { getContractName } from "./contracts/contractsRegister";
+export { AdapterInterface } from "./contracts/adapters";
+export { objectEntries, swapKeyValue, keyToLowercase } from "./utils/mappers";
+
+export { SwapType } from "./pathfinder/tradeTypes";
