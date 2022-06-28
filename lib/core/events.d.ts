@@ -1,4 +1,4 @@
-import { TokenData } from "./tokenData";
+import { TokenData } from "../tokens/tokenData";
 import { BigNumber } from "ethers";
 import { EVMEvent, EVMTx, EVMEventProps } from "./eventOrTx";
 export interface EventSerialized {

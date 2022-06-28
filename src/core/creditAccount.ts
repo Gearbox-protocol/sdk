@@ -4,7 +4,7 @@ import {
   CreditAccountDataPayload
 } from "../payload/creditAccount";
 import { PERCENTAGE_FACTOR, RAY } from "./constants";
-import { TokenData } from "./tokenData";
+import { TokenData } from "../tokens/tokenData";
 import { priceCalc } from "./price";
 
 export type Balance = { address: string; balance: BigNumber };

@@ -1,12 +1,14 @@
 import { BigNumber, ethers, Signer } from "ethers";
-
 import {
   CreditManagerDataPayload,
   CreditManagerStatPayload
 } from "../payload/creditManager";
 
-import { IAppCreditManager, IAppCreditManager__factory } from "../types";
-import { ICreditFacade__factory } from "../typesV2";
+import {
+  ICreditManager,
+  ICreditManager__factory,
+  ICreditFacade__factory
+} from "../types";
 
 import { MultiCall } from "./multicall";
 import {
@@ -39,48 +41,31 @@ export class CreditManagerData {
   public readonly isIncreaseDebtForbidden: boolean; // V2 only: true if increasing debt is forbidden
   public readonly forbiddenTokenMask: BigNumber; // V2 only: mask which forbids some particular tokens
 
-  constructor({
-    addr,
-    underlying = "",
-    isWETH = false,
-    canBorrow = false,
-    borrowRate = 0,
-    minAmount = 0,
-    maxAmount = 0,
-    maxLeverageFactor = 0,
-    availableLiquidity = 0,
-    collateralTokens = [],
-    adapters = [],
-    liquidationThresholds = [],
-    version = 1,
-    creditFacade = "",
-    isDegenMode = false,
-    degenNFT = "",
-    isIncreaseDebtForbidden = false,
-    forbiddenTokenMask = 0
-  }: CreditManagerDataPayload) {
-    this.id = addr;
-    this.address = addr;
+  constructor(payload: CreditManagerDataPayload) {
+    this.id = payload.addr;
+    this.address = payload.addr;
 
-    this.underlyingToken = underlying;
+    this.underlyingToken = payload.underlying || "";
 
-    this.isWETH = isWETH;
-    this.canBorrow = canBorrow;
+    this.isWETH = payload.isWETH || false;
+    this.canBorrow = payload.canBorrow || false;
 
     this.borrowRate =
-      BigNumber.from(borrowRate)
+      BigNumber.from(payload.borrowRate || 0)
         .mul(PERCENTAGE_FACTOR)
         .mul(100)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
-    this.minAmount = BigNumber.from(minAmount);
-    this.maxAmount = BigNumber.from(maxAmount);
+    this.minAmount = BigNumber.from(payload.minAmount || 0);
+    this.maxAmount = BigNumber.from(payload.maxAmount || 0);
 
-    this.maxLeverageFactor = BigNumber.from(maxLeverageFactor).toNumber();
-    this.availableLiquidity = BigNumber.from(availableLiquidity);
+    this.maxLeverageFactor = BigNumber.from(
+      payload.maxLeverageFactor || 0
+    ).toNumber();
+    this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
 
-    this.allowedTokens = collateralTokens;
-    this.adapters = adapters.reduce<Record<string, string>>(
+    this.allowedTokens = payload.collateralTokens || [];
+    this.adapters = (payload.adapters || []).reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({
         ...acc,
         [allowedContract]: adapter
@@ -88,15 +73,23 @@ export class CreditManagerData {
       {}
     );
 
-    this.liquidationThresholds = liquidationThresholds.map(threshold =>
-      BigNumber.from(threshold)
+    this.liquidationThresholds = (payload.liquidationThresholds || []).map(
+      threshold => BigNumber.from(threshold)
     );
-    this.version = version;
-    this.creditFacade = creditFacade;
-    this.isDegenMode = isDegenMode;
-    this.degenNFT = degenNFT;
-    this.isIncreaseDebtForbidden = isIncreaseDebtForbidden;
-    this.forbiddenTokenMask = BigNumber.from(forbiddenTokenMask);
+    this.version = payload.version || 1;
+    this.creditFacade = payload.creditFacade || "";
+    this.isDegenMode = payload.isDegenMode || false;
+    this.degenNFT = payload.degenNFT || "";
+    this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden || false;
+    this.forbiddenTokenMask = BigNumber.from(payload.forbiddenTokenMask || 0);
+  }
+
+  get isPaused(): boolean {
+    return false;
+  }
+
+  getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager {
+    return ICreditManager__factory.connect(this.address, signer);
   }
 
   contractToAdapter(contractAddress: string): string | undefined {
@@ -168,16 +161,6 @@ export class CreditManagerData {
       );
 
     return true;
-  }
-
-  getContractETH(
-    signer: Signer | ethers.providers.Provider
-  ): IAppCreditManager {
-    return IAppCreditManager__factory.connect(this.address, signer);
-  }
-
-  get isPaused(): boolean {
-    return false;
   }
 }
 

@@ -1,6 +1,6 @@
 import { BigNumber, ethers, Signer } from "ethers";
 import { CreditManagerDataPayload, CreditManagerStatPayload } from "../payload/creditManager";
-import { IAppCreditManager } from "../types";
+import { ICreditManager } from "../types";
 import { MultiCall } from "./multicall";
 export declare class CreditManagerData {
     readonly id: string;
@@ -22,14 +22,14 @@ export declare class CreditManagerData {
     readonly degenNFT: string;
     readonly isIncreaseDebtForbidden: boolean;
     readonly forbiddenTokenMask: BigNumber;
-    constructor({ addr, underlyingToken, isWETH, canBorrow, borrowRate, minAmount, maxAmount, maxLeverageFactor, availableLiquidity, allowedTokens, adapters, liquidationThresholds, version, creditFacade, isDegenMode, degenNFT, isIncreaseDebtForbidden, forbiddenTokenMask }: CreditManagerDataPayload);
+    constructor(payload: CreditManagerDataPayload);
+    get isPaused(): boolean;
+    getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager;
     contractToAdapter(contractAddress: string): string | undefined;
     encodeAddCollateral(accountAddress: string, tokenAddress: string, amount: BigNumber): MultiCall;
     encodeIncreaseDebt(amount: BigNumber): MultiCall;
     encodeDecreaseDebt(amount: BigNumber): MultiCall;
     validateOpenAccount(totalAmount: BigNumber, leverage: number): true;
-    getContractETH(signer: Signer | ethers.providers.Provider): IAppCreditManager;
-    get isPaused(): boolean;
 }
 export declare function calcMaxIncreaseBorrow(healthFactor: number, borrowAmountPlusInterest: BigNumber, maxLeverageFactor: number): BigNumber;
 export declare function calcHealthFactorAfterIncreasingBorrow(healthFactor: number | undefined, borrowAmountPlusInterest: BigNumber | undefined, additional: BigNumber): number;

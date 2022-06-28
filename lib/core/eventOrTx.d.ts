@@ -1,4 +1,4 @@
-import { TokenData } from "./tokenData";
+import { TokenData } from "../tokens/tokenData";
 import { TxSerialized } from "./transactions";
 export interface Display {
     toString(tokenData: Record<string, TokenData>): string;
