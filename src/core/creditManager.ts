@@ -41,7 +41,7 @@ export class CreditManagerData {
 
   constructor({
     addr,
-    underlying = "",
+    underlyingToken = "",
     isWETH = false,
     canBorrow = false,
     borrowRate = 0,
@@ -49,7 +49,7 @@ export class CreditManagerData {
     maxAmount = 0,
     maxLeverageFactor = 0,
     availableLiquidity = 0,
-    collateralTokens = [],
+    allowedTokens = [],
     adapters = [],
     liquidationThresholds = [],
     version = 1,
@@ -62,7 +62,7 @@ export class CreditManagerData {
     this.id = addr;
     this.address = addr;
 
-    this.underlyingToken = underlying;
+    this.underlyingToken = underlyingToken;
 
     this.isWETH = isWETH;
     this.canBorrow = canBorrow;
@@ -79,7 +79,7 @@ export class CreditManagerData {
     this.maxLeverageFactor = BigNumber.from(maxLeverageFactor).toNumber();
     this.availableLiquidity = BigNumber.from(availableLiquidity);
 
-    this.allowedTokens = collateralTokens;
+    this.allowedTokens = allowedTokens;
     this.adapters = adapters.reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({
         ...acc,

@@ -7,7 +7,7 @@ export interface AdapterPayload {
 
 export interface CreditManagerDataPayload {
   addr: string;
-  underlying?: string;
+  underlyingToken?: string;
 
   isWETH?: boolean;
   canBorrow?: boolean;
@@ -19,7 +19,7 @@ export interface CreditManagerDataPayload {
   maxLeverageFactor?: BigNumberish; // for V1 only
   availableLiquidity?: BigNumberish;
 
-  collateralTokens?: Array<string>;
+  allowedTokens?: Array<string>;
   adapters?: Array<AdapterPayload>;
 
   liquidationThresholds?: Array<BigNumberish>;
