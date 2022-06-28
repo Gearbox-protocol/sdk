@@ -34,7 +34,7 @@ export class CreditAccountData {
     this.borrower = payload.borrower;
     this.inUse = payload.inUse;
     this.creditManager = payload.creditManager;
-    this.underlyingToken = payload.underlyingToken;
+    this.underlyingToken = payload.underlying;
     this.borrowedAmountPlusInterest = BigNumber.from(
       payload.borrowedAmountPlusInterest
     );
