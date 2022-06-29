@@ -26,24 +26,17 @@ export declare class ILidoV1Adapter__factory {
         outputs?: undefined;
         stateMutability?: undefined;
     } | {
-        inputs: never[];
-        name: string;
-        outputs: {
-            internalType: string;
-            name: string;
-            type: string;
-        }[];
-        stateMutability: string;
-        type: string;
-        anonymous?: undefined;
-    } | {
         inputs: {
             internalType: string;
             name: string;
             type: string;
         }[];
         name: string;
-        outputs: never[];
+        outputs: {
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
         stateMutability: string;
         type: string;
         anonymous?: undefined;

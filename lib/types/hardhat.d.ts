@@ -101,6 +101,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CurveV1AdapterBase__factory>;
     getContractFactory(
+      name: "CurveV1AdapterDeposit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CurveV1AdapterDeposit__factory>;
+    getContractFactory(
       name: "CurveV1AdapterStETH",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CurveV1AdapterStETH__factory>;
@@ -312,6 +316,10 @@ declare module "hardhat/types/runtime" {
       name: "IstETH",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IstETH__factory>;
+    getContractFactory(
+      name: "IstETHGetters",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IstETHGetters__factory>;
     getContractFactory(
       name: "IQuoter",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -1112,6 +1120,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.CurveV1AdapterBase>;
     getContractAt(
+      name: "CurveV1AdapterDeposit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CurveV1AdapterDeposit>;
+    getContractAt(
       name: "CurveV1AdapterStETH",
       address: string,
       signer?: ethers.Signer
@@ -1376,6 +1389,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IstETH>;
+    getContractAt(
+      name: "IstETHGetters",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IstETHGetters>;
     getContractAt(
       name: "IQuoter",
       address: string,

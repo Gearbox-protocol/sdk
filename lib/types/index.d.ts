@@ -47,6 +47,8 @@ export type { CurveV1Adapter4Assets } from "./contracts/adapters/curve/CurveV1_4
 export { CurveV1Adapter4Assets__factory } from "./factories/contracts/adapters/curve/CurveV1_4.sol/CurveV1Adapter4Assets__factory";
 export type { CurveV1AdapterBase } from "./contracts/adapters/curve/CurveV1_Base.sol/CurveV1AdapterBase";
 export { CurveV1AdapterBase__factory } from "./factories/contracts/adapters/curve/CurveV1_Base.sol/CurveV1AdapterBase__factory";
+export type { CurveV1AdapterDeposit } from "./contracts/adapters/curve/CurveV1_DepositZap.sol/CurveV1AdapterDeposit";
+export { CurveV1AdapterDeposit__factory } from "./factories/contracts/adapters/curve/CurveV1_DepositZap.sol/CurveV1AdapterDeposit__factory";
 export type { CurveV1AdapterStETH } from "./contracts/adapters/curve/CurveV1_stETH.sol/CurveV1AdapterStETH";
 export { CurveV1AdapterStETH__factory } from "./factories/contracts/adapters/curve/CurveV1_stETH.sol/CurveV1AdapterStETH__factory";
 export type { CurveV1StETHPoolGateway } from "./contracts/adapters/curve/CurveV1_stETHGateway.sol/CurveV1StETHPoolGateway";
@@ -149,8 +151,10 @@ export type { ICurvePoolStETH } from "./contracts/integrations/curve/ICurvePoolS
 export { ICurvePoolStETH__factory } from "./factories/contracts/integrations/curve/ICurvePoolStETH__factory";
 export type { ICurveRegistry } from "./contracts/integrations/curve/ICurveRegistry";
 export { ICurveRegistry__factory } from "./factories/contracts/integrations/curve/ICurveRegistry__factory";
-export type { IstETH } from "./contracts/integrations/lido/IstETH";
-export { IstETH__factory } from "./factories/contracts/integrations/lido/IstETH__factory";
+export type { IstETH } from "./contracts/integrations/lido/IstETH.sol/IstETH";
+export { IstETH__factory } from "./factories/contracts/integrations/lido/IstETH.sol/IstETH__factory";
+export type { IstETHGetters } from "./contracts/integrations/lido/IstETH.sol/IstETHGetters";
+export { IstETHGetters__factory } from "./factories/contracts/integrations/lido/IstETH.sol/IstETHGetters__factory";
 export type { IQuoter } from "./contracts/integrations/uniswap/IQuoter";
 export { IQuoter__factory } from "./factories/contracts/integrations/uniswap/IQuoter__factory";
 export type { IUniswapV2Router01 } from "./contracts/integrations/uniswap/IUniswapV2Router01";

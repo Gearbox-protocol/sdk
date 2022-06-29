@@ -9,7 +9,6 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -25,14 +24,22 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../../../common";
+} from "../../../../common";
 
-export interface IstETHInterface extends utils.Interface {
+export interface IstETHGettersInterface extends utils.Interface {
   functions: {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "submit(address)": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "getFee()": FunctionFragment;
+    "getPooledEthByShares(uint256)": FunctionFragment;
+    "getSharesByPooledEth(uint256)": FunctionFragment;
+    "getTotalPooledEther()": FunctionFragment;
+    "getTotalShares()": FunctionFragment;
+    "name()": FunctionFragment;
+    "sharesOf(address)": FunctionFragment;
+    "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
@@ -43,7 +50,15 @@ export interface IstETHInterface extends utils.Interface {
       | "allowance"
       | "approve"
       | "balanceOf"
-      | "submit"
+      | "decimals"
+      | "getFee"
+      | "getPooledEthByShares"
+      | "getSharesByPooledEth"
+      | "getTotalPooledEther"
+      | "getTotalShares"
+      | "name"
+      | "sharesOf"
+      | "symbol"
       | "totalSupply"
       | "transfer"
       | "transferFrom"
@@ -58,7 +73,27 @@ export interface IstETHInterface extends utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(functionFragment: "submit", values: [string]): string;
+  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
+  encodeFunctionData(functionFragment: "getFee", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getPooledEthByShares",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getSharesByPooledEth",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTotalPooledEther",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTotalShares",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(functionFragment: "sharesOf", values: [string]): string;
+  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
     values?: undefined
@@ -75,7 +110,27 @@ export interface IstETHInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "submit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getFee", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getPooledEthByShares",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getSharesByPooledEth",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTotalPooledEther",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTotalShares",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "sharesOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
     data: BytesLike
@@ -119,12 +174,12 @@ export type TransferEvent = TypedEvent<
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
-export interface IstETH extends BaseContract {
+export interface IstETHGetters extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IstETHInterface;
+  interface: IstETHGettersInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -160,10 +215,29 @@ export interface IstETH extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    submit(
-      _referral: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    decimals(overrides?: CallOverrides): Promise<[number]>;
+
+    getFee(overrides?: CallOverrides): Promise<[number]>;
+
+    getPooledEthByShares(
+      _sharesAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getSharesByPooledEth(
+      _ethAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getTotalPooledEther(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getTotalShares(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    name(overrides?: CallOverrides): Promise<[string]>;
+
+    sharesOf(_account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    symbol(overrides?: CallOverrides): Promise<[string]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -195,10 +269,29 @@ export interface IstETH extends BaseContract {
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  submit(
-    _referral: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  decimals(overrides?: CallOverrides): Promise<number>;
+
+  getFee(overrides?: CallOverrides): Promise<number>;
+
+  getPooledEthByShares(
+    _sharesAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getSharesByPooledEth(
+    _ethAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getTotalShares(overrides?: CallOverrides): Promise<BigNumber>;
+
+  name(overrides?: CallOverrides): Promise<string>;
+
+  sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  symbol(overrides?: CallOverrides): Promise<string>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -230,7 +323,29 @@ export interface IstETH extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    submit(_referral: string, overrides?: CallOverrides): Promise<BigNumber>;
+    decimals(overrides?: CallOverrides): Promise<number>;
+
+    getFee(overrides?: CallOverrides): Promise<number>;
+
+    getPooledEthByShares(
+      _sharesAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getSharesByPooledEth(
+      _ethAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getTotalShares(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<string>;
+
+    sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<string>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -287,10 +402,29 @@ export interface IstETH extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    submit(
-      _referral: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPooledEthByShares(
+      _sharesAmount: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getSharesByPooledEth(
+      _ethAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getTotalShares(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -326,10 +460,34 @@ export interface IstETH extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    submit(
-      _referral: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getPooledEthByShares(
+      _sharesAmount: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getSharesByPooledEth(
+      _ethAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTotalPooledEther(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTotalShares(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    sharesOf(
+      _account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
