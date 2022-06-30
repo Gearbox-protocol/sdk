@@ -313,6 +313,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICurveRegistry__factory>;
     getContractFactory(
+      name: "ILidoOracle",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ILidoOracle__factory>;
+    getContractFactory(
       name: "IstETH",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IstETH__factory>;
@@ -1384,6 +1388,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ICurveRegistry>;
+    getContractAt(
+      name: "ILidoOracle",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ILidoOracle>;
     getContractAt(
       name: "IstETH",
       address: string,

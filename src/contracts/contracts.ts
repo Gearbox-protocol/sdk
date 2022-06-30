@@ -170,10 +170,16 @@ type ConvexParams = {
     | AdapterInterface.CONVEX_V1_CLAIM_ZAP;
 } & BaseContractParams;
 
-type ConvexPoolParams = {
+type ConvexExtraPoolParams = {
+    rewardToken: NormalToken,
+    poolAddress: Record<NetworkType, string>
+}
+
+export type ConvexPoolParams = {
   protocol: Protocols.Convex;
   type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
   stakedToken: ConvexStakedPhantomToken;
+  extraRewards: Array<ConvexExtraPoolParams>
 } & BaseContractParams;
 
 export type LidoParams = {
@@ -309,31 +315,60 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Convex 3crv",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvx3Crv"
+    stakedToken: "stkcvx3Crv",
+    extraRewards: []
   },
   CONVEX_GUSD_POOL: {
     name: "Convex GUSD",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxgusd3CRV"
+    stakedToken: "stkcvxgusd3CRV",
+    extraRewards: []
   },
   CONVEX_SUSD_POOL: {
     name: "Convex SUSD",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxcrvPlain3andSUSD"
+    stakedToken: "stkcvxcrvPlain3andSUSD",
+    extraRewards: [
+        {
+            rewardToken: "SNX",
+            poolAddress: {
+                Mainnet: "",
+                Kovan: ""
+            }
+        }
+    ]
   },
   CONVEX_STECRV_POOL: {
     name: "Convex STECRV",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxsteCRV"
+    stakedToken: "stkcvxsteCRV",
+    extraRewards: [
+        {
+            rewardToken: "LDO",
+            poolAddress: {
+                Mainnet: "",
+                Kovan: ""
+            }
+        }
+    ]
   },
   CONVEX_FRAX3CRV_POOL: {
     name: "Convex FRAX3CRV",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxFRAX3CRV"
+    stakedToken: "stkcvxFRAX3CRV",
+    extraRewards: [
+        {
+            rewardToken: "FXS",
+            poolAddress: {
+                Mainnet: "",
+                Kovan: ""
+            }
+        }
+    ]
   },
   CONVEX_CLAIM_ZAP: {
     name: "Convex ZAP",
