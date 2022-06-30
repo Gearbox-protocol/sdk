@@ -231,7 +231,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-      Kovan: "0x6db94f454d7e2d2e25e4b2a8231e00925bd08a98"
+      Kovan: "0xF5C73b58B70709e89aA1D322d48b0D0C71123cB4"
     },
     lpToken: "steCRV"
   },
