@@ -118,11 +118,11 @@ export const tokenDataByNetwork: Record<
     cvxgusd3CRV: "0x15c2471ef46Fa721990730cfa526BcFb45574576",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
-    stkcvx3Crv: "",
-    stkcvxsteCRV: "",
-    stkcvxFRAX3CRV: "",
-    stkcvxcrvPlain3andSUSD: "",
-    stkcvxgusd3CRV: "",
+    stkcvx3Crv: "0x2eD0f32d7C8b0f7EA7E40277C62Fb9C5DE092003",
+    stkcvxsteCRV: "0x2210aa245Bf766eE99325c607807A08e636B5173",
+    stkcvxFRAX3CRV: "0x2AF29502110080081FDF726dfBf61ABE3bA9Ef3C",
+    stkcvxcrvPlain3andSUSD: "0xd622AD90386BBf0310668175f76eD958030E3635",
+    stkcvxgusd3CRV: "0x074f66aE6e28f7e01DFe598ECbfbd3034cf3De47",
 
     // YEARN TOKENS
     yvDAI: "0xdA816459F1AB5631232FE5e97a05BBBb94970c95",
