@@ -345,8 +345,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         {
             rewardToken: "SNX",
             poolAddress: {
-                Mainnet: "",
-                Kovan: ""
+                Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
+                Kovan: "0x26a535146557FA58FA37e3078FEAc523b554939C"
             }
         }
     ]
@@ -360,8 +360,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         {
             rewardToken: "LDO",
             poolAddress: {
-                Mainnet: "",
-                Kovan: ""
+                Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
+                Kovan: "0xd0B1CC3B4839363b1eC92F35eF45794CB07B1183"
             }
         }
     ]
@@ -375,8 +375,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         {
             rewardToken: "FXS",
             poolAddress: {
-                Mainnet: "",
-                Kovan: ""
+                Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
+                Kovan: "0x89869c2e79FC6EFf51e714F1239D53702B5CDFCD"
             }
         }
     ]
