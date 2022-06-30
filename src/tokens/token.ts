@@ -203,11 +203,11 @@ export const tokenDataByNetwork: Record<
     cvxgusd3CRV: "0xa3aDFDf18d166e26bF1Bc0ee63D26d0d1064b056",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
-    stkcvx3Crv: "",
-    stkcvxsteCRV: "",
-    stkcvxFRAX3CRV: "",
-    stkcvxcrvPlain3andSUSD: "",
-    stkcvxgusd3CRV: "",
+    stkcvx3Crv: "0xf4FC4Aa052346fEa87f1e864f10de0f7383e9502",
+    stkcvxFRAX3CRV: "0xd726f9684245065B120E1ac18de389f6b05351Ba",
+    stkcvxgusd3CRV: "0x9A74e8106f6c28b21b1B6a0F985cf1227BE05F04",
+    stkcvxsteCRV: "0xd8bAbB7EfBF7F931a69B209f71b27421F8b18516",
+    stkcvxcrvPlain3andSUSD: "0x6b45Cab756B41a7204973b71362ef5F73E67F6DA",
 
     //GEARBOX
     dDAI: "0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA",
