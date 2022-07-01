@@ -30,6 +30,7 @@ export * from "./utils/math";
 export * from "./core/creditCard";
 export * from "./payload/graphPayload";
 export * from "./types/index";
+export * from "./core/strategy";
 
 export type {
   IAppPoolService,
