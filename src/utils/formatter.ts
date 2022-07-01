@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish } from "ethers";
-import { PERCENTAGE_FACTOR, RAY } from "../core/constants";
+import { PERCENTAGE_FACTOR, RAY, LEVERAGE_DECIMALS } from "../core/constants";
 import Decimal from "decimal.js-light";
 
 export function rayToNumber(num: BigNumberish): number {
@@ -135,4 +135,8 @@ export function formatDate(date: Date): string {
 
 export function formatHf(healthFactor: number): string {
   return (healthFactor / 10000).toFixed(2);
+}
+
+export function formatLeverage(leverage: number, decimals: number = 2) {
+  return (leverage / LEVERAGE_DECIMALS).toFixed(decimals);
 }
