@@ -1,3 +1,5 @@
+import { LEVERAGE_DECIMALS } from "../core/constants";
+
 export interface StrategyPayload {
   apy: number;
 
@@ -16,8 +18,6 @@ interface PoolStats {
 }
 
 type PoolList = Record<string, PoolStats>;
-
-const EXTERNAL_APY_DECIMALS = 100;
 
 export class Strategy {
   apy: number;
@@ -44,7 +44,7 @@ export class Strategy {
 
   public roiMax(maxLeverage: number, poolApy: PoolList) {
     const minApy = this.minBorrowApy(poolApy);
-    return this.roi(maxLeverage, maxLeverage - 1, minApy);
+    return this.roi(maxLeverage, maxLeverage - LEVERAGE_DECIMALS, minApy);
   }
 
   public overallAPY(
@@ -53,9 +53,9 @@ export class Strategy {
     pool: PoolStats | undefined
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
-    const borrowAPY = this.borrowApy(pool);
+    const { borrowAPY = 0 } = pool || {};
 
-    return this.roi(farmLev, leverage - 1, borrowAPY);
+    return this.roi(farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
   }
 
   public liquidationPrice(
@@ -70,13 +70,13 @@ export class Strategy {
 
     return (
       1 -
-      (leverage - 1 - ltCollateral * (leverage - farmLev)) /
+      (leverage - LEVERAGE_DECIMALS - ltCollateral * (leverage - farmLev)) /
         (ltStrategy * farmLev)
     );
   }
 
   private roi(farmLev: number, debtLev: number, borrowAPY: number) {
-    return this.apy * farmLev - borrowAPY * debtLev;
+    return (this.apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
   }
 
   private minBorrowApy(poolApy: PoolList) {
@@ -84,18 +84,14 @@ export class Strategy {
       (a, b) => a.borrowAPY - b.borrowAPY
     );
 
-    return apys.length > 0 ? apys[0].borrowAPY / EXTERNAL_APY_DECIMALS : 0;
-  }
-
-  private borrowApy(pool: PoolStats | undefined) {
-    return pool ? pool.borrowAPY / EXTERNAL_APY_DECIMALS : 0;
+    return apys.length > 0 ? apys[0].borrowAPY : 0;
   }
 
   private farmLev(leverage: number, depositCollateral: string) {
     return this.inBaseAssets(depositCollateral) ||
       this.inLeveragableAssets(depositCollateral)
       ? leverage
-      : leverage - 1;
+      : leverage - LEVERAGE_DECIMALS;
   }
 
   private inBaseAssets(depositCollateral: string) {
@@ -111,6 +107,6 @@ export class Strategy {
   }
 
   private ltStrategyLP(maxLeverage: number) {
-    return Math.floor(1 - 1 / maxLeverage);
+    return Math.floor(1 - LEVERAGE_DECIMALS / maxLeverage);
   }
 }

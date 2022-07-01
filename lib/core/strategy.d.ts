@@ -25,7 +25,6 @@ export declare class Strategy {
     liquidationPrice(leverage: number, maxLeverage: number, ltCollateral: number, depositCollateral: string): number;
     private roi;
     private minBorrowApy;
-    private borrowApy;
     private farmLev;
     private inBaseAssets;
     private inLeveragableAssets;
