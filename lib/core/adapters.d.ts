@@ -6,9 +6,10 @@ export declare enum AdapterInterface {
     CURVE_V1_3ASSETS = 4,
     CURVE_V1_4ASSETS = 5,
     CURVE_V1_STECRV_POOL = 6,
-    YEARN_V2 = 7,
-    CONVEX_V1_BASE_REWARD_POOL = 8,
-    CONVEX_V1_BOOSTER = 9,
-    CONVEX_V1_CLAIM_ZAP = 10,
-    LIDO_V1 = 11
+    CURVE_V1_DEPOSIT = 7,
+    YEARN_V2 = 8,
+    CONVEX_V1_BASE_REWARD_POOL = 9,
+    CONVEX_V1_BOOSTER = 10,
+    CONVEX_V1_CLAIM_ZAP = 11,
+    LIDO_V1 = 12
 }
