@@ -1,41 +1,34 @@
 import { BigNumber, ethers } from "ethers";
 import { CreditManagerData } from "../core/creditManager";
 import { MultiCall } from "../core/multicall";
-import { SupportedToken } from "../core/token";
+import { SupportedToken } from "../tokens/token";
 import { NetworkType } from "../core/constants";
 import { CreditAccountData } from "../core/creditAccount";
-import { TradeAction } from "../core/tradeTypes";
+import { PartialRecord } from "../utils/types";
 export declare class Path {
     readonly calls: Array<MultiCall>;
-    readonly balances: Record<SupportedToken, BigNumber>;
-    readonly pool: SupportedToken;
+    readonly balances: PartialRecord<SupportedToken, BigNumber>;
+    readonly underlying: SupportedToken;
     readonly creditManager: CreditManagerData;
     readonly creditAccount: CreditAccountData;
     readonly networkType: NetworkType;
     readonly provider: ethers.providers.Provider;
-    readonly totalGasLimit: BigNumber;
+    totalGasLimit: number;
     constructor(opts: {
-        balances: Record<SupportedToken, BigNumber>;
-        pool: SupportedToken;
+        balances: PartialRecord<SupportedToken, BigNumber>;
+        underlying: SupportedToken;
         creditManager: CreditManagerData;
         creditAccount: CreditAccountData;
         networkType: NetworkType;
         provider: ethers.providers.Provider;
-        totalGasLimit: BigNumber;
+        totalGasLimit: number;
     });
+    popBalance(token: SupportedToken): BigNumber;
     private comparedByPriority;
-    getBestPath(): Promise<Path>;
+    static findBestPath(creditAccount: CreditAccountData, creditManager: CreditManagerData, provider: ethers.providers.Provider): Promise<void>;
+    withdrawTokens(): Promise<Array<Path>>;
+    clone(): Path;
 }
-export interface ActionData {
-    callData: MultiCall;
-    amountOut: BigNumber;
-    gasLimit: BigNumber;
-}
-export declare abstract class PathAsset {
-    abstract getBestPath(currentToken: SupportedToken, p: Path): Promise<Path>;
-    getUniswapV2SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData>;
-    getUniswapV3SwapData(adapterAddress: string, currentTokenAddress: string, currentBalance: BigNumber, nextTokenAddress: string, p: Path): Promise<ActionData>;
-    getCurveActionData(adapterAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextToken: SupportedToken, p: Path): Promise<ActionData>;
-    getActionData(swapAction: TradeAction, currentTokenAddress: string, currentToken: SupportedToken, currentBalance: BigNumber, nextTokenAddress: string, nextToken: SupportedToken, p: Path): Promise<ActionData>;
-    getYearnActionData(lpAction: TradeAction, currentBalance: BigNumber, p: Path): Promise<ActionData>;
+export interface LPWithdrawPathFinder {
+    findWithdrawPaths(p: Path): Promise<Array<Path>>;
 }

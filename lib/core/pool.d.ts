@@ -1,5 +1,5 @@
 import { BigNumber, Signer } from "ethers";
-import { IAppPoolService } from "../types";
+import { IPoolService } from "../types";
 import { PoolDataPayload } from "../payload/pool";
 export declare class PoolData {
     readonly id: string;
@@ -20,7 +20,7 @@ export declare class PoolData {
     readonly timestampLU: BigNumber;
     readonly cumulativeIndex_RAY: BigNumber;
     constructor(payload: PoolDataPayload);
-    getContractETH(signer: Signer): IAppPoolService;
+    getContractETH(signer: Signer): IPoolService;
     get isPaused(): boolean;
 }
 export interface PoolsStat {
