@@ -8,7 +8,7 @@ export interface StrategyPayload {
     baseAssets: Array<string>;
 }
 interface PoolStats {
-    borrowAPY: number;
+    borrowRate: number;
 }
 declare type PoolList = Record<string, PoolStats>;
 export declare class Strategy {
@@ -21,13 +21,13 @@ export declare class Strategy {
     baseAssets: Array<string>;
     constructor(payload: StrategyPayload);
     roiMax(maxLeverage: number, poolApy: PoolList): number;
-    overallAPY(leverage: number, depositCollateral: string, pool: PoolStats | undefined): number;
-    liquidationPrice(leverage: number, maxLeverage: number, ltCollateral: number, depositCollateral: string): number;
+    overallAPY(leverage: number, depositCollateral: string, borrowAPY: number): number;
+    liquidationPrice(leverage: number, ltStrategy: number, ltCollateral: number, depositCollateral: string): number;
+    ltStrategyLP(maxLeverage: number): number;
     private roi;
     private minBorrowApy;
     private farmLev;
     private inBaseAssets;
     private inLeveragableAssets;
-    private ltStrategyLP;
 }
 export {};

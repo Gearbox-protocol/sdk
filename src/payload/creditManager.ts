@@ -22,7 +22,7 @@ export interface CreditManagerDataPayload {
   allowedTokens?: Array<string>;
   adapters?: Array<AdapterPayload>;
 
-  liquidationThresholds?: Array<BigNumberish>;
+  liquidationThresholds?: Array<number>;
 
   version?: number;
 

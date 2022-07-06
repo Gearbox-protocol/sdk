@@ -31,7 +31,7 @@ export class CreditManagerData {
   public readonly allowedTokens: Array<string>;
   public readonly adapters: Record<string, string>;
 
-  public readonly liquidationThresholds: Array<BigNumber>;
+  public readonly liquidationThresholds: Array<number>;
   public readonly version: number;
   public readonly creditFacade: string; // V2 only: address of creditFacade
   public readonly isDegenMode: boolean; // V2 only: true if contract is in Degen mode
@@ -88,8 +88,8 @@ export class CreditManagerData {
       {}
     );
 
-    this.liquidationThresholds = liquidationThresholds.map(threshold =>
-      BigNumber.from(threshold)
+    this.liquidationThresholds = liquidationThresholds.map(
+      threshold => threshold
     );
     this.version = version;
     this.creditFacade = creditFacade;

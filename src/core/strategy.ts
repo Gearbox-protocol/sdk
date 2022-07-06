@@ -14,7 +14,7 @@ export interface StrategyPayload {
 }
 
 interface PoolStats {
-  borrowAPY: number;
+  borrowRate: number;
 }
 
 type PoolList = Record<string, PoolStats>;
@@ -50,10 +50,9 @@ export class Strategy {
   public overallAPY(
     leverage: number,
     depositCollateral: string,
-    pool: PoolStats | undefined
+    borrowAPY: number
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
-    const { borrowAPY = 0 } = pool || {};
 
     return this.roi(farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
   }
@@ -61,12 +60,12 @@ export class Strategy {
   public liquidationPrice(
     leverage: number,
 
-    maxLeverage: number,
+    ltStrategy: number,
     ltCollateral: number,
+
     depositCollateral: string
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
-    const ltStrategy = this.ltStrategyLP(maxLeverage);
 
     return (
       1 -
@@ -75,16 +74,20 @@ export class Strategy {
     );
   }
 
+  public ltStrategyLP(maxLeverage: number) {
+    return 1 - LEVERAGE_DECIMALS / maxLeverage;
+  }
+
   private roi(farmLev: number, debtLev: number, borrowAPY: number) {
     return (this.apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
   }
 
   private minBorrowApy(poolApy: PoolList) {
     const apys = Object.values(poolApy).sort(
-      (a, b) => a.borrowAPY - b.borrowAPY
+      (a, b) => a.borrowRate - b.borrowRate
     );
 
-    return apys.length > 0 ? apys[0].borrowAPY : 0;
+    return apys.length > 0 ? apys[0].borrowRate : 0;
   }
 
   private farmLev(leverage: number, depositCollateral: string) {
@@ -104,9 +107,5 @@ export class Strategy {
     return this.leveragableCollateral.some(
       c => c.toLowerCase() === depositCollateral.toLowerCase()
     );
-  }
-
-  private ltStrategyLP(maxLeverage: number) {
-    return Math.floor(1 - LEVERAGE_DECIMALS / maxLeverage);
   }
 }

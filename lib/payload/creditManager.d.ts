@@ -15,7 +15,7 @@ export interface CreditManagerDataPayload {
     availableLiquidity?: BigNumberish;
     allowedTokens?: Array<string>;
     adapters?: Array<AdapterPayload>;
-    liquidationThresholds?: Array<BigNumberish>;
+    liquidationThresholds?: Array<number>;
     version?: number;
     creditFacade?: string;
     isDegenMode?: boolean;

@@ -15,7 +15,7 @@ export declare class CreditManagerData {
     readonly availableLiquidity: BigNumber;
     readonly allowedTokens: Array<string>;
     readonly adapters: Record<string, string>;
-    readonly liquidationThresholds: Array<BigNumber>;
+    readonly liquidationThresholds: Array<number>;
     readonly version: number;
     readonly creditFacade: string;
     readonly isDegenMode: boolean;
