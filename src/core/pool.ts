@@ -28,7 +28,7 @@ export class PoolData {
   constructor(payload: PoolDataPayload) {
     this.id = payload.addr;
     this.address = payload.addr;
-    this.underlyingToken = payload.underlyingToken || "";
+    this.underlyingToken = payload.underlying || "";
     this.dieselToken = payload.dieselToken || "";
 
     this.isWETH = payload.isWETH || false;

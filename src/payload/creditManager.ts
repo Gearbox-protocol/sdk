@@ -1,50 +1,24 @@
-import { BigNumberish } from "ethers";
+import { BigNumberish, BigNumber } from "ethers";
+import { CreditManagerDataStructOutput } from "../typesV2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 
 export interface AdapterPayload {
   allowedContract: string;
   adapter: string;
 }
 
-export interface CreditManagerDataPayload {
+export type CreditManagerDataPayload = CreditManagerDataStructOutput;
+
+export interface CreditManagerStatPayload extends CreditManagerDataPayload {
   addr: string;
   underlyingToken?: string;
-
-  isWETH?: boolean;
-  canBorrow?: boolean;
-
-  borrowRate?: BigNumberish;
-  minAmount?: BigNumberish;
-  maxAmount?: BigNumberish;
-
-  maxLeverageFactor?: BigNumberish; // for V1 only
-  availableLiquidity?: BigNumberish;
-
-  allowedTokens?: Array<string>;
-  adapters?: Array<AdapterPayload>;
-
-  liquidationThresholds?: Array<number>;
-
-  version?: number;
-
-  creditFacade?: string; // V2 only: address of creditFacade
-  isDegenMode?: boolean; // V2 only: true if contract is in Degen mode
-  degenNFT?: string; // V2 only: degenNFT, address(0) if not in degen mode
-
-  isIncreaseDebtForbidden?: boolean; // V2 only: true if increasing debt is forbidden
-  forbiddenTokenMask?: BigNumberish; // V2 only: mask which forbids some particular tokens
-}
-
-export interface CreditManagerStatPayload {
-  addr: string;
-  underlyingToken?: string;
-  isWETH?: boolean;
-  canBorrow?: boolean;
-  borrowRate?: BigNumberish;
-  minAmount?: BigNumberish;
-  maxAmount?: BigNumberish;
-  maxLeverageFactor?: BigNumberish;
-  availableLiquidity?: BigNumberish;
-  allowedTokens?: Array<string>;
+  isWETH: boolean;
+  canBorrow: boolean;
+  borrowRate: BigNumber;
+  minAmount: BigNumber;
+  maxAmount: BigNumber;
+  maxLeverageFactor: BigNumber;
+  availableLiquidity: BigNumber;
+  allowedTokens: Array<string>;
   allowedContracts?: Array<string>;
   uniqueUsers: number;
   openedAccountsCount?: number;

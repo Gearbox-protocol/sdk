@@ -1,20 +1,3 @@
-import {BigNumberish} from "ethers";
+import { PoolDataStructOutput } from "../typesV2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 
-export interface PoolDataPayload {
-  addr: string;
-  underlyingToken: string;
-  dieselToken: string;
-  isWETH: boolean;
-  expectedLiquidity: BigNumberish;
-  expectedLiquidityLimit?: BigNumberish;
-  availableLiquidity: BigNumberish;
-  totalBorrowed: BigNumberish;
-  depositAPY_RAY: BigNumberish;
-  borrowAPY_RAY: BigNumberish;
-  dieselRate_RAY: BigNumberish;
-  withdrawFee: BigNumberish;
-  timestampLU?: BigNumberish;
-  cumulativeIndex_RAY?: BigNumberish
-}
-
-//
+export type PoolDataPayload = PoolDataStructOutput;

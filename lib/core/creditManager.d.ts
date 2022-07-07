@@ -15,14 +15,14 @@ export declare class CreditManagerData {
     readonly availableLiquidity: BigNumber;
     readonly allowedTokens: Array<string>;
     readonly adapters: Record<string, string>;
-    readonly liquidationThresholds: Array<number>;
+    readonly liquidationThresholds: Record<string, BigNumber>;
     readonly version: number;
     readonly creditFacade: string;
     readonly isDegenMode: boolean;
     readonly degenNFT: string;
     readonly isIncreaseDebtForbidden: boolean;
     readonly forbiddenTokenMask: BigNumber;
-    constructor({ addr, underlyingToken, isWETH, canBorrow, borrowRate, minAmount, maxAmount, maxLeverageFactor, availableLiquidity, allowedTokens, adapters, liquidationThresholds, version, creditFacade, isDegenMode, degenNFT, isIncreaseDebtForbidden, forbiddenTokenMask }: CreditManagerDataPayload);
+    constructor(payload: CreditManagerDataPayload);
     contractToAdapter(contractAddress: string): string | undefined;
     encodeAddCollateral(accountAddress: string, tokenAddress: string, amount: BigNumber): MultiCall;
     encodeIncreaseDebt(amount: BigNumber): MultiCall;

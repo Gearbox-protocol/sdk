@@ -1,4 +1,5 @@
-import {BigNumberish} from "ethers";
+import { BigNumberish } from "ethers";
+import { CreditAccountDataStructOutput } from "../typesV2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 
 export interface TokenBalancePayload {
   token: string;
@@ -6,24 +7,6 @@ export interface TokenBalancePayload {
   isAllowed: boolean;
 }
 
-export interface CreditAccountDataPayload {
-  addr: string;
-  borrower: string;
-  inUse: boolean;
-  creditManager: string;
-  underlyingToken: string;
-  borrowedAmountPlusInterest: BigNumberish;
-  totalValue: BigNumberish;
-  healthFactor: BigNumberish;
-  borrowRate: BigNumberish;
-  balances?: Array<TokenBalancePayload>;
-}
+export type CreditAccountDataPayload = CreditAccountDataStructOutput;
 
-export interface CreditAccountDataExtendedPayload extends CreditAccountDataPayload {
-  repayAmount: BigNumberish;
-  liquidationAmount: BigNumberish;
-  canBeClosed?: boolean;
-  borrowedAmount: BigNumberish;
-  cumulativeIndexAtOpen: BigNumberish;
-  since: BigNumberish;
-}
+export type CreditAccountDataExtendedPayload = CreditAccountDataStructOutput;

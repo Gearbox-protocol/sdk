@@ -31,7 +31,7 @@ export class CreditManagerData {
   public readonly allowedTokens: Array<string>;
   public readonly adapters: Record<string, string>;
 
-  public readonly liquidationThresholds: Array<number>;
+  public readonly liquidationThresholds: Record<string, BigNumber>;
   public readonly version: number;
   public readonly creditFacade: string; // V2 only: address of creditFacade
   public readonly isDegenMode: boolean; // V2 only: true if contract is in Degen mode
@@ -39,48 +39,26 @@ export class CreditManagerData {
   public readonly isIncreaseDebtForbidden: boolean; // V2 only: true if increasing debt is forbidden
   public readonly forbiddenTokenMask: BigNumber; // V2 only: mask which forbids some particular tokens
 
-  constructor({
-    addr,
-    underlyingToken = "",
-    isWETH = false,
-    canBorrow = false,
-    borrowRate = 0,
-    minAmount = 0,
-    maxAmount = 0,
-    maxLeverageFactor = 0,
-    availableLiquidity = 0,
-    allowedTokens = [],
-    adapters = [],
-    liquidationThresholds = [],
-    version = 1,
-    creditFacade = "",
-    isDegenMode = false,
-    degenNFT = "",
-    isIncreaseDebtForbidden = false,
-    forbiddenTokenMask = 0
-  }: CreditManagerDataPayload) {
-    this.id = addr;
-    this.address = addr;
+  constructor(payload: CreditManagerDataPayload) {
+    this.id = payload.addr;
+    this.address = payload.addr;
 
-    this.underlyingToken = underlyingToken;
+    this.underlyingToken = payload.underlying;
 
-    this.isWETH = isWETH;
-    this.canBorrow = canBorrow;
+    this.isWETH = payload.isWETH;
+    this.canBorrow = payload.canBorrow;
 
     this.borrowRate =
-      BigNumber.from(borrowRate)
-        .mul(PERCENTAGE_FACTOR)
-        .mul(100)
-        .div(RAY)
-        .toNumber() / PERCENTAGE_FACTOR;
-    this.minAmount = BigNumber.from(minAmount);
-    this.maxAmount = BigNumber.from(maxAmount);
+      payload.borrowRate.mul(PERCENTAGE_FACTOR).mul(100).div(RAY).toNumber() /
+      PERCENTAGE_FACTOR;
+    this.minAmount = payload.minAmount;
+    this.maxAmount = payload.maxAmount;
 
-    this.maxLeverageFactor = BigNumber.from(maxLeverageFactor).toNumber();
-    this.availableLiquidity = BigNumber.from(availableLiquidity);
+    this.maxLeverageFactor = payload.maxLeverageFactor.toNumber();
+    this.availableLiquidity = payload.availableLiquidity;
 
-    this.allowedTokens = allowedTokens;
-    this.adapters = adapters.reduce<Record<string, string>>(
+    this.allowedTokens = payload.collateralTokens;
+    this.adapters = payload.adapters.reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({
         ...acc,
         [allowedContract]: adapter
@@ -88,15 +66,21 @@ export class CreditManagerData {
       {}
     );
 
-    this.liquidationThresholds = liquidationThresholds.map(
-      threshold => threshold
-    );
-    this.version = version;
-    this.creditFacade = creditFacade;
-    this.isDegenMode = isDegenMode;
-    this.degenNFT = degenNFT;
-    this.isIncreaseDebtForbidden = isIncreaseDebtForbidden;
-    this.forbiddenTokenMask = BigNumber.from(forbiddenTokenMask);
+    this.liquidationThresholds = payload.liquidationThresholds.reduce<
+      Record<string, BigNumber>
+    >((acc, threshold, index) => {
+      const address = payload.collateralTokens[index];
+
+      if (address) acc[address.toLowerCase()] = threshold;
+
+      return acc;
+    }, {});
+    this.version = payload.version;
+    this.creditFacade = payload.creditFacade;
+    this.isDegenMode = payload.isDegenMode;
+    this.degenNFT = payload.degenNFT;
+    this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden;
+    this.forbiddenTokenMask = payload.forbiddenTokenMask;
   }
 
   contractToAdapter(contractAddress: string): string | undefined {
