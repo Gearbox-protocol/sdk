@@ -1,7 +1,7 @@
 import { LEVERAGE_DECIMALS } from "../core/constants";
 
 export interface StrategyPayload {
-  apy: number;
+  apy?: number;
 
   name: string;
   lpToken: string;
@@ -20,7 +20,7 @@ interface PoolStats {
 type PoolList = Record<string, PoolStats>;
 
 export class Strategy {
-  apy: number;
+  apy: number | undefined;
 
   name: string;
   lpToken: string;
@@ -42,19 +42,21 @@ export class Strategy {
     this.baseAssets = payload.baseAssets;
   }
 
-  public roiMax(maxLeverage: number, poolApy: PoolList) {
+  public roiMax(apy: number, maxLeverage: number, poolApy: PoolList) {
     const minApy = this.minBorrowApy(poolApy);
-    return this.roi(maxLeverage, maxLeverage - LEVERAGE_DECIMALS, minApy);
+
+    return this.roi(apy, maxLeverage, maxLeverage - LEVERAGE_DECIMALS, minApy);
   }
 
   public overallAPY(
+    apy: number,
     leverage: number,
     depositCollateral: string,
     borrowAPY: number
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
 
-    return this.roi(farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
+    return this.roi(apy, farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
   }
 
   public liquidationPrice(
@@ -78,8 +80,18 @@ export class Strategy {
     return 1 - LEVERAGE_DECIMALS / maxLeverage;
   }
 
-  private roi(farmLev: number, debtLev: number, borrowAPY: number) {
-    return (this.apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
+  public maxLeverage(ltStrategyLP: number) {
+    const leverage = Math.floor(1 / (1 - ltStrategyLP));
+    return Math.floor(leverage * LEVERAGE_DECIMALS);
+  }
+
+  private roi(
+    apy: number,
+    farmLev: number,
+    debtLev: number,
+    borrowAPY: number
+  ) {
+    return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
   }
 
   private minBorrowApy(poolApy: PoolList) {
