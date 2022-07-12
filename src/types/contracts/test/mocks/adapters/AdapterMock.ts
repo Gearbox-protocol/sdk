@@ -27,9 +27,10 @@ export interface AdapterMockInterface extends utils.Interface {
     "_gearboxAdapterVersion()": FunctionFragment;
     "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
-    "executeFullCheck(address,bytes)": FunctionFragment;
+    "execute(bytes)": FunctionFragment;
     "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)": FunctionFragment;
     "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)": FunctionFragment;
+    "fullCheck(address)": FunctionFragment;
     "safeExecuteFastCheck(address,address,bytes,bool,bool)": FunctionFragment;
     "safeExecuteFastCheck(address,address,address,bytes,bool,bool)": FunctionFragment;
     "targetContract()": FunctionFragment;
@@ -41,9 +42,10 @@ export interface AdapterMockInterface extends utils.Interface {
       | "_gearboxAdapterVersion"
       | "creditFacade"
       | "creditManager"
-      | "executeFullCheck"
+      | "execute"
       | "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"
       | "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"
+      | "fullCheck"
       | "safeExecuteFastCheck(address,address,bytes,bool,bool)"
       | "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"
       | "targetContract"
@@ -65,10 +67,7 @@ export interface AdapterMockInterface extends utils.Interface {
     functionFragment: "creditManager",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "executeFullCheck",
-    values: [string, BytesLike]
-  ): string;
+  encodeFunctionData(functionFragment: "execute", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)",
     values: [string, string, string, BytesLike, boolean, boolean]
@@ -77,6 +76,7 @@ export interface AdapterMockInterface extends utils.Interface {
     functionFragment: "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)",
     values: [string, string, BytesLike, boolean, boolean]
   ): string;
+  encodeFunctionData(functionFragment: "fullCheck", values: [string]): string;
   encodeFunctionData(
     functionFragment: "safeExecuteFastCheck(address,address,bytes,bool,bool)",
     values: [string, string, BytesLike, boolean, boolean]
@@ -106,10 +106,7 @@ export interface AdapterMockInterface extends utils.Interface {
     functionFragment: "creditManager",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "executeFullCheck",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)",
     data: BytesLike
@@ -118,6 +115,7 @@ export interface AdapterMockInterface extends utils.Interface {
     functionFragment: "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "fullCheck", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "safeExecuteFastCheck(address,address,bytes,bool,bool)",
     data: BytesLike
@@ -169,8 +167,7 @@ export interface AdapterMock extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    executeFullCheck(
-      creditAccount: string,
+    execute(
       callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -191,6 +188,11 @@ export interface AdapterMock extends BaseContract {
       callData: BytesLike,
       allowTokenIn: boolean,
       ltCheckRequired: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    fullCheck(
+      creditAccount: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -224,8 +226,7 @@ export interface AdapterMock extends BaseContract {
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  executeFullCheck(
-    creditAccount: string,
+  execute(
     callData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -246,6 +247,11 @@ export interface AdapterMock extends BaseContract {
     callData: BytesLike,
     allowTokenIn: boolean,
     ltCheckRequired: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  fullCheck(
+    creditAccount: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -279,11 +285,7 @@ export interface AdapterMock extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
-    executeFullCheck(
-      creditAccount: string,
-      callData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    execute(callData: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(
       creditAccount: string,
@@ -303,6 +305,8 @@ export interface AdapterMock extends BaseContract {
       ltCheckRequired: boolean,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    fullCheck(creditAccount: string, overrides?: CallOverrides): Promise<void>;
 
     "safeExecuteFastCheck(address,address,bytes,bool,bool)"(
       tokenIn: string,
@@ -337,8 +341,7 @@ export interface AdapterMock extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    executeFullCheck(
-      creditAccount: string,
+    execute(
       callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -359,6 +362,11 @@ export interface AdapterMock extends BaseContract {
       callData: BytesLike,
       allowTokenIn: boolean,
       ltCheckRequired: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    fullCheck(
+      creditAccount: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -397,8 +405,7 @@ export interface AdapterMock extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    executeFullCheck(
-      creditAccount: string,
+    execute(
       callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -419,6 +426,11 @@ export interface AdapterMock extends BaseContract {
       callData: BytesLike,
       allowTokenIn: boolean,
       ltCheckRequired: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    fullCheck(
+      creditAccount: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

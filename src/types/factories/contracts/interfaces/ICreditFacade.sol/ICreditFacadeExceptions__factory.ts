@@ -26,6 +26,17 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "BalanceLessThanMinimumDesired",
+    type: "error",
+  },
+  {
     inputs: [],
     name: "BorrowAmountOutOfLimitsException",
     type: "error",

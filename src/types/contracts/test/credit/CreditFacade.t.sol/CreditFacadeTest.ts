@@ -90,6 +90,7 @@ export interface CreditFacadeTestInterface extends utils.Interface {
     "test_FA_42_calcCreditAccountHealthFactor_computes_correctly()": FunctionFragment;
     "test_FA_43_hasOpenedCreditAccount_returns_correct_values()": FunctionFragment;
     "test_FA_44_config_functions_revert_if_called_non_configurator()": FunctionFragment;
+    "test_FA_45_revertIfBalanceLessThan_works_correctly()": FunctionFragment;
     "underlying()": FunctionFragment;
   };
 
@@ -157,6 +158,7 @@ export interface CreditFacadeTestInterface extends utils.Interface {
       | "test_FA_42_calcCreditAccountHealthFactor_computes_correctly"
       | "test_FA_43_hasOpenedCreditAccount_returns_correct_values"
       | "test_FA_44_config_functions_revert_if_called_non_configurator"
+      | "test_FA_45_revertIfBalanceLessThan_works_correctly"
       | "underlying"
   ): FunctionFragment;
 
@@ -394,6 +396,10 @@ export interface CreditFacadeTestInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_44_config_functions_revert_if_called_non_configurator",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "test_FA_45_revertIfBalanceLessThan_works_correctly",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -635,6 +641,10 @@ export interface CreditFacadeTestInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_44_config_functions_revert_if_called_non_configurator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_FA_45_revertIfBalanceLessThan_works_correctly",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
@@ -1258,6 +1268,10 @@ export interface CreditFacadeTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    test_FA_45_revertIfBalanceLessThan_works_correctly(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     underlying(overrides?: CallOverrides): Promise<[string]>;
   };
 
@@ -1500,6 +1514,10 @@ export interface CreditFacadeTest extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  test_FA_45_revertIfBalanceLessThan_works_correctly(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   underlying(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
@@ -1735,6 +1753,10 @@ export interface CreditFacadeTest extends BaseContract {
     ): Promise<void>;
 
     test_FA_44_config_functions_revert_if_called_non_configurator(
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_FA_45_revertIfBalanceLessThan_works_correctly(
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -2173,6 +2195,10 @@ export interface CreditFacadeTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    test_FA_45_revertIfBalanceLessThan_works_correctly(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -2415,6 +2441,10 @@ export interface CreditFacadeTest extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     test_FA_44_config_functions_revert_if_called_non_configurator(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_FA_45_revertIfBalanceLessThan_works_correctly(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

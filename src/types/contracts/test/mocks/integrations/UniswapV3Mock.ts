@@ -143,7 +143,11 @@ export interface UniswapV3MockInterface extends utils.Interface {
     "exactOutput((bytes,address,uint256,uint256,uint256))": FunctionFragment;
     "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))": FunctionFragment;
     "failed()": FunctionFragment;
-    "rates(address,address)": FunctionFragment;
+    "quoteExactInput(bytes,uint256)": FunctionFragment;
+    "quoteExactInputSingle(address,address,uint24,uint256,uint160)": FunctionFragment;
+    "quoteExactOutput(bytes,uint256)": FunctionFragment;
+    "rates(address,address,uint24)": FunctionFragment;
+    "setRate(address,address,uint24,uint256)": FunctionFragment;
     "setRate(address,address,uint256)": FunctionFragment;
   };
 
@@ -155,8 +159,12 @@ export interface UniswapV3MockInterface extends utils.Interface {
       | "exactOutput"
       | "exactOutputSingle"
       | "failed"
+      | "quoteExactInput"
+      | "quoteExactInputSingle"
+      | "quoteExactOutput"
       | "rates"
-      | "setRate"
+      | "setRate(address,address,uint24,uint256)"
+      | "setRate(address,address,uint256)"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
@@ -178,11 +186,27 @@ export interface UniswapV3MockInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "rates",
-    values: [string, string]
+    functionFragment: "quoteExactInput",
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "setRate",
+    functionFragment: "quoteExactInputSingle",
+    values: [string, string, BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "quoteExactOutput",
+    values: [BytesLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "rates",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setRate(address,address,uint24,uint256)",
+    values: [string, string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setRate(address,address,uint256)",
     values: [string, string, BigNumberish]
   ): string;
 
@@ -201,8 +225,27 @@ export interface UniswapV3MockInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "quoteExactInput",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "quoteExactInputSingle",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "quoteExactOutput",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "rates", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setRate", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setRate(address,address,uint24,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setRate(address,address,uint256)",
+    data: BytesLike
+  ): Result;
 
   events: {
     "log(string)": EventFragment;
@@ -443,13 +486,43 @@ export interface UniswapV3Mock extends BaseContract {
 
     failed(overrides?: CallOverrides): Promise<[boolean]>;
 
+    quoteExactInput(
+      path: BytesLike,
+      amountIn: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    quoteExactInputSingle(
+      tokenIn: string,
+      tokenOut: string,
+      fee: BigNumberish,
+      amountIn: BigNumberish,
+      sqrtPriceLimitX96: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    quoteExactOutput(
+      path: BytesLike,
+      amountOut: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     rates(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    setRate(
+    "setRate(address,address,uint24,uint256)"(
+      tokenFrom: string,
+      tokenTo: string,
+      fee: BigNumberish,
+      rate_RAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setRate(address,address,uint256)"(
       tokenFrom: string,
       tokenTo: string,
       rate_RAY: BigNumberish,
@@ -481,13 +554,43 @@ export interface UniswapV3Mock extends BaseContract {
 
   failed(overrides?: CallOverrides): Promise<boolean>;
 
+  quoteExactInput(
+    path: BytesLike,
+    amountIn: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  quoteExactInputSingle(
+    tokenIn: string,
+    tokenOut: string,
+    fee: BigNumberish,
+    amountIn: BigNumberish,
+    sqrtPriceLimitX96: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  quoteExactOutput(
+    path: BytesLike,
+    amountOut: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   rates(
     arg0: string,
     arg1: string,
+    arg2: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  setRate(
+  "setRate(address,address,uint24,uint256)"(
+    tokenFrom: string,
+    tokenTo: string,
+    fee: BigNumberish,
+    rate_RAY: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setRate(address,address,uint256)"(
     tokenFrom: string,
     tokenTo: string,
     rate_RAY: BigNumberish,
@@ -519,13 +622,43 @@ export interface UniswapV3Mock extends BaseContract {
 
     failed(overrides?: CallOverrides): Promise<boolean>;
 
-    rates(
-      arg0: string,
-      arg1: string,
+    quoteExactInput(
+      path: BytesLike,
+      amountIn: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    setRate(
+    quoteExactInputSingle(
+      tokenIn: string,
+      tokenOut: string,
+      fee: BigNumberish,
+      amountIn: BigNumberish,
+      sqrtPriceLimitX96: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    quoteExactOutput(
+      path: BytesLike,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    rates(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "setRate(address,address,uint24,uint256)"(
+      tokenFrom: string,
+      tokenTo: string,
+      fee: BigNumberish,
+      rate_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setRate(address,address,uint256)"(
       tokenFrom: string,
       tokenTo: string,
       rate_RAY: BigNumberish,
@@ -642,13 +775,43 @@ export interface UniswapV3Mock extends BaseContract {
 
     failed(overrides?: CallOverrides): Promise<BigNumber>;
 
+    quoteExactInput(
+      path: BytesLike,
+      amountIn: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    quoteExactInputSingle(
+      tokenIn: string,
+      tokenOut: string,
+      fee: BigNumberish,
+      amountIn: BigNumberish,
+      sqrtPriceLimitX96: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    quoteExactOutput(
+      path: BytesLike,
+      amountOut: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     rates(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    setRate(
+    "setRate(address,address,uint24,uint256)"(
+      tokenFrom: string,
+      tokenTo: string,
+      fee: BigNumberish,
+      rate_RAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setRate(address,address,uint256)"(
       tokenFrom: string,
       tokenTo: string,
       rate_RAY: BigNumberish,
@@ -681,13 +844,43 @@ export interface UniswapV3Mock extends BaseContract {
 
     failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    quoteExactInput(
+      path: BytesLike,
+      amountIn: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    quoteExactInputSingle(
+      tokenIn: string,
+      tokenOut: string,
+      fee: BigNumberish,
+      amountIn: BigNumberish,
+      sqrtPriceLimitX96: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    quoteExactOutput(
+      path: BytesLike,
+      amountOut: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     rates(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setRate(
+    "setRate(address,address,uint24,uint256)"(
+      tokenFrom: string,
+      tokenTo: string,
+      fee: BigNumberish,
+      rate_RAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setRate(address,address,uint256)"(
       tokenFrom: string,
       tokenTo: string,
       rate_RAY: BigNumberish,

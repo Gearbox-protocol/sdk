@@ -13,7 +13,11 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -22,71 +26,220 @@ import type {
   OnEvent,
 } from "../../../common";
 
-export declare namespace PathFinder {
-  export type TradePathStruct = {
-    path: string[];
-    rate: BigNumberish;
-    expectedAmount: BigNumberish;
-  };
+export type BalanceStruct = { token: string; balance: BigNumberish };
 
-  export type TradePathStructOutput = [string[], BigNumber, BigNumber] & {
-    path: string[];
-    rate: BigNumber;
-    expectedAmount: BigNumber;
-  };
-}
+export type BalanceStructOutput = [string, BigNumber] & {
+  token: string;
+  balance: BigNumber;
+};
+
+export type ClosePathTaskStruct = {
+  balances: BalanceStruct[];
+  underlying: string;
+  connectors: string[];
+  adapters: string[];
+  gasPriceUnderlyingRAY: BigNumberish;
+  slippageFactor: BigNumberish;
+};
+
+export type ClosePathTaskStructOutput = [
+  BalanceStructOutput[],
+  string,
+  string[],
+  string[],
+  BigNumber,
+  BigNumber
+] & {
+  balances: BalanceStructOutput[];
+  underlying: string;
+  connectors: string[];
+  adapters: string[];
+  gasPriceUnderlyingRAY: BigNumber;
+  slippageFactor: BigNumber;
+};
+
+export type MultiCallStruct = { target: string; callData: BytesLike };
+
+export type MultiCallStructOutput = [string, string] & {
+  target: string;
+  callData: string;
+};
+
+export type ClosePathResultStruct = {
+  calls: MultiCallStruct[];
+  underlyingBalance: BigNumberish;
+  gasUsage: BigNumberish;
+};
+
+export type ClosePathResultStructOutput = [
+  MultiCallStructOutput[],
+  BigNumber,
+  BigNumber
+] & {
+  calls: MultiCallStructOutput[];
+  underlyingBalance: BigNumber;
+  gasUsage: BigNumber;
+};
+
+export type SwapQuoteStruct = {
+  multiCall: MultiCallStruct;
+  amount: BigNumberish;
+  found: boolean;
+  gasUsage: BigNumberish;
+};
+
+export type SwapQuoteStructOutput = [
+  MultiCallStructOutput,
+  BigNumber,
+  boolean,
+  BigNumber
+] & {
+  multiCall: MultiCallStructOutput;
+  amount: BigNumber;
+  found: boolean;
+  gasUsage: BigNumber;
+};
 
 export interface PathFinderInterface extends utils.Interface {
   functions: {
-    "bestPath(address[],uint256,address,address,uint256,address[])": FunctionFragment;
-    "bestUniPath(uint8,address,uint256,address,address,uint256,address[])": FunctionFragment;
-    "convertPathToPathV3(address[],uint256)": FunctionFragment;
+    "curvePathFinder()": FunctionFragment;
+    "findBestPath(((address,uint256)[],address,address[],address[],uint256,uint256))": FunctionFragment;
+    "findBestPathIndex(tuple[][],address,address[],address[],uint256)": FunctionFragment;
+    "getBestPairSwap(address,address,uint256,uint256,address[])": FunctionFragment;
+    "getGasPriceUnderlyingRAY(address)": FunctionFragment;
+    "owner()": FunctionFragment;
+    "priceOracle()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "uniV2PathFinder()": FunctionFragment;
+    "uniV3PathFinder()": FunctionFragment;
     "version()": FunctionFragment;
+    "wethToken()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "bestPath"
-      | "bestUniPath"
-      | "convertPathToPathV3"
+      | "curvePathFinder"
+      | "findBestPath"
+      | "findBestPathIndex"
+      | "getBestPairSwap"
+      | "getGasPriceUnderlyingRAY"
+      | "owner"
+      | "priceOracle"
+      | "renounceOwnership"
+      | "transferOwnership"
+      | "uniV2PathFinder"
+      | "uniV3PathFinder"
       | "version"
+      | "wethToken"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "bestPath",
-    values: [string[], BigNumberish, string, string, BigNumberish, string[]]
+    functionFragment: "curvePathFinder",
+    values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "bestUniPath",
-    values: [
-      BigNumberish,
-      string,
-      BigNumberish,
-      string,
-      string,
-      BigNumberish,
-      string[]
-    ]
+    functionFragment: "findBestPath",
+    values: [ClosePathTaskStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "convertPathToPathV3",
-    values: [string[], BigNumberish]
+    functionFragment: "findBestPathIndex",
+    values: [BalanceStruct[][], string, string[], string[], BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getBestPairSwap",
+    values: [string, string, BigNumberish, BigNumberish, string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getGasPriceUnderlyingRAY",
+    values: [string]
+  ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "priceOracle",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "uniV2PathFinder",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "uniV3PathFinder",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
+  encodeFunctionData(functionFragment: "wethToken", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "bestPath", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "bestUniPath",
+    functionFragment: "curvePathFinder",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "convertPathToPathV3",
+    functionFragment: "findBestPath",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "findBestPathIndex",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getBestPairSwap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getGasPriceUnderlyingRAY",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "priceOracle",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "uniV2PathFinder",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "uniV3PathFinder",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "wethToken", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "OwnershipTransferred(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
+
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
+}
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface PathFinder extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -115,157 +268,279 @@ export interface PathFinder extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    bestPath(
-      adapters: string[],
-      swapType: BigNumberish,
-      from: string,
-      to: string,
-      amount: BigNumberish,
+    curvePathFinder(overrides?: CallOverrides): Promise<[string]>;
+
+    findBestPath(
+      task: ClosePathTaskStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    findBestPathIndex(
+      balances: BalanceStruct[][],
+      underlying: string,
       connectors: string[],
+      adapters: string[],
+      slippageFactor: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    bestUniPath(
-      swapInterface: BigNumberish,
-      router: string,
-      swapType: BigNumberish,
-      from: string,
-      to: string,
+    getBestPairSwap(
+      tokenIn: string,
+      tokenOut: string,
       amount: BigNumberish,
-      tokens: string[],
+      slippageFactor: BigNumberish,
+      adapters: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    convertPathToPathV3(
-      path: string[],
-      swapType: BigNumberish,
+    getGasPriceUnderlyingRAY(
+      underlying: string,
       overrides?: CallOverrides
-    ): Promise<[string] & { result: string }>;
+    ): Promise<[BigNumber]>;
+
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
+    priceOracle(overrides?: CallOverrides): Promise<[string]>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    uniV2PathFinder(overrides?: CallOverrides): Promise<[string]>;
+
+    uniV3PathFinder(overrides?: CallOverrides): Promise<[string]>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    wethToken(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  bestPath(
-    adapters: string[],
-    swapType: BigNumberish,
-    from: string,
-    to: string,
-    amount: BigNumberish,
+  curvePathFinder(overrides?: CallOverrides): Promise<string>;
+
+  findBestPath(
+    task: ClosePathTaskStruct,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  findBestPathIndex(
+    balances: BalanceStruct[][],
+    underlying: string,
     connectors: string[],
+    adapters: string[],
+    slippageFactor: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  bestUniPath(
-    swapInterface: BigNumberish,
-    router: string,
-    swapType: BigNumberish,
-    from: string,
-    to: string,
+  getBestPairSwap(
+    tokenIn: string,
+    tokenOut: string,
     amount: BigNumberish,
-    tokens: string[],
+    slippageFactor: BigNumberish,
+    adapters: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  convertPathToPathV3(
-    path: string[],
-    swapType: BigNumberish,
+  getGasPriceUnderlyingRAY(
+    underlying: string,
     overrides?: CallOverrides
-  ): Promise<string>;
+  ): Promise<BigNumber>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  priceOracle(overrides?: CallOverrides): Promise<string>;
+
+  renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  transferOwnership(
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  uniV2PathFinder(overrides?: CallOverrides): Promise<string>;
+
+  uniV3PathFinder(overrides?: CallOverrides): Promise<string>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
 
+  wethToken(overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
-    bestPath(
-      adapters: string[],
-      swapType: BigNumberish,
-      from: string,
-      to: string,
-      amount: BigNumberish,
+    curvePathFinder(overrides?: CallOverrides): Promise<string>;
+
+    findBestPath(
+      task: ClosePathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<ClosePathResultStructOutput>;
+
+    findBestPathIndex(
+      balances: BalanceStruct[][],
+      underlying: string,
       connectors: string[],
+      adapters: string[],
+      slippageFactor: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<PathFinder.TradePathStructOutput>;
+    ): Promise<
+      [ClosePathResultStructOutput, BigNumber] & {
+        result: ClosePathResultStructOutput;
+        bestIndex: BigNumber;
+      }
+    >;
 
-    bestUniPath(
-      swapInterface: BigNumberish,
-      router: string,
-      swapType: BigNumberish,
-      from: string,
-      to: string,
+    getBestPairSwap(
+      tokenIn: string,
+      tokenOut: string,
       amount: BigNumberish,
-      tokens: string[],
+      slippageFactor: BigNumberish,
+      adapters: string[],
       overrides?: CallOverrides
-    ): Promise<PathFinder.TradePathStructOutput>;
+    ): Promise<SwapQuoteStructOutput>;
 
-    convertPathToPathV3(
-      path: string[],
-      swapType: BigNumberish,
+    getGasPriceUnderlyingRAY(
+      underlying: string,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    priceOracle(overrides?: CallOverrides): Promise<string>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    uniV2PathFinder(overrides?: CallOverrides): Promise<string>;
+
+    uniV3PathFinder(overrides?: CallOverrides): Promise<string>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    wethToken(overrides?: CallOverrides): Promise<string>;
   };
 
-  filters: {};
+  filters: {
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): OwnershipTransferredEventFilter;
+  };
 
   estimateGas: {
-    bestPath(
-      adapters: string[],
-      swapType: BigNumberish,
-      from: string,
-      to: string,
-      amount: BigNumberish,
+    curvePathFinder(overrides?: CallOverrides): Promise<BigNumber>;
+
+    findBestPath(
+      task: ClosePathTaskStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    findBestPathIndex(
+      balances: BalanceStruct[][],
+      underlying: string,
       connectors: string[],
+      adapters: string[],
+      slippageFactor: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    bestUniPath(
-      swapInterface: BigNumberish,
-      router: string,
-      swapType: BigNumberish,
-      from: string,
-      to: string,
+    getBestPairSwap(
+      tokenIn: string,
+      tokenOut: string,
       amount: BigNumberish,
-      tokens: string[],
+      slippageFactor: BigNumberish,
+      adapters: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    convertPathToPathV3(
-      path: string[],
-      swapType: BigNumberish,
+    getGasPriceUnderlyingRAY(
+      underlying: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    uniV2PathFinder(overrides?: CallOverrides): Promise<BigNumber>;
+
+    uniV3PathFinder(overrides?: CallOverrides): Promise<BigNumber>;
+
     version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    wethToken(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    bestPath(
-      adapters: string[],
-      swapType: BigNumberish,
-      from: string,
-      to: string,
-      amount: BigNumberish,
+    curvePathFinder(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    findBestPath(
+      task: ClosePathTaskStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    findBestPathIndex(
+      balances: BalanceStruct[][],
+      underlying: string,
       connectors: string[],
+      adapters: string[],
+      slippageFactor: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    bestUniPath(
-      swapInterface: BigNumberish,
-      router: string,
-      swapType: BigNumberish,
-      from: string,
-      to: string,
+    getBestPairSwap(
+      tokenIn: string,
+      tokenOut: string,
       amount: BigNumberish,
-      tokens: string[],
+      slippageFactor: BigNumberish,
+      adapters: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    convertPathToPathV3(
-      path: string[],
-      swapType: BigNumberish,
+    getGasPriceUnderlyingRAY(
+      underlying: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    uniV2PathFinder(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    uniV3PathFinder(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    wethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }
