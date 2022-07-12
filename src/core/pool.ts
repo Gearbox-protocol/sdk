@@ -1,5 +1,5 @@
 import { BigNumber, Signer } from "ethers";
-import { IAppPoolService, IPoolService__factory } from "../types";
+import { IPoolService, IPoolService__factory } from "../types";
 import { PoolDataPayload } from "../payload/pool";
 import { rayToNumber } from "../utils/formatter";
 
@@ -49,7 +49,7 @@ export class PoolData {
     this.cumulativeIndex_RAY = BigNumber.from(payload.cumulativeIndex_RAY || 0);
   }
 
-  getContractETH(signer: Signer): IAppPoolService {
+  getContractETH(signer: Signer): IPoolService {
     return IPoolService__factory.connect(this.address, signer);
   }
 

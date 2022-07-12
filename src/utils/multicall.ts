@@ -1,11 +1,39 @@
 import { ethers } from "ethers";
-import { Multicall2 } from "../types/Multicall2";
-
-import { Multicall2__factory } from "../types/factories/Multicall2__factory";
+import { Multicall2, Multicall2__factory } from "../types";
 
 export interface CallData<T extends ethers.utils.Interface> {
   method: keyof T["functions"];
   params?: any;
+}
+
+export interface MCall<T extends ethers.utils.Interface> {
+  address: string;
+  interface: T;
+  method: keyof T["functions"];
+  params?: any;
+}
+
+export async function multicall<R extends Array<any>>(
+  calls: Array<MCall<any>>,
+  p: ethers.providers.Provider
+): Promise<R> {
+  const multiCallContract = Multicall2__factory.connect(
+    "0x5ba1e12693dc8f9c48aad8770482f4739beed696",
+    p
+  );
+
+  const { returnData } = await multiCallContract.callStatic.aggregate(
+    calls.map(c => ({
+      target: c.address,
+      callData: c.interface.encodeFunctionData(c.method as string, c.params)
+    }))
+  );
+
+  return returnData
+    .map((d, num) =>
+      calls[num].interface.decodeFunctionResult(calls[num].method as string, d)
+    )
+    .map(r => r[0]) as R;
 }
 
 export class MultiCallContract<T extends ethers.utils.Interface> {
@@ -29,12 +57,12 @@ export class MultiCallContract<T extends ethers.utils.Interface> {
 
   async call<R extends Array<any>>(data: Array<CallData<T>>): Promise<R> {
     const { returnData } = await this._multiCall.callStatic.aggregate(
-      data.map((c) => ({
+      data.map(c => ({
         target: this._address,
         callData: this._interface.encodeFunctionData(
           c.method as string,
           c.params
-        ),
+        )
       }))
     );
 
@@ -42,7 +70,7 @@ export class MultiCallContract<T extends ethers.utils.Interface> {
       .map((d, num) =>
         this._interface.decodeFunctionResult(data[num].method as string, d)
       )
-      .map((r) => r[0]) as R;
+      .map(r => r[0]) as R;
   }
 
   get address(): string {

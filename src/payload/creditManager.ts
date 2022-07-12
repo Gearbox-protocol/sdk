@@ -1,5 +1,5 @@
 import { BigNumberish, BigNumber } from "ethers";
-import { CreditManagerDataStructOutput } from "../typesV2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
+import { CreditManagerDataStructOutput } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 
 export interface AdapterPayload {
   allowedContract: string;

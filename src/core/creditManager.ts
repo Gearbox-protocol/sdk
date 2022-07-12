@@ -1,12 +1,14 @@
 import { BigNumber, ethers, Signer } from "ethers";
-
 import {
   CreditManagerDataPayload,
   CreditManagerStatPayload
 } from "../payload/creditManager";
 
-import { IAppCreditManager, IAppCreditManager__factory } from "../types";
-import { ICreditFacade__factory } from "../typesV2";
+import {
+  ICreditManager,
+  ICreditManager__factory,
+  ICreditFacade__factory
+} from "../types";
 
 import { MultiCall } from "./multicall";
 import {
@@ -43,22 +45,27 @@ export class CreditManagerData {
     this.id = payload.addr;
     this.address = payload.addr;
 
-    this.underlyingToken = payload.underlying;
+    this.underlyingToken = payload.underlying || "";
 
-    this.isWETH = payload.isWETH;
-    this.canBorrow = payload.canBorrow;
+    this.isWETH = payload.isWETH || false;
+    this.canBorrow = payload.canBorrow || false;
 
     this.borrowRate =
-      payload.borrowRate.mul(PERCENTAGE_FACTOR).mul(100).div(RAY).toNumber() /
-      PERCENTAGE_FACTOR;
-    this.minAmount = payload.minAmount;
-    this.maxAmount = payload.maxAmount;
+      BigNumber.from(payload.borrowRate || 0)
+        .mul(PERCENTAGE_FACTOR)
+        .mul(100)
+        .div(RAY)
+        .toNumber() / PERCENTAGE_FACTOR;
+    this.minAmount = BigNumber.from(payload.minAmount || 0);
+    this.maxAmount = BigNumber.from(payload.maxAmount || 0);
 
-    this.maxLeverageFactor = payload.maxLeverageFactor.toNumber();
-    this.availableLiquidity = payload.availableLiquidity;
+    this.maxLeverageFactor = BigNumber.from(
+      payload.maxLeverageFactor || 0
+    ).toNumber();
+    this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
 
-    this.allowedTokens = payload.collateralTokens;
-    this.adapters = payload.adapters.reduce<Record<string, string>>(
+    this.allowedTokens = payload.collateralTokens || [];
+    this.adapters = (payload.adapters || []).reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({
         ...acc,
         [allowedContract]: adapter
@@ -75,12 +82,20 @@ export class CreditManagerData {
 
       return acc;
     }, {});
-    this.version = payload.version;
-    this.creditFacade = payload.creditFacade;
-    this.isDegenMode = payload.isDegenMode;
-    this.degenNFT = payload.degenNFT;
-    this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden;
-    this.forbiddenTokenMask = payload.forbiddenTokenMask;
+    this.version = payload.version || 1;
+    this.creditFacade = payload.creditFacade || "";
+    this.isDegenMode = payload.isDegenMode || false;
+    this.degenNFT = payload.degenNFT || "";
+    this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden || false;
+    this.forbiddenTokenMask = BigNumber.from(payload.forbiddenTokenMask || 0);
+  }
+
+  get isPaused(): boolean {
+    return false;
+  }
+
+  getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager {
+    return ICreditManager__factory.connect(this.address, signer);
   }
 
   contractToAdapter(contractAddress: string): string | undefined {
@@ -152,16 +167,6 @@ export class CreditManagerData {
       );
 
     return true;
-  }
-
-  getContractETH(
-    signer: Signer | ethers.providers.Provider
-  ): IAppCreditManager {
-    return IAppCreditManager__factory.connect(this.address, signer);
-  }
-
-  get isPaused(): boolean {
-    return false;
   }
 }
 

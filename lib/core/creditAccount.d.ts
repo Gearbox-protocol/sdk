@@ -1,6 +1,6 @@
 import { BigNumber } from "ethers";
 import { CreditAccountDataExtendedPayload, CreditAccountDataPayload } from "../payload/creditAccount";
-import { TokenData } from "./tokenData";
+import { TokenData } from "../tokens/tokenData";
 export declare type Balance = {
     address: string;
     balance: BigNumber;

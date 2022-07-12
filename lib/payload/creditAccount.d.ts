@@ -1,9 +1,4 @@
-import { BigNumberish } from "ethers";
-import { CreditAccountDataStructOutput } from "../typesV2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
-export interface TokenBalancePayload {
-    token: string;
-    balance: BigNumberish;
-    isAllowed: boolean;
-}
+import { CreditAccountDataStructOutput } from "../types/contracts/core/DataCompressor";
+export declare type TokenBalancePayload = CreditAccountDataStructOutput["balances"];
 export declare type CreditAccountDataPayload = CreditAccountDataStructOutput;
 export declare type CreditAccountDataExtendedPayload = CreditAccountDataStructOutput;

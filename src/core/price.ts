@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { TokenData } from "./tokenData";
+import { TokenData } from "../tokens/tokenData";
 
 export const PRICE_DECIMALS = 1000;
 
