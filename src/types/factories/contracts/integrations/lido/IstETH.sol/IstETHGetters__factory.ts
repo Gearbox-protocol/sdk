@@ -5,9 +5,9 @@
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
 import type {
-  IstETH,
-  IstETHInterface,
-} from "../../../../contracts/integrations/lido/IstETH";
+  IstETHGetters,
+  IstETHGettersInterface,
+} from "../../../../../contracts/integrations/lido/IstETH.sol/IstETHGetters";
 
 const _abi = [
   {
@@ -128,14 +128,40 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "decimals",
+    outputs: [
       {
-        internalType: "address",
-        name: "_referral",
-        type: "address",
+        internalType: "uint8",
+        name: "",
+        type: "uint8",
       },
     ],
-    name: "submit",
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getFee",
+    outputs: [
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_sharesAmount",
+        type: "uint256",
+      },
+    ],
+    name: "getPooledEthByShares",
     outputs: [
       {
         internalType: "uint256",
@@ -143,7 +169,97 @@ const _abi = [
         type: "uint256",
       },
     ],
-    stateMutability: "payable",
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_ethAmount",
+        type: "uint256",
+      },
+    ],
+    name: "getSharesByPooledEth",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTotalPooledEther",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTotalShares",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "name",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_account",
+        type: "address",
+      },
+    ],
+    name: "sharesOf",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "symbol",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -214,12 +330,15 @@ const _abi = [
   },
 ];
 
-export class IstETH__factory {
+export class IstETHGetters__factory {
   static readonly abi = _abi;
-  static createInterface(): IstETHInterface {
-    return new utils.Interface(_abi) as IstETHInterface;
+  static createInterface(): IstETHGettersInterface {
+    return new utils.Interface(_abi) as IstETHGettersInterface;
   }
-  static connect(address: string, signerOrProvider: Signer | Provider): IstETH {
-    return new Contract(address, _abi, signerOrProvider) as IstETH;
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IstETHGetters {
+    return new Contract(address, _abi, signerOrProvider) as IstETHGetters;
   }
 }

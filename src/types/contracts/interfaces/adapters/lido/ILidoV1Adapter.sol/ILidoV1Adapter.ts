@@ -30,20 +30,44 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
   functions: {
     "_gearboxAdapterType()": FunctionFragment;
     "_gearboxAdapterVersion()": FunctionFragment;
+    "allowance(address,address)": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
     "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
+    "decimals()": FunctionFragment;
+    "getFee()": FunctionFragment;
+    "getPooledEthByShares(uint256)": FunctionFragment;
+    "getSharesByPooledEth(uint256)": FunctionFragment;
+    "getTotalPooledEther()": FunctionFragment;
+    "getTotalShares()": FunctionFragment;
+    "name()": FunctionFragment;
     "setLimit(uint256)": FunctionFragment;
+    "sharesOf(address)": FunctionFragment;
+    "symbol()": FunctionFragment;
     "targetContract()": FunctionFragment;
+    "totalSupply()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
+      | "allowance"
+      | "balanceOf"
       | "creditFacade"
       | "creditManager"
+      | "decimals"
+      | "getFee"
+      | "getPooledEthByShares"
+      | "getSharesByPooledEth"
+      | "getTotalPooledEther"
+      | "getTotalShares"
+      | "name"
       | "setLimit"
+      | "sharesOf"
+      | "symbol"
       | "targetContract"
+      | "totalSupply"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -55,6 +79,11 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "allowance",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(
     functionFragment: "creditFacade",
     values?: undefined
   ): string;
@@ -62,12 +91,37 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     functionFragment: "creditManager",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
+  encodeFunctionData(functionFragment: "getFee", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getPooledEthByShares",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getSharesByPooledEth",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTotalPooledEther",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTotalShares",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setLimit",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "sharesOf", values: [string]): string;
+  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "targetContract",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalSupply",
     values?: undefined
   ): string;
 
@@ -79,6 +133,8 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     functionFragment: "_gearboxAdapterVersion",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
     data: BytesLike
@@ -87,9 +143,34 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     functionFragment: "creditManager",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getFee", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getPooledEthByShares",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getSharesByPooledEth",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTotalPooledEther",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTotalShares",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setLimit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "sharesOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalSupply",
     data: BytesLike
   ): Result;
 
@@ -138,45 +219,150 @@ export interface ILidoV1Adapter extends BaseContract {
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
 
+    allowance(
+      _owner: string,
+      _spender: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    balanceOf(
+      _account: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
+
+    decimals(overrides?: CallOverrides): Promise<[number]>;
+
+    getFee(overrides?: CallOverrides): Promise<[number]>;
+
+    getPooledEthByShares(
+      _sharesAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getSharesByPooledEth(
+      _ethAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getTotalPooledEther(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getTotalShares(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    name(overrides?: CallOverrides): Promise<[string]>;
 
     setLimit(
       _limit: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    sharesOf(_account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    symbol(overrides?: CallOverrides): Promise<[string]>;
+
     targetContract(overrides?: CallOverrides): Promise<[string]>;
+
+    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
 
   _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
 
+  allowance(
+    _owner: string,
+    _spender: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
   creditFacade(overrides?: CallOverrides): Promise<string>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
+
+  decimals(overrides?: CallOverrides): Promise<number>;
+
+  getFee(overrides?: CallOverrides): Promise<number>;
+
+  getPooledEthByShares(
+    _sharesAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getSharesByPooledEth(
+    _ethAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getTotalShares(overrides?: CallOverrides): Promise<BigNumber>;
+
+  name(overrides?: CallOverrides): Promise<string>;
 
   setLimit(
     _limit: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  symbol(overrides?: CallOverrides): Promise<string>;
+
   targetContract(overrides?: CallOverrides): Promise<string>;
+
+  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
 
+    allowance(
+      _owner: string,
+      _spender: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     creditFacade(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
+    decimals(overrides?: CallOverrides): Promise<number>;
+
+    getFee(overrides?: CallOverrides): Promise<number>;
+
+    getPooledEthByShares(
+      _sharesAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getSharesByPooledEth(
+      _ethAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getTotalShares(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<string>;
+
     setLimit(_limit: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
+    sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<string>;
+
     targetContract(overrides?: CallOverrides): Promise<string>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -189,16 +375,50 @@ export interface ILidoV1Adapter extends BaseContract {
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
 
+    allowance(
+      _owner: string,
+      _spender: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
+
+    decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPooledEthByShares(
+      _sharesAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getSharesByPooledEth(
+      _ethAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getTotalShares(overrides?: CallOverrides): Promise<BigNumber>;
+
+    name(overrides?: CallOverrides): Promise<BigNumber>;
 
     setLimit(
       _limit: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
     targetContract(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -210,15 +430,57 @@ export interface ILidoV1Adapter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    allowance(
+      _owner: string,
+      _spender: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      _account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getPooledEthByShares(
+      _sharesAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getSharesByPooledEth(
+      _ethAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTotalPooledEther(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTotalShares(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setLimit(
       _limit: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    sharesOf(
+      _account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

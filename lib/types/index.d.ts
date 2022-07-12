@@ -151,8 +151,10 @@ export type { ICurvePoolStETH } from "./contracts/integrations/curve/ICurvePoolS
 export { ICurvePoolStETH__factory } from "./factories/contracts/integrations/curve/ICurvePoolStETH__factory";
 export type { ICurveRegistry } from "./contracts/integrations/curve/ICurveRegistry";
 export { ICurveRegistry__factory } from "./factories/contracts/integrations/curve/ICurveRegistry__factory";
-export type { IstETH } from "./contracts/integrations/lido/IstETH";
-export { IstETH__factory } from "./factories/contracts/integrations/lido/IstETH__factory";
+export type { IstETH } from "./contracts/integrations/lido/IstETH.sol/IstETH";
+export { IstETH__factory } from "./factories/contracts/integrations/lido/IstETH.sol/IstETH__factory";
+export type { IstETHGetters } from "./contracts/integrations/lido/IstETH.sol/IstETHGetters";
+export { IstETHGetters__factory } from "./factories/contracts/integrations/lido/IstETH.sol/IstETHGetters__factory";
 export type { IQuoter } from "./contracts/integrations/uniswap/IQuoter";
 export { IQuoter__factory } from "./factories/contracts/integrations/uniswap/IQuoter__factory";
 export type { IUniswapV2Router01 } from "./contracts/integrations/uniswap/IUniswapV2Router01";

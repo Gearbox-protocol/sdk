@@ -1,1 +1,2 @@
-export type { IstETH } from "./IstETH";
+import type * as istEthSol from "./IstETH.sol";
+export type { istEthSol };

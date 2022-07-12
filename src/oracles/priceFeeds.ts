@@ -232,6 +232,9 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
             type: OracleType.CHAINLINK_ORACLE,
             address: "0x2de7e4a9488488e0058b95854cc2f7955b35dc9b",
             kovan: "0xdCd1eB60388F340d7bF6584aa4295D95b355686c"
+        },
+        priceFeedUSD: {
+            type: OracleType.ZERO_ORACLE
         }
     },
 
@@ -301,6 +304,9 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
             type: OracleType.CHAINLINK_ORACLE,
             address: "0x91e9331556ed76c9393055719986409e11b56f73",
             kovan: "0xEfAe1275132C3D2EE009148748e3e3e384095E5f"
+        },
+        priceFeedUSD: {
+            type: OracleType.ZERO_ORACLE
         }
     },
 

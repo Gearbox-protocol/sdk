@@ -1,1 +1,1 @@
-export { IstETH__factory } from "./IstETH__factory";
+export * as istEthSol from "./IstETH.sol";
