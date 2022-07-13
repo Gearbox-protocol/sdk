@@ -43,8 +43,9 @@ export interface AbstractAdapterTestInterface extends utils.Interface {
     "test_AA_06A_executeSafeFastCheck_correctly_passes_to_credit_manager()": FunctionFragment;
     "test_AA_06B_executeSafeFastCheck_correctly_passes_to_credit_manager()": FunctionFragment;
     "test_AA_07_executeSafeFastCheck_correctly_sets_allowance()": FunctionFragment;
-    "test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager()": FunctionFragment;
-    "test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager()": FunctionFragment;
+    "test_AA_08A_execute_correctly_passes_to_credit_manager()": FunctionFragment;
+    "test_AA_08A_fullCheck_correctly_passes_to_credit_manager()": FunctionFragment;
+    "test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager()": FunctionFragment;
     "underlying()": FunctionFragment;
   };
 
@@ -66,8 +67,9 @@ export interface AbstractAdapterTestInterface extends utils.Interface {
       | "test_AA_06A_executeSafeFastCheck_correctly_passes_to_credit_manager"
       | "test_AA_06B_executeSafeFastCheck_correctly_passes_to_credit_manager"
       | "test_AA_07_executeSafeFastCheck_correctly_sets_allowance"
-      | "test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager"
-      | "test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager"
+      | "test_AA_08A_execute_correctly_passes_to_credit_manager"
+      | "test_AA_08A_fullCheck_correctly_passes_to_credit_manager"
+      | "test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager"
       | "underlying"
   ): FunctionFragment;
 
@@ -124,11 +126,15 @@ export interface AbstractAdapterTestInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager",
+    functionFragment: "test_AA_08A_execute_correctly_passes_to_credit_manager",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager",
+    functionFragment: "test_AA_08A_fullCheck_correctly_passes_to_credit_manager",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -189,11 +195,15 @@ export interface AbstractAdapterTestInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager",
+    functionFragment: "test_AA_08A_execute_correctly_passes_to_credit_manager",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager",
+    functionFragment: "test_AA_08A_fullCheck_correctly_passes_to_credit_manager",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
@@ -630,11 +640,15 @@ export interface AbstractAdapterTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager(
+    test_AA_08A_execute_correctly_passes_to_credit_manager(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
+    test_AA_08A_fullCheck_correctly_passes_to_credit_manager(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -693,11 +707,15 @@ export interface AbstractAdapterTest extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager(
+  test_AA_08A_execute_correctly_passes_to_credit_manager(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
+  test_AA_08A_fullCheck_correctly_passes_to_credit_manager(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -754,11 +772,15 @@ export interface AbstractAdapterTest extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager(
+    test_AA_08A_execute_correctly_passes_to_credit_manager(
       overrides?: CallOverrides
     ): Promise<void>;
 
-    test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
+    test_AA_08A_fullCheck_correctly_passes_to_credit_manager(
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1010,11 +1032,15 @@ export interface AbstractAdapterTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager(
+    test_AA_08A_execute_correctly_passes_to_credit_manager(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
+    test_AA_08A_fullCheck_correctly_passes_to_credit_manager(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1076,11 +1102,15 @@ export interface AbstractAdapterTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    test_AA_08A_executeFullCheck_correctly_passes_to_credit_manager(
+    test_AA_08A_execute_correctly_passes_to_credit_manager(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    test_AA_08B_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
+    test_AA_08A_fullCheck_correctly_passes_to_credit_manager(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_AA_08C_executeMaxAllowanceFastCheck_correctly_passes_to_credit_manager(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

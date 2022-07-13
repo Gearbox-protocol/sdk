@@ -59,10 +59,14 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     "crv()": FunctionFragment;
     "deposit(uint256,uint256,bool)": FunctionFragment;
     "depositAll(uint256,bool)": FunctionFragment;
+    "lockFees()": FunctionFragment;
+    "lockRewards()": FunctionFragment;
     "minter()": FunctionFragment;
     "poolInfo(uint256)": FunctionFragment;
     "poolLength()": FunctionFragment;
+    "registry()": FunctionFragment;
     "staker()": FunctionFragment;
+    "stakerRewards()": FunctionFragment;
     "targetContract()": FunctionFragment;
     "updateStakedPhantomTokensMap()": FunctionFragment;
     "withdraw(uint256,uint256)": FunctionFragment;
@@ -79,10 +83,14 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
       | "crv"
       | "deposit"
       | "depositAll"
+      | "lockFees"
+      | "lockRewards"
       | "minter"
       | "poolInfo"
       | "poolLength"
+      | "registry"
       | "staker"
+      | "stakerRewards"
       | "targetContract"
       | "updateStakedPhantomTokensMap"
       | "withdraw"
@@ -115,6 +123,11 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     functionFragment: "depositAll",
     values: [BigNumberish, boolean]
   ): string;
+  encodeFunctionData(functionFragment: "lockFees", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "lockRewards",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "minter", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "poolInfo",
@@ -124,7 +137,12 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     functionFragment: "poolLength",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "registry", values?: undefined): string;
   encodeFunctionData(functionFragment: "staker", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "stakerRewards",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
     values?: undefined
@@ -162,10 +180,20 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "crv", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "depositAll", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "lockFees", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "lockRewards",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "minter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "poolInfo", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "poolLength", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "registry", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "staker", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "stakerRewards",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
     data: BytesLike
@@ -235,6 +263,10 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    lockFees(overrides?: CallOverrides): Promise<[string]>;
+
+    lockRewards(overrides?: CallOverrides): Promise<[string]>;
+
     minter(overrides?: CallOverrides): Promise<[string]>;
 
     poolInfo(
@@ -244,7 +276,11 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
 
     poolLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    registry(overrides?: CallOverrides): Promise<[string]>;
+
     staker(overrides?: CallOverrides): Promise<[string]>;
+
+    stakerRewards(overrides?: CallOverrides): Promise<[string]>;
 
     targetContract(overrides?: CallOverrides): Promise<[string]>;
 
@@ -289,6 +325,10 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  lockFees(overrides?: CallOverrides): Promise<string>;
+
+  lockRewards(overrides?: CallOverrides): Promise<string>;
+
   minter(overrides?: CallOverrides): Promise<string>;
 
   poolInfo(
@@ -298,7 +338,11 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
 
   poolLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+  registry(overrides?: CallOverrides): Promise<string>;
+
   staker(overrides?: CallOverrides): Promise<string>;
+
+  stakerRewards(overrides?: CallOverrides): Promise<string>;
 
   targetContract(overrides?: CallOverrides): Promise<string>;
 
@@ -343,6 +387,10 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    lockFees(overrides?: CallOverrides): Promise<string>;
+
+    lockRewards(overrides?: CallOverrides): Promise<string>;
+
     minter(overrides?: CallOverrides): Promise<string>;
 
     poolInfo(
@@ -352,7 +400,11 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
 
     poolLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+    registry(overrides?: CallOverrides): Promise<string>;
+
     staker(overrides?: CallOverrides): Promise<string>;
+
+    stakerRewards(overrides?: CallOverrides): Promise<string>;
 
     targetContract(overrides?: CallOverrides): Promise<string>;
 
@@ -398,13 +450,21 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    lockFees(overrides?: CallOverrides): Promise<BigNumber>;
+
+    lockRewards(overrides?: CallOverrides): Promise<BigNumber>;
+
     minter(overrides?: CallOverrides): Promise<BigNumber>;
 
     poolInfo(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     poolLength(overrides?: CallOverrides): Promise<BigNumber>;
 
+    registry(overrides?: CallOverrides): Promise<BigNumber>;
+
     staker(overrides?: CallOverrides): Promise<BigNumber>;
+
+    stakerRewards(overrides?: CallOverrides): Promise<BigNumber>;
 
     targetContract(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -454,6 +514,10 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    lockFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    lockRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     minter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     poolInfo(
@@ -463,7 +527,11 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
 
     poolLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    registry(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     staker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    stakerRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
