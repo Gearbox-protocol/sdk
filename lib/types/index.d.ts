@@ -151,6 +151,8 @@ export type { ICurvePoolStETH } from "./contracts/integrations/curve/ICurvePoolS
 export { ICurvePoolStETH__factory } from "./factories/contracts/integrations/curve/ICurvePoolStETH__factory";
 export type { ICurveRegistry } from "./contracts/integrations/curve/ICurveRegistry";
 export { ICurveRegistry__factory } from "./factories/contracts/integrations/curve/ICurveRegistry__factory";
+export type { ILidoOracle } from "./contracts/integrations/lido/ILidoOracle";
+export { ILidoOracle__factory } from "./factories/contracts/integrations/lido/ILidoOracle__factory";
 export type { IstETH } from "./contracts/integrations/lido/IstETH.sol/IstETH";
 export { IstETH__factory } from "./factories/contracts/integrations/lido/IstETH.sol/IstETH__factory";
 export type { IstETHGetters } from "./contracts/integrations/lido/IstETH.sol/IstETHGetters";

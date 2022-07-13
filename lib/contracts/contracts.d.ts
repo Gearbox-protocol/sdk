@@ -44,10 +44,15 @@ declare type ConvexParams = {
     protocol: Protocols.Convex;
     type: AdapterInterface.CONVEX_V1_BOOSTER | AdapterInterface.CONVEX_V1_CLAIM_ZAP;
 } & BaseContractParams;
-declare type ConvexPoolParams = {
+declare type ConvexExtraPoolParams = {
+    rewardToken: NormalToken;
+    poolAddress: Record<NetworkType, string>;
+};
+export declare type ConvexPoolParams = {
     protocol: Protocols.Convex;
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
     stakedToken: ConvexStakedPhantomToken;
+    extraRewards: Array<ConvexExtraPoolParams>;
 } & BaseContractParams;
 export declare type LidoParams = {
     protocol: Protocols.Lido;

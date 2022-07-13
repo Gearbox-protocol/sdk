@@ -38,6 +38,8 @@ export * from "./tokens/curveLP";
 export * from "./tokens/gear";
 export * from "./tokens/normal";
 export * from "./tokens/yearn";
+export * from "./apy/lidoAPY";
+export * from "./apy/convexAPY";
 export * from "./core/history";
 export { MultiCallContract } from "./utils/multicall";
 export { callRepeater } from "./utils/repeater";
