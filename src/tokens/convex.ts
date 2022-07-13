@@ -8,6 +8,7 @@ export type ConvexLPToken =
     | "cvx3Crv"
     | "cvxsteCRV"
     | "cvxFRAX3CRV"
+    | "cvxLUSD3CRV"
     | "cvxcrvPlain3andSUSD"
     | "cvxgusd3CRV";
 
@@ -15,6 +16,7 @@ export type ConvexStakedPhantomToken =
     | "stkcvx3Crv"
     | "stkcvxsteCRV"
     | "stkcvxFRAX3CRV"
+    | "stkcvxLUSD3CRV"
     | "stkcvxcrvPlain3andSUSD"
     | "stkcvxgusd3CRV";
 
@@ -109,6 +111,30 @@ export const convexTokens: Record<ConvexLPToken | ConvexStakedPhantomToken,
                 type: TradeType.ConvexStake,
                 contract: "CONVEX_FRAX3CRV_POOL",
                 tokenOut: "stkcvxFRAX3CRV"
+            }
+        ]
+    },
+
+    cvxLUSD3CRV: {
+        name: "cvxLUSD3CRV-f",
+        decimals: 18,
+
+        symbol: "cvxLUSD3CRV",
+        type: TokenType.CONVEX_LP_TOKEN,
+        pool: "CONVEX_LUSD3CRV_POOL",
+        pid: 33,
+        underlying: "LUSD3CRV",
+        stakedToken: "stkcvxLUSD3CRV",
+        lpActions: [
+            {
+                type: TradeType.ConvexWithdrawLP,
+                contract: "CONVEX_BOOSTER",
+                tokenOut: "LUSD3CRV"
+            },
+            {
+                type: TradeType.ConvexStake,
+                contract: "CONVEX_LUSD3CRV_POOL",
+                tokenOut: "stkcvxLUSD3CRV"
             }
         ]
     },
@@ -230,6 +256,30 @@ export const convexTokens: Record<ConvexLPToken | ConvexStakedPhantomToken,
                 type: TradeType.ConvexWithdrawAndUnwrap,
                 contract: "CONVEX_FRAX3CRV_POOL",
                 tokenOut: "FRAX3CRV"
+            }
+        ]
+    },
+
+    stkcvxLUSD3CRV: {
+        name: "stkcvxLUSD3CRV-f",
+        decimals: 18,
+
+        symbol: "stkcvxLUSD3CRV",
+        type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+        pool: "CONVEX_LUSD3CRV_POOL",
+        pid: 32,
+        underlying: "LUSD3CRV",
+        lpToken: "cvxLUSD3CRV",
+        lpActions: [
+            {
+                type: TradeType.ConvexWithdraw,
+                contract: "CONVEX_LUSD3CRV_POOL",
+                tokenOut: "cvxLUSD3CRV"
+            },
+            {
+                type: TradeType.ConvexWithdrawAndUnwrap,
+                contract: "CONVEX_LUSD3CRV_POOL",
+                tokenOut: "LUSD3CRV"
             }
         ]
     },
