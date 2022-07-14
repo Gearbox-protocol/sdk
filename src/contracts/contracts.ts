@@ -185,15 +185,15 @@ type ConvexParams = {
 } & BaseContractParams;
 
 type ConvexExtraPoolParams = {
-    rewardToken: NormalToken,
-    poolAddress: Record<NetworkType, string>
-}
+  rewardToken: NormalToken;
+  poolAddress: Record<NetworkType, string>;
+};
 
 export type ConvexPoolParams = {
   protocol: Protocols.Convex;
   type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
   stakedToken: ConvexStakedPhantomToken;
-  extraRewards: Array<ConvexExtraPoolParams>
+  extraRewards: Array<ConvexExtraPoolParams>;
 } & BaseContractParams;
 
 export type LidoParams = {
@@ -345,13 +345,13 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxcrvPlain3andSUSD",
     extraRewards: [
-        {
-            rewardToken: "SNX",
-            poolAddress: {
-                Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
-                Kovan: "0x26a535146557FA58FA37e3078FEAc523b554939C"
-            }
+      {
+        rewardToken: "SNX",
+        poolAddress: {
+          Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
+          Kovan: "0x26a535146557FA58FA37e3078FEAc523b554939C"
         }
+      }
     ]
   },
   CONVEX_STECRV_POOL: {
@@ -360,13 +360,13 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxsteCRV",
     extraRewards: [
-        {
-            rewardToken: "LDO",
-            poolAddress: {
-                Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
-                Kovan: "0xd0B1CC3B4839363b1eC92F35eF45794CB07B1183"
-            }
+      {
+        rewardToken: "LDO",
+        poolAddress: {
+          Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
+          Kovan: "0xd0B1CC3B4839363b1eC92F35eF45794CB07B1183"
         }
+      }
     ]
   },
   CONVEX_FRAX3CRV_POOL: {
@@ -375,20 +375,29 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxFRAX3CRV",
     extraRewards: [
-        {
-            rewardToken: "FXS",
-            poolAddress: {
-                Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
-                Kovan: "0x89869c2e79FC6EFf51e714F1239D53702B5CDFCD"
-            }
+      {
+        rewardToken: "FXS",
+        poolAddress: {
+          Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
+          Kovan: "0x89869c2e79FC6EFf51e714F1239D53702B5CDFCD"
         }
+      }
     ]
   },
   CONVEX_LUSD3CRV_POOL: {
     name: "Convex LUSD3CRV",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxLUSD3CRV"
+    stakedToken: "stkcvxLUSD3CRV",
+    extraRewards: [
+      {
+        rewardToken: "LQTY",
+        poolAddress: {
+          Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
+          Kovan: ""
+        }
+      }
+    ]
   },
   CONVEX_CLAIM_ZAP: {
     name: "Convex ZAP",

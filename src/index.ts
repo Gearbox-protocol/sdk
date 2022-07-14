@@ -47,7 +47,8 @@ export * from "./apy/lidoAPY";
 export * from "./apy/convexAPY";
 
 export * from "./core/history";
-export { MultiCallContract } from "./utils/multicall";
+export * from "./utils/multicall";
+export * from "./utils/types";
 export { callRepeater } from "./utils/repeater";
 export { getContractName } from "./contracts/contractsRegister";
 export { AdapterInterface } from "./contracts/adapters";

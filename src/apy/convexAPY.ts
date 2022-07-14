@@ -29,7 +29,6 @@ import { multicall, MCall } from "../utils/multicall";
 import { toBN, toSignificant } from "../utils/formatter";
 
 import { SECONDS_PER_YEAR, WAD, RAY, ADDRESS_0x0 } from "../core/constants";
-import { stringify } from "querystring";
 
 interface CurveAPRData {
   baseApy: number;
