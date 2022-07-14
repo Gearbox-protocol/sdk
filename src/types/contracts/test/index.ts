@@ -17,6 +17,8 @@ import type * as mocks from "./mocks";
 export type { mocks };
 import type * as oracles from "./oracles";
 export type { oracles };
+import type * as pathfinder from "./pathfinder";
+export type { pathfinder };
 import type * as pool from "./pool";
 export type { pool };
 import type * as suites from "./suites";

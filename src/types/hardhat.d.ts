@@ -465,6 +465,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditFacade__factory>;
     getContractFactory(
+      name: "ICreditFacadeBalanceChecker",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICreditFacadeBalanceChecker__factory>;
+    getContractFactory(
       name: "ICreditFacadeEvents",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditFacadeEvents__factory>;
@@ -520,6 +524,10 @@ declare module "hardhat/types/runtime" {
       name: "ILPPriceFeedExceptions",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ILPPriceFeedExceptions__factory>;
+    getContractFactory(
+      name: "IMerkleDistributor",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IMerkleDistributor__factory>;
     getContractFactory(
       name: "IPhantomERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -617,13 +625,33 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ZeroPriceFeed__factory>;
     getContractFactory(
+      name: "BalanceOps",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BalanceOps__factory>;
+    getContractFactory(
       name: "ConvexPathFinder",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ConvexPathFinder__factory>;
     getContractFactory(
+      name: "CurvePathFinder",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CurvePathFinder__factory>;
+    getContractFactory(
+      name: "ISwapper",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ISwapper__factory>;
+    getContractFactory(
       name: "PathFinder",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PathFinder__factory>;
+    getContractFactory(
+      name: "UniswapV2PathFinder",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniswapV2PathFinder__factory>;
+    getContractFactory(
+      name: "UniswapV3PathFinder",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniswapV3PathFinder__factory>;
     getContractFactory(
       name: "LinearInterestRateModel",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -636,6 +664,10 @@ declare module "hardhat/types/runtime" {
       name: "ContractUpgrader",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ContractUpgrader__factory>;
+    getContractFactory(
+      name: "MerkleDistributor",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MerkleDistributor__factory>;
     getContractFactory(
       name: "Multicall2",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -952,6 +984,18 @@ declare module "hardhat/types/runtime" {
       name: "ZeroFeedTest",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ZeroFeedTest__factory>;
+    getContractFactory(
+      name: "CurvePathFinderTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CurvePathFinderTest__factory>;
+    getContractFactory(
+      name: "UniswapV2PathFinderAdapterTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniswapV2PathFinderAdapterTest__factory>;
+    getContractFactory(
+      name: "UniswapV3PathFinderAdapterTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniswapV3PathFinderAdapterTest__factory>;
     getContractFactory(
       name: "PlaygroundTest",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -1579,6 +1623,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ICreditFacade>;
     getContractAt(
+      name: "ICreditFacadeBalanceChecker",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICreditFacadeBalanceChecker>;
+    getContractAt(
       name: "ICreditFacadeEvents",
       address: string,
       signer?: ethers.Signer
@@ -1648,6 +1697,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ILPPriceFeedExceptions>;
+    getContractAt(
+      name: "IMerkleDistributor",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IMerkleDistributor>;
     getContractAt(
       name: "IPhantomERC20",
       address: string,
@@ -1769,15 +1823,40 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ZeroPriceFeed>;
     getContractAt(
+      name: "BalanceOps",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BalanceOps>;
+    getContractAt(
       name: "ConvexPathFinder",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ConvexPathFinder>;
     getContractAt(
+      name: "CurvePathFinder",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CurvePathFinder>;
+    getContractAt(
+      name: "ISwapper",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ISwapper>;
+    getContractAt(
       name: "PathFinder",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.PathFinder>;
+    getContractAt(
+      name: "UniswapV2PathFinder",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniswapV2PathFinder>;
+    getContractAt(
+      name: "UniswapV3PathFinder",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniswapV3PathFinder>;
     getContractAt(
       name: "LinearInterestRateModel",
       address: string,
@@ -1793,6 +1872,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ContractUpgrader>;
+    getContractAt(
+      name: "MerkleDistributor",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MerkleDistributor>;
     getContractAt(
       name: "Multicall2",
       address: string,
@@ -2188,6 +2272,21 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ZeroFeedTest>;
+    getContractAt(
+      name: "CurvePathFinderTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CurvePathFinderTest>;
+    getContractAt(
+      name: "UniswapV2PathFinderAdapterTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniswapV2PathFinderAdapterTest>;
+    getContractAt(
+      name: "UniswapV3PathFinderAdapterTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniswapV3PathFinderAdapterTest>;
     getContractAt(
       name: "PlaygroundTest",
       address: string,

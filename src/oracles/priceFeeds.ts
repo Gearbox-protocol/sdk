@@ -422,6 +422,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
             curveSymbol: "FRAX3CRV"
         }
     },
+    cvxLUSD3CRV: {
+        priceFeedUSD: {
+            type: OracleType.LIKE_CURVE_LP_ORACLE,
+            curveSymbol: "LUSD3CRV"
+        }
+    },
     cvxcrvPlain3andSUSD: {
         priceFeedUSD: {
             type: OracleType.LIKE_CURVE_LP_ORACLE,
@@ -451,6 +457,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
         priceFeedUSD: {
             type: OracleType.LIKE_CURVE_LP_ORACLE,
             curveSymbol: "FRAX3CRV"
+        }
+    },
+    stkcvxLUSD3CRV: {
+        priceFeedUSD: {
+            type: OracleType.LIKE_CURVE_LP_ORACLE,
+            curveSymbol: "LUSD3CRV"
         }
     },
     stkcvxcrvPlain3andSUSD: {
