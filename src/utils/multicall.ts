@@ -31,7 +31,7 @@ export async function multicall<R extends Array<any>>(
     .map((d, num) =>
       calls[num].interface.decodeFunctionResult(calls[num].method as string, d)
     )
-    .map(r => r[0]) as R;
+    .map(r => (Array.isArray(r) && r.length <= 1 ? r[0] : r)) as R;
 }
 
 export class MultiCallContract<T extends ethers.utils.Interface> {
