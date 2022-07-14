@@ -3,8 +3,8 @@ import { TokenBase } from "./token";
 import { ConvexPoolContract } from "../contracts/contracts";
 import { CurveLPToken } from "./curveLP";
 import { TokenType } from "./tokenType";
-export declare type ConvexLPToken = "cvx3Crv" | "cvxsteCRV" | "cvxFRAX3CRV" | "cvxcrvPlain3andSUSD" | "cvxgusd3CRV";
-export declare type ConvexStakedPhantomToken = "stkcvx3Crv" | "stkcvxsteCRV" | "stkcvxFRAX3CRV" | "stkcvxcrvPlain3andSUSD" | "stkcvxgusd3CRV";
+export declare type ConvexLPToken = "cvx3Crv" | "cvxsteCRV" | "cvxFRAX3CRV" | "cvxLUSD3CRV" | "cvxcrvPlain3andSUSD" | "cvxgusd3CRV";
+export declare type ConvexStakedPhantomToken = "stkcvx3Crv" | "stkcvxsteCRV" | "stkcvxFRAX3CRV" | "stkcvxLUSD3CRV" | "stkcvxcrvPlain3andSUSD" | "stkcvxgusd3CRV";
 declare type BaseConvexToken = {
     pool: ConvexPoolContract;
     pid: number;

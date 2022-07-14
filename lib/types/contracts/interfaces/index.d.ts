@@ -32,6 +32,7 @@ import type * as external from "./external";
 export type { external };
 export type { IGearToken } from "./IGearToken";
 export type { IInterestRateModel } from "./IInterestRateModel";
+export type { IMerkleDistributor } from "./IMerkleDistributor";
 export type { IPhantomERC20 } from "./IPhantomERC20";
 export type { IPriceFeedAddress } from "./IPriceFeedAddress";
 export type { IPriceFeedType } from "./IPriceFeedType";
