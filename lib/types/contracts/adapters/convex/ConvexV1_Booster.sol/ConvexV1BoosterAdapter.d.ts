@@ -37,20 +37,24 @@ export interface ConvexV1BoosterAdapterInterface extends utils.Interface {
         "crv()": FunctionFragment;
         "deposit(uint256,uint256,bool)": FunctionFragment;
         "depositAll(uint256,bool)": FunctionFragment;
+        "lockFees()": FunctionFragment;
+        "lockRewards()": FunctionFragment;
         "minter()": FunctionFragment;
         "pause()": FunctionFragment;
         "paused()": FunctionFragment;
         "pidToPhantomToken(uint256)": FunctionFragment;
         "poolInfo(uint256)": FunctionFragment;
         "poolLength()": FunctionFragment;
+        "registry()": FunctionFragment;
         "staker()": FunctionFragment;
+        "stakerRewards()": FunctionFragment;
         "targetContract()": FunctionFragment;
         "unpause()": FunctionFragment;
         "updateStakedPhantomTokensMap()": FunctionFragment;
         "withdraw(uint256,uint256)": FunctionFragment;
         "withdrawAll(uint256)": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "_acl" | "_gearboxAdapterType" | "_gearboxAdapterVersion" | "creditFacade" | "creditManager" | "crv" | "deposit" | "depositAll" | "minter" | "pause" | "paused" | "pidToPhantomToken" | "poolInfo" | "poolLength" | "staker" | "targetContract" | "unpause" | "updateStakedPhantomTokensMap" | "withdraw" | "withdrawAll"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "_acl" | "_gearboxAdapterType" | "_gearboxAdapterVersion" | "creditFacade" | "creditManager" | "crv" | "deposit" | "depositAll" | "lockFees" | "lockRewards" | "minter" | "pause" | "paused" | "pidToPhantomToken" | "poolInfo" | "poolLength" | "registry" | "staker" | "stakerRewards" | "targetContract" | "unpause" | "updateStakedPhantomTokensMap" | "withdraw" | "withdrawAll"): FunctionFragment;
     encodeFunctionData(functionFragment: "_acl", values?: undefined): string;
     encodeFunctionData(functionFragment: "_gearboxAdapterType", values?: undefined): string;
     encodeFunctionData(functionFragment: "_gearboxAdapterVersion", values?: undefined): string;
@@ -59,13 +63,17 @@ export interface ConvexV1BoosterAdapterInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "crv", values?: undefined): string;
     encodeFunctionData(functionFragment: "deposit", values: [BigNumberish, BigNumberish, boolean]): string;
     encodeFunctionData(functionFragment: "depositAll", values: [BigNumberish, boolean]): string;
+    encodeFunctionData(functionFragment: "lockFees", values?: undefined): string;
+    encodeFunctionData(functionFragment: "lockRewards", values?: undefined): string;
     encodeFunctionData(functionFragment: "minter", values?: undefined): string;
     encodeFunctionData(functionFragment: "pause", values?: undefined): string;
     encodeFunctionData(functionFragment: "paused", values?: undefined): string;
     encodeFunctionData(functionFragment: "pidToPhantomToken", values: [BigNumberish]): string;
     encodeFunctionData(functionFragment: "poolInfo", values: [BigNumberish]): string;
     encodeFunctionData(functionFragment: "poolLength", values?: undefined): string;
+    encodeFunctionData(functionFragment: "registry", values?: undefined): string;
     encodeFunctionData(functionFragment: "staker", values?: undefined): string;
+    encodeFunctionData(functionFragment: "stakerRewards", values?: undefined): string;
     encodeFunctionData(functionFragment: "targetContract", values?: undefined): string;
     encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
     encodeFunctionData(functionFragment: "updateStakedPhantomTokensMap", values?: undefined): string;
@@ -79,13 +87,17 @@ export interface ConvexV1BoosterAdapterInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "crv", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "depositAll", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "lockFees", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "lockRewards", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "minter", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "pidToPhantomToken", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "poolInfo", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "poolLength", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "registry", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "staker", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "stakerRewards", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "targetContract", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "updateStakedPhantomTokensMap", data: BytesLike): Result;
@@ -135,6 +147,8 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
         depositAll(_pid: BigNumberish, _stake: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
+        lockFees(overrides?: CallOverrides): Promise<[string]>;
+        lockRewards(overrides?: CallOverrides): Promise<[string]>;
         minter(overrides?: CallOverrides): Promise<[string]>;
         pause(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -143,7 +157,9 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
         pidToPhantomToken(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
         poolInfo(i: BigNumberish, overrides?: CallOverrides): Promise<[IBooster.PoolInfoStructOutput]>;
         poolLength(overrides?: CallOverrides): Promise<[BigNumber]>;
+        registry(overrides?: CallOverrides): Promise<[string]>;
         staker(overrides?: CallOverrides): Promise<[string]>;
+        stakerRewards(overrides?: CallOverrides): Promise<[string]>;
         targetContract(overrides?: CallOverrides): Promise<[string]>;
         unpause(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -170,6 +186,8 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
     depositAll(_pid: BigNumberish, _stake: boolean, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
+    lockFees(overrides?: CallOverrides): Promise<string>;
+    lockRewards(overrides?: CallOverrides): Promise<string>;
     minter(overrides?: CallOverrides): Promise<string>;
     pause(overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -178,7 +196,9 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
     pidToPhantomToken(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
     poolInfo(i: BigNumberish, overrides?: CallOverrides): Promise<IBooster.PoolInfoStructOutput>;
     poolLength(overrides?: CallOverrides): Promise<BigNumber>;
+    registry(overrides?: CallOverrides): Promise<string>;
     staker(overrides?: CallOverrides): Promise<string>;
+    stakerRewards(overrides?: CallOverrides): Promise<string>;
     targetContract(overrides?: CallOverrides): Promise<string>;
     unpause(overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -201,13 +221,17 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
         crv(overrides?: CallOverrides): Promise<string>;
         deposit(_pid: BigNumberish, arg1: BigNumberish, _stake: boolean, overrides?: CallOverrides): Promise<boolean>;
         depositAll(_pid: BigNumberish, _stake: boolean, overrides?: CallOverrides): Promise<boolean>;
+        lockFees(overrides?: CallOverrides): Promise<string>;
+        lockRewards(overrides?: CallOverrides): Promise<string>;
         minter(overrides?: CallOverrides): Promise<string>;
         pause(overrides?: CallOverrides): Promise<void>;
         paused(overrides?: CallOverrides): Promise<boolean>;
         pidToPhantomToken(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
         poolInfo(i: BigNumberish, overrides?: CallOverrides): Promise<IBooster.PoolInfoStructOutput>;
         poolLength(overrides?: CallOverrides): Promise<BigNumber>;
+        registry(overrides?: CallOverrides): Promise<string>;
         staker(overrides?: CallOverrides): Promise<string>;
+        stakerRewards(overrides?: CallOverrides): Promise<string>;
         targetContract(overrides?: CallOverrides): Promise<string>;
         unpause(overrides?: CallOverrides): Promise<void>;
         updateStakedPhantomTokensMap(overrides?: CallOverrides): Promise<void>;
@@ -233,6 +257,8 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
         depositAll(_pid: BigNumberish, _stake: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
+        lockFees(overrides?: CallOverrides): Promise<BigNumber>;
+        lockRewards(overrides?: CallOverrides): Promise<BigNumber>;
         minter(overrides?: CallOverrides): Promise<BigNumber>;
         pause(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -241,7 +267,9 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
         pidToPhantomToken(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         poolInfo(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         poolLength(overrides?: CallOverrides): Promise<BigNumber>;
+        registry(overrides?: CallOverrides): Promise<BigNumber>;
         staker(overrides?: CallOverrides): Promise<BigNumber>;
+        stakerRewards(overrides?: CallOverrides): Promise<BigNumber>;
         targetContract(overrides?: CallOverrides): Promise<BigNumber>;
         unpause(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -269,6 +297,8 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
         depositAll(_pid: BigNumberish, _stake: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
+        lockFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        lockRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         minter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         pause(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -277,7 +307,9 @@ export interface ConvexV1BoosterAdapter extends BaseContract {
         pidToPhantomToken(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         poolInfo(i: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         poolLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        registry(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         staker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        stakerRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         unpause(overrides?: Overrides & {
             from?: string | Promise<string>;

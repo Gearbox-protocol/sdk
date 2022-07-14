@@ -16,6 +16,7 @@ export * as adapters from "./adapters";
 export * as external from "./external";
 export { IGearToken__factory } from "./IGearToken__factory";
 export { IInterestRateModel__factory } from "./IInterestRateModel__factory";
+export { IMerkleDistributor__factory } from "./IMerkleDistributor__factory";
 export { IPhantomERC20__factory } from "./IPhantomERC20__factory";
 export { IPriceFeedAddress__factory } from "./IPriceFeedAddress__factory";
 export { IPriceFeedType__factory } from "./IPriceFeedType__factory";

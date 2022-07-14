@@ -7,7 +7,7 @@ import { NormalToken } from "../tokens/normal";
 export declare type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 export declare type CurvePoolContract = "CURVE_3CRV_POOL" | "CURVE_STETH_GATEWAY" | "CURVE_FRAX_POOL" | "CURVE_LUSD_POOL" | "CURVE_GUSD_POOL" | "CURVE_SUSD_POOL" | "CURVE_SUSD_DEPOSIT";
 export declare type YearnVaultContract = "YEARN_DAI_VAULT" | "YEARN_USDC_VAULT" | "YEARN_WETH_VAULT" | "YEARN_WBTC_VAULT" | "YEARN_CURVE_FRAX_VAULT" | "YEARN_CURVE_STETH_VAULT";
-export declare type ConvexPoolContract = "CONVEX_3CRV_POOL" | "CONVEX_GUSD_POOL" | "CONVEX_SUSD_POOL" | "CONVEX_STECRV_POOL" | "CONVEX_FRAX3CRV_POOL";
+export declare type ConvexPoolContract = "CONVEX_3CRV_POOL" | "CONVEX_GUSD_POOL" | "CONVEX_SUSD_POOL" | "CONVEX_STECRV_POOL" | "CONVEX_FRAX3CRV_POOL" | "CONVEX_LUSD3CRV_POOL";
 export declare type SupportedContract = UniswapV2Contract | "UNISWAP_V3_ROUTER" | CurvePoolContract | YearnVaultContract | "CONVEX_BOOSTER" | ConvexPoolContract | "CONVEX_CLAIM_ZAP" | "LIDO_STETH_GATEWAY";
 export declare const contractsByNetwork: Record<NetworkType, Record<SupportedContract, string>>;
 export declare const UNISWAP_V3_QUOTER = "0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6";
