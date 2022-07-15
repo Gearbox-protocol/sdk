@@ -1,5 +1,4 @@
 import { BigNumber, providers } from "ethers";
-import { detectNetwork } from "../utils/network";
 import axios from "axios";
 import {
   ConvexPoolContract,
@@ -9,11 +8,7 @@ import {
   CurvePoolContract
 } from "../contracts/contracts";
 
-import {
-  tokenDataByNetwork,
-  supportedTokens,
-  SupportedToken
-} from "../tokens/token";
+import { tokenDataByNetwork, supportedTokens } from "../tokens/token";
 import { CurveLPToken } from "../tokens/curveLP";
 import { ConvexPhantomTokenData } from "../tokens/convex";
 
@@ -242,7 +237,7 @@ export async function getCurveBaseApy(
   const poolName = curveLPTokenToPoolName[curveLPToken];
 
   try {
-    const url = "http://localhost:8000/api/curve-apys";
+    const url = "https://www.convexfinance.com/api/curve-apys";
     const result = await axios.get<APYResponse>(url);
 
     const { baseApy = 0 } = result.data.apys[poolName] || {};
