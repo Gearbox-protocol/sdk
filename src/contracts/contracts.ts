@@ -325,6 +325,12 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BOOSTER
   },
+  CONVEX_CLAIM_ZAP: {
+    name: "Convex ZAP",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_CLAIM_ZAP
+  },
+
   CONVEX_3CRV_POOL: {
     name: "Convex 3crv",
     protocol: Protocols.Convex,
@@ -398,11 +404,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         }
       }
     ]
-  },
-  CONVEX_CLAIM_ZAP: {
-    name: "Convex ZAP",
-    protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_CLAIM_ZAP
   },
 
   LIDO_STETH_GATEWAY: {

@@ -1,9 +1,8 @@
 import { providers } from "ethers";
 
-import { detectNetwork } from "../utils/network";
 import { multicall, MCall } from "../utils/multicall";
 
-import { NetworkType, RAY, SECONDS_PER_YEAR } from "../core/constants";
+import { WAD, SECONDS_PER_YEAR, NetworkType } from "../core/constants";
 
 import {
   ILidoOracle__factory,
@@ -26,9 +25,10 @@ const lidoStEthAddress: Record<NetworkType, string> = {
   Kovan: ""
 };
 
-export async function getLidoApyRay(provider: providers.Provider) {
-  const networkType = await detectNetwork(provider);
-
+export async function getLidoApy(
+  provider: providers.Provider,
+  networkType: NetworkType
+) {
   if (!lidoOracleAddress[networkType]) {
     throw `No Lido APR oracle found on current network: ${networkType}`;
   }
@@ -46,7 +46,7 @@ export async function getLidoApyRay(provider: providers.Provider) {
   const lidoAPRRay = postTotalPooledEther
     .sub(preTotalPooledEther)
     .mul(SECONDS_PER_YEAR)
-    .mul(RAY)
+    .mul(WAD)
     .div(preTotalPooledEther.mul(timeElapsed));
 
   return [lidoAPRRay, fee] as const;
@@ -77,3 +77,5 @@ async function geLidoData(
     ]
   >(calls, provider);
 }
+
+export const LIDO_FEE_DECIMALS = 10000;
