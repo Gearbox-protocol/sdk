@@ -11,3 +11,4 @@ export declare function shortHash(address?: string): string;
 export declare const formatRate: (rate: BigNumberish | undefined) => string;
 export declare function formatDate(date: Date): string;
 export declare function formatHf(healthFactor: number): string;
+export declare function formatLeverage(leverage: number, decimals?: number): string;

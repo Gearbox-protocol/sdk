@@ -1,6 +1,6 @@
 import { BigNumber, Signer } from "ethers";
-import { IPoolService } from "../types";
 import { PoolDataPayload } from "../payload/pool";
+import { IPoolService } from "../types";
 export declare class PoolData {
     readonly id: string;
     readonly address: string;

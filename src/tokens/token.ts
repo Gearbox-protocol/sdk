@@ -1,4 +1,9 @@
-import { keyToLowercase, objectEntries, swapKeyValue } from "../utils/mappers";
+import {
+  keyToLowercase,
+  objectEntries,
+  swapKeyValue,
+  filterEmptyKeys
+} from "../utils/mappers";
 import { NetworkType } from "../core/constants";
 import { NormalToken, NormalTokenData, normalTokens } from "./normal";
 import {
@@ -224,6 +229,6 @@ export const tokenDataByNetwork: Record<
 
 export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
   Record<string, SupportedToken>
->((sum, [_, tokens]) => {
-  return { ...sum, ...keyToLowercase(swapKeyValue(tokens)) };
+>((acc, [_, tokens]) => {
+  return { ...acc, ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens))) };
 }, {});

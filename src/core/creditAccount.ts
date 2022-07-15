@@ -3,8 +3,9 @@ import {
   CreditAccountDataExtendedPayload,
   CreditAccountDataPayload
 } from "../payload/creditAccount";
-import { PERCENTAGE_FACTOR, RAY } from "./constants";
+import { PERCENTAGE_FACTOR, RAY, PERCENTAGE_DECIMALS } from "./constants";
 import { TokenData } from "../tokens/tokenData";
+import { priceCalc } from "./price";
 
 export type Balance = { address: string; balance: BigNumber };
 
@@ -33,7 +34,7 @@ export class CreditAccountData {
     this.borrower = payload.borrower;
     this.inUse = payload.inUse;
     this.creditManager = payload.creditManager;
-    this.underlyingToken = payload.underlyingToken;
+    this.underlyingToken = payload.underlying;
     this.borrowedAmountPlusInterest = BigNumber.from(
       payload.borrowedAmountPlusInterest
     );
@@ -43,7 +44,7 @@ export class CreditAccountData {
     this.borrowRate =
       BigNumber.from(payload.borrowRate)
         .mul(PERCENTAGE_FACTOR)
-        .mul(100)
+        .mul(PERCENTAGE_DECIMALS)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
 
@@ -64,40 +65,45 @@ export class CreditAccountData {
     prices: Record<string, number>,
     tokens: Record<string, TokenData>
   ): Array<Balance> {
-    const priceCalc = (addr: string, amount: BigNumber) => {
-      const price = prices[addr] || 0;
-      const { decimals = 18 } = tokens[addr] || {};
-
-      return amount
-        .mul(Math.floor(1000 * price))
-        .div(BigNumber.from(10).pow(decimals));
-    };
-
-    const tokensAbcComparator = (t1?: TokenData, t2?: TokenData) => {
-      const { symbol: symbol1 = "" } = t1 || {};
-      const { symbol: symbol2 = "" } = t2 || {};
-
-      return symbol1 > symbol2 ? 1 : -1;
-    };
-
     const safeBalances = this.balances || [];
 
-    return Object.entries(safeBalances)
-      .sort(([addr1, amount1], [addr2, amount2]) => {
-        const addr1Lc = addr1.toLowerCase();
-        const addr2Lc = addr2.toLowerCase();
-
-        const price1 = priceCalc(addr1Lc, amount1);
-        const price2 = priceCalc(addr2Lc, amount2);
-
-        return price1.eq(price2)
-          ? tokensAbcComparator(tokens[addr1Lc], tokens[addr2Lc])
-          : price1.gt(price2)
-          ? -1
-          : 1;
-      })
-      .map(([address, balance]) => ({ address, balance }));
+    return sortBalances(safeBalances, prices, tokens).map(
+      ([address, balance]) => ({ address, balance })
+    );
   }
+}
+
+export function sortBalances(
+  balances: Record<string, BigNumber>,
+  prices: Record<string, number>,
+  tokens: Record<string, TokenData>
+) {
+  return Object.entries(balances).sort(([addr1, amount1], [addr2, amount2]) => {
+    const addr1Lc = addr1.toLowerCase();
+    const addr2Lc = addr2.toLowerCase();
+
+    const token1 = tokens[addr1Lc];
+    const token2 = tokens[addr2Lc];
+
+    const price1 = prices[addr1Lc] || 1;
+    const price2 = prices[addr2Lc] || 1;
+
+    const assetValue1 = priceCalc(price1, amount1, token1);
+    const assetValue2 = priceCalc(price2, amount2, token2);
+
+    return assetValue1.eq(assetValue2)
+      ? tokensAbcComparator(token1, token2)
+      : assetValue1.gt(assetValue2)
+      ? -1
+      : 1;
+  });
+}
+
+export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
+  const { symbol: symbol1 = "" } = t1 || {};
+  const { symbol: symbol2 = "" } = t2 || {};
+
+  return symbol1 > symbol2 ? 1 : -1;
 }
 
 export class CreditAccountDataExtended extends CreditAccountData {

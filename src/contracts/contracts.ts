@@ -3,7 +3,12 @@
  * Gearbox. Generalized leverage protocol, which allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
  * (c) Gearbox.fi, 2021
  */
-import { keyToLowercase, objectEntries, swapKeyValue } from "../utils/mappers";
+import {
+  keyToLowercase,
+  objectEntries,
+  swapKeyValue,
+  filterEmptyKeys
+} from "../utils/mappers";
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "../core/constants";
 import { Protocols } from "./protocols";
@@ -179,10 +184,16 @@ type ConvexParams = {
     | AdapterInterface.CONVEX_V1_CLAIM_ZAP;
 } & BaseContractParams;
 
-type ConvexPoolParams = {
+type ConvexExtraPoolParams = {
+  rewardToken: NormalToken;
+  poolAddress: Record<NetworkType, string>;
+};
+
+export type ConvexPoolParams = {
   protocol: Protocols.Convex;
   type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
   stakedToken: ConvexStakedPhantomToken;
+  extraRewards: Array<ConvexExtraPoolParams>;
 } & BaseContractParams;
 
 export type LidoParams = {
@@ -314,46 +325,85 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BOOSTER
   },
+  CONVEX_CLAIM_ZAP: {
+    name: "Convex ZAP",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_CLAIM_ZAP
+  },
+
   CONVEX_3CRV_POOL: {
     name: "Convex 3crv",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvx3Crv"
+    stakedToken: "stkcvx3Crv",
+    extraRewards: []
   },
   CONVEX_GUSD_POOL: {
     name: "Convex GUSD",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxgusd3CRV"
+    stakedToken: "stkcvxgusd3CRV",
+    extraRewards: []
   },
   CONVEX_SUSD_POOL: {
     name: "Convex SUSD",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxcrvPlain3andSUSD"
+    stakedToken: "stkcvxcrvPlain3andSUSD",
+    extraRewards: [
+      {
+        rewardToken: "SNX",
+        poolAddress: {
+          Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
+          Kovan: "0x26a535146557FA58FA37e3078FEAc523b554939C"
+        }
+      }
+    ]
   },
   CONVEX_STECRV_POOL: {
     name: "Convex STECRV",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxsteCRV"
+    stakedToken: "stkcvxsteCRV",
+    extraRewards: [
+      {
+        rewardToken: "LDO",
+        poolAddress: {
+          Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
+          Kovan: "0xd0B1CC3B4839363b1eC92F35eF45794CB07B1183"
+        }
+      }
+    ]
   },
   CONVEX_FRAX3CRV_POOL: {
     name: "Convex FRAX3CRV",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxFRAX3CRV"
+    stakedToken: "stkcvxFRAX3CRV",
+    extraRewards: [
+      {
+        rewardToken: "FXS",
+        poolAddress: {
+          Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
+          Kovan: "0x89869c2e79FC6EFf51e714F1239D53702B5CDFCD"
+        }
+      }
+    ]
   },
   CONVEX_LUSD3CRV_POOL: {
     name: "Convex LUSD3CRV",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxLUSD3CRV"
-  },
-  CONVEX_CLAIM_ZAP: {
-    name: "Convex ZAP",
-    protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_CLAIM_ZAP
+    stakedToken: "stkcvxLUSD3CRV",
+    extraRewards: [
+      {
+        rewardToken: "LQTY",
+        poolAddress: {
+          Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
+          Kovan: ""
+        }
+      }
+    ]
   },
 
   LIDO_STETH_GATEWAY: {
@@ -370,6 +420,9 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
 
 export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
   Record<string, SupportedContract>
->((sum, [_, contracts]) => {
-  return { ...sum, ...keyToLowercase(swapKeyValue(contracts)) };
+>((acc, [_, contracts]) => {
+  return {
+    ...acc,
+    ...filterEmptyKeys(keyToLowercase(swapKeyValue(contracts)))
+  };
 }, {});
