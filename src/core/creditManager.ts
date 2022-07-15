@@ -15,7 +15,8 @@ import {
   PERCENTAGE_FACTOR,
   RAY,
   UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
-  LEVERAGE_DECIMALS
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_DECIMALS
 } from "./constants";
 import { OpenAccountError } from "./errors";
 
@@ -53,7 +54,7 @@ export class CreditManagerData {
     this.borrowRate =
       BigNumber.from(payload.borrowRate || 0)
         .mul(PERCENTAGE_FACTOR)
-        .mul(100)
+        .mul(PERCENTAGE_DECIMALS)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
     this.minAmount = BigNumber.from(payload.minAmount || 0);
@@ -178,7 +179,8 @@ export function calcMaxIncreaseBorrow(
   const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
 
   const minHealthFactor = Math.floor(
-    (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD * (maxLeverageFactor + 100)) /
+    (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD *
+      (maxLeverageFactor + LEVERAGE_DECIMALS)) /
       maxLeverageFactor
   );
 

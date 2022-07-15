@@ -3,7 +3,7 @@ import {
   CreditAccountDataExtendedPayload,
   CreditAccountDataPayload
 } from "../payload/creditAccount";
-import { PERCENTAGE_FACTOR, RAY } from "./constants";
+import { PERCENTAGE_FACTOR, RAY, PERCENTAGE_DECIMALS } from "./constants";
 import { TokenData } from "../tokens/tokenData";
 import { priceCalc } from "./price";
 
@@ -44,7 +44,7 @@ export class CreditAccountData {
     this.borrowRate =
       BigNumber.from(payload.borrowRate)
         .mul(PERCENTAGE_FACTOR)
-        .mul(100)
+        .mul(PERCENTAGE_DECIMALS)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
 

@@ -1,7 +1,11 @@
 import { BigNumber, Signer } from "ethers";
-import { IPoolService, IPoolService__factory } from "../types";
+
 import { PoolDataPayload } from "../payload/pool";
 import { rayToNumber } from "../utils/formatter";
+
+import { IPoolService, IPoolService__factory } from "../types";
+
+import { PERCENTAGE_DECIMALS } from "./constants";
 
 export class PoolData {
   public readonly id: string;
@@ -39,12 +43,13 @@ export class PoolData {
     );
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed);
-    this.depositAPY = rayToNumber(payload.depositAPY_RAY) * 100;
-    this.borrowAPY = rayToNumber(payload.borrowAPY_RAY) * 100;
+    this.depositAPY = rayToNumber(payload.depositAPY_RAY) * PERCENTAGE_DECIMALS;
+    this.borrowAPY = rayToNumber(payload.borrowAPY_RAY) * PERCENTAGE_DECIMALS;
     this.borrowAPYRay = BigNumber.from(payload.borrowAPY_RAY);
     this.dieselRate = rayToNumber(payload.dieselRate_RAY);
     this.dieselRateRay = BigNumber.from(payload.dieselRate_RAY);
-    this.withdrawFee = BigNumber.from(payload.withdrawFee).toNumber() / 100;
+    this.withdrawFee =
+      BigNumber.from(payload.withdrawFee).toNumber() / PERCENTAGE_DECIMALS;
     this.timestampLU = BigNumber.from(payload.timestampLU || 0);
     this.cumulativeIndex_RAY = BigNumber.from(payload.cumulativeIndex_RAY || 0);
   }

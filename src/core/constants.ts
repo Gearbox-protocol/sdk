@@ -22,12 +22,15 @@ export const getNetworkType = (chainId: number): NetworkType => {
   }
 };
 
-export const RAY = BigNumber.from(10).pow(27);
+export const RAY_DECIMALS = 27;
+export const RAY = BigNumber.from(10).pow(RAY_DECIMALS);
 export const halfRAY = RAY.div(2);
-export const WAD = BigNumber.from(10).pow(18);
+export const WAD_DECIMALS = 18;
+export const WAD = BigNumber.from(10).pow(WAD_DECIMALS);
 
 export const SECONDS_PER_YEAR = 365 * 24 * 3600;
 
+export const PERCENTAGE_DECIMALS = 100;
 export const PERCENTAGE_FACTOR = 1e4;
 export const LIQUIDATION_DISCOUNTED_SUM = 9500;
 export const UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD = 9300;
@@ -37,8 +40,9 @@ export const timeRanges: Record<string, number> = {
   "1D": 3600 * 24,
   "1W": 3600 * 24 * 7,
   "1M": 3600 * 24 * 30,
-  "1Y": 3600 * 24 * 365,
+  "1Y": 3600 * 24 * 365
 };
 
 export const LEVERAGE_DECIMALS = 100;
+export const SLIPPAGE_DECIMALS = 100;
 export const ADDRESS_0x0 = "0x0000000000000000000000000000000000000000";
