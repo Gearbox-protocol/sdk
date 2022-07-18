@@ -1,6 +1,8 @@
 import { providers } from "ethers";
 
 import { multicall, MCall } from "../utils/multicall";
+import { contractParams, LidoParams } from "../contracts/contracts";
+import { tokenDataByNetwork } from "../tokens/token";
 
 import { WAD, SECONDS_PER_YEAR, NetworkType } from "../core/constants";
 
@@ -15,14 +17,12 @@ type ILidoOracleInterface = ILidoOracle["interface"];
 
 type IstETHInterface = IstETH["interface"];
 
-const lidoOracleAddress: Record<NetworkType, string> = {
-  Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
-  Kovan: ""
-};
+const lidoOracleAddress = (contractParams.LIDO_STETH_GATEWAY as LidoParams)
+  .oracle;
 
 const lidoStEthAddress: Record<NetworkType, string> = {
-  Mainnet: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
-  Kovan: ""
+  Mainnet: tokenDataByNetwork.Mainnet.STETH,
+  Kovan: tokenDataByNetwork.Kovan.STETH
 };
 
 export async function getLidoApy(
