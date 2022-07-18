@@ -60,19 +60,21 @@ export class Strategy {
   }
 
   public liquidationPrice(
-    leverage: number,
+    underlyingPrice: number,
+    collateralPrice: number,
+    lpPrice: number,
 
-    ltStrategy: number,
-    ltCollateral: number,
+    borrowedAmount: number,
+    collateralAmount: number,
+    lpAmount: number,
 
-    depositCollateral: string
+    ltCollateral: number
   ) {
-    const farmLev = this.farmLev(leverage, depositCollateral);
-
     return (
-      1 -
-      (leverage - LEVERAGE_DECIMALS - ltCollateral * (leverage - farmLev)) /
-        (ltStrategy * farmLev)
+      (underlyingPrice * borrowedAmount -
+        ltCollateral * collateralAmount * collateralPrice) /
+      lpAmount /
+      lpPrice
     );
   }
 

@@ -22,7 +22,7 @@ export declare class Strategy {
     constructor(payload: StrategyPayload);
     roiMax(apy: number, maxLeverage: number, poolApy: PoolList): number;
     overallAPY(apy: number, leverage: number, depositCollateral: string, borrowAPY: number): number;
-    liquidationPrice(leverage: number, ltStrategy: number, ltCollateral: number, depositCollateral: string): number;
+    liquidationPrice(underlyingPrice: number, collateralPrice: number, lpPrice: number, borrowedAmount: number, collateralAmount: number, lpAmount: number, ltCollateral: number): number;
     ltStrategyLP(maxLeverage: number): number;
     maxLeverage(ltStrategyLP: number): number;
     private roi;
