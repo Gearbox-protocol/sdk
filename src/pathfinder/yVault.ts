@@ -61,13 +61,13 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
         BigNumber.from(vb?.balance || 0).mul(prices[i])
       );
 
-      // !!!!!!!!!
-      // p.calls.push({
-      //   targetContract:
-      //     p.creditManager.adapters[tokenDataByNetwork[p.networkType][vault]],
-      //   callData:
-      //     IYVault__factory.createInterface().encodeFunctionData("withdraw()")
-      // });
+      const tokenAddress = tokenDataByNetwork[p.networkType][vault];
+      const adapterAddress = p.creditManager.adapters[tokenAddress];
+
+      const callData =
+        IYVault__factory.createInterface().encodeFunctionData("withdraw()");
+
+      p.calls.push({ target: adapterAddress, callData });
     }
 
     return await p.withdrawTokens();
