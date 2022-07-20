@@ -22,11 +22,11 @@ export const getNetworkType = (chainId: number): NetworkType => {
   }
 };
 
-export const RAY_DECIMALS = 27;
-export const RAY = BigNumber.from(10).pow(RAY_DECIMALS);
+export const RAY_DECIMALS_POW = 27;
+export const RAY = BigNumber.from(10).pow(RAY_DECIMALS_POW);
 export const halfRAY = RAY.div(2);
-export const WAD_DECIMALS = 18;
-export const WAD = BigNumber.from(10).pow(WAD_DECIMALS);
+export const WAD_DECIMALS_POW = 18;
+export const WAD = BigNumber.from(10).pow(WAD_DECIMALS_POW);
 
 export const PRICE_DECIMALS_POW = 8;
 export const PRICE_DECIMALS = BigNumber.from(10).pow(PRICE_DECIMALS_POW);

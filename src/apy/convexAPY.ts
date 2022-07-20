@@ -28,7 +28,7 @@ import { AwaitedRes } from "../utils/types";
 import {
   SECONDS_PER_YEAR,
   WAD,
-  WAD_DECIMALS,
+  WAD_DECIMALS_POW,
   NetworkType,
   PRICE_DECIMALS
 } from "../core/constants";
@@ -243,7 +243,7 @@ export async function getCurveBaseApy(
 
     const { baseApy = 0 } = result.data.apys[poolName] || {};
 
-    return toBN((baseApy / RESPONSE_DECIMALS).toString(), WAD_DECIMALS);
+    return toBN((baseApy / RESPONSE_DECIMALS).toString(), WAD_DECIMALS_POW);
   } catch (e) {
     return BigNumber.from(0);
   }
