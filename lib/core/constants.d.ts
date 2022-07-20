@@ -10,6 +10,8 @@ export declare const RAY: BigNumber;
 export declare const halfRAY: BigNumber;
 export declare const WAD_DECIMALS = 18;
 export declare const WAD: BigNumber;
+export declare const PRICE_DECIMALS_POW = 8;
+export declare const PRICE_DECIMALS: BigNumber;
 export declare const SECONDS_PER_YEAR: number;
 export declare const PERCENTAGE_DECIMALS = 100;
 export declare const PERCENTAGE_FACTOR = 10000;

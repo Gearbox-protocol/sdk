@@ -28,6 +28,9 @@ export const halfRAY = RAY.div(2);
 export const WAD_DECIMALS = 18;
 export const WAD = BigNumber.from(10).pow(WAD_DECIMALS);
 
+export const PRICE_DECIMALS_POW = 8;
+export const PRICE_DECIMALS = BigNumber.from(10).pow(PRICE_DECIMALS_POW);
+
 export const SECONDS_PER_YEAR = 365 * 24 * 3600;
 
 export const PERCENTAGE_DECIMALS = 100;

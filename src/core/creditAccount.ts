@@ -3,9 +3,14 @@ import {
   CreditAccountDataExtendedPayload,
   CreditAccountDataPayload
 } from "../payload/creditAccount";
-import { PERCENTAGE_FACTOR, RAY, PERCENTAGE_DECIMALS } from "./constants";
+import {
+  PERCENTAGE_FACTOR,
+  RAY,
+  PERCENTAGE_DECIMALS,
+  PRICE_DECIMALS
+} from "./constants";
 import { TokenData } from "../tokens/tokenData";
-import { priceCalc } from "./price";
+import { calcTotalPrice } from "./price";
 
 export type Balance = { address: string; balance: BigNumber };
 
@@ -62,12 +67,10 @@ export class CreditAccountData {
   }
 
   balancesSorted(
-    prices: Record<string, number>,
+    prices: Record<string, BigNumber>,
     tokens: Record<string, TokenData>
   ): Array<Balance> {
-    const safeBalances = this.balances || [];
-
-    return sortBalances(safeBalances, prices, tokens).map(
+    return sortBalances(this.balances, prices, tokens).map(
       ([address, balance]) => ({ address, balance })
     );
   }
@@ -75,7 +78,7 @@ export class CreditAccountData {
 
 export function sortBalances(
   balances: Record<string, BigNumber>,
-  prices: Record<string, number>,
+  prices: Record<string, BigNumber>,
   tokens: Record<string, TokenData>
 ) {
   return Object.entries(balances).sort(([addr1, amount1], [addr2, amount2]) => {
@@ -85,15 +88,15 @@ export function sortBalances(
     const token1 = tokens[addr1Lc];
     const token2 = tokens[addr2Lc];
 
-    const price1 = prices[addr1Lc] || 1;
-    const price2 = prices[addr2Lc] || 1;
+    const price1 = prices[addr1Lc] || PRICE_DECIMALS;
+    const price2 = prices[addr2Lc] || PRICE_DECIMALS;
 
-    const assetValue1 = priceCalc(price1, amount1, token1);
-    const assetValue2 = priceCalc(price2, amount2, token2);
+    const totalPrice1 = calcTotalPrice(price1, amount1, token1?.decimals);
+    const totalPrice2 = calcTotalPrice(price2, amount2, token2?.decimals);
 
-    return assetValue1.eq(assetValue2)
+    return totalPrice1.eq(totalPrice2)
       ? tokensAbcComparator(token1, token2)
-      : assetValue1.gt(assetValue2)
+      : totalPrice1.gt(totalPrice2)
       ? -1
       : 1;
   });

@@ -29,7 +29,8 @@ import {
   SECONDS_PER_YEAR,
   WAD,
   WAD_DECIMALS,
-  NetworkType
+  NetworkType,
+  PRICE_DECIMALS
 } from "../core/constants";
 
 type SupportedPools = Extract<
@@ -100,8 +101,8 @@ export async function getConvexApy(
   const crvPerYear = crvPerUnderlying.mul(SECONDS_PER_YEAR);
   const cvxPerYear = getCVXMintAmount(crvPerYear, cvxSupply);
 
-  const crvAPY = crvPerYear.mul(cvxPrice).div(WAD);
-  const cvxAPY = cvxPerYear.mul(crvPrice).div(WAD);
+  const crvAPY = crvPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
+  const cvxAPY = cvxPerYear.mul(crvPrice).div(PRICE_DECIMALS);
 
   const extraAPRs = await Promise.all(
     extraPoolAddresses.map(async (_, index) => {
@@ -113,7 +114,7 @@ export async function getConvexApy(
 
       const extraPrise = getTokenPrice(tokenList[extraRewardSymbol]);
 
-      const extraAPY = perYear.mul(extraPrise).div(WAD);
+      const extraAPY = perYear.mul(extraPrise).div(PRICE_DECIMALS);
 
       return extraAPY;
     })
