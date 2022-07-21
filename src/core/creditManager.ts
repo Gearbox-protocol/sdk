@@ -74,16 +74,17 @@ export class CreditManagerData {
       {}
     );
 
-    this.liquidationThresholds = payload.liquidationThresholds.reduce<
+    this.liquidationThresholds = (payload.liquidationThresholds || []).reduce<
       Record<string, BigNumber>
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
 
-      if (address) acc[address.toLowerCase()] = threshold;
+      if (address) acc[address.toLowerCase()] = BigNumber.from(threshold);
 
       return acc;
     }, {});
-    this.version = payload.version || 1;
+
+    this.version = BigNumber.from(payload.version || 1).toNumber();
     this.creditFacade = payload.creditFacade || "";
     this.isDegenMode = payload.isDegenMode || false;
     this.degenNFT = payload.degenNFT || "";

@@ -1,6 +1,8 @@
 import { providers } from "ethers";
 
 import { multicall, MCall } from "../utils/multicall";
+import { contractParams, LidoParams } from "../contracts/contracts";
+import { tokenDataByNetwork } from "../tokens/token";
 
 import { WAD, SECONDS_PER_YEAR, NetworkType } from "../core/constants";
 
@@ -15,14 +17,12 @@ type ILidoOracleInterface = ILidoOracle["interface"];
 
 type IstETHInterface = IstETH["interface"];
 
-const lidoOracleAddress: Record<NetworkType, string> = {
-  Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
-  Kovan: ""
-};
+const lidoOracleAddress = (contractParams.LIDO_STETH_GATEWAY as LidoParams)
+  .oracle;
 
 const lidoStEthAddress: Record<NetworkType, string> = {
-  Mainnet: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
-  Kovan: ""
+  Mainnet: tokenDataByNetwork.Mainnet.STETH,
+  Kovan: tokenDataByNetwork.Kovan.STETH
 };
 
 export async function getLidoApy(
@@ -40,7 +40,8 @@ export async function getLidoApy(
     await geLidoData(
       lidoOracleAddress[networkType],
       lidoStEthAddress[networkType],
-      provider
+      provider,
+      networkType
     );
 
   const lidoAPRRay = postTotalPooledEther
@@ -55,27 +56,33 @@ export async function getLidoApy(
 async function geLidoData(
   lidoOracleAddress: string,
   stETHAddress: string,
-  provider: providers.Provider
+  provider: providers.Provider,
+  network: NetworkType
 ) {
-  const calls: [MCall<ILidoOracleInterface>, MCall<IstETHInterface>] = [
-    {
-      address: lidoOracleAddress,
-      interface: ILidoOracle__factory.createInterface(),
-      method: "getLastCompletedReportDelta()"
-    },
-    {
+  const calls: [MCall<ILidoOracleInterface>, ...Array<MCall<IstETHInterface>>] =
+    [
+      {
+        address: lidoOracleAddress,
+        interface: ILidoOracle__factory.createInterface(),
+        method: "getLastCompletedReportDelta()"
+      }
+    ];
+
+  if (network !== "Kovan")
+    calls.push({
       address: stETHAddress,
       interface: IstETH__factory.createInterface(),
       method: "getFee()"
-    }
-  ];
+    });
 
-  return multicall<
+  const [stats, fee = Math.floor(LIDO_FEE_DECIMALS / 10)] = await multicall<
     [
       Awaited<ReturnType<ILidoOracle["getLastCompletedReportDelta"]>>,
       Awaited<ReturnType<IstETH["getFee"]>>
     ]
   >(calls, provider);
+
+  return [stats, fee] as const;
 }
 
 export const LIDO_FEE_DECIMALS = 10000;

@@ -1,3 +1,3 @@
-import { PoolDataStructOutput } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
+import { PoolDataStruct } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 
-export type PoolDataPayload = PoolDataStructOutput;
+export type PoolDataPayload = PoolDataStruct;

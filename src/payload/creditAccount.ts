@@ -1,7 +1,7 @@
-import { CreditAccountDataStructOutput } from "../types/contracts/core/DataCompressor";
+import { CreditAccountDataStruct } from "../types/contracts/core/DataCompressor";
 
-export type TokenBalancePayload = CreditAccountDataStructOutput["balances"];
+export type TokenBalancePayload = CreditAccountDataStruct["balances"];
 
-export type CreditAccountDataPayload = CreditAccountDataStructOutput;
+export type CreditAccountDataPayload = CreditAccountDataStruct;
 
-export type CreditAccountDataExtendedPayload = CreditAccountDataStructOutput;
+export type CreditAccountDataExtendedPayload = CreditAccountDataStruct;
