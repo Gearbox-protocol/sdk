@@ -40,7 +40,8 @@ export async function getLidoApy(
     await geLidoData(
       lidoOracleAddress[networkType],
       lidoStEthAddress[networkType],
-      provider
+      provider,
+      networkType
     );
 
   const lidoAPRRay = postTotalPooledEther
@@ -55,27 +56,33 @@ export async function getLidoApy(
 async function geLidoData(
   lidoOracleAddress: string,
   stETHAddress: string,
-  provider: providers.Provider
+  provider: providers.Provider,
+  network: NetworkType
 ) {
-  const calls: [MCall<ILidoOracleInterface>, MCall<IstETHInterface>] = [
-    {
-      address: lidoOracleAddress,
-      interface: ILidoOracle__factory.createInterface(),
-      method: "getLastCompletedReportDelta()"
-    },
-    {
+  const calls: [MCall<ILidoOracleInterface>, ...Array<MCall<IstETHInterface>>] =
+    [
+      {
+        address: lidoOracleAddress,
+        interface: ILidoOracle__factory.createInterface(),
+        method: "getLastCompletedReportDelta()"
+      }
+    ];
+
+  if (network !== "Kovan")
+    calls.push({
       address: stETHAddress,
       interface: IstETH__factory.createInterface(),
       method: "getFee()"
-    }
-  ];
+    });
 
-  return multicall<
+  const [stats, fee = Math.floor(LIDO_FEE_DECIMALS / 10)] = await multicall<
     [
       Awaited<ReturnType<ILidoOracle["getLastCompletedReportDelta"]>>,
       Awaited<ReturnType<IstETH["getFee"]>>
     ]
   >(calls, provider);
+
+  return [stats, fee] as const;
 }
 
 export const LIDO_FEE_DECIMALS = 10000;
