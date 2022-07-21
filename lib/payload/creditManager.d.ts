@@ -1,21 +1,11 @@
-import { BigNumberish, BigNumber } from "ethers";
-import { CreditManagerDataStructOutput } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
+import { BigNumberish } from "ethers";
+import { CreditManagerDataStruct } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 export interface AdapterPayload {
     allowedContract: string;
     adapter: string;
 }
-export declare type CreditManagerDataPayload = CreditManagerDataStructOutput;
+export declare type CreditManagerDataPayload = CreditManagerDataStruct;
 export interface CreditManagerStatPayload extends CreditManagerDataPayload {
-    addr: string;
-    underlyingToken?: string;
-    isWETH: boolean;
-    canBorrow: boolean;
-    borrowRate: BigNumber;
-    minAmount: BigNumber;
-    maxAmount: BigNumber;
-    maxLeverageFactor: BigNumber;
-    availableLiquidity: BigNumber;
-    allowedTokens: Array<string>;
     allowedContracts?: Array<string>;
     uniqueUsers: number;
     openedAccountsCount?: number;
