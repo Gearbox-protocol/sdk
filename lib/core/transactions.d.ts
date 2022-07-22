@@ -2,7 +2,7 @@ import { BigNumber } from "ethers";
 import { TokenData } from "../tokens/tokenData";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
 export interface TxSerialized {
-    type: "TxAddLiquidity" | "TxRemoveLiquidity" | "TxSwap" | "TxAddCollateral" | "TxIncreaseBorrowAmount" | "TxOpenAccount" | "TxRepayAccount" | "TxCloseAccount" | "TxApprove";
+    type: "TxAddLiquidity" | "TxRemoveLiquidity" | "TxSwap" | "TxAddCollateral" | "TxIncreaseBorrowAmount" | "TxOpenAccount" | "TxRepayAccount" | "TxCloseAccount" | "TxApprove" | "TxOpenMultitokenAccount";
     content: string;
 }
 export declare class TxSerializer {
@@ -94,6 +94,21 @@ export declare class TxOpenAccount extends EVMTx {
     readonly leverage: number;
     readonly creditManager: string;
     constructor(opts: OpenAccountProps);
+    toString(tokenData: Record<string, TokenData>): string;
+    serialize(): TxSerialized;
+}
+interface TxOpenMultitokenAccountProps extends EVMTxProps {
+    borrowedAmount: BigNumber;
+    creditManager: string;
+    underlyingToken: string;
+    assets: Array<string>;
+}
+export declare class TxOpenMultitokenAccount extends EVMTx {
+    readonly borrowedAmount: BigNumber;
+    readonly creditManager: string;
+    readonly underlyingToken: string;
+    readonly assets: Array<string>;
+    constructor(opts: TxOpenMultitokenAccountProps);
     toString(tokenData: Record<string, TokenData>): string;
     serialize(): TxSerialized;
 }
