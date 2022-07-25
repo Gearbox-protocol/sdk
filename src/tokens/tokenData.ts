@@ -4,6 +4,12 @@ import { STATIC_TOKEN } from "../config";
 import { NetworkType } from "../core/constants";
 import { SupportedToken, tokenDataByNetwork } from "./token";
 
+type SymbolReplacements = Record<string, string>;
+const defaultSymbolReplacement: SymbolReplacements = {
+  dWETH: "dETH",
+  WETH: "ETH"
+};
+
 export class TokenData {
   public readonly id: string;
   // public readonly name: string;
@@ -12,14 +18,14 @@ export class TokenData {
   public readonly decimals: number;
   public readonly icon?: string;
 
-  constructor(payload: TokenDataPayload) {
+  constructor(
+    payload: TokenDataPayload,
+    symbolReplacements: SymbolReplacements = defaultSymbolReplacement
+  ) {
     this.id = payload.addr;
     this.address = payload.addr;
     // this.name = payload.name;
-    this.symbol = payload.symbol;
-    if (this.symbol === "WETH" || this.symbol === "dWETH") {
-      this.symbol = this.symbol.replace("WETH", "ETH");
-    }
+    this.symbol = symbolReplacements[payload.symbol] || payload.symbol;
     this.decimals = payload.decimals;
     this.icon = `${STATIC_TOKEN}${payload.symbol?.toLowerCase()}.svg`;
   }
@@ -41,7 +47,7 @@ export interface TokenAllowance {
 
 export const WETHToken: Record<NetworkType, string> = {
   Mainnet: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-  Kovan: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+  Kovan: "0xd0a1e359811322d97991e03f863a0c30c2cf029c"
 };
 
 export const connectors: Record<NetworkType, Array<SupportedToken>> = {
@@ -51,7 +57,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
     "DAI",
     "USDC",
     // "USDT",
-    "WBTC",
+    "WBTC"
     // "stETH",
     // "PAX",
     // "TUSD",
@@ -59,11 +65,11 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
     // "BAL",
     // "sUSD",
   ],
-  Kovan: ["WETH", "DAI", "USDC", "WBTC"],
+  Kovan: ["WETH", "DAI", "USDC", "WBTC"]
 };
 
 export function getConnectors(networkType: NetworkType) {
-  return connectors[networkType].map((e) => {
+  return connectors[networkType].map(e => {
     const result =
       e === "WETH"
         ? WETHToken[networkType]

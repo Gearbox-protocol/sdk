@@ -2,13 +2,14 @@ import { BigNumber } from "ethers";
 import { TokenDataPayload } from "../payload/token";
 import { NetworkType } from "../core/constants";
 import { SupportedToken } from "./token";
+declare type SymbolReplacements = Record<string, string>;
 export declare class TokenData {
     readonly id: string;
     readonly symbol: string;
     readonly address: string;
     readonly decimals: number;
     readonly icon?: string;
-    constructor(payload: TokenDataPayload);
+    constructor(payload: TokenDataPayload, symbolReplacements?: SymbolReplacements);
     compareBySymbol(b: TokenData): number;
 }
 export interface TokenBalance {
@@ -22,3 +23,4 @@ export interface TokenAllowance {
 export declare const WETHToken: Record<NetworkType, string>;
 export declare const connectors: Record<NetworkType, Array<SupportedToken>>;
 export declare function getConnectors(networkType: NetworkType): string[];
+export {};
