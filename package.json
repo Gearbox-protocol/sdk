@@ -10,7 +10,9 @@
     "build": "tsc",
     "dev": "tsc -w",
     "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc && yarn publish",
-    "lint": "eslint . --ext .tsx,.ts --fix"
+    "lint": "eslint . --ext .tsx,.ts --fix",
+    "prepush": "yarn lint --max-warnings=0",
+    "prepare": "husky install"
   },
   "dependencies": {
     "decimal.js-light": "^2.5.1",
@@ -35,10 +37,12 @@
     "eslint-plugin-react": "^7.27.1",
     "eslint-plugin-react-hooks": "^4.3.0",
     "ethers": "5.6.9",
+    "husky-init": "^8.0.0",
     "jest": "^26.1.0",
     "prettier": "^2.7.1",
     "ts-node": "^10.1.0",
     "tslog": "^3.3.3",
-    "typescript": "^4.7.3"
+    "typescript": "^4.7.3",
+    "husky": "^8.0.0"
   }
 }
