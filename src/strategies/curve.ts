@@ -1,4 +1,8 @@
 import { BigNumberish } from "ethers";
+import { contractParams, contractsByNetwork, CurveParams, CurvePoolContract } from "src/contracts/contracts";
+import { ADDRESS_0x0, NetworkType } from "src/core/constants";
+import { CreditManagerData } from "src/core/creditManager";
+import { tokenDataByNetwork } from "src/tokens/token";
 
 import {
     CurveV1AdapterBase__factory,
@@ -8,6 +12,7 @@ import {
 } from "../types";
 
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { UniswapV2Multicaller } from "./uniswapV2";
 
 export class CurveCalls {
     public static exchange(i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish) {
@@ -142,6 +147,10 @@ export class CurveMulticaller {
         this._address = address;
     }
 
+    static connect(address: string) {
+        return new CurveMulticaller(address);
+    }
+
     exchange(i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish): MultiCallStruct {
         return {
             target: this._address,
@@ -225,5 +234,108 @@ export class CurveMulticaller {
             target: this._address,
             callData: CurveCalls.remove_liquidity_imbalance(amounts, max_burn_amount)
         }
+    }
+}
+
+
+export class CurveStrategies {
+    static underlyingToCurveLP(
+        data: CreditManagerData,
+        network: NetworkType,
+        curvePool: CurvePoolContract,
+        underlyingAmount: BigNumberish
+    ) {
+        let calls: Array<MultiCallStruct> = [];
+        let curveParams = contractParams[curvePool] as CurveParams;
+        let tokenToDeposit = curveParams.tokens[0];
+
+        if (data.underlyingToken != tokenDataByNetwork[network][tokenToDeposit]) {
+            calls.push(
+                UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]).
+                swapExactTokensForTokens(
+                    underlyingAmount,
+                    0,
+                    [data.underlyingToken, tokenDataByNetwork[network][tokenToDeposit]],
+                    ADDRESS_0x0,
+                    Math.floor((new Date()).getTime() / 1000) + 3600
+                )
+            );
+        }
+
+        calls.push(
+            CurveMulticaller.connect(data.adapters[contractsByNetwork[network][curvePool]]).
+            add_all_liquidity_one_coin(0, 0)
+        )
+
+        return calls;
+    }
+
+    static curveLPToUnderlying(
+        data: CreditManagerData,
+        network: NetworkType,
+        curvePool: CurvePoolContract,
+        curveLPAmount: BigNumberish
+    ) {
+        let calls: Array<MultiCallStruct> = [];
+        let curveParams = contractParams[curvePool] as CurveParams;
+        
+        let curveContractAddress;
+
+        if (curveParams.wrapper) {
+            curveContractAddress = data.adapters[contractsByNetwork[network][curveParams.wrapper]]
+        } else {
+            curveContractAddress = data.adapters[contractsByNetwork[network][curvePool]]
+        }
+
+        calls.push(
+            CurveMulticaller.connect(curveContractAddress).remove_liquidity_one_coin(curveLPAmount, 0, 0)
+        );
+
+        if (tokenDataByNetwork[network][curveParams.tokens[0]] != data.underlyingToken) {
+            calls.push(
+                UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]).
+                swapAllTokensForTokens(
+                    0,
+                    [tokenDataByNetwork[network][curveParams.tokens[0]], data.underlyingToken],
+                    Math.floor((new Date()).getTime() / 1000) + 3600
+                )
+            );
+        }
+
+        return calls;
+    }
+
+    static allCurveLPToUnderlying(
+        data: CreditManagerData,
+        network: NetworkType,
+        curvePool: CurvePoolContract
+    ) {
+        let calls: Array<MultiCallStruct> = [];
+        let curveParams = contractParams[curvePool] as CurveParams;
+        
+        let curveContractAddress;
+
+        if (curveParams.wrapper) {
+            curveContractAddress = data.adapters[contractsByNetwork[network][curveParams.wrapper]]
+        } else {
+            curveContractAddress = data.adapters[contractsByNetwork[network][curvePool]]
+        }
+
+        calls.push(
+            CurveMulticaller.connect(curveContractAddress).remove_all_liquidity_one_coin(0, 0)
+        );
+
+        if (tokenDataByNetwork[network][curveParams.tokens[0]] != data.underlyingToken) {
+            calls.push(
+                UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]).
+                swapAllTokensForTokens(
+                    0,
+                    [tokenDataByNetwork[network][curveParams.tokens[0]], data.underlyingToken],
+                    Math.floor((new Date()).getTime() / 1000) + 3600
+                )
+            );
+        }
+
+        return calls;
     }
 }

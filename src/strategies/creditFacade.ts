@@ -40,6 +40,10 @@ export class CreditFacadeMulticaller {
         this._address = address;
     }
 
+    static connect(address: string) {
+        return new CreditFacadeMulticaller(address);
+    }
+
     addCollateral(onBehalfOf: string, token: string, amount: BigNumberish): MultiCallStruct {
         return {
             target: this._address,

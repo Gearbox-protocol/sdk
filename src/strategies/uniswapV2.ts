@@ -70,6 +70,10 @@ export class UniswapV2Multicaller {
         this._address = address;
     }
 
+    static connect(address: string) {
+        return new UniswapV2Multicaller(address);
+    }
+
     swapExactTokensForTokens(
         amountIn: BigNumberish,
         amountOutMin: BigNumberish,

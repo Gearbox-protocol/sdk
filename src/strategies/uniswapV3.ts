@@ -57,6 +57,10 @@ export class UniswapV3Multicaller {
         this._address = address;
     }
 
+    static connect(address: string) {
+        return new UniswapV3Multicaller(address);
+    }
+
     exactInputSingle(params: ISwapRouter.ExactInputSingleParamsStructOutput): MultiCallStruct {
         return {
             target: this._address,

@@ -1,4 +1,10 @@
 import { BigNumberish } from "ethers";
+import { contractParams, contractsByNetwork, ConvexPoolContract, ConvexPoolParams } from "src/contracts/contracts";
+import { NetworkType } from "src/core/constants";
+import { CreditManagerData } from "src/core/creditManager";
+import { ConvexPhantomTokenData } from "src/tokens/convex";
+import { CurveLPTokenData } from "src/tokens/curveLP";
+import { supportedTokens, tokenDataByNetwork } from "src/tokens/token";
 
 import {
     ConvexV1BoosterAdapter__factory,
@@ -7,6 +13,8 @@ import {
 } from "../types"
 
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { CurveStrategies } from "./curve";
+import { UniswapV2Multicaller } from "./uniswapV2";
 
 export class ConvexBoosterCalls {
     public static deposit(pid: BigNumberish, amount: BigNumberish, stake: boolean) {
@@ -118,6 +126,10 @@ export class ConvexBoosterMulticaller {
         this._address = address;
     }
 
+    static connect(address: string) {
+        return new ConvexBoosterMulticaller(address);
+    }
+
     deposit(pid: BigNumberish, amount: BigNumberish, stake: boolean): MultiCallStruct {
         return {
             target: this._address,
@@ -152,6 +164,10 @@ export class ConvexPoolMulticaller {
 
     constructor(address: string) {
         this._address = address;
+    }
+
+    static connect(address: string) {
+        return new ConvexPoolMulticaller(address);
     }
 
     stake(amount: BigNumberish): MultiCallStruct {
@@ -204,6 +220,10 @@ export class ConvexClaimZapMulticaller {
         this._address = address;
     }
 
+    static connect(address: string) {
+        return new ConvexClaimZapMulticaller(address);
+    }
+
     claimRewards(
         rewardContracts: Array<string>,
         extraRewardContracts: Array<string>,
@@ -229,5 +249,135 @@ export class ConvexClaimZapMulticaller {
                 options
             )
         }
+    }
+}
+
+
+export class ConvexStrategies {
+    static underlyingToStakedConvex(
+        data: CreditManagerData,
+        network: NetworkType,
+        convexPool: ConvexPoolContract,
+        underlyingAmount: BigNumberish
+    ) {
+        let calls: Array<MultiCallStruct> = [];
+        let convexParams = contractParams[convexPool] as ConvexPoolParams;
+        let stakedToken = convexParams.stakedToken;
+        let stakedTokenParams = supportedTokens[stakedToken] as ConvexPhantomTokenData;
+        let curveLpToken = stakedTokenParams.underlying;
+        let curveLpTokenData = supportedTokens[curveLpToken] as CurveLPTokenData;
+        let curvePool = curveLpTokenData.pool;
+
+        calls = CurveStrategies.underlyingToCurveLP(data, network, curvePool, underlyingAmount);
+
+        calls.push(
+            ConvexBoosterMulticaller.connect(data.adapters[contractsByNetwork[network].CONVEX_BOOSTER])
+            .depositAll(stakedTokenParams.pid, true)
+        )
+
+        return calls
+
+    }
+
+    static stakedConvexToUnderlying(
+        data: CreditManagerData,
+        network: NetworkType,
+        convexPool: ConvexPoolContract,
+        convexLpAmount: BigNumberish,
+        sellRewards: boolean
+    ) {
+        let calls: Array<MultiCallStruct> = [];
+        let convexParams = contractParams[convexPool] as ConvexPoolParams;
+        let stakedToken = convexParams.stakedToken;
+        let stakedTokenParams = supportedTokens[stakedToken] as ConvexPhantomTokenData;
+        let curveLpToken = stakedTokenParams.underlying;
+        let curveLpTokenData = supportedTokens[curveLpToken] as CurveLPTokenData;
+        let curvePool = curveLpTokenData.pool;
+
+        calls.push(
+            ConvexPoolMulticaller.connect(data.adapters[contractsByNetwork[network][convexPool]])
+            .withdrawAndUnwrap(convexLpAmount, true)
+        )
+
+        calls.push(
+            ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool)
+        )
+        
+        if (sellRewards) {
+            calls.push(
+                ...ConvexStrategies.sellRewards(data, network, convexPool)
+            )
+        }
+
+        return calls;
+
+    }
+
+    static allStakedConvexToUnderlying(
+        data: CreditManagerData,
+        network: NetworkType,
+        convexPool: ConvexPoolContract,
+        sellRewards: boolean
+    ) {
+        let calls: Array<MultiCallStruct> = [];
+        let convexParams = contractParams[convexPool] as ConvexPoolParams;
+        let stakedToken = convexParams.stakedToken;
+        let stakedTokenParams = supportedTokens[stakedToken] as ConvexPhantomTokenData;
+        let curveLpToken = stakedTokenParams.underlying;
+        let curveLpTokenData = supportedTokens[curveLpToken] as CurveLPTokenData;
+        let curvePool = curveLpTokenData.pool;
+
+        calls.push(
+            ConvexPoolMulticaller.connect(data.adapters[contractsByNetwork[network][convexPool]])
+            .withdrawAllAndUnwrap(true)
+        )
+
+        calls.push(
+            ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool)
+        )
+        
+        if (sellRewards) {
+            calls.push(
+                ...ConvexStrategies.sellRewards(data, network, convexPool)
+            )
+        }
+
+        return calls;
+
+    }
+
+    static sellRewards(
+        data: CreditManagerData,
+        network: NetworkType,
+        convexPool: ConvexPoolContract
+    ) {
+        let calls: Array<MultiCallStruct> = [];
+        let convexParams = contractParams[convexPool] as ConvexPoolParams;
+
+        calls.push(
+            UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER])
+            .swapAllTokensForTokens(
+                0,
+                [tokenDataByNetwork[network].CRV, data.underlyingToken],
+                Math.floor((new Date()).getTime() / 1000) + 3600
+            ),
+            UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER])
+            .swapAllTokensForTokens(
+                0,
+                [tokenDataByNetwork[network].CVX, data.underlyingToken],
+                Math.floor((new Date()).getTime() / 1000) + 3600
+            )
+        )
+
+        for (let extraReward of convexParams.extraRewards) {
+            UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER])
+            .swapAllTokensForTokens(
+                0,
+                [tokenDataByNetwork[network][extraReward.rewardToken], data.underlyingToken],
+                Math.floor((new Date()).getTime() / 1000) + 3600
+            )
+        }
+
+        return calls;
     }
 }

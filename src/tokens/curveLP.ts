@@ -3,6 +3,7 @@ import {SupportedToken, TokenBase} from "./token";
 import {PartialRecord} from "../utils/types";
 import {BigNumber} from "ethers";
 import {TokenType} from "./tokenType";
+import { CurvePoolContract } from "src/contracts/contracts";
 
 export type CurveLPToken =
     | "3Crv"
@@ -17,12 +18,16 @@ export type CurveLPTokenData = {
     type: TokenType.CURVE_LP;
     swapActions?: Array<TradeAction>;
     lpActions: Array<TradeAction>;
+    pool: CurvePoolContract;
+    wrapper?: CurvePoolContract;
 } & TokenBase;
 
 export type MetaCurveLPTokenData = {
     symbol: CurveLPToken;
     type: TokenType.META_CURVE_LP;
     lpActions: Array<TradeAction>;
+    pool: CurvePoolContract;
+    wrapper?: CurvePoolContract;
 } & TokenBase;
 
 export const Curve3CrvUnderlyingTokenIndex: PartialRecord<SupportedToken,
@@ -37,9 +42,9 @@ export const curveTokens: Record<CurveLPToken, CurveLPTokenData | MetaCurveLPTok
     "3Crv": {
         name: "3Crv",
         decimals: 18,
-
         symbol: "3Crv",
         type: TokenType.CURVE_LP,
+        pool: "CURVE_3CRV_POOL",
         lpActions: [
             {
                 type: TradeType.CurveWithdrawLP,
@@ -62,9 +67,9 @@ export const curveTokens: Record<CurveLPToken, CurveLPTokenData | MetaCurveLPTok
     steCRV: {
         name: "steCRV",
         decimals: 18,
-
         symbol: "steCRV",
         type: TokenType.CURVE_LP,
+        pool: "CURVE_STETH_GATEWAY",
         lpActions: [
             {
                 type: TradeType.CurveWithdrawLP,
@@ -87,9 +92,10 @@ export const curveTokens: Record<CurveLPToken, CurveLPTokenData | MetaCurveLPTok
     crvPlain3andSUSD: {
         name: "crvPlain3andSUSD",
         decimals: 18,
-
         symbol: "crvPlain3andSUSD",
         type: TokenType.CURVE_LP,
+        pool: "CURVE_SUSD_POOL",
+        wrapper: "CURVE_SUSD_DEPOSIT",
         lpActions: [
             {
                 type: TradeType.CurveWithdrawLP,
@@ -113,9 +119,9 @@ export const curveTokens: Record<CurveLPToken, CurveLPTokenData | MetaCurveLPTok
     FRAX3CRV: {
         name: "FRAX3CRV-f",
         decimals: 18,
-
         symbol: "FRAX3CRV",
         type: TokenType.META_CURVE_LP,
+        pool: "CURVE_FRAX_POOL",
         lpActions: [
             {
                 type: TradeType.CurveWithdrawLP,
@@ -138,9 +144,9 @@ export const curveTokens: Record<CurveLPToken, CurveLPTokenData | MetaCurveLPTok
     LUSD3CRV: {
         name: "LUSD3CRV-f",
         decimals: 18,
-
         symbol: "LUSD3CRV",
         type: TokenType.META_CURVE_LP,
+        pool: "CURVE_LUSD_POOL",
         lpActions: [
             {
                 type: TradeType.CurveWithdrawLP,
@@ -153,9 +159,9 @@ export const curveTokens: Record<CurveLPToken, CurveLPTokenData | MetaCurveLPTok
     gusd3CRV: {
         name: "gusd3CRV",
         decimals: 18,
-
         symbol: "gusd3CRV",
         type: TokenType.META_CURVE_LP,
+        pool: "CURVE_GUSD_POOL",
         lpActions: [
             {
                 type: TradeType.CurveWithdrawLP,

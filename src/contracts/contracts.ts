@@ -16,6 +16,7 @@ import { tokenDataByNetwork } from "../tokens/token";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
 import { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
+import { YearnLPToken } from "src/tokens/yearn";
 
 export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
@@ -169,12 +170,14 @@ export type CurveSteCRVPoolParams = {
   protocol: Protocols.Curve;
   type: AdapterInterface.CURVE_V1_STECRV_POOL;
   pool: Record<NetworkType, string>;
+  tokens: ["WETH", "STETH"];
   lpToken: "steCRV";
 } & BaseContractParams;
 
-type YearnParams = {
+export type YearnParams = {
   protocol: Protocols.Yearn;
   type: AdapterInterface.YEARN_V2;
+  shareToken: YearnLPToken;
 } & BaseContractParams;
 
 type ConvexParams = {
@@ -247,6 +250,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
       Kovan: "0xF5C73b58B70709e89aA1D322d48b0D0C71123cB4"
     },
+    tokens: ["WETH", "STETH"],
     lpToken: "steCRV"
   },
   CURVE_FRAX_POOL: {
@@ -254,14 +258,14 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "FRAX3CRV",
-    tokens: ["3Crv", "FRAX"]
+    tokens: ["FRAX", "3Crv"]
   },
   CURVE_LUSD_POOL: {
     name: "Curve LUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "LUSD3CRV",
-    tokens: ["3Crv", "LUSD"]
+    tokens: ["LUSD", "3Crv"]
   },
   CURVE_SUSD_POOL: {
     name: "Curve SUSD",
@@ -277,8 +281,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_WRAPPER,
     lpToken: "crvPlain3andSUSD",
-    tokens: ["DAI", "USDC", "USDT", "sUSD"],
-    wrapper: "CURVE_SUSD_DEPOSIT"
+    tokens: ["DAI", "USDC", "USDT", "sUSD"]
   },
 
   CURVE_GUSD_POOL: {
@@ -286,38 +289,44 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "gusd3CRV",
-    tokens: ["3Crv", "FRAX"]
+    tokens: ["GUSD", "3Crv"]
   },
 
   YEARN_DAI_VAULT: {
     name: "Yearn DAI",
     protocol: Protocols.Yearn,
-    type: AdapterInterface.YEARN_V2
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvDAI"
   },
   YEARN_USDC_VAULT: {
     name: "Yearn USDC",
     protocol: Protocols.Yearn,
-    type: AdapterInterface.YEARN_V2
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvUSDC"
   },
   YEARN_WETH_VAULT: {
     name: "Yearn WETH",
     protocol: Protocols.Yearn,
-    type: AdapterInterface.YEARN_V2
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvWETH"
   },
   YEARN_WBTC_VAULT: {
     name: "Yearn WBTC",
     protocol: Protocols.Yearn,
-    type: AdapterInterface.YEARN_V2
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvWBTC"
   },
   YEARN_CURVE_FRAX_VAULT: {
     name: "Yearn Curve FRAX",
     protocol: Protocols.Yearn,
-    type: AdapterInterface.YEARN_V2
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvCurve_FRAX"
   },
   YEARN_CURVE_STETH_VAULT: {
     name: "Yearn Curve STETH",
     protocol: Protocols.Yearn,
-    type: AdapterInterface.YEARN_V2
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvCurve_stETH"
   },
 
   CONVEX_BOOSTER: {
