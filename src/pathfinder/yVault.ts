@@ -34,7 +34,13 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  async findWithdrawPaths(p: Path): Promise<Array<Path>> {
+  async findWithdrawPaths(path: Path): Promise<Array<Path>> {
+    // make path copy
+    const p: Path = Object.assign(
+      Object.create(Object.getPrototypeOf(path)),
+      path
+    );
+
     const vaultBalances = objectEntries(yearnTokens).reduce<
       PartialRecord<SupportedToken, WithdrawBalance>
     >((acc, [yVault, tokenData]) => {
@@ -66,8 +72,6 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
       const vault = vaultList[i];
       const vb = vaultBalances[vault];
 
-      // !&
-      // eslint-disable-next-line no-param-reassign
       p.balances[vb!.token] = (p.balances[vb!.token] || BigNumber.from(0)).add(
         BigNumber.from(vb?.balance || 0).mul(prices[i])
       );
