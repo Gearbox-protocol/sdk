@@ -8,36 +8,9 @@ export declare class CurveCalls {
     static add_all_liquidity_one_coin(i: BigNumberish, rateMinRAY: BigNumberish): string;
     static remove_liquidity_one_coin(token_amount: BigNumberish, i: BigNumberish, min_amount: BigNumberish): string;
     static remove_all_liquidity_one_coin(i: BigNumberish, minRateRAY: BigNumberish): string;
-    static add_liquidity(amounts: [BigNumberish, BigNumberish] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ], min_mint_amount: BigNumberish): string;
-    static remove_liquidity(amount: BigNumberish, min_amounts: [BigNumberish, BigNumberish] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ]): string;
-    static remove_liquidity_imbalance(amounts: [BigNumberish, BigNumberish] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ], max_burn_amount: BigNumberish): string;
+    static add_liquidity(amounts: [BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish, BigNumberish], min_mint_amount: BigNumberish): string;
+    static remove_liquidity(amount: BigNumberish, min_amounts: [BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish, BigNumberish]): string;
+    static remove_liquidity_imbalance(amounts: [BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish, BigNumberish], max_burn_amount: BigNumberish): string;
 }
 export declare class CurveMulticaller {
     private readonly _address;
@@ -55,34 +28,7 @@ export declare class CurveMulticaller {
         target: string;
         callData: string;
     };
-    add_liquidity(amounts: [BigNumberish, BigNumberish] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ], min_mint_amount: BigNumberish): MultiCallStruct;
-    remove_liquidity(amount: BigNumberish, min_amounts: [BigNumberish, BigNumberish] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ]): MultiCallStruct;
-    remove_liquidity_imbalance(amounts: [BigNumberish, BigNumberish] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ] | [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-    ], max_burn_amount: BigNumberish): MultiCallStruct;
+    add_liquidity(amounts: [BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish, BigNumberish], min_mint_amount: BigNumberish): MultiCallStruct;
+    remove_liquidity(amount: BigNumberish, min_amounts: [BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish, BigNumberish]): MultiCallStruct;
+    remove_liquidity_imbalance(amounts: [BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish] | [BigNumberish, BigNumberish, BigNumberish, BigNumberish], max_burn_amount: BigNumberish): MultiCallStruct;
 }

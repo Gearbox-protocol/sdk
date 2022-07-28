@@ -9,25 +9,41 @@ import { PERCENTAGE_DECIMALS } from "./constants";
 
 export class PoolData {
   public readonly id: string;
+
   public readonly address: string;
 
   public readonly underlyingToken: string;
+
   public readonly dieselToken: string;
+
   public readonly isWETH: boolean;
 
   // Information
   public readonly expectedLiquidity: BigNumber;
+
   public readonly expectedLiquidityLimit: BigNumber;
+
   public readonly availableLiquidity: BigNumber;
+
   public readonly totalBorrowed: BigNumber;
+
   public readonly depositAPY: number;
+
   public readonly borrowAPY: number;
+
   public readonly borrowAPYRay: BigNumber;
+
   public readonly dieselRate: number;
+
   public readonly dieselRateRay: BigNumber;
+
   public readonly withdrawFee: number;
+
   public readonly timestampLU: BigNumber;
+
   public readonly cumulativeIndex_RAY: BigNumber;
+
+  public readonly isPaused: boolean = false;
 
   constructor(payload: PoolDataPayload) {
     this.id = payload.addr;
@@ -56,10 +72,6 @@ export class PoolData {
 
   getContractETH(signer: Signer): IPoolService {
     return IPoolService__factory.connect(this.address, signer);
-  }
-
-  get isPaused(): boolean {
-    return false;
   }
 }
 

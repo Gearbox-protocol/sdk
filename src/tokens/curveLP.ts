@@ -6,12 +6,12 @@ import {TokenType} from "./tokenType";
 import { CurvePoolContract } from "src/contracts/contracts";
 
 export type CurveLPToken =
-    | "3Crv"
-    | "steCRV"
-    | "FRAX3CRV"
-    | "LUSD3CRV"
-    | "crvPlain3andSUSD"
-    | "gusd3CRV";
+  | "3Crv"
+  | "steCRV"
+  | "FRAX3CRV"
+  | "LUSD3CRV"
+  | "crvPlain3andSUSD"
+  | "gusd3CRV";
 
 export type CurveLPTokenData = {
     symbol: CurveLPToken;
@@ -30,11 +30,13 @@ export type MetaCurveLPTokenData = {
     wrapper?: CurvePoolContract;
 } & TokenBase;
 
-export const Curve3CrvUnderlyingTokenIndex: PartialRecord<SupportedToken,
-    BigNumber> = {
-    DAI: BigNumber.from(0),
-    USDC: BigNumber.from(1),
-    USDT: BigNumber.from(2)
+export const Curve3CrvUnderlyingTokenIndex: PartialRecord<
+  SupportedToken,
+  BigNumber
+> = {
+  DAI: BigNumber.from(0),
+  USDC: BigNumber.from(1),
+  USDT: BigNumber.from(2)
 };
 
 export const curveTokens: Record<CurveLPToken, CurveLPTokenData | MetaCurveLPTokenData> = {

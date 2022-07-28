@@ -1,16 +1,13 @@
 import { BigNumber } from "ethers";
-import { TokenData } from "../tokens/tokenData";
+import { WAD, PRICE_DECIMALS } from "./constants";
 
-export const PRICE_DECIMALS = 1000;
-
-export const priceCalc = (
-  price: number,
+export const calcTotalPrice = (
+  price: BigNumber,
   amount: BigNumber,
-  token: TokenData | undefined
-) => {
-  const { decimals = 18 } = token || {};
-
-  return amount
-    .mul(Math.floor(PRICE_DECIMALS * price))
-    .div(BigNumber.from(10).pow(decimals));
-};
+  decimals: number = 18
+) =>
+  amount
+    .mul(WAD)
+    .mul(price)
+    .div(BigNumber.from(10).pow(decimals))
+    .div(PRICE_DECIMALS);

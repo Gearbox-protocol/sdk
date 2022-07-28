@@ -139,7 +139,7 @@ export const tokenDataByNetwork: Record<
     yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
     yvCurve_FRAX: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
 
-    //GEARBOX
+    // GEARBOX
     dDAI: "0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA",
     dUSDC: "0xc411dB5f5Eb3f7d552F9B8454B2D74097ccdE6E3",
     dWBTC: "0xe753260F1955e8678DCeA8887759e07aa57E8c54",
@@ -217,11 +217,11 @@ export const tokenDataByNetwork: Record<
     stkcvxsteCRV: "0xd8bAbB7EfBF7F931a69B209f71b27421F8b18516",
     stkcvxcrvPlain3andSUSD: "0x6b45Cab756B41a7204973b71362ef5F73E67F6DA",
 
-    //GEARBOX
-    dDAI: "0x0d06D2e31781A0585feE334F63beF43543496e5d",
-    dUSDC: "0xcCc83353856A79c94EaDa39Df76B9c7C4c762dBF",
-    dWBTC: "0x4cCb374472C8c73b067c8c40b9420a221Ef014ca",
-    dWETH: "0x3B1e0Db6C960b32beEDf82af9db2da63F15Ba01E",
+    // GEARBOX
+    dDAI: "0x077a3Ce0D572b72436F6644793Fc7721353aF1f4",
+    dUSDC: "0x8147e00456c8A3128182730bFFdFd9D1E6bbC048",
+    dWBTC: "0x34D9B3c13B25632879B2DaabBde702F612902238",
+    dWETH: "0x19e4F905749D3b487CA4927b54e55b64625a1143",
 
     GEAR: "0xe01c5d0297c56e992dab3886057a1441485ff7c7"
   }
@@ -229,6 +229,10 @@ export const tokenDataByNetwork: Record<
 
 export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
   Record<string, SupportedToken>
->((acc, [_, tokens]) => {
-  return { ...acc, ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens))) };
-}, {});
+>(
+  (acc, [, tokens]) => ({
+    ...acc,
+    ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens)))
+  }),
+  {}
+);

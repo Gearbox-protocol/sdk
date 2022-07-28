@@ -19,9 +19,9 @@ export declare class PoolData {
     readonly withdrawFee: number;
     readonly timestampLU: BigNumber;
     readonly cumulativeIndex_RAY: BigNumber;
+    readonly isPaused: boolean;
     constructor(payload: PoolDataPayload);
     getContractETH(signer: Signer): IPoolService;
-    get isPaused(): boolean;
 }
 export interface PoolsStat {
     tvl: number;

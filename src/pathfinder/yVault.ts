@@ -1,13 +1,18 @@
 import { BigNumber } from "ethers";
-import { IYVault__factory } from "../types";
-import { Path, LPWithdrawPathFinder } from "./path";
+
 import { YearnLPToken, yearnTokens } from "../tokens/yearn";
 import { NormalToken } from "../tokens/normal";
 import { CurveLPToken } from "../tokens/curveLP";
 import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
+
 import { PartialRecord } from "../utils/types";
 import { MCall, multicall } from "../utils/multicall";
+import { objectEntries } from "../utils/mappers";
+
+import { IYVault__factory } from "../types";
 import { IYVaultInterface } from "../types/contracts/integrations/yearn/IYVault";
+
+import type { Path, LPWithdrawPathFinder } from "./path";
 
 interface WithdrawBalance {
   token: SupportedToken;
@@ -16,6 +21,7 @@ interface WithdrawBalance {
 
 export class YearnVaultPathFinder implements LPWithdrawPathFinder {
   _vault: YearnLPToken;
+
   token: NormalToken | CurveLPToken;
 
   constructor(vault: YearnLPToken) {
@@ -27,18 +33,27 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
     this.token = currentTokenData.underlying;
   }
 
-  async findWithdrawPaths(p: Path): Promise<Array<Path>> {
-    let vaultBalances: PartialRecord<SupportedToken, WithdrawBalance> = {};
+  // eslint-disable-next-line class-methods-use-this
+  async findWithdrawPaths(path: Path): Promise<Array<Path>> {
+    // make path copy
+    const p: Path = Object.assign(
+      Object.create(Object.getPrototypeOf(path)),
+      path
+    );
 
-    for (let [yVault, tokenData] of Object.entries(yearnTokens)) {
-      const currentBalance = p.popBalance(yVault as YearnLPToken);
+    const vaultBalances = objectEntries(yearnTokens).reduce<
+      PartialRecord<SupportedToken, WithdrawBalance>
+    >((acc, [yVault, tokenData]) => {
+      const typedVault = yVault;
+      const currentBalance = p.popBalance(typedVault);
       if (currentBalance.gt(1)) {
-        vaultBalances[yVault as YearnLPToken] = {
+        acc[typedVault] = {
           token: tokenData.underlying,
           balance: currentBalance
         };
       }
-    }
+      return acc;
+    }, {});
 
     const vaultList = Object.keys(vaultBalances) as Array<SupportedToken>;
 
@@ -53,7 +68,7 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
 
     const prices = await multicall<Array<BigNumber>>(multicallData, p.provider);
 
-    for (let i = 0; i < vaultList.length; i++) {
+    for (let i = 0; i < vaultList.length; i += 1) {
       const vault = vaultList[i];
       const vb = vaultBalances[vault];
 
@@ -61,15 +76,15 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
         BigNumber.from(vb?.balance || 0).mul(prices[i])
       );
 
-      // !!!!!!!!!
-      // p.calls.push({
-      //   targetContract:
-      //     p.creditManager.adapters[tokenDataByNetwork[p.networkType][vault]],
-      //   callData:
-      //     IYVault__factory.createInterface().encodeFunctionData("withdraw()")
-      // });
+      const tokenAddress = tokenDataByNetwork[p.networkType][vault];
+      const adapterAddress = p.creditManager.adapters[tokenAddress];
+
+      const callData =
+        IYVault__factory.createInterface().encodeFunctionData("withdraw()");
+
+      p.calls.push({ target: adapterAddress, callData });
     }
 
-    return await p.withdrawTokens();
+    return p.withdrawTokens();
   }
 }

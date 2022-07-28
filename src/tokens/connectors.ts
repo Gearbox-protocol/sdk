@@ -1,8 +1,8 @@
-import {NormalToken} from "./normal";
+import { NormalToken } from "./normal";
 
 export const connectorTokens: Array<NormalToken> = [
-    "DAI",
-    "USDC",
-    "WETH",
-    "WBTC"
+  "DAI",
+  "USDC",
+  "WETH",
+  "WBTC"
 ];

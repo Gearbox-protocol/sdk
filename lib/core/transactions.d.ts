@@ -2,7 +2,7 @@ import { BigNumber } from "ethers";
 import { TokenData } from "../tokens/tokenData";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
 export interface TxSerialized {
-    type: "TxAddLiquidity" | "TxRemoveLiquidity" | "TxSwap" | "TxAddCollateral" | "TxIncreaseBorrowAmount" | "TxOpenAccount" | "TxRepayAccount" | "TxCloseAccount" | "TxApprove";
+    type: "TxAddLiquidity" | "TxRemoveLiquidity" | "TxSwap" | "TxAddCollateral" | "TxIncreaseBorrowAmount" | "TxOpenAccount" | "TxRepayAccount" | "TxCloseAccount" | "TxApprove" | "TxOpenMultitokenAccount";
     content: string;
 }
 export declare class TxSerializer {
@@ -97,13 +97,28 @@ export declare class TxOpenAccount extends EVMTx {
     toString(tokenData: Record<string, TokenData>): string;
     serialize(): TxSerialized;
 }
+interface TxOpenMultitokenAccountProps extends EVMTxProps {
+    borrowedAmount: BigNumber;
+    creditManager: string;
+    underlyingToken: string;
+    assets: Array<string>;
+}
+export declare class TxOpenMultitokenAccount extends EVMTx {
+    readonly borrowedAmount: BigNumber;
+    readonly creditManager: string;
+    readonly underlyingToken: string;
+    readonly assets: Array<string>;
+    constructor(opts: TxOpenMultitokenAccountProps);
+    toString(tokenData: Record<string, TokenData>): string;
+    serialize(): TxSerialized;
+}
 interface RepayAccountProps extends EVMTxProps {
     creditManager: string;
 }
 export declare class TxRepayAccount extends EVMTx {
     readonly creditManager: string;
     constructor(opts: RepayAccountProps);
-    toString(_: Record<string, TokenData>): string;
+    toString(): string;
     serialize(): TxSerialized;
 }
 interface CloseAccountProps extends EVMTxProps {
@@ -112,7 +127,7 @@ interface CloseAccountProps extends EVMTxProps {
 export declare class TxCloseAccount extends EVMTx {
     readonly creditManager: string;
     constructor(opts: CloseAccountProps);
-    toString(_: Record<string, TokenData>): string;
+    toString(): string;
     serialize(): TxSerialized;
 }
 interface ApproveProps extends EVMTxProps {

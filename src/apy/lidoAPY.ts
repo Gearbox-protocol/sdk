@@ -1,6 +1,8 @@
 import { providers } from "ethers";
 
 import { multicall, MCall } from "../utils/multicall";
+import { contractParams, LidoParams } from "../contracts/contracts";
+import { tokenDataByNetwork } from "../tokens/token";
 
 import { WAD, SECONDS_PER_YEAR, NetworkType } from "../core/constants";
 
@@ -15,32 +17,32 @@ type ILidoOracleInterface = ILidoOracle["interface"];
 
 type IstETHInterface = IstETH["interface"];
 
-const lidoOracleAddress: Record<NetworkType, string> = {
-  Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
-  Kovan: ""
-};
+const lidoOracles = (contractParams.LIDO_STETH_GATEWAY as LidoParams).oracle;
 
-const lidoStEthAddress: Record<NetworkType, string> = {
-  Mainnet: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
-  Kovan: ""
+const lidoStEth: Record<NetworkType, string> = {
+  Mainnet: tokenDataByNetwork.Mainnet.STETH,
+  Kovan: tokenDataByNetwork.Kovan.STETH
 };
 
 export async function getLidoApy(
   provider: providers.Provider,
   networkType: NetworkType
 ) {
-  if (!lidoOracleAddress[networkType]) {
-    throw `No Lido APR oracle found on current network: ${networkType}`;
+  if (!lidoOracles[networkType]) {
+    throw new Error(
+      `No Lido APR oracle found on current network: ${networkType}`
+    );
   }
-  if (!lidoStEthAddress[networkType]) {
-    throw `No Lido stETH found on current network: ${networkType}`;
+  if (!lidoStEth[networkType]) {
+    throw new Error(`No Lido stETH found on current network: ${networkType}`);
   }
 
   const [{ postTotalPooledEther, preTotalPooledEther, timeElapsed }, fee] =
     await geLidoData(
-      lidoOracleAddress[networkType],
-      lidoStEthAddress[networkType],
-      provider
+      lidoOracles[networkType],
+      lidoStEth[networkType],
+      provider,
+      networkType
     );
 
   const lidoAPRRay = postTotalPooledEther
@@ -52,30 +54,36 @@ export async function getLidoApy(
   return [lidoAPRRay, fee] as const;
 }
 
+export const LIDO_FEE_DECIMALS = 10000;
+
 async function geLidoData(
   lidoOracleAddress: string,
   stETHAddress: string,
-  provider: providers.Provider
+  provider: providers.Provider,
+  network: NetworkType
 ) {
-  const calls: [MCall<ILidoOracleInterface>, MCall<IstETHInterface>] = [
-    {
-      address: lidoOracleAddress,
-      interface: ILidoOracle__factory.createInterface(),
-      method: "getLastCompletedReportDelta()"
-    },
-    {
+  const calls: [MCall<ILidoOracleInterface>, ...Array<MCall<IstETHInterface>>] =
+    [
+      {
+        address: lidoOracleAddress,
+        interface: ILidoOracle__factory.createInterface(),
+        method: "getLastCompletedReportDelta()"
+      }
+    ];
+
+  if (network !== "Kovan")
+    calls.push({
       address: stETHAddress,
       interface: IstETH__factory.createInterface(),
       method: "getFee()"
-    }
-  ];
+    });
 
-  return multicall<
+  const [stats, fee = Math.floor(LIDO_FEE_DECIMALS / 10)] = await multicall<
     [
       Awaited<ReturnType<ILidoOracle["getLastCompletedReportDelta"]>>,
       Awaited<ReturnType<IstETH["getFee"]>>
     ]
   >(calls, provider);
-}
 
-export const LIDO_FEE_DECIMALS = 10000;
+  return [stats, fee] as const;
+}

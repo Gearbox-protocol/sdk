@@ -1,4 +1,6 @@
-import { LEVERAGE_DECIMALS } from "../core/constants";
+import { BigNumber } from "ethers";
+import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
+import { calcTotalPrice } from "./price";
 
 export interface StrategyPayload {
   apy?: number;
@@ -19,14 +21,23 @@ interface PoolStats {
 
 type PoolList = Record<string, PoolStats>;
 
+interface TokenDescription {
+  price: BigNumber;
+  amount: BigNumber;
+  decimals: number | undefined;
+}
+
 export class Strategy {
   apy: number | undefined;
 
   name: string;
+
   lpToken: string;
+
   pools: Array<string>;
 
   unleveragableCollateral: Array<string>;
+
   leveragableCollateral: Array<string>;
 
   baseAssets: Array<string>;
@@ -42,10 +53,15 @@ export class Strategy {
     this.baseAssets = payload.baseAssets;
   }
 
-  public roiMax(apy: number, maxLeverage: number, poolApy: PoolList) {
-    const minApy = this.minBorrowApy(poolApy);
+  public maxAPY(maxLeverage: number, poolApy: PoolList) {
+    const minApy = minBorrowApy(poolApy);
 
-    return this.roi(apy, maxLeverage, maxLeverage - LEVERAGE_DECIMALS, minApy);
+    return roi(
+      this.apy || 0,
+      maxLeverage,
+      maxLeverage - LEVERAGE_DECIMALS,
+      minApy
+    );
   }
 
   public overallAPY(
@@ -56,50 +72,33 @@ export class Strategy {
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
 
-    return this.roi(apy, farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
+    return roi(apy, farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public liquidationPrice(
-    leverage: number,
-
-    ltStrategy: number,
-    ltCollateral: number,
-
-    depositCollateral: string
+    borrowed: TokenDescription,
+    collateral: TokenDescription,
+    lp: TokenDescription,
+    ltCollateral: BigNumber
   ) {
-    const farmLev = this.farmLev(leverage, depositCollateral);
-
-    return (
-      1 -
-      (leverage - LEVERAGE_DECIMALS - ltCollateral * (leverage - farmLev)) /
-        (ltStrategy * farmLev)
+    const borrowedMoney = calcTotalPrice(
+      borrowed.price,
+      borrowed.amount,
+      borrowed.decimals
     );
-  }
+    const collateralMoney = calcTotalPrice(
+      collateral.price,
+      collateral.amount,
+      collateral.decimals
+    )
+      .mul(ltCollateral)
+      .div(PERCENTAGE_FACTOR);
+    const lpMoney = calcTotalPrice(lp.price, lp.amount, lp.decimals);
 
-  public ltStrategyLP(maxLeverage: number) {
-    return 1 - LEVERAGE_DECIMALS / maxLeverage;
-  }
-
-  public maxLeverage(ltStrategyLP: number) {
-    const leverage = Math.floor(1 / (1 - ltStrategyLP));
-    return Math.floor(leverage * LEVERAGE_DECIMALS);
-  }
-
-  private roi(
-    apy: number,
-    farmLev: number,
-    debtLev: number,
-    borrowAPY: number
-  ) {
-    return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
-  }
-
-  private minBorrowApy(poolApy: PoolList) {
-    const apys = Object.values(poolApy).sort(
-      (a, b) => a.borrowRate - b.borrowRate
-    );
-
-    return apys.length > 0 ? apys[0].borrowRate : 0;
+    return lpMoney.gt(0)
+      ? borrowedMoney.sub(collateralMoney).mul(WAD).div(lpMoney)
+      : BigNumber.from(0);
   }
 
   private farmLev(leverage: number, depositCollateral: string) {
@@ -120,4 +119,16 @@ export class Strategy {
       c => c.toLowerCase() === depositCollateral.toLowerCase()
     );
   }
+}
+
+function roi(apy: number, farmLev: number, debtLev: number, borrowAPY: number) {
+  return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
+}
+
+function minBorrowApy(poolApy: PoolList) {
+  const apys = Object.values(poolApy).sort(
+    (a, b) => a.borrowRate - b.borrowRate
+  );
+
+  return apys.length > 0 ? apys[0].borrowRate : 0;
 }

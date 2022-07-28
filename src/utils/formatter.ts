@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish } from "ethers";
-import { PERCENTAGE_FACTOR, RAY, LEVERAGE_DECIMALS } from "../core/constants";
 import Decimal from "decimal.js-light";
+import { PERCENTAGE_FACTOR, RAY, LEVERAGE_DECIMALS } from "../core/constants";
 
 export function rayToNumber(num: BigNumberish): number {
   return (
@@ -13,10 +13,13 @@ export function formatRAY(num?: BigNumber): string {
 }
 
 export function formatBN(
-  num: BigNumberish | undefined,
+  numArg: BigNumberish | undefined,
   decimals: number,
-  precision?: number
+  precisionArg?: number
 ): string {
+  let num = numArg;
+  let precision = precisionArg;
+
   if (!num) return "-";
 
   // if (BigNumber.from(num).gt(BigNumber.from(10).pow(37))) {
@@ -64,23 +67,24 @@ export function formatBn4dig(num: BigNumber, precision: number = 2): string {
   let numStr = num.toString();
   if (numStr.length < 6) numStr = "0".repeat(6 - numStr.length) + numStr;
   return numStr.length <= 6
-    ? "0." + numStr.slice(0, precision)
-    : numStr.slice(0, numStr.length - 6) +
-        "." +
-        numStr.slice(numStr.length - 6, numStr.length - 6 + precision);
+    ? `0.${numStr.slice(0, precision)}`
+    : `${numStr.slice(0, numStr.length - 6)}.${numStr.slice(
+        numStr.length - 6,
+        numStr.length - 6 + precision
+      )}`;
 }
 
 export function toHumanFormat(num: BigNumber, precision: number = 2): string {
   if (num.gte(1e15)) {
-    return formatBn4dig(num.div(1e9), precision) + "Bn";
+    return `${formatBn4dig(num.div(1e9), precision)}Bn`;
   }
 
   if (num.gte(1e12)) {
-    return formatBn4dig(num.div(1e6), precision) + "M";
+    return `${formatBn4dig(num.div(1e6), precision)}M`;
   }
 
   if (num.gte(1e9)) {
-    return formatBn4dig(num.div(1e3), precision) + "K";
+    return `${formatBn4dig(num.div(1e3), precision)}K`;
   }
 
   return formatBn4dig(num, precision);
@@ -112,23 +116,23 @@ export function shortHash(address?: string): string {
 
 export const formatRate = (rate: BigNumberish | undefined) =>
   rate
-    ? (
+    ? `${(
         BigNumber.from(rate)
           .mul(PERCENTAGE_FACTOR)
           .mul(100)
           .div(RAY)
           .toNumber() / PERCENTAGE_FACTOR
-      ).toFixed(2) + "%"
+      ).toFixed(2)}%`
     : "0.00%";
 
 export function formatDate(date: Date): string {
-  var d = new Date(date),
-    month = "" + (d.getMonth() + 1),
-    day = "" + d.getDate(),
-    year = d.getFullYear();
+  const d = new Date(date);
+  let month = `${d.getMonth() + 1}`;
+  let day = `${d.getDate()}`;
+  const year = d.getFullYear();
 
-  if (month.length < 2) month = "0" + month;
-  if (day.length < 2) day = "0" + day;
+  if (month.length < 2) month = `0${month}`;
+  if (day.length < 2) day = `0${day}`;
 
   return [year, month, day].join("-");
 }

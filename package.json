@@ -1,6 +1,6 @@
 {
   "name": "@gearbox-protocol/sdk",
-  "version": "0.0.100",
+  "version": "0.0.101",
   "description": "Gearbox SDK",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -9,22 +9,40 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
-    "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc && yarn publish"
+    "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc && yarn publish",
+    "lint": "eslint . --ext .tsx,.ts --fix",
+    "prepush": "yarn lint --max-warnings=0",
+    "prepare": "husky install"
   },
   "dependencies": {
     "decimal.js-light": "^2.5.1",
-    "moment": "^2.29.1"
+    "moment": "^2.29.1",
+    "prettier": "^2.7.1"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.4",
-    "@types/node": "^14.0.23",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^17.0.41",
+    "@typescript-eslint/eslint-plugin": "^5.7.0",
+    "@typescript-eslint/parser": "^5.7.0",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
-    "ethers": "^5.6.5",
+    "eslint": "^7.11.0",
+    "eslint-config-airbnb": "^19.0.2",
+    "eslint-config-airbnb-typescript": "^16.1.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-import-resolver-typescript": "^2.5.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.27.1",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "ethers": "5.6.9",
+    "husky-init": "^8.0.0",
     "jest": "^26.1.0",
-    "prettier": "^2.3.0",
+    "prettier": "^2.7.1",
     "ts-node": "^10.1.0",
     "tslog": "^3.3.3",
-    "typescript": "^4.2.4"
+    "typescript": "^4.7.3",
+    "husky": "^8.0.0"
   }
 }

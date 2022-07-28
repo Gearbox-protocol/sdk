@@ -24,7 +24,7 @@ export declare class Path {
         totalGasLimit: number;
     });
     popBalance(token: SupportedToken): BigNumber;
-    private comparedByPriority;
+    private static comparedByPriority;
     static findBestPath(creditAccount: CreditAccountData, creditManager: CreditManagerData, provider: ethers.providers.Provider): Promise<void>;
     withdrawTokens(): Promise<Array<Path>>;
     clone(): Path;

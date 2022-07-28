@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
+import moment from "moment";
 import { CreditOperation } from "./creditOperation";
 import { CreditSessionPayload } from "../payload/creditSession";
-import moment from "moment";
 import { PERCENTAGE_FACTOR } from "./constants";
 
 export type CreditSessionStatus = "active" | "closed" | "repaid" | "liquidated";
@@ -10,29 +10,46 @@ const statusEnum: Array<CreditSessionStatus> = [
   "active",
   "closed",
   "repaid",
-  "liquidated",
+  "liquidated"
 ];
 
 export class CreditSession {
   public readonly id: string;
 
   public readonly status: CreditSessionStatus;
+
   public readonly name: string;
+
   public readonly background: string;
+
   public readonly borrower: string;
+
   public readonly creditManager: string;
+
   public readonly account: string;
+
   public readonly since: number;
+
   public readonly sinceDate: string;
+
   public readonly closedAt: number;
+
   public readonly closedAtDate: string;
+
   public readonly initialAmount: BigNumber;
+
   public readonly borrowedAmount: BigNumber;
+
   public readonly totalValue: BigNumber;
+
   public readonly healthFactor: number;
+
   public readonly profit: BigNumber;
+
   public readonly profitPercentage: number;
+
   public readonly score: number;
+
   public readonly operations: Array<CreditOperation>;
 
   constructor(payload: CreditSessionPayload) {
@@ -53,9 +70,12 @@ export class CreditSession {
     this.healthFactor =
       BigNumber.from(payload.healthFactor || 0).toNumber() / PERCENTAGE_FACTOR;
     this.score = payload.score;
-    this.operations = (payload.operations || []).map((op) => {
-      op.date = moment(op.timestamp * 1000).format("Do MMM YYYY");
-      return op;
+    this.operations = (payload.operations || []).map(op => {
+      const formattedOp = {
+        ...op,
+        date: moment(op.timestamp * 1000).format("Do MMM YYYY")
+      };
+      return formattedOp;
     });
     this.sinceDate = moment(payload.sinceTimestamp * 1000).format(
       "Do MMM YYYY"

@@ -6,12 +6,12 @@ import {TokenType} from "./tokenType";
 import { YearnVaultContract } from "src/contracts/contracts";
 
 export type YearnLPToken =
-    | "yvDAI"
-    | "yvUSDC"
-    | "yvWETH"
-    | "yvWBTC"
-    | "yvCurve_stETH"
-    | "yvCurve_FRAX";
+  | "yvDAI"
+  | "yvUSDC"
+  | "yvWETH"
+  | "yvWBTC"
+  | "yvCurve_stETH"
+  | "yvCurve_FRAX";
 
 export type YearnVaultTokenData = {
     symbol: YearnLPToken;

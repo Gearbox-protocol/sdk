@@ -1,31 +1,27 @@
 import { BigNumberish } from "ethers";
 import { CreditManagerData } from "src/core/creditManager";
-import { ADDRESS_0x0, NetworkType } from "src/core/constants";
+import { ADDRESS_0X0, NetworkType } from "src/core/constants";
 
-
-import {
-    LidoV1Adapter__factory
-} from "../types";
+import { LidoV1Adapter__factory } from "../types";
 
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { contractsByNetwork } from "src/contracts/contracts";
 import { UniswapV2Multicaller } from "./uniswapV2";
 import { tokenDataByNetwork } from "src/tokens/token";
 
-
 export class LidoCalls {
-    public static submit(amount: BigNumberish) {
-        return LidoV1Adapter__factory.createInterface().encodeFunctionData(
-            "submit",
-            [amount]
-        )
-    }
+  public static submit(amount: BigNumberish) {
+    return LidoV1Adapter__factory.createInterface().encodeFunctionData(
+      "submit",
+      [amount]
+    );
+  }
 
-    public static submitAll() {
-        return LidoV1Adapter__factory.createInterface().encodeFunctionData(
-            "submitAll"
-        )
-    }
+  public static submitAll() {
+    return LidoV1Adapter__factory.createInterface().encodeFunctionData(
+      "submitAll"
+    );
+  }
 }
 
 export class LidoMulticaller {
@@ -72,7 +68,7 @@ export class LidoStrategies {
                     underlyingAmount,
                     0,
                     [data.underlyingToken, tokenDataByNetwork[network].WETH],
-                    ADDRESS_0x0,
+                    ADDRESS_0X0,
                     Math.floor((new Date()).getTime() / 1000) + 3600
                 )
             );

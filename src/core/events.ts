@@ -1,5 +1,5 @@
-import { TokenData } from "../tokens/tokenData";
 import { BigNumber } from "ethers";
+import { TokenData } from "../tokens/tokenData";
 import { formatBN } from "../utils/formatter";
 import { LEVERAGE_DECIMALS, PERCENTAGE_DECIMALS } from "./constants";
 import { EVMEvent, EVMTx, EVMEventProps } from "./eventOrTx";
@@ -116,9 +116,7 @@ export class EventParser {
   }
 
   static deserializeArray(data: Array<EventSerialized>): Array<EVMEvent> {
-    return data.map(e => {
-      return EventParser.deserialize(e);
-    });
+    return data.map(e => EventParser.deserialize(e));
   }
 }
 
@@ -131,7 +129,9 @@ interface EventAddLiquidityProps extends EVMEventProps {
 
 export class EventAddLiquidity extends EVMEvent {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly pool: string;
 
   constructor(opts: EventAddLiquidityProps) {
@@ -165,8 +165,11 @@ interface RemoveLiquidityProps extends EVMEventProps {
 
 export class EventRemoveLiquidity extends EVMEvent {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly dieselToken: string;
+
   public readonly pool: string;
 
   constructor(opts: RemoveLiquidityProps) {
@@ -203,8 +206,11 @@ interface OpenCreditAccountProps extends EVMEventProps {
 
 export class EventOpenCreditAccount extends EVMEvent {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly leverage: number;
+
   public readonly creditManager: string;
 
   constructor(opts: OpenCreditAccountProps) {
@@ -246,7 +252,9 @@ interface CloseCreditAccountProps extends EVMEventProps {
 
 export class EventCloseCreditAccount extends EVMEvent {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly creditManager: string;
 
   constructor(opts: CloseCreditAccountProps) {
@@ -281,7 +289,9 @@ interface LiquidateCreditAccountProps extends EVMEventProps {
 
 export class EventLiquidateCreditAccount extends EVMEvent {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly creditManager: string;
 
   constructor(opts: LiquidateCreditAccountProps) {
@@ -315,6 +325,7 @@ interface RepayCreditAccountProps extends EVMEventProps {
 
 export class EventRepayCreditAccount extends EVMEvent {
   public readonly underlyingToken: string;
+
   public readonly creditManager: string;
 
   constructor(opts: RepayCreditAccountProps) {
@@ -327,7 +338,7 @@ export class EventRepayCreditAccount extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Credit account ${getContractName(this.creditManager)}: was repaid`;
   }
 }
@@ -340,7 +351,9 @@ interface AddCollateralProps extends EVMEventProps {
 
 export class EventAddCollateral extends EVMEvent {
   public readonly amount: BigNumber;
+
   public readonly addedToken: string;
+
   public readonly creditManager: string;
 
   constructor(opts: AddCollateralProps) {
@@ -373,7 +386,9 @@ interface IncreaseBorrowAmountProps extends EVMEventProps {
 
 export class EventIncreaseBorrowAmount extends EVMEvent {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly creditManager: string;
 
   constructor(opts: IncreaseBorrowAmountProps) {
@@ -429,18 +444,31 @@ interface CMNewParametersProps extends EVMEventProps {
 
 export class EventCMNewParameters extends EVMEvent {
   public readonly creditManager: string;
+
   public readonly underlyingToken: string;
+
   public readonly minAmount: BigNumber;
+
   public readonly maxAmount: BigNumber;
+
   public readonly maxLeverage: number;
+
   public readonly feeInterest: number;
+
   public readonly feeLiquidation: number;
+
   public readonly liquidationDiscount: number;
+
   public readonly prevMinAmount: BigNumber;
+
   public readonly prevMaxAmount: BigNumber;
+
   public readonly prevMaxLeverage: number;
+
   public readonly prevFeeInterest: number;
+
   public readonly prevFeeLiquidation: number;
+
   public readonly prevLiquidationDiscount: number;
 
   constructor(opts: CMNewParametersProps) {
@@ -529,9 +557,13 @@ interface TokenAllowedProps extends EVMEventProps {
 
 export class EventTokenAllowed extends EVMEvent {
   public readonly creditManager: string;
+
   public readonly token: string;
+
   public readonly liquidityThreshold: number;
+
   public readonly prevLiquidationThreshold?: number;
+
   public readonly status: TokenAllowanceType;
 
   constructor(opts: TokenAllowedProps) {
@@ -549,7 +581,9 @@ export class EventTokenAllowed extends EVMEvent {
 
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.token.toLowerCase()];
-    let msg = `Credit manager ${getContractName(this.creditManager)} updated `;
+    const msg = `Credit manager ${getContractName(
+      this.creditManager
+    )} updated `;
     switch (this.status) {
       case "NewToken":
         return `${msg}: New token allowed: ${
@@ -567,6 +601,8 @@ export class EventTokenAllowed extends EVMEvent {
         return `${msg}: ${token.symbol} liquidation threshold: ${
           (this.prevLiquidationThreshold || 0) / PERCENTAGE_DECIMALS
         } => ${this.liquidityThreshold / PERCENTAGE_DECIMALS}%`;
+      default:
+        return "Error: TokenAllowedProps";
     }
   }
 }
@@ -581,6 +617,7 @@ interface TokenForbiddenProps extends EVMEventProps {
 
 export class EventTokenForbidden extends EVMEvent {
   public readonly creditManager: string;
+
   public readonly token: string;
 
   constructor(opts: TokenForbiddenProps) {
@@ -616,8 +653,11 @@ interface ContractAllowedProps extends EVMEventProps {
 
 export class EventContractAllowed extends EVMEvent {
   public readonly creditManager: string;
+
   public readonly protocol: string;
+
   public readonly adapter: string;
+
   public readonly status: EventContractAllowedStatus;
 
   constructor(opts: ContractAllowedProps) {
@@ -632,8 +672,8 @@ export class EventContractAllowed extends EVMEvent {
     this.status = opts.status;
   }
 
-  toString(_: Record<string, TokenData>): string {
-    let msg = `Credit manager ${getContractName(this.creditManager)} updated`;
+  toString(): string {
+    const msg = `Credit manager ${getContractName(this.creditManager)} updated`;
 
     switch (this.status) {
       case "Connected":
@@ -644,6 +684,8 @@ export class EventContractAllowed extends EVMEvent {
         return `${msg} : ${getContractName(
           this.protocol
         )} adapter was updated. New adapter:  ${this.adapter}`;
+      default:
+        return "Error: EventContractAllowed";
     }
   }
 }
@@ -659,6 +701,7 @@ interface ContractForbiddenProps extends EVMEventProps {
 
 export class EventContractForbidden extends EVMEvent {
   public readonly creditManager: string;
+
   public readonly protocol: string;
 
   constructor(opts: ContractForbiddenProps) {
@@ -671,7 +714,7 @@ export class EventContractForbidden extends EVMEvent {
     this.protocol = opts.protocol;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Credit manager ${getContractName(
       this.creditManager
     )} updated: ${getContractName(this.protocol)}`;
@@ -692,9 +735,13 @@ interface NewFastCheckParametersProps extends EVMEventProps {
 
 export class EventNewFastCheckParameters extends EVMEvent {
   public readonly creditManager: string;
+
   public readonly chiThreshold: number;
+
   public readonly fastCheckDelay: number;
+
   public readonly prevChiThreshold?: number;
+
   public readonly prevFastCheckDelay?: number;
 
   constructor(opts: NewFastCheckParametersProps) {
@@ -710,7 +757,7 @@ export class EventNewFastCheckParameters extends EVMEvent {
     this.prevFastCheckDelay = opts.prevFastCheckDelay;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     let msg = `Credit manager ${getContractName(this.creditManager)} updated: `;
 
     if (this.chiThreshold !== this.prevChiThreshold) {
@@ -734,6 +781,7 @@ interface PriceOracleUpdatedProps extends EVMEventProps {
 
 export class EventPriceOracleUpdated extends EVMEvent {
   public readonly creditManager: string;
+
   public readonly priceOracle: string;
 
   constructor(opts: PriceOracleUpdatedProps) {
@@ -746,7 +794,7 @@ export class EventPriceOracleUpdated extends EVMEvent {
     this.priceOracle = opts.priceOracle;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Credit manager ${getContractName(
       this.creditManager
     )} updated: price oracle was updated. New price oracle ${getContractName(
@@ -768,7 +816,9 @@ interface TransferPluginAllowedProps extends EVMEventProps {
 
 export class EventTransferPluginAllowed extends EVMEvent {
   public readonly creditManager: string;
+
   public readonly plugin: string;
+
   public readonly state: boolean;
 
   constructor(opts: TransferPluginAllowedProps) {
@@ -782,7 +832,7 @@ export class EventTransferPluginAllowed extends EVMEvent {
     this.state = opts.state;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Credit manager ${getContractName(
       this.creditManager
     )} updated: transfer plugin  ${getContractName(this.plugin)} was ${
@@ -801,6 +851,7 @@ interface NewInterestRateModelProps extends EVMEventProps {
 
 export class EventNewInterestRateModel extends EVMEvent {
   public readonly pool: string;
+
   public readonly newInterestRateModel: string;
 
   constructor(opts: NewInterestRateModelProps) {
@@ -813,7 +864,7 @@ export class EventNewInterestRateModel extends EVMEvent {
     this.newInterestRateModel = opts.newInterestRateModel;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Pool ${getContractName(
       this.pool
     )} updated: interest rate model was updated. New model: ${getContractName(
@@ -833,6 +884,7 @@ interface NewCreditManagerConnectedProps extends EVMEventProps {
 
 export class EventNewCreditManagerConnected extends EVMEvent {
   public readonly pool: string;
+
   public readonly creditManager: string;
 
   constructor(opts: NewCreditManagerConnectedProps) {
@@ -845,7 +897,7 @@ export class EventNewCreditManagerConnected extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Pool ${getContractName(
       this.pool
     )} updated: new credit manager ${getContractName(
@@ -865,6 +917,7 @@ interface BorrowForbiddenProps extends EVMEventProps {
 
 export class EventBorrowForbidden extends EVMEvent {
   public readonly pool: string;
+
   public readonly creditManager: string;
 
   constructor(opts: BorrowForbiddenProps) {
@@ -877,7 +930,7 @@ export class EventBorrowForbidden extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Pool ${getContractName(
       this.pool
     )} updated: credit manager ${getContractName(
@@ -898,8 +951,11 @@ interface NewExpectedLiquidityLimitProps extends EVMEventProps {
 
 export class EventNewExpectedLiquidityLimit extends EVMEvent {
   public readonly pool: string;
+
   public readonly underlyingToken: string;
+
   public readonly newLimit: BigNumber;
+
   public readonly prevLimit: BigNumber;
 
   constructor(opts: NewExpectedLiquidityLimitProps) {
@@ -948,8 +1004,11 @@ interface NewWithdrawFeeProps extends EVMEventProps {
 
 export class EventNewWithdrawFee extends EVMEvent {
   public readonly pool: string;
+
   public readonly underlyingToken: string;
+
   public readonly newFee: number;
+
   public readonly prevFee: number;
 
   constructor(opts: NewWithdrawFeeProps) {
@@ -964,7 +1023,7 @@ export class EventNewWithdrawFee extends EVMEvent {
     this.prevFee = Number(opts.oldFee);
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return this.prevFee === 0
       ? `Pool ${getContractName(this.pool)} updated: withdraw fee was set to: ${
           this.newFee / PERCENTAGE_DECIMALS
@@ -987,6 +1046,7 @@ interface NewPriceFeedProps extends EVMEventProps {
 
 export class EventNewPriceFeed extends EVMEvent {
   public readonly token: string;
+
   public readonly priceFeed: string;
 
   constructor(opts: NewPriceFeedProps) {
@@ -1018,6 +1078,7 @@ interface TakeForeverProps extends EVMEventProps {
 
 export class EventTakeForever extends EVMEvent {
   public readonly creditAccount: string;
+
   public readonly to: string;
 
   constructor(opts: TakeForeverProps) {
@@ -1030,7 +1091,7 @@ export class EventTakeForever extends EVMEvent {
     this.to = opts.to;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `AccountFactory: account ${this.creditAccount} was taken forever and transferred to ${this.to}`;
   }
 }
@@ -1053,7 +1114,7 @@ export class EventPaused extends EVMEvent {
     this.contract = opts.contract;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `${getContractName(this.contract)} was paused`;
   }
 }
@@ -1074,7 +1135,7 @@ export class EventUnPaused extends EVMEvent {
     this.contract = opts.contract;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `${getContractName(this.contract)} was unpaused`;
   }
 }
@@ -1098,7 +1159,7 @@ export class EventPausableAdminAdded extends EVMEvent {
     this.admin = opts.admin;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `ACL: pausable admin ${this.admin} was added`;
   }
 }
@@ -1122,7 +1183,7 @@ export class EventPausableAdminRemoved extends EVMEvent {
     this.admin = opts.admin;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `ACL: pausable admin ${this.admin} was removed`;
   }
 }
@@ -1146,7 +1207,7 @@ export class EventUnPausableAdminAdded extends EVMEvent {
     this.admin = opts.admin;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `ACL: unpausable admin ${this.admin} was added`;
   }
 }
@@ -1170,7 +1231,7 @@ export class EventUnPausableAdminRemoved extends EVMEvent {
     this.admin = opts.admin;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `ACL: unpausable admin ${this.admin} was removed`;
   }
 }
@@ -1192,7 +1253,7 @@ export class EventTransferOwnership extends EVMEvent {
     this.newOwner = opts.admin;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `ACL: configurator was changed to ${this.newOwner}`;
   }
 }

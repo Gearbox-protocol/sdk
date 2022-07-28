@@ -1,5 +1,5 @@
 import { TokenData } from "../tokens/tokenData";
-import { TxSerialized } from "./transactions";
+import type { TxSerialized } from "./transactions";
 
 export interface Display {
   toString(tokenData: Record<string, TokenData>): string;
@@ -16,8 +16,11 @@ export interface EventOrTxProps {
 
 export abstract class EventOrTx implements Display {
   public block: number;
+
   public readonly txHash: string;
+
   public readonly timestamp: number;
+
   protected _txStatus: TxStatus;
 
   constructor({ block, txHash, txStatus, timestamp = 0 }: EventOrTxProps) {
@@ -70,10 +73,10 @@ export abstract class EVMTx extends EventOrTx {
     timestamp = 0
   }: EVMTxProps) {
     super({
-      block: block,
-      txStatus: txStatus,
-      txHash: txHash,
-      timestamp: timestamp
+      block,
+      txStatus,
+      txHash,
+      timestamp
     });
     if (this.txStatus !== "pending" && this.block === 0) {
       throw new Error("Block not specified for non-pending tx");

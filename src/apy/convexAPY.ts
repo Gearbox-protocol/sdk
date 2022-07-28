@@ -28,8 +28,9 @@ import { AwaitedRes } from "../utils/types";
 import {
   SECONDS_PER_YEAR,
   WAD,
-  WAD_DECIMALS,
-  NetworkType
+  WAD_DECIMALS_POW,
+  NetworkType,
+  PRICE_DECIMALS
 } from "../core/constants";
 
 type SupportedPools = Extract<
@@ -72,14 +73,14 @@ export async function getConvexApy(
     poolParams.stakedToken
   ] as ConvexPhantomTokenData;
 
-  const underlying = stakedTokenParams.underlying;
+  const { underlying } = stakedTokenParams;
   const basePoolAddress = contractsList[pool];
   const swapPoolAddress = contractsList[curveSwapByPool[pool]];
   const cvxAddress = tokenList.CVX;
 
-  const extraPoolAddresses = poolParams.extraRewards.map(d => {
-    return d.poolAddress[networkType];
-  });
+  const extraPoolAddresses = poolParams.extraRewards.map(
+    d => d.poolAddress[networkType]
+  );
 
   const [basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra] =
     await getPoolData(
@@ -90,8 +91,8 @@ export async function getConvexApy(
       provider
     );
 
-  const cvxPrice = getTokenPrice(tokenList["CVX"]);
-  const crvPrice = getTokenPrice(tokenList["CRV"]);
+  const cvxPrice = getTokenPrice(tokenList.CVX);
+  const crvPrice = getTokenPrice(tokenList.CRV);
 
   const crvPerSecond = basePoolRate;
   const virtualSupply = basePoolSupply.mul(vPrice).div(WAD);
@@ -100,8 +101,8 @@ export async function getConvexApy(
   const crvPerYear = crvPerUnderlying.mul(SECONDS_PER_YEAR);
   const cvxPerYear = getCVXMintAmount(crvPerYear, cvxSupply);
 
-  const crvAPY = crvPerYear.mul(cvxPrice).div(WAD);
-  const cvxAPY = cvxPerYear.mul(crvPrice).div(WAD);
+  const crvAPY = crvPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
+  const cvxAPY = cvxPerYear.mul(crvPrice).div(PRICE_DECIMALS);
 
   const extraAPRs = await Promise.all(
     extraPoolAddresses.map(async (_, index) => {
@@ -113,7 +114,7 @@ export async function getConvexApy(
 
       const extraPrise = getTokenPrice(tokenList[extraRewardSymbol]);
 
-      const extraAPY = perYear.mul(extraPrise).div(WAD);
+      const extraAPY = perYear.mul(extraPrise).div(PRICE_DECIMALS);
 
       return extraAPY;
     })
@@ -242,7 +243,7 @@ export async function getCurveBaseApy(
 
     const { baseApy = 0 } = result.data.apys[poolName] || {};
 
-    return toBN((baseApy / RESPONSE_DECIMALS).toString(), WAD_DECIMALS);
+    return toBN((baseApy / RESPONSE_DECIMALS).toString(), WAD_DECIMALS_POW);
   } catch (e) {
     return BigNumber.from(0);
   }

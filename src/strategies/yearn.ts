@@ -1,73 +1,65 @@
 import { BigNumberish } from "ethers"
 import { contractParams, contractsByNetwork, YearnParams, YearnVaultContract } from "src/contracts/contracts";
-import { ADDRESS_0x0, NetworkType} from "src/core/constants";
+import { ADDRESS_0X0, NetworkType} from "src/core/constants";
 import { CreditManagerData } from "src/core/creditManager";
 import { CurveLPTokenData } from "src/tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "src/tokens/token";
 import { TokenType } from "src/tokens/tokenType";
 
-
-import {
-    YearnV2Adapter__factory
-} from "../types"
+import { YearnV2Adapter__factory } from "../types";
 
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { CurveStrategies } from "./curve";
 import { UniswapV2Multicaller } from "./uniswapV2";
 
 export class YearnV2Calls {
-
-    public static deposit(amount?: BigNumberish, recipient?: string): string {
-        let contractInterface = YearnV2Adapter__factory.createInterface();
-        if (amount && recipient) {
-            return contractInterface.encodeFunctionData(
-                "deposit(uint256,address)",
-                [amount, recipient]
-            );
-        } else if (amount) {
-            return contractInterface.encodeFunctionData(
-                "deposit(uint256)",
-                [amount]
-            );
-        } else {
-            return contractInterface.encodeFunctionData(
-                "deposit()"
-            );
-        }
+  public static deposit(amount?: BigNumberish, recipient?: string): string {
+    const contractInterface = YearnV2Adapter__factory.createInterface();
+    if (amount && recipient) {
+      return contractInterface.encodeFunctionData("deposit(uint256,address)", [
+        amount,
+        recipient
+      ]);
     }
-
-    public static withdraw(maxShares?: BigNumberish, recipient?: string, maxLoss?: BigNumberish): string {
-        let contractInterface = YearnV2Adapter__factory.createInterface();
-        if (maxShares && recipient && maxLoss) {
-            return contractInterface.encodeFunctionData(
-                "withdraw(uint256,address,uint256)",
-                [maxShares, recipient, maxLoss]
-            );
-        }
-        if (maxShares && recipient) {
-            return contractInterface.encodeFunctionData(
-                "withdraw(uint256,address)",
-                [maxShares, recipient]
-            );
-        } else if (maxShares) {
-            return contractInterface.encodeFunctionData(
-                "withdraw(uint256)",
-                [maxShares]
-            );
-        } else {
-            return contractInterface.encodeFunctionData(
-                "withdraw()"
-            );
-        }
+    if (amount) {
+      return contractInterface.encodeFunctionData("deposit(uint256)", [amount]);
     }
+    return contractInterface.encodeFunctionData("deposit()");
+  }
+
+  public static withdraw(
+    maxShares?: BigNumberish,
+    recipient?: string,
+    maxLoss?: BigNumberish
+  ): string {
+    const contractInterface = YearnV2Adapter__factory.createInterface();
+    if (maxShares && recipient && maxLoss) {
+      return contractInterface.encodeFunctionData(
+        "withdraw(uint256,address,uint256)",
+        [maxShares, recipient, maxLoss]
+      );
+    }
+    if (maxShares && recipient) {
+      return contractInterface.encodeFunctionData("withdraw(uint256,address)", [
+        maxShares,
+        recipient
+      ]);
+    }
+    if (maxShares) {
+      return contractInterface.encodeFunctionData("withdraw(uint256)", [
+        maxShares
+      ]);
+    }
+    return contractInterface.encodeFunctionData("withdraw()");
+  }
 }
 
 export class YearnV2Multicaller {
-    private readonly _address: string;
+  private readonly _address: string;
 
-    constructor(address: string) {
-        this._address = address;
-    }
+  constructor(address: string) {
+    this._address = address;
+  }
 
     static connect(address: string) {
         return new YearnV2Multicaller(address);
@@ -80,10 +72,14 @@ export class YearnV2Multicaller {
         };
     }
 
-    withdraw(maxShares?: BigNumberish, recipient?: string, maxLoss?: BigNumberish): MultiCallStruct {
+    withdraw(
+        maxShares?: BigNumberish,
+        recipient?: string,
+        maxLoss?: BigNumberish
+    ): MultiCallStruct {
         return {
-            target: this._address,
-            callData: YearnV2Calls.withdraw(maxShares, recipient, maxLoss)
+        target: this._address,
+        callData: YearnV2Calls.withdraw(maxShares, recipient, maxLoss)
         };
     }
 }
@@ -110,7 +106,7 @@ export class YearnV2Strategies {
                         underlyingAmount,
                         0,
                         [data.underlyingToken, tokenDataByNetwork[network][yearnParams.underlying]],
-                        ADDRESS_0x0,
+                        ADDRESS_0X0,
                         Math.floor((new Date()).getTime() / 1000) + 3600
                     )
                 );

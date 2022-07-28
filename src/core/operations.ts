@@ -2,11 +2,17 @@ import moment from "moment";
 
 export class OperationData {
   public readonly id: number;
+
   public readonly address: string;
+
   public readonly txHash: string;
+
   public readonly blockNum: number;
+
   public readonly operation: string;
+
   public readonly timestamp: number;
+
   public readonly date: string;
 
   constructor(payload: OperationDataPayload) {

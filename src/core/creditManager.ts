@@ -22,25 +22,44 @@ import { OpenAccountError } from "./errors";
 
 export class CreditManagerData {
   public readonly id: string;
+
   public readonly address: string;
+
   public readonly underlyingToken: string;
+
   public readonly isWETH: boolean;
+
   public readonly canBorrow: boolean;
+
   public readonly borrowRate: number;
+
   public readonly minAmount: BigNumber;
+
   public readonly maxAmount: BigNumber;
+
   public readonly maxLeverageFactor: number; // for V1 only
+
   public readonly availableLiquidity: BigNumber;
+
   public readonly allowedTokens: Array<string>;
+
   public readonly adapters: Record<string, string>;
 
   public readonly liquidationThresholds: Record<string, BigNumber>;
+
   public readonly version: number;
+
   public readonly creditFacade: string; // V2 only: address of creditFacade
+
   public readonly isDegenMode: boolean; // V2 only: true if contract is in Degen mode
+
   public readonly degenNFT: string; // V2 only: degenNFT, address(0) if not in degen mode
+
   public readonly isIncreaseDebtForbidden: boolean; // V2 only: true if increasing debt is forbidden
+
   public readonly forbiddenTokenMask: BigNumber; // V2 only: mask which forbids some particular tokens
+
+  public readonly isPaused: boolean = false;
 
   constructor(payload: CreditManagerDataPayload) {
     this.id = payload.addr;
@@ -74,25 +93,22 @@ export class CreditManagerData {
       {}
     );
 
-    this.liquidationThresholds = payload.liquidationThresholds.reduce<
+    this.liquidationThresholds = (payload.liquidationThresholds || []).reduce<
       Record<string, BigNumber>
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
 
-      if (address) acc[address.toLowerCase()] = threshold;
+      if (address) acc[address.toLowerCase()] = BigNumber.from(threshold);
 
       return acc;
     }, {});
-    this.version = payload.version || 1;
+
+    this.version = BigNumber.from(payload.version || 1).toNumber();
     this.creditFacade = payload.creditFacade || "";
     this.isDegenMode = payload.isDegenMode || false;
     this.degenNFT = payload.degenNFT || "";
     this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden || false;
     this.forbiddenTokenMask = BigNumber.from(payload.forbiddenTokenMask || 0);
-  }
-
-  get isPaused(): boolean {
-    return false;
   }
 
   getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager {
@@ -228,15 +244,25 @@ export function calcHealthFactorAfterAddingCollateral(
 
 export class CreditManagerStat extends CreditManagerData {
   public readonly uniqueUsers: number;
+
   public readonly openedAccountsCount: number;
+
   public readonly totalOpenedAccounts: number;
+
   public readonly totalClosedAccounts: number;
+
   public readonly totalRepaidAccounts: number;
+
   public readonly totalLiquidatedAccounts: number;
+
   public readonly totalBorrowed: BigNumber;
+
   public readonly cumulativeBorrowed: BigNumber;
+
   public readonly totalRepaid: BigNumber;
+
   public readonly totalProfit: BigNumber;
+
   public readonly totalLosses: BigNumber;
 
   constructor(payload: CreditManagerStatPayload) {
