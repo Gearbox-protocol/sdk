@@ -161,7 +161,7 @@ export class Path {
         throw new Error("Token type not supported yet");
     }
 
-    return await lpPathFinder.findWithdrawPaths(this);
+    return lpPathFinder.findWithdrawPaths(this);
   }
 
   clone(): Path {

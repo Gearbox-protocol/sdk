@@ -81,6 +81,6 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
       p.calls.push({ target: adapterAddress, callData });
     }
 
-    return await p.withdrawTokens();
+    return p.withdrawTokens();
   }
 }

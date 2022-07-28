@@ -32,6 +32,6 @@ export class ConvexLPPathFinder implements LPWithdrawPathFinder {
     //     );
     // }
 
-    return await p.withdrawTokens();
+    return p.withdrawTokens();
   }
 }
