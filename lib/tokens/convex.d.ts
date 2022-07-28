@@ -1,7 +1,7 @@
 import { TradeAction } from "../pathfinder/tradeTypes";
-import { TokenBase } from "./token";
-import { ConvexPoolContract } from "../contracts/contracts";
-import { CurveLPToken } from "./curveLP";
+import type { TokenBase } from "./token";
+import type { ConvexPoolContract } from "../contracts/contracts";
+import type { CurveLPToken } from "./curveLP";
 import { TokenType } from "./tokenType";
 export declare type ConvexLPToken = "cvx3Crv" | "cvxsteCRV" | "cvxFRAX3CRV" | "cvxLUSD3CRV" | "cvxcrvPlain3andSUSD" | "cvxgusd3CRV";
 export declare type ConvexStakedPhantomToken = "stkcvx3Crv" | "stkcvxsteCRV" | "stkcvxFRAX3CRV" | "stkcvxLUSD3CRV" | "stkcvxcrvPlain3andSUSD" | "stkcvxgusd3CRV";

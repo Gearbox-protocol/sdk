@@ -1,4 +1,4 @@
-import { LPWithdrawPathFinder, Path } from "./path";
+import type { LPWithdrawPathFinder, Path } from "./path";
 import { CurveLPToken } from "../tokens/curveLP";
 import { CurvePoolContract } from "../contracts/contracts";
 export declare class CurvePathFinder implements LPWithdrawPathFinder {

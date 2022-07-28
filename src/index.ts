@@ -24,13 +24,10 @@ export * from "./payload/token";
 export * from "./utils/formatter";
 export * from "./utils/loading";
 export * from "./utils/validate";
-export * from "./utils/events";
 export * from "./utils/math";
 export * from "./payload/graphPayload";
 export * from "./types/index";
 export * from "./core/strategy";
-
-export type { IDataCompressor, IWETHGateway } from "./types";
 
 // Tokens
 export { TokenType } from "./tokens/tokenType";
@@ -49,6 +46,7 @@ export * from "./apy/convexAPY";
 export * from "./core/history";
 export * from "./utils/multicall";
 export * from "./utils/types";
+export * from "./utils/errors";
 export { callRepeater } from "./utils/repeater";
 export { getContractName } from "./contracts/contractsRegister";
 export { AdapterInterface } from "./contracts/adapters";

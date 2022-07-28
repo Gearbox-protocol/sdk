@@ -48,4 +48,4 @@ export const timeRanges: Record<string, number> = {
 
 export const LEVERAGE_DECIMALS = 100;
 export const SLIPPAGE_DECIMALS = 100;
-export const ADDRESS_0x0 = "0x0000000000000000000000000000000000000000";
+export const ADDRESS_0X0 = "0x0000000000000000000000000000000000000000";

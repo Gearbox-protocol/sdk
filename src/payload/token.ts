@@ -1,5 +1,5 @@
 export interface TokenDataPayload {
-    addr: string;
-    symbol: string;
-    decimals: number;
+  addr: string;
+  symbol: string;
+  decimals: number;
 }

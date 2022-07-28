@@ -17,10 +17,9 @@ type ILidoOracleInterface = ILidoOracle["interface"];
 
 type IstETHInterface = IstETH["interface"];
 
-const lidoOracleAddress = (contractParams.LIDO_STETH_GATEWAY as LidoParams)
-  .oracle;
+const lidoOracles = (contractParams.LIDO_STETH_GATEWAY as LidoParams).oracle;
 
-const lidoStEthAddress: Record<NetworkType, string> = {
+const lidoStEth: Record<NetworkType, string> = {
   Mainnet: tokenDataByNetwork.Mainnet.STETH,
   Kovan: tokenDataByNetwork.Kovan.STETH
 };
@@ -29,17 +28,19 @@ export async function getLidoApy(
   provider: providers.Provider,
   networkType: NetworkType
 ) {
-  if (!lidoOracleAddress[networkType]) {
-    throw `No Lido APR oracle found on current network: ${networkType}`;
+  if (!lidoOracles[networkType]) {
+    throw new Error(
+      `No Lido APR oracle found on current network: ${networkType}`
+    );
   }
-  if (!lidoStEthAddress[networkType]) {
-    throw `No Lido stETH found on current network: ${networkType}`;
+  if (!lidoStEth[networkType]) {
+    throw new Error(`No Lido stETH found on current network: ${networkType}`);
   }
 
   const [{ postTotalPooledEther, preTotalPooledEther, timeElapsed }, fee] =
     await geLidoData(
-      lidoOracleAddress[networkType],
-      lidoStEthAddress[networkType],
+      lidoOracles[networkType],
+      lidoStEth[networkType],
       provider,
       networkType
     );
@@ -52,6 +53,8 @@ export async function getLidoApy(
 
   return [lidoAPRRay, fee] as const;
 }
+
+export const LIDO_FEE_DECIMALS = 10000;
 
 async function geLidoData(
   lidoOracleAddress: string,
@@ -84,5 +87,3 @@ async function geLidoData(
 
   return [stats, fee] as const;
 }
-
-export const LIDO_FEE_DECIMALS = 10000;

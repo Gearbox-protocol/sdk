@@ -54,6 +54,7 @@ export type OpenAccountErrorTypes =
 
 export class OpenAccountError extends Error {
   message: OpenAccountErrorTypes;
+
   payload: { amount: BigNumber };
 
   constructor(errorType: OpenAccountErrorTypes, amount: BigNumber) {

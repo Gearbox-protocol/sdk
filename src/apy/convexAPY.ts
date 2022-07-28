@@ -73,14 +73,14 @@ export async function getConvexApy(
     poolParams.stakedToken
   ] as ConvexPhantomTokenData;
 
-  const underlying = stakedTokenParams.underlying;
+  const { underlying } = stakedTokenParams;
   const basePoolAddress = contractsList[pool];
   const swapPoolAddress = contractsList[curveSwapByPool[pool]];
   const cvxAddress = tokenList.CVX;
 
-  const extraPoolAddresses = poolParams.extraRewards.map(d => {
-    return d.poolAddress[networkType];
-  });
+  const extraPoolAddresses = poolParams.extraRewards.map(
+    d => d.poolAddress[networkType]
+  );
 
   const [basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra] =
     await getPoolData(
@@ -91,8 +91,8 @@ export async function getConvexApy(
       provider
     );
 
-  const cvxPrice = getTokenPrice(tokenList["CVX"]);
-  const crvPrice = getTokenPrice(tokenList["CRV"]);
+  const cvxPrice = getTokenPrice(tokenList.CVX);
+  const crvPrice = getTokenPrice(tokenList.CRV);
 
   const crvPerSecond = basePoolRate;
   const virtualSupply = basePoolSupply.mul(vPrice).div(WAD);

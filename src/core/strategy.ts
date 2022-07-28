@@ -1,6 +1,6 @@
 import { BigNumber } from "ethers";
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "../core/constants";
-import { calcTotalPrice } from "../core/price";
+import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
+import { calcTotalPrice } from "./price";
 
 export interface StrategyPayload {
   apy?: number;
@@ -31,10 +31,13 @@ export class Strategy {
   apy: number | undefined;
 
   name: string;
+
   lpToken: string;
+
   pools: Array<string>;
 
   unleveragableCollateral: Array<string>;
+
   leveragableCollateral: Array<string>;
 
   baseAssets: Array<string>;
@@ -50,10 +53,15 @@ export class Strategy {
     this.baseAssets = payload.baseAssets;
   }
 
-  public maxAPY(apy: number, maxLeverage: number, poolApy: PoolList) {
-    const minApy = this.minBorrowApy(poolApy);
+  public maxAPY(maxLeverage: number, poolApy: PoolList) {
+    const minApy = minBorrowApy(poolApy);
 
-    return this.roi(apy, maxLeverage, maxLeverage - LEVERAGE_DECIMALS, minApy);
+    return roi(
+      this.apy || 0,
+      maxLeverage,
+      maxLeverage - LEVERAGE_DECIMALS,
+      minApy
+    );
   }
 
   public overallAPY(
@@ -64,9 +72,10 @@ export class Strategy {
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
 
-    return this.roi(apy, farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
+    return roi(apy, farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public liquidationPrice(
     borrowed: TokenDescription,
     collateral: TokenDescription,
@@ -92,23 +101,6 @@ export class Strategy {
       : BigNumber.from(0);
   }
 
-  private roi(
-    apy: number,
-    farmLev: number,
-    debtLev: number,
-    borrowAPY: number
-  ) {
-    return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
-  }
-
-  private minBorrowApy(poolApy: PoolList) {
-    const apys = Object.values(poolApy).sort(
-      (a, b) => a.borrowRate - b.borrowRate
-    );
-
-    return apys.length > 0 ? apys[0].borrowRate : 0;
-  }
-
   private farmLev(leverage: number, depositCollateral: string) {
     return this.inBaseAssets(depositCollateral) ||
       this.inLeveragableAssets(depositCollateral)
@@ -127,4 +119,16 @@ export class Strategy {
       c => c.toLowerCase() === depositCollateral.toLowerCase()
     );
   }
+}
+
+function roi(apy: number, farmLev: number, debtLev: number, borrowAPY: number) {
+  return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
+}
+
+function minBorrowApy(poolApy: PoolList) {
+  const apys = Object.values(poolApy).sort(
+    (a, b) => a.borrowRate - b.borrowRate
+  );
+
+  return apys.length > 0 ? apys[0].borrowRate : 0;
 }

@@ -1,9 +1,9 @@
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "../core/constants";
 import { Protocols } from "./protocols";
-import { ConvexStakedPhantomToken } from "../tokens/convex";
-import { CurveLPToken } from "../tokens/curveLP";
-import { NormalToken } from "../tokens/normal";
+import type { ConvexStakedPhantomToken } from "../tokens/convex";
+import type { CurveLPToken } from "../tokens/curveLP";
+import type { NormalToken } from "../tokens/normal";
 export declare type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 export declare type CurvePoolContract = "CURVE_3CRV_POOL" | "CURVE_STETH_GATEWAY" | "CURVE_FRAX_POOL" | "CURVE_LUSD_POOL" | "CURVE_GUSD_POOL" | "CURVE_SUSD_POOL" | "CURVE_SUSD_DEPOSIT";
 export declare type YearnVaultContract = "YEARN_DAI_VAULT" | "YEARN_USDC_VAULT" | "YEARN_WETH_VAULT" | "YEARN_WBTC_VAULT" | "YEARN_CURVE_FRAX_VAULT" | "YEARN_CURVE_STETH_VAULT";

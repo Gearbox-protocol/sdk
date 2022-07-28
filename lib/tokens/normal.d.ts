@@ -1,5 +1,5 @@
 import { TradeAction } from "../pathfinder/tradeTypes";
-import { TokenBase } from "./token";
+import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 export declare type NormalToken = "1INCH" | "AAVE" | "COMP" | "CRV" | "DPI" | "FEI" | "LINK" | "SNX" | "SUSHI" | "UNI" | "USDT" | "USDC" | "DAI" | "WETH" | "WBTC" | "YFI" | "STETH" | "FTM" | "CVX" | "FRAX" | "FXS" | "LDO" | "SPELL" | "LUSD" | "sUSD" | "GUSD" | "LUNA" | "LQTY";
 export declare type NormalTokenData = {
