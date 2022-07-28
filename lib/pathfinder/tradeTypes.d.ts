@@ -1,8 +1,8 @@
-import { ConvexPoolContract, CurvePoolContract, UniswapV2Contract, YearnVaultContract } from "../contracts/contracts";
-import { NormalToken } from "../tokens/normal";
-import { CurveLPToken } from "../tokens/curveLP";
-import { YearnLPToken } from "../tokens/yearn";
-import { ConvexLPToken, ConvexStakedPhantomToken } from "../tokens/convex";
+import type { ConvexPoolContract, CurvePoolContract, UniswapV2Contract, YearnVaultContract } from "../contracts/contracts";
+import type { NormalToken } from "../tokens/normal";
+import type { CurveLPToken } from "../tokens/curveLP";
+import type { YearnLPToken } from "../tokens/yearn";
+import type { ConvexLPToken, ConvexStakedPhantomToken } from "../tokens/convex";
 export declare enum TradeType {
     UniswapV2Swap = 0,
     UniswapV3Swap = 1,

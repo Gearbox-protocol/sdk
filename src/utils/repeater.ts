@@ -4,9 +4,9 @@ export async function callRepeater<T>(
   call: () => Promise<T>,
   step: number = 0
 ): Promise<T> {
-  return new Promise<T>(async (resolve, reject) => {
+  return new Promise<T>((resolve, reject) => {
     try {
-      resolve(await call());
+      call().then(r => resolve(r));
     } catch (e) {
       console.error(`Error ${step}: ${e}`);
       if (step > 5 || (e as MetamaskError).code !== -32000) reject(e);

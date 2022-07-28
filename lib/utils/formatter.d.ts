@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish } from "ethers";
 export declare function rayToNumber(num: BigNumberish): number;
 export declare function formatRAY(num?: BigNumber): string;
-export declare function formatBN(num: BigNumberish | undefined, decimals: number, precision?: number): string;
+export declare function formatBN(numArg: BigNumberish | undefined, decimals: number, precisionArg?: number): string;
 export declare function formatBn4dig(num: BigNumber, precision?: number): string;
 export declare function toHumanFormat(num: BigNumber, precision?: number): string;
 export declare function toSignificant(num: BigNumber, decimals: number): string;

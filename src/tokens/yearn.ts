@@ -1,137 +1,139 @@
-import {TradeAction, TradeType} from "../pathfinder/tradeTypes";
-import {TokenBase} from "./token";
-import {CurveLPToken} from "./curveLP";
-import {NormalToken} from "./normal";
-import {TokenType} from "./tokenType";
+import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
+import type { TokenBase } from "./token";
+import type { CurveLPToken } from "./curveLP";
+import type { NormalToken } from "./normal";
+import { TokenType } from "./tokenType";
 
 export type YearnLPToken =
-    | "yvDAI"
-    | "yvUSDC"
-    | "yvWETH"
-    | "yvWBTC"
-    | "yvCurve_stETH"
-    | "yvCurve_FRAX";
+  | "yvDAI"
+  | "yvUSDC"
+  | "yvWETH"
+  | "yvWBTC"
+  | "yvCurve_stETH"
+  | "yvCurve_FRAX";
 
 export type YearnVaultTokenData = {
-    symbol: YearnLPToken;
-    type: TokenType.YEARN_VAULT;
-    underlying: NormalToken;
-    lpActions: Array<TradeAction>;
+  symbol: YearnLPToken;
+  type: TokenType.YEARN_VAULT;
+  underlying: NormalToken;
+  lpActions: Array<TradeAction>;
 } & TokenBase;
 
 export type YearnVaultOfCurveLPTokenData = {
-    symbol: YearnLPToken;
-    type: TokenType.YEARN_VAULT_OF_CURVE_LP;
-    underlying: CurveLPToken;
-    lpActions: Array<TradeAction>;
+  symbol: YearnLPToken;
+  type: TokenType.YEARN_VAULT_OF_CURVE_LP;
+  underlying: CurveLPToken;
+  lpActions: Array<TradeAction>;
 } & TokenBase;
 
 export type YearnVaultOfMetaCurveLPTokenData = {
-    symbol: YearnLPToken;
-    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
-    underlying: CurveLPToken;
-    lpActions: Array<TradeAction>;
+  symbol: YearnLPToken;
+  type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
+  underlying: CurveLPToken;
+  lpActions: Array<TradeAction>;
 } & TokenBase;
 
-export const yearnTokens: Record<YearnLPToken,
-    | YearnVaultTokenData
-    | YearnVaultOfCurveLPTokenData
-    | YearnVaultOfMetaCurveLPTokenData> = {
-    // YEARN TOKENS
-    yvDAI: {
-        name: "yvDAI",
-        decimals: 18,
+export const yearnTokens: Record<
+  YearnLPToken,
+  | YearnVaultTokenData
+  | YearnVaultOfCurveLPTokenData
+  | YearnVaultOfMetaCurveLPTokenData
+> = {
+  // YEARN TOKENS
+  yvDAI: {
+    name: "yvDAI",
+    decimals: 18,
 
-        symbol: "yvDAI",
-        type: TokenType.YEARN_VAULT,
-        underlying: "DAI",
-        lpActions: [
-            {
-                type: TradeType.YearnWithdraw,
-                contract: "YEARN_DAI_VAULT",
-                tokenOut: "DAI"
-            }
-        ]
-    },
+    symbol: "yvDAI",
+    type: TokenType.YEARN_VAULT,
+    underlying: "DAI",
+    lpActions: [
+      {
+        type: TradeType.YearnWithdraw,
+        contract: "YEARN_DAI_VAULT",
+        tokenOut: "DAI"
+      }
+    ]
+  },
 
-    yvUSDC: {
-        name: "yvUSDC",
-        decimals: 6,
+  yvUSDC: {
+    name: "yvUSDC",
+    decimals: 6,
 
-        symbol: "yvUSDC",
-        type: TokenType.YEARN_VAULT,
-        underlying: "USDC",
-        lpActions: [
-            {
-                type: TradeType.YearnWithdraw,
-                contract: "YEARN_USDC_VAULT",
-                tokenOut: "USDC"
-            }
-        ]
-    },
+    symbol: "yvUSDC",
+    type: TokenType.YEARN_VAULT,
+    underlying: "USDC",
+    lpActions: [
+      {
+        type: TradeType.YearnWithdraw,
+        contract: "YEARN_USDC_VAULT",
+        tokenOut: "USDC"
+      }
+    ]
+  },
 
-    yvWETH: {
-        name: "yvWETH",
-        decimals: 18,
+  yvWETH: {
+    name: "yvWETH",
+    decimals: 18,
 
-        symbol: "yvWETH",
-        type: TokenType.YEARN_VAULT,
-        underlying: "WETH",
-        lpActions: [
-            {
-                type: TradeType.YearnWithdraw,
-                contract: "YEARN_WETH_VAULT",
-                tokenOut: "WETH"
-            }
-        ]
-    },
+    symbol: "yvWETH",
+    type: TokenType.YEARN_VAULT,
+    underlying: "WETH",
+    lpActions: [
+      {
+        type: TradeType.YearnWithdraw,
+        contract: "YEARN_WETH_VAULT",
+        tokenOut: "WETH"
+      }
+    ]
+  },
 
-    yvWBTC: {
-        name: "yvWBTC",
-        decimals: 8,
+  yvWBTC: {
+    name: "yvWBTC",
+    decimals: 8,
 
-        symbol: "yvWBTC",
-        type: TokenType.YEARN_VAULT,
-        underlying: "WBTC",
-        lpActions: [
-            {
-                type: TradeType.YearnWithdraw,
-                contract: "YEARN_WBTC_VAULT",
-                tokenOut: "WBTC"
-            }
-        ]
-    },
+    symbol: "yvWBTC",
+    type: TokenType.YEARN_VAULT,
+    underlying: "WBTC",
+    lpActions: [
+      {
+        type: TradeType.YearnWithdraw,
+        contract: "YEARN_WBTC_VAULT",
+        tokenOut: "WBTC"
+      }
+    ]
+  },
 
-    // YEARN- CURVE TOKENS
-    yvCurve_stETH: {
-        name: "yvCurve-stETH",
-        decimals: 18,
+  // YEARN- CURVE TOKENS
+  yvCurve_stETH: {
+    name: "yvCurve-stETH",
+    decimals: 18,
 
-        symbol: "yvCurve_stETH",
-        type: TokenType.YEARN_VAULT_OF_CURVE_LP,
-        underlying: "steCRV",
-        lpActions: [
-            {
-                type: TradeType.YearnWithdraw,
-                contract: "YEARN_CURVE_STETH_VAULT",
-                tokenOut: "steCRV"
-            }
-        ]
-    },
+    symbol: "yvCurve_stETH",
+    type: TokenType.YEARN_VAULT_OF_CURVE_LP,
+    underlying: "steCRV",
+    lpActions: [
+      {
+        type: TradeType.YearnWithdraw,
+        contract: "YEARN_CURVE_STETH_VAULT",
+        tokenOut: "steCRV"
+      }
+    ]
+  },
 
-    yvCurve_FRAX: {
-        name: "yvCurve-FRAX",
-        decimals: 18,
+  yvCurve_FRAX: {
+    name: "yvCurve-FRAX",
+    decimals: 18,
 
-        symbol: "yvCurve_FRAX",
-        type: TokenType.YEARN_VAULT_OF_META_CURVE_LP,
-        underlying: "FRAX3CRV",
-        lpActions: [
-            {
-                type: TradeType.YearnWithdraw,
-                contract: "YEARN_CURVE_FRAX_VAULT",
-                tokenOut: "FRAX3CRV"
-            }
-        ]
-    }
+    symbol: "yvCurve_FRAX",
+    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP,
+    underlying: "FRAX3CRV",
+    lpActions: [
+      {
+        type: TradeType.YearnWithdraw,
+        contract: "YEARN_CURVE_FRAX_VAULT",
+        tokenOut: "FRAX3CRV"
+      }
+    ]
+  }
 };

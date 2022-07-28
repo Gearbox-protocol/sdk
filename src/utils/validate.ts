@@ -3,6 +3,6 @@ export function isPositiveFloat(val: string): boolean {
   if (!floatRegex.test(val)) return false;
 
   const valF = parseFloat(val);
-  if (isNaN(valF)) return false;
+  if (Number.isNaN(valF)) return false;
   return true;
 }

@@ -1,5 +1,4 @@
-import { BigNumber } from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
+import { BigNumber, BytesLike } from "ethers";
 import { SwapType } from "./tradeTypes";
 export interface CloseTradePath {
     path: Array<string>;

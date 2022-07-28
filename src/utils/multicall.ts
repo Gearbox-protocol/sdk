@@ -36,7 +36,9 @@ export async function multicall<R extends Array<any>>(
 
 export class MultiCallContract<T extends ethers.utils.Interface> {
   private readonly _address: string;
+
   private readonly _interface: T;
+
   protected _multiCall: Multicall2;
 
   constructor(

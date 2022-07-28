@@ -12,10 +12,14 @@ const defaultSymbolReplacement: SymbolReplacements = {
 
 export class TokenData {
   public readonly id: string;
+
   // public readonly name: string;
   public readonly symbol: string;
+
   public readonly address: string;
+
   public readonly decimals: number;
+
   public readonly icon?: string;
 
   constructor(

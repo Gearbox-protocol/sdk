@@ -64,7 +64,9 @@ interface AddLiquidityProps extends EVMTxProps {
 
 export class TxAddLiquidity extends EVMTx {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly pool: string;
 
   constructor(opts: AddLiquidityProps) {
@@ -103,7 +105,9 @@ interface RemoveLiquidityProps extends EVMTxProps {
 
 export class TxRemoveLiquidity extends EVMTx {
   public readonly amount: BigNumber;
+
   public readonly dieselToken: string;
+
   public readonly pool: string;
 
   constructor(opts: RemoveLiquidityProps) {
@@ -146,11 +150,17 @@ interface SwapProps extends EVMTxProps {
 
 export class TXSwap extends EVMTx {
   public readonly protocol: string;
+
   public readonly operation: string;
+
   public readonly amountFrom: BigNumber;
+
   public readonly amountTo?: BigNumber;
+
   public readonly tokenFrom: string;
+
   public readonly tokenTo?: string;
+
   public readonly creditManager: string;
 
   constructor(opts: SwapProps) {
@@ -203,7 +213,9 @@ interface AddCollateralProps extends EVMTxProps {
 
 export class TxAddCollateral extends EVMTx {
   public readonly amount: BigNumber;
+
   public readonly addedToken: string;
+
   public readonly creditManager: string;
 
   constructor(opts: AddCollateralProps) {
@@ -243,7 +255,9 @@ interface IncreaseBorrowAmountProps extends EVMTxProps {
 
 export class TxIncreaseBorrowAmount extends EVMTx {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly creditManager: string;
 
   constructor(opts: IncreaseBorrowAmountProps) {
@@ -285,8 +299,11 @@ interface OpenAccountProps extends EVMTxProps {
 
 export class TxOpenAccount extends EVMTx {
   public readonly amount: BigNumber;
+
   public readonly underlyingToken: string;
+
   public readonly leverage: number;
+
   public readonly creditManager: string;
 
   constructor(opts: OpenAccountProps) {
@@ -334,8 +351,11 @@ interface TxOpenMultitokenAccountProps extends EVMTxProps {
 
 export class TxOpenMultitokenAccount extends EVMTx {
   public readonly borrowedAmount: BigNumber;
+
   public readonly creditManager: string;
+
   public readonly underlyingToken: string;
+
   public readonly assets: Array<string>;
 
   constructor(opts: TxOpenMultitokenAccountProps) {
@@ -396,7 +416,7 @@ export class TxRepayAccount extends EVMTx {
     this.creditManager = opts.creditManager;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Credit account ${getContractName(
       this.creditManager
     )}: Repaying account`;
@@ -427,7 +447,7 @@ export class TxCloseAccount extends EVMTx {
     this.creditManager = opts.creditManager;
   }
 
-  toString(_: Record<string, TokenData>): string {
+  toString(): string {
     return `Credit account ${getContractName(
       this.creditManager
     )}: Closing account`;

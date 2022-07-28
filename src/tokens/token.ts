@@ -139,7 +139,7 @@ export const tokenDataByNetwork: Record<
     yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
     yvCurve_FRAX: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
 
-    //GEARBOX
+    // GEARBOX
     dDAI: "0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA",
     dUSDC: "0xc411dB5f5Eb3f7d552F9B8454B2D74097ccdE6E3",
     dWBTC: "0xe753260F1955e8678DCeA8887759e07aa57E8c54",
@@ -217,7 +217,7 @@ export const tokenDataByNetwork: Record<
     stkcvxsteCRV: "0xd8bAbB7EfBF7F931a69B209f71b27421F8b18516",
     stkcvxcrvPlain3andSUSD: "0x6b45Cab756B41a7204973b71362ef5F73E67F6DA",
 
-    //GEARBOX
+    // GEARBOX
     dDAI: "0x077a3Ce0D572b72436F6644793Fc7721353aF1f4",
     dUSDC: "0x8147e00456c8A3128182730bFFdFd9D1E6bbC048",
     dWBTC: "0x34D9B3c13B25632879B2DaabBde702F612902238",
@@ -229,6 +229,10 @@ export const tokenDataByNetwork: Record<
 
 export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
   Record<string, SupportedToken>
->((acc, [_, tokens]) => {
-  return { ...acc, ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens))) };
-}, {});
+>(
+  (acc, [, tokens]) => ({
+    ...acc,
+    ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens)))
+  }),
+  {}
+);

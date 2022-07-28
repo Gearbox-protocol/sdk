@@ -13,9 +13,9 @@ import { AdapterInterface } from "./adapters";
 import { NetworkType } from "../core/constants";
 import { Protocols } from "./protocols";
 import { tokenDataByNetwork } from "../tokens/token";
-import { ConvexStakedPhantomToken } from "../tokens/convex";
-import { CurveLPToken } from "../tokens/curveLP";
-import { NormalToken } from "../tokens/normal";
+import type { ConvexStakedPhantomToken } from "../tokens/convex";
+import type { CurveLPToken } from "../tokens/curveLP";
+import type { NormalToken } from "../tokens/normal";
 
 export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
@@ -420,9 +420,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
 
 export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
   Record<string, SupportedContract>
->((acc, [_, contracts]) => {
-  return {
+>(
+  (acc, [, contracts]) => ({
     ...acc,
     ...filterEmptyKeys(keyToLowercase(swapKeyValue(contracts)))
-  };
-}, {});
+  }),
+  {}
+);

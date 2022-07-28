@@ -26,11 +26,9 @@ export declare class Strategy {
     leveragableCollateral: Array<string>;
     baseAssets: Array<string>;
     constructor(payload: StrategyPayload);
-    maxAPY(apy: number, maxLeverage: number, poolApy: PoolList): number;
+    maxAPY(maxLeverage: number, poolApy: PoolList): number;
     overallAPY(apy: number, leverage: number, depositCollateral: string, borrowAPY: number): number;
     liquidationPrice(borrowed: TokenDescription, collateral: TokenDescription, lp: TokenDescription, ltCollateral: BigNumber): BigNumber;
-    private roi;
-    private minBorrowApy;
     private farmLev;
     private inBaseAssets;
     private inLeveragableAssets;

@@ -23,12 +23,19 @@ import { TokenType } from "../tokens/tokenType";
 
 export class Path {
   public readonly calls: Array<MultiCall> = [];
+
   public readonly balances: PartialRecord<SupportedToken, BigNumber>;
+
   public readonly underlying: SupportedToken;
+
   public readonly creditManager: CreditManagerData;
+
   public readonly creditAccount: CreditAccountData;
+
   public readonly networkType: NetworkType;
+
   public readonly provider: ethers.providers.Provider;
+
   public totalGasLimit: number;
 
   constructor(opts: {
@@ -59,9 +66,9 @@ export class Path {
     return currentBalance.sub(1);
   }
 
-  private comparedByPriority(
-    [tokenA, _balanceA]: [string, BigNumber],
-    [tokenB, _balanceB]: [string, BigNumber]
+  private static comparedByPriority(
+    [tokenA]: [string, BigNumber],
+    [tokenB]: [string, BigNumber]
   ): number {
     const priorityTokenA =
       priority[supportedTokens[tokenA as SupportedToken].type];
@@ -70,7 +77,8 @@ export class Path {
 
     if (priorityTokenA > priorityTokenB) {
       return -1;
-    } else if (priorityTokenA < priorityTokenB) {
+    }
+    if (priorityTokenA < priorityTokenB) {
       return 1;
     }
     return 0;
@@ -110,15 +118,15 @@ export class Path {
       provider
     );
 
-    console.log(lpPaths);
-    console.log(pathFinder);
+    console.debug(lpPaths);
+    console.debug(pathFinder);
     // const bestPath = await pathFinder.bestPath();
   }
 
   async withdrawTokens(): Promise<Array<Path>> {
     const existingTokens = Object.entries(this.balances)
-      .filter(([_token, balance]) => balance.gt(1))
-      .sort(this.comparedByPriority);
+      .filter(([, balance]) => balance.gt(1))
+      .sort(Path.comparedByPriority);
 
     // TODO: Add checks for lenght
     if (existingTokens.length === 0)

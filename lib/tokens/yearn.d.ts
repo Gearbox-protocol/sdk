@@ -1,7 +1,7 @@
 import { TradeAction } from "../pathfinder/tradeTypes";
-import { TokenBase } from "./token";
-import { CurveLPToken } from "./curveLP";
-import { NormalToken } from "./normal";
+import type { TokenBase } from "./token";
+import type { CurveLPToken } from "./curveLP";
+import type { NormalToken } from "./normal";
 import { TokenType } from "./tokenType";
 export declare type YearnLPToken = "yvDAI" | "yvUSDC" | "yvWETH" | "yvWBTC" | "yvCurve_stETH" | "yvCurve_FRAX";
 export declare type YearnVaultTokenData = {

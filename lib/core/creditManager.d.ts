@@ -22,8 +22,8 @@ export declare class CreditManagerData {
     readonly degenNFT: string;
     readonly isIncreaseDebtForbidden: boolean;
     readonly forbiddenTokenMask: BigNumber;
+    readonly isPaused: boolean;
     constructor(payload: CreditManagerDataPayload);
-    get isPaused(): boolean;
     getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager;
     contractToAdapter(contractAddress: string): string | undefined;
     encodeAddCollateral(accountAddress: string, tokenAddress: string, amount: BigNumber): MultiCall;

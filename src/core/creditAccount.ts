@@ -18,19 +18,33 @@ export class CreditAccountData {
   public readonly id: string;
 
   public readonly addr: string;
+
   public readonly borrower: string;
+
   public readonly inUse: boolean;
+
   public readonly creditManager: string;
+
   public readonly underlyingToken: string;
+
   public borrowedAmountPlusInterest: BigNumber;
+
   public totalValue: BigNumber;
+
   public healthFactor: number;
+
   public borrowRate: number;
+
   public readonly allowedTokens: Array<string> = [];
+
   public readonly allTokens: Array<string> = [];
+
   public balances: Record<string, BigNumber> = {};
+
   public allBalances: Record<string, BigNumber> = {};
+
   public isDeleting: boolean;
+
   public readonly version: number = 1;
 
   constructor(payload: CreditAccountDataPayload) {
@@ -94,11 +108,15 @@ export function sortBalances(
     const totalPrice1 = calcTotalPrice(price1, amount1, token1?.decimals);
     const totalPrice2 = calcTotalPrice(price2, amount2, token2?.decimals);
 
-    return totalPrice1.eq(totalPrice2)
-      ? tokensAbcComparator(token1, token2)
-      : totalPrice1.gt(totalPrice2)
-      ? -1
-      : 1;
+    if (totalPrice1.eq(totalPrice2)) {
+      return tokensAbcComparator(token1, token2);
+    }
+
+    if (totalPrice1.gt(totalPrice2)) {
+      return -1;
+    }
+
+    return 1;
   });
 }
 
@@ -111,10 +129,15 @@ export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
 
 export class CreditAccountDataExtended extends CreditAccountData {
   public readonly repayAmount: BigNumber;
+
   public readonly liquidationAmount: BigNumber;
+
   public readonly borrowedAmount: BigNumber;
+
   public readonly canBeClosed: boolean;
+
   public readonly cumulativeIndexAtOpen: BigNumber;
+
   public readonly since: number;
 
   constructor(payload: CreditAccountDataExtendedPayload) {

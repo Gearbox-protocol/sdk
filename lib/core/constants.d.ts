@@ -20,4 +20,4 @@ export declare const UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD = 9300;
 export declare const timeRanges: Record<string, number>;
 export declare const LEVERAGE_DECIMALS = 100;
 export declare const SLIPPAGE_DECIMALS = 100;
-export declare const ADDRESS_0x0 = "0x0000000000000000000000000000000000000000";
+export declare const ADDRESS_0X0 = "0x0000000000000000000000000000000000000000";
