@@ -1,9 +1,17 @@
-export function loadingProgress(...params: Array<unknown>): number {
-  let isLoaded: number = 0;
+const isLoaded = (v: unknown) => v !== undefined;
 
-  for (const item of params) {
-    if (item !== undefined) isLoaded++;
-  }
+export function allLoaded(itemsToLoad: Array<unknown>): boolean {
+  return itemsToLoad.reduce<boolean>(
+    (acc, item) => acc && isLoaded(item),
+    true
+  );
+}
 
-  return Math.floor((isLoaded / params.length) * 100);
+export function loadingProgress(itemsToLoad: Array<unknown>): number {
+  const loaded = itemsToLoad.reduce<number>(
+    (acc, item) => (isLoaded(item) ? acc + 1 : acc),
+    0
+  );
+
+  return Math.floor((loaded / itemsToLoad.length) * 100);
 }
