@@ -3,6 +3,7 @@
  * Gearbox. Generalized leverage protocol, which allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
  * (c) Gearbox.fi, 2021
  */
+import type { YearnLPToken } from "src/tokens/yearn";
 import {
   keyToLowercase,
   objectEntries,
@@ -14,9 +15,8 @@ import { NetworkType } from "../core/constants";
 import { Protocols } from "./protocols";
 import { tokenDataByNetwork } from "../tokens/token";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
-import { CurveLPToken } from "../tokens/curveLP";
+import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
-import { YearnLPToken } from "src/tokens/yearn";
 
 export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
