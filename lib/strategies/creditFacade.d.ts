@@ -9,6 +9,7 @@ export declare class CreditFacadeCalls {
 export declare class CreditFacadeMulticaller {
     private readonly _address;
     constructor(address: string);
+    static connect(address: string): CreditFacadeMulticaller;
     addCollateral(onBehalfOf: string, token: string, amount: BigNumberish): MultiCallStruct;
     increaseDebt(amount: BigNumberish): MultiCallStruct;
     decreaseDebt(amount: BigNumberish): MultiCallStruct;
