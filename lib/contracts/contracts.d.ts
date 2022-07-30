@@ -1,9 +1,10 @@
+import type { YearnLPToken } from "src/tokens/yearn";
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "../core/constants";
 import { Protocols } from "./protocols";
-import type { ConvexStakedPhantomToken } from "../tokens/convex";
+import { ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
-import type { NormalToken } from "../tokens/normal";
+import { NormalToken } from "../tokens/normal";
 export declare type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 export declare type CurvePoolContract = "CURVE_3CRV_POOL" | "CURVE_STETH_GATEWAY" | "CURVE_FRAX_POOL" | "CURVE_LUSD_POOL" | "CURVE_GUSD_POOL" | "CURVE_SUSD_POOL" | "CURVE_SUSD_DEPOSIT";
 export declare type YearnVaultContract = "YEARN_DAI_VAULT" | "YEARN_USDC_VAULT" | "YEARN_WETH_VAULT" | "YEARN_WBTC_VAULT" | "YEARN_CURVE_FRAX_VAULT" | "YEARN_CURVE_STETH_VAULT";
@@ -34,11 +35,13 @@ export declare type CurveSteCRVPoolParams = {
     protocol: Protocols.Curve;
     type: AdapterInterface.CURVE_V1_STECRV_POOL;
     pool: Record<NetworkType, string>;
+    tokens: ["WETH", "STETH"];
     lpToken: "steCRV";
 } & BaseContractParams;
-declare type YearnParams = {
+export declare type YearnParams = {
     protocol: Protocols.Yearn;
     type: AdapterInterface.YEARN_V2;
+    shareToken: YearnLPToken;
 } & BaseContractParams;
 declare type ConvexParams = {
     protocol: Protocols.Convex;

@@ -1,5 +1,10 @@
 import { BigNumberish } from "ethers";
-import { contractParams, contractsByNetwork, CurveParams, CurvePoolContract } from "src/contracts/contracts";
+import {
+  contractParams,
+  contractsByNetwork,
+  CurveParams,
+  CurvePoolContract
+} from "src/contracts/contracts";
 import { ADDRESS_0X0, NetworkType } from "src/core/constants";
 import { CreditManagerData } from "src/core/creditManager";
 import { tokenDataByNetwork } from "src/tokens/token";
@@ -185,14 +190,19 @@ export class CurveMulticaller {
   }
 
   static connect(address: string) {
-      return new CurveMulticaller(address);
+    return new CurveMulticaller(address);
   }
 
-  exchange(i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish): MultiCallStruct {
-      return {
-          target: this._address,
-          callData: CurveCalls.exchange(i, j, dx, min_dy)
-      }
+  exchange(
+    i: BigNumberish,
+    j: BigNumberish,
+    dx: BigNumberish,
+    min_dy: BigNumberish
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: CurveCalls.exchange(i, j, dx, min_dy)
+    };
   }
 
   exchange_all(
@@ -301,105 +311,130 @@ export class CurveMulticaller {
   }
 }
 
-
 export class CurveStrategies {
-    static underlyingToCurveLP(
-        data: CreditManagerData,
-        network: NetworkType,
-        curvePool: CurvePoolContract,
-        underlyingAmount: BigNumberish
-    ) {
-        let calls: Array<MultiCallStruct> = [];
-        let curveParams = contractParams[curvePool] as CurveParams;
-        let tokenToDeposit = curveParams.tokens[0];
+  static underlyingToCurveLP(
+    data: CreditManagerData,
+    network: NetworkType,
+    curvePool: CurvePoolContract,
+    underlyingAmount: BigNumberish
+  ) {
+    const calls: Array<MultiCallStruct> = [];
+    const curveParams = contractParams[curvePool] as CurveParams;
+    const tokenToDeposit = curveParams.tokens[0];
 
-        if (data.underlyingToken != tokenDataByNetwork[network][tokenToDeposit]) {
-            calls.push(
-                UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]).
-                swapExactTokensForTokens(
-                    underlyingAmount,
-                    0,
-                    [data.underlyingToken, tokenDataByNetwork[network][tokenToDeposit]],
-                    ADDRESS_0X0,
-                    Math.floor((new Date()).getTime() / 1000) + 3600
-                )
-            );
-        }
-
-        calls.push(
-            CurveMulticaller.connect(data.adapters[contractsByNetwork[network][curvePool]]).
-            add_all_liquidity_one_coin(0, 0)
+    if (data.underlyingToken !== tokenDataByNetwork[network][tokenToDeposit]) {
+      calls.push(
+        UniswapV2Multicaller.connect(
+          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+        ).swapExactTokensForTokens(
+          underlyingAmount,
+          0,
+          [data.underlyingToken, tokenDataByNetwork[network][tokenToDeposit]],
+          ADDRESS_0X0,
+          Math.floor(new Date().getTime() / 1000) + 3600
         )
-
-        return calls;
+      );
     }
 
-    static curveLPToUnderlying(
-        data: CreditManagerData,
-        network: NetworkType,
-        curvePool: CurvePoolContract,
-        curveLPAmount: BigNumberish
+    calls.push(
+      CurveMulticaller.connect(
+        data.adapters[contractsByNetwork[network][curvePool]]
+      ).add_all_liquidity_one_coin(0, 0)
+    );
+
+    return calls;
+  }
+
+  static curveLPToUnderlying(
+    data: CreditManagerData,
+    network: NetworkType,
+    curvePool: CurvePoolContract,
+    curveLPAmount: BigNumberish
+  ) {
+    const calls: Array<MultiCallStruct> = [];
+    const curveParams = contractParams[curvePool] as CurveParams;
+
+    let curveContractAddress;
+
+    if (curveParams.wrapper) {
+      curveContractAddress =
+        data.adapters[contractsByNetwork[network][curveParams.wrapper]];
+    } else {
+      curveContractAddress =
+        data.adapters[contractsByNetwork[network][curvePool]];
+    }
+
+    calls.push(
+      CurveMulticaller.connect(curveContractAddress).remove_liquidity_one_coin(
+        curveLPAmount,
+        0,
+        0
+      )
+    );
+
+    if (
+      tokenDataByNetwork[network][curveParams.tokens[0]] !==
+      data.underlyingToken
     ) {
-        let calls: Array<MultiCallStruct> = [];
-        let curveParams = contractParams[curvePool] as CurveParams;
-        
-        let curveContractAddress;
-
-        if (curveParams.wrapper) {
-            curveContractAddress = data.adapters[contractsByNetwork[network][curveParams.wrapper]]
-        } else {
-            curveContractAddress = data.adapters[contractsByNetwork[network][curvePool]]
-        }
-
-        calls.push(
-            CurveMulticaller.connect(curveContractAddress).remove_liquidity_one_coin(curveLPAmount, 0, 0)
-        );
-
-        if (tokenDataByNetwork[network][curveParams.tokens[0]] != data.underlyingToken) {
-            calls.push(
-                UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]).
-                swapAllTokensForTokens(
-                    0,
-                    [tokenDataByNetwork[network][curveParams.tokens[0]], data.underlyingToken],
-                    Math.floor((new Date()).getTime() / 1000) + 3600
-                )
-            );
-        }
-
-        return calls;
+      calls.push(
+        UniswapV2Multicaller.connect(
+          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+        ).swapAllTokensForTokens(
+          0,
+          [
+            tokenDataByNetwork[network][curveParams.tokens[0]],
+            data.underlyingToken
+          ],
+          Math.floor(new Date().getTime() / 1000) + 3600
+        )
+      );
     }
 
-    static allCurveLPToUnderlying(
-        data: CreditManagerData,
-        network: NetworkType,
-        curvePool: CurvePoolContract
+    return calls;
+  }
+
+  static allCurveLPToUnderlying(
+    data: CreditManagerData,
+    network: NetworkType,
+    curvePool: CurvePoolContract
+  ) {
+    const calls: Array<MultiCallStruct> = [];
+    const curveParams = contractParams[curvePool] as CurveParams;
+
+    let curveContractAddress;
+
+    if (curveParams.wrapper) {
+      curveContractAddress =
+        data.adapters[contractsByNetwork[network][curveParams.wrapper]];
+    } else {
+      curveContractAddress =
+        data.adapters[contractsByNetwork[network][curvePool]];
+    }
+
+    calls.push(
+      CurveMulticaller.connect(
+        curveContractAddress
+      ).remove_all_liquidity_one_coin(0, 0)
+    );
+
+    if (
+      tokenDataByNetwork[network][curveParams.tokens[0]] !==
+      data.underlyingToken
     ) {
-        let calls: Array<MultiCallStruct> = [];
-        let curveParams = contractParams[curvePool] as CurveParams;
-        
-        let curveContractAddress;
-
-        if (curveParams.wrapper) {
-            curveContractAddress = data.adapters[contractsByNetwork[network][curveParams.wrapper]]
-        } else {
-            curveContractAddress = data.adapters[contractsByNetwork[network][curvePool]]
-        }
-
-        calls.push(
-            CurveMulticaller.connect(curveContractAddress).remove_all_liquidity_one_coin(0, 0)
-        );
-
-        if (tokenDataByNetwork[network][curveParams.tokens[0]] != data.underlyingToken) {
-            calls.push(
-                UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]).
-                swapAllTokensForTokens(
-                    0,
-                    [tokenDataByNetwork[network][curveParams.tokens[0]], data.underlyingToken],
-                    Math.floor((new Date()).getTime() / 1000) + 3600
-                )
-            );
-        }
-
-        return calls;
+      calls.push(
+        UniswapV2Multicaller.connect(
+          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+        ).swapAllTokensForTokens(
+          0,
+          [
+            tokenDataByNetwork[network][curveParams.tokens[0]],
+            data.underlyingToken
+          ],
+          Math.floor(new Date().getTime() / 1000) + 3600
+        )
+      );
     }
+
+    return calls;
+  }
 }

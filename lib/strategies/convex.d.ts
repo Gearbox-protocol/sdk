@@ -1,4 +1,7 @@
 import { BigNumberish } from "ethers";
+import { ConvexPoolContract } from "src/contracts/contracts";
+import { NetworkType } from "src/core/constants";
+import { CreditManagerData } from "src/core/creditManager";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 export declare class ConvexBoosterCalls {
     static deposit(pid: BigNumberish, amount: BigNumberish, stake: boolean): string;
@@ -20,6 +23,7 @@ export declare class ConvexClaimZapCalls {
 export declare class ConvexBoosterMulticaller {
     private readonly _address;
     constructor(address: string);
+    static connect(address: string): ConvexBoosterMulticaller;
     deposit(pid: BigNumberish, amount: BigNumberish, stake: boolean): MultiCallStruct;
     depositAll(pid: BigNumberish, stake: boolean): MultiCallStruct;
     withdraw(pid: BigNumberish, amount: BigNumberish): MultiCallStruct;
@@ -28,6 +32,7 @@ export declare class ConvexBoosterMulticaller {
 export declare class ConvexPoolMulticaller {
     private readonly _address;
     constructor(address: string);
+    static connect(address: string): ConvexPoolMulticaller;
     stake(amount: BigNumberish): MultiCallStruct;
     stakeAll(): MultiCallStruct;
     withdraw(amount: BigNumberish, claim: boolean): MultiCallStruct;
@@ -41,5 +46,12 @@ export declare class ConvexPoolMulticaller {
 export declare class ConvexClaimZapMulticaller {
     private readonly _address;
     constructor(address: string);
+    static connect(address: string): ConvexClaimZapMulticaller;
     claimRewards(rewardContracts: Array<string>, extraRewardContracts: Array<string>, tokenRewardContracts: Array<string>, tokenRewardTokens: Array<string>, depositCrvMaxAmount: BigNumberish, minAmountOut: BigNumberish, depositCvxMaxAmount: BigNumberish, spendCvxAmount: BigNumberish, options: BigNumberish): MultiCallStruct;
+}
+export declare class ConvexStrategies {
+    static underlyingToStakedConvex(data: CreditManagerData, network: NetworkType, convexPool: ConvexPoolContract, underlyingAmount: BigNumberish): MultiCallStruct[];
+    static stakedConvexToUnderlying(data: CreditManagerData, network: NetworkType, convexPool: ConvexPoolContract, convexLpAmount: BigNumberish, sellRewards: boolean): MultiCallStruct[];
+    static allStakedConvexToUnderlying(data: CreditManagerData, network: NetworkType, convexPool: ConvexPoolContract, sellRewards: boolean): MultiCallStruct[];
+    static sellRewards(data: CreditManagerData, network: NetworkType, convexPool: ConvexPoolContract): MultiCallStruct[];
 }
