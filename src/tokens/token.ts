@@ -236,3 +236,6 @@ export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
   }),
   {}
 );
+
+export const isSupportedTokens = (t: unknown): t is SupportedToken =>
+  typeof t === "string" && !!supportedTokens[t as SupportedToken];

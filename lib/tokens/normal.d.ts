@@ -9,3 +9,4 @@ export declare type NormalTokenData = {
     lpActions?: Array<TradeAction>;
 } & TokenBase;
 export declare const normalTokens: Record<NormalToken, NormalTokenData>;
+export declare const isNormalToken: (t: unknown) => t is NormalToken;

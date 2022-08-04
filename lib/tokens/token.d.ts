@@ -14,3 +14,4 @@ export declare type TokenDataI = NormalTokenData | CurveLPTokenData | MetaCurveL
 export declare const supportedTokens: Record<SupportedToken, TokenDataI>;
 export declare const tokenDataByNetwork: Record<NetworkType, Record<SupportedToken, string>>;
 export declare const tokenSymbolByAddress: Record<string, SupportedToken>;
+export declare const isSupportedTokens: (t: unknown) => t is SupportedToken;
