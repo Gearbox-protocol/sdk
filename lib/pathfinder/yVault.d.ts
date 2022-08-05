@@ -6,5 +6,5 @@ export declare class YearnVaultPathFinder implements LPWithdrawPathFinder {
     _vault: YearnLPToken;
     token: NormalToken | CurveLPToken;
     constructor(vault: YearnLPToken);
-    findWithdrawPaths(p: Path): Promise<Array<Path>>;
+    findWithdrawPaths(path: Path): Promise<Array<Path>>;
 }

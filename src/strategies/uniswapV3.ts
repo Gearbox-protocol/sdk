@@ -61,54 +61,67 @@ export class UniswapV3Calls {
 }
 
 export class UniswapV3Multicaller {
-    private readonly _address: string;
+  private readonly _address: string;
 
-    constructor(address: string) {
-        this._address = address;
-    }
+  constructor(address: string) {
+    this._address = address;
+  }
 
-    static connect(address: string) {
-        return new UniswapV3Multicaller(address);
-    }
+  static connect(address: string) {
+    return new UniswapV3Multicaller(address);
+  }
 
-    exactInputSingle(params: ISwapRouter.ExactInputSingleParamsStructOutput): MultiCallStruct {
-        return {
-            target: this._address,
-            callData: UniswapV3Calls.exactInputSingle(params)
-        }
-    }
+  exactInputSingle(
+    params: ISwapRouter.ExactInputSingleParamsStructOutput
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: UniswapV3Calls.exactInputSingle(params)
+    };
+  }
 
-    exactAllInputSingle(params: IUniswapV3Adapter.ExactAllInputSingleParamsStructOutput): MultiCallStruct {
-        return {
-            target: this._address,
-            callData: UniswapV3Calls.exactAllInputSingle(params)
-        }
-    }
-    exactInput(params: ISwapRouter.ExactInputParamsStructOutput): MultiCallStruct {
-        return {
-            target: this._address,
-            callData: UniswapV3Calls.exactInput(params)
-        }
-    }
+  exactAllInputSingle(
+    params: IUniswapV3Adapter.ExactAllInputSingleParamsStructOutput
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: UniswapV3Calls.exactAllInputSingle(params)
+    };
+  }
 
-    exactAllInput(params: IUniswapV3Adapter.ExactAllInputParamsStructOutput): MultiCallStruct {
-        return {
-            target: this._address,
-            callData: UniswapV3Calls.exactAllInput(params)
-        }
-    }
+  exactInput(
+    params: ISwapRouter.ExactInputParamsStructOutput
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: UniswapV3Calls.exactInput(params)
+    };
+  }
 
-    exactOutputSingle(params: ISwapRouter.ExactOutputSingleParamsStructOutput): MultiCallStruct {
-        return {
-            target: this._address,
-            callData: UniswapV3Calls.exactOutputSingle(params)
-        }
-    }
+  exactAllInput(
+    params: IUniswapV3Adapter.ExactAllInputParamsStructOutput
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: UniswapV3Calls.exactAllInput(params)
+    };
+  }
 
-    exactOutput(params: ISwapRouter.ExactOutputParamsStructOutput): MultiCallStruct {
-        return {
-            target: this._address,
-            callData: UniswapV3Calls.exactOutput(params)
-        }
-    }
+  exactOutputSingle(
+    params: ISwapRouter.ExactOutputSingleParamsStructOutput
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: UniswapV3Calls.exactOutputSingle(params)
+    };
+  }
+
+  exactOutput(
+    params: ISwapRouter.ExactOutputParamsStructOutput
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: UniswapV3Calls.exactOutput(params)
+    };
+  }
 }

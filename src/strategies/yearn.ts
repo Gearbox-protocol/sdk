@@ -1,6 +1,11 @@
-import { BigNumberish } from "ethers"
-import { contractParams, contractsByNetwork, YearnParams, YearnVaultContract } from "src/contracts/contracts";
-import { ADDRESS_0X0, NetworkType} from "src/core/constants";
+import { BigNumberish } from "ethers";
+import {
+  contractParams,
+  contractsByNetwork,
+  YearnParams,
+  YearnVaultContract
+} from "src/contracts/contracts";
+import { ADDRESS_0X0, NetworkType } from "src/core/constants";
 import { CreditManagerData } from "src/core/creditManager";
 import { CurveLPTokenData } from "src/tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "src/tokens/token";
@@ -61,112 +66,139 @@ export class YearnV2Multicaller {
     this._address = address;
   }
 
-    static connect(address: string) {
-        return new YearnV2Multicaller(address);
-    }
+  static connect(address: string) {
+    return new YearnV2Multicaller(address);
+  }
 
-    deposit(amount?: BigNumberish, recipient?: string): MultiCallStruct {
-        return {
-            target: this._address,
-            callData: YearnV2Calls.deposit(amount, recipient)
-        };
-    }
+  deposit(amount?: BigNumberish, recipient?: string): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: YearnV2Calls.deposit(amount, recipient)
+    };
+  }
 
-    withdraw(
-        maxShares?: BigNumberish,
-        recipient?: string,
-        maxLoss?: BigNumberish
-    ): MultiCallStruct {
-        return {
-        target: this._address,
-        callData: YearnV2Calls.withdraw(maxShares, recipient, maxLoss)
-        };
-    }
+  withdraw(
+    maxShares?: BigNumberish,
+    recipient?: string,
+    maxLoss?: BigNumberish
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: YearnV2Calls.withdraw(maxShares, recipient, maxLoss)
+    };
+  }
 }
 
 export class YearnV2Strategies {
-    static underlyingToYearn(
-        data: CreditManagerData,
-        network: NetworkType,
-        yearnVault: YearnVaultContract,
-        underlyingAmount: BigNumberish
-    ) {
+  static underlyingToYearn(
+    data: CreditManagerData,
+    network: NetworkType,
+    yearnVault: YearnVaultContract,
+    underlyingAmount: BigNumberish
+  ) {
+    let calls: Array<MultiCallStruct> = [];
+    const vaultParams = contractParams[yearnVault] as YearnParams;
+    const yearnToken = vaultParams.shareToken;
+    const yearnParams = supportedTokens[yearnToken];
 
-        let calls: Array<MultiCallStruct> = [];
-        let vaultParams = contractParams[yearnVault] as YearnParams;
-        let yearnToken = vaultParams.shareToken;
-        let yearnParams = supportedTokens[yearnToken]; 
-
-        if (yearnParams.type == TokenType.YEARN_VAULT) {
-            if (data.underlyingToken != tokenDataByNetwork[network][yearnParams.underlying]) {
-                // This should be a pathfinder call
-                calls.push(
-                    UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]).
-                    swapExactTokensForTokens(
-                        underlyingAmount,
-                        0,
-                        [data.underlyingToken, tokenDataByNetwork[network][yearnParams.underlying]],
-                        ADDRESS_0X0,
-                        Math.floor((new Date()).getTime() / 1000) + 3600
-                    )
-                );
-            }
-
-        } else if (yearnParams.type == TokenType.YEARN_VAULT_OF_CURVE_LP || yearnParams.type == TokenType.YEARN_VAULT_OF_META_CURVE_LP) {
-
-            let curveTokenParams = supportedTokens[yearnParams.underlying] as CurveLPTokenData;
-            let curvePool = curveTokenParams.pool;
-
-            calls = CurveStrategies.underlyingToCurveLP(data, network, curvePool, underlyingAmount)
-        } else {
-            throw("Yearn vault type unknown");
-        }
-
+    if (yearnParams.type === TokenType.YEARN_VAULT) {
+      if (
+        data.underlyingToken !==
+        tokenDataByNetwork[network][yearnParams.underlying]
+      ) {
+        // This should be a pathfinder call
         calls.push(
-            YearnV2Multicaller.connect(data.adapters[contractsByNetwork[network][yearnVault]]).deposit()
-        )
+          UniswapV2Multicaller.connect(
+            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          ).swapExactTokensForTokens(
+            underlyingAmount,
+            0,
+            [
+              data.underlyingToken,
+              tokenDataByNetwork[network][yearnParams.underlying]
+            ],
+            ADDRESS_0X0,
+            Math.floor(new Date().getTime() / 1000) + 3600
+          )
+        );
+      }
+    } else if (
+      yearnParams.type === TokenType.YEARN_VAULT_OF_CURVE_LP ||
+      yearnParams.type === TokenType.YEARN_VAULT_OF_META_CURVE_LP
+    ) {
+      const curveTokenParams = supportedTokens[
+        yearnParams.underlying
+      ] as CurveLPTokenData;
+      const curvePool = curveTokenParams.pool;
+
+      calls = CurveStrategies.underlyingToCurveLP(
+        data,
+        network,
+        curvePool,
+        underlyingAmount
+      );
+    } else {
+      throw new Error("Yearn vault type unknown");
     }
 
-    static yearnToUnderlying(
-        data: CreditManagerData,
-        network: NetworkType,
-        yearnVault: YearnVaultContract,
-        yearnSharesAmount: BigNumberish
-    ) {
+    calls.push(
+      YearnV2Multicaller.connect(
+        data.adapters[contractsByNetwork[network][yearnVault]]
+      ).deposit()
+    );
+  }
 
-        let calls: Array<MultiCallStruct> = [];
-        let vaultParams = contractParams[yearnVault] as YearnParams;
-        let yearnToken = vaultParams.shareToken;
-        let yearnParams = supportedTokens[yearnToken]; 
+  static yearnToUnderlying(
+    data: CreditManagerData,
+    network: NetworkType,
+    yearnVault: YearnVaultContract,
+    yearnSharesAmount: BigNumberish
+  ) {
+    let calls: Array<MultiCallStruct> = [];
+    const vaultParams = contractParams[yearnVault] as YearnParams;
+    const yearnToken = vaultParams.shareToken;
+    const yearnParams = supportedTokens[yearnToken];
 
+    calls.push(
+      YearnV2Multicaller.connect(
+        data.adapters[contractsByNetwork[network][yearnVault]]
+      ).withdraw(yearnSharesAmount)
+    );
+
+    if (yearnParams.type === TokenType.YEARN_VAULT) {
+      if (
+        data.underlyingToken !==
+        tokenDataByNetwork[network][yearnParams.underlying]
+      ) {
+        // This should be a pathfinder call
         calls.push(
-            YearnV2Multicaller.connect(data.adapters[contractsByNetwork[network][yearnVault]]).withdraw(yearnSharesAmount)
-        )
+          UniswapV2Multicaller.connect(
+            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          ).swapAllTokensForTokens(
+            0,
+            [
+              tokenDataByNetwork[network][yearnParams.underlying],
+              data.underlyingToken
+            ],
+            Math.floor(new Date().getTime() / 1000) + 3600
+          )
+        );
+      }
+    } else if (
+      yearnParams.type === TokenType.YEARN_VAULT_OF_CURVE_LP ||
+      yearnParams.type === TokenType.YEARN_VAULT_OF_META_CURVE_LP
+    ) {
+      const curveTokenParams = supportedTokens[
+        yearnParams.underlying
+      ] as CurveLPTokenData;
+      const curvePool = curveTokenParams.pool;
 
-        if (yearnParams.type == TokenType.YEARN_VAULT) {
-            if (data.underlyingToken != tokenDataByNetwork[network][yearnParams.underlying]) {
-                // This should be a pathfinder call
-                calls.push(
-                    UniswapV2Multicaller.connect(data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]).
-                    swapAllTokensForTokens(
-                        0,
-                        [tokenDataByNetwork[network][yearnParams.underlying], data.underlyingToken],
-                        Math.floor((new Date()).getTime() / 1000) + 3600
-                    )
-                );
-            }
-
-        } else if (yearnParams.type == TokenType.YEARN_VAULT_OF_CURVE_LP || yearnParams.type == TokenType.YEARN_VAULT_OF_META_CURVE_LP) {
-
-            let curveTokenParams = supportedTokens[yearnParams.underlying] as CurveLPTokenData;
-            let curvePool = curveTokenParams.pool;
-
-            calls = [...calls, ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool)]
-        } else {
-            throw("Yearn vault type unknown");
-        }
-
-
+      calls = [
+        ...calls,
+        ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool)
+      ];
+    } else {
+      throw new Error("Yearn vault type unknown");
     }
-} 
-
+  }
+}

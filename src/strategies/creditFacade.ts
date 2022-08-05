@@ -51,14 +51,18 @@ export class CreditFacadeMulticaller {
   }
 
   static connect(address: string) {
-      return new CreditFacadeMulticaller(address);
+    return new CreditFacadeMulticaller(address);
   }
 
-  addCollateral(onBehalfOf: string, token: string, amount: BigNumberish): MultiCallStruct {
-      return {
-          target: this._address,
-          callData: CreditFacadeCalls.addCollateral(onBehalfOf, token, amount)
-      }
+  addCollateral(
+    onBehalfOf: string,
+    token: string,
+    amount: BigNumberish
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: CreditFacadeCalls.addCollateral(onBehalfOf, token, amount)
+    };
   }
 
   increaseDebt(amount: BigNumberish): MultiCallStruct {

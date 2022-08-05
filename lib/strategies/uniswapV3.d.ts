@@ -11,6 +11,7 @@ export declare class UniswapV3Calls {
 export declare class UniswapV3Multicaller {
     private readonly _address;
     constructor(address: string);
+    static connect(address: string): UniswapV3Multicaller;
     exactInputSingle(params: ISwapRouter.ExactInputSingleParamsStructOutput): MultiCallStruct;
     exactAllInputSingle(params: IUniswapV3Adapter.ExactAllInputSingleParamsStructOutput): MultiCallStruct;
     exactInput(params: ISwapRouter.ExactInputParamsStructOutput): MultiCallStruct;

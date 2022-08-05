@@ -8,6 +8,7 @@ export declare class UniswapV2Calls {
 export declare class UniswapV2Multicaller {
     private readonly _address;
     constructor(address: string);
+    static connect(address: string): UniswapV2Multicaller;
     swapExactTokensForTokens(amountIn: BigNumberish, amountOutMin: BigNumberish, path: Array<string>, to: string, deadline: BigNumberish): MultiCallStruct;
     swapTokensForExactTokens(amountOut: BigNumberish, amountInMax: BigNumberish, path: Array<string>, to: string, deadline: BigNumberish): MultiCallStruct;
     swapAllTokensForTokens(rateMinRAY: BigNumberish, path: Array<string>, deadline: BigNumberish): MultiCallStruct;
