@@ -1,4 +1,4 @@
-import type { YearnLPToken } from "src/tokens/yearn";
+import type { YearnLPToken } from "../tokens/yearn";
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "../core/constants";
 import { Protocols } from "./protocols";

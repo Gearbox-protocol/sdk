@@ -1,4 +1,4 @@
-import type { YearnVaultContract } from "src/contracts/contracts";
+import type { YearnVaultContract } from "../contracts/contracts";
 import { TradeAction } from "../pathfinder/tradeTypes";
 import type { TokenBase } from "./token";
 import type { CurveLPToken } from "./curveLP";
