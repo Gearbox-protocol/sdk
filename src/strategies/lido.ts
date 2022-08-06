@@ -1,9 +1,9 @@
 import { BigNumberish } from "ethers";
-import { CreditManagerData } from "src/core/creditManager";
-import { ADDRESS_0X0, NetworkType } from "src/core/constants";
+import { CreditManagerData } from "../core/creditManager";
+import { ADDRESS_0X0, NetworkType } from "../core/constants";
 
-import { contractsByNetwork } from "src/contracts/contracts";
-import { tokenDataByNetwork } from "src/tokens/token";
+import { contractsByNetwork } from "../contracts/contracts";
+import { tokenDataByNetwork } from "../tokens/token";
 import { LidoV1Adapter__factory } from "../types";
 
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";

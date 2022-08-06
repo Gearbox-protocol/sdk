@@ -4,12 +4,12 @@ import {
   contractsByNetwork,
   YearnParams,
   YearnVaultContract
-} from "src/contracts/contracts";
-import { ADDRESS_0X0, NetworkType } from "src/core/constants";
-import { CreditManagerData } from "src/core/creditManager";
-import { CurveLPTokenData } from "src/tokens/curveLP";
-import { supportedTokens, tokenDataByNetwork } from "src/tokens/token";
-import { TokenType } from "src/tokens/tokenType";
+} from "../contracts/contracts";
+import { ADDRESS_0X0, NetworkType } from "../core/constants";
+import { CreditManagerData } from "../core/creditManager";
+import { CurveLPTokenData } from "../tokens/curveLP";
+import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
+import { TokenType } from "../tokens/tokenType";
 
 import { YearnV2Adapter__factory } from "../types";
 

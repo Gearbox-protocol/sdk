@@ -1,7 +1,7 @@
 import { BigNumberish } from "ethers";
-import { YearnVaultContract } from "src/contracts/contracts";
-import { NetworkType } from "src/core/constants";
-import { CreditManagerData } from "src/core/creditManager";
+import { YearnVaultContract } from "../contracts/contracts";
+import { NetworkType } from "../core/constants";
+import { CreditManagerData } from "../core/creditManager";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 export declare class YearnV2Calls {
     static deposit(amount?: BigNumberish, recipient?: string): string;

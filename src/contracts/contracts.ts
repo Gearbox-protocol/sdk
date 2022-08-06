@@ -3,7 +3,7 @@
  * Gearbox. Generalized leverage protocol, which allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
  * (c) Gearbox.fi, 2021
  */
-import type { YearnLPToken } from "src/tokens/yearn";
+import type { YearnLPToken } from "../tokens/yearn";
 import {
   keyToLowercase,
   objectEntries,

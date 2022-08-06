@@ -4,10 +4,10 @@ import {
   contractsByNetwork,
   CurveParams,
   CurvePoolContract
-} from "src/contracts/contracts";
-import { ADDRESS_0X0, NetworkType } from "src/core/constants";
-import { CreditManagerData } from "src/core/creditManager";
-import { tokenDataByNetwork } from "src/tokens/token";
+} from "../contracts/contracts";
+import { ADDRESS_0X0, NetworkType } from "../core/constants";
+import { CreditManagerData } from "../core/creditManager";
+import { tokenDataByNetwork } from "../tokens/token";
 
 import {
   CurveV1AdapterBase__factory,
