@@ -1,7 +1,7 @@
 import { BigNumberish } from "ethers";
-import { CurvePoolContract } from "src/contracts/contracts";
-import { NetworkType } from "src/core/constants";
-import { CreditManagerData } from "src/core/creditManager";
+import { CurvePoolContract } from "../contracts/contracts";
+import { NetworkType } from "../core/constants";
+import { CreditManagerData } from "../core/creditManager";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 export declare class CurveCalls {
     static exchange(i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish): string;

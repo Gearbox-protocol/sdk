@@ -4,12 +4,13 @@ import {
   contractsByNetwork,
   ConvexPoolContract,
   ConvexPoolParams
-} from "src/contracts/contracts";
-import { NetworkType } from "src/core/constants";
-import { CreditManagerData } from "src/core/creditManager";
-import { ConvexPhantomTokenData } from "src/tokens/convex";
-import { CurveLPTokenData } from "src/tokens/curveLP";
-import { supportedTokens, tokenDataByNetwork } from "src/tokens/token";
+} from "../contracts/contracts";
+import { NetworkType } from "../core/constants";
+import { CreditManagerData } from "../core/creditManager";
+import { ConvexPhantomTokenData } from "../tokens/convex";
+
+import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
+import { CurveLPTokenData } from "../tokens/curveLP";
 
 import {
   ConvexV1BoosterAdapter__factory,

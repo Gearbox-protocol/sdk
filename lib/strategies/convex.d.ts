@@ -1,7 +1,7 @@
 import { BigNumberish } from "ethers";
-import { ConvexPoolContract } from "src/contracts/contracts";
-import { NetworkType } from "src/core/constants";
-import { CreditManagerData } from "src/core/creditManager";
+import { ConvexPoolContract } from "../contracts/contracts";
+import { NetworkType } from "../core/constants";
+import { CreditManagerData } from "../core/creditManager";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 export declare class ConvexBoosterCalls {
     static deposit(pid: BigNumberish, amount: BigNumberish, stake: boolean): string;
