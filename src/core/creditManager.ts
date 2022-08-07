@@ -84,7 +84,9 @@ export class CreditManagerData {
     ).toNumber();
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
 
-    this.allowedTokens = (payload.collateralTokens || []).map(t => t.toLowerCase());
+    this.allowedTokens = (payload.collateralTokens || []).map(t =>
+      t.toLowerCase()
+    );
     this.adapters = (payload.adapters || []).reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({
         ...acc,
