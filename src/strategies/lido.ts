@@ -62,7 +62,7 @@ export class LidoStrategies {
     if (!data.isWETH) {
       calls.push(
         UniswapV2Multicaller.connect(
-          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
         ).swapExactTokensForTokens(
           underlyingAmount,
           0,
@@ -75,7 +75,7 @@ export class LidoStrategies {
 
     calls.push(
       LidoMulticaller.connect(
-        data.adapters[contractsByNetwork[network].LIDO_STETH_GATEWAY]
+        data.adapters[contractsByNetwork[network].LIDO_STETH_GATEWAY.toLowerCase()]
       ).submitAll()
     );
 

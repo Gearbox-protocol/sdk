@@ -109,7 +109,7 @@ export class YearnV2Strategies {
         // This should be a pathfinder call
         calls.push(
           UniswapV2Multicaller.connect(
-            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
           ).swapExactTokensForTokens(
             underlyingAmount,
             0,
@@ -143,7 +143,7 @@ export class YearnV2Strategies {
 
     calls.push(
       YearnV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network][yearnVault]]
+        data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
       ).deposit()
     );
 
@@ -163,7 +163,7 @@ export class YearnV2Strategies {
 
     calls.push(
       YearnV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network][yearnVault]]
+        data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
       ).withdraw(yearnSharesAmount)
     );
 
@@ -175,7 +175,7 @@ export class YearnV2Strategies {
         // This should be a pathfinder call
         calls.push(
           UniswapV2Multicaller.connect(
-            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
           ).swapAllTokensForTokens(
             0,
             [

@@ -347,7 +347,7 @@ export class CurveStrategies {
     if (data.underlyingToken !== tokenDataByNetwork[network][tokenToDeposit]) {
       calls.push(
         UniswapV2Multicaller.connect(
-          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
         ).swapExactTokensForTokens(
           underlyingAmount,
           0,
@@ -361,13 +361,13 @@ export class CurveStrategies {
     if (data.underlyingToken === tokenDataByNetwork[network][tokenToDeposit]) {
       calls.push(
         CurveMulticaller.connect(
-          data.adapters[contractsByNetwork[network][curvePool]]
+          data.adapters[contractsByNetwork[network][curvePool].toLowerCase()]
         ).add_liquidity_one_coin(underlyingAmount, 0, 0)
       );
     } else {
       calls.push(
         CurveMulticaller.connect(
-          data.adapters[contractsByNetwork[network][curvePool]]
+          data.adapters[contractsByNetwork[network][curvePool].toLowerCase()]
         ).add_all_liquidity_one_coin(0, 0)
       );
     }
@@ -388,10 +388,10 @@ export class CurveStrategies {
 
     if (curveParams.wrapper) {
       curveContractAddress =
-        data.adapters[contractsByNetwork[network][curveParams.wrapper]];
+        data.adapters[contractsByNetwork[network][curveParams.wrapper].toLowerCase()];
     } else {
       curveContractAddress =
-        data.adapters[contractsByNetwork[network][curvePool]];
+        data.adapters[contractsByNetwork[network][curvePool].toLowerCase()];
     }
 
     calls.push(
@@ -408,7 +408,7 @@ export class CurveStrategies {
     ) {
       calls.push(
         UniswapV2Multicaller.connect(
-          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
         ).swapAllTokensForTokens(
           0,
           [
@@ -435,10 +435,10 @@ export class CurveStrategies {
 
     if (curveParams.wrapper) {
       curveContractAddress =
-        data.adapters[contractsByNetwork[network][curveParams.wrapper]];
+        data.adapters[contractsByNetwork[network][curveParams.wrapper].toLowerCase()];
     } else {
       curveContractAddress =
-        data.adapters[contractsByNetwork[network][curvePool]];
+        data.adapters[contractsByNetwork[network][curvePool].toLowerCase()];
     }
 
     calls.push(
@@ -453,7 +453,7 @@ export class CurveStrategies {
     ) {
       calls.push(
         UniswapV2Multicaller.connect(
-          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
         ).swapAllTokensForTokens(
           0,
           [

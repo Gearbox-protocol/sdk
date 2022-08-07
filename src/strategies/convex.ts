@@ -291,7 +291,7 @@ export class ConvexStrategies {
 
     calls.push(
       ConvexBoosterMulticaller.connect(
-        data.adapters[contractsByNetwork[network].CONVEX_BOOSTER]
+        data.adapters[contractsByNetwork[network].CONVEX_BOOSTER.toLowerCase()]
       ).depositAll(stakedTokenParams.pid, true)
     );
 
@@ -317,7 +317,7 @@ export class ConvexStrategies {
 
     calls.push(
       ConvexPoolMulticaller.connect(
-        data.adapters[contractsByNetwork[network][convexPool]]
+        data.adapters[contractsByNetwork[network][convexPool].toLowerCase()]
       ).withdrawAndUnwrap(convexLpAmount, true)
     );
 
@@ -350,7 +350,7 @@ export class ConvexStrategies {
 
     calls.push(
       ConvexPoolMulticaller.connect(
-        data.adapters[contractsByNetwork[network][convexPool]]
+        data.adapters[contractsByNetwork[network][convexPool].toLowerCase()]
       ).withdrawAllAndUnwrap(true)
     );
 
@@ -375,14 +375,14 @@ export class ConvexStrategies {
 
     calls.push(
       UniswapV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+        data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
       ).swapAllTokensForTokens(
         0,
         [tokenDataByNetwork[network].CRV, data.underlyingToken],
         Math.floor(new Date().getTime() / 1000) + 3600
       ),
       UniswapV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+        data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
       ).swapAllTokensForTokens(
         0,
         [tokenDataByNetwork[network].CVX, data.underlyingToken],
@@ -392,7 +392,7 @@ export class ConvexStrategies {
 
     convexParams.extraRewards.forEach(extraReward => {
       UniswapV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+        data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
       ).swapAllTokensForTokens(
         0,
         [
