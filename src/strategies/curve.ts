@@ -72,9 +72,9 @@ export class CurveCalls {
     minAmount: BigNumberish
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
-        "add_liquidity_one_coin",
-        [amount, i, minAmount]
-      );
+      "add_liquidity_one_coin",
+      [amount, i, minAmount]
+    );
   }
 
   public static add_all_liquidity_one_coin(
@@ -256,9 +256,9 @@ export class CurveMulticaller {
     minAmount: BigNumberish
   ): MultiCallStruct {
     return {
-        target: this._address,
-        callData: CurveCalls.add_liquidity_one_coin(amount, i, minAmount)
-    }
+      target: this._address,
+      callData: CurveCalls.add_liquidity_one_coin(amount, i, minAmount)
+    };
   }
 
   add_all_liquidity_one_coin(
@@ -358,18 +358,18 @@ export class CurveStrategies {
       );
     }
 
-    if(data.underlyingToken === tokenDataByNetwork[network][tokenToDeposit]) {
-        calls.push(
-            CurveMulticaller.connect(
-                data.adapters[contractsByNetwork[network][curvePool]]
-              ).add_liquidity_one_coin(underlyingAmount, 0, 0)
-          );
+    if (data.underlyingToken === tokenDataByNetwork[network][tokenToDeposit]) {
+      calls.push(
+        CurveMulticaller.connect(
+          data.adapters[contractsByNetwork[network][curvePool]]
+        ).add_liquidity_one_coin(underlyingAmount, 0, 0)
+      );
     } else {
-        calls.push(
-            CurveMulticaller.connect(
-              data.adapters[contractsByNetwork[network][curvePool]]
-            ).add_all_liquidity_one_coin(0, 0)
-          );
+      calls.push(
+        CurveMulticaller.connect(
+          data.adapters[contractsByNetwork[network][curvePool]]
+        ).add_all_liquidity_one_coin(0, 0)
+      );
     }
 
     return calls;

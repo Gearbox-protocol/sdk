@@ -42,18 +42,14 @@ export class CreditFacadeCalls {
     );
   }
 
-  public static disableToken(
-    token: string
-  ) {
+  public static disableToken(token: string) {
     return ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
       "disableToken",
       [token]
     );
   }
 
-  public static enableToken(
-    token: string
-  ) {
+  public static enableToken(token: string) {
     return ICreditFacade__factory.createInterface().encodeFunctionData(
       "enableToken",
       [token]
@@ -107,21 +103,17 @@ export class CreditFacadeMulticaller {
     };
   }
 
-  disableToken(
-    token: string
-  ): MultiCallStruct {
+  disableToken(token: string): MultiCallStruct {
     return {
       target: this._address,
       callData: CreditFacadeCalls.disableToken(token)
-    }
+    };
   }
 
-  enableToken(
-    token: string
-  ): MultiCallStruct {
+  enableToken(token: string): MultiCallStruct {
     return {
       target: this._address,
       callData: CreditFacadeCalls.enableToken(token)
-    }
+    };
   }
 }
