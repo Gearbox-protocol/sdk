@@ -109,7 +109,9 @@ export class YearnV2Strategies {
         // This should be a pathfinder call
         calls.push(
           UniswapV2Multicaller.connect(
-            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
+            data.adapters[
+              contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
+            ]
           ).swapExactTokensForTokens(
             underlyingAmount,
             0,
@@ -121,6 +123,13 @@ export class YearnV2Strategies {
             Math.floor(new Date().getTime() / 1000) + 3600
           )
         );
+      } else {
+        calls.push(
+          YearnV2Multicaller.connect(
+            data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
+          ).deposit(underlyingAmount)
+        );
+        return calls;
       }
     } else if (
       yearnParams.type === TokenType.YEARN_VAULT_OF_CURVE_LP ||
@@ -175,7 +184,9 @@ export class YearnV2Strategies {
         // This should be a pathfinder call
         calls.push(
           UniswapV2Multicaller.connect(
-            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
+            data.adapters[
+              contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
+            ]
           ).swapAllTokensForTokens(
             0,
             [
