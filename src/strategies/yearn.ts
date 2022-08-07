@@ -103,8 +103,8 @@ export class YearnV2Strategies {
 
     if (yearnParams.type === TokenType.YEARN_VAULT) {
       if (
-        data.underlyingToken !==
-        tokenDataByNetwork[network][yearnParams.underlying]
+        data.underlyingToken.toLowerCase() !==
+        tokenDataByNetwork[network][yearnParams.underlying].toLowerCase()
       ) {
         // This should be a pathfinder call
         calls.push(
@@ -169,8 +169,8 @@ export class YearnV2Strategies {
 
     if (yearnParams.type === TokenType.YEARN_VAULT) {
       if (
-        data.underlyingToken !==
-        tokenDataByNetwork[network][yearnParams.underlying]
+        data.underlyingToken.toLowerCase() !==
+        tokenDataByNetwork[network][yearnParams.underlying].toLowerCase()
       ) {
         // This should be a pathfinder call
         calls.push(

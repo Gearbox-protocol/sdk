@@ -344,7 +344,7 @@ export class CurveStrategies {
     const curveParams = contractParams[curvePool] as CurveParams;
     const tokenToDeposit = curveParams.tokens[0];
 
-    if (data.underlyingToken !== tokenDataByNetwork[network][tokenToDeposit]) {
+    if (data.underlyingToken.toLowerCase() !== tokenDataByNetwork[network][tokenToDeposit].toLowerCase()) {
       calls.push(
         UniswapV2Multicaller.connect(
           data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()]
@@ -403,8 +403,8 @@ export class CurveStrategies {
     );
 
     if (
-      tokenDataByNetwork[network][curveParams.tokens[0]] !==
-      data.underlyingToken
+      tokenDataByNetwork[network][curveParams.tokens[0]].toLowerCase() !==
+      data.underlyingToken.toLowerCase()
     ) {
       calls.push(
         UniswapV2Multicaller.connect(
@@ -448,8 +448,8 @@ export class CurveStrategies {
     );
 
     if (
-      tokenDataByNetwork[network][curveParams.tokens[0]] !==
-      data.underlyingToken
+      tokenDataByNetwork[network][curveParams.tokens[0]].toLowerCase() !==
+      data.underlyingToken.toLowerCase()
     ) {
       calls.push(
         UniswapV2Multicaller.connect(
