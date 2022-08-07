@@ -55,7 +55,7 @@ export class LidoStrategies {
     data: CreditManagerData,
     network: NetworkType,
     underlyingAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
 
     // This should be a pathfinder call

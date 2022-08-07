@@ -33,7 +33,7 @@ export interface UniswapV2MockInterface extends utils.Interface {
     "getAmountOut(uint256,uint256,uint256)": FunctionFragment;
     "getAmountsIn(uint256,address[])": FunctionFragment;
     "getAmountsOut(uint256,address[])": FunctionFragment;
-    "getRate(address[])": FunctionFragment;
+    "getRate(address,address)": FunctionFragment;
     "quote(uint256,uint256,uint256)": FunctionFragment;
     "removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
     "removeLiquidityETH(address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
@@ -125,7 +125,10 @@ export interface UniswapV2MockInterface extends utils.Interface {
     functionFragment: "getAmountsOut",
     values: [BigNumberish, string[]]
   ): string;
-  encodeFunctionData(functionFragment: "getRate", values: [string[]]): string;
+  encodeFunctionData(
+    functionFragment: "getRate",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "quote",
     values: [BigNumberish, BigNumberish, BigNumberish]
@@ -418,19 +421,20 @@ export interface UniswapV2Mock extends BaseContract {
     ): Promise<[BigNumber] & { amountOut: BigNumber }>;
 
     getAmountsIn(
-      arg0: BigNumberish,
-      arg1: string[],
+      amountOut: BigNumberish,
+      path: string[],
       overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     getAmountsOut(
       amountIn: BigNumberish,
       path: string[],
       overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     getRate(
-      path: string[],
+      tokenIn: string,
+      tokenOut: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { rate: BigNumber }>;
 
@@ -561,7 +565,7 @@ export interface UniswapV2Mock extends BaseContract {
       arg3: string,
       arg4: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     swapExactTokensForETHSupportingFeeOnTransferTokens(
       arg0: BigNumberish,
@@ -597,7 +601,7 @@ export interface UniswapV2Mock extends BaseContract {
       arg3: string,
       arg4: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     swapTokensForExactTokens(
       amountOut: BigNumberish,
@@ -656,8 +660,8 @@ export interface UniswapV2Mock extends BaseContract {
   ): Promise<BigNumber>;
 
   getAmountsIn(
-    arg0: BigNumberish,
-    arg1: string[],
+    amountOut: BigNumberish,
+    path: string[],
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
@@ -667,7 +671,11 @@ export interface UniswapV2Mock extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
-  getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
+  getRate(
+    tokenIn: string,
+    tokenOut: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   quote(
     arg0: BigNumberish,
@@ -897,8 +905,8 @@ export interface UniswapV2Mock extends BaseContract {
     ): Promise<BigNumber>;
 
     getAmountsIn(
-      arg0: BigNumberish,
-      arg1: string[],
+      amountOut: BigNumberish,
+      path: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
@@ -908,7 +916,11 @@ export interface UniswapV2Mock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
+    getRate(
+      tokenIn: string,
+      tokenOut: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     quote(
       arg0: BigNumberish,
@@ -1129,8 +1141,8 @@ export interface UniswapV2Mock extends BaseContract {
     ): Promise<BigNumber>;
 
     getAmountsIn(
-      arg0: BigNumberish,
-      arg1: string[],
+      amountOut: BigNumberish,
+      path: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1140,7 +1152,11 @@ export interface UniswapV2Mock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
+    getRate(
+      tokenIn: string,
+      tokenOut: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     quote(
       arg0: BigNumberish,
@@ -1351,8 +1367,8 @@ export interface UniswapV2Mock extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getAmountsIn(
-      arg0: BigNumberish,
-      arg1: string[],
+      amountOut: BigNumberish,
+      path: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1363,7 +1379,8 @@ export interface UniswapV2Mock extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getRate(
-      path: string[],
+      tokenIn: string,
+      tokenOut: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

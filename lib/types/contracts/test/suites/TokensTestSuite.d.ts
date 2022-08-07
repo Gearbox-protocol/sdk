@@ -258,7 +258,9 @@ export interface TokensTestSuite extends BaseContract {
         burn(t: BigNumberish, from: string, amount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         getPriceFeeds(overrides?: CallOverrides): Promise<[PriceFeedConfigStructOutput[]]>;
         "mint(address,address,uint256)"(token: string, to: string, amount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -296,7 +298,9 @@ export interface TokensTestSuite extends BaseContract {
     burn(t: BigNumberish, from: string, amount: BigNumberish, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     getPriceFeeds(overrides?: CallOverrides): Promise<PriceFeedConfigStructOutput[]>;
     "mint(address,address,uint256)"(token: string, to: string, amount: BigNumberish, overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -393,7 +397,9 @@ export interface TokensTestSuite extends BaseContract {
         burn(t: BigNumberish, from: string, amount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         getPriceFeeds(overrides?: CallOverrides): Promise<BigNumber>;
         "mint(address,address,uint256)"(token: string, to: string, amount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -429,7 +435,9 @@ export interface TokensTestSuite extends BaseContract {
         burn(t: BigNumberish, from: string, amount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         getPriceFeeds(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         "mint(address,address,uint256)"(token: string, to: string, amount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;

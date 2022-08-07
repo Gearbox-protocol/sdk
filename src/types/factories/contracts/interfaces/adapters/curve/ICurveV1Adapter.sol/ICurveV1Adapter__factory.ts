@@ -97,6 +97,29 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "int128",
+        name: "i",
+        type: "int128",
+      },
+      {
+        internalType: "uint256",
+        name: "minAmount",
+        type: "uint256",
+      },
+    ],
+    name: "add_liquidity_one_coin",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "admin",
     outputs: [

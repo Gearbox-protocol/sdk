@@ -42,6 +42,7 @@ export interface CurveV1Mock_4AssetsInterface extends utils.Interface {
         "remove_liquidity_one_coin(uint256,int128,uint256)": FunctionFragment;
         "setRate(int128,int128,uint256)": FunctionFragment;
         "setRateUnderlying(int128,int128,uint256)": FunctionFragment;
+        "setWithdrawRate(int128,uint256)": FunctionFragment;
         "set_virtual_price(uint256)": FunctionFragment;
         "symbol()": FunctionFragment;
         "token()": FunctionFragment;
@@ -50,7 +51,7 @@ export interface CurveV1Mock_4AssetsInterface extends utils.Interface {
         "underlying_coins(uint256)": FunctionFragment;
         "virtualPrice()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "A" | "A_precise" | "add_liquidity" | "admin" | "admin_balances" | "admin_fee" | "allowance" | "balanceOf" | "balances(int128)" | "balances(uint256)" | "block_timestamp_last" | "calc_token_amount" | "calc_withdraw_one_coin" | "coins(int128)" | "coins(uint256)" | "decimals" | "exchange" | "exchange_underlying" | "fee" | "future_A" | "future_A_time" | "get_balances" | "get_dy" | "get_dy_underlying" | "get_previous_balances" | "get_price_cumulative_last" | "get_twap_balances" | "get_virtual_price" | "initial_A" | "initial_A_time" | "lp_token" | "mintLP" | "name" | "remove_liquidity" | "remove_liquidity_imbalance" | "remove_liquidity_one_coin" | "setRate" | "setRateUnderlying" | "set_virtual_price" | "symbol" | "token" | "totalSupply" | "underlying_coins(int128)" | "underlying_coins(uint256)" | "virtualPrice"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "A" | "A_precise" | "add_liquidity" | "admin" | "admin_balances" | "admin_fee" | "allowance" | "balanceOf" | "balances(int128)" | "balances(uint256)" | "block_timestamp_last" | "calc_token_amount" | "calc_withdraw_one_coin" | "coins(int128)" | "coins(uint256)" | "decimals" | "exchange" | "exchange_underlying" | "fee" | "future_A" | "future_A_time" | "get_balances" | "get_dy" | "get_dy_underlying" | "get_previous_balances" | "get_price_cumulative_last" | "get_twap_balances" | "get_virtual_price" | "initial_A" | "initial_A_time" | "lp_token" | "mintLP" | "name" | "remove_liquidity" | "remove_liquidity_imbalance" | "remove_liquidity_one_coin" | "setRate" | "setRateUnderlying" | "setWithdrawRate" | "set_virtual_price" | "symbol" | "token" | "totalSupply" | "underlying_coins(int128)" | "underlying_coins(uint256)" | "virtualPrice"): FunctionFragment;
     encodeFunctionData(functionFragment: "A", values?: undefined): string;
     encodeFunctionData(functionFragment: "A_precise", values?: undefined): string;
     encodeFunctionData(functionFragment: "add_liquidity", values: [
@@ -127,6 +128,7 @@ export interface CurveV1Mock_4AssetsInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "remove_liquidity_one_coin", values: [BigNumberish, BigNumberish, BigNumberish]): string;
     encodeFunctionData(functionFragment: "setRate", values: [BigNumberish, BigNumberish, BigNumberish]): string;
     encodeFunctionData(functionFragment: "setRateUnderlying", values: [BigNumberish, BigNumberish, BigNumberish]): string;
+    encodeFunctionData(functionFragment: "setWithdrawRate", values: [BigNumberish, BigNumberish]): string;
     encodeFunctionData(functionFragment: "set_virtual_price", values: [BigNumberish]): string;
     encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
     encodeFunctionData(functionFragment: "token", values?: undefined): string;
@@ -172,6 +174,7 @@ export interface CurveV1Mock_4AssetsInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "remove_liquidity_one_coin", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "setRate", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "setRateUnderlying", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "setWithdrawRate", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "set_virtual_price", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
@@ -210,7 +213,7 @@ export interface CurveV1Mock_4Assets extends BaseContract {
         "balances(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
         block_timestamp_last(overrides?: CallOverrides): Promise<[BigNumber]>;
         calc_token_amount(arg0: [BigNumberish, BigNumberish, BigNumberish, BigNumberish], arg1: boolean, overrides?: CallOverrides): Promise<[BigNumber]>;
-        calc_withdraw_one_coin(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
+        calc_withdraw_one_coin(amount: BigNumberish, coin: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
         "coins(int128)"(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
         "coins(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
         decimals(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -252,6 +255,9 @@ export interface CurveV1Mock_4Assets extends BaseContract {
         setRateUnderlying(i: BigNumberish, j: BigNumberish, rate_RAY: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
+        setWithdrawRate(i: BigNumberish, rate_RAY: BigNumberish, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         set_virtual_price(_price: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
@@ -276,7 +282,7 @@ export interface CurveV1Mock_4Assets extends BaseContract {
     "balances(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
     calc_token_amount(arg0: [BigNumberish, BigNumberish, BigNumberish, BigNumberish], arg1: boolean, overrides?: CallOverrides): Promise<BigNumber>;
-    calc_withdraw_one_coin(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    calc_withdraw_one_coin(amount: BigNumberish, coin: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
     "coins(int128)"(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
     "coins(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
@@ -318,6 +324,9 @@ export interface CurveV1Mock_4Assets extends BaseContract {
     setRateUnderlying(i: BigNumberish, j: BigNumberish, rate_RAY: BigNumberish, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
+    setWithdrawRate(i: BigNumberish, rate_RAY: BigNumberish, overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     set_virtual_price(_price: BigNumberish, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
@@ -340,7 +349,7 @@ export interface CurveV1Mock_4Assets extends BaseContract {
         "balances(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
         calc_token_amount(arg0: [BigNumberish, BigNumberish, BigNumberish, BigNumberish], arg1: boolean, overrides?: CallOverrides): Promise<BigNumber>;
-        calc_withdraw_one_coin(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+        calc_withdraw_one_coin(amount: BigNumberish, coin: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         "coins(int128)"(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
         "coins(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
         decimals(overrides?: CallOverrides): Promise<BigNumber>;
@@ -366,6 +375,7 @@ export interface CurveV1Mock_4Assets extends BaseContract {
         remove_liquidity_one_coin(_token_amount: BigNumberish, i: BigNumberish, min_amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
         setRate(i: BigNumberish, j: BigNumberish, rate_RAY: BigNumberish, overrides?: CallOverrides): Promise<void>;
         setRateUnderlying(i: BigNumberish, j: BigNumberish, rate_RAY: BigNumberish, overrides?: CallOverrides): Promise<void>;
+        setWithdrawRate(i: BigNumberish, rate_RAY: BigNumberish, overrides?: CallOverrides): Promise<void>;
         set_virtual_price(_price: BigNumberish, overrides?: CallOverrides): Promise<void>;
         symbol(overrides?: CallOverrides): Promise<string>;
         token(overrides?: CallOverrides): Promise<string>;
@@ -390,7 +400,7 @@ export interface CurveV1Mock_4Assets extends BaseContract {
         "balances(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
         calc_token_amount(arg0: [BigNumberish, BigNumberish, BigNumberish, BigNumberish], arg1: boolean, overrides?: CallOverrides): Promise<BigNumber>;
-        calc_withdraw_one_coin(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+        calc_withdraw_one_coin(amount: BigNumberish, coin: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         "coins(int128)"(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         "coins(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         decimals(overrides?: CallOverrides): Promise<BigNumber>;
@@ -432,6 +442,9 @@ export interface CurveV1Mock_4Assets extends BaseContract {
         setRateUnderlying(i: BigNumberish, j: BigNumberish, rate_RAY: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
+        setWithdrawRate(i: BigNumberish, rate_RAY: BigNumberish, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         set_virtual_price(_price: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
@@ -457,7 +470,7 @@ export interface CurveV1Mock_4Assets extends BaseContract {
         "balances(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         block_timestamp_last(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         calc_token_amount(arg0: [BigNumberish, BigNumberish, BigNumberish, BigNumberish], arg1: boolean, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        calc_withdraw_one_coin(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        calc_withdraw_one_coin(amount: BigNumberish, coin: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         "coins(int128)"(i: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         "coins(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -497,6 +510,9 @@ export interface CurveV1Mock_4Assets extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         setRateUnderlying(i: BigNumberish, j: BigNumberish, rate_RAY: BigNumberish, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        setWithdrawRate(i: BigNumberish, rate_RAY: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         set_virtual_price(_price: BigNumberish, overrides?: Overrides & {

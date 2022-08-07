@@ -95,7 +95,7 @@ export class YearnV2Strategies {
     network: NetworkType,
     yearnVault: YearnVaultContract,
     underlyingAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     let calls: Array<MultiCallStruct> = [];
     const vaultParams = contractParams[yearnVault] as YearnParams;
     const yearnToken = vaultParams.shareToken;
@@ -146,6 +146,8 @@ export class YearnV2Strategies {
         data.adapters[contractsByNetwork[network][yearnVault]]
       ).deposit()
     );
+
+    return calls;
   }
 
   static yearnToUnderlying(
@@ -153,7 +155,7 @@ export class YearnV2Strategies {
     network: NetworkType,
     yearnVault: YearnVaultContract,
     yearnSharesAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     let calls: Array<MultiCallStruct> = [];
     const vaultParams = contractParams[yearnVault] as YearnParams;
     const yearnToken = vaultParams.shareToken;
@@ -200,5 +202,7 @@ export class YearnV2Strategies {
     } else {
       throw new Error("Yearn vault type unknown");
     }
+
+    return calls;
   }
 }

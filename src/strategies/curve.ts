@@ -66,6 +66,17 @@ export class CurveCalls {
     );
   }
 
+  public static add_liquidity_one_coin(
+    amount: BigNumberish,
+    i: BigNumberish,
+    minAmount: BigNumberish
+  ) {
+    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+        "add_liquidity_one_coin",
+        [amount, i, minAmount]
+      );
+  }
+
   public static add_all_liquidity_one_coin(
     i: BigNumberish,
     rateMinRAY: BigNumberish
@@ -239,6 +250,17 @@ export class CurveMulticaller {
     };
   }
 
+  add_liquidity_one_coin(
+    amount: BigNumberish,
+    i: BigNumberish,
+    minAmount: BigNumberish
+  ): MultiCallStruct {
+    return {
+        target: this._address,
+        callData: CurveCalls.add_liquidity_one_coin(amount, i, minAmount)
+    }
+  }
+
   add_all_liquidity_one_coin(
     i: BigNumberish,
     rateMinRAY: BigNumberish
@@ -317,7 +339,7 @@ export class CurveStrategies {
     network: NetworkType,
     curvePool: CurvePoolContract,
     underlyingAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
     const tokenToDeposit = curveParams.tokens[0];
@@ -336,11 +358,19 @@ export class CurveStrategies {
       );
     }
 
-    calls.push(
-      CurveMulticaller.connect(
-        data.adapters[contractsByNetwork[network][curvePool]]
-      ).add_all_liquidity_one_coin(0, 0)
-    );
+    if(data.underlyingToken === tokenDataByNetwork[network][tokenToDeposit]) {
+        calls.push(
+            CurveMulticaller.connect(
+                data.adapters[contractsByNetwork[network][curvePool]]
+              ).add_liquidity_one_coin(underlyingAmount, 0, 0)
+          );
+    } else {
+        calls.push(
+            CurveMulticaller.connect(
+              data.adapters[contractsByNetwork[network][curvePool]]
+            ).add_all_liquidity_one_coin(0, 0)
+          );
+    }
 
     return calls;
   }
@@ -350,7 +380,7 @@ export class CurveStrategies {
     network: NetworkType,
     curvePool: CurvePoolContract,
     curveLPAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
 
@@ -397,7 +427,7 @@ export class CurveStrategies {
     data: CreditManagerData,
     network: NetworkType,
     curvePool: CurvePoolContract
-  ) {
+  ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
 

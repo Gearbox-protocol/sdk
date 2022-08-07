@@ -2,7 +2,7 @@ import { BigNumberish } from "ethers";
 
 import {
   ICreditFacade__factory,
-  ICreditFacadeBalanceChecker__factory
+  ICreditFacadeExtended__factory
 } from "../types";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 
@@ -36,9 +36,27 @@ export class CreditFacadeCalls {
     token: string,
     minBalance: BigNumberish
   ) {
-    return ICreditFacadeBalanceChecker__factory.createInterface().encodeFunctionData(
+    return ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
       "revertIfBalanceLessThan",
       [token, minBalance]
+    );
+  }
+
+  public static disableToken(
+    token: string
+  ) {
+    return ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
+      "disableToken",
+      [token]
+    );
+  }
+
+  public static enableToken(
+    token: string
+  ) {
+    return ICreditFacade__factory.createInterface().encodeFunctionData(
+      "enableToken",
+      [token]
     );
   }
 }
@@ -87,5 +105,23 @@ export class CreditFacadeMulticaller {
       target: this._address,
       callData: CreditFacadeCalls.revertIfBalanceLessThan(token, minBalance)
     };
+  }
+
+  disableToken(
+    token: string
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: CreditFacadeCalls.disableToken(token)
+    }
+  }
+
+  enableToken(
+    token: string
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: CreditFacadeCalls.enableToken(token)
+    }
   }
 }

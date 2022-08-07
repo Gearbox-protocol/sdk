@@ -125,6 +125,37 @@ const _abi = [
   },
   {
     anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "liquidator",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "remainingFunds",
+        type: "uint256",
+      },
+    ],
+    name: "LiquidateExpiredCreditAccount",
+    type: "event",
+  },
+  {
+    anonymous: false,
     inputs: [],
     name: "MultiCallFinished",
     type: "event",
@@ -171,6 +202,44 @@ const _abi = [
       },
     ],
     name: "OpenCreditAccount",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "TokenDisabled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "TokenEnabled",
     type: "event",
   },
   {

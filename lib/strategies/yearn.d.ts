@@ -15,6 +15,6 @@ export declare class YearnV2Multicaller {
     withdraw(maxShares?: BigNumberish, recipient?: string, maxLoss?: BigNumberish): MultiCallStruct;
 }
 export declare class YearnV2Strategies {
-    static underlyingToYearn(data: CreditManagerData, network: NetworkType, yearnVault: YearnVaultContract, underlyingAmount: BigNumberish): void;
-    static yearnToUnderlying(data: CreditManagerData, network: NetworkType, yearnVault: YearnVaultContract, yearnSharesAmount: BigNumberish): void;
+    static underlyingToYearn(data: CreditManagerData, network: NetworkType, yearnVault: YearnVaultContract, underlyingAmount: BigNumberish): MultiCallStruct[];
+    static yearnToUnderlying(data: CreditManagerData, network: NetworkType, yearnVault: YearnVaultContract, yearnSharesAmount: BigNumberish): MultiCallStruct[];
 }

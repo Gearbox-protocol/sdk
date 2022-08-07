@@ -29,6 +29,7 @@ import type {
 export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
   functions: {
     "IS_TEST()": FunctionFragment;
+    "_setUpZeroExtras()": FunctionFragment;
     "basePoolAdapter()": FunctionFragment;
     "basePoolMock()": FunctionFragment;
     "boosterAdapter()": FunctionFragment;
@@ -56,12 +57,14 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
     "test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools()": FunctionFragment;
     "test_ACVX1_Z_03_claimRewards_ignores_options()": FunctionFragment;
     "test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract()": FunctionFragment;
+    "test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras()": FunctionFragment;
     "underlying()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "IS_TEST"
+      | "_setUpZeroExtras"
       | "basePoolAdapter"
       | "basePoolMock"
       | "boosterAdapter"
@@ -89,10 +92,15 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
       | "test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools"
       | "test_ACVX1_Z_03_claimRewards_ignores_options"
       | "test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract"
+      | "test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras"
       | "underlying"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "_setUpZeroExtras",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "basePoolAdapter",
     values?: undefined
@@ -184,11 +192,19 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "underlying",
     values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "_setUpZeroExtras",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "basePoolAdapter",
     data: BytesLike
@@ -279,6 +295,10 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
     functionFragment: "test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
 
   events: {
@@ -288,6 +308,7 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
     "ExecuteOrder(address,address)": EventFragment;
     "IncreaseBorrowedAmount(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
     "Mock_BaseRewardPaid(uint256,address,uint256)": EventFragment;
     "Mock_BaseStaked(uint256,address,uint256)": EventFragment;
     "Mock_BaseWithdrawn(uint256,address,uint256)": EventFragment;
@@ -300,6 +321,8 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
     "MultiCallStarted(address)": EventFragment;
     "NewConfigurator(address)": EventFragment;
     "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
+    "TokenDisabled(address,address)": EventFragment;
+    "TokenEnabled(address,address)": EventFragment;
     "TransferAccount(address,address)": EventFragment;
     "TransferAccountAllowed(address,address,bool)": EventFragment;
     "log(string)": EventFragment;
@@ -326,6 +349,9 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ExecuteOrder"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_BaseRewardPaid"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_BaseStaked"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_BaseWithdrawn"): EventFragment;
@@ -338,6 +364,8 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewConfigurator"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "log"): EventFragment;
@@ -430,6 +458,20 @@ export type LiquidateCreditAccountEvent = TypedEvent<
 
 export type LiquidateCreditAccountEventFilter =
   TypedEventFilter<LiquidateCreditAccountEvent>;
+
+export interface LiquidateExpiredCreditAccountEventObject {
+  owner: string;
+  liquidator: string;
+  to: string;
+  remainingFunds: BigNumber;
+}
+export type LiquidateExpiredCreditAccountEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  LiquidateExpiredCreditAccountEventObject
+>;
+
+export type LiquidateExpiredCreditAccountEventFilter =
+  TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
 
 export interface Mock_BaseRewardPaidEventObject {
   index: BigNumber;
@@ -578,6 +620,28 @@ export type OpenCreditAccountEvent = TypedEvent<
 
 export type OpenCreditAccountEventFilter =
   TypedEventFilter<OpenCreditAccountEvent>;
+
+export interface TokenDisabledEventObject {
+  creditAccount: string;
+  token: string;
+}
+export type TokenDisabledEvent = TypedEvent<
+  [string, string],
+  TokenDisabledEventObject
+>;
+
+export type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
+
+export interface TokenEnabledEventObject {
+  creditAccount: string;
+  token: string;
+}
+export type TokenEnabledEvent = TypedEvent<
+  [string, string],
+  TokenEnabledEventObject
+>;
+
+export type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
 
 export interface TransferAccountEventObject {
   oldOwner: string;
@@ -783,6 +847,10 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
   functions: {
     IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
 
+    _setUpZeroExtras(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     basePoolAdapter(overrides?: CallOverrides): Promise<[string]>;
 
     basePoolMock(overrides?: CallOverrides): Promise<[string]>;
@@ -819,7 +887,9 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
 
     extraRewardToken2(overrides?: CallOverrides): Promise<[string]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     feed(overrides?: CallOverrides): Promise<[string]>;
 
@@ -847,10 +917,18 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     underlying(overrides?: CallOverrides): Promise<[string]>;
   };
 
   IS_TEST(overrides?: CallOverrides): Promise<boolean>;
+
+  _setUpZeroExtras(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   basePoolAdapter(overrides?: CallOverrides): Promise<string>;
 
@@ -888,7 +966,9 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
 
   extraRewardToken2(overrides?: CallOverrides): Promise<string>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   feed(overrides?: CallOverrides): Promise<string>;
 
@@ -916,10 +996,16 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   underlying(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
+
+    _setUpZeroExtras(overrides?: CallOverrides): Promise<void>;
 
     basePoolAdapter(overrides?: CallOverrides): Promise<string>;
 
@@ -980,6 +1066,10 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     ): Promise<void>;
 
     test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract(
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1046,6 +1136,19 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
       to?: string | null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
+
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
+      owner?: string | null,
+      liquidator?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): LiquidateExpiredCreditAccountEventFilter;
+    LiquidateExpiredCreditAccount(
+      owner?: string | null,
+      liquidator?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): LiquidateExpiredCreditAccountEventFilter;
 
     "Mock_BaseRewardPaid(uint256,address,uint256)"(
       index?: BigNumberish | null,
@@ -1169,6 +1272,18 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
       referralCode?: null
     ): OpenCreditAccountEventFilter;
 
+    "TokenDisabled(address,address)"(
+      creditAccount?: null,
+      token?: null
+    ): TokenDisabledEventFilter;
+    TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+
+    "TokenEnabled(address,address)"(
+      creditAccount?: null,
+      token?: null
+    ): TokenEnabledEventFilter;
+    TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
+
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
       newOwner?: string | null
@@ -1275,6 +1390,10 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
   estimateGas: {
     IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
 
+    _setUpZeroExtras(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     basePoolAdapter(overrides?: CallOverrides): Promise<BigNumber>;
 
     basePoolMock(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1311,7 +1430,9 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
 
     extraRewardToken2(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     feed(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1339,11 +1460,19 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    _setUpZeroExtras(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     basePoolAdapter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1383,7 +1512,9 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
 
     extraRewardToken2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     feed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1408,6 +1539,10 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

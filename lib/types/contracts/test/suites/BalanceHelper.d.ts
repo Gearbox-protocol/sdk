@@ -1,4 +1,4 @@
-import type { BaseContract, BigNumber, BytesLike, CallOverrides, PopulatedTransaction, Signer, utils } from "ethers";
+import type { BaseContract, BigNumber, BytesLike, CallOverrides, ContractTransaction, Overrides, PopulatedTransaction, Signer, utils } from "ethers";
 import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "../../../common";
@@ -179,10 +179,14 @@ export interface BalanceHelper extends BaseContract {
     removeListener: OnEvent<this>;
     functions: {
         IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
     };
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     callStatic: {
         IS_TEST(overrides?: CallOverrides): Promise<boolean>;
         failed(overrides?: CallOverrides): Promise<boolean>;
@@ -223,10 +227,14 @@ export interface BalanceHelper extends BaseContract {
     };
     estimateGas: {
         IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
     };
     populateTransaction: {
         IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
     };
 }

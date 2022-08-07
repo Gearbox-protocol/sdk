@@ -193,12 +193,15 @@ export interface LidoV1AdapterTestInterface extends utils.Interface {
     "ExecuteOrder(address,address)": EventFragment;
     "IncreaseBorrowedAmount(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
     "Mock_Submitted(address,uint256,address)": EventFragment;
     "MultiCallFinished()": EventFragment;
     "MultiCallStarted(address)": EventFragment;
     "NewConfigurator(address)": EventFragment;
     "NewLimit(uint256)": EventFragment;
     "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
+    "TokenDisabled(address,address)": EventFragment;
+    "TokenEnabled(address,address)": EventFragment;
     "TransferAccount(address,address)": EventFragment;
     "TransferAccountAllowed(address,address,bool)": EventFragment;
     "log(string)": EventFragment;
@@ -225,12 +228,17 @@ export interface LidoV1AdapterTestInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ExecuteOrder"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_Submitted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewConfigurator"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewLimit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "log"): EventFragment;
@@ -324,6 +332,20 @@ export type LiquidateCreditAccountEvent = TypedEvent<
 export type LiquidateCreditAccountEventFilter =
   TypedEventFilter<LiquidateCreditAccountEvent>;
 
+export interface LiquidateExpiredCreditAccountEventObject {
+  owner: string;
+  liquidator: string;
+  to: string;
+  remainingFunds: BigNumber;
+}
+export type LiquidateExpiredCreditAccountEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  LiquidateExpiredCreditAccountEventObject
+>;
+
+export type LiquidateExpiredCreditAccountEventFilter =
+  TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
+
 export interface Mock_SubmittedEventObject {
   sender: string;
   amount: BigNumber;
@@ -386,6 +408,28 @@ export type OpenCreditAccountEvent = TypedEvent<
 
 export type OpenCreditAccountEventFilter =
   TypedEventFilter<OpenCreditAccountEvent>;
+
+export interface TokenDisabledEventObject {
+  creditAccount: string;
+  token: string;
+}
+export type TokenDisabledEvent = TypedEvent<
+  [string, string],
+  TokenDisabledEventObject
+>;
+
+export type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
+
+export interface TokenEnabledEventObject {
+  creditAccount: string;
+  token: string;
+}
+export type TokenEnabledEvent = TypedEvent<
+  [string, string],
+  TokenEnabledEventObject
+>;
+
+export type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
 
 export interface TransferAccountEventObject {
   oldOwner: string;
@@ -599,7 +643,9 @@ export interface LidoV1AdapterTest extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     lidoV1Adapter(overrides?: CallOverrides): Promise<[string]>;
 
@@ -653,7 +699,9 @@ export interface LidoV1AdapterTest extends BaseContract {
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   lidoV1Adapter(overrides?: CallOverrides): Promise<string>;
 
@@ -810,6 +858,19 @@ export interface LidoV1AdapterTest extends BaseContract {
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
+      owner?: string | null,
+      liquidator?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): LiquidateExpiredCreditAccountEventFilter;
+    LiquidateExpiredCreditAccount(
+      owner?: string | null,
+      liquidator?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): LiquidateExpiredCreditAccountEventFilter;
+
     "Mock_Submitted(address,uint256,address)"(
       sender?: string | null,
       amount?: null,
@@ -851,6 +912,18 @@ export interface LidoV1AdapterTest extends BaseContract {
       borrowAmount?: null,
       referralCode?: null
     ): OpenCreditAccountEventFilter;
+
+    "TokenDisabled(address,address)"(
+      creditAccount?: null,
+      token?: null
+    ): TokenDisabledEventFilter;
+    TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+
+    "TokenEnabled(address,address)"(
+      creditAccount?: null,
+      token?: null
+    ): TokenEnabledEventFilter;
+    TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
@@ -966,7 +1039,9 @@ export interface LidoV1AdapterTest extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     lidoV1Adapter(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1023,7 +1098,9 @@ export interface LidoV1AdapterTest extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     lidoV1Adapter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

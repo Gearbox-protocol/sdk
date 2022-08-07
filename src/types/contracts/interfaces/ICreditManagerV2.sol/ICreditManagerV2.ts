@@ -32,11 +32,12 @@ export interface ICreditManagerV2Interface extends utils.Interface {
     "addCollateral(address,address,address,uint256)": FunctionFragment;
     "addToken(address)": FunctionFragment;
     "approveCreditAccount(address,address,address,uint256)": FunctionFragment;
-    "calcClosePayments(uint256,bool,uint256,uint256)": FunctionFragment;
+    "calcClosePayments(uint256,uint8,uint256,uint256)": FunctionFragment;
     "calcCreditAccountAccruedInterest(address)": FunctionFragment;
     "changeContractAllowance(address,address)": FunctionFragment;
     "checkAndEnableToken(address,address)": FunctionFragment;
-    "closeCreditAccount(address,bool,uint256,address,address,uint256,bool)": FunctionFragment;
+    "checkAndOptimizeEnabledTokens(address)": FunctionFragment;
+    "closeCreditAccount(address,uint8,uint256,address,address,uint256,bool)": FunctionFragment;
     "collateralTokens(uint256)": FunctionFragment;
     "collateralTokensByMask(uint256)": FunctionFragment;
     "collateralTokensCount()": FunctionFragment;
@@ -44,21 +45,24 @@ export interface ICreditManagerV2Interface extends utils.Interface {
     "creditAccounts(address)": FunctionFragment;
     "creditConfigurator()": FunctionFragment;
     "creditFacade()": FunctionFragment;
+    "disableToken(address,address)": FunctionFragment;
     "enabledTokensMap(address)": FunctionFragment;
     "executeOrder(address,address,bytes)": FunctionFragment;
-    "fastCollateralCheck(address,address,address,uint256,uint256,bool)": FunctionFragment;
+    "fastCollateralCheck(address,address,address,uint256,uint256)": FunctionFragment;
     "fees()": FunctionFragment;
     "forbiddenTokenMask()": FunctionFragment;
     "fullCollateralCheck(address)": FunctionFragment;
     "getCreditAccountOrRevert(address)": FunctionFragment;
     "liquidationThresholds(address)": FunctionFragment;
     "manageDebt(address,uint256,bool)": FunctionFragment;
+    "maxAllowedEnabledTokenLength()": FunctionFragment;
     "openCreditAccount(uint256,address)": FunctionFragment;
     "pool()": FunctionFragment;
     "poolService()": FunctionFragment;
     "priceOracle()": FunctionFragment;
     "setForbidMask(uint256)": FunctionFragment;
     "setLiquidationThreshold(address,uint16)": FunctionFragment;
+    "setMaxEnabledTokens(uint8)": FunctionFragment;
     "tokenMasksMap(address)": FunctionFragment;
     "transferAccountOwnership(address,address)": FunctionFragment;
     "underlying()": FunctionFragment;
@@ -76,6 +80,7 @@ export interface ICreditManagerV2Interface extends utils.Interface {
       | "calcCreditAccountAccruedInterest"
       | "changeContractAllowance"
       | "checkAndEnableToken"
+      | "checkAndOptimizeEnabledTokens"
       | "closeCreditAccount"
       | "collateralTokens"
       | "collateralTokensByMask"
@@ -84,6 +89,7 @@ export interface ICreditManagerV2Interface extends utils.Interface {
       | "creditAccounts"
       | "creditConfigurator"
       | "creditFacade"
+      | "disableToken"
       | "enabledTokensMap"
       | "executeOrder"
       | "fastCollateralCheck"
@@ -93,12 +99,14 @@ export interface ICreditManagerV2Interface extends utils.Interface {
       | "getCreditAccountOrRevert"
       | "liquidationThresholds"
       | "manageDebt"
+      | "maxAllowedEnabledTokenLength"
       | "openCreditAccount"
       | "pool"
       | "poolService"
       | "priceOracle"
       | "setForbidMask"
       | "setLiquidationThreshold"
+      | "setMaxEnabledTokens"
       | "tokenMasksMap"
       | "transferAccountOwnership"
       | "underlying"
@@ -121,7 +129,7 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "calcClosePayments",
-    values: [BigNumberish, boolean, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcCreditAccountAccruedInterest",
@@ -136,10 +144,14 @@ export interface ICreditManagerV2Interface extends utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "checkAndOptimizeEnabledTokens",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "closeCreditAccount",
     values: [
       string,
-      boolean,
+      BigNumberish,
       BigNumberish,
       string,
       string,
@@ -176,6 +188,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "disableToken",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "enabledTokensMap",
     values: [string]
   ): string;
@@ -185,7 +201,7 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "fastCollateralCheck",
-    values: [string, string, string, BigNumberish, BigNumberish, boolean]
+    values: [string, string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "fees", values?: undefined): string;
   encodeFunctionData(
@@ -209,6 +225,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
     values: [string, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
+    functionFragment: "maxAllowedEnabledTokenLength",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "openCreditAccount",
     values: [BigNumberish, string]
   ): string;
@@ -228,6 +248,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "setLiquidationThreshold",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMaxEnabledTokens",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenMasksMap",
@@ -277,6 +301,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "checkAndOptimizeEnabledTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "closeCreditAccount",
     data: BytesLike
   ): Result;
@@ -306,6 +334,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "disableToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -339,6 +371,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "manageDebt", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "maxAllowedEnabledTokenLength",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "openCreditAccount",
     data: BytesLike
   ): Result;
@@ -357,6 +393,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setLiquidationThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxEnabledTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -459,7 +499,7 @@ export interface ICreditManagerV2 extends BaseContract {
 
     calcClosePayments(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -494,9 +534,14 @@ export interface ICreditManagerV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    checkAndOptimizeEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     closeCreditAccount(
       borrower: string,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       totalValue: BigNumberish,
       caller: string,
       to: string,
@@ -535,6 +580,12 @@ export interface ICreditManagerV2 extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
 
+    disableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     enabledTokensMap(
       creditAccount: string,
       overrides?: CallOverrides
@@ -553,17 +604,18 @@ export interface ICreditManagerV2 extends BaseContract {
       tokenOut: string,
       balanceInBefore: BigNumberish,
       balanceOutBefore: BigNumberish,
-      ltCheck: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     fees(
       overrides?: CallOverrides
     ): Promise<
-      [number, number, number] & {
+      [number, number, number, number, number] & {
         feeInterest: number;
         feeLiquidation: number;
         liquidationDiscount: number;
+        feeLiquidationExpired: number;
+        liquidationDiscountExpired: number;
       }
     >;
 
@@ -581,8 +633,8 @@ export interface ICreditManagerV2 extends BaseContract {
 
     liquidationThresholds(
       arg0: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[number]>;
 
     manageDebt(
       borrower: string,
@@ -590,6 +642,8 @@ export interface ICreditManagerV2 extends BaseContract {
       increase: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    maxAllowedEnabledTokenLength(overrides?: CallOverrides): Promise<[number]>;
 
     openCreditAccount(
       borrowedAmount: BigNumberish,
@@ -611,6 +665,11 @@ export interface ICreditManagerV2 extends BaseContract {
     setLiquidationThreshold(
       token: string,
       liquidationThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setMaxEnabledTokens(
+      _maxEnabledTokens: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -660,7 +719,7 @@ export interface ICreditManagerV2 extends BaseContract {
 
   calcClosePayments(
     totalValue: BigNumberish,
-    isLiquidated: boolean,
+    closureActionType: BigNumberish,
     borrowedAmount: BigNumberish,
     borrowedAmountWithInterest: BigNumberish,
     overrides?: CallOverrides
@@ -695,9 +754,14 @@ export interface ICreditManagerV2 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  checkAndOptimizeEnabledTokens(
+    creditAccount: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   closeCreditAccount(
     borrower: string,
-    isLiquidated: boolean,
+    closureActionType: BigNumberish,
     totalValue: BigNumberish,
     caller: string,
     to: string,
@@ -733,6 +797,12 @@ export interface ICreditManagerV2 extends BaseContract {
 
   creditFacade(overrides?: CallOverrides): Promise<string>;
 
+  disableToken(
+    creditAccount: string,
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   enabledTokensMap(
     creditAccount: string,
     overrides?: CallOverrides
@@ -751,17 +821,18 @@ export interface ICreditManagerV2 extends BaseContract {
     tokenOut: string,
     balanceInBefore: BigNumberish,
     balanceOutBefore: BigNumberish,
-    ltCheck: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   fees(
     overrides?: CallOverrides
   ): Promise<
-    [number, number, number] & {
+    [number, number, number, number, number] & {
       feeInterest: number;
       feeLiquidation: number;
       liquidationDiscount: number;
+      feeLiquidationExpired: number;
+      liquidationDiscountExpired: number;
     }
   >;
 
@@ -779,8 +850,8 @@ export interface ICreditManagerV2 extends BaseContract {
 
   liquidationThresholds(
     arg0: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<number>;
 
   manageDebt(
     borrower: string,
@@ -788,6 +859,8 @@ export interface ICreditManagerV2 extends BaseContract {
     increase: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  maxAllowedEnabledTokenLength(overrides?: CallOverrides): Promise<number>;
 
   openCreditAccount(
     borrowedAmount: BigNumberish,
@@ -809,6 +882,11 @@ export interface ICreditManagerV2 extends BaseContract {
   setLiquidationThreshold(
     token: string,
     liquidationThreshold: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setMaxEnabledTokens(
+    _maxEnabledTokens: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -852,7 +930,7 @@ export interface ICreditManagerV2 extends BaseContract {
 
     calcClosePayments(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -887,9 +965,14 @@ export interface ICreditManagerV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    checkAndOptimizeEnabledTokens(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     closeCreditAccount(
       borrower: string,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       totalValue: BigNumberish,
       caller: string,
       to: string,
@@ -928,6 +1011,12 @@ export interface ICreditManagerV2 extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<string>;
 
+    disableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     enabledTokensMap(
       creditAccount: string,
       overrides?: CallOverrides
@@ -946,17 +1035,18 @@ export interface ICreditManagerV2 extends BaseContract {
       tokenOut: string,
       balanceInBefore: BigNumberish,
       balanceOutBefore: BigNumberish,
-      ltCheck: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
     fees(
       overrides?: CallOverrides
     ): Promise<
-      [number, number, number] & {
+      [number, number, number, number, number] & {
         feeInterest: number;
         feeLiquidation: number;
         liquidationDiscount: number;
+        feeLiquidationExpired: number;
+        liquidationDiscountExpired: number;
       }
     >;
 
@@ -984,6 +1074,8 @@ export interface ICreditManagerV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    maxAllowedEnabledTokenLength(overrides?: CallOverrides): Promise<number>;
+
     openCreditAccount(
       borrowedAmount: BigNumberish,
       onBehalfOf: string,
@@ -1004,6 +1096,11 @@ export interface ICreditManagerV2 extends BaseContract {
     setLiquidationThreshold(
       token: string,
       liquidationThreshold: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMaxEnabledTokens(
+      _maxEnabledTokens: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1069,7 +1166,7 @@ export interface ICreditManagerV2 extends BaseContract {
 
     calcClosePayments(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -1092,9 +1189,14 @@ export interface ICreditManagerV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    checkAndOptimizeEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     closeCreditAccount(
       borrower: string,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       totalValue: BigNumberish,
       caller: string,
       to: string,
@@ -1129,6 +1231,12 @@ export interface ICreditManagerV2 extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
+    disableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     enabledTokensMap(
       creditAccount: string,
       overrides?: CallOverrides
@@ -1147,7 +1255,6 @@ export interface ICreditManagerV2 extends BaseContract {
       tokenOut: string,
       balanceInBefore: BigNumberish,
       balanceOutBefore: BigNumberish,
-      ltCheck: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1167,7 +1274,7 @@ export interface ICreditManagerV2 extends BaseContract {
 
     liquidationThresholds(
       arg0: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     manageDebt(
@@ -1176,6 +1283,8 @@ export interface ICreditManagerV2 extends BaseContract {
       increase: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    maxAllowedEnabledTokenLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     openCreditAccount(
       borrowedAmount: BigNumberish,
@@ -1197,6 +1306,11 @@ export interface ICreditManagerV2 extends BaseContract {
     setLiquidationThreshold(
       token: string,
       liquidationThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setMaxEnabledTokens(
+      _maxEnabledTokens: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1244,7 +1358,7 @@ export interface ICreditManagerV2 extends BaseContract {
 
     calcClosePayments(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -1267,9 +1381,14 @@ export interface ICreditManagerV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    checkAndOptimizeEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     closeCreditAccount(
       borrower: string,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       totalValue: BigNumberish,
       caller: string,
       to: string,
@@ -1308,6 +1427,12 @@ export interface ICreditManagerV2 extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    disableToken(
+      creditAccount: string,
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     enabledTokensMap(
       creditAccount: string,
       overrides?: CallOverrides
@@ -1326,7 +1451,6 @@ export interface ICreditManagerV2 extends BaseContract {
       tokenOut: string,
       balanceInBefore: BigNumberish,
       balanceOutBefore: BigNumberish,
-      ltCheck: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1348,7 +1472,7 @@ export interface ICreditManagerV2 extends BaseContract {
 
     liquidationThresholds(
       arg0: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     manageDebt(
@@ -1356,6 +1480,10 @@ export interface ICreditManagerV2 extends BaseContract {
       amount: BigNumberish,
       increase: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    maxAllowedEnabledTokenLength(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     openCreditAccount(
@@ -1378,6 +1506,11 @@ export interface ICreditManagerV2 extends BaseContract {
     setLiquidationThreshold(
       token: string,
       liquidationThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMaxEnabledTokens(
+      _maxEnabledTokens: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

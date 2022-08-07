@@ -32,10 +32,11 @@ export interface CreditFacadeTestSuiteInterface extends utils.Interface {
         "poolMock()": FunctionFragment;
         "priceOracle()": FunctionFragment;
         "testFacadeWithDegenNFT()": FunctionFragment;
+        "testFacadeWithExpiration()": FunctionFragment;
         "testTokenSuite()": FunctionFragment;
         "underlying()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "IS_TEST" | "_getAccountAmount" | "_getCollateralTokens" | "acl" | "addMockPriceFeed" | "addressProvider" | "af" | "cr" | "creditConfigurator" | "creditFacade" | "creditManager" | "degenNFT" | "failed" | "gp" | "lt" | "maxBorrowedAmount" | "minBorrowedAmount" | "poolMock" | "priceOracle" | "testFacadeWithDegenNFT" | "testTokenSuite" | "underlying"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "IS_TEST" | "_getAccountAmount" | "_getCollateralTokens" | "acl" | "addMockPriceFeed" | "addressProvider" | "af" | "cr" | "creditConfigurator" | "creditFacade" | "creditManager" | "degenNFT" | "failed" | "gp" | "lt" | "maxBorrowedAmount" | "minBorrowedAmount" | "poolMock" | "priceOracle" | "testFacadeWithDegenNFT" | "testFacadeWithExpiration" | "testTokenSuite" | "underlying"): FunctionFragment;
     encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
     encodeFunctionData(functionFragment: "_getAccountAmount", values?: undefined): string;
     encodeFunctionData(functionFragment: "_getCollateralTokens", values: [BigNumberish]): string;
@@ -56,6 +57,7 @@ export interface CreditFacadeTestSuiteInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "poolMock", values?: undefined): string;
     encodeFunctionData(functionFragment: "priceOracle", values?: undefined): string;
     encodeFunctionData(functionFragment: "testFacadeWithDegenNFT", values?: undefined): string;
+    encodeFunctionData(functionFragment: "testFacadeWithExpiration", values?: undefined): string;
     encodeFunctionData(functionFragment: "testTokenSuite", values?: undefined): string;
     encodeFunctionData(functionFragment: "underlying", values?: undefined): string;
     decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
@@ -78,6 +80,7 @@ export interface CreditFacadeTestSuiteInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "poolMock", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "priceOracle", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "testFacadeWithDegenNFT", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "testFacadeWithExpiration", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "testTokenSuite", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
     events: {
@@ -262,7 +265,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
         creditFacade(overrides?: CallOverrides): Promise<[string]>;
         creditManager(overrides?: CallOverrides): Promise<[string]>;
         degenNFT(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         gp(overrides?: CallOverrides): Promise<[string]>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
         maxBorrowedAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -270,6 +275,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
         poolMock(overrides?: CallOverrides): Promise<[string]>;
         priceOracle(overrides?: CallOverrides): Promise<[string]>;
         testFacadeWithDegenNFT(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        testFacadeWithExpiration(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         testTokenSuite(overrides?: CallOverrides): Promise<[string]>;
@@ -291,7 +299,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
     creditFacade(overrides?: CallOverrides): Promise<string>;
     creditManager(overrides?: CallOverrides): Promise<string>;
     degenNFT(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     gp(overrides?: CallOverrides): Promise<string>;
     lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
     maxBorrowedAmount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -299,6 +309,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
     poolMock(overrides?: CallOverrides): Promise<string>;
     priceOracle(overrides?: CallOverrides): Promise<string>;
     testFacadeWithDegenNFT(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    testFacadeWithExpiration(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
     testTokenSuite(overrides?: CallOverrides): Promise<string>;
@@ -324,6 +337,7 @@ export interface CreditFacadeTestSuite extends BaseContract {
         poolMock(overrides?: CallOverrides): Promise<string>;
         priceOracle(overrides?: CallOverrides): Promise<string>;
         testFacadeWithDegenNFT(overrides?: CallOverrides): Promise<void>;
+        testFacadeWithExpiration(overrides?: CallOverrides): Promise<void>;
         testTokenSuite(overrides?: CallOverrides): Promise<string>;
         underlying(overrides?: CallOverrides): Promise<string>;
     };
@@ -378,7 +392,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
         creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
         creditManager(overrides?: CallOverrides): Promise<BigNumber>;
         degenNFT(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         gp(overrides?: CallOverrides): Promise<BigNumber>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         maxBorrowedAmount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -386,6 +402,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
         poolMock(overrides?: CallOverrides): Promise<BigNumber>;
         priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
         testFacadeWithDegenNFT(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        testFacadeWithExpiration(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         testTokenSuite(overrides?: CallOverrides): Promise<BigNumber>;
@@ -408,7 +427,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
         creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         degenNFT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         gp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         maxBorrowedAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -416,6 +437,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
         poolMock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         testFacadeWithDegenNFT(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        testFacadeWithExpiration(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         testTokenSuite(overrides?: CallOverrides): Promise<PopulatedTransaction>;

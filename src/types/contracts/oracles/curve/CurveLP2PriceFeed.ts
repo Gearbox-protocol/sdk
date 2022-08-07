@@ -33,7 +33,6 @@ export interface CurveLP2PriceFeedInterface extends utils.Interface {
     "decimals()": FunctionFragment;
     "decimalsDivider()": FunctionFragment;
     "delta()": FunctionFragment;
-    "dependsOnAddress()": FunctionFragment;
     "description()": FunctionFragment;
     "getRoundData(uint80)": FunctionFragment;
     "latestRoundData()": FunctionFragment;
@@ -57,7 +56,6 @@ export interface CurveLP2PriceFeedInterface extends utils.Interface {
       | "decimals"
       | "decimalsDivider"
       | "delta"
-      | "dependsOnAddress"
       | "description"
       | "getRoundData"
       | "latestRoundData"
@@ -82,10 +80,6 @@ export interface CurveLP2PriceFeedInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "delta", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "dependsOnAddress",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "description",
     values?: undefined
@@ -139,10 +133,6 @@ export interface CurveLP2PriceFeedInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "delta", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "dependsOnAddress",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "description",
     data: BytesLike
@@ -247,8 +237,6 @@ export interface CurveLP2PriceFeed extends BaseContract {
 
     delta(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    dependsOnAddress(overrides?: CallOverrides): Promise<[boolean]>;
-
     description(overrides?: CallOverrides): Promise<[string]>;
 
     getRoundData(
@@ -308,8 +296,6 @@ export interface CurveLP2PriceFeed extends BaseContract {
 
   delta(overrides?: CallOverrides): Promise<BigNumber>;
 
-  dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
-
   description(overrides?: CallOverrides): Promise<string>;
 
   getRoundData(
@@ -368,8 +354,6 @@ export interface CurveLP2PriceFeed extends BaseContract {
     decimalsDivider(overrides?: CallOverrides): Promise<BigNumber>;
 
     delta(overrides?: CallOverrides): Promise<BigNumber>;
-
-    dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
 
     description(overrides?: CallOverrides): Promise<string>;
 
@@ -444,8 +428,6 @@ export interface CurveLP2PriceFeed extends BaseContract {
 
     delta(overrides?: CallOverrides): Promise<BigNumber>;
 
-    dependsOnAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
     description(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRoundData(
@@ -495,8 +477,6 @@ export interface CurveLP2PriceFeed extends BaseContract {
     decimalsDivider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     delta(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    dependsOnAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

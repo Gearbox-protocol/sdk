@@ -5,6 +5,8 @@ export declare class CreditFacadeCalls {
     static increaseDebt(amount: BigNumberish): string;
     static decreaseDebt(amount: BigNumberish): string;
     static revertIfBalanceLessThan(token: string, minBalance: BigNumberish): string;
+    static disableToken(token: string): string;
+    static enableToken(token: string): string;
 }
 export declare class CreditFacadeMulticaller {
     private readonly _address;
@@ -14,4 +16,6 @@ export declare class CreditFacadeMulticaller {
     increaseDebt(amount: BigNumberish): MultiCallStruct;
     decreaseDebt(amount: BigNumberish): MultiCallStruct;
     revertIfBalanceLessThan(token: string, minBalance: BigNumberish): MultiCallStruct;
+    disableToken(token: string): MultiCallStruct;
+    enableToken(token: string): MultiCallStruct;
 }

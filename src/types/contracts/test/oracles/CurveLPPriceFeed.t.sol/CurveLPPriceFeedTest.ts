@@ -392,7 +392,9 @@ export interface CurveLPPriceFeedTest extends BaseContract {
 
     curveV1Mock(overrides?: CallOverrides): Promise<[string]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     pfm1(overrides?: CallOverrides): Promise<[string]>;
 
@@ -447,7 +449,9 @@ export interface CurveLPPriceFeedTest extends BaseContract {
 
   curveV1Mock(overrides?: CallOverrides): Promise<string>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   pfm1(overrides?: CallOverrides): Promise<string>;
 
@@ -640,7 +644,9 @@ export interface CurveLPPriceFeedTest extends BaseContract {
 
     curveV1Mock(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     pfm1(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -696,7 +702,9 @@ export interface CurveLPPriceFeedTest extends BaseContract {
 
     curveV1Mock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     pfm1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

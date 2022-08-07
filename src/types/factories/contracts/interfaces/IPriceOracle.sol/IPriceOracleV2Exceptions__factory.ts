@@ -17,11 +17,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "PriceFeedRequiresAddressException",
-    type: "error",
-  },
-  {
-    inputs: [],
     name: "PriceOracleNotExistsException",
     type: "error",
   },

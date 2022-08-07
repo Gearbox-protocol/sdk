@@ -1,4 +1,4 @@
-import type { BaseContract, BigNumber, BytesLike, CallOverrides, PopulatedTransaction, Signer, utils } from "ethers";
+import type { BaseContract, BigNumber, BytesLike, CallOverrides, ContractTransaction, Overrides, PopulatedTransaction, Signer, utils } from "ethers";
 import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "../../../common";
@@ -198,7 +198,9 @@ export interface CreditFacadeHelper extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<[string]>;
         creditFacade(overrides?: CallOverrides): Promise<[string]>;
         creditManager(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         underlying(overrides?: CallOverrides): Promise<[string]>;
     };
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
@@ -206,7 +208,9 @@ export interface CreditFacadeHelper extends BaseContract {
     creditConfigurator(overrides?: CallOverrides): Promise<string>;
     creditFacade(overrides?: CallOverrides): Promise<string>;
     creditManager(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     underlying(overrides?: CallOverrides): Promise<string>;
     callStatic: {
         IS_TEST(overrides?: CallOverrides): Promise<boolean>;
@@ -257,7 +261,9 @@ export interface CreditFacadeHelper extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<BigNumber>;
         creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
         creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         underlying(overrides?: CallOverrides): Promise<BigNumber>;
     };
     populateTransaction: {
@@ -266,7 +272,9 @@ export interface CreditFacadeHelper extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
     };
 }

@@ -6,7 +6,6 @@ export interface ILPPriceFeedInterface extends utils.Interface {
     functions: {
         "decimals()": FunctionFragment;
         "delta()": FunctionFragment;
-        "dependsOnAddress()": FunctionFragment;
         "description()": FunctionFragment;
         "getRoundData(uint80)": FunctionFragment;
         "latestRoundData()": FunctionFragment;
@@ -17,10 +16,9 @@ export interface ILPPriceFeedInterface extends utils.Interface {
         "upperBound()": FunctionFragment;
         "version()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "decimals" | "delta" | "dependsOnAddress" | "description" | "getRoundData" | "latestRoundData" | "lowerBound" | "priceFeedType" | "setLimiter" | "skipPriceCheck" | "upperBound" | "version"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "decimals" | "delta" | "description" | "getRoundData" | "latestRoundData" | "lowerBound" | "priceFeedType" | "setLimiter" | "skipPriceCheck" | "upperBound" | "version"): FunctionFragment;
     encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
     encodeFunctionData(functionFragment: "delta", values?: undefined): string;
-    encodeFunctionData(functionFragment: "dependsOnAddress", values?: undefined): string;
     encodeFunctionData(functionFragment: "description", values?: undefined): string;
     encodeFunctionData(functionFragment: "getRoundData", values: [BigNumberish]): string;
     encodeFunctionData(functionFragment: "latestRoundData", values?: undefined): string;
@@ -32,7 +30,6 @@ export interface ILPPriceFeedInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "version", values?: undefined): string;
     decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "delta", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "dependsOnAddress", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "description", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getRoundData", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "latestRoundData", data: BytesLike): Result;
@@ -73,7 +70,6 @@ export interface ILPPriceFeed extends BaseContract {
     functions: {
         decimals(overrides?: CallOverrides): Promise<[number]>;
         delta(overrides?: CallOverrides): Promise<[BigNumber]>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<[boolean]>;
         description(overrides?: CallOverrides): Promise<[string]>;
         getRoundData(_roundId: BigNumberish, overrides?: CallOverrides): Promise<[
             BigNumber,
@@ -112,7 +108,6 @@ export interface ILPPriceFeed extends BaseContract {
     };
     decimals(overrides?: CallOverrides): Promise<number>;
     delta(overrides?: CallOverrides): Promise<BigNumber>;
-    dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
     description(overrides?: CallOverrides): Promise<string>;
     getRoundData(_roundId: BigNumberish, overrides?: CallOverrides): Promise<[
         BigNumber,
@@ -151,7 +146,6 @@ export interface ILPPriceFeed extends BaseContract {
     callStatic: {
         decimals(overrides?: CallOverrides): Promise<number>;
         delta(overrides?: CallOverrides): Promise<BigNumber>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
         description(overrides?: CallOverrides): Promise<string>;
         getRoundData(_roundId: BigNumberish, overrides?: CallOverrides): Promise<[
             BigNumber,
@@ -193,7 +187,6 @@ export interface ILPPriceFeed extends BaseContract {
     estimateGas: {
         decimals(overrides?: CallOverrides): Promise<BigNumber>;
         delta(overrides?: CallOverrides): Promise<BigNumber>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<BigNumber>;
         description(overrides?: CallOverrides): Promise<BigNumber>;
         getRoundData(_roundId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
@@ -209,7 +202,6 @@ export interface ILPPriceFeed extends BaseContract {
     populateTransaction: {
         decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         delta(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         getRoundData(_roundId: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;

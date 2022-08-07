@@ -271,7 +271,7 @@ export class ConvexStrategies {
     network: NetworkType,
     convexPool: ConvexPoolContract,
     underlyingAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     let calls: Array<MultiCallStruct> = [];
     const convexParams = contractParams[convexPool] as ConvexPoolParams;
     const { stakedToken } = convexParams;

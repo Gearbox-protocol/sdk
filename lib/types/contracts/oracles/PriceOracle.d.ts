@@ -14,12 +14,11 @@ export interface PriceOracleInterface extends utils.Interface {
     functions: {
         "_acl()": FunctionFragment;
         "addPriceFeed(address,address)": FunctionFragment;
-        "convert(address,uint256,address,address)": FunctionFragment;
-        "convertFromUSD(address,uint256,address)": FunctionFragment;
-        "convertToUSD(address,uint256,address)": FunctionFragment;
-        "decimals(address)": FunctionFragment;
+        "convert(uint256,address,address)": FunctionFragment;
+        "convertFromUSD(uint256,address)": FunctionFragment;
+        "convertToUSD(uint256,address)": FunctionFragment;
         "fastCheck(uint256,address,uint256,address)": FunctionFragment;
-        "getPrice(address,address)": FunctionFragment;
+        "getPrice(address)": FunctionFragment;
         "pause()": FunctionFragment;
         "paused()": FunctionFragment;
         "priceFeeds(address)": FunctionFragment;
@@ -27,15 +26,14 @@ export interface PriceOracleInterface extends utils.Interface {
         "unpause()": FunctionFragment;
         "version()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "_acl" | "addPriceFeed" | "convert" | "convertFromUSD" | "convertToUSD" | "decimals" | "fastCheck" | "getPrice" | "pause" | "paused" | "priceFeeds" | "priceFeedsWithFlags" | "unpause" | "version"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "_acl" | "addPriceFeed" | "convert" | "convertFromUSD" | "convertToUSD" | "fastCheck" | "getPrice" | "pause" | "paused" | "priceFeeds" | "priceFeedsWithFlags" | "unpause" | "version"): FunctionFragment;
     encodeFunctionData(functionFragment: "_acl", values?: undefined): string;
     encodeFunctionData(functionFragment: "addPriceFeed", values: [string, string]): string;
-    encodeFunctionData(functionFragment: "convert", values: [string, BigNumberish, string, string]): string;
-    encodeFunctionData(functionFragment: "convertFromUSD", values: [string, BigNumberish, string]): string;
-    encodeFunctionData(functionFragment: "convertToUSD", values: [string, BigNumberish, string]): string;
-    encodeFunctionData(functionFragment: "decimals", values: [string]): string;
+    encodeFunctionData(functionFragment: "convert", values: [BigNumberish, string, string]): string;
+    encodeFunctionData(functionFragment: "convertFromUSD", values: [BigNumberish, string]): string;
+    encodeFunctionData(functionFragment: "convertToUSD", values: [BigNumberish, string]): string;
     encodeFunctionData(functionFragment: "fastCheck", values: [BigNumberish, string, BigNumberish, string]): string;
-    encodeFunctionData(functionFragment: "getPrice", values: [string, string]): string;
+    encodeFunctionData(functionFragment: "getPrice", values: [string]): string;
     encodeFunctionData(functionFragment: "pause", values?: undefined): string;
     encodeFunctionData(functionFragment: "paused", values?: undefined): string;
     encodeFunctionData(functionFragment: "priceFeeds", values: [string]): string;
@@ -47,7 +45,6 @@ export interface PriceOracleInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "convert", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "convertFromUSD", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "convertToUSD", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "fastCheck", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getPrice", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
@@ -103,10 +100,9 @@ export interface PriceOracle extends BaseContract {
         addPriceFeed(token: string, priceFeed: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
-        convert(creditAccount: string, amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-        convertFromUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-        convertToUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-        decimals(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+        convert(amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+        convertFromUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+        convertToUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<[BigNumber]>;
         fastCheck(amountFrom: BigNumberish, tokenFrom: string, amountTo: BigNumberish, tokenTo: string, overrides?: CallOverrides): Promise<[
             BigNumber,
             BigNumber
@@ -114,7 +110,9 @@ export interface PriceOracle extends BaseContract {
             collateralFrom: BigNumber;
             collateralTo: BigNumber;
         }>;
-        getPrice(creditAccount: string, token: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+        getPrice(token: string, overrides?: CallOverrides): Promise<[BigNumber] & {
+            price: BigNumber;
+        }>;
         pause(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
@@ -125,11 +123,11 @@ export interface PriceOracle extends BaseContract {
         priceFeedsWithFlags(token: string, overrides?: CallOverrides): Promise<[
             string,
             boolean,
-            boolean
+            BigNumber
         ] & {
             priceFeed: string;
-            dependsOnAddress: boolean;
             skipCheck: boolean;
+            decimals: BigNumber;
         }>;
         unpause(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -140,10 +138,9 @@ export interface PriceOracle extends BaseContract {
     addPriceFeed(token: string, priceFeed: string, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
-    convert(creditAccount: string, amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<BigNumber>;
-    convertFromUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
-    convertToUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
-    decimals(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    convert(amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<BigNumber>;
+    convertFromUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
+    convertToUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
     fastCheck(amountFrom: BigNumberish, tokenFrom: string, amountTo: BigNumberish, tokenTo: string, overrides?: CallOverrides): Promise<[
         BigNumber,
         BigNumber
@@ -151,7 +148,7 @@ export interface PriceOracle extends BaseContract {
         collateralFrom: BigNumber;
         collateralTo: BigNumber;
     }>;
-    getPrice(creditAccount: string, token: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getPrice(token: string, overrides?: CallOverrides): Promise<BigNumber>;
     pause(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
@@ -160,11 +157,11 @@ export interface PriceOracle extends BaseContract {
     priceFeedsWithFlags(token: string, overrides?: CallOverrides): Promise<[
         string,
         boolean,
-        boolean
+        BigNumber
     ] & {
         priceFeed: string;
-        dependsOnAddress: boolean;
         skipCheck: boolean;
+        decimals: BigNumber;
     }>;
     unpause(overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -173,10 +170,9 @@ export interface PriceOracle extends BaseContract {
     callStatic: {
         _acl(overrides?: CallOverrides): Promise<string>;
         addPriceFeed(token: string, priceFeed: string, overrides?: CallOverrides): Promise<void>;
-        convert(creditAccount: string, amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<BigNumber>;
-        convertFromUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
-        convertToUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
-        decimals(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+        convert(amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<BigNumber>;
+        convertFromUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
+        convertToUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
         fastCheck(amountFrom: BigNumberish, tokenFrom: string, amountTo: BigNumberish, tokenTo: string, overrides?: CallOverrides): Promise<[
             BigNumber,
             BigNumber
@@ -184,18 +180,18 @@ export interface PriceOracle extends BaseContract {
             collateralFrom: BigNumber;
             collateralTo: BigNumber;
         }>;
-        getPrice(creditAccount: string, token: string, overrides?: CallOverrides): Promise<BigNumber>;
+        getPrice(token: string, overrides?: CallOverrides): Promise<BigNumber>;
         pause(overrides?: CallOverrides): Promise<void>;
         paused(overrides?: CallOverrides): Promise<boolean>;
         priceFeeds(token: string, overrides?: CallOverrides): Promise<string>;
         priceFeedsWithFlags(token: string, overrides?: CallOverrides): Promise<[
             string,
             boolean,
-            boolean
+            BigNumber
         ] & {
             priceFeed: string;
-            dependsOnAddress: boolean;
             skipCheck: boolean;
+            decimals: BigNumber;
         }>;
         unpause(overrides?: CallOverrides): Promise<void>;
         version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -213,12 +209,11 @@ export interface PriceOracle extends BaseContract {
         addPriceFeed(token: string, priceFeed: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
-        convert(creditAccount: string, amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<BigNumber>;
-        convertFromUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
-        convertToUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
-        decimals(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+        convert(amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<BigNumber>;
+        convertFromUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
+        convertToUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<BigNumber>;
         fastCheck(amountFrom: BigNumberish, tokenFrom: string, amountTo: BigNumberish, tokenTo: string, overrides?: CallOverrides): Promise<BigNumber>;
-        getPrice(creditAccount: string, token: string, overrides?: CallOverrides): Promise<BigNumber>;
+        getPrice(token: string, overrides?: CallOverrides): Promise<BigNumber>;
         pause(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
@@ -235,12 +230,11 @@ export interface PriceOracle extends BaseContract {
         addPriceFeed(token: string, priceFeed: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
-        convert(creditAccount: string, amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        convertFromUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        convertToUSD(creditAccount: string, amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        decimals(arg0: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        convert(amount: BigNumberish, tokenFrom: string, tokenTo: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        convertFromUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        convertToUSD(amount: BigNumberish, token: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         fastCheck(amountFrom: BigNumberish, tokenFrom: string, amountTo: BigNumberish, tokenTo: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        getPrice(creditAccount: string, token: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        getPrice(token: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         pause(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
