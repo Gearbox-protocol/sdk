@@ -268,7 +268,7 @@ export const convexTokens: Record<
     symbol: "stkcvxLUSD3CRV",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
     pool: "CONVEX_LUSD3CRV_POOL",
-    pid: 32,
+    pid: 33,
     underlying: "LUSD3CRV",
     lpToken: "cvxLUSD3CRV",
     lpActions: [
