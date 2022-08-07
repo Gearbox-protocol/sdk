@@ -9,3 +9,4 @@ export type { uniswap };
 import type * as yearn from "./yearn";
 export type { yearn };
 export type { AbstractAdapter } from "./AbstractAdapter";
+export type { UniversalAdapter } from "./UniversalAdapter";

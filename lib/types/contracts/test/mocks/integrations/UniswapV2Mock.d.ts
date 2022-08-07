@@ -12,7 +12,7 @@ export interface UniswapV2MockInterface extends utils.Interface {
         "getAmountOut(uint256,uint256,uint256)": FunctionFragment;
         "getAmountsIn(uint256,address[])": FunctionFragment;
         "getAmountsOut(uint256,address[])": FunctionFragment;
-        "getRate(address[])": FunctionFragment;
+        "getRate(address,address)": FunctionFragment;
         "quote(uint256,uint256,uint256)": FunctionFragment;
         "removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
         "removeLiquidityETH(address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
@@ -56,7 +56,7 @@ export interface UniswapV2MockInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "getAmountOut", values: [BigNumberish, BigNumberish, BigNumberish]): string;
     encodeFunctionData(functionFragment: "getAmountsIn", values: [BigNumberish, string[]]): string;
     encodeFunctionData(functionFragment: "getAmountsOut", values: [BigNumberish, string[]]): string;
-    encodeFunctionData(functionFragment: "getRate", values: [string[]]): string;
+    encodeFunctionData(functionFragment: "getRate", values: [string, string]): string;
     encodeFunctionData(functionFragment: "quote", values: [BigNumberish, BigNumberish, BigNumberish]): string;
     encodeFunctionData(functionFragment: "removeLiquidity", values: [
         string,
@@ -193,9 +193,13 @@ export interface UniswapV2Mock extends BaseContract {
         getAmountOut(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber] & {
             amountOut: BigNumber;
         }>;
-        getAmountsIn(arg0: BigNumberish, arg1: string[], overrides?: CallOverrides): Promise<[BigNumber[]]>;
-        getAmountsOut(amountIn: BigNumberish, path: string[], overrides?: CallOverrides): Promise<[BigNumber[]]>;
-        getRate(path: string[], overrides?: CallOverrides): Promise<[BigNumber] & {
+        getAmountsIn(amountOut: BigNumberish, path: string[], overrides?: CallOverrides): Promise<[BigNumber[]] & {
+            amounts: BigNumber[];
+        }>;
+        getAmountsOut(amountIn: BigNumberish, path: string[], overrides?: CallOverrides): Promise<[BigNumber[]] & {
+            amounts: BigNumber[];
+        }>;
+        getRate(tokenIn: string, tokenOut: string, overrides?: CallOverrides): Promise<[BigNumber] & {
             rate: BigNumber;
         }>;
         quote(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber] & {
@@ -247,13 +251,17 @@ export interface UniswapV2Mock extends BaseContract {
         swapExactETHForTokensSupportingFeeOnTransferTokens(arg0: BigNumberish, arg1: string[], arg2: string, arg3: BigNumberish, overrides?: PayableOverrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
-        swapExactTokensForETH(arg0: BigNumberish, arg1: BigNumberish, arg2: string[], arg3: string, arg4: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber[]]>;
+        swapExactTokensForETH(arg0: BigNumberish, arg1: BigNumberish, arg2: string[], arg3: string, arg4: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber[]] & {
+            amounts: BigNumber[];
+        }>;
         swapExactTokensForETHSupportingFeeOnTransferTokens(arg0: BigNumberish, arg1: BigNumberish, arg2: string[], arg3: string, arg4: BigNumberish, overrides?: CallOverrides): Promise<[void]>;
         swapExactTokensForTokens(amountIn: BigNumberish, amountOutMin: BigNumberish, path: string[], to: string, deadline: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         swapExactTokensForTokensSupportingFeeOnTransferTokens(arg0: BigNumberish, arg1: BigNumberish, arg2: string[], arg3: string, arg4: BigNumberish, overrides?: CallOverrides): Promise<[void]>;
-        swapTokensForExactETH(arg0: BigNumberish, arg1: BigNumberish, arg2: string[], arg3: string, arg4: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber[]]>;
+        swapTokensForExactETH(arg0: BigNumberish, arg1: BigNumberish, arg2: string[], arg3: string, arg4: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber[]] & {
+            amounts: BigNumber[];
+        }>;
         swapTokensForExactTokens(amountOut: BigNumberish, amountInMax: BigNumberish, path: string[], to: string, deadline: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
@@ -274,9 +282,9 @@ export interface UniswapV2Mock extends BaseContract {
     factory(overrides?: CallOverrides): Promise<string>;
     getAmountIn(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
     getAmountOut(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-    getAmountsIn(arg0: BigNumberish, arg1: string[], overrides?: CallOverrides): Promise<BigNumber[]>;
+    getAmountsIn(amountOut: BigNumberish, path: string[], overrides?: CallOverrides): Promise<BigNumber[]>;
     getAmountsOut(amountIn: BigNumberish, path: string[], overrides?: CallOverrides): Promise<BigNumber[]>;
-    getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
+    getRate(tokenIn: string, tokenOut: string, overrides?: CallOverrides): Promise<BigNumber>;
     quote(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
     removeLiquidity(arg0: string, arg1: string, arg2: BigNumberish, arg3: BigNumberish, arg4: BigNumberish, arg5: string, arg6: BigNumberish, overrides?: CallOverrides): Promise<[
         BigNumber,
@@ -353,9 +361,9 @@ export interface UniswapV2Mock extends BaseContract {
         factory(overrides?: CallOverrides): Promise<string>;
         getAmountIn(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         getAmountOut(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-        getAmountsIn(arg0: BigNumberish, arg1: string[], overrides?: CallOverrides): Promise<BigNumber[]>;
+        getAmountsIn(amountOut: BigNumberish, path: string[], overrides?: CallOverrides): Promise<BigNumber[]>;
         getAmountsOut(amountIn: BigNumberish, path: string[], overrides?: CallOverrides): Promise<BigNumber[]>;
-        getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
+        getRate(tokenIn: string, tokenOut: string, overrides?: CallOverrides): Promise<BigNumber>;
         quote(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         removeLiquidity(arg0: string, arg1: string, arg2: BigNumberish, arg3: BigNumberish, arg4: BigNumberish, arg5: string, arg6: BigNumberish, overrides?: CallOverrides): Promise<[
             BigNumber,
@@ -408,9 +416,9 @@ export interface UniswapV2Mock extends BaseContract {
         factory(overrides?: CallOverrides): Promise<BigNumber>;
         getAmountIn(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         getAmountOut(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-        getAmountsIn(arg0: BigNumberish, arg1: string[], overrides?: CallOverrides): Promise<BigNumber>;
+        getAmountsIn(amountOut: BigNumberish, path: string[], overrides?: CallOverrides): Promise<BigNumber>;
         getAmountsOut(amountIn: BigNumberish, path: string[], overrides?: CallOverrides): Promise<BigNumber>;
-        getRate(path: string[], overrides?: CallOverrides): Promise<BigNumber>;
+        getRate(tokenIn: string, tokenOut: string, overrides?: CallOverrides): Promise<BigNumber>;
         quote(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         removeLiquidity(arg0: string, arg1: string, arg2: BigNumberish, arg3: BigNumberish, arg4: BigNumberish, arg5: string, arg6: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         removeLiquidityETH(arg0: string, arg1: BigNumberish, arg2: BigNumberish, arg3: BigNumberish, arg4: string, arg5: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -450,9 +458,9 @@ export interface UniswapV2Mock extends BaseContract {
         factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         getAmountIn(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         getAmountOut(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        getAmountsIn(arg0: BigNumberish, arg1: string[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        getAmountsIn(amountOut: BigNumberish, path: string[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
         getAmountsOut(amountIn: BigNumberish, path: string[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        getRate(path: string[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        getRate(tokenIn: string, tokenOut: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         quote(arg0: BigNumberish, arg1: BigNumberish, arg2: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         removeLiquidity(arg0: string, arg1: string, arg2: BigNumberish, arg3: BigNumberish, arg4: BigNumberish, arg5: string, arg6: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         removeLiquidityETH(arg0: string, arg1: BigNumberish, arg2: BigNumberish, arg3: BigNumberish, arg4: string, arg5: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;

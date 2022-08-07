@@ -7,6 +7,8 @@ import type {
   BigNumberish,
   BytesLike,
   CallOverrides,
+  ContractTransaction,
+  Overrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -242,6 +244,7 @@ export interface ConvexAdapterHelperInterface extends utils.Interface {
     "ExecuteOrder(address,address)": EventFragment;
     "IncreaseBorrowedAmount(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
     "Mock_BaseRewardPaid(uint256,address,uint256)": EventFragment;
     "Mock_BaseStaked(uint256,address,uint256)": EventFragment;
     "Mock_BaseWithdrawn(uint256,address,uint256)": EventFragment;
@@ -254,6 +257,8 @@ export interface ConvexAdapterHelperInterface extends utils.Interface {
     "MultiCallStarted(address)": EventFragment;
     "NewConfigurator(address)": EventFragment;
     "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
+    "TokenDisabled(address,address)": EventFragment;
+    "TokenEnabled(address,address)": EventFragment;
     "TransferAccount(address,address)": EventFragment;
     "TransferAccountAllowed(address,address,bool)": EventFragment;
     "log(string)": EventFragment;
@@ -280,6 +285,9 @@ export interface ConvexAdapterHelperInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ExecuteOrder"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_BaseRewardPaid"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_BaseStaked"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_BaseWithdrawn"): EventFragment;
@@ -292,6 +300,8 @@ export interface ConvexAdapterHelperInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewConfigurator"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "log"): EventFragment;
@@ -384,6 +394,20 @@ export type LiquidateCreditAccountEvent = TypedEvent<
 
 export type LiquidateCreditAccountEventFilter =
   TypedEventFilter<LiquidateCreditAccountEvent>;
+
+export interface LiquidateExpiredCreditAccountEventObject {
+  owner: string;
+  liquidator: string;
+  to: string;
+  remainingFunds: BigNumber;
+}
+export type LiquidateExpiredCreditAccountEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  LiquidateExpiredCreditAccountEventObject
+>;
+
+export type LiquidateExpiredCreditAccountEventFilter =
+  TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
 
 export interface Mock_BaseRewardPaidEventObject {
   index: BigNumber;
@@ -532,6 +556,28 @@ export type OpenCreditAccountEvent = TypedEvent<
 
 export type OpenCreditAccountEventFilter =
   TypedEventFilter<OpenCreditAccountEvent>;
+
+export interface TokenDisabledEventObject {
+  creditAccount: string;
+  token: string;
+}
+export type TokenDisabledEvent = TypedEvent<
+  [string, string],
+  TokenDisabledEventObject
+>;
+
+export type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
+
+export interface TokenEnabledEventObject {
+  creditAccount: string;
+  token: string;
+}
+export type TokenEnabledEvent = TypedEvent<
+  [string, string],
+  TokenEnabledEventObject
+>;
+
+export type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
 
 export interface TransferAccountEventObject {
   oldOwner: string;
@@ -773,7 +819,9 @@ export interface ConvexAdapterHelper extends BaseContract {
 
     extraRewardToken2(overrides?: CallOverrides): Promise<[string]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     feed(overrides?: CallOverrides): Promise<[string]>;
 
@@ -822,7 +870,9 @@ export interface ConvexAdapterHelper extends BaseContract {
 
   extraRewardToken2(overrides?: CallOverrides): Promise<string>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   feed(overrides?: CallOverrides): Promise<string>;
 
@@ -942,6 +992,19 @@ export interface ConvexAdapterHelper extends BaseContract {
       to?: string | null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
+
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
+      owner?: string | null,
+      liquidator?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): LiquidateExpiredCreditAccountEventFilter;
+    LiquidateExpiredCreditAccount(
+      owner?: string | null,
+      liquidator?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): LiquidateExpiredCreditAccountEventFilter;
 
     "Mock_BaseRewardPaid(uint256,address,uint256)"(
       index?: BigNumberish | null,
@@ -1064,6 +1127,18 @@ export interface ConvexAdapterHelper extends BaseContract {
       borrowAmount?: null,
       referralCode?: null
     ): OpenCreditAccountEventFilter;
+
+    "TokenDisabled(address,address)"(
+      creditAccount?: null,
+      token?: null
+    ): TokenDisabledEventFilter;
+    TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+
+    "TokenEnabled(address,address)"(
+      creditAccount?: null,
+      token?: null
+    ): TokenEnabledEventFilter;
+    TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
@@ -1207,7 +1282,9 @@ export interface ConvexAdapterHelper extends BaseContract {
 
     extraRewardToken2(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     feed(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1259,7 +1336,9 @@ export interface ConvexAdapterHelper extends BaseContract {
 
     extraRewardToken2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     feed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

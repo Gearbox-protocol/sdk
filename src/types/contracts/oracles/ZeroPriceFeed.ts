@@ -23,7 +23,6 @@ import type {
 export interface ZeroPriceFeedInterface extends utils.Interface {
   functions: {
     "decimals()": FunctionFragment;
-    "dependsOnAddress()": FunctionFragment;
     "description()": FunctionFragment;
     "getRoundData(uint80)": FunctionFragment;
     "latestRoundData()": FunctionFragment;
@@ -35,7 +34,6 @@ export interface ZeroPriceFeedInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "decimals"
-      | "dependsOnAddress"
       | "description"
       | "getRoundData"
       | "latestRoundData"
@@ -45,10 +43,6 @@ export interface ZeroPriceFeedInterface extends utils.Interface {
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "dependsOnAddress",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "description",
     values?: undefined
@@ -72,10 +66,6 @@ export interface ZeroPriceFeedInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "dependsOnAddress",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "description",
     data: BytesLike
@@ -130,8 +120,6 @@ export interface ZeroPriceFeed extends BaseContract {
   functions: {
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
-    dependsOnAddress(overrides?: CallOverrides): Promise<[boolean]>;
-
     description(overrides?: CallOverrides): Promise<[string]>;
 
     getRoundData(
@@ -160,8 +148,6 @@ export interface ZeroPriceFeed extends BaseContract {
 
   decimals(overrides?: CallOverrides): Promise<number>;
 
-  dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
-
   description(overrides?: CallOverrides): Promise<string>;
 
   getRoundData(
@@ -189,8 +175,6 @@ export interface ZeroPriceFeed extends BaseContract {
 
   callStatic: {
     decimals(overrides?: CallOverrides): Promise<number>;
-
-    dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
 
     description(overrides?: CallOverrides): Promise<string>;
 
@@ -223,8 +207,6 @@ export interface ZeroPriceFeed extends BaseContract {
   estimateGas: {
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
-    dependsOnAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
     description(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRoundData(
@@ -243,8 +225,6 @@ export interface ZeroPriceFeed extends BaseContract {
 
   populateTransaction: {
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    dependsOnAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

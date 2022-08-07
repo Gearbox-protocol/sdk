@@ -121,6 +121,7 @@ export interface ConvexV1AdapterBasePoolTestInterface extends utils.Interface {
         "ExecuteOrder(address,address)": EventFragment;
         "IncreaseBorrowedAmount(address,uint256)": EventFragment;
         "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
+        "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
         "Mock_BaseRewardPaid(uint256,address,uint256)": EventFragment;
         "Mock_BaseStaked(uint256,address,uint256)": EventFragment;
         "Mock_BaseWithdrawn(uint256,address,uint256)": EventFragment;
@@ -133,6 +134,8 @@ export interface ConvexV1AdapterBasePoolTestInterface extends utils.Interface {
         "MultiCallStarted(address)": EventFragment;
         "NewConfigurator(address)": EventFragment;
         "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
+        "TokenDisabled(address,address)": EventFragment;
+        "TokenEnabled(address,address)": EventFragment;
         "TransferAccount(address,address)": EventFragment;
         "TransferAccountAllowed(address,address,bool)": EventFragment;
         "log(string)": EventFragment;
@@ -158,6 +161,7 @@ export interface ConvexV1AdapterBasePoolTestInterface extends utils.Interface {
     getEvent(nameOrSignatureOrTopic: "ExecuteOrder"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "Mock_BaseRewardPaid"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "Mock_BaseStaked"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "Mock_BaseWithdrawn"): EventFragment;
@@ -170,6 +174,8 @@ export interface ConvexV1AdapterBasePoolTestInterface extends utils.Interface {
     getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "NewConfigurator"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "log"): EventFragment;
@@ -249,6 +255,19 @@ export declare type LiquidateCreditAccountEvent = TypedEvent<[
     BigNumber
 ], LiquidateCreditAccountEventObject>;
 export declare type LiquidateCreditAccountEventFilter = TypedEventFilter<LiquidateCreditAccountEvent>;
+export interface LiquidateExpiredCreditAccountEventObject {
+    owner: string;
+    liquidator: string;
+    to: string;
+    remainingFunds: BigNumber;
+}
+export declare type LiquidateExpiredCreditAccountEvent = TypedEvent<[
+    string,
+    string,
+    string,
+    BigNumber
+], LiquidateExpiredCreditAccountEventObject>;
+export declare type LiquidateExpiredCreditAccountEventFilter = TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
 export interface Mock_BaseRewardPaidEventObject {
     index: BigNumber;
     user: string;
@@ -375,6 +394,24 @@ export declare type OpenCreditAccountEvent = TypedEvent<[
     number
 ], OpenCreditAccountEventObject>;
 export declare type OpenCreditAccountEventFilter = TypedEventFilter<OpenCreditAccountEvent>;
+export interface TokenDisabledEventObject {
+    creditAccount: string;
+    token: string;
+}
+export declare type TokenDisabledEvent = TypedEvent<[
+    string,
+    string
+], TokenDisabledEventObject>;
+export declare type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
+export interface TokenEnabledEventObject {
+    creditAccount: string;
+    token: string;
+}
+export declare type TokenEnabledEvent = TypedEvent<[
+    string,
+    string
+], TokenEnabledEventObject>;
+export declare type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
 export interface TransferAccountEventObject {
     oldOwner: string;
     newOwner: string;
@@ -545,7 +582,9 @@ export interface ConvexV1AdapterBasePoolTest extends BaseContract {
         extraPoolMock2(overrides?: CallOverrides): Promise<[string]>;
         extraRewardToken1(overrides?: CallOverrides): Promise<[string]>;
         extraRewardToken2(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         feed(overrides?: CallOverrides): Promise<[string]>;
         phantomToken(overrides?: CallOverrides): Promise<[string]>;
         priceOracle(overrides?: CallOverrides): Promise<[string]>;
@@ -606,7 +645,9 @@ export interface ConvexV1AdapterBasePoolTest extends BaseContract {
     extraPoolMock2(overrides?: CallOverrides): Promise<string>;
     extraRewardToken1(overrides?: CallOverrides): Promise<string>;
     extraRewardToken2(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     feed(overrides?: CallOverrides): Promise<string>;
     phantomToken(overrides?: CallOverrides): Promise<string>;
     priceOracle(overrides?: CallOverrides): Promise<string>;
@@ -698,6 +739,8 @@ export interface ConvexV1AdapterBasePoolTest extends BaseContract {
         IncreaseBorrowedAmount(borrower?: string | null, amount?: null): IncreaseBorrowedAmountEventFilter;
         "LiquidateCreditAccount(address,address,address,uint256)"(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateCreditAccountEventFilter;
         LiquidateCreditAccount(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateCreditAccountEventFilter;
+        "LiquidateExpiredCreditAccount(address,address,address,uint256)"(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateExpiredCreditAccountEventFilter;
+        LiquidateExpiredCreditAccount(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateExpiredCreditAccountEventFilter;
         "Mock_BaseRewardPaid(uint256,address,uint256)"(index?: BigNumberish | null, user?: string | null, reward?: null): Mock_BaseRewardPaidEventFilter;
         Mock_BaseRewardPaid(index?: BigNumberish | null, user?: string | null, reward?: null): Mock_BaseRewardPaidEventFilter;
         "Mock_BaseStaked(uint256,address,uint256)"(index?: BigNumberish | null, user?: string | null, amount?: null): Mock_BaseStakedEventFilter;
@@ -722,6 +765,10 @@ export interface ConvexV1AdapterBasePoolTest extends BaseContract {
         NewConfigurator(newConfigurator?: string | null): NewConfiguratorEventFilter;
         "OpenCreditAccount(address,address,uint256,uint16)"(onBehalfOf?: string | null, creditAccount?: string | null, borrowAmount?: null, referralCode?: null): OpenCreditAccountEventFilter;
         OpenCreditAccount(onBehalfOf?: string | null, creditAccount?: string | null, borrowAmount?: null, referralCode?: null): OpenCreditAccountEventFilter;
+        "TokenDisabled(address,address)"(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+        TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+        "TokenEnabled(address,address)"(creditAccount?: null, token?: null): TokenEnabledEventFilter;
+        TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
         "TransferAccount(address,address)"(oldOwner?: string | null, newOwner?: string | null): TransferAccountEventFilter;
         TransferAccount(oldOwner?: string | null, newOwner?: string | null): TransferAccountEventFilter;
         "TransferAccountAllowed(address,address,bool)"(from?: string | null, to?: string | null, state?: null): TransferAccountAllowedEventFilter;
@@ -779,7 +826,9 @@ export interface ConvexV1AdapterBasePoolTest extends BaseContract {
         extraPoolMock2(overrides?: CallOverrides): Promise<BigNumber>;
         extraRewardToken1(overrides?: CallOverrides): Promise<BigNumber>;
         extraRewardToken2(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         feed(overrides?: CallOverrides): Promise<BigNumber>;
         phantomToken(overrides?: CallOverrides): Promise<BigNumber>;
         priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
@@ -841,7 +890,9 @@ export interface ConvexV1AdapterBasePoolTest extends BaseContract {
         extraPoolMock2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         extraRewardToken1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         extraRewardToken2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         feed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         phantomToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;

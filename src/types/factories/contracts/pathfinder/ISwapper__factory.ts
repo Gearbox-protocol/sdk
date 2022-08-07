@@ -13,32 +13,159 @@ const _abi = [
   {
     inputs: [
       {
+        components: [
+          {
+            internalType: "enum SwapOperation",
+            name: "swapOperation",
+            type: "uint8",
+          },
+          {
+            internalType: "address",
+            name: "creditAccount",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenIn",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenOut",
+            type: "address",
+          },
+          {
+            internalType: "address[]",
+            name: "connectors",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippage",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "externalSlippage",
+            type: "bool",
+          },
+        ],
+        internalType: "struct SwapTask",
+        name: "swapTask",
+        type: "tuple",
+      },
+      {
         internalType: "address",
         name: "adapter",
         type: "address",
       },
+    ],
+    name: "getBestConnectorSwap",
+    outputs: [
       {
-        internalType: "address",
-        name: "tokenIn",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "tokenOut",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "slippageFactor",
-        type: "uint256",
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "target",
+                type: "address",
+              },
+              {
+                internalType: "bytes",
+                name: "callData",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct MultiCall",
+            name: "multiCall",
+            type: "tuple",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "found",
+            type: "bool",
+          },
+          {
+            internalType: "uint256",
+            name: "gasUsage",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct SwapQuote",
+        name: "quote",
+        type: "tuple",
       },
     ],
-    name: "getBestPairSwap",
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "enum SwapOperation",
+            name: "swapOperation",
+            type: "uint8",
+          },
+          {
+            internalType: "address",
+            name: "creditAccount",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenIn",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenOut",
+            type: "address",
+          },
+          {
+            internalType: "address[]",
+            name: "connectors",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippage",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "externalSlippage",
+            type: "bool",
+          },
+        ],
+        internalType: "struct SwapTask",
+        name: "swapTask",
+        type: "tuple",
+      },
+      {
+        internalType: "address",
+        name: "adapter",
+        type: "address",
+      },
+    ],
+    name: "getBestDirectPairSwap",
     outputs: [
       {
         components: [

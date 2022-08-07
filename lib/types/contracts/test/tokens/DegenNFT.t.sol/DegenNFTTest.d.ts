@@ -249,7 +249,9 @@ export interface DegenNFTTest extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<[string]>;
         creditFacade(overrides?: CallOverrides): Promise<[string]>;
         creditManager(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
@@ -308,7 +310,9 @@ export interface DegenNFTTest extends BaseContract {
     creditConfigurator(overrides?: CallOverrides): Promise<string>;
     creditFacade(overrides?: CallOverrides): Promise<string>;
     creditManager(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     setUp(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
@@ -427,7 +431,9 @@ export interface DegenNFTTest extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<BigNumber>;
         creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
         creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
@@ -487,7 +493,9 @@ export interface DegenNFTTest extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;

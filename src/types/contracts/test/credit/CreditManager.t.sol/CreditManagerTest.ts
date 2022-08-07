@@ -65,12 +65,17 @@ export interface CreditManagerTestInterface extends utils.Interface {
     "test_CM_31_checkAndEnableToken_enables_token_for_creditAccount()": FunctionFragment;
     "test_CM_32_fastCollateralCheck_enables_tokenOut_and_reverts_if_its_unkown_or_forbidden()": FunctionFragment;
     "test_CM_33_fastCollateralCheck_disable_tokens_with_zero_balance(uint8)": FunctionFragment;
-    "test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check()": FunctionFragment;
-    "test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check()": FunctionFragment;
-    "test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation(uint16)": FunctionFragment;
+    "test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn()": FunctionFragment;
+    "test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check()": FunctionFragment;
+    "test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens()": FunctionFragment;
+    "test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation(uint256)": FunctionFragment;
+    "test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check()": FunctionFragment;
     "test_CM_38_fullCollateralCheck_skips_tokens_is_they_are_not_enabled()": FunctionFragment;
     "test_CM_39_fullCollateralCheck_diables_tokens_if_they_have_zero_balance()": FunctionFragment;
     "test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check()": FunctionFragment;
+    "test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed()": FunctionFragment;
+    "test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens()": FunctionFragment;
+    "test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens()": FunctionFragment;
     "test_CM_42_fullCollateralCheck_fuzzing_test(uint128,uint128,uint128,uint128,uint128,bool,bool,bool)": FunctionFragment;
     "test_CM_43_calcClosePayments_test()": FunctionFragment;
     "test_CM_44_transferAssetsTo_sends_all_tokens_except_underlying_one_to_provided_address()": FunctionFragment;
@@ -90,6 +95,7 @@ export interface CreditManagerTestInterface extends utils.Interface {
     "test_CM_58_setConfigurator_sets_creditConfigurator_correctly_and_emits_event()": FunctionFragment;
     "test_CM_59_getMaxIndex_works_properly(uint256)": FunctionFragment;
     "test_CM_60_universal_adapter_can_call_adapter_restricted_functions()": FunctionFragment;
+    "test_CM_61_setMaxEnabledTokens_works_correctly()": FunctionFragment;
   };
 
   getFunction(
@@ -131,12 +137,17 @@ export interface CreditManagerTestInterface extends utils.Interface {
       | "test_CM_31_checkAndEnableToken_enables_token_for_creditAccount"
       | "test_CM_32_fastCollateralCheck_enables_tokenOut_and_reverts_if_its_unkown_or_forbidden"
       | "test_CM_33_fastCollateralCheck_disable_tokens_with_zero_balance"
-      | "test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check"
-      | "test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check"
+      | "test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn"
+      | "test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check"
+      | "test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens"
       | "test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation"
+      | "test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check"
       | "test_CM_38_fullCollateralCheck_skips_tokens_is_they_are_not_enabled"
       | "test_CM_39_fullCollateralCheck_diables_tokens_if_they_have_zero_balance"
       | "test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check"
+      | "test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed"
+      | "test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens"
+      | "test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens"
       | "test_CM_42_fullCollateralCheck_fuzzing_test"
       | "test_CM_43_calcClosePayments_test"
       | "test_CM_44_transferAssetsTo_sends_all_tokens_except_underlying_one_to_provided_address"
@@ -156,6 +167,7 @@ export interface CreditManagerTestInterface extends utils.Interface {
       | "test_CM_58_setConfigurator_sets_creditConfigurator_correctly_and_emits_event"
       | "test_CM_59_getMaxIndex_works_properly"
       | "test_CM_60_universal_adapter_can_call_adapter_restricted_functions"
+      | "test_CM_61_setMaxEnabledTokens_works_correctly"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
@@ -298,16 +310,24 @@ export interface CreditManagerTestInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check",
+    functionFragment: "test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check",
+    functionFragment: "test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_CM_38_fullCollateralCheck_skips_tokens_is_they_are_not_enabled",
@@ -319,6 +339,18 @@ export interface CreditManagerTestInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -404,6 +436,10 @@ export interface CreditManagerTestInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "test_CM_60_universal_adapter_can_call_adapter_restricted_functions",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "test_CM_61_setMaxEnabledTokens_works_correctly",
     values?: undefined
   ): string;
 
@@ -547,15 +583,23 @@ export interface CreditManagerTestInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check",
+    functionFragment: "test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check",
+    functionFragment: "test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -568,6 +612,18 @@ export interface CreditManagerTestInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -644,6 +700,10 @@ export interface CreditManagerTestInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_CM_60_universal_adapter_can_call_adapter_restricted_functions",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "test_CM_61_setMaxEnabledTokens_works_correctly",
     data: BytesLike
   ): Result;
 
@@ -889,7 +949,9 @@ export interface CreditManagerTest extends BaseContract {
   functions: {
     IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     setUp(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1034,16 +1096,24 @@ export interface CreditManagerTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+    test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check(
+    test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation(
       desiredDrop: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1056,6 +1126,18 @@ export interface CreditManagerTest extends BaseContract {
     ): Promise<ContractTransaction>;
 
     test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1146,11 +1228,17 @@ export interface CreditManagerTest extends BaseContract {
     test_CM_60_universal_adapter_can_call_adapter_restricted_functions(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    test_CM_61_setMaxEnabledTokens_works_correctly(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   IS_TEST(overrides?: CallOverrides): Promise<boolean>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setUp(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -1295,16 +1383,24 @@ export interface CreditManagerTest extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+  test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check(
+  test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation(
     desiredDrop: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1317,6 +1413,18 @@ export interface CreditManagerTest extends BaseContract {
   ): Promise<ContractTransaction>;
 
   test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1405,6 +1513,10 @@ export interface CreditManagerTest extends BaseContract {
   ): Promise<ContractTransaction>;
 
   test_CM_60_universal_adapter_can_call_adapter_restricted_functions(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  test_CM_61_setMaxEnabledTokens_works_correctly(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1554,16 +1666,24 @@ export interface CreditManagerTest extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+    test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn(
       overrides?: CallOverrides
     ): Promise<void>;
 
-    test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check(
+    test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens(
       overrides?: CallOverrides
     ): Promise<void>;
 
     test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation(
       desiredDrop: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check(
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1576,6 +1696,18 @@ export interface CreditManagerTest extends BaseContract {
     ): Promise<void>;
 
     test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check(
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed(
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens(
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens(
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1662,6 +1794,10 @@ export interface CreditManagerTest extends BaseContract {
     ): Promise<void>;
 
     test_CM_60_universal_adapter_can_call_adapter_restricted_functions(
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    test_CM_61_setMaxEnabledTokens_works_correctly(
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -1769,7 +1905,9 @@ export interface CreditManagerTest extends BaseContract {
   estimateGas: {
     IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     setUp(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1914,16 +2052,24 @@ export interface CreditManagerTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+    test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check(
+    test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation(
       desiredDrop: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1936,6 +2082,18 @@ export interface CreditManagerTest extends BaseContract {
     ): Promise<BigNumber>;
 
     test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2024,6 +2182,10 @@ export interface CreditManagerTest extends BaseContract {
     ): Promise<BigNumber>;
 
     test_CM_60_universal_adapter_can_call_adapter_restricted_functions(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    test_CM_61_setMaxEnabledTokens_works_correctly(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -2031,7 +2193,9 @@ export interface CreditManagerTest extends BaseContract {
   populateTransaction: {
     IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     setUp(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -2176,16 +2340,24 @@ export interface CreditManagerTest extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+    test_CM_34_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    test_CM_35_fastCollateralCheck_is_passed_if_collateralOut_gte_collarteralIn_with_lt_check(
+    test_CM_35_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_gte_collarteralIn_wo_lt_check(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_CM_36A_fastCollateralCheck_correctly_optimizes_enabled_tokens(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_CM_36_fastCollateralCheck_is_passed_with_cumulative_drop_lte_feeLiquidation(
       desiredDrop: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_CM_37_fastCollateralCheck_reverts_if_more_enabled_tokens_than_allowed_if_collateralOut_lt_collarteralIn_wo_lt_check(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2198,6 +2370,18 @@ export interface CreditManagerTest extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     test_CM_40_fullCollateralCheck_breaks_loop_if_total_gte_borrowAmountPlusInterestRateUSD_and_pass_the_check(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_CM_41A_fullCollateralCheck_correctly_disables_the_underlying_when_needed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_CM_41B_fullCollateralCheck_correctly_optimizes_enabled_tokens(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_CM_41_fullCollateralCheck_reverts_if_CA_has_more_than_allowed_enabled_tokens(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2286,6 +2470,10 @@ export interface CreditManagerTest extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     test_CM_60_universal_adapter_can_call_adapter_restricted_functions(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    test_CM_61_setMaxEnabledTokens_works_correctly(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

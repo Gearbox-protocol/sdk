@@ -42,11 +42,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "PriceFeedRequiresAddressException",
-    type: "error",
-  },
-  {
-    inputs: [],
     name: "PriceOracleNotExistsException",
     type: "error",
   },
@@ -144,19 +139,6 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "dependsOnAddress",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
       },
     ],
     stateMutability: "view",

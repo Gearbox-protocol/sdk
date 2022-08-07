@@ -54,6 +54,7 @@ export interface CurveV1MetapoolMockInterface extends utils.Interface {
     "remove_liquidity_one_coin(uint256,int128,uint256)": FunctionFragment;
     "setRate(int128,int128,uint256)": FunctionFragment;
     "setRateUnderlying(int128,int128,uint256)": FunctionFragment;
+    "setWithdrawRate(int128,uint256)": FunctionFragment;
     "set_virtual_price(uint256)": FunctionFragment;
     "symbol()": FunctionFragment;
     "token()": FunctionFragment;
@@ -95,6 +96,7 @@ export interface CurveV1MetapoolMockInterface extends utils.Interface {
       | "remove_liquidity_one_coin"
       | "setRate"
       | "setRateUnderlying"
+      | "setWithdrawRate"
       | "set_virtual_price"
       | "symbol"
       | "token"
@@ -187,6 +189,10 @@ export interface CurveV1MetapoolMockInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "setRateUnderlying",
     values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setWithdrawRate",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "set_virtual_price",
@@ -284,6 +290,10 @@ export interface CurveV1MetapoolMockInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setWithdrawRate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "set_virtual_price",
     data: BytesLike
   ): Result;
@@ -372,8 +382,8 @@ export interface CurveV1MetapoolMock extends BaseContract {
     block_timestamp_last(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     calc_withdraw_one_coin(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      amount: BigNumberish,
+      coin: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -456,6 +466,12 @@ export interface CurveV1MetapoolMock extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setWithdrawRate(
+      i: BigNumberish,
+      rate_RAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     set_virtual_price(
       _price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -516,8 +532,8 @@ export interface CurveV1MetapoolMock extends BaseContract {
   block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
 
   calc_withdraw_one_coin(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
+    amount: BigNumberish,
+    coin: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -594,6 +610,12 @@ export interface CurveV1MetapoolMock extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setWithdrawRate(
+    i: BigNumberish,
+    rate_RAY: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   set_virtual_price(
     _price: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -654,8 +676,8 @@ export interface CurveV1MetapoolMock extends BaseContract {
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
 
     calc_withdraw_one_coin(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      amount: BigNumberish,
+      coin: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -738,6 +760,12 @@ export interface CurveV1MetapoolMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setWithdrawRate(
+      i: BigNumberish,
+      rate_RAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     set_virtual_price(
       _price: BigNumberish,
       overrides?: CallOverrides
@@ -801,8 +829,8 @@ export interface CurveV1MetapoolMock extends BaseContract {
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
 
     calc_withdraw_one_coin(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      amount: BigNumberish,
+      coin: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -885,6 +913,12 @@ export interface CurveV1MetapoolMock extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setWithdrawRate(
+      i: BigNumberish,
+      rate_RAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     set_virtual_price(
       _price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -951,8 +985,8 @@ export interface CurveV1MetapoolMock extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     calc_withdraw_one_coin(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
+      amount: BigNumberish,
+      coin: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1031,6 +1065,12 @@ export interface CurveV1MetapoolMock extends BaseContract {
     setRateUnderlying(
       i: BigNumberish,
       j: BigNumberish,
+      rate_RAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setWithdrawRate(
+      i: BigNumberish,
       rate_RAY: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

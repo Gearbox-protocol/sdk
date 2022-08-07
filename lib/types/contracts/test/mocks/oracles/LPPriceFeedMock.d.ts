@@ -5,10 +5,9 @@ import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "../..
 export interface LPPriceFeedMockInterface extends utils.Interface {
     functions: {
         "_acl()": FunctionFragment;
-        "checkValue(uint256)": FunctionFragment;
+        "checkAndUpperBoundValue(uint256)": FunctionFragment;
         "decimals()": FunctionFragment;
         "delta()": FunctionFragment;
-        "dependsOnAddress()": FunctionFragment;
         "description()": FunctionFragment;
         "getRoundData(uint80)": FunctionFragment;
         "latestRoundData()": FunctionFragment;
@@ -22,12 +21,11 @@ export interface LPPriceFeedMockInterface extends utils.Interface {
         "upperBound()": FunctionFragment;
         "version()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "_acl" | "checkValue" | "decimals" | "delta" | "dependsOnAddress" | "description" | "getRoundData" | "latestRoundData" | "lowerBound" | "pause" | "paused" | "priceFeedType" | "setLimiter" | "skipPriceCheck" | "unpause" | "upperBound" | "version"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "_acl" | "checkAndUpperBoundValue" | "decimals" | "delta" | "description" | "getRoundData" | "latestRoundData" | "lowerBound" | "pause" | "paused" | "priceFeedType" | "setLimiter" | "skipPriceCheck" | "unpause" | "upperBound" | "version"): FunctionFragment;
     encodeFunctionData(functionFragment: "_acl", values?: undefined): string;
-    encodeFunctionData(functionFragment: "checkValue", values: [BigNumberish]): string;
+    encodeFunctionData(functionFragment: "checkAndUpperBoundValue", values: [BigNumberish]): string;
     encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
     encodeFunctionData(functionFragment: "delta", values?: undefined): string;
-    encodeFunctionData(functionFragment: "dependsOnAddress", values?: undefined): string;
     encodeFunctionData(functionFragment: "description", values?: undefined): string;
     encodeFunctionData(functionFragment: "getRoundData", values: [BigNumberish]): string;
     encodeFunctionData(functionFragment: "latestRoundData", values?: undefined): string;
@@ -41,10 +39,9 @@ export interface LPPriceFeedMockInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "upperBound", values?: undefined): string;
     encodeFunctionData(functionFragment: "version", values?: undefined): string;
     decodeFunctionResult(functionFragment: "_acl", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "checkValue", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "checkAndUpperBoundValue", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "delta", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "dependsOnAddress", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "description", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getRoundData", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "latestRoundData", data: BytesLike): Result;
@@ -101,10 +98,9 @@ export interface LPPriceFeedMock extends BaseContract {
     removeListener: OnEvent<this>;
     functions: {
         _acl(overrides?: CallOverrides): Promise<[string]>;
-        checkValue(value: BigNumberish, overrides?: CallOverrides): Promise<[void]>;
+        checkAndUpperBoundValue(value: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
         decimals(overrides?: CallOverrides): Promise<[number]>;
         delta(overrides?: CallOverrides): Promise<[BigNumber]>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<[boolean]>;
         description(overrides?: CallOverrides): Promise<[string]>;
         getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
         latestRoundData(overrides?: CallOverrides): Promise<[
@@ -137,10 +133,9 @@ export interface LPPriceFeedMock extends BaseContract {
         version(overrides?: CallOverrides): Promise<[BigNumber]>;
     };
     _acl(overrides?: CallOverrides): Promise<string>;
-    checkValue(value: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    checkAndUpperBoundValue(value: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
     decimals(overrides?: CallOverrides): Promise<number>;
     delta(overrides?: CallOverrides): Promise<BigNumber>;
-    dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
     description(overrides?: CallOverrides): Promise<string>;
     getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
     latestRoundData(overrides?: CallOverrides): Promise<[
@@ -173,10 +168,9 @@ export interface LPPriceFeedMock extends BaseContract {
     version(overrides?: CallOverrides): Promise<BigNumber>;
     callStatic: {
         _acl(overrides?: CallOverrides): Promise<string>;
-        checkValue(value: BigNumberish, overrides?: CallOverrides): Promise<void>;
+        checkAndUpperBoundValue(value: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         decimals(overrides?: CallOverrides): Promise<number>;
         delta(overrides?: CallOverrides): Promise<BigNumber>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
         description(overrides?: CallOverrides): Promise<string>;
         getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
         latestRoundData(overrides?: CallOverrides): Promise<[
@@ -212,10 +206,9 @@ export interface LPPriceFeedMock extends BaseContract {
     };
     estimateGas: {
         _acl(overrides?: CallOverrides): Promise<BigNumber>;
-        checkValue(value: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+        checkAndUpperBoundValue(value: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         decimals(overrides?: CallOverrides): Promise<BigNumber>;
         delta(overrides?: CallOverrides): Promise<BigNumber>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<BigNumber>;
         description(overrides?: CallOverrides): Promise<BigNumber>;
         getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
@@ -237,10 +230,9 @@ export interface LPPriceFeedMock extends BaseContract {
     };
     populateTransaction: {
         _acl(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        checkValue(value: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        checkAndUpperBoundValue(value: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         delta(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;

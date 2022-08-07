@@ -460,7 +460,9 @@ export interface TokensTestSuite extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getPriceFeeds(
       overrides?: CallOverrides
@@ -554,7 +556,9 @@ export interface TokensTestSuite extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getPriceFeeds(
     overrides?: CallOverrides
@@ -819,7 +823,9 @@ export interface TokensTestSuite extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     getPriceFeeds(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -915,7 +921,9 @@ export interface TokensTestSuite extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     getPriceFeeds(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

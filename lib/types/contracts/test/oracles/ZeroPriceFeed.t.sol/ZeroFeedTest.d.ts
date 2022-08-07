@@ -194,7 +194,9 @@ export interface ZeroFeedTest extends BaseContract {
     removeListener: OnEvent<this>;
     functions: {
         IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         pf(overrides?: CallOverrides): Promise<[string]>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -210,7 +212,9 @@ export interface ZeroFeedTest extends BaseContract {
         }): Promise<ContractTransaction>;
     };
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     pf(overrides?: CallOverrides): Promise<string>;
     setUp(overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -269,7 +273,9 @@ export interface ZeroFeedTest extends BaseContract {
     };
     estimateGas: {
         IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         pf(overrides?: CallOverrides): Promise<BigNumber>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -286,7 +292,9 @@ export interface ZeroFeedTest extends BaseContract {
     };
     populateTransaction: {
         IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         pf(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;

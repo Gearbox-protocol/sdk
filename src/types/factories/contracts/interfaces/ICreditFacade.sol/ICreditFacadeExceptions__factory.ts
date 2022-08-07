@@ -48,6 +48,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "CantLiquidateNonExpiredException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "CantLiquidateWithSuchHealthFactorException",
     type: "error",
   },
@@ -98,7 +103,22 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "NotAllowedWhenNotExpirableException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "NotEnoughCollateralException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "OpenAccountNotAllowedAfterExpiration",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ReentrancyLockException",
     type: "error",
   },
   {
@@ -114,6 +134,11 @@ const _abi = [
   {
     inputs: [],
     name: "TokenNotAllowedException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TooMuchEnabledTokensException",
     type: "error",
   },
   {

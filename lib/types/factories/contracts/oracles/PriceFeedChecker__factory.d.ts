@@ -12,7 +12,7 @@ export declare class PriceFeedChecker__factory extends ContractFactory {
     }): TransactionRequest;
     attach(address: string): PriceFeedChecker;
     connect(signer: Signer): PriceFeedChecker__factory;
-    static readonly bytecode = "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220e708c37745e23ed727bddee8f5582c8a297237e7e90294bf57a4ced66c6e8e2464736f6c634300080a0033";
+    static readonly bytecode = "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122012990d1b60511b53fddf875dc23f66237fa2e51cb07ae44794b157a17e54dee664736f6c634300080a0033";
     static readonly abi: {
         inputs: never[];
         name: string;

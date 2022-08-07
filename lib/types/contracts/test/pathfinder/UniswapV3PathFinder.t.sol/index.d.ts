@@ -1,1 +1,1 @@
-export type { UniswapV3PathFinderAdapterTest } from "./UniswapV3PathFinderAdapterTest";
+export type { UniswapV3PathFinderTest } from "./UniswapV3PathFinderTest";

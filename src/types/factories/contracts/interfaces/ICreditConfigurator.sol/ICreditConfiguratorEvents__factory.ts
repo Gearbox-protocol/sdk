@@ -14,6 +14,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "AddedToUpgradeable",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "protocol",
@@ -86,6 +99,19 @@ const _abi = [
     inputs: [
       {
         indexed: false,
+        internalType: "uint40",
+        name: "",
+        type: "uint40",
+      },
+    ],
+    name: "ExpirationDateUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
         internalType: "uint16",
         name: "feeInterest",
         type: "uint16",
@@ -100,6 +126,18 @@ const _abi = [
         indexed: false,
         internalType: "uint16",
         name: "liquidationPremium",
+        type: "uint16",
+      },
+      {
+        indexed: false,
+        internalType: "uint16",
+        name: "feeLiquidationExpired",
+        type: "uint16",
+      },
+      {
+        indexed: false,
+        internalType: "uint16",
+        name: "liquidationPremiumExpired",
         type: "uint16",
       },
     ],
@@ -155,6 +193,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "uint8",
+        name: "",
+        type: "uint8",
+      },
+    ],
+    name: "MaxEnabledTokensUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "newPriceOracle",
@@ -162,6 +213,19 @@ const _abi = [
       },
     ],
     name: "PriceOracleUpgraded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "RemovedFromUpgradeable",
     type: "event",
   },
   {

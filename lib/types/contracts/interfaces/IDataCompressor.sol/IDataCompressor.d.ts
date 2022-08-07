@@ -100,6 +100,7 @@ export declare type CreditManagerDataStruct = {
     degenNFT: string;
     isIncreaseDebtForbidden: boolean;
     forbiddenTokenMask: BigNumberish;
+    maxEnabledTokensLength: BigNumberish;
 };
 export declare type CreditManagerDataStructOutput = [
     string,
@@ -119,7 +120,8 @@ export declare type CreditManagerDataStructOutput = [
     boolean,
     string,
     boolean,
-    BigNumber
+    BigNumber,
+    number
 ] & {
     addr: string;
     underlying: string;
@@ -139,6 +141,7 @@ export declare type CreditManagerDataStructOutput = [
     degenNFT: string;
     isIncreaseDebtForbidden: boolean;
     forbiddenTokenMask: BigNumber;
+    maxEnabledTokensLength: number;
 };
 export declare type PoolDataStruct = {
     addr: string;

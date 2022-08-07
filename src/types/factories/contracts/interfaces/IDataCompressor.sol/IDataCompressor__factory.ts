@@ -405,6 +405,11 @@ const _abi = [
             name: "forbiddenTokenMask",
             type: "uint256",
           },
+          {
+            internalType: "uint8",
+            name: "maxEnabledTokensLength",
+            type: "uint8",
+          },
         ],
         internalType: "struct CreditManagerData",
         name: "",
@@ -521,6 +526,11 @@ const _abi = [
             internalType: "uint256",
             name: "forbiddenTokenMask",
             type: "uint256",
+          },
+          {
+            internalType: "uint8",
+            name: "maxEnabledTokensLength",
+            type: "uint8",
           },
         ],
         internalType: "struct CreditManagerData[]",

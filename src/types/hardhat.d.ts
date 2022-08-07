@@ -17,10 +17,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AggregatorV3Interface__factory>;
     getContractFactory(
-      name: "AggregatorV3Interface",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.AggregatorV3Interface__factory>;
-    getContractFactory(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
@@ -128,6 +124,10 @@ declare module "hardhat/types/runtime" {
       name: "UniswapV3Adapter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UniswapV3Adapter__factory>;
+    getContractFactory(
+      name: "UniversalAdapter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniversalAdapter__factory>;
     getContractFactory(
       name: "YearnV2Adapter",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -377,6 +377,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IAdapterExceptions__factory>;
     getContractFactory(
+      name: "IUniversalAdapter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IUniversalAdapter__factory>;
+    getContractFactory(
+      name: "IUniversalAdapterExceptions",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IUniversalAdapterExceptions__factory>;
+    getContractFactory(
       name: "ILidoV1Adapter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ILidoV1Adapter__factory>;
@@ -465,10 +473,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditFacade__factory>;
     getContractFactory(
-      name: "ICreditFacadeBalanceChecker",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ICreditFacadeBalanceChecker__factory>;
-    getContractFactory(
       name: "ICreditFacadeEvents",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditFacadeEvents__factory>;
@@ -476,6 +480,10 @@ declare module "hardhat/types/runtime" {
       name: "ICreditFacadeExceptions",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICreditFacadeExceptions__factory>;
+    getContractFactory(
+      name: "ICreditFacadeExtended",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICreditFacadeExtended__factory>;
     getContractFactory(
       name: "ICreditManagerV2",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -625,25 +633,33 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ZeroPriceFeed__factory>;
     getContractFactory(
-      name: "BalanceOps",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BalanceOps__factory>;
-    getContractFactory(
       name: "ConvexPathFinder",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ConvexPathFinder__factory>;
+    getContractFactory(
+      name: "CurveLPPathFinder",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CurveLPPathFinder__factory>;
     getContractFactory(
       name: "CurvePathFinder",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CurvePathFinder__factory>;
     getContractFactory(
+      name: "BalanceOps",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BalanceOps__factory>;
+    getContractFactory(
       name: "ISwapper",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISwapper__factory>;
     getContractFactory(
-      name: "PathFinder",
+      name: "NormalTokenPathFinder",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.PathFinder__factory>;
+    ): Promise<Contracts.NormalTokenPathFinder__factory>;
+    getContractFactory(
+      name: "SwapPathFinder",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SwapPathFinder__factory>;
     getContractFactory(
       name: "UniswapV2PathFinder",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -652,6 +668,10 @@ declare module "hardhat/types/runtime" {
       name: "UniswapV3PathFinder",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UniswapV3PathFinder__factory>;
+    getContractFactory(
+      name: "YearnPathFinder",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.YearnPathFinder__factory>;
     getContractFactory(
       name: "LinearInterestRateModel",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -781,6 +801,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MainnetTokensTestSuite__factory>;
     getContractFactory(
+      name: "TotalValueCalculator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TotalValueCalculator__factory>;
+    getContractFactory(
       name: "AdapterMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AdapterMock__factory>;
@@ -844,10 +868,6 @@ declare module "hardhat/types/runtime" {
       name: "TokenRewardContractMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TokenRewardContractMock__factory>;
-    getContractFactory(
-      name: "VirtualBalanceWrapper",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.VirtualBalanceWrapper__factory>;
     getContractFactory(
       name: "CurveV1MetapoolMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -985,17 +1005,37 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ZeroFeedTest__factory>;
     getContractFactory(
+      name: "CurveLPPathFinderTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CurveLPPathFinderTest__factory>;
+    getContractFactory(
       name: "CurvePathFinderTest",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CurvePathFinderTest__factory>;
     getContractFactory(
-      name: "UniswapV2PathFinderAdapterTest",
+      name: "NormalTokenPathFinderTest",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.UniswapV2PathFinderAdapterTest__factory>;
+    ): Promise<Contracts.NormalTokenPathFinderTest__factory>;
     getContractFactory(
-      name: "UniswapV3PathFinderAdapterTest",
+      name: "PathFinderTestHelper",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.UniswapV3PathFinderAdapterTest__factory>;
+    ): Promise<Contracts.PathFinderTestHelper__factory>;
+    getContractFactory(
+      name: "SwapPathFinderTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SwapPathFinderTest__factory>;
+    getContractFactory(
+      name: "UniswapV2PathFinderTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniswapV2PathFinderTest__factory>;
+    getContractFactory(
+      name: "UniswapV3PathFinderTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniswapV3PathFinderTest__factory>;
+    getContractFactory(
+      name: "YearnPathFinderTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.YearnPathFinderTest__factory>;
     getContractFactory(
       name: "PlaygroundTest",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -1004,6 +1044,114 @@ declare module "hardhat/types/runtime" {
       name: "PoolServiceTest",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PoolServiceTest__factory>;
+    getContractFactory(
+      name: "AttackContractNonPayable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AttackContractNonPayable__factory>;
+    getContractFactory(
+      name: "DummyMulticallTarget",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DummyMulticallTarget__factory>;
+    getContractFactory(
+      name: "FlashLoanAttacker2",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.FlashLoanAttacker2__factory>;
+    getContractFactory(
+      name: "ICrvDeposit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICrvDeposit__factory>;
+    getContractFactory(
+      name: "ICurveGauge",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICurveGauge__factory>;
+    getContractFactory(
+      name: "ICurveVoteEscrow",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICurveVoteEscrow__factory>;
+    getContractFactory(
+      name: "IDeposit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IDeposit__factory>;
+    getContractFactory(
+      name: "IFeeDistro",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IFeeDistro__factory>;
+    getContractFactory(
+      name: "IMinter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IMinter__factory>;
+    getContractFactory(
+      name: "IPools",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPools__factory>;
+    getContractFactory(
+      name: "IRegistry",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IRegistry__factory>;
+    getContractFactory(
+      name: "IRewardFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IRewardFactory__factory>;
+    getContractFactory(
+      name: "IRewards",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IRewards__factory>;
+    getContractFactory(
+      name: "IStaker",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IStaker__factory>;
+    getContractFactory(
+      name: "IStash",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IStash__factory>;
+    getContractFactory(
+      name: "IStashFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IStashFactory__factory>;
+    getContractFactory(
+      name: "ITokenFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ITokenFactory__factory>;
+    getContractFactory(
+      name: "ITokenMinter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ITokenMinter__factory>;
+    getContractFactory(
+      name: "IVestedEscrow",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVestedEscrow__factory>;
+    getContractFactory(
+      name: "IVoting",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVoting__factory>;
+    getContractFactory(
+      name: "IWalletChecker",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IWalletChecker__factory>;
+    getContractFactory(
+      name: "ILockedCvx",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ILockedCvx__factory>;
+    getContractFactory(
+      name: "NewBaseRewardPoolMock",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.NewBaseRewardPoolMock__factory>;
+    getContractFactory(
+      name: "NewBoosterMock",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.NewBoosterMock__factory>;
+    getContractFactory(
+      name: "NewCreditConfigurator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.NewCreditConfigurator__factory>;
+    getContractFactory(
+      name: "StETHMockERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.StETHMockERC20__factory>;
+    getContractFactory(
+      name: "UniswapV3AdapterTestHelper",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniswapV3AdapterTestHelper__factory>;
     getContractFactory(
       name: "BalanceHelper",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -1057,11 +1205,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PhantomERC20__factory>;
 
-    getContractAt(
-      name: "AggregatorV3Interface",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.AggregatorV3Interface>;
     getContractAt(
       name: "AggregatorV3Interface",
       address: string,
@@ -1202,6 +1345,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.UniswapV3Adapter>;
+    getContractAt(
+      name: "UniversalAdapter",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniversalAdapter>;
     getContractAt(
       name: "YearnV2Adapter",
       address: string,
@@ -1513,6 +1661,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IAdapterExceptions>;
     getContractAt(
+      name: "IUniversalAdapter",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IUniversalAdapter>;
+    getContractAt(
+      name: "IUniversalAdapterExceptions",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IUniversalAdapterExceptions>;
+    getContractAt(
       name: "ILidoV1Adapter",
       address: string,
       signer?: ethers.Signer
@@ -1623,11 +1781,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ICreditFacade>;
     getContractAt(
-      name: "ICreditFacadeBalanceChecker",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ICreditFacadeBalanceChecker>;
-    getContractAt(
       name: "ICreditFacadeEvents",
       address: string,
       signer?: ethers.Signer
@@ -1637,6 +1790,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ICreditFacadeExceptions>;
+    getContractAt(
+      name: "ICreditFacadeExtended",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICreditFacadeExtended>;
     getContractAt(
       name: "ICreditManagerV2",
       address: string,
@@ -1823,30 +1981,40 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ZeroPriceFeed>;
     getContractAt(
-      name: "BalanceOps",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BalanceOps>;
-    getContractAt(
       name: "ConvexPathFinder",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ConvexPathFinder>;
+    getContractAt(
+      name: "CurveLPPathFinder",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CurveLPPathFinder>;
     getContractAt(
       name: "CurvePathFinder",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.CurvePathFinder>;
     getContractAt(
+      name: "BalanceOps",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BalanceOps>;
+    getContractAt(
       name: "ISwapper",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ISwapper>;
     getContractAt(
-      name: "PathFinder",
+      name: "NormalTokenPathFinder",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.PathFinder>;
+    ): Promise<Contracts.NormalTokenPathFinder>;
+    getContractAt(
+      name: "SwapPathFinder",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SwapPathFinder>;
     getContractAt(
       name: "UniswapV2PathFinder",
       address: string,
@@ -1857,6 +2025,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.UniswapV3PathFinder>;
+    getContractAt(
+      name: "YearnPathFinder",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.YearnPathFinder>;
     getContractAt(
       name: "LinearInterestRateModel",
       address: string,
@@ -2018,6 +2191,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.MainnetTokensTestSuite>;
     getContractAt(
+      name: "TotalValueCalculator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TotalValueCalculator>;
+    getContractAt(
       name: "AdapterMock",
       address: string,
       signer?: ethers.Signer
@@ -2097,11 +2275,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.TokenRewardContractMock>;
-    getContractAt(
-      name: "VirtualBalanceWrapper",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.VirtualBalanceWrapper>;
     getContractAt(
       name: "CurveV1MetapoolMock",
       address: string,
@@ -2273,20 +2446,45 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ZeroFeedTest>;
     getContractAt(
+      name: "CurveLPPathFinderTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CurveLPPathFinderTest>;
+    getContractAt(
       name: "CurvePathFinderTest",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.CurvePathFinderTest>;
     getContractAt(
-      name: "UniswapV2PathFinderAdapterTest",
+      name: "NormalTokenPathFinderTest",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.UniswapV2PathFinderAdapterTest>;
+    ): Promise<Contracts.NormalTokenPathFinderTest>;
     getContractAt(
-      name: "UniswapV3PathFinderAdapterTest",
+      name: "PathFinderTestHelper",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.UniswapV3PathFinderAdapterTest>;
+    ): Promise<Contracts.PathFinderTestHelper>;
+    getContractAt(
+      name: "SwapPathFinderTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SwapPathFinderTest>;
+    getContractAt(
+      name: "UniswapV2PathFinderTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniswapV2PathFinderTest>;
+    getContractAt(
+      name: "UniswapV3PathFinderTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniswapV3PathFinderTest>;
+    getContractAt(
+      name: "YearnPathFinderTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.YearnPathFinderTest>;
     getContractAt(
       name: "PlaygroundTest",
       address: string,
@@ -2297,6 +2495,141 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.PoolServiceTest>;
+    getContractAt(
+      name: "AttackContractNonPayable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AttackContractNonPayable>;
+    getContractAt(
+      name: "DummyMulticallTarget",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DummyMulticallTarget>;
+    getContractAt(
+      name: "FlashLoanAttacker2",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.FlashLoanAttacker2>;
+    getContractAt(
+      name: "ICrvDeposit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICrvDeposit>;
+    getContractAt(
+      name: "ICurveGauge",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICurveGauge>;
+    getContractAt(
+      name: "ICurveVoteEscrow",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICurveVoteEscrow>;
+    getContractAt(
+      name: "IDeposit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IDeposit>;
+    getContractAt(
+      name: "IFeeDistro",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IFeeDistro>;
+    getContractAt(
+      name: "IMinter",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IMinter>;
+    getContractAt(
+      name: "IPools",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPools>;
+    getContractAt(
+      name: "IRegistry",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IRegistry>;
+    getContractAt(
+      name: "IRewardFactory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IRewardFactory>;
+    getContractAt(
+      name: "IRewards",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IRewards>;
+    getContractAt(
+      name: "IStaker",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IStaker>;
+    getContractAt(
+      name: "IStash",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IStash>;
+    getContractAt(
+      name: "IStashFactory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IStashFactory>;
+    getContractAt(
+      name: "ITokenFactory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ITokenFactory>;
+    getContractAt(
+      name: "ITokenMinter",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ITokenMinter>;
+    getContractAt(
+      name: "IVestedEscrow",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVestedEscrow>;
+    getContractAt(
+      name: "IVoting",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVoting>;
+    getContractAt(
+      name: "IWalletChecker",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IWalletChecker>;
+    getContractAt(
+      name: "ILockedCvx",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ILockedCvx>;
+    getContractAt(
+      name: "NewBaseRewardPoolMock",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.NewBaseRewardPoolMock>;
+    getContractAt(
+      name: "NewBoosterMock",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.NewBoosterMock>;
+    getContractAt(
+      name: "NewCreditConfigurator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.NewCreditConfigurator>;
+    getContractAt(
+      name: "StETHMockERC20",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.StETHMockERC20>;
+    getContractAt(
+      name: "UniswapV3AdapterTestHelper",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniswapV3AdapterTestHelper>;
     getContractAt(
       name: "BalanceHelper",
       address: string,

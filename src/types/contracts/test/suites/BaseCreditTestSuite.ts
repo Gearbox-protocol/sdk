@@ -383,7 +383,9 @@ export interface BaseCreditTestSuite extends BaseContract {
 
     cr(overrides?: CallOverrides): Promise<[string]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     gp(overrides?: CallOverrides): Promise<[string]>;
 
@@ -421,7 +423,9 @@ export interface BaseCreditTestSuite extends BaseContract {
 
   cr(overrides?: CallOverrides): Promise<string>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   gp(overrides?: CallOverrides): Promise<string>;
 
@@ -582,7 +586,9 @@ export interface BaseCreditTestSuite extends BaseContract {
 
     cr(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     gp(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -621,7 +627,9 @@ export interface BaseCreditTestSuite extends BaseContract {
 
     cr(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     gp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

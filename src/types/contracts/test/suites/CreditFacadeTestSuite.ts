@@ -58,6 +58,7 @@ export interface CreditFacadeTestSuiteInterface extends utils.Interface {
     "poolMock()": FunctionFragment;
     "priceOracle()": FunctionFragment;
     "testFacadeWithDegenNFT()": FunctionFragment;
+    "testFacadeWithExpiration()": FunctionFragment;
     "testTokenSuite()": FunctionFragment;
     "underlying()": FunctionFragment;
   };
@@ -84,6 +85,7 @@ export interface CreditFacadeTestSuiteInterface extends utils.Interface {
       | "poolMock"
       | "priceOracle"
       | "testFacadeWithDegenNFT"
+      | "testFacadeWithExpiration"
       | "testTokenSuite"
       | "underlying"
   ): FunctionFragment;
@@ -139,6 +141,10 @@ export interface CreditFacadeTestSuiteInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "testFacadeWithDegenNFT",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "testFacadeWithExpiration",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -201,6 +207,10 @@ export interface CreditFacadeTestSuiteInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "testFacadeWithDegenNFT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "testFacadeWithExpiration",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -455,7 +465,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
 
     degenNFT(overrides?: CallOverrides): Promise<[string]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     gp(overrides?: CallOverrides): Promise<[string]>;
 
@@ -470,6 +482,10 @@ export interface CreditFacadeTestSuite extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<[string]>;
 
     testFacadeWithDegenNFT(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    testFacadeWithExpiration(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -509,7 +525,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
 
   degenNFT(overrides?: CallOverrides): Promise<string>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   gp(overrides?: CallOverrides): Promise<string>;
 
@@ -524,6 +542,10 @@ export interface CreditFacadeTestSuite extends BaseContract {
   priceOracle(overrides?: CallOverrides): Promise<string>;
 
   testFacadeWithDegenNFT(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  testFacadeWithExpiration(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -578,6 +600,8 @@ export interface CreditFacadeTestSuite extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<string>;
 
     testFacadeWithDegenNFT(overrides?: CallOverrides): Promise<void>;
+
+    testFacadeWithExpiration(overrides?: CallOverrides): Promise<void>;
 
     testTokenSuite(overrides?: CallOverrides): Promise<string>;
 
@@ -700,7 +724,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
 
     degenNFT(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     gp(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -715,6 +741,10 @@ export interface CreditFacadeTestSuite extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     testFacadeWithDegenNFT(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    testFacadeWithExpiration(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -757,7 +787,9 @@ export interface CreditFacadeTestSuite extends BaseContract {
 
     degenNFT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     gp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -775,6 +807,10 @@ export interface CreditFacadeTestSuite extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     testFacadeWithDegenNFT(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    testFacadeWithExpiration(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

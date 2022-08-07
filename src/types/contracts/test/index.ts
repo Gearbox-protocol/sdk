@@ -21,6 +21,8 @@ import type * as pathfinder from "./pathfinder";
 export type { pathfinder };
 import type * as pool from "./pool";
 export type { pool };
+import type * as sigp from "./sigp";
+export type { sigp };
 import type * as suites from "./suites";
 export type { suites };
 import type * as support from "./support";

@@ -67,10 +67,13 @@ export interface CurveV1StEthAdapterTestInterface extends utils.Interface {
         "ExecuteOrder(address,address)": EventFragment;
         "IncreaseBorrowedAmount(address,uint256)": EventFragment;
         "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
+        "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
         "MultiCallFinished()": EventFragment;
         "MultiCallStarted(address)": EventFragment;
         "NewConfigurator(address)": EventFragment;
         "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
+        "TokenDisabled(address,address)": EventFragment;
+        "TokenEnabled(address,address)": EventFragment;
         "TransferAccount(address,address)": EventFragment;
         "TransferAccountAllowed(address,address,bool)": EventFragment;
         "log(string)": EventFragment;
@@ -96,10 +99,13 @@ export interface CurveV1StEthAdapterTestInterface extends utils.Interface {
     getEvent(nameOrSignatureOrTopic: "ExecuteOrder"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "NewConfigurator"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "log"): EventFragment;
@@ -179,6 +185,19 @@ export declare type LiquidateCreditAccountEvent = TypedEvent<[
     BigNumber
 ], LiquidateCreditAccountEventObject>;
 export declare type LiquidateCreditAccountEventFilter = TypedEventFilter<LiquidateCreditAccountEvent>;
+export interface LiquidateExpiredCreditAccountEventObject {
+    owner: string;
+    liquidator: string;
+    to: string;
+    remainingFunds: BigNumber;
+}
+export declare type LiquidateExpiredCreditAccountEvent = TypedEvent<[
+    string,
+    string,
+    string,
+    BigNumber
+], LiquidateExpiredCreditAccountEventObject>;
+export declare type LiquidateExpiredCreditAccountEventFilter = TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
 export interface MultiCallFinishedEventObject {
 }
 export declare type MultiCallFinishedEvent = TypedEvent<[
@@ -211,6 +230,24 @@ export declare type OpenCreditAccountEvent = TypedEvent<[
     number
 ], OpenCreditAccountEventObject>;
 export declare type OpenCreditAccountEventFilter = TypedEventFilter<OpenCreditAccountEvent>;
+export interface TokenDisabledEventObject {
+    creditAccount: string;
+    token: string;
+}
+export declare type TokenDisabledEvent = TypedEvent<[
+    string,
+    string
+], TokenDisabledEventObject>;
+export declare type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
+export interface TokenEnabledEventObject {
+    creditAccount: string;
+    token: string;
+}
+export declare type TokenEnabledEvent = TypedEvent<[
+    string,
+    string
+], TokenEnabledEventObject>;
+export declare type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
 export interface TransferAccountEventObject {
     oldOwner: string;
     newOwner: string;
@@ -369,7 +406,9 @@ export interface CurveV1StEthAdapterTest extends BaseContract {
         creditFacade(overrides?: CallOverrides): Promise<[string]>;
         creditManager(overrides?: CallOverrides): Promise<[string]>;
         curveV1Mock(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         lp_token(overrides?: CallOverrides): Promise<[string]>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -404,7 +443,9 @@ export interface CurveV1StEthAdapterTest extends BaseContract {
     creditFacade(overrides?: CallOverrides): Promise<string>;
     creditManager(overrides?: CallOverrides): Promise<string>;
     curveV1Mock(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     lp_token(overrides?: CallOverrides): Promise<string>;
     setUp(overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -464,6 +505,8 @@ export interface CurveV1StEthAdapterTest extends BaseContract {
         IncreaseBorrowedAmount(borrower?: string | null, amount?: null): IncreaseBorrowedAmountEventFilter;
         "LiquidateCreditAccount(address,address,address,uint256)"(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateCreditAccountEventFilter;
         LiquidateCreditAccount(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateCreditAccountEventFilter;
+        "LiquidateExpiredCreditAccount(address,address,address,uint256)"(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateExpiredCreditAccountEventFilter;
+        LiquidateExpiredCreditAccount(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateExpiredCreditAccountEventFilter;
         "MultiCallFinished()"(): MultiCallFinishedEventFilter;
         MultiCallFinished(): MultiCallFinishedEventFilter;
         "MultiCallStarted(address)"(borrower?: string | null): MultiCallStartedEventFilter;
@@ -472,6 +515,10 @@ export interface CurveV1StEthAdapterTest extends BaseContract {
         NewConfigurator(newConfigurator?: string | null): NewConfiguratorEventFilter;
         "OpenCreditAccount(address,address,uint256,uint16)"(onBehalfOf?: string | null, creditAccount?: string | null, borrowAmount?: null, referralCode?: null): OpenCreditAccountEventFilter;
         OpenCreditAccount(onBehalfOf?: string | null, creditAccount?: string | null, borrowAmount?: null, referralCode?: null): OpenCreditAccountEventFilter;
+        "TokenDisabled(address,address)"(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+        TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+        "TokenEnabled(address,address)"(creditAccount?: null, token?: null): TokenEnabledEventFilter;
+        TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
         "TransferAccount(address,address)"(oldOwner?: string | null, newOwner?: string | null): TransferAccountEventFilter;
         TransferAccount(oldOwner?: string | null, newOwner?: string | null): TransferAccountEventFilter;
         "TransferAccountAllowed(address,address,bool)"(from?: string | null, to?: string | null, state?: null): TransferAccountAllowedEventFilter;
@@ -517,7 +564,9 @@ export interface CurveV1StEthAdapterTest extends BaseContract {
         creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
         creditManager(overrides?: CallOverrides): Promise<BigNumber>;
         curveV1Mock(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         lp_token(overrides?: CallOverrides): Promise<BigNumber>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -553,7 +602,9 @@ export interface CurveV1StEthAdapterTest extends BaseContract {
         creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         curveV1Mock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         lp_token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;

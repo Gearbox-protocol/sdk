@@ -34,12 +34,13 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     "addCollateral(address,address,address,uint256)": FunctionFragment;
     "addToken(address)": FunctionFragment;
     "approveCreditAccount(address,address,address,uint256)": FunctionFragment;
-    "calcClosePayments(uint256,bool,uint256,uint256)": FunctionFragment;
-    "calcClosePaymentsPure(uint256,bool,uint256,uint256)": FunctionFragment;
+    "calcClosePayments(uint256,uint8,uint256,uint256)": FunctionFragment;
+    "calcClosePaymentsPure(uint256,uint8,uint256,uint256)": FunctionFragment;
     "calcCreditAccountAccruedInterest(address)": FunctionFragment;
     "changeContractAllowance(address,address)": FunctionFragment;
     "checkAndEnableToken(address,address)": FunctionFragment;
-    "closeCreditAccount(address,bool,uint256,address,address,uint256,bool)": FunctionFragment;
+    "checkAndOptimizeEnabledTokens(address)": FunctionFragment;
+    "closeCreditAccount(address,uint8,uint256,address,address,uint256,bool)": FunctionFragment;
     "collateralTokens(uint256)": FunctionFragment;
     "collateralTokensByMask(uint256)": FunctionFragment;
     "collateralTokensCount()": FunctionFragment;
@@ -48,19 +49,21 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     "creditAccounts(address)": FunctionFragment;
     "creditConfigurator()": FunctionFragment;
     "creditFacade()": FunctionFragment;
-    "cumulativeDropAtFastCheck(address)": FunctionFragment;
+    "cumulativeDropAtFastCheckRAY(address)": FunctionFragment;
     "disableToken(address,address)": FunctionFragment;
     "enabledTokensMap(address)": FunctionFragment;
     "executeOrder(address,address,bytes)": FunctionFragment;
-    "fastCollateralCheck(address,address,address,uint256,uint256,bool)": FunctionFragment;
+    "fastCollateralCheck(address,address,address,uint256,uint256)": FunctionFragment;
     "fees()": FunctionFragment;
     "forbiddenTokenMask()": FunctionFragment;
     "fullCollateralCheck(address)": FunctionFragment;
     "getCreditAccountOrRevert(address)": FunctionFragment;
     "getCreditAccountParameters(address)": FunctionFragment;
     "getMaxIndex(uint256)": FunctionFragment;
+    "getSlotBytes(uint256)": FunctionFragment;
     "liquidationThresholds(address)": FunctionFragment;
     "manageDebt(address,uint256,bool)": FunctionFragment;
+    "maxAllowedEnabledTokenLength()": FunctionFragment;
     "openCreditAccount(uint256,address)": FunctionFragment;
     "pause()": FunctionFragment;
     "paused()": FunctionFragment;
@@ -72,7 +75,8 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     "setCumulativeDropAtFastCheck(address,uint16)": FunctionFragment;
     "setForbidMask(uint256)": FunctionFragment;
     "setLiquidationThreshold(address,uint16)": FunctionFragment;
-    "setParams(uint16,uint16,uint16)": FunctionFragment;
+    "setMaxEnabledTokens(uint8)": FunctionFragment;
+    "setParams(uint16,uint16,uint16,uint16,uint16)": FunctionFragment;
     "tokenMasksMap(address)": FunctionFragment;
     "transferAccountOwnership(address,address)": FunctionFragment;
     "transferAssetsTo(address,address,bool,uint256)": FunctionFragment;
@@ -98,6 +102,7 @@ export interface CreditManagerInternalInterface extends utils.Interface {
       | "calcCreditAccountAccruedInterest"
       | "changeContractAllowance"
       | "checkAndEnableToken"
+      | "checkAndOptimizeEnabledTokens"
       | "closeCreditAccount"
       | "collateralTokens"
       | "collateralTokensByMask"
@@ -107,7 +112,7 @@ export interface CreditManagerInternalInterface extends utils.Interface {
       | "creditAccounts"
       | "creditConfigurator"
       | "creditFacade"
-      | "cumulativeDropAtFastCheck"
+      | "cumulativeDropAtFastCheckRAY"
       | "disableToken"
       | "enabledTokensMap"
       | "executeOrder"
@@ -118,8 +123,10 @@ export interface CreditManagerInternalInterface extends utils.Interface {
       | "getCreditAccountOrRevert"
       | "getCreditAccountParameters"
       | "getMaxIndex"
+      | "getSlotBytes"
       | "liquidationThresholds"
       | "manageDebt"
+      | "maxAllowedEnabledTokenLength"
       | "openCreditAccount"
       | "pause"
       | "paused"
@@ -131,6 +138,7 @@ export interface CreditManagerInternalInterface extends utils.Interface {
       | "setCumulativeDropAtFastCheck"
       | "setForbidMask"
       | "setLiquidationThreshold"
+      | "setMaxEnabledTokens"
       | "setParams"
       | "tokenMasksMap"
       | "transferAccountOwnership"
@@ -164,11 +172,11 @@ export interface CreditManagerInternalInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "calcClosePayments",
-    values: [BigNumberish, boolean, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcClosePaymentsPure",
-    values: [BigNumberish, boolean, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcCreditAccountAccruedInterest",
@@ -183,10 +191,14 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "checkAndOptimizeEnabledTokens",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "closeCreditAccount",
     values: [
       string,
-      boolean,
+      BigNumberish,
       BigNumberish,
       string,
       string,
@@ -227,7 +239,7 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "cumulativeDropAtFastCheck",
+    functionFragment: "cumulativeDropAtFastCheckRAY",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -244,7 +256,7 @@ export interface CreditManagerInternalInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "fastCollateralCheck",
-    values: [string, string, string, BigNumberish, BigNumberish, boolean]
+    values: [string, string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "fees", values?: undefined): string;
   encodeFunctionData(
@@ -268,12 +280,20 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getSlotBytes",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "liquidationThresholds",
     values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "manageDebt",
     values: [string, BigNumberish, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxAllowedEnabledTokenLength",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount",
@@ -311,8 +331,18 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "setMaxEnabledTokens",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setParams",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenMasksMap",
@@ -388,6 +418,10 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "checkAndOptimizeEnabledTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "closeCreditAccount",
     data: BytesLike
   ): Result;
@@ -424,7 +458,7 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "cumulativeDropAtFastCheck",
+    functionFragment: "cumulativeDropAtFastCheckRAY",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -465,10 +499,18 @@ export interface CreditManagerInternalInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getSlotBytes",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "liquidationThresholds",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "manageDebt", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxAllowedEnabledTokenLength",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "openCreditAccount",
     data: BytesLike
@@ -502,6 +544,10 @@ export interface CreditManagerInternalInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setLiquidationThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxEnabledTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setParams", data: BytesLike): Result;
@@ -644,7 +690,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     calcClosePayments(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -659,7 +705,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     calcClosePaymentsPure(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -694,9 +740,14 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    checkAndOptimizeEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     closeCreditAccount(
       borrower: string,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       totalValue: BigNumberish,
       payer: string,
       to: string,
@@ -736,7 +787,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
 
-    cumulativeDropAtFastCheck(
+    cumulativeDropAtFastCheckRAY(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -765,17 +816,18 @@ export interface CreditManagerInternal extends BaseContract {
       tokenOut: string,
       balanceInBefore: BigNumberish,
       balanceOutBefore: BigNumberish,
-      ltNotEqual: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     fees(
       overrides?: CallOverrides
     ): Promise<
-      [number, number, number] & {
+      [number, number, number, number, number] & {
         feeInterest: number;
         feeLiquidation: number;
         liquidationDiscount: number;
+        feeLiquidationExpired: number;
+        liquidationDiscountExpired: number;
       }
     >;
 
@@ -807,6 +859,11 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { index: BigNumber }>;
 
+    getSlotBytes(
+      slotNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string] & { slotVal: string }>;
+
     liquidationThresholds(
       token: string,
       overrides?: CallOverrides
@@ -818,6 +875,8 @@ export interface CreditManagerInternal extends BaseContract {
       increase: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    maxAllowedEnabledTokenLength(overrides?: CallOverrides): Promise<[number]>;
 
     openCreditAccount(
       borrowedAmount: BigNumberish,
@@ -868,10 +927,17 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setMaxEnabledTokens(
+      newMaxEnabledTokens: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setParams(
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
       _liquidationDiscount: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationDiscountExpired: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -944,7 +1010,7 @@ export interface CreditManagerInternal extends BaseContract {
 
   calcClosePayments(
     totalValue: BigNumberish,
-    isLiquidated: boolean,
+    closureActionType: BigNumberish,
     borrowedAmount: BigNumberish,
     borrowedAmountWithInterest: BigNumberish,
     overrides?: CallOverrides
@@ -959,7 +1025,7 @@ export interface CreditManagerInternal extends BaseContract {
 
   calcClosePaymentsPure(
     totalValue: BigNumberish,
-    isLiquidated: boolean,
+    closureActionType: BigNumberish,
     borrowedAmount: BigNumberish,
     borrowedAmountWithInterest: BigNumberish,
     overrides?: CallOverrides
@@ -994,9 +1060,14 @@ export interface CreditManagerInternal extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  checkAndOptimizeEnabledTokens(
+    creditAccount: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   closeCreditAccount(
     borrower: string,
-    isLiquidated: boolean,
+    closureActionType: BigNumberish,
     totalValue: BigNumberish,
     payer: string,
     to: string,
@@ -1031,7 +1102,7 @@ export interface CreditManagerInternal extends BaseContract {
 
   creditFacade(overrides?: CallOverrides): Promise<string>;
 
-  cumulativeDropAtFastCheck(
+  cumulativeDropAtFastCheckRAY(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -1057,17 +1128,18 @@ export interface CreditManagerInternal extends BaseContract {
     tokenOut: string,
     balanceInBefore: BigNumberish,
     balanceOutBefore: BigNumberish,
-    ltNotEqual: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   fees(
     overrides?: CallOverrides
   ): Promise<
-    [number, number, number] & {
+    [number, number, number, number, number] & {
       feeInterest: number;
       feeLiquidation: number;
       liquidationDiscount: number;
+      feeLiquidationExpired: number;
+      liquidationDiscountExpired: number;
     }
   >;
 
@@ -1099,6 +1171,11 @@ export interface CreditManagerInternal extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getSlotBytes(
+    slotNum: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   liquidationThresholds(
     token: string,
     overrides?: CallOverrides
@@ -1110,6 +1187,8 @@ export interface CreditManagerInternal extends BaseContract {
     increase: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  maxAllowedEnabledTokenLength(overrides?: CallOverrides): Promise<number>;
 
   openCreditAccount(
     borrowedAmount: BigNumberish,
@@ -1160,10 +1239,17 @@ export interface CreditManagerInternal extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setMaxEnabledTokens(
+    newMaxEnabledTokens: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setParams(
     _feeInterest: BigNumberish,
     _feeLiquidation: BigNumberish,
     _liquidationDiscount: BigNumberish,
+    _feeLiquidationExpired: BigNumberish,
+    _liquidationDiscountExpired: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1230,7 +1316,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     calcClosePayments(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -1245,7 +1331,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     calcClosePaymentsPure(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -1280,9 +1366,14 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    checkAndOptimizeEnabledTokens(
+      creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     closeCreditAccount(
       borrower: string,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       totalValue: BigNumberish,
       payer: string,
       to: string,
@@ -1317,7 +1408,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<string>;
 
-    cumulativeDropAtFastCheck(
+    cumulativeDropAtFastCheckRAY(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1346,17 +1437,18 @@ export interface CreditManagerInternal extends BaseContract {
       tokenOut: string,
       balanceInBefore: BigNumberish,
       balanceOutBefore: BigNumberish,
-      ltNotEqual: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
     fees(
       overrides?: CallOverrides
     ): Promise<
-      [number, number, number] & {
+      [number, number, number, number, number] & {
         feeInterest: number;
         feeLiquidation: number;
         liquidationDiscount: number;
+        feeLiquidationExpired: number;
+        liquidationDiscountExpired: number;
       }
     >;
 
@@ -1388,6 +1480,11 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getSlotBytes(
+      slotNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     liquidationThresholds(
       token: string,
       overrides?: CallOverrides
@@ -1399,6 +1496,8 @@ export interface CreditManagerInternal extends BaseContract {
       increase: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    maxAllowedEnabledTokenLength(overrides?: CallOverrides): Promise<number>;
 
     openCreditAccount(
       borrowedAmount: BigNumberish,
@@ -1447,10 +1546,17 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setMaxEnabledTokens(
+      newMaxEnabledTokens: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setParams(
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
       _liquidationDiscount: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationDiscountExpired: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1546,7 +1652,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     calcClosePayments(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -1554,7 +1660,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     calcClosePaymentsPure(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -1577,9 +1683,14 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    checkAndOptimizeEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     closeCreditAccount(
       borrower: string,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       totalValue: BigNumberish,
       payer: string,
       to: string,
@@ -1613,7 +1724,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
-    cumulativeDropAtFastCheck(
+    cumulativeDropAtFastCheckRAY(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1642,7 +1753,6 @@ export interface CreditManagerInternal extends BaseContract {
       tokenOut: string,
       balanceInBefore: BigNumberish,
       balanceOutBefore: BigNumberish,
-      ltNotEqual: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1670,6 +1780,11 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getSlotBytes(
+      slotNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     liquidationThresholds(
       token: string,
       overrides?: CallOverrides
@@ -1681,6 +1796,8 @@ export interface CreditManagerInternal extends BaseContract {
       increase: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    maxAllowedEnabledTokenLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     openCreditAccount(
       borrowedAmount: BigNumberish,
@@ -1731,10 +1848,17 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setMaxEnabledTokens(
+      newMaxEnabledTokens: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setParams(
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
       _liquidationDiscount: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationDiscountExpired: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1808,7 +1932,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     calcClosePayments(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -1816,7 +1940,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     calcClosePaymentsPure(
       totalValue: BigNumberish,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       borrowedAmount: BigNumberish,
       borrowedAmountWithInterest: BigNumberish,
       overrides?: CallOverrides
@@ -1839,9 +1963,14 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    checkAndOptimizeEnabledTokens(
+      creditAccount: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     closeCreditAccount(
       borrower: string,
-      isLiquidated: boolean,
+      closureActionType: BigNumberish,
       totalValue: BigNumberish,
       payer: string,
       to: string,
@@ -1884,7 +2013,7 @@ export interface CreditManagerInternal extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    cumulativeDropAtFastCheck(
+    cumulativeDropAtFastCheckRAY(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1913,7 +2042,6 @@ export interface CreditManagerInternal extends BaseContract {
       tokenOut: string,
       balanceInBefore: BigNumberish,
       balanceOutBefore: BigNumberish,
-      ltNotEqual: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1943,6 +2071,11 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getSlotBytes(
+      slotNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     liquidationThresholds(
       token: string,
       overrides?: CallOverrides
@@ -1953,6 +2086,10 @@ export interface CreditManagerInternal extends BaseContract {
       amount: BigNumberish,
       increase: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    maxAllowedEnabledTokenLength(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     openCreditAccount(
@@ -2004,10 +2141,17 @@ export interface CreditManagerInternal extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    setMaxEnabledTokens(
+      newMaxEnabledTokens: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     setParams(
       _feeInterest: BigNumberish,
       _feeLiquidation: BigNumberish,
       _liquidationDiscount: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationDiscountExpired: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
