@@ -47,6 +47,15 @@ export * from "./core/history";
 export * from "./utils/multicall";
 export * from "./utils/types";
 export * from "./utils/errors";
+
+export * from "./strategies/convex";
+export * from "./strategies/creditFacade";
+export * from "./strategies/curve";
+export * from "./strategies/lido";
+export * from "./strategies/uniswapV2";
+export * from "./strategies/uniswapV3";
+export * from "./strategies/yearn";
+
 export { callRepeater } from "./utils/repeater";
 export { getContractName } from "./contracts/contractsRegister";
 export { AdapterInterface } from "./contracts/adapters";

@@ -10,9 +10,12 @@ export interface ICreditFacadeEventsInterface extends utils.Interface {
         "DecreaseBorrowedAmount(address,uint256)": EventFragment;
         "IncreaseBorrowedAmount(address,uint256)": EventFragment;
         "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
+        "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
         "MultiCallFinished()": EventFragment;
         "MultiCallStarted(address)": EventFragment;
         "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
+        "TokenDisabled(address,address)": EventFragment;
+        "TokenEnabled(address,address)": EventFragment;
         "TransferAccount(address,address)": EventFragment;
         "TransferAccountAllowed(address,address,bool)": EventFragment;
     };
@@ -21,9 +24,12 @@ export interface ICreditFacadeEventsInterface extends utils.Interface {
     getEvent(nameOrSignatureOrTopic: "DecreaseBorrowedAmount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
 }
@@ -78,6 +84,19 @@ export declare type LiquidateCreditAccountEvent = TypedEvent<[
     BigNumber
 ], LiquidateCreditAccountEventObject>;
 export declare type LiquidateCreditAccountEventFilter = TypedEventFilter<LiquidateCreditAccountEvent>;
+export interface LiquidateExpiredCreditAccountEventObject {
+    owner: string;
+    liquidator: string;
+    to: string;
+    remainingFunds: BigNumber;
+}
+export declare type LiquidateExpiredCreditAccountEvent = TypedEvent<[
+    string,
+    string,
+    string,
+    BigNumber
+], LiquidateExpiredCreditAccountEventObject>;
+export declare type LiquidateExpiredCreditAccountEventFilter = TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
 export interface MultiCallFinishedEventObject {
 }
 export declare type MultiCallFinishedEvent = TypedEvent<[
@@ -103,6 +122,24 @@ export declare type OpenCreditAccountEvent = TypedEvent<[
     number
 ], OpenCreditAccountEventObject>;
 export declare type OpenCreditAccountEventFilter = TypedEventFilter<OpenCreditAccountEvent>;
+export interface TokenDisabledEventObject {
+    creditAccount: string;
+    token: string;
+}
+export declare type TokenDisabledEvent = TypedEvent<[
+    string,
+    string
+], TokenDisabledEventObject>;
+export declare type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
+export interface TokenEnabledEventObject {
+    creditAccount: string;
+    token: string;
+}
+export declare type TokenEnabledEvent = TypedEvent<[
+    string,
+    string
+], TokenEnabledEventObject>;
+export declare type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
 export interface TransferAccountEventObject {
     oldOwner: string;
     newOwner: string;
@@ -150,12 +187,18 @@ export interface ICreditFacadeEvents extends BaseContract {
         IncreaseBorrowedAmount(borrower?: string | null, amount?: null): IncreaseBorrowedAmountEventFilter;
         "LiquidateCreditAccount(address,address,address,uint256)"(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateCreditAccountEventFilter;
         LiquidateCreditAccount(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateCreditAccountEventFilter;
+        "LiquidateExpiredCreditAccount(address,address,address,uint256)"(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateExpiredCreditAccountEventFilter;
+        LiquidateExpiredCreditAccount(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateExpiredCreditAccountEventFilter;
         "MultiCallFinished()"(): MultiCallFinishedEventFilter;
         MultiCallFinished(): MultiCallFinishedEventFilter;
         "MultiCallStarted(address)"(borrower?: string | null): MultiCallStartedEventFilter;
         MultiCallStarted(borrower?: string | null): MultiCallStartedEventFilter;
         "OpenCreditAccount(address,address,uint256,uint16)"(onBehalfOf?: string | null, creditAccount?: string | null, borrowAmount?: null, referralCode?: null): OpenCreditAccountEventFilter;
         OpenCreditAccount(onBehalfOf?: string | null, creditAccount?: string | null, borrowAmount?: null, referralCode?: null): OpenCreditAccountEventFilter;
+        "TokenDisabled(address,address)"(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+        TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+        "TokenEnabled(address,address)"(creditAccount?: null, token?: null): TokenEnabledEventFilter;
+        TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
         "TransferAccount(address,address)"(oldOwner?: string | null, newOwner?: string | null): TransferAccountEventFilter;
         TransferAccount(oldOwner?: string | null, newOwner?: string | null): TransferAccountEventFilter;
         "TransferAccountAllowed(address,address,bool)"(from?: string | null, to?: string | null, state?: null): TransferAccountAllowedEventFilter;

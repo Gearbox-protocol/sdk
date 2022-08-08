@@ -185,7 +185,9 @@ export interface PlaygroundTest extends BaseContract {
     removeListener: OnEvent<this>;
     functions: {
         IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
@@ -194,7 +196,9 @@ export interface PlaygroundTest extends BaseContract {
         }): Promise<ContractTransaction>;
     };
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     setUp(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
@@ -243,7 +247,9 @@ export interface PlaygroundTest extends BaseContract {
     };
     estimateGas: {
         IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
@@ -253,7 +259,9 @@ export interface PlaygroundTest extends BaseContract {
     };
     populateTransaction: {
         IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;

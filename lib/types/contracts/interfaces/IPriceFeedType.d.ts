@@ -4,15 +4,12 @@ import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "../../common";
 export interface IPriceFeedTypeInterface extends utils.Interface {
     functions: {
-        "dependsOnAddress()": FunctionFragment;
         "priceFeedType()": FunctionFragment;
         "skipPriceCheck()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "dependsOnAddress" | "priceFeedType" | "skipPriceCheck"): FunctionFragment;
-    encodeFunctionData(functionFragment: "dependsOnAddress", values?: undefined): string;
+    getFunction(nameOrSignatureOrTopic: "priceFeedType" | "skipPriceCheck"): FunctionFragment;
     encodeFunctionData(functionFragment: "priceFeedType", values?: undefined): string;
     encodeFunctionData(functionFragment: "skipPriceCheck", values?: undefined): string;
-    decodeFunctionResult(functionFragment: "dependsOnAddress", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "priceFeedType", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "skipPriceCheck", data: BytesLike): Result;
     events: {};
@@ -32,26 +29,21 @@ export interface IPriceFeedType extends BaseContract {
     once: OnEvent<this>;
     removeListener: OnEvent<this>;
     functions: {
-        dependsOnAddress(overrides?: CallOverrides): Promise<[boolean]>;
         priceFeedType(overrides?: CallOverrides): Promise<[number]>;
         skipPriceCheck(overrides?: CallOverrides): Promise<[boolean]>;
     };
-    dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
     priceFeedType(overrides?: CallOverrides): Promise<number>;
     skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
     callStatic: {
-        dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
         priceFeedType(overrides?: CallOverrides): Promise<number>;
         skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
     };
     filters: {};
     estimateGas: {
-        dependsOnAddress(overrides?: CallOverrides): Promise<BigNumber>;
         priceFeedType(overrides?: CallOverrides): Promise<BigNumber>;
         skipPriceCheck(overrides?: CallOverrides): Promise<BigNumber>;
     };
     populateTransaction: {
-        dependsOnAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         priceFeedType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         skipPriceCheck(overrides?: CallOverrides): Promise<PopulatedTransaction>;
     };

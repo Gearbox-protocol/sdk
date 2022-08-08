@@ -29,10 +29,9 @@ import type {
 export interface LPPriceFeedMockInterface extends utils.Interface {
   functions: {
     "_acl()": FunctionFragment;
-    "checkValue(uint256)": FunctionFragment;
+    "checkAndUpperBoundValue(uint256)": FunctionFragment;
     "decimals()": FunctionFragment;
     "delta()": FunctionFragment;
-    "dependsOnAddress()": FunctionFragment;
     "description()": FunctionFragment;
     "getRoundData(uint80)": FunctionFragment;
     "latestRoundData()": FunctionFragment;
@@ -50,10 +49,9 @@ export interface LPPriceFeedMockInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "_acl"
-      | "checkValue"
+      | "checkAndUpperBoundValue"
       | "decimals"
       | "delta"
-      | "dependsOnAddress"
       | "description"
       | "getRoundData"
       | "latestRoundData"
@@ -70,15 +68,11 @@ export interface LPPriceFeedMockInterface extends utils.Interface {
 
   encodeFunctionData(functionFragment: "_acl", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "checkValue",
+    functionFragment: "checkAndUpperBoundValue",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(functionFragment: "delta", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "dependsOnAddress",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "description",
     values?: undefined
@@ -117,13 +111,12 @@ export interface LPPriceFeedMockInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "_acl", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "checkValue", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "delta", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "dependsOnAddress",
+    functionFragment: "checkAndUpperBoundValue",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "delta", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "description",
     data: BytesLike
@@ -218,13 +211,14 @@ export interface LPPriceFeedMock extends BaseContract {
   functions: {
     _acl(overrides?: CallOverrides): Promise<[string]>;
 
-    checkValue(value: BigNumberish, overrides?: CallOverrides): Promise<[void]>;
+    checkAndUpperBoundValue(
+      value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
     delta(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    dependsOnAddress(overrides?: CallOverrides): Promise<[boolean]>;
 
     description(overrides?: CallOverrides): Promise<[string]>;
 
@@ -273,13 +267,14 @@ export interface LPPriceFeedMock extends BaseContract {
 
   _acl(overrides?: CallOverrides): Promise<string>;
 
-  checkValue(value: BigNumberish, overrides?: CallOverrides): Promise<void>;
+  checkAndUpperBoundValue(
+    value: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   decimals(overrides?: CallOverrides): Promise<number>;
 
   delta(overrides?: CallOverrides): Promise<BigNumber>;
-
-  dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
 
   description(overrides?: CallOverrides): Promise<string>;
 
@@ -328,13 +323,14 @@ export interface LPPriceFeedMock extends BaseContract {
   callStatic: {
     _acl(overrides?: CallOverrides): Promise<string>;
 
-    checkValue(value: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    checkAndUpperBoundValue(
+      value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
     delta(overrides?: CallOverrides): Promise<BigNumber>;
-
-    dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
 
     description(overrides?: CallOverrides): Promise<string>;
 
@@ -397,7 +393,7 @@ export interface LPPriceFeedMock extends BaseContract {
   estimateGas: {
     _acl(overrides?: CallOverrides): Promise<BigNumber>;
 
-    checkValue(
+    checkAndUpperBoundValue(
       value: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -405,8 +401,6 @@ export interface LPPriceFeedMock extends BaseContract {
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     delta(overrides?: CallOverrides): Promise<BigNumber>;
-
-    dependsOnAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     description(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -446,7 +440,7 @@ export interface LPPriceFeedMock extends BaseContract {
   populateTransaction: {
     _acl(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    checkValue(
+    checkAndUpperBoundValue(
       value: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -454,8 +448,6 @@ export interface LPPriceFeedMock extends BaseContract {
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     delta(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    dependsOnAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

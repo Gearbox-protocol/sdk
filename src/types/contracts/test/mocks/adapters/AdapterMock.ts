@@ -178,7 +178,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -187,7 +187,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -201,7 +201,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -211,7 +211,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -237,7 +237,7 @@ export interface AdapterMock extends BaseContract {
     tokenOut: string,
     callData: BytesLike,
     allowTokenIn: boolean,
-    ltCheckRequired: boolean,
+    disableTokenIn: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -246,7 +246,7 @@ export interface AdapterMock extends BaseContract {
     tokenOut: string,
     callData: BytesLike,
     allowTokenIn: boolean,
-    ltCheckRequired: boolean,
+    disableTokenIn: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -260,7 +260,7 @@ export interface AdapterMock extends BaseContract {
     tokenOut: string,
     callData: BytesLike,
     allowTokenIn: boolean,
-    ltCheckRequired: boolean,
+    disableTokenIn: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -270,7 +270,7 @@ export interface AdapterMock extends BaseContract {
     tokenOut: string,
     callData: BytesLike,
     allowTokenIn: boolean,
-    ltCheckRequired: boolean,
+    disableTokenIn: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -293,7 +293,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -302,7 +302,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -313,7 +313,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -323,7 +323,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -352,7 +352,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -361,7 +361,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -375,7 +375,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -385,7 +385,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -416,7 +416,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -425,7 +425,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -439,7 +439,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -449,7 +449,7 @@ export interface AdapterMock extends BaseContract {
       tokenOut: string,
       callData: BytesLike,
       allowTokenIn: boolean,
-      ltCheckRequired: boolean,
+      disableTokenIn: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

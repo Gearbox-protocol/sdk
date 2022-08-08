@@ -42,6 +42,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "ReentrancyLockException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "TargetContractNotAllowedExpcetion",
     type: "error",
   },
@@ -53,6 +58,11 @@ const _abi = [
   {
     inputs: [],
     name: "TokenNotAllowedException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TooMuchEnabledTokensException",
     type: "error",
   },
   {

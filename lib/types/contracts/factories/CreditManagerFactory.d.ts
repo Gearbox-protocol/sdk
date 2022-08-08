@@ -15,17 +15,20 @@ export declare type CreditManagerOptsStruct = {
     maxBorrowedAmount: BigNumberish;
     collateralTokens: CollateralTokenStruct[];
     degenNFT: string;
+    expirable: boolean;
 };
 export declare type CreditManagerOptsStructOutput = [
     BigNumber,
     BigNumber,
     CollateralTokenStructOutput[],
-    string
+    string,
+    boolean
 ] & {
     minBorrowedAmount: BigNumber;
     maxBorrowedAmount: BigNumber;
     collateralTokens: CollateralTokenStructOutput[];
     degenNFT: string;
+    expirable: boolean;
 };
 export declare type AdapterStruct = {
     adapter: string;

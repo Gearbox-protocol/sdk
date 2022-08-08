@@ -473,7 +473,9 @@ export interface DegenNFTTest extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     setUp(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -556,7 +558,9 @@ export interface DegenNFTTest extends BaseContract {
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setUp(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -801,7 +805,9 @@ export interface DegenNFTTest extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     setUp(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -887,7 +893,9 @@ export interface DegenNFTTest extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     setUp(
       overrides?: Overrides & { from?: string | Promise<string> }

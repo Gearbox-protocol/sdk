@@ -231,7 +231,9 @@ export interface PriceOracleTest extends BaseContract {
         IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
         acl(overrides?: CallOverrides): Promise<[string]>;
         addressProvider(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         priceOracle(overrides?: CallOverrides): Promise<[string]>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -267,7 +269,9 @@ export interface PriceOracleTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
     acl(overrides?: CallOverrides): Promise<string>;
     addressProvider(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     priceOracle(overrides?: CallOverrides): Promise<string>;
     setUp(overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -356,7 +360,9 @@ export interface PriceOracleTest extends BaseContract {
         IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
         acl(overrides?: CallOverrides): Promise<BigNumber>;
         addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -393,7 +399,9 @@ export interface PriceOracleTest extends BaseContract {
         IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         acl(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;

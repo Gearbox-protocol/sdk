@@ -48,6 +48,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "CantLiquidateNonExpiredException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "CantLiquidateWithSuchHealthFactorException",
     type: "error",
   },
@@ -98,7 +103,22 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "NotAllowedWhenNotExpirableException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "NotEnoughCollateralException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "OpenAccountNotAllowedAfterExpiration",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ReentrancyLockException",
     type: "error",
   },
   {
@@ -114,6 +134,11 @@ const _abi = [
   {
     inputs: [],
     name: "TokenNotAllowedException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TooMuchEnabledTokensException",
     type: "error",
   },
   {
@@ -246,6 +271,37 @@ const _abi = [
   },
   {
     anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "liquidator",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "remainingFunds",
+        type: "uint256",
+      },
+    ],
+    name: "LiquidateExpiredCreditAccount",
+    type: "event",
+  },
+  {
+    anonymous: false,
     inputs: [],
     name: "MultiCallFinished",
     type: "event",
@@ -292,6 +348,44 @@ const _abi = [
       },
     ],
     name: "OpenCreditAccount",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "TokenDisabled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "TokenEnabled",
     type: "event",
   },
   {
@@ -654,6 +748,51 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "borrower",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "skipTokenMask",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "convertWETH",
+        type: "bool",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "bytes",
+            name: "callData",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct MultiCall[]",
+        name: "calls",
+        type: "tuple[]",
+      },
+    ],
+    name: "liquidateExpiredCreditAccount",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         components: [
           {
             internalType: "address",
@@ -757,6 +896,11 @@ const _abi = [
         internalType: "bool",
         name: "isIncreaseDebtForbidden",
         type: "bool",
+      },
+      {
+        internalType: "uint40",
+        name: "expirationDate",
+        type: "uint40",
       },
     ],
     stateMutability: "view",

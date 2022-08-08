@@ -3,11 +3,21 @@ import type { Provider } from "@ethersproject/providers";
 import type { ISwapper, ISwapperInterface } from "../../../contracts/pathfinder/ISwapper";
 export declare class ISwapper__factory {
     static readonly abi: {
-        inputs: {
+        inputs: ({
+            components: {
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
             internalType: string;
             name: string;
             type: string;
-        }[];
+        } | {
+            internalType: string;
+            name: string;
+            type: string;
+            components?: undefined;
+        })[];
         name: string;
         outputs: {
             components: ({

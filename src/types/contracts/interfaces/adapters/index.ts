@@ -3,6 +3,8 @@
 /* eslint-disable */
 import type * as iAdapterSol from "./IAdapter.sol";
 export type { iAdapterSol };
+import type * as iUniversalAdapterSol from "./IUniversalAdapter.sol";
+export type { iUniversalAdapterSol };
 import type * as convex from "./convex";
 export type { convex };
 import type * as curve from "./curve";

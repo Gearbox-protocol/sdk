@@ -42,6 +42,8 @@ export interface CreditFacadeTestInterface extends utils.Interface {
         "test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled()": FunctionFragment;
         "test_FA_19_decreaseDebt_executes_actions_as_expected()": FunctionFragment;
         "test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount()": FunctionFragment;
+        "test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed()": FunctionFragment;
+        "test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall()": FunctionFragment;
         "test_FA_21_addCollateral_executes_actions_as_expected()": FunctionFragment;
         "test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes()": FunctionFragment;
         "test_FA_23_multicall_reverts_for_unknown_methods()": FunctionFragment;
@@ -67,9 +69,18 @@ export interface CreditFacadeTestInterface extends utils.Interface {
         "test_FA_43_hasOpenedCreditAccount_returns_correct_values()": FunctionFragment;
         "test_FA_44_config_functions_revert_if_called_non_configurator()": FunctionFragment;
         "test_FA_45_revertIfBalanceLessThan_works_correctly()": FunctionFragment;
+        "test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade()": FunctionFragment;
+        "test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration()": FunctionFragment;
+        "test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration()": FunctionFragment;
+        "test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration()": FunctionFragment;
+        "test_FA_50_upgradeableContracts_setters_and_getters_work_correctly()": FunctionFragment;
+        "test_FA_51_approve_reverts_for_upgradeable_contract()": FunctionFragment;
+        "test_FA_52_enableToken_works_as_expected()": FunctionFragment;
+        "test_FA_53_enableToken_works_as_expected_multicall()": FunctionFragment;
+        "test_FA_54_disableToken_works_as_expected_multicall()": FunctionFragment;
         "underlying()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "IS_TEST" | "cft" | "creditConfigurator" | "creditFacade" | "creditManager" | "failed" | "setUp" | "test_FA_01A_constructor_sets_correct_values" | "test_FA_01_constructor_reverts_for_zero_address" | "test_FA_02_functions_reverts_if_borrower_has_no_account" | "test_FA_03A_openCreditAccount_correctly_wraps_ETH" | "test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH" | "test_FA_03C_closeCreditAccount_correctly_wraps_ETH" | "test_FA_03D_liquidate_correctly_wraps_ETH" | "test_FA_03E_addCollateral_correctly_wraps_ETH" | "test_FA_03F_multicall_correctly_wraps_ETH" | "test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance" | "test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account" | "test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode" | "test_FA_05_openCreditAccount_sets_correct_values" | "test_FA_06_openCreditAccount_reverts_for_hf_less_one" | "test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden" | "test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order" | "test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one" | "test_FA_10_no_free_flashloans_during_openCreditAccount" | "test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block" | "test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount" | "test_FA_12_closeCreditAccount_runs_operations_in_correct_order" | "test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure" | "test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1" | "test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events" | "test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure" | "test_FA_17_increaseDebt_executes_actions_as_expected" | "test_FA_18A_increaseDebt_revets_if_more_than_block_limit" | "test_FA_18B_increaseDebt_revets_if_more_than_block_limit" | "test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled" | "test_FA_19_decreaseDebt_executes_actions_as_expected" | "test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount" | "test_FA_21_addCollateral_executes_actions_as_expected" | "test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes" | "test_FA_23_multicall_reverts_for_unknown_methods" | "test_FA_24_multicall_reverts_for_creditManager_address" | "test_FA_25_multicall_reverts_for_non_adapters" | "test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected" | "test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected" | "test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one" | "test_FA_29_multicall_works_with_adapters_calls_as_expected" | "test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract" | "test_FA_31_approve_works_as_expected" | "test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled" | "test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance" | "test_FA_34_transferAccountOwnership_reverts_if_hf_less_1" | "test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed" | "test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max" | "test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly" | "test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account" | "test_FA_39_enable_token_balance" | "test_FA_40_isTokenAllowed_works_as_expected" | "test_FA_41_calcTotalValue_computes_correctly" | "test_FA_42_calcCreditAccountHealthFactor_computes_correctly" | "test_FA_43_hasOpenedCreditAccount_returns_correct_values" | "test_FA_44_config_functions_revert_if_called_non_configurator" | "test_FA_45_revertIfBalanceLessThan_works_correctly" | "underlying"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "IS_TEST" | "cft" | "creditConfigurator" | "creditFacade" | "creditManager" | "failed" | "setUp" | "test_FA_01A_constructor_sets_correct_values" | "test_FA_01_constructor_reverts_for_zero_address" | "test_FA_02_functions_reverts_if_borrower_has_no_account" | "test_FA_03A_openCreditAccount_correctly_wraps_ETH" | "test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH" | "test_FA_03C_closeCreditAccount_correctly_wraps_ETH" | "test_FA_03D_liquidate_correctly_wraps_ETH" | "test_FA_03E_addCollateral_correctly_wraps_ETH" | "test_FA_03F_multicall_correctly_wraps_ETH" | "test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance" | "test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account" | "test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode" | "test_FA_05_openCreditAccount_sets_correct_values" | "test_FA_06_openCreditAccount_reverts_for_hf_less_one" | "test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden" | "test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order" | "test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one" | "test_FA_10_no_free_flashloans_during_openCreditAccount" | "test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block" | "test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount" | "test_FA_12_closeCreditAccount_runs_operations_in_correct_order" | "test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure" | "test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1" | "test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events" | "test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure" | "test_FA_17_increaseDebt_executes_actions_as_expected" | "test_FA_18A_increaseDebt_revets_if_more_than_block_limit" | "test_FA_18B_increaseDebt_revets_if_more_than_block_limit" | "test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled" | "test_FA_19_decreaseDebt_executes_actions_as_expected" | "test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount" | "test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed" | "test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall" | "test_FA_21_addCollateral_executes_actions_as_expected" | "test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes" | "test_FA_23_multicall_reverts_for_unknown_methods" | "test_FA_24_multicall_reverts_for_creditManager_address" | "test_FA_25_multicall_reverts_for_non_adapters" | "test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected" | "test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected" | "test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one" | "test_FA_29_multicall_works_with_adapters_calls_as_expected" | "test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract" | "test_FA_31_approve_works_as_expected" | "test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled" | "test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance" | "test_FA_34_transferAccountOwnership_reverts_if_hf_less_1" | "test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed" | "test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max" | "test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly" | "test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account" | "test_FA_39_enable_token_balance" | "test_FA_40_isTokenAllowed_works_as_expected" | "test_FA_41_calcTotalValue_computes_correctly" | "test_FA_42_calcCreditAccountHealthFactor_computes_correctly" | "test_FA_43_hasOpenedCreditAccount_returns_correct_values" | "test_FA_44_config_functions_revert_if_called_non_configurator" | "test_FA_45_revertIfBalanceLessThan_works_correctly" | "test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade" | "test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration" | "test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration" | "test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration" | "test_FA_50_upgradeableContracts_setters_and_getters_work_correctly" | "test_FA_51_approve_reverts_for_upgradeable_contract" | "test_FA_52_enableToken_works_as_expected" | "test_FA_53_enableToken_works_as_expected_multicall" | "test_FA_54_disableToken_works_as_expected_multicall" | "underlying"): FunctionFragment;
     encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
     encodeFunctionData(functionFragment: "cft", values?: undefined): string;
     encodeFunctionData(functionFragment: "creditConfigurator", values?: undefined): string;
@@ -108,6 +119,8 @@ export interface CreditFacadeTestInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_FA_19_decreaseDebt_executes_actions_as_expected", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_FA_21_addCollateral_executes_actions_as_expected", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_FA_23_multicall_reverts_for_unknown_methods", values?: undefined): string;
@@ -133,6 +146,15 @@ export interface CreditFacadeTestInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "test_FA_43_hasOpenedCreditAccount_returns_correct_values", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_FA_44_config_functions_revert_if_called_non_configurator", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_FA_45_revertIfBalanceLessThan_works_correctly", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_50_upgradeableContracts_setters_and_getters_work_correctly", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_51_approve_reverts_for_upgradeable_contract", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_52_enableToken_works_as_expected", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_53_enableToken_works_as_expected_multicall", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_FA_54_disableToken_works_as_expected_multicall", values?: undefined): string;
     encodeFunctionData(functionFragment: "underlying", values?: undefined): string;
     decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "cft", data: BytesLike): Result;
@@ -172,6 +194,8 @@ export interface CreditFacadeTestInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_FA_19_decreaseDebt_executes_actions_as_expected", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_FA_21_addCollateral_executes_actions_as_expected", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_FA_23_multicall_reverts_for_unknown_methods", data: BytesLike): Result;
@@ -197,6 +221,15 @@ export interface CreditFacadeTestInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "test_FA_43_hasOpenedCreditAccount_returns_correct_values", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_FA_44_config_functions_revert_if_called_non_configurator", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_FA_45_revertIfBalanceLessThan_works_correctly", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_50_upgradeableContracts_setters_and_getters_work_correctly", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_51_approve_reverts_for_upgradeable_contract", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_52_enableToken_works_as_expected", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_53_enableToken_works_as_expected_multicall", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_FA_54_disableToken_works_as_expected_multicall", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
     events: {
         "AddCollateral(address,address,uint256)": EventFragment;
@@ -205,10 +238,13 @@ export interface CreditFacadeTestInterface extends utils.Interface {
         "ExecuteOrder(address,address)": EventFragment;
         "IncreaseBorrowedAmount(address,uint256)": EventFragment;
         "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
+        "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
         "MultiCallFinished()": EventFragment;
         "MultiCallStarted(address)": EventFragment;
         "NewConfigurator(address)": EventFragment;
         "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
+        "TokenDisabled(address,address)": EventFragment;
+        "TokenEnabled(address,address)": EventFragment;
         "TransferAccount(address,address)": EventFragment;
         "TransferAccountAllowed(address,address,bool)": EventFragment;
         "log(string)": EventFragment;
@@ -234,10 +270,13 @@ export interface CreditFacadeTestInterface extends utils.Interface {
     getEvent(nameOrSignatureOrTopic: "ExecuteOrder"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "NewConfigurator"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "log"): EventFragment;
@@ -317,6 +356,19 @@ export declare type LiquidateCreditAccountEvent = TypedEvent<[
     BigNumber
 ], LiquidateCreditAccountEventObject>;
 export declare type LiquidateCreditAccountEventFilter = TypedEventFilter<LiquidateCreditAccountEvent>;
+export interface LiquidateExpiredCreditAccountEventObject {
+    owner: string;
+    liquidator: string;
+    to: string;
+    remainingFunds: BigNumber;
+}
+export declare type LiquidateExpiredCreditAccountEvent = TypedEvent<[
+    string,
+    string,
+    string,
+    BigNumber
+], LiquidateExpiredCreditAccountEventObject>;
+export declare type LiquidateExpiredCreditAccountEventFilter = TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
 export interface MultiCallFinishedEventObject {
 }
 export declare type MultiCallFinishedEvent = TypedEvent<[
@@ -349,6 +401,24 @@ export declare type OpenCreditAccountEvent = TypedEvent<[
     number
 ], OpenCreditAccountEventObject>;
 export declare type OpenCreditAccountEventFilter = TypedEventFilter<OpenCreditAccountEvent>;
+export interface TokenDisabledEventObject {
+    creditAccount: string;
+    token: string;
+}
+export declare type TokenDisabledEvent = TypedEvent<[
+    string,
+    string
+], TokenDisabledEventObject>;
+export declare type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
+export interface TokenEnabledEventObject {
+    creditAccount: string;
+    token: string;
+}
+export declare type TokenEnabledEvent = TypedEvent<[
+    string,
+    string
+], TokenEnabledEventObject>;
+export declare type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
 export interface TransferAccountEventObject {
     oldOwner: string;
     newOwner: string;
@@ -505,7 +575,9 @@ export interface CreditFacadeTest extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<[string]>;
         creditFacade(overrides?: CallOverrides): Promise<[string]>;
         creditManager(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
@@ -602,6 +674,12 @@ export interface CreditFacadeTest extends BaseContract {
         test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
+        test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         test_FA_21_addCollateral_executes_actions_as_expected(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
@@ -677,6 +755,33 @@ export interface CreditFacadeTest extends BaseContract {
         test_FA_45_revertIfBalanceLessThan_works_correctly(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
+        test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_51_approve_reverts_for_upgradeable_contract(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_52_enableToken_works_as_expected(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_53_enableToken_works_as_expected_multicall(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_FA_54_disableToken_works_as_expected_multicall(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         underlying(overrides?: CallOverrides): Promise<[string]>;
     };
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
@@ -684,7 +789,9 @@ export interface CreditFacadeTest extends BaseContract {
     creditConfigurator(overrides?: CallOverrides): Promise<string>;
     creditFacade(overrides?: CallOverrides): Promise<string>;
     creditManager(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     setUp(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
@@ -781,6 +888,12 @@ export interface CreditFacadeTest extends BaseContract {
     test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
+    test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     test_FA_21_addCollateral_executes_actions_as_expected(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
@@ -856,6 +969,33 @@ export interface CreditFacadeTest extends BaseContract {
     test_FA_45_revertIfBalanceLessThan_works_correctly(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
+    test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_51_approve_reverts_for_upgradeable_contract(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_52_enableToken_works_as_expected(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_53_enableToken_works_as_expected_multicall(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_FA_54_disableToken_works_as_expected_multicall(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     underlying(overrides?: CallOverrides): Promise<string>;
     callStatic: {
         IS_TEST(overrides?: CallOverrides): Promise<boolean>;
@@ -896,6 +1036,8 @@ export interface CreditFacadeTest extends BaseContract {
         test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled(overrides?: CallOverrides): Promise<void>;
         test_FA_19_decreaseDebt_executes_actions_as_expected(overrides?: CallOverrides): Promise<void>;
         test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(overrides?: CallOverrides): Promise<void>;
+        test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(overrides?: CallOverrides): Promise<void>;
+        test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(overrides?: CallOverrides): Promise<void>;
         test_FA_21_addCollateral_executes_actions_as_expected(overrides?: CallOverrides): Promise<void>;
         test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes(overrides?: CallOverrides): Promise<void>;
         test_FA_23_multicall_reverts_for_unknown_methods(overrides?: CallOverrides): Promise<void>;
@@ -921,6 +1063,15 @@ export interface CreditFacadeTest extends BaseContract {
         test_FA_43_hasOpenedCreditAccount_returns_correct_values(overrides?: CallOverrides): Promise<void>;
         test_FA_44_config_functions_revert_if_called_non_configurator(overrides?: CallOverrides): Promise<void>;
         test_FA_45_revertIfBalanceLessThan_works_correctly(overrides?: CallOverrides): Promise<void>;
+        test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(overrides?: CallOverrides): Promise<void>;
+        test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(overrides?: CallOverrides): Promise<void>;
+        test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(overrides?: CallOverrides): Promise<void>;
+        test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(overrides?: CallOverrides): Promise<void>;
+        test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(overrides?: CallOverrides): Promise<void>;
+        test_FA_51_approve_reverts_for_upgradeable_contract(overrides?: CallOverrides): Promise<void>;
+        test_FA_52_enableToken_works_as_expected(overrides?: CallOverrides): Promise<void>;
+        test_FA_53_enableToken_works_as_expected_multicall(overrides?: CallOverrides): Promise<void>;
+        test_FA_54_disableToken_works_as_expected_multicall(overrides?: CallOverrides): Promise<void>;
         underlying(overrides?: CallOverrides): Promise<string>;
     };
     filters: {
@@ -936,6 +1087,8 @@ export interface CreditFacadeTest extends BaseContract {
         IncreaseBorrowedAmount(borrower?: string | null, amount?: null): IncreaseBorrowedAmountEventFilter;
         "LiquidateCreditAccount(address,address,address,uint256)"(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateCreditAccountEventFilter;
         LiquidateCreditAccount(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateCreditAccountEventFilter;
+        "LiquidateExpiredCreditAccount(address,address,address,uint256)"(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateExpiredCreditAccountEventFilter;
+        LiquidateExpiredCreditAccount(owner?: string | null, liquidator?: string | null, to?: string | null, remainingFunds?: null): LiquidateExpiredCreditAccountEventFilter;
         "MultiCallFinished()"(): MultiCallFinishedEventFilter;
         MultiCallFinished(): MultiCallFinishedEventFilter;
         "MultiCallStarted(address)"(borrower?: string | null): MultiCallStartedEventFilter;
@@ -944,6 +1097,10 @@ export interface CreditFacadeTest extends BaseContract {
         NewConfigurator(newConfigurator?: string | null): NewConfiguratorEventFilter;
         "OpenCreditAccount(address,address,uint256,uint16)"(onBehalfOf?: string | null, creditAccount?: string | null, borrowAmount?: null, referralCode?: null): OpenCreditAccountEventFilter;
         OpenCreditAccount(onBehalfOf?: string | null, creditAccount?: string | null, borrowAmount?: null, referralCode?: null): OpenCreditAccountEventFilter;
+        "TokenDisabled(address,address)"(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+        TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+        "TokenEnabled(address,address)"(creditAccount?: null, token?: null): TokenEnabledEventFilter;
+        TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
         "TransferAccount(address,address)"(oldOwner?: string | null, newOwner?: string | null): TransferAccountEventFilter;
         TransferAccount(oldOwner?: string | null, newOwner?: string | null): TransferAccountEventFilter;
         "TransferAccountAllowed(address,address,bool)"(from?: string | null, to?: string | null, state?: null): TransferAccountAllowedEventFilter;
@@ -987,7 +1144,9 @@ export interface CreditFacadeTest extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<BigNumber>;
         creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
         creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
@@ -1084,6 +1243,12 @@ export interface CreditFacadeTest extends BaseContract {
         test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
+        test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         test_FA_21_addCollateral_executes_actions_as_expected(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
@@ -1157,6 +1322,33 @@ export interface CreditFacadeTest extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         test_FA_45_revertIfBalanceLessThan_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_51_approve_reverts_for_upgradeable_contract(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_52_enableToken_works_as_expected(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_53_enableToken_works_as_expected_multicall(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_FA_54_disableToken_works_as_expected_multicall(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         underlying(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1167,7 +1359,9 @@ export interface CreditFacadeTest extends BaseContract {
         creditConfigurator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
@@ -1264,6 +1458,12 @@ export interface CreditFacadeTest extends BaseContract {
         test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
+        test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         test_FA_21_addCollateral_executes_actions_as_expected(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
@@ -1337,6 +1537,33 @@ export interface CreditFacadeTest extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         test_FA_45_revertIfBalanceLessThan_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_51_approve_reverts_for_upgradeable_contract(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_52_enableToken_works_as_expected(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_53_enableToken_works_as_expected_multicall(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_FA_54_disableToken_works_as_expected_multicall(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;

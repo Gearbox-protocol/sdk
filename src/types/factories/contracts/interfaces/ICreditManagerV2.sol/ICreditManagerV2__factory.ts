@@ -42,6 +42,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "ReentrancyLockException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "TargetContractNotAllowedExpcetion",
     type: "error",
   },
@@ -53,6 +58,11 @@ const _abi = [
   {
     inputs: [],
     name: "TokenNotAllowedException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TooMuchEnabledTokensException",
     type: "error",
   },
   {
@@ -193,9 +203,9 @@ const _abi = [
         type: "uint256",
       },
       {
-        internalType: "bool",
-        name: "isLiquidated",
-        type: "bool",
+        internalType: "enum ClosureAction",
+        name: "closureActionType",
+        type: "uint8",
       },
       {
         internalType: "uint256",
@@ -298,13 +308,26 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+    ],
+    name: "checkAndOptimizeEnabledTokens",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "borrower",
         type: "address",
       },
       {
-        internalType: "bool",
-        name: "isLiquidated",
-        type: "bool",
+        internalType: "enum ClosureAction",
+        name: "closureActionType",
+        type: "uint8",
       },
       {
         internalType: "uint256",
@@ -475,6 +498,24 @@ const _abi = [
         name: "creditAccount",
         type: "address",
       },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "disableToken",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
     ],
     name: "enabledTokensMap",
     outputs: [
@@ -543,11 +584,6 @@ const _abi = [
         name: "balanceOutBefore",
         type: "uint256",
       },
-      {
-        internalType: "bool",
-        name: "ltCheck",
-        type: "bool",
-      },
     ],
     name: "fastCollateralCheck",
     outputs: [],
@@ -571,6 +607,16 @@ const _abi = [
       {
         internalType: "uint16",
         name: "liquidationDiscount",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "feeLiquidationExpired",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "liquidationDiscountExpired",
         type: "uint16",
       },
     ],
@@ -638,7 +684,7 @@ const _abi = [
         type: "uint16",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -668,6 +714,19 @@ const _abi = [
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "maxAllowedEnabledTokenLength",
+    outputs: [
+      {
+        internalType: "uint8",
+        name: "",
+        type: "uint8",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -760,6 +819,19 @@ const _abi = [
       },
     ],
     name: "setLiquidationThreshold",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "_maxEnabledTokens",
+        type: "uint8",
+      },
+    ],
+    name: "setMaxEnabledTokens",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

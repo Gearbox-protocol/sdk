@@ -4,12 +4,12 @@ import {
   contractsByNetwork,
   YearnParams,
   YearnVaultContract
-} from "src/contracts/contracts";
-import { ADDRESS_0X0, NetworkType } from "src/core/constants";
-import { CreditManagerData } from "src/core/creditManager";
-import { CurveLPTokenData } from "src/tokens/curveLP";
-import { supportedTokens, tokenDataByNetwork } from "src/tokens/token";
-import { TokenType } from "src/tokens/tokenType";
+} from "../contracts/contracts";
+import { ADDRESS_0X0, NetworkType } from "../core/constants";
+import { CreditManagerData } from "../core/creditManager";
+import { CurveLPTokenData } from "../tokens/curveLP";
+import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
+import { TokenType } from "../tokens/tokenType";
 
 import { YearnV2Adapter__factory } from "../types";
 
@@ -95,7 +95,7 @@ export class YearnV2Strategies {
     network: NetworkType,
     yearnVault: YearnVaultContract,
     underlyingAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     let calls: Array<MultiCallStruct> = [];
     const vaultParams = contractParams[yearnVault] as YearnParams;
     const yearnToken = vaultParams.shareToken;
@@ -103,13 +103,15 @@ export class YearnV2Strategies {
 
     if (yearnParams.type === TokenType.YEARN_VAULT) {
       if (
-        data.underlyingToken !==
-        tokenDataByNetwork[network][yearnParams.underlying]
+        data.underlyingToken.toLowerCase() !==
+        tokenDataByNetwork[network][yearnParams.underlying].toLowerCase()
       ) {
         // This should be a pathfinder call
         calls.push(
           UniswapV2Multicaller.connect(
-            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+            data.adapters[
+              contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
+            ]
           ).swapExactTokensForTokens(
             underlyingAmount,
             0,
@@ -121,6 +123,13 @@ export class YearnV2Strategies {
             Math.floor(new Date().getTime() / 1000) + 3600
           )
         );
+      } else {
+        calls.push(
+          YearnV2Multicaller.connect(
+            data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
+          ).deposit(underlyingAmount)
+        );
+        return calls;
       }
     } else if (
       yearnParams.type === TokenType.YEARN_VAULT_OF_CURVE_LP ||
@@ -143,9 +152,11 @@ export class YearnV2Strategies {
 
     calls.push(
       YearnV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network][yearnVault]]
+        data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
       ).deposit()
     );
+
+    return calls;
   }
 
   static yearnToUnderlying(
@@ -153,7 +164,7 @@ export class YearnV2Strategies {
     network: NetworkType,
     yearnVault: YearnVaultContract,
     yearnSharesAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     let calls: Array<MultiCallStruct> = [];
     const vaultParams = contractParams[yearnVault] as YearnParams;
     const yearnToken = vaultParams.shareToken;
@@ -161,19 +172,21 @@ export class YearnV2Strategies {
 
     calls.push(
       YearnV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network][yearnVault]]
+        data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
       ).withdraw(yearnSharesAmount)
     );
 
     if (yearnParams.type === TokenType.YEARN_VAULT) {
       if (
-        data.underlyingToken !==
-        tokenDataByNetwork[network][yearnParams.underlying]
+        data.underlyingToken.toLowerCase() !==
+        tokenDataByNetwork[network][yearnParams.underlying].toLowerCase()
       ) {
         // This should be a pathfinder call
         calls.push(
           UniswapV2Multicaller.connect(
-            data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+            data.adapters[
+              contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
+            ]
           ).swapAllTokensForTokens(
             0,
             [
@@ -200,5 +213,7 @@ export class YearnV2Strategies {
     } else {
       throw new Error("Yearn vault type unknown");
     }
+
+    return calls;
   }
 }

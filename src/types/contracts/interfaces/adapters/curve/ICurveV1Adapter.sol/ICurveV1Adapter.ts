@@ -29,6 +29,7 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
     "_gearboxAdapterType()": FunctionFragment;
     "_gearboxAdapterVersion()": FunctionFragment;
     "add_all_liquidity_one_coin(int128,uint256)": FunctionFragment;
+    "add_liquidity_one_coin(uint256,int128,uint256)": FunctionFragment;
     "admin()": FunctionFragment;
     "admin_balances(uint256)": FunctionFragment;
     "admin_fee()": FunctionFragment;
@@ -84,6 +85,7 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
       | "add_all_liquidity_one_coin"
+      | "add_liquidity_one_coin"
       | "admin"
       | "admin_balances"
       | "admin_fee"
@@ -145,6 +147,10 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "add_all_liquidity_one_coin",
     values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "add_liquidity_one_coin",
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "admin", values?: undefined): string;
   encodeFunctionData(
@@ -295,6 +301,10 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "add_all_liquidity_one_coin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "add_liquidity_one_coin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
@@ -466,6 +476,13 @@ export interface ICurveV1Adapter extends BaseContract {
     add_all_liquidity_one_coin(
       i: BigNumberish,
       rateMinRAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    add_liquidity_one_coin(
+      amount: BigNumberish,
+      i: BigNumberish,
+      minAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -646,6 +663,13 @@ export interface ICurveV1Adapter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  add_liquidity_one_coin(
+    amount: BigNumberish,
+    i: BigNumberish,
+    minAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   admin(overrides?: CallOverrides): Promise<string>;
 
   admin_balances(
@@ -817,6 +841,13 @@ export interface ICurveV1Adapter extends BaseContract {
     add_all_liquidity_one_coin(
       i: BigNumberish,
       rateMinRAY: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    add_liquidity_one_coin(
+      amount: BigNumberish,
+      i: BigNumberish,
+      minAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1000,6 +1031,13 @@ export interface ICurveV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    add_liquidity_one_coin(
+      amount: BigNumberish,
+      i: BigNumberish,
+      minAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     admin(overrides?: CallOverrides): Promise<BigNumber>;
 
     admin_balances(
@@ -1179,6 +1217,13 @@ export interface ICurveV1Adapter extends BaseContract {
     add_all_liquidity_one_coin(
       i: BigNumberish,
       rateMinRAY: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    add_liquidity_one_coin(
+      amount: BigNumberish,
+      i: BigNumberish,
+      minAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

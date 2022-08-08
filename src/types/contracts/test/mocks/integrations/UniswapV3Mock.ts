@@ -146,6 +146,7 @@ export interface UniswapV3MockInterface extends utils.Interface {
     "quoteExactInput(bytes,uint256)": FunctionFragment;
     "quoteExactInputSingle(address,address,uint24,uint256,uint160)": FunctionFragment;
     "quoteExactOutput(bytes,uint256)": FunctionFragment;
+    "quoteExactOutputSingle(address,address,uint24,uint256,uint160)": FunctionFragment;
     "rates(address,address,uint24)": FunctionFragment;
     "setRate(address,address,uint24,uint256)": FunctionFragment;
     "setRate(address,address,uint256)": FunctionFragment;
@@ -162,6 +163,7 @@ export interface UniswapV3MockInterface extends utils.Interface {
       | "quoteExactInput"
       | "quoteExactInputSingle"
       | "quoteExactOutput"
+      | "quoteExactOutputSingle"
       | "rates"
       | "setRate(address,address,uint24,uint256)"
       | "setRate(address,address,uint256)"
@@ -196,6 +198,10 @@ export interface UniswapV3MockInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "quoteExactOutput",
     values: [BytesLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "quoteExactOutputSingle",
+    values: [string, string, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "rates",
@@ -235,6 +241,10 @@ export interface UniswapV3MockInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "quoteExactOutput",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "quoteExactOutputSingle",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "rates", data: BytesLike): Result;
@@ -484,28 +494,39 @@ export interface UniswapV3Mock extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     quoteExactInput(
       path: BytesLike,
       amountIn: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
 
     quoteExactInputSingle(
       tokenIn: string,
       tokenOut: string,
       fee: BigNumberish,
       amountIn: BigNumberish,
-      sqrtPriceLimitX96: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      arg4: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
 
     quoteExactOutput(
       path: BytesLike,
       amountOut: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountIn: BigNumber }>;
+
+    quoteExactOutputSingle(
+      tokenIn: string,
+      tokenOut: string,
+      fee: BigNumberish,
+      amountOut: BigNumberish,
+      arg4: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountIn: BigNumber }>;
 
     rates(
       arg0: string,
@@ -552,28 +573,39 @@ export interface UniswapV3Mock extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   quoteExactInput(
     path: BytesLike,
     amountIn: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   quoteExactInputSingle(
     tokenIn: string,
     tokenOut: string,
     fee: BigNumberish,
     amountIn: BigNumberish,
-    sqrtPriceLimitX96: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+    arg4: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   quoteExactOutput(
     path: BytesLike,
     amountOut: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  quoteExactOutputSingle(
+    tokenIn: string,
+    tokenOut: string,
+    fee: BigNumberish,
+    amountOut: BigNumberish,
+    arg4: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   rates(
     arg0: string,
@@ -633,13 +665,22 @@ export interface UniswapV3Mock extends BaseContract {
       tokenOut: string,
       fee: BigNumberish,
       amountIn: BigNumberish,
-      sqrtPriceLimitX96: BigNumberish,
+      arg4: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     quoteExactOutput(
       path: BytesLike,
       amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    quoteExactOutputSingle(
+      tokenIn: string,
+      tokenOut: string,
+      fee: BigNumberish,
+      amountOut: BigNumberish,
+      arg4: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -773,12 +814,14 @@ export interface UniswapV3Mock extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     quoteExactInput(
       path: BytesLike,
       amountIn: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     quoteExactInputSingle(
@@ -786,14 +829,23 @@ export interface UniswapV3Mock extends BaseContract {
       tokenOut: string,
       fee: BigNumberish,
       amountIn: BigNumberish,
-      sqrtPriceLimitX96: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      arg4: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     quoteExactOutput(
       path: BytesLike,
       amountOut: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    quoteExactOutputSingle(
+      tokenIn: string,
+      tokenOut: string,
+      fee: BigNumberish,
+      amountOut: BigNumberish,
+      arg4: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     rates(
@@ -842,12 +894,14 @@ export interface UniswapV3Mock extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     quoteExactInput(
       path: BytesLike,
       amountIn: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     quoteExactInputSingle(
@@ -855,14 +909,23 @@ export interface UniswapV3Mock extends BaseContract {
       tokenOut: string,
       fee: BigNumberish,
       amountIn: BigNumberish,
-      sqrtPriceLimitX96: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      arg4: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     quoteExactOutput(
       path: BytesLike,
       amountOut: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    quoteExactOutputSingle(
+      tokenIn: string,
+      tokenOut: string,
+      fee: BigNumberish,
+      amountOut: BigNumberish,
+      arg4: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     rates(

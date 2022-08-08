@@ -2,6 +2,35 @@ import type { BaseContract, BigNumber, BigNumberish, BytesLike, CallOverrides, C
 import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "../../common";
+export declare type SwapTaskStruct = {
+    swapOperation: BigNumberish;
+    creditAccount: string;
+    tokenIn: string;
+    tokenOut: string;
+    connectors: string[];
+    amount: BigNumberish;
+    slippage: BigNumberish;
+    externalSlippage: boolean;
+};
+export declare type SwapTaskStructOutput = [
+    number,
+    string,
+    string,
+    string,
+    string[],
+    BigNumber,
+    BigNumber,
+    boolean
+] & {
+    swapOperation: number;
+    creditAccount: string;
+    tokenIn: string;
+    tokenOut: string;
+    connectors: string[];
+    amount: BigNumber;
+    slippage: BigNumber;
+    externalSlippage: boolean;
+};
 export declare type MultiCallStruct = {
     target: string;
     callData: BytesLike;
@@ -29,11 +58,14 @@ export declare type SwapQuoteStructOutput = [
 };
 export interface ISwapperInterface extends utils.Interface {
     functions: {
-        "getBestPairSwap(address,address,address,uint256,uint256)": FunctionFragment;
+        "getBestConnectorSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
+        "getBestDirectPairSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "getBestPairSwap"): FunctionFragment;
-    encodeFunctionData(functionFragment: "getBestPairSwap", values: [string, string, string, BigNumberish, BigNumberish]): string;
-    decodeFunctionResult(functionFragment: "getBestPairSwap", data: BytesLike): Result;
+    getFunction(nameOrSignatureOrTopic: "getBestConnectorSwap" | "getBestDirectPairSwap"): FunctionFragment;
+    encodeFunctionData(functionFragment: "getBestConnectorSwap", values: [SwapTaskStruct, string]): string;
+    encodeFunctionData(functionFragment: "getBestDirectPairSwap", values: [SwapTaskStruct, string]): string;
+    decodeFunctionResult(functionFragment: "getBestConnectorSwap", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getBestDirectPairSwap", data: BytesLike): Result;
     events: {};
 }
 export interface ISwapper extends BaseContract {
@@ -51,24 +83,37 @@ export interface ISwapper extends BaseContract {
     once: OnEvent<this>;
     removeListener: OnEvent<this>;
     functions: {
-        getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: Overrides & {
+        getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
     };
-    getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: Overrides & {
+    getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
     callStatic: {
-        getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: CallOverrides): Promise<SwapQuoteStructOutput>;
+        getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: CallOverrides): Promise<SwapQuoteStructOutput>;
+        getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: CallOverrides): Promise<SwapQuoteStructOutput>;
     };
     filters: {};
     estimateGas: {
-        getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: Overrides & {
+        getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
     };
     populateTransaction: {
-        getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: Overrides & {
+        getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
     };

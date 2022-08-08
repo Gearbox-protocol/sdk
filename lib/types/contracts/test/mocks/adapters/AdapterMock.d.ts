@@ -63,19 +63,19 @@ export interface AdapterMock extends BaseContract {
         execute(callData: BytesLike, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
-        "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
-        "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         fullCheck(creditAccount: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
-        "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
-        "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         targetContract(overrides?: CallOverrides): Promise<[string]>;
@@ -87,19 +87,19 @@ export interface AdapterMock extends BaseContract {
     execute(callData: BytesLike, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
-    "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+    "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
-    "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+    "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
     fullCheck(creditAccount: string, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
-    "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+    "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
-    "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+    "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
     targetContract(overrides?: CallOverrides): Promise<string>;
@@ -109,11 +109,11 @@ export interface AdapterMock extends BaseContract {
         creditFacade(overrides?: CallOverrides): Promise<string>;
         creditManager(overrides?: CallOverrides): Promise<string>;
         execute(callData: BytesLike, overrides?: CallOverrides): Promise<string>;
-        "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: CallOverrides): Promise<string>;
-        "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: CallOverrides): Promise<string>;
+        "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: CallOverrides): Promise<string>;
+        "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: CallOverrides): Promise<string>;
         fullCheck(creditAccount: string, overrides?: CallOverrides): Promise<void>;
-        "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: CallOverrides): Promise<string>;
-        "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: CallOverrides): Promise<string>;
+        "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: CallOverrides): Promise<string>;
+        "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: CallOverrides): Promise<string>;
         targetContract(overrides?: CallOverrides): Promise<string>;
     };
     filters: {};
@@ -125,19 +125,19 @@ export interface AdapterMock extends BaseContract {
         execute(callData: BytesLike, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
-        "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
-        "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         fullCheck(creditAccount: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
-        "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
-        "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         targetContract(overrides?: CallOverrides): Promise<BigNumber>;
@@ -150,19 +150,19 @@ export interface AdapterMock extends BaseContract {
         execute(callData: BytesLike, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
-        "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "executeMaxAllowanceFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
-        "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "executeMaxAllowanceFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         fullCheck(creditAccount: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
-        "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "safeExecuteFastCheck(address,address,bytes,bool,bool)"(tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
-        "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, ltCheckRequired: boolean, overrides?: Overrides & {
+        "safeExecuteFastCheck(address,address,address,bytes,bool,bool)"(creditAccount: string, tokenIn: string, tokenOut: string, callData: BytesLike, allowTokenIn: boolean, disableTokenIn: boolean, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;

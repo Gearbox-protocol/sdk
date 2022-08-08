@@ -396,7 +396,9 @@ export interface PriceOracleTest extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
 
-    failed(overrides?: CallOverrides): Promise<[boolean]>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     priceOracle(overrides?: CallOverrides): Promise<[string]>;
 
@@ -449,7 +451,9 @@ export interface PriceOracleTest extends BaseContract {
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
 
-  failed(overrides?: CallOverrides): Promise<boolean>;
+  failed(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   priceOracle(overrides?: CallOverrides): Promise<string>;
 
@@ -647,7 +651,9 @@ export interface PriceOracleTest extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
-    failed(overrides?: CallOverrides): Promise<BigNumber>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -701,7 +707,9 @@ export interface PriceOracleTest extends BaseContract {
 
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    failed(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

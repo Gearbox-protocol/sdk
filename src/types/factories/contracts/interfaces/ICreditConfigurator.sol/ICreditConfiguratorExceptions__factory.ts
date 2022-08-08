@@ -47,6 +47,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "IncorrectExpirationDateException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "IncorrectFeesException",
     type: "error",
   },

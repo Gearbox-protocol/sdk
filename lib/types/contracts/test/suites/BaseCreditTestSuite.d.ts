@@ -237,7 +237,9 @@ export interface BaseCreditTestSuite extends BaseContract {
         addressProvider(overrides?: CallOverrides): Promise<[string]>;
         af(overrides?: CallOverrides): Promise<[string]>;
         cr(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         gp(overrides?: CallOverrides): Promise<[string]>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
         poolMock(overrides?: CallOverrides): Promise<[string]>;
@@ -257,7 +259,9 @@ export interface BaseCreditTestSuite extends BaseContract {
     addressProvider(overrides?: CallOverrides): Promise<string>;
     af(overrides?: CallOverrides): Promise<string>;
     cr(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     gp(overrides?: CallOverrides): Promise<string>;
     lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
     poolMock(overrides?: CallOverrides): Promise<string>;
@@ -328,7 +332,9 @@ export interface BaseCreditTestSuite extends BaseContract {
         addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
         af(overrides?: CallOverrides): Promise<BigNumber>;
         cr(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         gp(overrides?: CallOverrides): Promise<BigNumber>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         poolMock(overrides?: CallOverrides): Promise<BigNumber>;
@@ -349,7 +355,9 @@ export interface BaseCreditTestSuite extends BaseContract {
         addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         af(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         cr(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         gp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         poolMock(overrides?: CallOverrides): Promise<PopulatedTransaction>;

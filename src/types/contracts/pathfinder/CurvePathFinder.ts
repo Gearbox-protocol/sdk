@@ -26,6 +26,37 @@ import type {
   OnEvent,
 } from "../../common";
 
+export type SwapTaskStruct = {
+  swapOperation: BigNumberish;
+  creditAccount: string;
+  tokenIn: string;
+  tokenOut: string;
+  connectors: string[];
+  amount: BigNumberish;
+  slippage: BigNumberish;
+  externalSlippage: boolean;
+};
+
+export type SwapTaskStructOutput = [
+  number,
+  string,
+  string,
+  string,
+  string[],
+  BigNumber,
+  BigNumber,
+  boolean
+] & {
+  swapOperation: number;
+  creditAccount: string;
+  tokenIn: string;
+  tokenOut: string;
+  connectors: string[];
+  amount: BigNumber;
+  slippage: BigNumber;
+  externalSlippage: boolean;
+};
+
 export type MultiCallStruct = { target: string; callData: BytesLike };
 
 export type MultiCallStructOutput = [string, string] & {
@@ -54,9 +85,10 @@ export type SwapQuoteStructOutput = [
 
 export interface CurvePathFinderInterface extends utils.Interface {
   functions: {
-    "addPoolThroughAdapter(address)": FunctionFragment;
+    "addPool(address)": FunctionFragment;
     "gasUsage(address,address,address)": FunctionFragment;
-    "getBestPairSwap(address,address,address,uint256,uint256)": FunctionFragment;
+    "getBestConnectorSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
+    "getBestDirectPairSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setGasUsage(address,address,address,uint256)": FunctionFragment;
@@ -67,9 +99,10 @@ export interface CurvePathFinderInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "addPoolThroughAdapter"
+      | "addPool"
       | "gasUsage"
-      | "getBestPairSwap"
+      | "getBestConnectorSwap"
+      | "getBestDirectPairSwap"
       | "owner"
       | "renounceOwnership"
       | "setGasUsage"
@@ -78,17 +111,18 @@ export interface CurvePathFinderInterface extends utils.Interface {
       | "transferOwnership"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "addPoolThroughAdapter",
-    values: [string]
-  ): string;
+  encodeFunctionData(functionFragment: "addPool", values: [string]): string;
   encodeFunctionData(
     functionFragment: "gasUsage",
     values: [string, string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "getBestPairSwap",
-    values: [string, string, string, BigNumberish, BigNumberish]
+    functionFragment: "getBestConnectorSwap",
+    values: [SwapTaskStruct, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getBestDirectPairSwap",
+    values: [SwapTaskStruct, string]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -112,13 +146,14 @@ export interface CurvePathFinderInterface extends utils.Interface {
     values: [string]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "addPoolThroughAdapter",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "addPool", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "gasUsage", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getBestPairSwap",
+    functionFragment: "getBestConnectorSwap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getBestDirectPairSwap",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -189,8 +224,8 @@ export interface CurvePathFinder extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    addPoolThroughAdapter(
-      adapter: string,
+    addPool(
+      curvePool: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -201,12 +236,15 @@ export interface CurvePathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    getBestPairSwap(
+    getBestConnectorSwap(
+      swapTask: SwapTaskStruct,
       adapter: string,
-      tokenIn: string,
-      tokenOut: string,
-      amount: BigNumberish,
-      slippageFactor: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    getBestDirectPairSwap(
+      swapTask: SwapTaskStruct,
+      adapter: string,
       overrides?: CallOverrides
     ): Promise<[SwapQuoteStructOutput] & { quote: SwapQuoteStructOutput }>;
 
@@ -242,8 +280,8 @@ export interface CurvePathFinder extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  addPoolThroughAdapter(
-    adapter: string,
+  addPool(
+    curvePool: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -254,12 +292,15 @@ export interface CurvePathFinder extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getBestPairSwap(
+  getBestConnectorSwap(
+    swapTask: SwapTaskStruct,
     adapter: string,
-    tokenIn: string,
-    tokenOut: string,
-    amount: BigNumberish,
-    slippageFactor: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  getBestDirectPairSwap(
+    swapTask: SwapTaskStruct,
+    adapter: string,
     overrides?: CallOverrides
   ): Promise<SwapQuoteStructOutput>;
 
@@ -295,10 +336,7 @@ export interface CurvePathFinder extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    addPoolThroughAdapter(
-      adapter: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    addPool(curvePool: string, overrides?: CallOverrides): Promise<void>;
 
     gasUsage(
       arg0: string,
@@ -307,12 +345,15 @@ export interface CurvePathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getBestPairSwap(
+    getBestConnectorSwap(
+      swapTask: SwapTaskStruct,
       adapter: string,
-      tokenIn: string,
-      tokenOut: string,
-      amount: BigNumberish,
-      slippageFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<SwapQuoteStructOutput>;
+
+    getBestDirectPairSwap(
+      swapTask: SwapTaskStruct,
+      adapter: string,
       overrides?: CallOverrides
     ): Promise<SwapQuoteStructOutput>;
 
@@ -358,8 +399,8 @@ export interface CurvePathFinder extends BaseContract {
   };
 
   estimateGas: {
-    addPoolThroughAdapter(
-      adapter: string,
+    addPool(
+      curvePool: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -370,12 +411,15 @@ export interface CurvePathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getBestPairSwap(
+    getBestConnectorSwap(
+      swapTask: SwapTaskStruct,
       adapter: string,
-      tokenIn: string,
-      tokenOut: string,
-      amount: BigNumberish,
-      slippageFactor: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    getBestDirectPairSwap(
+      swapTask: SwapTaskStruct,
+      adapter: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -412,8 +456,8 @@ export interface CurvePathFinder extends BaseContract {
   };
 
   populateTransaction: {
-    addPoolThroughAdapter(
-      adapter: string,
+    addPool(
+      curvePool: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -424,12 +468,15 @@ export interface CurvePathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getBestPairSwap(
+    getBestConnectorSwap(
+      swapTask: SwapTaskStruct,
       adapter: string,
-      tokenIn: string,
-      tokenOut: string,
-      amount: BigNumberish,
-      slippageFactor: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getBestDirectPairSwap(
+      swapTask: SwapTaskStruct,
+      adapter: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

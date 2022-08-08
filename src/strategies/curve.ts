@@ -4,10 +4,10 @@ import {
   contractsByNetwork,
   CurveParams,
   CurvePoolContract
-} from "src/contracts/contracts";
-import { ADDRESS_0X0, NetworkType } from "src/core/constants";
-import { CreditManagerData } from "src/core/creditManager";
-import { tokenDataByNetwork } from "src/tokens/token";
+} from "../contracts/contracts";
+import { ADDRESS_0X0, NetworkType } from "../core/constants";
+import { CreditManagerData } from "../core/creditManager";
+import { tokenDataByNetwork } from "../tokens/token";
 
 import {
   CurveV1AdapterBase__factory,
@@ -63,6 +63,17 @@ export class CurveCalls {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "exchange_all_underlying",
       [i, j, rateMinRAY]
+    );
+  }
+
+  public static add_liquidity_one_coin(
+    amount: BigNumberish,
+    i: BigNumberish,
+    minAmount: BigNumberish
+  ) {
+    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+      "add_liquidity_one_coin",
+      [amount, i, minAmount]
     );
   }
 
@@ -239,6 +250,17 @@ export class CurveMulticaller {
     };
   }
 
+  add_liquidity_one_coin(
+    amount: BigNumberish,
+    i: BigNumberish,
+    minAmount: BigNumberish
+  ): MultiCallStruct {
+    return {
+      target: this._address,
+      callData: CurveCalls.add_liquidity_one_coin(amount, i, minAmount)
+    };
+  }
+
   add_all_liquidity_one_coin(
     i: BigNumberish,
     rateMinRAY: BigNumberish
@@ -317,30 +339,38 @@ export class CurveStrategies {
     network: NetworkType,
     curvePool: CurvePoolContract,
     underlyingAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
     const tokenToDeposit = curveParams.tokens[0];
 
-    if (data.underlyingToken !== tokenDataByNetwork[network][tokenToDeposit]) {
+    if (
+      data.underlyingToken.toLowerCase() !==
+      tokenDataByNetwork[network][tokenToDeposit].toLowerCase()
+    ) {
       calls.push(
         UniswapV2Multicaller.connect(
-          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          data.adapters[
+            contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
+          ]
         ).swapExactTokensForTokens(
           underlyingAmount,
           0,
           [data.underlyingToken, tokenDataByNetwork[network][tokenToDeposit]],
           ADDRESS_0X0,
           Math.floor(new Date().getTime() / 1000) + 3600
-        )
+        ),
+        CurveMulticaller.connect(
+          data.adapters[contractsByNetwork[network][curvePool].toLowerCase()]
+        ).add_all_liquidity_one_coin(0, 0)
+      );
+    } else {
+      calls.push(
+        CurveMulticaller.connect(
+          data.adapters[contractsByNetwork[network][curvePool].toLowerCase()]
+        ).add_liquidity_one_coin(underlyingAmount, 0, 0)
       );
     }
-
-    calls.push(
-      CurveMulticaller.connect(
-        data.adapters[contractsByNetwork[network][curvePool]]
-      ).add_all_liquidity_one_coin(0, 0)
-    );
 
     return calls;
   }
@@ -350,7 +380,7 @@ export class CurveStrategies {
     network: NetworkType,
     curvePool: CurvePoolContract,
     curveLPAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
 
@@ -358,10 +388,12 @@ export class CurveStrategies {
 
     if (curveParams.wrapper) {
       curveContractAddress =
-        data.adapters[contractsByNetwork[network][curveParams.wrapper]];
+        data.adapters[
+          contractsByNetwork[network][curveParams.wrapper].toLowerCase()
+        ];
     } else {
       curveContractAddress =
-        data.adapters[contractsByNetwork[network][curvePool]];
+        data.adapters[contractsByNetwork[network][curvePool].toLowerCase()];
     }
 
     calls.push(
@@ -373,12 +405,14 @@ export class CurveStrategies {
     );
 
     if (
-      tokenDataByNetwork[network][curveParams.tokens[0]] !==
-      data.underlyingToken
+      tokenDataByNetwork[network][curveParams.tokens[0]].toLowerCase() !==
+      data.underlyingToken.toLowerCase()
     ) {
       calls.push(
         UniswapV2Multicaller.connect(
-          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          data.adapters[
+            contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
+          ]
         ).swapAllTokensForTokens(
           0,
           [
@@ -397,7 +431,7 @@ export class CurveStrategies {
     data: CreditManagerData,
     network: NetworkType,
     curvePool: CurvePoolContract
-  ) {
+  ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
 
@@ -405,10 +439,12 @@ export class CurveStrategies {
 
     if (curveParams.wrapper) {
       curveContractAddress =
-        data.adapters[contractsByNetwork[network][curveParams.wrapper]];
+        data.adapters[
+          contractsByNetwork[network][curveParams.wrapper].toLowerCase()
+        ];
     } else {
       curveContractAddress =
-        data.adapters[contractsByNetwork[network][curvePool]];
+        data.adapters[contractsByNetwork[network][curvePool].toLowerCase()];
     }
 
     calls.push(
@@ -418,12 +454,14 @@ export class CurveStrategies {
     );
 
     if (
-      tokenDataByNetwork[network][curveParams.tokens[0]] !==
-      data.underlyingToken
+      tokenDataByNetwork[network][curveParams.tokens[0]].toLowerCase() !==
+      data.underlyingToken.toLowerCase()
     ) {
       calls.push(
         UniswapV2Multicaller.connect(
-          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          data.adapters[
+            contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
+          ]
         ).swapAllTokensForTokens(
           0,
           [

@@ -10,6 +10,7 @@ export interface CurveV1Adapter3AssetsInterface extends utils.Interface {
         "_gearboxAdapterVersion()": FunctionFragment;
         "add_all_liquidity_one_coin(int128,uint256)": FunctionFragment;
         "add_liquidity(uint256[3],uint256)": FunctionFragment;
+        "add_liquidity_one_coin(uint256,int128,uint256)": FunctionFragment;
         "admin()": FunctionFragment;
         "admin_balances(uint256)": FunctionFragment;
         "admin_fee()": FunctionFragment;
@@ -64,13 +65,14 @@ export interface CurveV1Adapter3AssetsInterface extends utils.Interface {
         "underlying_coins(int128)": FunctionFragment;
         "underlying_coins(uint256)": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "A" | "A_precise" | "_gearboxAdapterType" | "_gearboxAdapterVersion" | "add_all_liquidity_one_coin" | "add_liquidity" | "admin" | "admin_balances" | "admin_fee" | "allowance" | "balanceOf" | "balances(int128)" | "balances(uint256)" | "block_timestamp_last" | "calc_token_amount" | "calc_withdraw_one_coin" | "coins(int128)" | "coins(uint256)" | "creditFacade" | "creditManager" | "decimals" | "exchange" | "exchange_all" | "exchange_all_underlying" | "exchange_underlying" | "fee" | "future_A" | "future_A_time" | "get_balances" | "get_dy" | "get_dy_underlying" | "get_previous_balances" | "get_price_cumulative_last" | "get_twap_balances" | "get_virtual_price" | "initial_A" | "initial_A_time" | "lp_token" | "metapoolBase" | "nCoins" | "name" | "remove_all_liquidity_one_coin" | "remove_liquidity" | "remove_liquidity_imbalance" | "remove_liquidity_one_coin" | "symbol" | "targetContract" | "token" | "token0" | "token1" | "token2" | "token3" | "totalSupply" | "underlying0" | "underlying1" | "underlying2" | "underlying3" | "underlying_coins(int128)" | "underlying_coins(uint256)"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "A" | "A_precise" | "_gearboxAdapterType" | "_gearboxAdapterVersion" | "add_all_liquidity_one_coin" | "add_liquidity" | "add_liquidity_one_coin" | "admin" | "admin_balances" | "admin_fee" | "allowance" | "balanceOf" | "balances(int128)" | "balances(uint256)" | "block_timestamp_last" | "calc_token_amount" | "calc_withdraw_one_coin" | "coins(int128)" | "coins(uint256)" | "creditFacade" | "creditManager" | "decimals" | "exchange" | "exchange_all" | "exchange_all_underlying" | "exchange_underlying" | "fee" | "future_A" | "future_A_time" | "get_balances" | "get_dy" | "get_dy_underlying" | "get_previous_balances" | "get_price_cumulative_last" | "get_twap_balances" | "get_virtual_price" | "initial_A" | "initial_A_time" | "lp_token" | "metapoolBase" | "nCoins" | "name" | "remove_all_liquidity_one_coin" | "remove_liquidity" | "remove_liquidity_imbalance" | "remove_liquidity_one_coin" | "symbol" | "targetContract" | "token" | "token0" | "token1" | "token2" | "token3" | "totalSupply" | "underlying0" | "underlying1" | "underlying2" | "underlying3" | "underlying_coins(int128)" | "underlying_coins(uint256)"): FunctionFragment;
     encodeFunctionData(functionFragment: "A", values?: undefined): string;
     encodeFunctionData(functionFragment: "A_precise", values?: undefined): string;
     encodeFunctionData(functionFragment: "_gearboxAdapterType", values?: undefined): string;
     encodeFunctionData(functionFragment: "_gearboxAdapterVersion", values?: undefined): string;
     encodeFunctionData(functionFragment: "add_all_liquidity_one_coin", values: [BigNumberish, BigNumberish]): string;
     encodeFunctionData(functionFragment: "add_liquidity", values: [[BigNumberish, BigNumberish, BigNumberish], BigNumberish]): string;
+    encodeFunctionData(functionFragment: "add_liquidity_one_coin", values: [BigNumberish, BigNumberish, BigNumberish]): string;
     encodeFunctionData(functionFragment: "admin", values?: undefined): string;
     encodeFunctionData(functionFragment: "admin_balances", values: [BigNumberish]): string;
     encodeFunctionData(functionFragment: "admin_fee", values?: undefined): string;
@@ -142,6 +144,7 @@ export interface CurveV1Adapter3AssetsInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "_gearboxAdapterVersion", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "add_all_liquidity_one_coin", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "add_liquidity", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "add_liquidity_one_coin", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "admin_balances", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "admin_fee", data: BytesLike): Result;
@@ -220,6 +223,9 @@ export interface CurveV1Adapter3Assets extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         add_liquidity(amounts: [BigNumberish, BigNumberish, BigNumberish], arg1: BigNumberish, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        add_liquidity_one_coin(amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         admin(overrides?: CallOverrides): Promise<[string]>;
@@ -302,6 +308,9 @@ export interface CurveV1Adapter3Assets extends BaseContract {
     add_liquidity(amounts: [BigNumberish, BigNumberish, BigNumberish], arg1: BigNumberish, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
+    add_liquidity_one_coin(amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish, overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     admin(overrides?: CallOverrides): Promise<string>;
     admin_balances(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
     admin_fee(overrides?: CallOverrides): Promise<BigNumber>;
@@ -378,6 +387,7 @@ export interface CurveV1Adapter3Assets extends BaseContract {
         _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
         add_all_liquidity_one_coin(i: BigNumberish, rateMinRAY: BigNumberish, overrides?: CallOverrides): Promise<void>;
         add_liquidity(amounts: [BigNumberish, BigNumberish, BigNumberish], arg1: BigNumberish, overrides?: CallOverrides): Promise<void>;
+        add_liquidity_one_coin(amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish, overrides?: CallOverrides): Promise<void>;
         admin(overrides?: CallOverrides): Promise<string>;
         admin_balances(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         admin_fee(overrides?: CallOverrides): Promise<BigNumber>;
@@ -442,6 +452,9 @@ export interface CurveV1Adapter3Assets extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         add_liquidity(amounts: [BigNumberish, BigNumberish, BigNumberish], arg1: BigNumberish, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        add_liquidity_one_coin(amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         admin(overrides?: CallOverrides): Promise<BigNumber>;
@@ -523,6 +536,9 @@ export interface CurveV1Adapter3Assets extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         add_liquidity(amounts: [BigNumberish, BigNumberish, BigNumberish], arg1: BigNumberish, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        add_liquidity_one_coin(amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -1,6 +1,6 @@
 import { BigNumberish } from "ethers";
-import { CreditManagerData } from "src/core/creditManager";
-import { NetworkType } from "src/core/constants";
+import { CreditManagerData } from "../core/creditManager";
+import { NetworkType } from "../core/constants";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 export declare class LidoCalls {
     static submit(amount: BigNumberish): string;

@@ -51,6 +51,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
     "isTokenAllowed(address)": FunctionFragment;
     "limits()": FunctionFragment;
     "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])": FunctionFragment;
+    "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])": FunctionFragment;
     "multicall((address,bytes)[])": FunctionFragment;
     "openCreditAccount(uint256,address,uint16,uint16)": FunctionFragment;
     "openCreditAccountMulticall(uint256,address,(address,bytes)[],uint16)": FunctionFragment;
@@ -77,6 +78,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
       | "isTokenAllowed"
       | "limits"
       | "liquidateCreditAccount"
+      | "liquidateExpiredCreditAccount"
       | "multicall"
       | "openCreditAccount"
       | "openCreditAccountMulticall"
@@ -135,6 +137,10 @@ export interface ICreditFacadeInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "limits", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount",
+    values: [string, string, BigNumberish, boolean, MultiCallStruct[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "liquidateExpiredCreditAccount",
     values: [string, string, BigNumberish, boolean, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
@@ -211,6 +217,10 @@ export interface ICreditFacadeInterface extends utils.Interface {
     functionFragment: "liquidateCreditAccount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidateExpiredCreditAccount",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "openCreditAccount",
@@ -237,9 +247,12 @@ export interface ICreditFacadeInterface extends utils.Interface {
     "DecreaseBorrowedAmount(address,uint256)": EventFragment;
     "IncreaseBorrowedAmount(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
     "MultiCallFinished()": EventFragment;
     "MultiCallStarted(address)": EventFragment;
     "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
+    "TokenDisabled(address,address)": EventFragment;
+    "TokenEnabled(address,address)": EventFragment;
     "TransferAccount(address,address)": EventFragment;
     "TransferAccountAllowed(address,address,bool)": EventFragment;
   };
@@ -249,9 +262,14 @@ export interface ICreditFacadeInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "DecreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
 }
@@ -318,6 +336,20 @@ export type LiquidateCreditAccountEvent = TypedEvent<
 export type LiquidateCreditAccountEventFilter =
   TypedEventFilter<LiquidateCreditAccountEvent>;
 
+export interface LiquidateExpiredCreditAccountEventObject {
+  owner: string;
+  liquidator: string;
+  to: string;
+  remainingFunds: BigNumber;
+}
+export type LiquidateExpiredCreditAccountEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  LiquidateExpiredCreditAccountEventObject
+>;
+
+export type LiquidateExpiredCreditAccountEventFilter =
+  TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
+
 export interface MultiCallFinishedEventObject {}
 export type MultiCallFinishedEvent = TypedEvent<
   [],
@@ -351,6 +383,28 @@ export type OpenCreditAccountEvent = TypedEvent<
 
 export type OpenCreditAccountEventFilter =
   TypedEventFilter<OpenCreditAccountEvent>;
+
+export interface TokenDisabledEventObject {
+  creditAccount: string;
+  token: string;
+}
+export type TokenDisabledEvent = TypedEvent<
+  [string, string],
+  TokenDisabledEventObject
+>;
+
+export type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
+
+export interface TokenEnabledEventObject {
+  creditAccount: string;
+  token: string;
+}
+export type TokenEnabledEvent = TypedEvent<
+  [string, string],
+  TokenEnabledEventObject
+>;
+
+export type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
 
 export interface TransferAccountEventObject {
   oldOwner: string;
@@ -488,6 +542,15 @@ export interface ICreditFacade extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    liquidateExpiredCreditAccount(
+      borrower: string,
+      to: string,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     multicall(
       calls: MultiCallStruct[],
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -512,9 +575,10 @@ export interface ICreditFacade extends BaseContract {
     params(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, boolean] & {
+      [BigNumber, boolean, number] & {
         maxBorrowedAmountPerBlock: BigNumber;
         isIncreaseDebtForbidden: boolean;
+        expirationDate: number;
       }
     >;
 
@@ -614,6 +678,15 @@ export interface ICreditFacade extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  liquidateExpiredCreditAccount(
+    borrower: string,
+    to: string,
+    skipTokenMask: BigNumberish,
+    convertWETH: boolean,
+    calls: MultiCallStruct[],
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   multicall(
     calls: MultiCallStruct[],
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -638,9 +711,10 @@ export interface ICreditFacade extends BaseContract {
   params(
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, boolean] & {
+    [BigNumber, boolean, number] & {
       maxBorrowedAmountPerBlock: BigNumber;
       isIncreaseDebtForbidden: boolean;
+      expirationDate: number;
     }
   >;
 
@@ -737,6 +811,15 @@ export interface ICreditFacade extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    liquidateExpiredCreditAccount(
+      borrower: string,
+      to: string,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     multicall(
       calls: MultiCallStruct[],
       overrides?: CallOverrides
@@ -761,9 +844,10 @@ export interface ICreditFacade extends BaseContract {
     params(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, boolean] & {
+      [BigNumber, boolean, number] & {
         maxBorrowedAmountPerBlock: BigNumber;
         isIncreaseDebtForbidden: boolean;
+        expirationDate: number;
       }
     >;
 
@@ -833,6 +917,19 @@ export interface ICreditFacade extends BaseContract {
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
+      owner?: string | null,
+      liquidator?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): LiquidateExpiredCreditAccountEventFilter;
+    LiquidateExpiredCreditAccount(
+      owner?: string | null,
+      liquidator?: string | null,
+      to?: string | null,
+      remainingFunds?: null
+    ): LiquidateExpiredCreditAccountEventFilter;
+
     "MultiCallFinished()"(): MultiCallFinishedEventFilter;
     MultiCallFinished(): MultiCallFinishedEventFilter;
 
@@ -853,6 +950,18 @@ export interface ICreditFacade extends BaseContract {
       borrowAmount?: null,
       referralCode?: null
     ): OpenCreditAccountEventFilter;
+
+    "TokenDisabled(address,address)"(
+      creditAccount?: null,
+      token?: null
+    ): TokenDisabledEventFilter;
+    TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+
+    "TokenEnabled(address,address)"(
+      creditAccount?: null,
+      token?: null
+    ): TokenEnabledEventFilter;
+    TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
@@ -946,6 +1055,15 @@ export interface ICreditFacade extends BaseContract {
     limits(overrides?: CallOverrides): Promise<BigNumber>;
 
     liquidateCreditAccount(
+      borrower: string,
+      to: string,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    liquidateExpiredCreditAccount(
       borrower: string,
       to: string,
       skipTokenMask: BigNumberish,
@@ -1062,6 +1180,15 @@ export interface ICreditFacade extends BaseContract {
     limits(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     liquidateCreditAccount(
+      borrower: string,
+      to: string,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    liquidateExpiredCreditAccount(
       borrower: string,
       to: string,
       skipTokenMask: BigNumberish,
