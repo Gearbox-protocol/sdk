@@ -101,8 +101,8 @@ export async function getConvexApy(
   const crvPerYear = crvPerUnderlying.mul(SECONDS_PER_YEAR);
   const cvxPerYear = getCVXMintAmount(crvPerYear, cvxSupply);
 
-  const crvAPY = crvPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
-  const cvxAPY = cvxPerYear.mul(crvPrice).div(PRICE_DECIMALS);
+  const crvAPY = crvPerYear.mul(crvPrice).div(PRICE_DECIMALS);
+  const cvxAPY = cvxPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
 
   const extraAPRs = await Promise.all(
     extraPoolAddresses.map(async (_, index) => {
@@ -112,9 +112,9 @@ export async function getConvexApy(
       const perUnderlying = extraPoolRate.mul(WAD).div(virtualSupply);
       const perYear = perUnderlying.mul(SECONDS_PER_YEAR);
 
-      const extraPrise = getTokenPrice(tokenList[extraRewardSymbol]);
+      const extraPrice = getTokenPrice(tokenList[extraRewardSymbol]);
 
-      const extraAPY = perYear.mul(extraPrise).div(PRICE_DECIMALS);
+      const extraAPY = perYear.mul(extraPrice).div(PRICE_DECIMALS);
 
       return extraAPY;
     })

@@ -48,12 +48,12 @@ export class CreditAccountData {
   public readonly version: number = 1;
 
   constructor(payload: CreditAccountDataPayload) {
-    this.id = payload.creditManager;
-    this.addr = payload.addr;
-    this.borrower = payload.borrower;
+    this.id = payload.creditManager.toLowerCase();
+    this.addr = payload.addr.toLowerCase();
+    this.borrower = payload.borrower.toLowerCase();
     this.inUse = payload.inUse;
-    this.creditManager = payload.creditManager;
-    this.underlyingToken = payload.underlying;
+    this.creditManager = payload.creditManager.toLowerCase();
+    this.underlyingToken = payload.underlying.toLowerCase();
     this.borrowedAmountPlusInterest = BigNumber.from(
       payload.borrowedAmountPlusInterest
     );
@@ -68,13 +68,14 @@ export class CreditAccountData {
         .toNumber() / PERCENTAGE_FACTOR;
 
     (payload.balances || []).forEach(b => {
+      const tokenLC = b.token.toLowerCase();
       if (b.isAllowed) {
-        this.balances[b.token] = BigNumber.from(b.balance);
-        this.allowedTokens.push(b.token);
+        this.balances[tokenLC] = BigNumber.from(b.balance);
+        this.allowedTokens.push(tokenLC);
       }
 
-      this.allBalances[b.token] = BigNumber.from(b.balance);
-      this.allTokens.push(b.token);
+      this.allBalances[tokenLC] = BigNumber.from(b.balance);
+      this.allTokens.push(tokenLC);
     });
 
     this.isDeleting = false;
