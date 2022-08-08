@@ -1,9 +1,10 @@
 import { BigNumber } from "ethers";
 export declare const MAX_INT: BigNumber;
 export declare const MAINNET_NETWORK = 1;
+export declare const GOERLI_NETWORK = 5;
 export declare const KOVAN_NETWORK = 42;
 export declare const LOCAL_NETWORK = 1337;
-export declare type NetworkType = "Mainnet" | "Kovan";
+export declare type NetworkType = "Mainnet" | "Kovan" | "Goerli";
 export declare const getNetworkType: (chainId: number) => NetworkType;
 export declare const RAY_DECIMALS_POW = 27;
 export declare const RAY: BigNumber;

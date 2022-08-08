@@ -288,7 +288,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-      Kovan: "0xF5C73b58B70709e89aA1D322d48b0D0C71123cB4"
+      Kovan: "0xF5C73b58B70709e89aA1D322d48b0D0C71123cB4",
+      Goerli: "TODO: Deploy me" // vyper contract
     },
     tokens: ["WETH", "STETH"],
     lpToken: "steCRV"
@@ -404,7 +405,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "SNX",
         poolAddress: {
           Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
-          Kovan: "0x26a535146557FA58FA37e3078FEAc523b554939C"
+          Kovan: "0x26a535146557FA58FA37e3078FEAc523b554939C",
+          Goerli: "TODO: DEPLOY ME" //  ConvexVirtualBalanceRewardPoolK.sol
         }
       }
     ]
@@ -419,7 +421,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LDO",
         poolAddress: {
           Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
-          Kovan: "0xd0B1CC3B4839363b1eC92F35eF45794CB07B1183"
+          Kovan: "0xd0B1CC3B4839363b1eC92F35eF45794CB07B1183",
+          Goerli: "TODO: DEPLOY ME" //  ConvexVirtualBalanceRewardPoolK.sol
         }
       }
     ]
@@ -434,7 +437,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "FXS",
         poolAddress: {
           Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
-          Kovan: "0x89869c2e79FC6EFf51e714F1239D53702B5CDFCD"
+          Kovan: "0x89869c2e79FC6EFf51e714F1239D53702B5CDFCD",
+          Goerli: "TODO: DEPLOY ME" //  ConvexVirtualBalanceRewardPoolK.sol
         }
       }
     ]
@@ -449,7 +453,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LQTY",
         poolAddress: {
           Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
-          Kovan: ""
+          Kovan: "",
+          Goerli: "TODO: DEPLOY ME" //  ConvexVirtualBalanceRewardPoolK.sol
         }
       }
     ]
@@ -461,7 +466,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.LIDO_V1,
     oracle: {
       Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
-      Kovan: "0x65EBFF1D5C02418AaeCd0f953da518cF6a6c68A0"
+      Kovan: "0x65EBFF1D5C02418AaeCd0f953da518cF6a6c68A0",
+      Goerli: "TODO: DEPLOY ME" // LidoOracleK.sol
     },
     lpToken: "steCRV"
   }
