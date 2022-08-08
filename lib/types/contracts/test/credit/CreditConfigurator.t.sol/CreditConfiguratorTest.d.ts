@@ -1,15 +1,18 @@
-import type { BaseContract, BigNumber, BytesLike, CallOverrides, ContractTransaction, Overrides, PopulatedTransaction, Signer, utils } from "ethers";
+import type { BaseContract, BigNumber, BigNumberish, BytesLike, CallOverrides, ContractTransaction, Overrides, PayableOverrides, PopulatedTransaction, Signer, utils } from "ethers";
 import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "../../../../common";
 export interface CreditConfiguratorTestInterface extends utils.Interface {
     functions: {
         "IS_TEST()": FunctionFragment;
+        "_deploy(bytes,uint256)": FunctionFragment;
+        "_getAddress(bytes,uint256)": FunctionFragment;
         "creditConfigurator()": FunctionFragment;
         "creditFacade()": FunctionFragment;
         "creditManager()": FunctionFragment;
         "failed()": FunctionFragment;
         "setUp()": FunctionFragment;
+        "test_CC_01A_constructor_emits_all_events()": FunctionFragment;
         "test_CC_01_constructor_sets_correct_values()": FunctionFragment;
         "test_CC_02_all_functions_revert_if_called_non_configurator()": FunctionFragment;
         "test_CC_03_addCollateralToken_reverts_for_zero_address_or_in_priceFeed()": FunctionFragment;
@@ -40,14 +43,21 @@ export interface CreditConfiguratorTestInterface extends utils.Interface {
         "test_CC_31_upgradeCreditConfigurator_upgrades_creditConfigurator()": FunctionFragment;
         "test_CC_32_setIncreaseDebtForbidden_sets_IncreaseDebtForbidden()": FunctionFragment;
         "test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock()": FunctionFragment;
+        "test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets()": FunctionFragment;
+        "test_CC_35_addToUpgradeableContracts_works_correctly()": FunctionFragment;
+        "test_CC_36_removeFromUpgradeableContracts_works_correctly()": FunctionFragment;
+        "test_CC_37_setMaxEnabledTokens_works_correctly()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "IS_TEST" | "creditConfigurator" | "creditFacade" | "creditManager" | "failed" | "setUp" | "test_CC_01_constructor_sets_correct_values" | "test_CC_02_all_functions_revert_if_called_non_configurator" | "test_CC_03_addCollateralToken_reverts_for_zero_address_or_in_priceFeed" | "test_CC_04_addCollateralToken_adds_new_token_to_creditManager_and_set_lt" | "test_CC_05_setLiquidationThreshold_reverts_for_underling_token_and_incorrect_values" | "test_CC_06_setLiquidationThreshold_sets_liquidation_threshold_in_creditManager" | "test_CC_07_allowToken_and_forbidToken_reverts_for_unknown_or_underlying_token" | "test_CC_08_allowToken_doesnt_change_forbidden_mask_if_its_already_allowed" | "test_CC_09_allows_token_if_it_was_forbidden" | "test_CC_10_forbidToken_doesnt_change_forbidden_mask_if_its_already_forbidden" | "test_CC_11_forbidToken_forbids_token_if_it_was_allowed" | "test_CC_12A_allowContract_reverts_for_non_contract_addresses" | "test_CC_12B_allowContract_reverts_for_non_compartible_adapter_contract" | "test_CC_12_allowContract_and_forbidContract_reverts_for_zero_address" | "test_CC_13_allowContract_reverts_for_creditManager_and_creditFacade_contracts" | "test_CC_14_allowContract_reverts_for_creditManager_and_creditFacade_contracts" | "test_CC_15_allowContract_allows_targetContract_adapter_and_emits_event" | "test_CC_16_forbidContract_reverts_for_unknown_contract" | "test_CC_17_forbidContract_forbids_contract_and_emits_event" | "test_CC_18_setLimits_reverts_if_minAmount_gt_maxAmount_or_maxBorrowedAmount_gt_blockLimit" | "test_CC_19_setLimits_sets_limits" | "test_CC_23_setFees_reverts_for_incorrect_fees" | "test_CC_25_setFees_updates_LT_for_underlying_and_for_all_tokens_which_bigger_than_new_LT" | "test_CC_26_setFees_sets_fees_and_doesnt_change_others" | "test_CC_28_upgradePriceOracle_upgrades_priceOracleCorrectly_and_doesnt_change_facade" | "test_CC_29_upgradeCreditFacade_upgradeCreditConfigurator_reverts_for_incompatible_contracts" | "test_CC_30_upgradeCreditFacade_upgrades_creditFacade_and_doesnt_change_priceOracle" | "test_CC_31_upgradeCreditConfigurator_upgrades_creditConfigurator" | "test_CC_32_setIncreaseDebtForbidden_sets_IncreaseDebtForbidden" | "test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "IS_TEST" | "_deploy" | "_getAddress" | "creditConfigurator" | "creditFacade" | "creditManager" | "failed" | "setUp" | "test_CC_01A_constructor_emits_all_events" | "test_CC_01_constructor_sets_correct_values" | "test_CC_02_all_functions_revert_if_called_non_configurator" | "test_CC_03_addCollateralToken_reverts_for_zero_address_or_in_priceFeed" | "test_CC_04_addCollateralToken_adds_new_token_to_creditManager_and_set_lt" | "test_CC_05_setLiquidationThreshold_reverts_for_underling_token_and_incorrect_values" | "test_CC_06_setLiquidationThreshold_sets_liquidation_threshold_in_creditManager" | "test_CC_07_allowToken_and_forbidToken_reverts_for_unknown_or_underlying_token" | "test_CC_08_allowToken_doesnt_change_forbidden_mask_if_its_already_allowed" | "test_CC_09_allows_token_if_it_was_forbidden" | "test_CC_10_forbidToken_doesnt_change_forbidden_mask_if_its_already_forbidden" | "test_CC_11_forbidToken_forbids_token_if_it_was_allowed" | "test_CC_12A_allowContract_reverts_for_non_contract_addresses" | "test_CC_12B_allowContract_reverts_for_non_compartible_adapter_contract" | "test_CC_12_allowContract_and_forbidContract_reverts_for_zero_address" | "test_CC_13_allowContract_reverts_for_creditManager_and_creditFacade_contracts" | "test_CC_14_allowContract_reverts_for_creditManager_and_creditFacade_contracts" | "test_CC_15_allowContract_allows_targetContract_adapter_and_emits_event" | "test_CC_16_forbidContract_reverts_for_unknown_contract" | "test_CC_17_forbidContract_forbids_contract_and_emits_event" | "test_CC_18_setLimits_reverts_if_minAmount_gt_maxAmount_or_maxBorrowedAmount_gt_blockLimit" | "test_CC_19_setLimits_sets_limits" | "test_CC_23_setFees_reverts_for_incorrect_fees" | "test_CC_25_setFees_updates_LT_for_underlying_and_for_all_tokens_which_bigger_than_new_LT" | "test_CC_26_setFees_sets_fees_and_doesnt_change_others" | "test_CC_28_upgradePriceOracle_upgrades_priceOracleCorrectly_and_doesnt_change_facade" | "test_CC_29_upgradeCreditFacade_upgradeCreditConfigurator_reverts_for_incompatible_contracts" | "test_CC_30_upgradeCreditFacade_upgrades_creditFacade_and_doesnt_change_priceOracle" | "test_CC_31_upgradeCreditConfigurator_upgrades_creditConfigurator" | "test_CC_32_setIncreaseDebtForbidden_sets_IncreaseDebtForbidden" | "test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock" | "test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets" | "test_CC_35_addToUpgradeableContracts_works_correctly" | "test_CC_36_removeFromUpgradeableContracts_works_correctly" | "test_CC_37_setMaxEnabledTokens_works_correctly"): FunctionFragment;
     encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
+    encodeFunctionData(functionFragment: "_deploy", values: [BytesLike, BigNumberish]): string;
+    encodeFunctionData(functionFragment: "_getAddress", values: [BytesLike, BigNumberish]): string;
     encodeFunctionData(functionFragment: "creditConfigurator", values?: undefined): string;
     encodeFunctionData(functionFragment: "creditFacade", values?: undefined): string;
     encodeFunctionData(functionFragment: "creditManager", values?: undefined): string;
     encodeFunctionData(functionFragment: "failed", values?: undefined): string;
     encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_CC_01A_constructor_emits_all_events", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_CC_01_constructor_sets_correct_values", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_CC_02_all_functions_revert_if_called_non_configurator", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_CC_03_addCollateralToken_reverts_for_zero_address_or_in_priceFeed", values?: undefined): string;
@@ -78,12 +88,19 @@ export interface CreditConfiguratorTestInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "test_CC_31_upgradeCreditConfigurator_upgrades_creditConfigurator", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_CC_32_setIncreaseDebtForbidden_sets_IncreaseDebtForbidden", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_CC_35_addToUpgradeableContracts_works_correctly", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_CC_36_removeFromUpgradeableContracts_works_correctly", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_CC_37_setMaxEnabledTokens_works_correctly", values?: undefined): string;
     decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "_deploy", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "_getAddress", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "creditConfigurator", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "creditFacade", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "creditManager", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_CC_01A_constructor_emits_all_events", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_CC_01_constructor_sets_correct_values", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_CC_02_all_functions_revert_if_called_non_configurator", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_CC_03_addCollateralToken_reverts_for_zero_address_or_in_priceFeed", data: BytesLike): Result;
@@ -114,19 +131,27 @@ export interface CreditConfiguratorTestInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "test_CC_31_upgradeCreditConfigurator_upgrades_creditConfigurator", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_CC_32_setIncreaseDebtForbidden_sets_IncreaseDebtForbidden", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_CC_35_addToUpgradeableContracts_works_correctly", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_CC_36_removeFromUpgradeableContracts_works_correctly", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_CC_37_setMaxEnabledTokens_works_correctly", data: BytesLike): Result;
     events: {
+        "AddedToUpgradeable(address)": EventFragment;
         "ContractAllowed(address,address)": EventFragment;
         "ContractForbidden(address)": EventFragment;
         "CreditConfiguratorUpgraded(address)": EventFragment;
         "CreditFacadeUpgraded(address)": EventFragment;
         "DegenModeUpdated(bool)": EventFragment;
         "ExecuteOrder(address,address)": EventFragment;
-        "FeesUpdated(uint16,uint16,uint16)": EventFragment;
+        "ExpirationDateUpdated(uint40)": EventFragment;
+        "FeesUpdated(uint16,uint16,uint16,uint16,uint16)": EventFragment;
         "IncreaseDebtModeUpdated(bool)": EventFragment;
         "LimitPerBlockUpdated(uint128)": EventFragment;
         "LimitsUpdated(uint256,uint256)": EventFragment;
+        "MaxEnabledTokensUpdated(uint8)": EventFragment;
         "NewConfigurator(address)": EventFragment;
         "PriceOracleUpgraded(address)": EventFragment;
+        "RemovedFromUpgradeable(address)": EventFragment;
         "TokenAllowed(address)": EventFragment;
         "TokenForbidden(address)": EventFragment;
         "TokenLiquidationThresholdUpdated(address,uint16)": EventFragment;
@@ -147,18 +172,22 @@ export interface CreditConfiguratorTestInterface extends utils.Interface {
         "log_uint(uint256)": EventFragment;
         "logs(bytes)": EventFragment;
     };
+    getEvent(nameOrSignatureOrTopic: "AddedToUpgradeable"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "ContractAllowed"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "CreditConfiguratorUpgraded"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "CreditFacadeUpgraded"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "DegenModeUpdated"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "ExecuteOrder"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "ExpirationDateUpdated"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "FeesUpdated"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "IncreaseDebtModeUpdated"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "LimitPerBlockUpdated"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "LimitsUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "MaxEnabledTokensUpdated"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "NewConfigurator"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "PriceOracleUpgraded"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "RemovedFromUpgradeable"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TokenForbidden"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated"): EventFragment;
@@ -179,6 +208,13 @@ export interface CreditConfiguratorTestInterface extends utils.Interface {
     getEvent(nameOrSignatureOrTopic: "log_uint"): EventFragment;
     getEvent(nameOrSignatureOrTopic: "logs"): EventFragment;
 }
+export interface AddedToUpgradeableEventObject {
+    arg0: string;
+}
+export declare type AddedToUpgradeableEvent = TypedEvent<[
+    string
+], AddedToUpgradeableEventObject>;
+export declare type AddedToUpgradeableEventFilter = TypedEventFilter<AddedToUpgradeableEvent>;
 export interface ContractAllowedEventObject {
     protocol: string;
     adapter: string;
@@ -225,12 +261,23 @@ export declare type ExecuteOrderEvent = TypedEvent<[
     string
 ], ExecuteOrderEventObject>;
 export declare type ExecuteOrderEventFilter = TypedEventFilter<ExecuteOrderEvent>;
+export interface ExpirationDateUpdatedEventObject {
+    arg0: number;
+}
+export declare type ExpirationDateUpdatedEvent = TypedEvent<[
+    number
+], ExpirationDateUpdatedEventObject>;
+export declare type ExpirationDateUpdatedEventFilter = TypedEventFilter<ExpirationDateUpdatedEvent>;
 export interface FeesUpdatedEventObject {
     feeInterest: number;
     feeLiquidation: number;
     liquidationPremium: number;
+    feeLiquidationExpired: number;
+    liquidationPremiumExpired: number;
 }
 export declare type FeesUpdatedEvent = TypedEvent<[
+    number,
+    number,
     number,
     number,
     number
@@ -259,6 +306,13 @@ export declare type LimitsUpdatedEvent = TypedEvent<[
     BigNumber
 ], LimitsUpdatedEventObject>;
 export declare type LimitsUpdatedEventFilter = TypedEventFilter<LimitsUpdatedEvent>;
+export interface MaxEnabledTokensUpdatedEventObject {
+    arg0: number;
+}
+export declare type MaxEnabledTokensUpdatedEvent = TypedEvent<[
+    number
+], MaxEnabledTokensUpdatedEventObject>;
+export declare type MaxEnabledTokensUpdatedEventFilter = TypedEventFilter<MaxEnabledTokensUpdatedEvent>;
 export interface NewConfiguratorEventObject {
     newConfigurator: string;
 }
@@ -273,6 +327,13 @@ export declare type PriceOracleUpgradedEvent = TypedEvent<[
     string
 ], PriceOracleUpgradedEventObject>;
 export declare type PriceOracleUpgradedEventFilter = TypedEventFilter<PriceOracleUpgradedEvent>;
+export interface RemovedFromUpgradeableEventObject {
+    arg0: string;
+}
+export declare type RemovedFromUpgradeableEvent = TypedEvent<[
+    string
+], RemovedFromUpgradeableEventObject>;
+export declare type RemovedFromUpgradeableEventFilter = TypedEventFilter<RemovedFromUpgradeableEvent>;
 export interface TokenAllowedEventObject {
     token: string;
 }
@@ -426,11 +487,20 @@ export interface CreditConfiguratorTest extends BaseContract {
     removeListener: OnEvent<this>;
     functions: {
         IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
+        _deploy(bytecode: BytesLike, _salt: BigNumberish, overrides?: PayableOverrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        _getAddress(bytecode: BytesLike, _salt: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
         creditConfigurator(overrides?: CallOverrides): Promise<[string]>;
         creditFacade(overrides?: CallOverrides): Promise<[string]>;
         creditManager(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         setUp(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_CC_01A_constructor_emits_all_events(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         test_CC_01_constructor_sets_correct_values(overrides?: Overrides & {
@@ -523,13 +593,34 @@ export interface CreditConfiguratorTest extends BaseContract {
         test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
+        test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_CC_35_addToUpgradeableContracts_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_CC_36_removeFromUpgradeableContracts_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        test_CC_37_setMaxEnabledTokens_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
     };
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
+    _deploy(bytecode: BytesLike, _salt: BigNumberish, overrides?: PayableOverrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    _getAddress(bytecode: BytesLike, _salt: BigNumberish, overrides?: CallOverrides): Promise<string>;
     creditConfigurator(overrides?: CallOverrides): Promise<string>;
     creditFacade(overrides?: CallOverrides): Promise<string>;
     creditManager(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     setUp(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_CC_01A_constructor_emits_all_events(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
     test_CC_01_constructor_sets_correct_values(overrides?: Overrides & {
@@ -622,13 +713,28 @@ export interface CreditConfiguratorTest extends BaseContract {
     test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
+    test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_CC_35_addToUpgradeableContracts_works_correctly(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_CC_36_removeFromUpgradeableContracts_works_correctly(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    test_CC_37_setMaxEnabledTokens_works_correctly(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     callStatic: {
         IS_TEST(overrides?: CallOverrides): Promise<boolean>;
+        _deploy(bytecode: BytesLike, _salt: BigNumberish, overrides?: CallOverrides): Promise<void>;
+        _getAddress(bytecode: BytesLike, _salt: BigNumberish, overrides?: CallOverrides): Promise<string>;
         creditConfigurator(overrides?: CallOverrides): Promise<string>;
         creditFacade(overrides?: CallOverrides): Promise<string>;
         creditManager(overrides?: CallOverrides): Promise<string>;
         failed(overrides?: CallOverrides): Promise<boolean>;
         setUp(overrides?: CallOverrides): Promise<void>;
+        test_CC_01A_constructor_emits_all_events(overrides?: CallOverrides): Promise<void>;
         test_CC_01_constructor_sets_correct_values(overrides?: CallOverrides): Promise<void>;
         test_CC_02_all_functions_revert_if_called_non_configurator(overrides?: CallOverrides): Promise<void>;
         test_CC_03_addCollateralToken_reverts_for_zero_address_or_in_priceFeed(overrides?: CallOverrides): Promise<void>;
@@ -659,8 +765,14 @@ export interface CreditConfiguratorTest extends BaseContract {
         test_CC_31_upgradeCreditConfigurator_upgrades_creditConfigurator(overrides?: CallOverrides): Promise<void>;
         test_CC_32_setIncreaseDebtForbidden_sets_IncreaseDebtForbidden(overrides?: CallOverrides): Promise<void>;
         test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock(overrides?: CallOverrides): Promise<void>;
+        test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets(overrides?: CallOverrides): Promise<void>;
+        test_CC_35_addToUpgradeableContracts_works_correctly(overrides?: CallOverrides): Promise<void>;
+        test_CC_36_removeFromUpgradeableContracts_works_correctly(overrides?: CallOverrides): Promise<void>;
+        test_CC_37_setMaxEnabledTokens_works_correctly(overrides?: CallOverrides): Promise<void>;
     };
     filters: {
+        "AddedToUpgradeable(address)"(arg0?: null): AddedToUpgradeableEventFilter;
+        AddedToUpgradeable(arg0?: null): AddedToUpgradeableEventFilter;
         "ContractAllowed(address,address)"(protocol?: string | null, adapter?: string | null): ContractAllowedEventFilter;
         ContractAllowed(protocol?: string | null, adapter?: string | null): ContractAllowedEventFilter;
         "ContractForbidden(address)"(protocol?: string | null): ContractForbiddenEventFilter;
@@ -673,18 +785,24 @@ export interface CreditConfiguratorTest extends BaseContract {
         DegenModeUpdated(arg0?: null): DegenModeUpdatedEventFilter;
         "ExecuteOrder(address,address)"(borrower?: string | null, target?: string | null): ExecuteOrderEventFilter;
         ExecuteOrder(borrower?: string | null, target?: string | null): ExecuteOrderEventFilter;
-        "FeesUpdated(uint16,uint16,uint16)"(feeInterest?: null, feeLiquidation?: null, liquidationPremium?: null): FeesUpdatedEventFilter;
-        FeesUpdated(feeInterest?: null, feeLiquidation?: null, liquidationPremium?: null): FeesUpdatedEventFilter;
+        "ExpirationDateUpdated(uint40)"(arg0?: null): ExpirationDateUpdatedEventFilter;
+        ExpirationDateUpdated(arg0?: null): ExpirationDateUpdatedEventFilter;
+        "FeesUpdated(uint16,uint16,uint16,uint16,uint16)"(feeInterest?: null, feeLiquidation?: null, liquidationPremium?: null, feeLiquidationExpired?: null, liquidationPremiumExpired?: null): FeesUpdatedEventFilter;
+        FeesUpdated(feeInterest?: null, feeLiquidation?: null, liquidationPremium?: null, feeLiquidationExpired?: null, liquidationPremiumExpired?: null): FeesUpdatedEventFilter;
         "IncreaseDebtModeUpdated(bool)"(arg0?: null): IncreaseDebtModeUpdatedEventFilter;
         IncreaseDebtModeUpdated(arg0?: null): IncreaseDebtModeUpdatedEventFilter;
         "LimitPerBlockUpdated(uint128)"(arg0?: null): LimitPerBlockUpdatedEventFilter;
         LimitPerBlockUpdated(arg0?: null): LimitPerBlockUpdatedEventFilter;
         "LimitsUpdated(uint256,uint256)"(minBorrowedAmount?: null, maxBorrowedAmount?: null): LimitsUpdatedEventFilter;
         LimitsUpdated(minBorrowedAmount?: null, maxBorrowedAmount?: null): LimitsUpdatedEventFilter;
+        "MaxEnabledTokensUpdated(uint8)"(arg0?: null): MaxEnabledTokensUpdatedEventFilter;
+        MaxEnabledTokensUpdated(arg0?: null): MaxEnabledTokensUpdatedEventFilter;
         "NewConfigurator(address)"(newConfigurator?: string | null): NewConfiguratorEventFilter;
         NewConfigurator(newConfigurator?: string | null): NewConfiguratorEventFilter;
         "PriceOracleUpgraded(address)"(newPriceOracle?: string | null): PriceOracleUpgradedEventFilter;
         PriceOracleUpgraded(newPriceOracle?: string | null): PriceOracleUpgradedEventFilter;
+        "RemovedFromUpgradeable(address)"(arg0?: null): RemovedFromUpgradeableEventFilter;
+        RemovedFromUpgradeable(arg0?: null): RemovedFromUpgradeableEventFilter;
         "TokenAllowed(address)"(token?: string | null): TokenAllowedEventFilter;
         TokenAllowed(token?: string | null): TokenAllowedEventFilter;
         "TokenForbidden(address)"(token?: string | null): TokenForbiddenEventFilter;
@@ -726,11 +844,20 @@ export interface CreditConfiguratorTest extends BaseContract {
     };
     estimateGas: {
         IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
+        _deploy(bytecode: BytesLike, _salt: BigNumberish, overrides?: PayableOverrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        _getAddress(bytecode: BytesLike, _salt: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         creditConfigurator(overrides?: CallOverrides): Promise<BigNumber>;
         creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
         creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         setUp(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_CC_01A_constructor_emits_all_events(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         test_CC_01_constructor_sets_correct_values(overrides?: Overrides & {
@@ -821,16 +948,37 @@ export interface CreditConfiguratorTest extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_CC_35_addToUpgradeableContracts_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_CC_36_removeFromUpgradeableContracts_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        test_CC_37_setMaxEnabledTokens_works_correctly(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
     };
     populateTransaction: {
         IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        _deploy(bytecode: BytesLike, _salt: BigNumberish, overrides?: PayableOverrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        _getAddress(bytecode: BytesLike, _salt: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditConfigurator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         setUp(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_CC_01A_constructor_emits_all_events(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         test_CC_01_constructor_sets_correct_values(overrides?: Overrides & {
@@ -921,6 +1069,18 @@ export interface CreditConfiguratorTest extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         test_CC_33_setLimitPerBlock_reverts_if_it_lt_maxLimit_otherwise_sets_limitPerBlock(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_CC_34_setExpirationDate_reverts_on_incorrect_newExpirationDate_otherwise_sets(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_CC_35_addToUpgradeableContracts_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_CC_36_removeFromUpgradeableContracts_works_correctly(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        test_CC_37_setMaxEnabledTokens_works_correctly(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
     };

@@ -15,37 +15,56 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
   functions: {};
 
   events: {
+    "AddedToUpgradeable(address)": EventFragment;
     "ContractAllowed(address,address)": EventFragment;
     "ContractForbidden(address)": EventFragment;
     "CreditConfiguratorUpgraded(address)": EventFragment;
     "CreditFacadeUpgraded(address)": EventFragment;
     "DegenModeUpdated(bool)": EventFragment;
-    "FeesUpdated(uint16,uint16,uint16)": EventFragment;
+    "ExpirationDateUpdated(uint40)": EventFragment;
+    "FeesUpdated(uint16,uint16,uint16,uint16,uint16)": EventFragment;
     "IncreaseDebtModeUpdated(bool)": EventFragment;
     "LimitPerBlockUpdated(uint128)": EventFragment;
     "LimitsUpdated(uint256,uint256)": EventFragment;
+    "MaxEnabledTokensUpdated(uint8)": EventFragment;
     "PriceOracleUpgraded(address)": EventFragment;
+    "RemovedFromUpgradeable(address)": EventFragment;
     "TokenAllowed(address)": EventFragment;
     "TokenForbidden(address)": EventFragment;
     "TokenLiquidationThresholdUpdated(address,uint16)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AddedToUpgradeable"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ContractAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CreditConfiguratorUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CreditFacadeUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DegenModeUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ExpirationDateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeesUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseDebtModeUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LimitPerBlockUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LimitsUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MaxEnabledTokensUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PriceOracleUpgraded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RemovedFromUpgradeable"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenForbidden"): EventFragment;
   getEvent(
     nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated"
   ): EventFragment;
 }
+
+export interface AddedToUpgradeableEventObject {
+  arg0: string;
+}
+export type AddedToUpgradeableEvent = TypedEvent<
+  [string],
+  AddedToUpgradeableEventObject
+>;
+
+export type AddedToUpgradeableEventFilter =
+  TypedEventFilter<AddedToUpgradeableEvent>;
 
 export interface ContractAllowedEventObject {
   protocol: string;
@@ -102,13 +121,26 @@ export type DegenModeUpdatedEvent = TypedEvent<
 export type DegenModeUpdatedEventFilter =
   TypedEventFilter<DegenModeUpdatedEvent>;
 
+export interface ExpirationDateUpdatedEventObject {
+  arg0: number;
+}
+export type ExpirationDateUpdatedEvent = TypedEvent<
+  [number],
+  ExpirationDateUpdatedEventObject
+>;
+
+export type ExpirationDateUpdatedEventFilter =
+  TypedEventFilter<ExpirationDateUpdatedEvent>;
+
 export interface FeesUpdatedEventObject {
   feeInterest: number;
   feeLiquidation: number;
   liquidationPremium: number;
+  feeLiquidationExpired: number;
+  liquidationPremiumExpired: number;
 }
 export type FeesUpdatedEvent = TypedEvent<
-  [number, number, number],
+  [number, number, number, number, number],
   FeesUpdatedEventObject
 >;
 
@@ -147,6 +179,17 @@ export type LimitsUpdatedEvent = TypedEvent<
 
 export type LimitsUpdatedEventFilter = TypedEventFilter<LimitsUpdatedEvent>;
 
+export interface MaxEnabledTokensUpdatedEventObject {
+  arg0: number;
+}
+export type MaxEnabledTokensUpdatedEvent = TypedEvent<
+  [number],
+  MaxEnabledTokensUpdatedEventObject
+>;
+
+export type MaxEnabledTokensUpdatedEventFilter =
+  TypedEventFilter<MaxEnabledTokensUpdatedEvent>;
+
 export interface PriceOracleUpgradedEventObject {
   newPriceOracle: string;
 }
@@ -157,6 +200,17 @@ export type PriceOracleUpgradedEvent = TypedEvent<
 
 export type PriceOracleUpgradedEventFilter =
   TypedEventFilter<PriceOracleUpgradedEvent>;
+
+export interface RemovedFromUpgradeableEventObject {
+  arg0: string;
+}
+export type RemovedFromUpgradeableEvent = TypedEvent<
+  [string],
+  RemovedFromUpgradeableEventObject
+>;
+
+export type RemovedFromUpgradeableEventFilter =
+  TypedEventFilter<RemovedFromUpgradeableEvent>;
 
 export interface TokenAllowedEventObject {
   token: string;
@@ -218,6 +272,9 @@ export interface ICreditConfiguratorEvents extends BaseContract {
   callStatic: {};
 
   filters: {
+    "AddedToUpgradeable(address)"(arg0?: null): AddedToUpgradeableEventFilter;
+    AddedToUpgradeable(arg0?: null): AddedToUpgradeableEventFilter;
+
     "ContractAllowed(address,address)"(
       protocol?: string | null,
       adapter?: string | null
@@ -249,15 +306,24 @@ export interface ICreditConfiguratorEvents extends BaseContract {
     "DegenModeUpdated(bool)"(arg0?: null): DegenModeUpdatedEventFilter;
     DegenModeUpdated(arg0?: null): DegenModeUpdatedEventFilter;
 
-    "FeesUpdated(uint16,uint16,uint16)"(
+    "ExpirationDateUpdated(uint40)"(
+      arg0?: null
+    ): ExpirationDateUpdatedEventFilter;
+    ExpirationDateUpdated(arg0?: null): ExpirationDateUpdatedEventFilter;
+
+    "FeesUpdated(uint16,uint16,uint16,uint16,uint16)"(
       feeInterest?: null,
       feeLiquidation?: null,
-      liquidationPremium?: null
+      liquidationPremium?: null,
+      feeLiquidationExpired?: null,
+      liquidationPremiumExpired?: null
     ): FeesUpdatedEventFilter;
     FeesUpdated(
       feeInterest?: null,
       feeLiquidation?: null,
-      liquidationPremium?: null
+      liquidationPremium?: null,
+      feeLiquidationExpired?: null,
+      liquidationPremiumExpired?: null
     ): FeesUpdatedEventFilter;
 
     "IncreaseDebtModeUpdated(bool)"(
@@ -279,12 +345,22 @@ export interface ICreditConfiguratorEvents extends BaseContract {
       maxBorrowedAmount?: null
     ): LimitsUpdatedEventFilter;
 
+    "MaxEnabledTokensUpdated(uint8)"(
+      arg0?: null
+    ): MaxEnabledTokensUpdatedEventFilter;
+    MaxEnabledTokensUpdated(arg0?: null): MaxEnabledTokensUpdatedEventFilter;
+
     "PriceOracleUpgraded(address)"(
       newPriceOracle?: string | null
     ): PriceOracleUpgradedEventFilter;
     PriceOracleUpgraded(
       newPriceOracle?: string | null
     ): PriceOracleUpgradedEventFilter;
+
+    "RemovedFromUpgradeable(address)"(
+      arg0?: null
+    ): RemovedFromUpgradeableEventFilter;
+    RemovedFromUpgradeable(arg0?: null): RemovedFromUpgradeableEventFilter;
 
     "TokenAllowed(address)"(token?: string | null): TokenAllowedEventFilter;
     TokenAllowed(token?: string | null): TokenAllowedEventFilter;

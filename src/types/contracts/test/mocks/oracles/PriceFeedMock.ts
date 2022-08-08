@@ -25,17 +25,13 @@ import type {
 export interface PriceFeedMockInterface extends utils.Interface {
   functions: {
     "decimals()": FunctionFragment;
-    "dependsOnAddress()": FunctionFragment;
     "description()": FunctionFragment;
     "getRoundData(uint80)": FunctionFragment;
-    "latestRoundData(address)": FunctionFragment;
     "latestRoundData()": FunctionFragment;
     "priceFeedType()": FunctionFragment;
-    "setDependsOnAddress(uint8)": FunctionFragment;
     "setParams(uint80,uint256,uint256,uint80)": FunctionFragment;
     "setPrice(int256)": FunctionFragment;
     "setRevertOnLatestRound(bool)": FunctionFragment;
-    "setRevertOnLatestRoundAddress(bool)": FunctionFragment;
     "setSkipPriceCheck(uint8)": FunctionFragment;
     "skipPriceCheck()": FunctionFragment;
     "version()": FunctionFragment;
@@ -44,27 +40,19 @@ export interface PriceFeedMockInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "decimals"
-      | "dependsOnAddress"
       | "description"
       | "getRoundData"
-      | "latestRoundData(address)"
-      | "latestRoundData()"
+      | "latestRoundData"
       | "priceFeedType"
-      | "setDependsOnAddress"
       | "setParams"
       | "setPrice"
       | "setRevertOnLatestRound"
-      | "setRevertOnLatestRoundAddress"
       | "setSkipPriceCheck"
       | "skipPriceCheck"
       | "version"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "dependsOnAddress",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "description",
     values?: undefined
@@ -74,20 +62,12 @@ export interface PriceFeedMockInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "latestRoundData(address)",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "latestRoundData()",
+    functionFragment: "latestRoundData",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "priceFeedType",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setDependsOnAddress",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setParams",
@@ -102,10 +82,6 @@ export interface PriceFeedMockInterface extends utils.Interface {
     values: [boolean]
   ): string;
   encodeFunctionData(
-    functionFragment: "setRevertOnLatestRoundAddress",
-    values: [boolean]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setSkipPriceCheck",
     values: [BigNumberish]
   ): string;
@@ -117,10 +93,6 @@ export interface PriceFeedMockInterface extends utils.Interface {
 
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "dependsOnAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "description",
     data: BytesLike
   ): Result;
@@ -129,29 +101,17 @@ export interface PriceFeedMockInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "latestRoundData(address)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "latestRoundData()",
+    functionFragment: "latestRoundData",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "priceFeedType",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "setDependsOnAddress",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "setParams", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setPrice", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setRevertOnLatestRound",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setRevertOnLatestRoundAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -196,8 +156,6 @@ export interface PriceFeedMock extends BaseContract {
   functions: {
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
-    dependsOnAddress(overrides?: CallOverrides): Promise<[boolean]>;
-
     description(overrides?: CallOverrides): Promise<[string]>;
 
     getRoundData(
@@ -205,21 +163,11 @@ export interface PriceFeedMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
 
-    "latestRoundData(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
-
-    "latestRoundData()"(
+    latestRoundData(
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
 
     priceFeedType(overrides?: CallOverrides): Promise<[number]>;
-
-    setDependsOnAddress(
-      f: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     setParams(
       _roundId: BigNumberish,
@@ -239,11 +187,6 @@ export interface PriceFeedMock extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setRevertOnLatestRoundAddress(
-      value: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     setSkipPriceCheck(
       f: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -256,8 +199,6 @@ export interface PriceFeedMock extends BaseContract {
 
   decimals(overrides?: CallOverrides): Promise<number>;
 
-  dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
-
   description(overrides?: CallOverrides): Promise<string>;
 
   getRoundData(
@@ -265,21 +206,11 @@ export interface PriceFeedMock extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
 
-  "latestRoundData(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
-
-  "latestRoundData()"(
+  latestRoundData(
     overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
 
   priceFeedType(overrides?: CallOverrides): Promise<number>;
-
-  setDependsOnAddress(
-    f: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   setParams(
     _roundId: BigNumberish,
@@ -299,11 +230,6 @@ export interface PriceFeedMock extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setRevertOnLatestRoundAddress(
-    value: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   setSkipPriceCheck(
     f: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -316,8 +242,6 @@ export interface PriceFeedMock extends BaseContract {
   callStatic: {
     decimals(overrides?: CallOverrides): Promise<number>;
 
-    dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
-
     description(overrides?: CallOverrides): Promise<string>;
 
     getRoundData(
@@ -325,21 +249,11 @@ export interface PriceFeedMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
 
-    "latestRoundData(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
-
-    "latestRoundData()"(
+    latestRoundData(
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
 
     priceFeedType(overrides?: CallOverrides): Promise<number>;
-
-    setDependsOnAddress(
-      f: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     setParams(
       _roundId: BigNumberish,
@@ -352,11 +266,6 @@ export interface PriceFeedMock extends BaseContract {
     setPrice(newPrice: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     setRevertOnLatestRound(
-      value: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setRevertOnLatestRoundAddress(
       value: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -376,8 +285,6 @@ export interface PriceFeedMock extends BaseContract {
   estimateGas: {
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
-    dependsOnAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
     description(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRoundData(
@@ -385,19 +292,9 @@ export interface PriceFeedMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "latestRoundData(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "latestRoundData()"(overrides?: CallOverrides): Promise<BigNumber>;
+    latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
 
     priceFeedType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    setDependsOnAddress(
-      f: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     setParams(
       _roundId: BigNumberish,
@@ -413,11 +310,6 @@ export interface PriceFeedMock extends BaseContract {
     ): Promise<BigNumber>;
 
     setRevertOnLatestRound(
-      value: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setRevertOnLatestRoundAddress(
       value: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -435,8 +327,6 @@ export interface PriceFeedMock extends BaseContract {
   populateTransaction: {
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    dependsOnAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getRoundData(
@@ -444,21 +334,9 @@ export interface PriceFeedMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "latestRoundData(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "latestRoundData()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     priceFeedType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    setDependsOnAddress(
-      f: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     setParams(
       _roundId: BigNumberish,
@@ -474,11 +352,6 @@ export interface PriceFeedMock extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setRevertOnLatestRound(
-      value: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setRevertOnLatestRoundAddress(
       value: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

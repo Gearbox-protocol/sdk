@@ -17,11 +17,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "PriceFeedRequiresAddressException",
-    type: "error",
-  },
-  {
-    inputs: [],
     name: "PriceOracleNotExistsException",
     type: "error",
   },
@@ -70,11 +65,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
         internalType: "uint256",
         name: "amount",
         type: "uint256",
@@ -104,11 +94,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
         internalType: "uint256",
         name: "amount",
         type: "uint256",
@@ -132,11 +117,6 @@ const _abi = [
   },
   {
     inputs: [
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
       {
         internalType: "uint256",
         name: "amount",
@@ -202,11 +182,6 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        internalType: "address",
         name: "token",
         type: "address",
       },
@@ -258,13 +233,13 @@ const _abi = [
       },
       {
         internalType: "bool",
-        name: "dependsOnAddress",
+        name: "skipCheck",
         type: "bool",
       },
       {
-        internalType: "bool",
-        name: "skipCheck",
-        type: "bool",
+        internalType: "uint256",
+        name: "decimals",
+        type: "uint256",
       },
     ],
     stateMutability: "view",

@@ -67,19 +67,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "dependsOnAddress",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "description",
     outputs: [
       {

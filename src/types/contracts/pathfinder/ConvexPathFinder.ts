@@ -27,33 +27,54 @@ export type BalanceStructOutput = [string, BigNumber] & {
   balance: BigNumber;
 };
 
+export type MultiCallStruct = { target: string; callData: BytesLike };
+
+export type MultiCallStructOutput = [string, string] & {
+  target: string;
+  callData: string;
+};
+
 export interface ConvexPathFinderInterface extends utils.Interface {
   functions: {
     "booster()": FunctionFragment;
-    "calcRewards(address,uint256[])": FunctionFragment;
     "cvx()": FunctionFragment;
+    "filterConvexAdapters(address[])": FunctionFragment;
     "version()": FunctionFragment;
+    "withdrawAll(address,(address,uint256)[],address[])": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "booster" | "calcRewards" | "cvx" | "version"
+    nameOrSignatureOrTopic:
+      | "booster"
+      | "cvx"
+      | "filterConvexAdapters"
+      | "version"
+      | "withdrawAll"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "booster", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "calcRewards",
-    values: [string, BigNumberish[]]
-  ): string;
   encodeFunctionData(functionFragment: "cvx", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "filterConvexAdapters",
+    values: [string[]]
+  ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAll",
+    values: [string, BalanceStruct[], string[]]
+  ): string;
 
   decodeFunctionResult(functionFragment: "booster", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "cvx", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "calcRewards",
+    functionFragment: "filterConvexAdapters",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "cvx", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAll",
+    data: BytesLike
+  ): Result;
 
   events: {};
 }
@@ -87,41 +108,63 @@ export interface ConvexPathFinder extends BaseContract {
   functions: {
     booster(overrides?: CallOverrides): Promise<[string]>;
 
-    calcRewards(
-      creditAccount: string,
-      pids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<[BalanceStructOutput[]]>;
-
     cvx(overrides?: CallOverrides): Promise<[string]>;
 
+    filterConvexAdapters(
+      adapters: string[],
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], string] & { result: string[]; boosterAdapter: string }
+    >;
+
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    withdrawAll(
+      creditAccount: string,
+      b: BalanceStruct[],
+      adapters: string[],
+      overrides?: CallOverrides
+    ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
   };
 
   booster(overrides?: CallOverrides): Promise<string>;
 
-  calcRewards(
-    creditAccount: string,
-    pids: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BalanceStructOutput[]>;
-
   cvx(overrides?: CallOverrides): Promise<string>;
 
+  filterConvexAdapters(
+    adapters: string[],
+    overrides?: CallOverrides
+  ): Promise<[string[], string] & { result: string[]; boosterAdapter: string }>;
+
   version(overrides?: CallOverrides): Promise<BigNumber>;
+
+  withdrawAll(
+    creditAccount: string,
+    b: BalanceStruct[],
+    adapters: string[],
+    overrides?: CallOverrides
+  ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
 
   callStatic: {
     booster(overrides?: CallOverrides): Promise<string>;
 
-    calcRewards(
-      creditAccount: string,
-      pids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BalanceStructOutput[]>;
-
     cvx(overrides?: CallOverrides): Promise<string>;
 
+    filterConvexAdapters(
+      adapters: string[],
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], string] & { result: string[]; boosterAdapter: string }
+    >;
+
     version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdrawAll(
+      creditAccount: string,
+      b: BalanceStruct[],
+      adapters: string[],
+      overrides?: CallOverrides
+    ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
   };
 
   filters: {};
@@ -129,28 +172,40 @@ export interface ConvexPathFinder extends BaseContract {
   estimateGas: {
     booster(overrides?: CallOverrides): Promise<BigNumber>;
 
-    calcRewards(
-      creditAccount: string,
-      pids: BigNumberish[],
+    cvx(overrides?: CallOverrides): Promise<BigNumber>;
+
+    filterConvexAdapters(
+      adapters: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    cvx(overrides?: CallOverrides): Promise<BigNumber>;
-
     version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdrawAll(
+      creditAccount: string,
+      b: BalanceStruct[],
+      adapters: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     booster(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    calcRewards(
-      creditAccount: string,
-      pids: BigNumberish[],
+    cvx(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    filterConvexAdapters(
+      adapters: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    cvx(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdrawAll(
+      creditAccount: string,
+      b: BalanceStruct[],
+      adapters: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }

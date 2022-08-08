@@ -26,6 +26,37 @@ import type {
   OnEvent,
 } from "../../common";
 
+export type SwapTaskStruct = {
+  swapOperation: BigNumberish;
+  creditAccount: string;
+  tokenIn: string;
+  tokenOut: string;
+  connectors: string[];
+  amount: BigNumberish;
+  slippage: BigNumberish;
+  externalSlippage: boolean;
+};
+
+export type SwapTaskStructOutput = [
+  number,
+  string,
+  string,
+  string,
+  string[],
+  BigNumber,
+  BigNumber,
+  boolean
+] & {
+  swapOperation: number;
+  creditAccount: string;
+  tokenIn: string;
+  tokenOut: string;
+  connectors: string[];
+  amount: BigNumber;
+  slippage: BigNumber;
+  externalSlippage: boolean;
+};
+
 export type MultiCallStruct = { target: string; callData: BytesLike };
 
 export type MultiCallStructOutput = [string, string] & {
@@ -55,7 +86,8 @@ export type SwapQuoteStructOutput = [
 export interface UniswapV2PathFinderInterface extends utils.Interface {
   functions: {
     "gasUsage(address,address,address)": FunctionFragment;
-    "getBestPairSwap(address,address,address,uint256,uint256)": FunctionFragment;
+    "getBestConnectorSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
+    "getBestDirectPairSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setGasUsage(address,address,address,uint256)": FunctionFragment;
@@ -66,7 +98,8 @@ export interface UniswapV2PathFinderInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "gasUsage"
-      | "getBestPairSwap"
+      | "getBestConnectorSwap"
+      | "getBestDirectPairSwap"
       | "owner"
       | "renounceOwnership"
       | "setGasUsage"
@@ -79,8 +112,12 @@ export interface UniswapV2PathFinderInterface extends utils.Interface {
     values: [string, string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "getBestPairSwap",
-    values: [string, string, string, BigNumberish, BigNumberish]
+    functionFragment: "getBestConnectorSwap",
+    values: [SwapTaskStruct, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getBestDirectPairSwap",
+    values: [SwapTaskStruct, string]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -99,7 +136,11 @@ export interface UniswapV2PathFinderInterface extends utils.Interface {
 
   decodeFunctionResult(functionFragment: "gasUsage", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getBestPairSwap",
+    functionFragment: "getBestConnectorSwap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getBestDirectPairSwap",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -170,12 +211,15 @@ export interface UniswapV2PathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    getBestPairSwap(
+    getBestConnectorSwap(
+      swapTask: SwapTaskStruct,
       adapter: string,
-      tokenIn: string,
-      tokenOut: string,
-      amount: BigNumberish,
-      slippageFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[SwapQuoteStructOutput] & { quote: SwapQuoteStructOutput }>;
+
+    getBestDirectPairSwap(
+      swapTask: SwapTaskStruct,
+      adapter: string,
       overrides?: CallOverrides
     ): Promise<[SwapQuoteStructOutput] & { quote: SwapQuoteStructOutput }>;
 
@@ -208,12 +252,15 @@ export interface UniswapV2PathFinder extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getBestPairSwap(
+  getBestConnectorSwap(
+    swapTask: SwapTaskStruct,
     adapter: string,
-    tokenIn: string,
-    tokenOut: string,
-    amount: BigNumberish,
-    slippageFactor: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<SwapQuoteStructOutput>;
+
+  getBestDirectPairSwap(
+    swapTask: SwapTaskStruct,
+    adapter: string,
     overrides?: CallOverrides
   ): Promise<SwapQuoteStructOutput>;
 
@@ -246,12 +293,15 @@ export interface UniswapV2PathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getBestPairSwap(
+    getBestConnectorSwap(
+      swapTask: SwapTaskStruct,
       adapter: string,
-      tokenIn: string,
-      tokenOut: string,
-      amount: BigNumberish,
-      slippageFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<SwapQuoteStructOutput>;
+
+    getBestDirectPairSwap(
+      swapTask: SwapTaskStruct,
+      adapter: string,
       overrides?: CallOverrides
     ): Promise<SwapQuoteStructOutput>;
 
@@ -294,12 +344,15 @@ export interface UniswapV2PathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getBestPairSwap(
+    getBestConnectorSwap(
+      swapTask: SwapTaskStruct,
       adapter: string,
-      tokenIn: string,
-      tokenOut: string,
-      amount: BigNumberish,
-      slippageFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getBestDirectPairSwap(
+      swapTask: SwapTaskStruct,
+      adapter: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -333,12 +386,15 @@ export interface UniswapV2PathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getBestPairSwap(
+    getBestConnectorSwap(
+      swapTask: SwapTaskStruct,
       adapter: string,
-      tokenIn: string,
-      tokenOut: string,
-      amount: BigNumberish,
-      slippageFactor: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getBestDirectPairSwap(
+      swapTask: SwapTaskStruct,
+      adapter: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -9,7 +9,7 @@ import {
 import { NetworkType } from "../core/constants";
 import { CreditAccountData } from "../core/creditAccount";
 
-import { PathFinder__factory } from "../types";
+import { SwapPathFinder__factory } from "../types";
 import { priority } from "./priority";
 import { YearnLPToken } from "../tokens/yearn";
 import { YearnVaultPathFinder } from "./yVault";
@@ -113,7 +113,7 @@ export class Path {
     });
 
     const lpPaths = await initialPath.withdrawTokens();
-    const pathFinder = PathFinder__factory.connect(
+    const pathFinder = SwapPathFinder__factory.connect(
       pathFindersByNetwork[networkType].PATH_FINDER,
       provider
     );

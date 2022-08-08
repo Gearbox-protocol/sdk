@@ -5,7 +5,6 @@ import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "../..
 export interface ZeroPriceFeedInterface extends utils.Interface {
     functions: {
         "decimals()": FunctionFragment;
-        "dependsOnAddress()": FunctionFragment;
         "description()": FunctionFragment;
         "getRoundData(uint80)": FunctionFragment;
         "latestRoundData()": FunctionFragment;
@@ -13,9 +12,8 @@ export interface ZeroPriceFeedInterface extends utils.Interface {
         "skipPriceCheck()": FunctionFragment;
         "version()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "decimals" | "dependsOnAddress" | "description" | "getRoundData" | "latestRoundData" | "priceFeedType" | "skipPriceCheck" | "version"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "decimals" | "description" | "getRoundData" | "latestRoundData" | "priceFeedType" | "skipPriceCheck" | "version"): FunctionFragment;
     encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-    encodeFunctionData(functionFragment: "dependsOnAddress", values?: undefined): string;
     encodeFunctionData(functionFragment: "description", values?: undefined): string;
     encodeFunctionData(functionFragment: "getRoundData", values: [BigNumberish]): string;
     encodeFunctionData(functionFragment: "latestRoundData", values?: undefined): string;
@@ -23,7 +21,6 @@ export interface ZeroPriceFeedInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "skipPriceCheck", values?: undefined): string;
     encodeFunctionData(functionFragment: "version", values?: undefined): string;
     decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "dependsOnAddress", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "description", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "getRoundData", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "latestRoundData", data: BytesLike): Result;
@@ -48,7 +45,6 @@ export interface ZeroPriceFeed extends BaseContract {
     removeListener: OnEvent<this>;
     functions: {
         decimals(overrides?: CallOverrides): Promise<[number]>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<[boolean]>;
         description(overrides?: CallOverrides): Promise<[string]>;
         getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
         latestRoundData(overrides?: CallOverrides): Promise<[
@@ -69,7 +65,6 @@ export interface ZeroPriceFeed extends BaseContract {
         version(overrides?: CallOverrides): Promise<[BigNumber]>;
     };
     decimals(overrides?: CallOverrides): Promise<number>;
-    dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
     description(overrides?: CallOverrides): Promise<string>;
     getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
     latestRoundData(overrides?: CallOverrides): Promise<[
@@ -90,7 +85,6 @@ export interface ZeroPriceFeed extends BaseContract {
     version(overrides?: CallOverrides): Promise<BigNumber>;
     callStatic: {
         decimals(overrides?: CallOverrides): Promise<number>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<boolean>;
         description(overrides?: CallOverrides): Promise<string>;
         getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
         latestRoundData(overrides?: CallOverrides): Promise<[
@@ -113,7 +107,6 @@ export interface ZeroPriceFeed extends BaseContract {
     filters: {};
     estimateGas: {
         decimals(overrides?: CallOverrides): Promise<BigNumber>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<BigNumber>;
         description(overrides?: CallOverrides): Promise<BigNumber>;
         getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
@@ -123,7 +116,6 @@ export interface ZeroPriceFeed extends BaseContract {
     };
     populateTransaction: {
         decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        dependsOnAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         getRoundData(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;

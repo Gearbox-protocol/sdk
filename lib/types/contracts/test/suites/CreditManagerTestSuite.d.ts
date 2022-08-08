@@ -247,7 +247,9 @@ export interface CreditManagerTestSuite extends BaseContract {
         af(overrides?: CallOverrides): Promise<[string]>;
         cr(overrides?: CallOverrides): Promise<[string]>;
         creditManager(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         gp(overrides?: CallOverrides): Promise<[string]>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
         "openCreditAccount()"(overrides?: Overrides & {
@@ -274,7 +276,9 @@ export interface CreditManagerTestSuite extends BaseContract {
     af(overrides?: CallOverrides): Promise<string>;
     cr(overrides?: CallOverrides): Promise<string>;
     creditManager(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     gp(overrides?: CallOverrides): Promise<string>;
     lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
     "openCreditAccount()"(overrides?: Overrides & {
@@ -375,7 +379,9 @@ export interface CreditManagerTestSuite extends BaseContract {
         af(overrides?: CallOverrides): Promise<BigNumber>;
         cr(overrides?: CallOverrides): Promise<BigNumber>;
         creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         gp(overrides?: CallOverrides): Promise<BigNumber>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
         "openCreditAccount()"(overrides?: Overrides & {
@@ -403,7 +409,9 @@ export interface CreditManagerTestSuite extends BaseContract {
         af(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         cr(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         gp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         "openCreditAccount()"(overrides?: Overrides & {

@@ -1,9 +1,9 @@
 import { BigNumberish } from "ethers";
-import { CreditManagerData } from "src/core/creditManager";
-import { ADDRESS_0X0, NetworkType } from "src/core/constants";
+import { CreditManagerData } from "../core/creditManager";
+import { ADDRESS_0X0, NetworkType } from "../core/constants";
 
-import { contractsByNetwork } from "src/contracts/contracts";
-import { tokenDataByNetwork } from "src/tokens/token";
+import { contractsByNetwork } from "../contracts/contracts";
+import { tokenDataByNetwork } from "../tokens/token";
 import { LidoV1Adapter__factory } from "../types";
 
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
@@ -55,14 +55,16 @@ export class LidoStrategies {
     data: CreditManagerData,
     network: NetworkType,
     underlyingAmount: BigNumberish
-  ) {
+  ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
 
     // This should be a pathfinder call
     if (!data.isWETH) {
       calls.push(
         UniswapV2Multicaller.connect(
-          data.adapters[contractsByNetwork[network].UNISWAP_V2_ROUTER]
+          data.adapters[
+            contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
+          ]
         ).swapExactTokensForTokens(
           underlyingAmount,
           0,
@@ -75,7 +77,9 @@ export class LidoStrategies {
 
     calls.push(
       LidoMulticaller.connect(
-        data.adapters[contractsByNetwork[network].LIDO_STETH_GATEWAY]
+        data.adapters[
+          contractsByNetwork[network].LIDO_STETH_GATEWAY.toLowerCase()
+        ]
       ).submitAll()
     );
 

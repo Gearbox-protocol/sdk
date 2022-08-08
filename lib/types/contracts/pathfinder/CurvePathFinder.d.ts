@@ -2,6 +2,35 @@ import type { BaseContract, BigNumber, BigNumberish, BytesLike, CallOverrides, C
 import type { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "../../common";
+export declare type SwapTaskStruct = {
+    swapOperation: BigNumberish;
+    creditAccount: string;
+    tokenIn: string;
+    tokenOut: string;
+    connectors: string[];
+    amount: BigNumberish;
+    slippage: BigNumberish;
+    externalSlippage: boolean;
+};
+export declare type SwapTaskStructOutput = [
+    number,
+    string,
+    string,
+    string,
+    string[],
+    BigNumber,
+    BigNumber,
+    boolean
+] & {
+    swapOperation: number;
+    creditAccount: string;
+    tokenIn: string;
+    tokenOut: string;
+    connectors: string[];
+    amount: BigNumber;
+    slippage: BigNumber;
+    externalSlippage: boolean;
+};
 export declare type MultiCallStruct = {
     target: string;
     callData: BytesLike;
@@ -29,9 +58,10 @@ export declare type SwapQuoteStructOutput = [
 };
 export interface CurvePathFinderInterface extends utils.Interface {
     functions: {
-        "addPoolThroughAdapter(address)": FunctionFragment;
+        "addPool(address)": FunctionFragment;
         "gasUsage(address,address,address)": FunctionFragment;
-        "getBestPairSwap(address,address,address,uint256,uint256)": FunctionFragment;
+        "getBestConnectorSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
+        "getBestDirectPairSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
         "owner()": FunctionFragment;
         "renounceOwnership()": FunctionFragment;
         "setGasUsage(address,address,address,uint256)": FunctionFragment;
@@ -39,19 +69,21 @@ export interface CurvePathFinderInterface extends utils.Interface {
         "tokenToUnderlyingCoin(address,address)": FunctionFragment;
         "transferOwnership(address)": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "addPoolThroughAdapter" | "gasUsage" | "getBestPairSwap" | "owner" | "renounceOwnership" | "setGasUsage" | "tokenToCoin" | "tokenToUnderlyingCoin" | "transferOwnership"): FunctionFragment;
-    encodeFunctionData(functionFragment: "addPoolThroughAdapter", values: [string]): string;
+    getFunction(nameOrSignatureOrTopic: "addPool" | "gasUsage" | "getBestConnectorSwap" | "getBestDirectPairSwap" | "owner" | "renounceOwnership" | "setGasUsage" | "tokenToCoin" | "tokenToUnderlyingCoin" | "transferOwnership"): FunctionFragment;
+    encodeFunctionData(functionFragment: "addPool", values: [string]): string;
     encodeFunctionData(functionFragment: "gasUsage", values: [string, string, string]): string;
-    encodeFunctionData(functionFragment: "getBestPairSwap", values: [string, string, string, BigNumberish, BigNumberish]): string;
+    encodeFunctionData(functionFragment: "getBestConnectorSwap", values: [SwapTaskStruct, string]): string;
+    encodeFunctionData(functionFragment: "getBestDirectPairSwap", values: [SwapTaskStruct, string]): string;
     encodeFunctionData(functionFragment: "owner", values?: undefined): string;
     encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
     encodeFunctionData(functionFragment: "setGasUsage", values: [string, string, string, BigNumberish]): string;
     encodeFunctionData(functionFragment: "tokenToCoin", values: [string, string]): string;
     encodeFunctionData(functionFragment: "tokenToUnderlyingCoin", values: [string, string]): string;
     encodeFunctionData(functionFragment: "transferOwnership", values: [string]): string;
-    decodeFunctionResult(functionFragment: "addPoolThroughAdapter", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "addPool", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "gasUsage", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "getBestPairSwap", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getBestConnectorSwap", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getBestDirectPairSwap", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "setGasUsage", data: BytesLike): Result;
@@ -87,11 +119,14 @@ export interface CurvePathFinder extends BaseContract {
     once: OnEvent<this>;
     removeListener: OnEvent<this>;
     functions: {
-        addPoolThroughAdapter(adapter: string, overrides?: Overrides & {
+        addPool(curvePool: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         gasUsage(arg0: string, arg1: string, arg2: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-        getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: CallOverrides): Promise<[SwapQuoteStructOutput] & {
+        getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
+        getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: CallOverrides): Promise<[SwapQuoteStructOutput] & {
             quote: SwapQuoteStructOutput;
         }>;
         owner(overrides?: CallOverrides): Promise<[string]>;
@@ -107,11 +142,14 @@ export interface CurvePathFinder extends BaseContract {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
     };
-    addPoolThroughAdapter(adapter: string, overrides?: Overrides & {
+    addPool(curvePool: string, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
     gasUsage(arg0: string, arg1: string, arg2: string, overrides?: CallOverrides): Promise<BigNumber>;
-    getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: CallOverrides): Promise<SwapQuoteStructOutput>;
+    getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
+    getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: CallOverrides): Promise<SwapQuoteStructOutput>;
     owner(overrides?: CallOverrides): Promise<string>;
     renounceOwnership(overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -125,9 +163,10 @@ export interface CurvePathFinder extends BaseContract {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
     callStatic: {
-        addPoolThroughAdapter(adapter: string, overrides?: CallOverrides): Promise<void>;
+        addPool(curvePool: string, overrides?: CallOverrides): Promise<void>;
         gasUsage(arg0: string, arg1: string, arg2: string, overrides?: CallOverrides): Promise<BigNumber>;
-        getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: CallOverrides): Promise<SwapQuoteStructOutput>;
+        getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: CallOverrides): Promise<SwapQuoteStructOutput>;
+        getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: CallOverrides): Promise<SwapQuoteStructOutput>;
         owner(overrides?: CallOverrides): Promise<string>;
         renounceOwnership(overrides?: CallOverrides): Promise<void>;
         setGasUsage(pool: string, token0: string, token1: string, usage: BigNumberish, overrides?: CallOverrides): Promise<void>;
@@ -140,11 +179,14 @@ export interface CurvePathFinder extends BaseContract {
         OwnershipTransferred(previousOwner?: string | null, newOwner?: string | null): OwnershipTransferredEventFilter;
     };
     estimateGas: {
-        addPoolThroughAdapter(adapter: string, overrides?: Overrides & {
+        addPool(curvePool: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         gasUsage(arg0: string, arg1: string, arg2: string, overrides?: CallOverrides): Promise<BigNumber>;
-        getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+        getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
+        getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: CallOverrides): Promise<BigNumber>;
         owner(overrides?: CallOverrides): Promise<BigNumber>;
         renounceOwnership(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -159,11 +201,14 @@ export interface CurvePathFinder extends BaseContract {
         }): Promise<BigNumber>;
     };
     populateTransaction: {
-        addPoolThroughAdapter(adapter: string, overrides?: Overrides & {
+        addPool(curvePool: string, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         gasUsage(arg0: string, arg1: string, arg2: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        getBestPairSwap(adapter: string, tokenIn: string, tokenOut: string, amount: BigNumberish, slippageFactor: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        getBestConnectorSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
+        getBestDirectPairSwap(swapTask: SwapTaskStruct, adapter: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
         owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         renounceOwnership(overrides?: Overrides & {
             from?: string | Promise<string>;

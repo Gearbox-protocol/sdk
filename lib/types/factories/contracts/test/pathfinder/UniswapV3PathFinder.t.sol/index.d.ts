@@ -1,1 +1,1 @@
-export { UniswapV3PathFinderAdapterTest__factory } from "./UniswapV3PathFinderAdapterTest__factory";
+export { UniswapV3PathFinderTest__factory } from "./UniswapV3PathFinderTest__factory";

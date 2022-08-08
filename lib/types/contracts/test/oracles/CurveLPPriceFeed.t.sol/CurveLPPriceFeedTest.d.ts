@@ -235,7 +235,9 @@ export interface CurveLPPriceFeedTest extends BaseContract {
         c3feed(overrides?: CallOverrides): Promise<[string]>;
         c4feed(overrides?: CallOverrides): Promise<[string]>;
         curveV1Mock(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         pfm1(overrides?: CallOverrides): Promise<[string]>;
         pfm2(overrides?: CallOverrides): Promise<[string]>;
         pfm3(overrides?: CallOverrides): Promise<[string]>;
@@ -271,7 +273,9 @@ export interface CurveLPPriceFeedTest extends BaseContract {
     c3feed(overrides?: CallOverrides): Promise<string>;
     c4feed(overrides?: CallOverrides): Promise<string>;
     curveV1Mock(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     pfm1(overrides?: CallOverrides): Promise<string>;
     pfm2(overrides?: CallOverrides): Promise<string>;
     pfm3(overrides?: CallOverrides): Promise<string>;
@@ -362,7 +366,9 @@ export interface CurveLPPriceFeedTest extends BaseContract {
         c3feed(overrides?: CallOverrides): Promise<BigNumber>;
         c4feed(overrides?: CallOverrides): Promise<BigNumber>;
         curveV1Mock(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         pfm1(overrides?: CallOverrides): Promise<BigNumber>;
         pfm2(overrides?: CallOverrides): Promise<BigNumber>;
         pfm3(overrides?: CallOverrides): Promise<BigNumber>;
@@ -399,7 +405,9 @@ export interface CurveLPPriceFeedTest extends BaseContract {
         c3feed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         c4feed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         curveV1Mock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         pfm1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         pfm2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         pfm3(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -12,11 +12,11 @@ export interface YearnFeedTestInterface extends utils.Interface {
         "test_YPF_01_constructor_sets_correct_values()": FunctionFragment;
         "test_YPF_02_constructor_reverts_for_zero_addresses()": FunctionFragment;
         "test_YPF_04_latestRoundData_works_correctly(uint8)": FunctionFragment;
-        "test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices()": FunctionFragment;
+        "test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices()": FunctionFragment;
         "underlyingPf()": FunctionFragment;
         "yearnMock()": FunctionFragment;
     };
-    getFunction(nameOrSignatureOrTopic: "IS_TEST" | "addressProvider" | "failed" | "pf" | "setUp" | "test_YPF_01_constructor_sets_correct_values" | "test_YPF_02_constructor_reverts_for_zero_addresses" | "test_YPF_04_latestRoundData_works_correctly" | "test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices" | "underlyingPf" | "yearnMock"): FunctionFragment;
+    getFunction(nameOrSignatureOrTopic: "IS_TEST" | "addressProvider" | "failed" | "pf" | "setUp" | "test_YPF_01_constructor_sets_correct_values" | "test_YPF_02_constructor_reverts_for_zero_addresses" | "test_YPF_04_latestRoundData_works_correctly" | "test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices" | "underlyingPf" | "yearnMock"): FunctionFragment;
     encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
     encodeFunctionData(functionFragment: "addressProvider", values?: undefined): string;
     encodeFunctionData(functionFragment: "failed", values?: undefined): string;
@@ -25,7 +25,7 @@ export interface YearnFeedTestInterface extends utils.Interface {
     encodeFunctionData(functionFragment: "test_YPF_01_constructor_sets_correct_values", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_YPF_02_constructor_reverts_for_zero_addresses", values?: undefined): string;
     encodeFunctionData(functionFragment: "test_YPF_04_latestRoundData_works_correctly", values: [BigNumberish]): string;
-    encodeFunctionData(functionFragment: "test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices", values?: undefined): string;
+    encodeFunctionData(functionFragment: "test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices", values?: undefined): string;
     encodeFunctionData(functionFragment: "underlyingPf", values?: undefined): string;
     encodeFunctionData(functionFragment: "yearnMock", values?: undefined): string;
     decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
@@ -36,7 +36,7 @@ export interface YearnFeedTestInterface extends utils.Interface {
     decodeFunctionResult(functionFragment: "test_YPF_01_constructor_sets_correct_values", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_YPF_02_constructor_reverts_for_zero_addresses", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "test_YPF_04_latestRoundData_works_correctly", data: BytesLike): Result;
-    decodeFunctionResult(functionFragment: "test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "underlyingPf", data: BytesLike): Result;
     decodeFunctionResult(functionFragment: "yearnMock", data: BytesLike): Result;
     events: {
@@ -207,7 +207,9 @@ export interface YearnFeedTest extends BaseContract {
     functions: {
         IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
         addressProvider(overrides?: CallOverrides): Promise<[string]>;
-        failed(overrides?: CallOverrides): Promise<[boolean]>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<ContractTransaction>;
         pf(overrides?: CallOverrides): Promise<[string]>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -221,7 +223,7 @@ export interface YearnFeedTest extends BaseContract {
         test_YPF_04_latestRoundData_works_correctly(add: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
-        test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices(overrides?: Overrides & {
+        test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<ContractTransaction>;
         underlyingPf(overrides?: CallOverrides): Promise<[string]>;
@@ -229,7 +231,9 @@ export interface YearnFeedTest extends BaseContract {
     };
     IS_TEST(overrides?: CallOverrides): Promise<boolean>;
     addressProvider(overrides?: CallOverrides): Promise<string>;
-    failed(overrides?: CallOverrides): Promise<boolean>;
+    failed(overrides?: Overrides & {
+        from?: string | Promise<string>;
+    }): Promise<ContractTransaction>;
     pf(overrides?: CallOverrides): Promise<string>;
     setUp(overrides?: Overrides & {
         from?: string | Promise<string>;
@@ -243,7 +247,7 @@ export interface YearnFeedTest extends BaseContract {
     test_YPF_04_latestRoundData_works_correctly(add: BigNumberish, overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
-    test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices(overrides?: Overrides & {
+    test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices(overrides?: Overrides & {
         from?: string | Promise<string>;
     }): Promise<ContractTransaction>;
     underlyingPf(overrides?: CallOverrides): Promise<string>;
@@ -257,7 +261,7 @@ export interface YearnFeedTest extends BaseContract {
         test_YPF_01_constructor_sets_correct_values(overrides?: CallOverrides): Promise<void>;
         test_YPF_02_constructor_reverts_for_zero_addresses(overrides?: CallOverrides): Promise<void>;
         test_YPF_04_latestRoundData_works_correctly(add: BigNumberish, overrides?: CallOverrides): Promise<void>;
-        test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices(overrides?: CallOverrides): Promise<void>;
+        test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices(overrides?: CallOverrides): Promise<void>;
         underlyingPf(overrides?: CallOverrides): Promise<string>;
         yearnMock(overrides?: CallOverrides): Promise<string>;
     };
@@ -298,7 +302,9 @@ export interface YearnFeedTest extends BaseContract {
     estimateGas: {
         IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
         addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-        failed(overrides?: CallOverrides): Promise<BigNumber>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<BigNumber>;
         pf(overrides?: CallOverrides): Promise<BigNumber>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -312,7 +318,7 @@ export interface YearnFeedTest extends BaseContract {
         test_YPF_04_latestRoundData_works_correctly(add: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
-        test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices(overrides?: Overrides & {
+        test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<BigNumber>;
         underlyingPf(overrides?: CallOverrides): Promise<BigNumber>;
@@ -321,7 +327,9 @@ export interface YearnFeedTest extends BaseContract {
     populateTransaction: {
         IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-        failed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        failed(overrides?: Overrides & {
+            from?: string | Promise<string>;
+        }): Promise<PopulatedTransaction>;
         pf(overrides?: CallOverrides): Promise<PopulatedTransaction>;
         setUp(overrides?: Overrides & {
             from?: string | Promise<string>;
@@ -335,7 +343,7 @@ export interface YearnFeedTest extends BaseContract {
         test_YPF_04_latestRoundData_works_correctly(add: BigNumberish, overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
-        test_YPF_05_latestRoundData_reverts_for_out_of_bounds_prices(overrides?: Overrides & {
+        test_YPF_05_latestRoundData_reverts_or_bounds_for_out_of_bounds_prices(overrides?: Overrides & {
             from?: string | Promise<string>;
         }): Promise<PopulatedTransaction>;
         underlyingPf(overrides?: CallOverrides): Promise<PopulatedTransaction>;
