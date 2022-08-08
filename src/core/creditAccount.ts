@@ -109,7 +109,9 @@ export function sortBalances(
     const totalPrice2 = calcTotalPrice(price2, amount2, token2?.decimals);
 
     if (totalPrice1.eq(totalPrice2)) {
-      return tokensAbcComparator(token1, token2);
+      return amount1.eq(amount2)
+        ? tokensAbcComparator(token1, token2)
+        : amountAbcComparator(amount1, amount2);
     }
 
     if (totalPrice1.gt(totalPrice2)) {
@@ -125,6 +127,10 @@ export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
   const { symbol: symbol2 = "" } = t2 || {};
 
   return symbol1 > symbol2 ? 1 : -1;
+}
+
+export function amountAbcComparator(t1: BigNumber, t2: BigNumber) {
+  return t1?.gt(t2) ? -1 : 1;
 }
 
 export class CreditAccountDataExtended extends CreditAccountData {
