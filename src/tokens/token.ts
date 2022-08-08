@@ -224,6 +224,78 @@ export const tokenDataByNetwork: Record<
     dWETH: "0x19e4F905749D3b487CA4927b54e55b64625a1143",
 
     GEAR: "0xe01c5d0297c56e992dab3886057a1441485ff7c7"
+  },
+  Goerli: {
+    "1INCH": "TODO: DEPLOY ME", // ERC20Mock.sol
+    AAVE: "TODO: DEPLOY ME", // ERC20Mock.sol
+    COMP: "TODO: DEPLOY ME", // ERC20Mock.sol
+    CRV: "TODO: DEPLOY ME", // ERC20Mock.sol
+    DAI: "TODO: DEPLOY ME", // DieselToken.sol
+    DPI: "TODO: DEPLOY ME", // ERC20Mock.sol
+    FEI: "TODO: DEPLOY ME", // ERC20Mock.sol
+    LINK: "TODO: DEPLOY ME", // ERC20Mock.sol
+    SNX: "TODO: DEPLOY ME", // DieselToken.sol
+    SUSHI: "TODO: DEPLOY ME", // ERC20Mock.sol
+    UNI: "TODO: DEPLOY ME", // ERC20Mock.sol
+    USDT: "TODO: DEPLOY ME", // ERC20Mock.sol
+    USDC: "TODO: DEPLOY ME", // DieselToken.sol
+    WBTC: "TODO: DEPLOY ME", // DieselToken.sol
+    WETH: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6", // Well-known
+    YFI: "TODO: DEPLOY ME", // ERC20Mock.sol
+
+    /// UPDATE
+    STETH: "TODO: DEPLOY ME", // Lido_K.sol
+    FTM: "TODO: DEPLOY ME", // ERC20Mock.sol
+    CVX: "TODO: DEPLOY ME", // CVXMockK.sol
+    FRAX: "TODO: DEPLOY ME", // ERC20Mock.sol
+    FXS: "TODO: DEPLOY ME", // ERC20Mock.sol
+    LDO: "TODO: DEPLOY ME", // ERC20Mock.sol
+    SPELL: "TODO: DEPLOY ME", // ERC20Mock.sol
+    LUSD: "TODO: DEPLOY ME", // ERC20Mock.sol
+    sUSD: "TODO: DEPLOY ME", // ERC20Mock.sol
+    GUSD: "TODO: DEPLOY ME", // ERC20Mock.sol
+    LUNA: "TODO: DEPLOY ME", // ERC20Mock.sol
+    LQTY: "TODO: DEPLOY ME", // ERC20Mock.sol
+
+    // YEARN TOKENS
+    yvDAI: "TODO: DEPLOY ME", // YearnMock.sol
+    yvUSDC: "TODO: DEPLOY ME", // YearnMock.sol
+    yvWETH: "TODO: DEPLOY ME", // YearnMock.sol
+    yvWBTC: "TODO: DEPLOY ME", // YearnMock.sol
+    yvCurve_stETH: "TODO: DEPLOY ME", // YearnMock.sol
+    yvCurve_FRAX: "TODO: DEPLOY ME", // YearnMock.sol
+
+    // CURVE LP TOKENS
+    "3Crv": "TODO: DEPLOY ME", // Vyper_contract
+    steCRV: "TODO: DEPLOY ME", // Vyper_contract
+    crvPlain3andSUSD: "TODO: DEPLOY ME", // Vyper_contract
+    gusd3CRV: "TODO: DEPLOY ME", // Vyper_contract
+    FRAX3CRV: "TODO: DEPLOY ME", // Vyper_contract
+    LUSD3CRV: "TODO: DEPLOY MEF", // Vyper_contract
+
+    // CONVEX LP TOKENS
+    cvx3Crv: "TODO: DEPLOY ME", // ERC20Mock.sol
+    cvxsteCRV: "TODO: DEPLOY ME", // ERC20Mock.sol
+    cvxcrvPlain3andSUSD: "TODO: DEPLOY ME", // ERC20Mock.sol
+    cvxFRAX3CRV: "TODO: DEPLOY ME", // ERC20Mock.sol
+    cvxLUSD3CRV: "TODO: DEPLOY ME", // ERC20Mock.sol
+    cvxgusd3CRV: "TODO: DEPLOY ME", // ERC20Mock.sol
+
+    // CONVEX PHANTOM TOKEN ADDRESSES
+    stkcvx3Crv: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxFRAX3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxLUSD3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxgusd3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxsteCRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxcrvPlain3andSUSD: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+
+    // GEARBOX
+    dDAI: "TODO: DEPLOY ME", // DieselToken.sol
+    dUSDC: "TODO: DEPLOY ME", // DieselToken.sol
+    dWBTC: "TODO: DEPLOY ME", // DieselToken.sol
+    dWETH: "TODO: DEPLOY ME", // DieselToken.sol
+
+    GEAR: "TODO: DEPLOY ME"
   }
 };
 

@@ -5,10 +5,11 @@ export const MAX_INT = BigNumber.from(
 );
 
 export const MAINNET_NETWORK = 1;
+export const GOERLI_NETWORK = 5;
 export const KOVAN_NETWORK = 42;
 export const LOCAL_NETWORK = 1337;
 
-export type NetworkType = "Mainnet" | "Kovan";
+export type NetworkType = "Mainnet" | "Kovan" | "Goerli";
 
 export const getNetworkType = (chainId: number): NetworkType => {
   switch (chainId) {
@@ -17,6 +18,8 @@ export const getNetworkType = (chainId: number): NetworkType => {
       return "Mainnet";
     case KOVAN_NETWORK:
       return "Kovan";
+    case GOERLI_NETWORK:
+      return "Goerli";
     default:
       throw new Error("unknown network");
   }

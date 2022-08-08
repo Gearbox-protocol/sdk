@@ -21,7 +21,8 @@ const lidoOracles = (contractParams.LIDO_STETH_GATEWAY as LidoParams).oracle;
 
 const lidoStEth: Record<NetworkType, string> = {
   Mainnet: tokenDataByNetwork.Mainnet.STETH,
-  Kovan: tokenDataByNetwork.Kovan.STETH
+  Kovan: tokenDataByNetwork.Kovan.STETH,
+  Goerli: tokenDataByNetwork.Goerli.STETH
 };
 
 export async function getLidoApy(
@@ -71,7 +72,7 @@ async function geLidoData(
       }
     ];
 
-  if (network !== "Kovan")
+  if (network === "Mainnet")
     calls.push({
       address: stETHAddress,
       interface: IstETH__factory.createInterface(),
