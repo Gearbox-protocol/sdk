@@ -1,3 +1,4 @@
+import { NetworkType } from "src/core/constants";
 import { SupportedToken } from "../tokens/token";
 
 export interface PriceFeed {
@@ -17,14 +18,12 @@ export enum OracleType {
 export type PriceFeedData =
   | {
       type: OracleType.CHAINLINK_ORACLE;
-      address: string;
-      kovan?: string;
+      address: Record<NetworkType, string>;
     }
   | {
       type: OracleType.YEARN_TOKEN_ORACLE;
       token: SupportedToken;
-      deployed?: string;
-      deployedKovan?: string;
+      address: Record<NetworkType, string>;
     }
   | {
       type: OracleType.CURVE_LP_ORACLE;
