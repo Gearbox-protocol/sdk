@@ -1,6 +1,6 @@
 import { BigNumber } from "ethers";
+import { calcTotalPrice } from "../utils/price";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
-import { calcTotalPrice } from "./price";
 
 export interface StrategyPayload {
   apy?: number;

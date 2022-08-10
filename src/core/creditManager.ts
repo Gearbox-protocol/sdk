@@ -100,7 +100,7 @@ export class CreditManagerData {
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
 
-      if (address) acc[address] = BigNumber.from(threshold);
+      if (address) acc[address.toLowerCase()] = BigNumber.from(threshold);
 
       return acc;
     }, {});

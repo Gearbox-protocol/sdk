@@ -1,5 +1,4 @@
 export * from "./core/constants";
-export * from "./core/price";
 export * from "./core/creditAccount";
 export * from "./core/creditManager";
 export * from "./core/creditSession";
@@ -42,6 +41,7 @@ export * from "./core/history";
 export * from "./utils/multicall";
 export * from "./utils/types";
 export * from "./utils/errors";
+export * from "./utils/price";
 export * from "./strategies/convex";
 export * from "./strategies/creditFacade";
 export * from "./strategies/curve";

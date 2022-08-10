@@ -3,6 +3,8 @@ import {
   CreditAccountDataExtendedPayload,
   CreditAccountDataPayload
 } from "../payload/creditAccount";
+import { calcTotalPrice } from "../utils/price";
+
 import {
   PERCENTAGE_FACTOR,
   RAY,
@@ -10,7 +12,6 @@ import {
   PRICE_DECIMALS
 } from "./constants";
 import { TokenData } from "../tokens/tokenData";
-import { calcTotalPrice } from "./price";
 
 export type Balance = { address: string; balance: BigNumber };
 
