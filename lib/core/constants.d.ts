@@ -4,6 +4,7 @@ export declare const MAINNET_NETWORK = 1;
 export declare const GOERLI_NETWORK = 5;
 export declare const KOVAN_NETWORK = 42;
 export declare const LOCAL_NETWORK = 1337;
+export declare const HARDHAT_NETWORK = 31337;
 export declare type NetworkType = "Mainnet" | "Kovan" | "Goerli";
 export declare const getNetworkType: (chainId: number) => NetworkType;
 export declare const RAY_DECIMALS_POW = 27;

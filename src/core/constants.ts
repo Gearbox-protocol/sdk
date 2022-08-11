@@ -8,6 +8,7 @@ export const MAINNET_NETWORK = 1;
 export const GOERLI_NETWORK = 5;
 export const KOVAN_NETWORK = 42;
 export const LOCAL_NETWORK = 1337;
+export const HARDHAT_NETWORK = 31337;
 
 export type NetworkType = "Mainnet" | "Kovan" | "Goerli";
 
