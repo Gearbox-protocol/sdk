@@ -79,10 +79,9 @@ export class CreditManagerData {
     this.minAmount = BigNumber.from(payload.minAmount || 0);
     this.maxAmount = BigNumber.from(payload.maxAmount || 0);
 
-    this.maxLeverageFactor =
-      payload.version === 2
-        ? 900
-        : BigNumber.from(payload.maxLeverageFactor || 0).toNumber();
+    this.maxLeverageFactor = BigNumber.from(
+      payload.maxLeverageFactor || 0
+    ).toNumber();
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
 
     this.allowedTokens = (payload.collateralTokens || []).map(t =>
@@ -164,7 +163,7 @@ export class CreditManagerData {
 
   validateOpenAccount(collateral: BigNumber, debt: BigNumber): true {
     return this.version === 2
-      ? this.validateOpenAccountV2(collateral, debt)
+      ? this.validateOpenAccountV2(debt)
       : this.validateOpenAccountV1(collateral, debt);
   }
 
@@ -198,17 +197,14 @@ export class CreditManagerData {
     return true;
   }
 
-  protected validateOpenAccountV2(
-    collateral: BigNumber,
-    debt: BigNumber
-  ): true {
+  protected validateOpenAccountV2(debt: BigNumber): true {
     if (debt.lt(this.minAmount))
       throw new OpenAccountError("amountLessMin", this.minAmount);
 
     if (debt.gt(this.maxAmount))
       throw new OpenAccountError("amountGreaterMax", this.maxAmount);
 
-    if (collateral.add(debt).gt(this.availableLiquidity))
+    if (debt.gt(this.availableLiquidity))
       throw new OpenAccountError(
         "insufficientPoolLiquidity",
         BigNumber.from(this.availableLiquidity)

@@ -31,7 +31,7 @@ export declare class CreditManagerData {
     encodeDecreaseDebt(amount: BigNumber): MultiCall;
     validateOpenAccount(collateral: BigNumber, debt: BigNumber): true;
     protected validateOpenAccountV1(collateral: BigNumber, debt: BigNumber): true;
-    protected validateOpenAccountV2(collateral: BigNumber, debt: BigNumber): true;
+    protected validateOpenAccountV2(debt: BigNumber): true;
 }
 export declare function calcMaxIncreaseBorrow(healthFactor: number, borrowAmountPlusInterest: BigNumber, maxLeverageFactor: number): BigNumber;
 export declare function calcHealthFactorAfterIncreasingBorrow(healthFactor: number | undefined, borrowAmountPlusInterest: BigNumber | undefined, additional: BigNumber): number;

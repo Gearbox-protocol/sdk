@@ -96,9 +96,13 @@ export class Strategy {
       .div(PERCENTAGE_FACTOR);
     const lpMoney = calcTotalPrice(lp.price, lp.amount, lp.decimals);
 
-    return lpMoney.gt(0)
-      ? borrowedMoney.sub(collateralMoney).mul(WAD).div(lpMoney)
-      : BigNumber.from(0);
+    if (lpMoney.gt(0)) {
+      const lqPrice = borrowedMoney.sub(collateralMoney).mul(WAD).div(lpMoney);
+
+      return lqPrice.gte(0) ? lqPrice : BigNumber.from(0);
+    }
+
+    return BigNumber.from(0);
   }
 
   protected farmLev(leverage: number, depositCollateral: string) {
