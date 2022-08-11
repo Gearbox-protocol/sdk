@@ -29,7 +29,9 @@ export declare class CreditManagerData {
     encodeAddCollateral(accountAddress: string, tokenAddress: string, amount: BigNumber): MultiCall;
     encodeIncreaseDebt(amount: BigNumber): MultiCall;
     encodeDecreaseDebt(amount: BigNumber): MultiCall;
-    validateOpenAccount(totalAmount: BigNumber, leverage: number): true;
+    validateOpenAccount(collateral: BigNumber, debt: BigNumber): true;
+    protected validateOpenAccountV1(collateral: BigNumber, debt: BigNumber): true;
+    protected validateOpenAccountV2(collateral: BigNumber, debt: BigNumber): true;
 }
 export declare function calcMaxIncreaseBorrow(healthFactor: number, borrowAmountPlusInterest: BigNumber, maxLeverageFactor: number): BigNumber;
 export declare function calcHealthFactorAfterIncreasingBorrow(healthFactor: number | undefined, borrowAmountPlusInterest: BigNumber | undefined, additional: BigNumber): number;

@@ -29,8 +29,8 @@ export declare class Strategy {
     maxAPY(maxLeverage: number, poolApy: PoolList): number;
     overallAPY(apy: number, leverage: number, depositCollateral: string, borrowAPY: number): number;
     liquidationPrice(borrowed: TokenDescription, collateral: TokenDescription, lp: TokenDescription, ltCollateral: BigNumber): BigNumber;
-    private farmLev;
-    private inBaseAssets;
-    private inLeveragableAssets;
+    protected farmLev(leverage: number, depositCollateral: string): number;
+    protected inBaseAssets(depositCollateral: string): boolean;
+    protected inLeveragableAssets(depositCollateral: string): boolean;
 }
 export {};
