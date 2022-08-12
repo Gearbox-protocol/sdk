@@ -807,3 +807,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     ]
   }
 };
+
+export const isNormalToken = (t: unknown): t is NormalToken =>
+  typeof t === "string" && !!normalTokens[t as NormalToken];

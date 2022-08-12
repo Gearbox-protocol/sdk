@@ -13,7 +13,6 @@ const defaultSymbolReplacement: SymbolReplacements = {
 export class TokenData {
   public readonly id: string;
 
-  // public readonly name: string;
   public readonly symbol: string;
 
   public readonly address: string;
@@ -26,9 +25,8 @@ export class TokenData {
     payload: TokenDataPayload,
     symbolReplacements: SymbolReplacements = defaultSymbolReplacement
   ) {
-    this.id = payload.addr;
-    this.address = payload.addr;
-    // this.name = payload.name;
+    this.id = payload.addr.toLowerCase();
+    this.address = payload.addr.toLowerCase();
     this.symbol = symbolReplacements[payload.symbol] || payload.symbol;
     this.decimals = payload.decimals;
     this.icon = `${STATIC_TOKEN}${payload.symbol?.toLowerCase()}.svg`;

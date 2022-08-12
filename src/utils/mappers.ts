@@ -12,7 +12,7 @@ const swapKeyValue = <K extends SupportedValue, T extends SupportedValue>(
     {} as Record<T, K>
   );
 
-const keyToLowercase = <K extends SupportedValue, T extends SupportedValue>(
+const keyToLowercase = <K extends SupportedValue, T>(
   o: Record<K, T>
 ): Record<K, T> =>
   objectEntries(o).reduce((acc, [key, value]) => {
@@ -20,7 +20,7 @@ const keyToLowercase = <K extends SupportedValue, T extends SupportedValue>(
     return { ...acc, [keyTransformed]: value };
   }, {} as Record<K, T>);
 
-const filterEmptyKeys = <K extends SupportedValue, T extends SupportedValue>(
+const filterEmptyKeys = <K extends SupportedValue, T>(
   o: Record<K, T>
 ): Record<K, T> =>
   objectEntries(o).reduce(

@@ -46,10 +46,10 @@ export class PoolData {
   public readonly isPaused: boolean = false;
 
   constructor(payload: PoolDataPayload) {
-    this.id = payload.addr;
-    this.address = payload.addr;
-    this.underlyingToken = payload.underlying || "";
-    this.dieselToken = payload.dieselToken || "";
+    this.id = payload.addr.toLowerCase();
+    this.address = payload.addr.toLowerCase();
+    this.underlyingToken = payload.underlying.toLowerCase();
+    this.dieselToken = payload.dieselToken.toLowerCase();
 
     this.isWETH = payload.isWETH || false;
 

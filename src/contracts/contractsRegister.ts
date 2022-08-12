@@ -1,4 +1,5 @@
 import { keyToLowercase } from "../utils/mappers";
+import { shortAddress } from "../utils/formatter";
 import { contractsByAddress, contractParams } from "./contracts";
 
 export const deployedContracts: Record<string, string> = {
@@ -63,5 +64,5 @@ const contractsFullList = {
 };
 
 export function getContractName(address: string): string {
-  return contractsFullList[address.toLowerCase()] || address;
+  return contractsFullList[address.toLowerCase()] || shortAddress(address);
 }

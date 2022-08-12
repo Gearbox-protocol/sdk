@@ -33,30 +33,25 @@ import {
   PRICE_DECIMALS
 } from "../core/constants";
 
-type SupportedPools = Extract<
-  ConvexPoolContract,
-  | "CONVEX_3CRV_POOL"
-  | "CONVEX_FRAX3CRV_POOL"
-  | "CONVEX_LUSD3CRV_POOL"
-  | "CONVEX_GUSD_POOL"
-  | "CONVEX_SUSD_POOL"
->;
+type SupportedPools = ConvexPoolContract;
 
-type SupportedConvex = Extract<
+type SupportedCurve = Extract<
   CurvePoolContract,
   | "CURVE_3CRV_POOL"
   | "CURVE_FRAX_POOL"
   | "CURVE_LUSD_POOL"
   | "CURVE_GUSD_POOL"
   | "CURVE_SUSD_POOL"
+  | "CURVE_STETH_GATEWAY"
 >;
 
-const curveSwapByPool: Record<SupportedPools, SupportedConvex> = {
+const curvePoolByConvexPool: Record<SupportedPools, SupportedCurve> = {
   CONVEX_3CRV_POOL: "CURVE_3CRV_POOL",
   CONVEX_FRAX3CRV_POOL: "CURVE_FRAX_POOL",
   CONVEX_LUSD3CRV_POOL: "CURVE_LUSD_POOL",
   CONVEX_GUSD_POOL: "CURVE_GUSD_POOL",
-  CONVEX_SUSD_POOL: "CURVE_SUSD_POOL"
+  CONVEX_SUSD_POOL: "CURVE_SUSD_POOL",
+  CONVEX_STECRV_POOL: "CURVE_STETH_GATEWAY"
 };
 
 export async function getConvexApy(
@@ -75,7 +70,7 @@ export async function getConvexApy(
 
   const { underlying } = stakedTokenParams;
   const basePoolAddress = contractsList[pool];
-  const swapPoolAddress = contractsList[curveSwapByPool[pool]];
+  const swapPoolAddress = contractsList[curvePoolByConvexPool[pool]];
   const cvxAddress = tokenList.CVX;
 
   const extraPoolAddresses = poolParams.extraRewards.map(
@@ -83,13 +78,13 @@ export async function getConvexApy(
   );
 
   const [basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra] =
-    await getPoolData(
+    await getPoolData({
       basePoolAddress,
       swapPoolAddress,
       cvxAddress,
       extraPoolAddresses,
       provider
-    );
+    });
 
   const cvxPrice = getTokenPrice(tokenList.CVX);
   const crvPrice = getTokenPrice(tokenList.CRV);
@@ -101,8 +96,8 @@ export async function getConvexApy(
   const crvPerYear = crvPerUnderlying.mul(SECONDS_PER_YEAR);
   const cvxPerYear = getCVXMintAmount(crvPerYear, cvxSupply);
 
-  const crvAPY = crvPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
-  const cvxAPY = cvxPerYear.mul(crvPrice).div(PRICE_DECIMALS);
+  const crvAPY = crvPerYear.mul(crvPrice).div(PRICE_DECIMALS);
+  const cvxAPY = cvxPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
 
   const extraAPRs = await Promise.all(
     extraPoolAddresses.map(async (_, index) => {
@@ -112,9 +107,9 @@ export async function getConvexApy(
       const perUnderlying = extraPoolRate.mul(WAD).div(virtualSupply);
       const perYear = perUnderlying.mul(SECONDS_PER_YEAR);
 
-      const extraPrise = getTokenPrice(tokenList[extraRewardSymbol]);
+      const extraPrice = getTokenPrice(tokenList[extraRewardSymbol]);
 
-      const extraAPY = perYear.mul(extraPrise).div(PRICE_DECIMALS);
+      const extraAPY = perYear.mul(extraPrice).div(PRICE_DECIMALS);
 
       return extraAPY;
     })
@@ -154,13 +149,21 @@ type IBaseRewardPoolInterface = IBaseRewardPool["interface"];
 type IConvexTokenInterface = IConvexToken["interface"];
 type CurveV1AdapterStETHInterface = CurveV1AdapterStETH["interface"];
 
-async function getPoolData(
-  basePoolAddress: string,
-  underlying: string,
-  cvxAddress: string,
-  extraPoolAddresses: string[],
-  provider: providers.Provider
-) {
+interface GetPoolDataProps {
+  basePoolAddress: string;
+  swapPoolAddress: string;
+  cvxAddress: string;
+  extraPoolAddresses: string[];
+  provider: providers.Provider;
+}
+
+async function getPoolData({
+  basePoolAddress,
+  swapPoolAddress,
+  cvxAddress,
+  extraPoolAddresses,
+  provider
+}: GetPoolDataProps) {
   const calls: [
     MCall<IBaseRewardPoolInterface>,
     MCall<IBaseRewardPoolInterface>,
@@ -179,7 +182,7 @@ async function getPoolData(
       method: "totalSupply()"
     },
     {
-      address: underlying,
+      address: swapPoolAddress,
       interface: CurveV1AdapterStETH__factory.createInterface(),
       method: "get_virtual_price()"
     },
