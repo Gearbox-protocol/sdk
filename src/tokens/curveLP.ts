@@ -45,7 +45,7 @@ export const curveTokens: Record<
 > = {
   // CURVE LP TOKENS
   "3Crv": {
-    name: "3Crv",
+    name: "Curve 3Crv",
     decimals: 18,
     symbol: "3Crv",
     type: TokenType.CURVE_LP,
@@ -70,7 +70,7 @@ export const curveTokens: Record<
   },
 
   steCRV: {
-    name: "steCRV",
+    name: "Curve steCRV",
     decimals: 18,
     symbol: "steCRV",
     type: TokenType.CURVE_LP,
@@ -95,7 +95,7 @@ export const curveTokens: Record<
   },
 
   crvPlain3andSUSD: {
-    name: "crvPlain3andSUSD",
+    name: "Curve crvPlain3andSUSD",
     decimals: 18,
     symbol: "crvPlain3andSUSD",
     type: TokenType.CURVE_LP,
@@ -122,7 +122,7 @@ export const curveTokens: Record<
 
   //  META CURVE LP TOKENS
   FRAX3CRV: {
-    name: "FRAX3CRV-f",
+    name: "Curve FRAX3CRV-f",
     decimals: 18,
     symbol: "FRAX3CRV",
     type: TokenType.META_CURVE_LP,
@@ -147,7 +147,7 @@ export const curveTokens: Record<
   },
 
   LUSD3CRV: {
-    name: "LUSD3CRV-f",
+    name: "Curve LUSD3CRV-f",
     decimals: 18,
     symbol: "LUSD3CRV",
     type: TokenType.META_CURVE_LP,
@@ -162,7 +162,7 @@ export const curveTokens: Record<
   },
 
   gusd3CRV: {
-    name: "gusd3CRV",
+    name: "Curve gusd3CRV",
     decimals: 18,
     symbol: "gusd3CRV",
     type: TokenType.META_CURVE_LP,
