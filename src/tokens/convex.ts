@@ -342,6 +342,12 @@ export const convexTokens: Record<
   ...convexStakedPhantomTokens
 };
 
+export const isConvexToken = (
+  t: unknown
+): t is ConvexLPToken | ConvexStakedPhantomToken =>
+  typeof t === "string" &&
+  !!convexTokens[t as ConvexLPToken | ConvexStakedPhantomToken];
+
 export const isConvexLPToken = (t: unknown): t is ConvexLPToken =>
   typeof t === "string" && !!convexLpTokens[t as ConvexLPToken];
 

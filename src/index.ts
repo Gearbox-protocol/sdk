@@ -39,8 +39,7 @@ export * from "./tokens/gear";
 export * from "./tokens/normal";
 export * from "./tokens/yearn";
 
-export * from "./apy/lidoAPY";
-export * from "./apy/convexAPY";
+export * from "./apy";
 
 export * from "./core/history";
 export * from "./utils/multicall";

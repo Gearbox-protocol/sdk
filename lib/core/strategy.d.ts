@@ -1,6 +1,8 @@
 import { BigNumber } from "ethers";
+import { TokensWithAPY } from "../apy";
 export interface StrategyPayload {
     apy?: number;
+    apyTokenSymbol: TokensWithAPY;
     name: string;
     lpToken: string;
     pools: Array<string>;

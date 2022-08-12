@@ -22,6 +22,7 @@ export declare type ConvexPhantomTokenData = {
     lpToken: ConvexLPToken;
 } & BaseConvexToken;
 export declare const convexTokens: Record<ConvexLPToken | ConvexStakedPhantomToken, ConvexLPTokenData | ConvexPhantomTokenData>;
+export declare const isConvexToken: (t: unknown) => t is ConvexLPToken | ConvexStakedPhantomToken;
 export declare const isConvexLPToken: (t: unknown) => t is ConvexLPToken;
 export declare const isConvexStakedPhantomToken: (t: unknown) => t is ConvexStakedPhantomToken;
 export {};

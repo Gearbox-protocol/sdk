@@ -1,9 +1,11 @@
 import { BigNumber } from "ethers";
 import { calcTotalPrice } from "../utils/price";
+import { TokensWithAPY } from "../apy";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
 
 export interface StrategyPayload {
   apy?: number;
+  apyTokenSymbol: TokensWithAPY;
 
   name: string;
   lpToken: string;
