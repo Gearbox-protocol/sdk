@@ -9,7 +9,7 @@ import {
 } from "../contracts/contracts";
 
 import { tokenDataByNetwork, supportedTokens } from "../tokens/token";
-import { CurveLPToken } from "../tokens/curveLP";
+import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
 import { ConvexPhantomTokenData } from "../tokens/convex";
 
 import {
@@ -33,29 +33,8 @@ import {
   PRICE_DECIMALS
 } from "../core/constants";
 
-type SupportedPools = ConvexPoolContract;
-
-type SupportedCurve = Extract<
-  CurvePoolContract,
-  | "CURVE_3CRV_POOL"
-  | "CURVE_FRAX_POOL"
-  | "CURVE_LUSD_POOL"
-  | "CURVE_GUSD_POOL"
-  | "CURVE_SUSD_POOL"
-  | "CURVE_STETH_GATEWAY"
->;
-
-const curvePoolByConvexPool: Record<SupportedPools, SupportedCurve> = {
-  CONVEX_3CRV_POOL: "CURVE_3CRV_POOL",
-  CONVEX_FRAX3CRV_POOL: "CURVE_FRAX_POOL",
-  CONVEX_LUSD3CRV_POOL: "CURVE_LUSD_POOL",
-  CONVEX_GUSD_POOL: "CURVE_GUSD_POOL",
-  CONVEX_SUSD_POOL: "CURVE_SUSD_POOL",
-  CONVEX_STECRV_POOL: "CURVE_STETH_GATEWAY"
-};
-
 export async function getConvexApy(
-  pool: SupportedPools,
+  pool: ConvexPoolContract,
   provider: providers.Provider,
   networkType: NetworkType,
   getTokenPrice: (tokenAddress: string) => BigNumber
@@ -70,7 +49,10 @@ export async function getConvexApy(
 
   const { underlying } = stakedTokenParams;
   const basePoolAddress = contractsList[pool];
-  const swapPoolAddress = contractsList[curvePoolByConvexPool[pool]];
+
+  const crvParams = supportedTokens[underlying] as CurveLPTokenData;
+
+  const swapPoolAddress = contractsList[crvParams.pool];
   const cvxAddress = tokenList.CVX;
 
   const extraPoolAddresses = poolParams.extraRewards.map(
@@ -241,7 +223,7 @@ export async function getCurveBaseApy(
   const poolName = curveLPTokenToPoolName[curveLPToken];
 
   try {
-    const url = "https://www.convexfinance.com/api/curve-apys";
+    const url = "http://localhost:8000/api/curve-apys";
     const result = await axios.get<APYResponse>(url);
 
     const { baseApy = 0 } = result.data.apys[poolName] || {};
