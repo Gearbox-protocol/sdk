@@ -60,5 +60,6 @@ export { callRepeater } from "./utils/repeater";
 export { getContractName } from "./contracts/contractsRegister";
 export { AdapterInterface } from "./contracts/adapters";
 export { objectEntries, swapKeyValue, keyToLowercase } from "./utils/mappers";
+export { getPoolTokens, getUnderlyingToken } from "./utils/extracter";
 
 export * from "./pathfinder/tradeTypes";
