@@ -39,11 +39,7 @@ export type ConvexPhantomTokenData = {
   lpToken: ConvexLPToken;
 } & BaseConvexToken;
 
-export const convexTokens: Record<
-  ConvexLPToken | ConvexStakedPhantomToken,
-  ConvexLPTokenData | ConvexPhantomTokenData
-> = {
-  // CONVEX LP TOKENS
+const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
   cvx3Crv: {
     name: "cvx3Crv",
     decimals: 18,
@@ -186,9 +182,13 @@ export const convexTokens: Record<
         tokenOut: "stkcvxgusd3CRV"
       }
     ]
-  },
+  }
+};
 
-  // STAKED CONVEX
+const convexStakedPhantomTokens: Record<
+  ConvexStakedPhantomToken,
+  ConvexPhantomTokenData
+> = {
   stkcvx3Crv: {
     name: "stkcvx3Crv",
     decimals: 18,
@@ -333,3 +333,20 @@ export const convexTokens: Record<
     ]
   }
 };
+
+export const convexTokens: Record<
+  ConvexLPToken | ConvexStakedPhantomToken,
+  ConvexLPTokenData | ConvexPhantomTokenData
+> = {
+  ...convexLpTokens,
+  ...convexStakedPhantomTokens
+};
+
+export const isConvexLPToken = (t: unknown): t is ConvexLPToken =>
+  typeof t === "string" && !!convexLpTokens[t as ConvexLPToken];
+
+export const isConvexStakedPhantomToken = (
+  t: unknown
+): t is ConvexStakedPhantomToken =>
+  typeof t === "string" &&
+  !!convexStakedPhantomTokens[t as ConvexStakedPhantomToken];

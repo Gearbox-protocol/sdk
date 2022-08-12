@@ -141,3 +141,6 @@ export const yearnTokens: Record<
     ]
   }
 };
+
+export const isYearnLPToken = (t: unknown): t is YearnLPToken =>
+  typeof t === "string" && !!yearnTokens[t as YearnLPToken];

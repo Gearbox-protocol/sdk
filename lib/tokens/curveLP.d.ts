@@ -22,3 +22,4 @@ export declare type MetaCurveLPTokenData = {
 } & TokenBase;
 export declare const Curve3CrvUnderlyingTokenIndex: PartialRecord<SupportedToken, BigNumber>;
 export declare const curveTokens: Record<CurveLPToken, CurveLPTokenData | MetaCurveLPTokenData>;
+export declare const isCurveLPToken: (t: unknown) => t is CurveLPToken;
