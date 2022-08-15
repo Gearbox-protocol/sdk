@@ -3,6 +3,8 @@ import {
   CreditAccountDataExtendedPayload,
   CreditAccountDataPayload
 } from "../payload/creditAccount";
+import { calcTotalPrice } from "../utils/price";
+
 import {
   PERCENTAGE_FACTOR,
   RAY,
@@ -10,7 +12,6 @@ import {
   PRICE_DECIMALS
 } from "./constants";
 import { TokenData } from "../tokens/tokenData";
-import { calcTotalPrice } from "./price";
 
 export type Balance = { address: string; balance: BigNumber };
 
@@ -48,12 +49,12 @@ export class CreditAccountData {
   public readonly version: number = 1;
 
   constructor(payload: CreditAccountDataPayload) {
-    this.id = payload.creditManager;
-    this.addr = payload.addr;
-    this.borrower = payload.borrower;
+    this.id = payload.creditManager.toLowerCase();
+    this.addr = payload.addr.toLowerCase();
+    this.borrower = payload.borrower.toLowerCase();
     this.inUse = payload.inUse;
-    this.creditManager = payload.creditManager;
-    this.underlyingToken = payload.underlying;
+    this.creditManager = payload.creditManager.toLowerCase();
+    this.underlyingToken = payload.underlying.toLowerCase();
     this.borrowedAmountPlusInterest = BigNumber.from(
       payload.borrowedAmountPlusInterest
     );
@@ -68,13 +69,14 @@ export class CreditAccountData {
         .toNumber() / PERCENTAGE_FACTOR;
 
     (payload.balances || []).forEach(b => {
+      const tokenLC = b.token.toLowerCase();
       if (b.isAllowed) {
-        this.balances[b.token] = BigNumber.from(b.balance);
-        this.allowedTokens.push(b.token);
+        this.balances[tokenLC] = BigNumber.from(b.balance);
+        this.allowedTokens.push(tokenLC);
       }
 
-      this.allBalances[b.token] = BigNumber.from(b.balance);
-      this.allTokens.push(b.token);
+      this.allBalances[tokenLC] = BigNumber.from(b.balance);
+      this.allTokens.push(tokenLC);
     });
 
     this.isDeleting = false;
@@ -109,7 +111,9 @@ export function sortBalances(
     const totalPrice2 = calcTotalPrice(price2, amount2, token2?.decimals);
 
     if (totalPrice1.eq(totalPrice2)) {
-      return tokensAbcComparator(token1, token2);
+      return amount1.eq(amount2)
+        ? tokensAbcComparator(token1, token2)
+        : amountAbcComparator(amount1, amount2);
     }
 
     if (totalPrice1.gt(totalPrice2)) {
@@ -125,6 +129,10 @@ export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
   const { symbol: symbol2 = "" } = t2 || {};
 
   return symbol1 > symbol2 ? 1 : -1;
+}
+
+export function amountAbcComparator(t1: BigNumber, t2: BigNumber) {
+  return t1?.gt(t2) ? -1 : 1;
 }
 
 export class CreditAccountDataExtended extends CreditAccountData {

@@ -34,12 +34,15 @@ import {
   gearTokens
 } from "./gear";
 
-export type SupportedToken =
-  | NormalToken
+export type LPTokens =
   | YearnLPToken
   | CurveLPToken
   | ConvexLPToken
-  | ConvexStakedPhantomToken
+  | ConvexStakedPhantomToken;
+
+export type SupportedToken =
+  | NormalToken
+  | LPTokens
   | DieselTokenTypes
   | GearboxToken;
 
@@ -49,17 +52,26 @@ export interface TokenBase {
   decimals: number;
 }
 
-export type TokenDataI =
-  | NormalTokenData
+export type LPTokenDataI =
   | CurveLPTokenData
   | MetaCurveLPTokenData
   | YearnVaultTokenData
   | YearnVaultOfCurveLPTokenData
   | YearnVaultOfMetaCurveLPTokenData
   | ConvexLPTokenData
-  | ConvexPhantomTokenData
+  | ConvexPhantomTokenData;
+
+export type TokenDataI =
+  | NormalTokenData
+  | LPTokenDataI
   | DieselTokenData
   | GearboxTokenData;
+
+export const lpTokens: Record<LPTokens, LPTokenDataI> = {
+  ...curveTokens,
+  ...convexTokens,
+  ...yearnTokens
+};
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   ...normalTokens,
@@ -308,3 +320,9 @@ export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
   }),
   {}
 );
+
+export const isSupportedToken = (t: unknown): t is SupportedToken =>
+  typeof t === "string" && !!supportedTokens[t as SupportedToken];
+
+export const isLPToken = (t: unknown): t is LPTokens =>
+  typeof t === "string" && !!supportedTokens[t as LPTokens];

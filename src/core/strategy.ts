@@ -1,9 +1,11 @@
 import { BigNumber } from "ethers";
+import { calcTotalPrice } from "../utils/price";
+import { TokensWithAPY } from "../apy";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
-import { calcTotalPrice } from "./price";
 
 export interface StrategyPayload {
   apy?: number;
+  apyTokenSymbol: TokensWithAPY;
 
   name: string;
   lpToken: string;
@@ -53,7 +55,7 @@ export class Strategy {
     this.baseAssets = payload.baseAssets;
   }
 
-  public maxAPY(maxLeverage: number, poolApy: PoolList) {
+  maxAPY(maxLeverage: number, poolApy: PoolList) {
     const minApy = minBorrowApy(poolApy);
 
     return roi(
@@ -64,7 +66,7 @@ export class Strategy {
     );
   }
 
-  public overallAPY(
+  overallAPY(
     apy: number,
     leverage: number,
     depositCollateral: string,
@@ -76,7 +78,7 @@ export class Strategy {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public liquidationPrice(
+  liquidationPrice(
     borrowed: TokenDescription,
     collateral: TokenDescription,
     lp: TokenDescription,
@@ -96,25 +98,29 @@ export class Strategy {
       .div(PERCENTAGE_FACTOR);
     const lpMoney = calcTotalPrice(lp.price, lp.amount, lp.decimals);
 
-    return lpMoney.gt(0)
-      ? borrowedMoney.sub(collateralMoney).mul(WAD).div(lpMoney)
-      : BigNumber.from(0);
+    if (lpMoney.gt(0)) {
+      const lqPrice = borrowedMoney.sub(collateralMoney).mul(WAD).div(lpMoney);
+
+      return lqPrice.gte(0) ? lqPrice : BigNumber.from(0);
+    }
+
+    return BigNumber.from(0);
   }
 
-  private farmLev(leverage: number, depositCollateral: string) {
+  protected farmLev(leverage: number, depositCollateral: string) {
     return this.inBaseAssets(depositCollateral) ||
       this.inLeveragableAssets(depositCollateral)
       ? leverage
       : leverage - LEVERAGE_DECIMALS;
   }
 
-  private inBaseAssets(depositCollateral: string) {
+  protected inBaseAssets(depositCollateral: string) {
     return this.baseAssets.some(
       c => c.toLowerCase() === depositCollateral.toLowerCase()
     );
   }
 
-  private inLeveragableAssets(depositCollateral: string) {
+  protected inLeveragableAssets(depositCollateral: string) {
     return this.leveragableCollateral.some(
       c => c.toLowerCase() === depositCollateral.toLowerCase()
     );
