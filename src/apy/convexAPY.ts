@@ -1,37 +1,33 @@
-import { BigNumber, providers } from "ethers";
 import axios from "axios";
+import { BigNumber, providers } from "ethers";
+
 import {
-  ConvexPoolContract,
-  ConvexPoolParams,
-  contractsByNetwork,
   contractParams,
-  CurvePoolContract
+  contractsByNetwork,
+  ConvexPoolContract,
+  ConvexPoolParams
 } from "../contracts/contracts";
-
-import { tokenDataByNetwork, supportedTokens } from "../tokens/token";
-import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
-import { ConvexPhantomTokenData } from "../tokens/convex";
-
 import {
-  IBaseRewardPool__factory,
-  IBaseRewardPool,
-  IConvexToken__factory,
-  IConvexToken,
-  CurveV1AdapterStETH,
-  CurveV1AdapterStETH__factory
-} from "../types";
-
-import { multicall, MCall } from "../utils/multicall";
-import { toBN } from "../utils/formatter";
-import { AwaitedRes } from "../utils/types";
-
-import {
+  NetworkType,
+  PRICE_DECIMALS,
   SECONDS_PER_YEAR,
   WAD,
-  WAD_DECIMALS_POW,
-  NetworkType,
-  PRICE_DECIMALS
+  WAD_DECIMALS_POW
 } from "../core/constants";
+import { ConvexPhantomTokenData } from "../tokens/convex";
+import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
+import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
+import {
+  CurveV1AdapterStETH,
+  CurveV1AdapterStETH__factory,
+  IBaseRewardPool,
+  IBaseRewardPool__factory,
+  IConvexToken,
+  IConvexToken__factory
+} from "../types";
+import { toBN } from "../utils/formatter";
+import { MCall, multicall } from "../utils/multicall";
+import { AwaitedRes } from "../utils/types";
 
 export async function getConvexApy(
   pool: ConvexPoolContract,
