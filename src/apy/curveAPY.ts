@@ -15,11 +15,11 @@ interface CurveAPYData {
   crvPrice: number;
 }
 
-interface APYResponse {
+interface Response {
   apys: Record<string, CurveAPYData>;
 }
 
-const curveLPTokenToPoolName: Record<CurveLPToken, string> = {
+const NAME_DICTIONARY: Record<CurveLPToken, string> = {
   "3Crv": "3pool",
   FRAX3CRV: "frax",
   gusd3CRV: "gusd",
@@ -32,25 +32,27 @@ const RESPONSE_DECIMALS = 100;
 const ZERO = BigNumber.from(0);
 
 // https://www.convexfinance.com/api/curve-apys
+// http://localhost:8000/api/curve-apys
+const URL = "https://www.convexfinance.com/api/curve-apys";
 
 export type CurveAPYResult = Record<CurveLPToken, BigNumber>;
 
 export async function getCurveAPY(): Promise<CurveAPYResult> {
   try {
-    const url = "http://localhost:8000/api/curve-apys";
-    const { data } = await axios.get<APYResponse>(url);
+    const { data } = await axios.get<Response>(URL);
     const { apys } = data || {};
 
-    const curveAPY = objectEntries(
-      curveLPTokenToPoolName
-    ).reduce<CurveAPYResult>((acc, [curveSymbol, apiEntry]) => {
-      const { baseApy = 0 } = apys[apiEntry] || {};
-      acc[curveSymbol] = toBN(
-        (baseApy / RESPONSE_DECIMALS).toString(),
-        WAD_DECIMALS_POW
-      );
-      return acc;
-    }, {} as CurveAPYResult);
+    const curveAPY = objectEntries(NAME_DICTIONARY).reduce<CurveAPYResult>(
+      (acc, [curveSymbol, apiEntry]) => {
+        const { baseApy = 0 } = apys[apiEntry] || {};
+        acc[curveSymbol] = toBN(
+          (baseApy / RESPONSE_DECIMALS).toString(),
+          WAD_DECIMALS_POW
+        );
+        return acc;
+      },
+      {} as CurveAPYResult
+    );
 
     return curveAPY;
   } catch (e) {
