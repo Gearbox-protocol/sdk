@@ -4,12 +4,11 @@ import {
   ConvexPoolContract,
   ConvexPoolParams,
   contractsByNetwork,
-  contractParams,
-  CurvePoolContract
+  contractParams
 } from "../contracts/contracts";
 
 import { tokenDataByNetwork, supportedTokens } from "../tokens/token";
-import { CurveLPToken } from "../tokens/curveLP";
+import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
 import { ConvexPhantomTokenData } from "../tokens/convex";
 
 import {
@@ -33,34 +32,8 @@ import {
   PRICE_DECIMALS
 } from "../core/constants";
 
-type SupportedPools = Extract<
-  ConvexPoolContract,
-  | "CONVEX_3CRV_POOL"
-  | "CONVEX_FRAX3CRV_POOL"
-  | "CONVEX_LUSD3CRV_POOL"
-  | "CONVEX_GUSD_POOL"
-  | "CONVEX_SUSD_POOL"
->;
-
-type SupportedConvex = Extract<
-  CurvePoolContract,
-  | "CURVE_3CRV_POOL"
-  | "CURVE_FRAX_POOL"
-  | "CURVE_LUSD_POOL"
-  | "CURVE_GUSD_POOL"
-  | "CURVE_SUSD_POOL"
->;
-
-const curveSwapByPool: Record<SupportedPools, SupportedConvex> = {
-  CONVEX_3CRV_POOL: "CURVE_3CRV_POOL",
-  CONVEX_FRAX3CRV_POOL: "CURVE_FRAX_POOL",
-  CONVEX_LUSD3CRV_POOL: "CURVE_LUSD_POOL",
-  CONVEX_GUSD_POOL: "CURVE_GUSD_POOL",
-  CONVEX_SUSD_POOL: "CURVE_SUSD_POOL"
-};
-
 export async function getConvexApy(
-  pool: SupportedPools,
+  pool: ConvexPoolContract,
   provider: providers.Provider,
   networkType: NetworkType,
   getTokenPrice: (tokenAddress: string) => BigNumber
@@ -75,7 +48,10 @@ export async function getConvexApy(
 
   const { underlying } = stakedTokenParams;
   const basePoolAddress = contractsList[pool];
-  const swapPoolAddress = contractsList[curveSwapByPool[pool]];
+
+  const crvParams = supportedTokens[underlying] as CurveLPTokenData;
+
+  const swapPoolAddress = contractsList[crvParams.pool];
   const cvxAddress = tokenList.CVX;
 
   const extraPoolAddresses = poolParams.extraRewards.map(
@@ -83,13 +59,13 @@ export async function getConvexApy(
   );
 
   const [basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra] =
-    await getPoolData(
+    await getPoolData({
       basePoolAddress,
       swapPoolAddress,
       cvxAddress,
       extraPoolAddresses,
       provider
-    );
+    });
 
   const cvxPrice = getTokenPrice(tokenList.CVX);
   const crvPrice = getTokenPrice(tokenList.CRV);
@@ -101,8 +77,8 @@ export async function getConvexApy(
   const crvPerYear = crvPerUnderlying.mul(SECONDS_PER_YEAR);
   const cvxPerYear = getCVXMintAmount(crvPerYear, cvxSupply);
 
-  const crvAPY = crvPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
-  const cvxAPY = cvxPerYear.mul(crvPrice).div(PRICE_DECIMALS);
+  const crvAPY = crvPerYear.mul(crvPrice).div(PRICE_DECIMALS);
+  const cvxAPY = cvxPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
 
   const extraAPRs = await Promise.all(
     extraPoolAddresses.map(async (_, index) => {
@@ -112,9 +88,9 @@ export async function getConvexApy(
       const perUnderlying = extraPoolRate.mul(WAD).div(virtualSupply);
       const perYear = perUnderlying.mul(SECONDS_PER_YEAR);
 
-      const extraPrise = getTokenPrice(tokenList[extraRewardSymbol]);
+      const extraPrice = getTokenPrice(tokenList[extraRewardSymbol]);
 
-      const extraAPY = perYear.mul(extraPrise).div(PRICE_DECIMALS);
+      const extraAPY = perYear.mul(extraPrice).div(PRICE_DECIMALS);
 
       return extraAPY;
     })
@@ -154,13 +130,21 @@ type IBaseRewardPoolInterface = IBaseRewardPool["interface"];
 type IConvexTokenInterface = IConvexToken["interface"];
 type CurveV1AdapterStETHInterface = CurveV1AdapterStETH["interface"];
 
-async function getPoolData(
-  basePoolAddress: string,
-  underlying: string,
-  cvxAddress: string,
-  extraPoolAddresses: string[],
-  provider: providers.Provider
-) {
+interface GetPoolDataProps {
+  basePoolAddress: string;
+  swapPoolAddress: string;
+  cvxAddress: string;
+  extraPoolAddresses: string[];
+  provider: providers.Provider;
+}
+
+async function getPoolData({
+  basePoolAddress,
+  swapPoolAddress,
+  cvxAddress,
+  extraPoolAddresses,
+  provider
+}: GetPoolDataProps) {
   const calls: [
     MCall<IBaseRewardPoolInterface>,
     MCall<IBaseRewardPoolInterface>,
@@ -179,7 +163,7 @@ async function getPoolData(
       method: "totalSupply()"
     },
     {
-      address: underlying,
+      address: swapPoolAddress,
       interface: CurveV1AdapterStETH__factory.createInterface(),
       method: "get_virtual_price()"
     },
@@ -238,7 +222,7 @@ export async function getCurveBaseApy(
   const poolName = curveLPTokenToPoolName[curveLPToken];
 
   try {
-    const url = "https://www.convexfinance.com/api/curve-apys";
+    const url = "http://localhost:8000/api/curve-apys";
     const result = await axios.get<APYResponse>(url);
 
     const { baseApy = 0 } = result.data.apys[poolName] || {};

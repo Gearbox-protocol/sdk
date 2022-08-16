@@ -100,7 +100,7 @@ export class CreditManagerData {
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
 
-      if (address) acc[address] = BigNumber.from(threshold);
+      if (address) acc[address.toLowerCase()] = BigNumber.from(threshold);
 
       return acc;
     }, {});
@@ -161,12 +161,26 @@ export class CreditManagerData {
     };
   }
 
-  validateOpenAccount(totalAmount: BigNumber, leverage: number): true {
-    if (totalAmount.lt(this.minAmount))
+  validateOpenAccount(collateral: BigNumber, debt: BigNumber): true {
+    return this.version === 2
+      ? this.validateOpenAccountV2(debt)
+      : this.validateOpenAccountV1(collateral, debt);
+  }
+
+  protected validateOpenAccountV1(
+    collateral: BigNumber,
+    debt: BigNumber
+  ): true {
+    if (collateral.lt(this.minAmount))
       throw new OpenAccountError("amountLessMin", this.minAmount);
 
-    if (totalAmount.gt(this.maxAmount))
+    if (collateral.gt(this.maxAmount))
       throw new OpenAccountError("amountGreaterMax", this.maxAmount);
+
+    const leverage = debt.mul(LEVERAGE_DECIMALS).div(collateral).toNumber();
+
+    if (!leverage || leverage < 0)
+      throw new OpenAccountError("wrongLeverage", BigNumber.from(0));
 
     if (leverage > this.maxLeverageFactor)
       throw new OpenAccountError(
@@ -174,12 +188,23 @@ export class CreditManagerData {
         BigNumber.from(this.maxLeverageFactor)
       );
 
-    if (
-      totalAmount
-        .mul(leverage)
-        .div(LEVERAGE_DECIMALS)
-        .gt(this.availableLiquidity)
-    )
+    if (debt.gt(this.availableLiquidity))
+      throw new OpenAccountError(
+        "insufficientPoolLiquidity",
+        BigNumber.from(this.availableLiquidity)
+      );
+
+    return true;
+  }
+
+  protected validateOpenAccountV2(debt: BigNumber): true {
+    if (debt.lt(this.minAmount))
+      throw new OpenAccountError("amountLessMin", this.minAmount);
+
+    if (debt.gt(this.maxAmount))
+      throw new OpenAccountError("amountGreaterMax", this.maxAmount);
+
+    if (debt.gt(this.availableLiquidity))
       throw new OpenAccountError(
         "insufficientPoolLiquidity",
         BigNumber.from(this.availableLiquidity)

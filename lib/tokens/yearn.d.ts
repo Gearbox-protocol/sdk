@@ -27,3 +27,4 @@ export declare type YearnVaultOfMetaCurveLPTokenData = {
     vault: YearnVaultContract;
 } & TokenBase;
 export declare const yearnTokens: Record<YearnLPToken, YearnVaultTokenData | YearnVaultOfCurveLPTokenData | YearnVaultOfMetaCurveLPTokenData>;
+export declare const isYearnLPToken: (t: unknown) => t is YearnLPToken;

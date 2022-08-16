@@ -49,6 +49,7 @@ export class AccountsInAlllCreditManagersError extends Error {
 export type OpenAccountErrorTypes =
   | "insufficientPoolLiquidity"
   | "leverageGreaterMax"
+  | "wrongLeverage"
   | "amountGreaterMax"
   | "amountLessMin";
 

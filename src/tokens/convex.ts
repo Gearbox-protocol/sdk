@@ -39,13 +39,9 @@ export type ConvexPhantomTokenData = {
   lpToken: ConvexLPToken;
 } & BaseConvexToken;
 
-export const convexTokens: Record<
-  ConvexLPToken | ConvexStakedPhantomToken,
-  ConvexLPTokenData | ConvexPhantomTokenData
-> = {
-  // CONVEX LP TOKENS
+const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
   cvx3Crv: {
-    name: "cvx3Crv",
+    name: "Convex cvx3Crv",
     decimals: 18,
 
     symbol: "cvx3Crv",
@@ -69,7 +65,7 @@ export const convexTokens: Record<
   },
 
   cvxsteCRV: {
-    name: "cvxsteCRV",
+    name: "Convex cvxsteCRV",
     decimals: 18,
 
     symbol: "cvxsteCRV",
@@ -93,7 +89,7 @@ export const convexTokens: Record<
   },
 
   cvxFRAX3CRV: {
-    name: "cvxFRAX3CRV-f",
+    name: "Convex cvxFRAX3CRV-f",
     decimals: 18,
 
     symbol: "cvxFRAX3CRV",
@@ -117,7 +113,7 @@ export const convexTokens: Record<
   },
 
   cvxLUSD3CRV: {
-    name: "cvxLUSD3CRV-f",
+    name: "Convex cvxLUSD3CRV-f",
     decimals: 18,
 
     symbol: "cvxLUSD3CRV",
@@ -141,7 +137,7 @@ export const convexTokens: Record<
   },
 
   cvxcrvPlain3andSUSD: {
-    name: "cvxcrvPlain3andSUSD",
+    name: "Convex cvxcrvPlain3andSUSD",
     decimals: 18,
 
     symbol: "cvxcrvPlain3andSUSD",
@@ -165,7 +161,7 @@ export const convexTokens: Record<
   },
 
   cvxgusd3CRV: {
-    name: "cvxgusd3CRV",
+    name: "Convex cvxgusd3CRV",
     decimals: 18,
 
     symbol: "cvxgusd3CRV",
@@ -186,11 +182,15 @@ export const convexTokens: Record<
         tokenOut: "stkcvxgusd3CRV"
       }
     ]
-  },
+  }
+};
 
-  // STAKED CONVEX
+const convexStakedPhantomTokens: Record<
+  ConvexStakedPhantomToken,
+  ConvexPhantomTokenData
+> = {
   stkcvx3Crv: {
-    name: "stkcvx3Crv",
+    name: "Convex stkcvx3Crv",
     decimals: 18,
 
     symbol: "stkcvx3Crv",
@@ -214,7 +214,7 @@ export const convexTokens: Record<
   },
 
   stkcvxsteCRV: {
-    name: "stkcvxsteCRV",
+    name: "Convex stkcvxsteCRV",
     decimals: 18,
 
     symbol: "stkcvxsteCRV",
@@ -238,7 +238,7 @@ export const convexTokens: Record<
   },
 
   stkcvxFRAX3CRV: {
-    name: "stkcvxFRAX3CRV-f",
+    name: "Convex stkcvxFRAX3CRV-f",
     decimals: 18,
 
     symbol: "stkcvxFRAX3CRV",
@@ -262,13 +262,13 @@ export const convexTokens: Record<
   },
 
   stkcvxLUSD3CRV: {
-    name: "stkcvxLUSD3CRV-f",
+    name: "Convex stkcvxLUSD3CRV-f",
     decimals: 18,
 
     symbol: "stkcvxLUSD3CRV",
     type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
     pool: "CONVEX_LUSD3CRV_POOL",
-    pid: 32,
+    pid: 33,
     underlying: "LUSD3CRV",
     lpToken: "cvxLUSD3CRV",
     lpActions: [
@@ -286,7 +286,7 @@ export const convexTokens: Record<
   },
 
   stkcvxcrvPlain3andSUSD: {
-    name: "stkcvxcrvPlain3andSUSD",
+    name: "Convex stkcvxcrvPlain3andSUSD",
     decimals: 18,
 
     symbol: "stkcvxcrvPlain3andSUSD",
@@ -310,7 +310,7 @@ export const convexTokens: Record<
   },
 
   stkcvxgusd3CRV: {
-    name: "stkcvxgusd3CRV",
+    name: "Convex stkcvxgusd3CRV",
     decimals: 18,
 
     symbol: "stkcvxgusd3CRV",
@@ -333,3 +333,26 @@ export const convexTokens: Record<
     ]
   }
 };
+
+export const convexTokens: Record<
+  ConvexLPToken | ConvexStakedPhantomToken,
+  ConvexLPTokenData | ConvexPhantomTokenData
+> = {
+  ...convexLpTokens,
+  ...convexStakedPhantomTokens
+};
+
+export const isConvexToken = (
+  t: unknown
+): t is ConvexLPToken | ConvexStakedPhantomToken =>
+  typeof t === "string" &&
+  !!convexTokens[t as ConvexLPToken | ConvexStakedPhantomToken];
+
+export const isConvexLPToken = (t: unknown): t is ConvexLPToken =>
+  typeof t === "string" && !!convexLpTokens[t as ConvexLPToken];
+
+export const isConvexStakedPhantomToken = (
+  t: unknown
+): t is ConvexStakedPhantomToken =>
+  typeof t === "string" &&
+  !!convexStakedPhantomTokens[t as ConvexStakedPhantomToken];
