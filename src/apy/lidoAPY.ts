@@ -24,7 +24,7 @@ const lidoStEth: Record<NetworkType, string> = {
   Kovan: tokenDataByNetwork.Kovan.STETH
 };
 
-export async function getLidoApy(
+export async function getLidoAPY(
   provider: providers.Provider,
   networkType: NetworkType
 ) {

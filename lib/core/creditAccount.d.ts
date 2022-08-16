@@ -25,7 +25,7 @@ export declare class CreditAccountData {
     constructor(payload: CreditAccountDataPayload);
     balancesSorted(prices: Record<string, BigNumber>, tokens: Record<string, TokenData>): Array<Balance>;
 }
-export declare function sortBalances(balances: Record<string, BigNumber>, prices: Record<string, BigNumber>, tokens: Record<string, TokenData>): [string, BigNumber][];
+export declare function sortBalances(balances: Record<string, BigNumber>, prices: Record<string, BigNumber>, tokens: Record<string, TokenData>): Array<[string, BigNumber]>;
 export declare function tokensAbcComparator(t1?: TokenData, t2?: TokenData): 1 | -1;
 export declare function amountAbcComparator(t1: BigNumber, t2: BigNumber): 1 | -1;
 export declare class CreditAccountDataExtended extends CreditAccountData {

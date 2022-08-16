@@ -96,7 +96,7 @@ export function sortBalances(
   balances: Record<string, BigNumber>,
   prices: Record<string, BigNumber>,
   tokens: Record<string, TokenData>
-) {
+): Array<[string, BigNumber]> {
   return Object.entries(balances).sort(([addr1, amount1], [addr2, amount2]) => {
     const addr1Lc = addr1.toLowerCase();
     const addr2Lc = addr2.toLowerCase();
