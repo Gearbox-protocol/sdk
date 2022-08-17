@@ -27,18 +27,18 @@ export interface IInterestRateModelInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "calcBorrowRate" | "version"
+    nameOrSignatureOrTopic: "calcBorrowRate" | "version",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "calcBorrowRate",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "calcBorrowRate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
@@ -55,15 +55,15 @@ export interface IInterestRateModel extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -75,7 +75,7 @@ export interface IInterestRateModel extends BaseContract {
     calcBorrowRate(
       expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -84,7 +84,7 @@ export interface IInterestRateModel extends BaseContract {
   calcBorrowRate(
     expectedLiquidity: BigNumberish,
     availableLiquidity: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -93,7 +93,7 @@ export interface IInterestRateModel extends BaseContract {
     calcBorrowRate(
       expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -105,7 +105,7 @@ export interface IInterestRateModel extends BaseContract {
     calcBorrowRate(
       expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -115,7 +115,7 @@ export interface IInterestRateModel extends BaseContract {
     calcBorrowRate(
       expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;

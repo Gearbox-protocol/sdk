@@ -54,15 +54,15 @@ export interface ICreditManagerV2Events extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -77,18 +77,18 @@ export interface ICreditManagerV2Events extends BaseContract {
   filters: {
     "ExecuteOrder(address,address)"(
       borrower?: string | null,
-      target?: string | null
+      target?: string | null,
     ): ExecuteOrderEventFilter;
     ExecuteOrder(
       borrower?: string | null,
-      target?: string | null
+      target?: string | null,
     ): ExecuteOrderEventFilter;
 
     "NewConfigurator(address)"(
-      newConfigurator?: string | null
+      newConfigurator?: string | null,
     ): NewConfiguratorEventFilter;
     NewConfigurator(
-      newConfigurator?: string | null
+      newConfigurator?: string | null,
     ): NewConfiguratorEventFilter;
   };
 

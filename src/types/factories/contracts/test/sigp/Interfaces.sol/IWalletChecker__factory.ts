@@ -38,7 +38,7 @@ export class IWalletChecker__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IWalletChecker {
     return new Contract(address, _abi, signerOrProvider) as IWalletChecker;
   }

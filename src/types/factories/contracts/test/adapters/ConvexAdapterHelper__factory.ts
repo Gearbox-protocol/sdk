@@ -1147,7 +1147,7 @@ type ConvexAdapterHelperConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ConvexAdapterHelperConstructorParams
+  xs: ConvexAdapterHelperConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ConvexAdapterHelper__factory extends ContractFactory {
@@ -1160,12 +1160,12 @@ export class ConvexAdapterHelper__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ConvexAdapterHelper> {
     return super.deploy(overrides || {}) as Promise<ConvexAdapterHelper>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -1183,7 +1183,7 @@ export class ConvexAdapterHelper__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ConvexAdapterHelper {
     return new Contract(address, _abi, signerOrProvider) as ConvexAdapterHelper;
   }

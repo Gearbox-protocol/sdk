@@ -435,7 +435,7 @@ export class ILockedCvx__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ILockedCvx {
     return new Contract(address, _abi, signerOrProvider) as ILockedCvx;
   }

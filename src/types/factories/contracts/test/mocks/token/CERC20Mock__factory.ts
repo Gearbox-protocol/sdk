@@ -423,7 +423,7 @@ type CERC20MockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CERC20MockConstructorParams
+  xs: CERC20MockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CERC20Mock__factory extends ContractFactory {
@@ -440,14 +440,14 @@ export class CERC20Mock__factory extends ContractFactory {
     symbol_: string,
     decimals_: BigNumberish,
     underlying_: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<CERC20Mock> {
     return super.deploy(
       name_,
       symbol_,
       decimals_,
       underlying_,
-      overrides || {}
+      overrides || {},
     ) as Promise<CERC20Mock>;
   }
   override getDeployTransaction(
@@ -455,14 +455,14 @@ export class CERC20Mock__factory extends ContractFactory {
     symbol_: string,
     decimals_: BigNumberish,
     underlying_: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       name_,
       symbol_,
       decimals_,
       underlying_,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): CERC20Mock {
@@ -479,7 +479,7 @@ export class CERC20Mock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): CERC20Mock {
     return new Contract(address, _abi, signerOrProvider) as CERC20Mock;
   }

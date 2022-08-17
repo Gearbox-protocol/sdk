@@ -233,7 +233,7 @@ export class ISwapRouter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ISwapRouter {
     return new Contract(address, _abi, signerOrProvider) as ISwapRouter;
   }

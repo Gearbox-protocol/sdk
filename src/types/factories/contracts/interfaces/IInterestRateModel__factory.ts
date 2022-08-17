@@ -56,7 +56,7 @@ export class IInterestRateModel__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IInterestRateModel {
     return new Contract(address, _abi, signerOrProvider) as IInterestRateModel;
   }

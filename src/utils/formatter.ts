@@ -1,4 +1,4 @@
-import Decimal from "decimal.js-light";
+import { Decimal } from "decimal.js-light";
 import { BigNumber, BigNumberish } from "ethers";
 
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, RAY } from "../core/constants";

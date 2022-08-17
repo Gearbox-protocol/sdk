@@ -1,8 +1,9 @@
 import { BigNumber } from "ethers";
 import moment from "moment";
-import { CreditOperation } from "./creditOperation";
+
 import { CreditSessionPayload } from "../payload/creditSession";
 import { PERCENTAGE_FACTOR } from "./constants";
+import { CreditOperation } from "./creditOperation";
 
 export type CreditSessionStatus = "active" | "closed" | "repaid" | "liquidated";
 

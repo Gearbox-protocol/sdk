@@ -1,8 +1,8 @@
 import type { YearnVaultContract } from "../contracts/contracts";
 import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
-import type { TokenBase } from "./token";
 import type { CurveLPToken } from "./curveLP";
 import { NormalToken } from "./normal";
+import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
 export type YearnLPToken =

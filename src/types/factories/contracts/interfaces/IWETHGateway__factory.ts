@@ -83,7 +83,7 @@ export class IWETHGateway__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IWETHGateway {
     return new Contract(address, _abi, signerOrProvider) as IWETHGateway;
   }

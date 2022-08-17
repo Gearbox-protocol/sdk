@@ -190,7 +190,7 @@ type MainnetTokensTestSuiteConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: MainnetTokensTestSuiteConstructorParams
+  xs: MainnetTokensTestSuiteConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class MainnetTokensTestSuite__factory extends ContractFactory {
@@ -203,12 +203,12 @@ export class MainnetTokensTestSuite__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<MainnetTokensTestSuite> {
     return super.deploy(overrides || {}) as Promise<MainnetTokensTestSuite>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -226,12 +226,12 @@ export class MainnetTokensTestSuite__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): MainnetTokensTestSuite {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as MainnetTokensTestSuite;
   }
 }

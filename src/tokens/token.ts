@@ -1,24 +1,10 @@
+import { NetworkType } from "../core/constants";
 import {
+  filterEmptyKeys,
   keyToLowercase,
   objectEntries,
   swapKeyValue,
-  filterEmptyKeys,
 } from "../utils/mappers";
-import { NetworkType } from "../core/constants";
-import { NormalToken, NormalTokenData, normalTokens } from "./normal";
-import {
-  CurveLPToken,
-  CurveLPTokenData,
-  curveTokens,
-  MetaCurveLPTokenData,
-} from "./curveLP";
-import {
-  YearnLPToken,
-  yearnTokens,
-  YearnVaultOfCurveLPTokenData,
-  YearnVaultOfMetaCurveLPTokenData,
-  YearnVaultTokenData,
-} from "./yearn";
 import {
   ConvexLPToken,
   ConvexLPTokenData,
@@ -27,12 +13,26 @@ import {
   convexTokens,
 } from "./convex";
 import {
+  CurveLPToken,
+  CurveLPTokenData,
+  curveTokens,
+  MetaCurveLPTokenData,
+} from "./curveLP";
+import {
   DieselTokenData,
   DieselTokenTypes,
   GearboxToken,
   GearboxTokenData,
   gearTokens,
 } from "./gear";
+import { NormalToken, NormalTokenData, normalTokens } from "./normal";
+import {
+  YearnLPToken,
+  yearnTokens,
+  YearnVaultOfCurveLPTokenData,
+  YearnVaultOfMetaCurveLPTokenData,
+  YearnVaultTokenData,
+} from "./yearn";
 
 export type LPTokens =
   | YearnLPToken

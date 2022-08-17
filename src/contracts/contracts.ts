@@ -3,20 +3,20 @@
  * Gearbox. Generalized leverage protocol, which allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
  * (c) Gearbox.fi, 2021
  */
-import type { YearnLPToken } from "../tokens/yearn";
-import {
-  keyToLowercase,
-  objectEntries,
-  swapKeyValue,
-  filterEmptyKeys,
-} from "../utils/mappers";
-import { AdapterInterface } from "./adapters";
 import { NetworkType } from "../core/constants";
-import { Protocols } from "./protocols";
-import { tokenDataByNetwork } from "../tokens/token";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
+import { tokenDataByNetwork } from "../tokens/token";
+import type { YearnLPToken } from "../tokens/yearn";
+import {
+  filterEmptyKeys,
+  keyToLowercase,
+  objectEntries,
+  swapKeyValue,
+} from "../utils/mappers";
+import { AdapterInterface } from "./adapters";
+import { Protocols } from "./protocols";
 
 export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
@@ -227,10 +227,10 @@ type ConvexParams = {
     | AdapterInterface.CONVEX_V1_CLAIM_ZAP;
 } & BaseContractParams;
 
-type ConvexExtraPoolParams = {
+interface ConvexExtraPoolParams {
   rewardToken: NormalToken;
   poolAddress: Record<NetworkType, string>;
-};
+}
 
 export type ConvexPoolParams = {
   protocol: Protocols.Convex;

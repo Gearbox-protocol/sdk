@@ -29,12 +29,12 @@ export class IDataCompressorExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IDataCompressorExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IDataCompressorExceptions;
   }
 }

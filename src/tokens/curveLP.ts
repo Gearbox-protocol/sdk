@@ -1,8 +1,9 @@
 import { BigNumber } from "ethers";
+
 import type { CurvePoolContract } from "../contracts/contracts";
 import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
-import type { SupportedToken, TokenBase } from "./token";
 import { PartialRecord } from "../utils/types";
+import type { SupportedToken, TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
 export type CurveLPToken =

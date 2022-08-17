@@ -30,12 +30,12 @@ export interface TotalValueCalculatorInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "saveTotalValue",
-    values: [string]
+    values: [string],
   ): string;
 
   decodeFunctionResult(
     functionFragment: "saveTotalValue",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -51,15 +51,15 @@ export interface TotalValueCalculator extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -70,19 +70,19 @@ export interface TotalValueCalculator extends BaseContract {
   functions: {
     saveTotalValue(
       creditAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
 
   saveTotalValue(
     creditAccount: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
     saveTotalValue(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
   };
 
@@ -91,14 +91,14 @@ export interface TotalValueCalculator extends BaseContract {
   estimateGas: {
     saveTotalValue(
       creditAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     saveTotalValue(
       creditAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

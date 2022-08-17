@@ -1,9 +1,10 @@
 import { BigNumber } from "ethers";
+
+import { getContractName } from "../contracts/contractsRegister";
 import { TokenData } from "../tokens/tokenData";
 import { formatBN } from "../utils/formatter";
-import { EVMTx, EVMTxProps } from "./eventOrTx";
-import { getContractName } from "../contracts/contractsRegister";
 import { LEVERAGE_DECIMALS } from "./constants";
+import { EVMTx, EVMTxProps } from "./eventOrTx";
 
 export interface TxSerialized {
   type:

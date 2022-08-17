@@ -36,7 +36,7 @@ export interface ICreditFacadeEventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount",
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
@@ -213,15 +213,15 @@ export interface ICreditFacadeEvents extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -237,72 +237,72 @@ export interface ICreditFacadeEvents extends BaseContract {
     "AddCollateral(address,address,uint256)"(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null
+      value?: null,
     ): AddCollateralEventFilter;
     AddCollateral(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null
+      value?: null,
     ): AddCollateralEventFilter;
 
     "CloseCreditAccount(address,address)"(
       owner?: string | null,
-      to?: string | null
+      to?: string | null,
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
       owner?: string | null,
-      to?: string | null
+      to?: string | null,
     ): CloseCreditAccountEventFilter;
 
     "DecreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null
+      amount?: null,
     ): DecreaseBorrowedAmountEventFilter;
     DecreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null
+      amount?: null,
     ): DecreaseBorrowedAmountEventFilter;
 
     "IncreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null
+      amount?: null,
     ): IncreaseBorrowedAmountEventFilter;
     IncreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null
+      amount?: null,
     ): IncreaseBorrowedAmountEventFilter;
 
     "LiquidateCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null
+      remainingFunds?: null,
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null
+      remainingFunds?: null,
     ): LiquidateCreditAccountEventFilter;
 
     "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null
+      remainingFunds?: null,
     ): LiquidateExpiredCreditAccountEventFilter;
     LiquidateExpiredCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null
+      remainingFunds?: null,
     ): LiquidateExpiredCreditAccountEventFilter;
 
     "MultiCallFinished()"(): MultiCallFinishedEventFilter;
     MultiCallFinished(): MultiCallFinishedEventFilter;
 
     "MultiCallStarted(address)"(
-      borrower?: string | null
+      borrower?: string | null,
     ): MultiCallStartedEventFilter;
     MultiCallStarted(borrower?: string | null): MultiCallStartedEventFilter;
 
@@ -310,45 +310,45 @@ export interface ICreditFacadeEvents extends BaseContract {
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null
+      referralCode?: null,
     ): OpenCreditAccountEventFilter;
     OpenCreditAccount(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null
+      referralCode?: null,
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
       creditAccount?: null,
-      token?: null
+      token?: null,
     ): TokenDisabledEventFilter;
     TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
       creditAccount?: null,
-      token?: null
+      token?: null,
     ): TokenEnabledEventFilter;
     TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
-      newOwner?: string | null
+      newOwner?: string | null,
     ): TransferAccountEventFilter;
     TransferAccount(
       oldOwner?: string | null,
-      newOwner?: string | null
+      newOwner?: string | null,
     ): TransferAccountEventFilter;
 
     "TransferAccountAllowed(address,address,bool)"(
       from?: string | null,
       to?: string | null,
-      state?: null
+      state?: null,
     ): TransferAccountAllowedEventFilter;
     TransferAccountAllowed(
       from?: string | null,
       to?: string | null,
-      state?: null
+      state?: null,
     ): TransferAccountAllowedEventFilter;
   };
 

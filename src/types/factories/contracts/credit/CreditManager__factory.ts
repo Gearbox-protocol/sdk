@@ -1135,7 +1135,7 @@ type CreditManagerConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CreditManagerConstructorParams
+  xs: CreditManagerConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CreditManager__factory extends ContractFactory {
@@ -1149,13 +1149,13 @@ export class CreditManager__factory extends ContractFactory {
 
   override deploy(
     _pool: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<CreditManager> {
     return super.deploy(_pool, overrides || {}) as Promise<CreditManager>;
   }
   override getDeployTransaction(
     _pool: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_pool, overrides || {});
   }
@@ -1173,7 +1173,7 @@ export class CreditManager__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): CreditManager {
     return new Contract(address, _abi, signerOrProvider) as CreditManager;
   }

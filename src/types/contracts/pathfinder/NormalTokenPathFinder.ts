@@ -50,7 +50,7 @@ export type ClosePathTaskStructOutput = [
   string[],
   string[],
   BigNumber,
-  BigNumber
+  BigNumber,
 ] & {
   creditAccount: string;
   balances: BalanceStructOutput[];
@@ -77,7 +77,7 @@ export type PathFinderResultStruct = {
 export type PathFinderResultStructOutput = [
   BigNumber,
   BigNumber,
-  MultiCallStructOutput[]
+  MultiCallStructOutput[],
 ] & { amount: BigNumber; gasUsage: BigNumber; calls: MultiCallStructOutput[] };
 
 export type SwapQuoteStruct = {
@@ -91,7 +91,7 @@ export type SwapQuoteStructOutput = [
   MultiCallStructOutput,
   BigNumber,
   boolean,
-  BigNumber
+  BigNumber,
 ] & {
   multiCall: MultiCallStructOutput;
   amount: BigNumber;
@@ -118,7 +118,7 @@ export type SwapTaskStructOutput = [
   string[],
   BigNumber,
   BigNumber,
-  boolean
+  boolean,
 ] & {
   swapOperation: number;
   creditAccount: string;
@@ -157,77 +157,77 @@ export interface NormalTokenPathFinderInterface extends utils.Interface {
       | "swapPathFinder"
       | "transferOwnership"
       | "version"
-      | "wethToken"
+      | "wethToken",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "findNormalTokenBestPath",
-    values: [ClosePathTaskStruct]
+    values: [ClosePathTaskStruct],
   ): string;
   encodeFunctionData(
     functionFragment: "findSwapQuote",
-    values: [ClosePathTaskStruct, BigNumberish, boolean]
+    values: [ClosePathTaskStruct, BigNumberish, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "getComplexPairSwap",
-    values: [SwapTaskStruct, BigNumberish, BigNumberish, string[]]
+    values: [SwapTaskStruct, BigNumberish, BigNumberish, string[]],
   ): string;
   encodeFunctionData(
     functionFragment: "getGasPriceTokenOutRAY",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "priceOracle",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "swapPathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(functionFragment: "wethToken", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "findNormalTokenBestPath",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "findSwapQuote",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getComplexPairSwap",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getGasPriceTokenOutRAY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "priceOracle",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapPathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "wethToken", data: BytesLike): Result;
@@ -261,15 +261,15 @@ export interface NormalTokenPathFinder extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -280,14 +280,14 @@ export interface NormalTokenPathFinder extends BaseContract {
   functions: {
     findNormalTokenBestPath(
       task: ClosePathTaskStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     findSwapQuote(
       task: ClosePathTaskStruct,
       tokenIndex: BigNumberish,
       isConnector: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     getComplexPairSwap(
@@ -295,12 +295,12 @@ export interface NormalTokenPathFinder extends BaseContract {
       connectorIndex: BigNumberish,
       connectorCumulativeBalance: BigNumberish,
       adapters: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     getGasPriceTokenOutRAY(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { gasPrice: BigNumber }>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
@@ -308,14 +308,14 @@ export interface NormalTokenPathFinder extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     swapPathFinder(overrides?: CallOverrides): Promise<[string]>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -325,14 +325,14 @@ export interface NormalTokenPathFinder extends BaseContract {
 
   findNormalTokenBestPath(
     task: ClosePathTaskStruct,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   findSwapQuote(
     task: ClosePathTaskStruct,
     tokenIndex: BigNumberish,
     isConnector: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   getComplexPairSwap(
@@ -340,12 +340,12 @@ export interface NormalTokenPathFinder extends BaseContract {
     connectorIndex: BigNumberish,
     connectorCumulativeBalance: BigNumberish,
     adapters: string[],
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   getGasPriceTokenOutRAY(
     token: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   owner(overrides?: CallOverrides): Promise<string>;
@@ -353,14 +353,14 @@ export interface NormalTokenPathFinder extends BaseContract {
   priceOracle(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   swapPathFinder(overrides?: CallOverrides): Promise<string>;
 
   transferOwnership(
     newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -370,14 +370,14 @@ export interface NormalTokenPathFinder extends BaseContract {
   callStatic: {
     findNormalTokenBestPath(
       task: ClosePathTaskStruct,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PathFinderResultStructOutput>;
 
     findSwapQuote(
       task: ClosePathTaskStruct,
       tokenIndex: BigNumberish,
       isConnector: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [SwapQuoteStructOutput, string] & {
         quote: SwapQuoteStructOutput;
@@ -390,7 +390,7 @@ export interface NormalTokenPathFinder extends BaseContract {
       connectorIndex: BigNumberish,
       connectorCumulativeBalance: BigNumberish,
       adapters: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [SwapQuoteStructOutput, SwapQuoteStructOutput] & {
         connectorTokenInQuote: SwapQuoteStructOutput;
@@ -400,7 +400,7 @@ export interface NormalTokenPathFinder extends BaseContract {
 
     getGasPriceTokenOutRAY(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<string>;
@@ -413,7 +413,7 @@ export interface NormalTokenPathFinder extends BaseContract {
 
     transferOwnership(
       newOwner: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -424,25 +424,25 @@ export interface NormalTokenPathFinder extends BaseContract {
   filters: {
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
-      newOwner?: string | null
+      newOwner?: string | null,
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
       previousOwner?: string | null,
-      newOwner?: string | null
+      newOwner?: string | null,
     ): OwnershipTransferredEventFilter;
   };
 
   estimateGas: {
     findNormalTokenBestPath(
       task: ClosePathTaskStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     findSwapQuote(
       task: ClosePathTaskStruct,
       tokenIndex: BigNumberish,
       isConnector: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     getComplexPairSwap(
@@ -450,12 +450,12 @@ export interface NormalTokenPathFinder extends BaseContract {
       connectorIndex: BigNumberish,
       connectorCumulativeBalance: BigNumberish,
       adapters: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     getGasPriceTokenOutRAY(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
@@ -463,14 +463,14 @@ export interface NormalTokenPathFinder extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     swapPathFinder(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -481,14 +481,14 @@ export interface NormalTokenPathFinder extends BaseContract {
   populateTransaction: {
     findNormalTokenBestPath(
       task: ClosePathTaskStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     findSwapQuote(
       task: ClosePathTaskStruct,
       tokenIndex: BigNumberish,
       isConnector: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     getComplexPairSwap(
@@ -496,12 +496,12 @@ export interface NormalTokenPathFinder extends BaseContract {
       connectorIndex: BigNumberish,
       connectorCumulativeBalance: BigNumberish,
       adapters: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     getGasPriceTokenOutRAY(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -509,14 +509,14 @@ export interface NormalTokenPathFinder extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     swapPathFinder(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;

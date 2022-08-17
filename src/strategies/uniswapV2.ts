@@ -1,7 +1,6 @@
 import { BigNumberish } from "ethers";
 
 import { UniswapV2Adapter__factory } from "../types";
-
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 
 export class UniswapV2Calls {

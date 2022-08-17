@@ -43,16 +43,16 @@ export interface ConvexV1ClaimZapAdapterInterface extends utils.Interface {
       | "creditManager"
       | "crv"
       | "cvx"
-      | "targetContract"
+      | "targetContract",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "claimRewards",
@@ -65,49 +65,49 @@ export interface ConvexV1ClaimZapAdapterInterface extends utils.Interface {
       BigNumberish,
       BigNumberish,
       BigNumberish,
-      BigNumberish
-    ]
+      BigNumberish,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "crv", values?: undefined): string;
   encodeFunctionData(functionFragment: "cvx", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "targetContract",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterType",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "claimRewards",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "crv", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "cvx", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -123,15 +123,15 @@ export interface ConvexV1ClaimZapAdapter extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -154,7 +154,7 @@ export interface ConvexV1ClaimZapAdapter extends BaseContract {
       arg6: BigNumberish,
       arg7: BigNumberish,
       arg8: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
@@ -182,7 +182,7 @@ export interface ConvexV1ClaimZapAdapter extends BaseContract {
     arg6: BigNumberish,
     arg7: BigNumberish,
     arg8: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   creditFacade(overrides?: CallOverrides): Promise<string>;
@@ -210,7 +210,7 @@ export interface ConvexV1ClaimZapAdapter extends BaseContract {
       arg6: BigNumberish,
       arg7: BigNumberish,
       arg8: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     creditFacade(overrides?: CallOverrides): Promise<string>;
@@ -241,7 +241,7 @@ export interface ConvexV1ClaimZapAdapter extends BaseContract {
       arg6: BigNumberish,
       arg7: BigNumberish,
       arg8: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
@@ -257,11 +257,11 @@ export interface ConvexV1ClaimZapAdapter extends BaseContract {
 
   populateTransaction: {
     _gearboxAdapterType(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     _gearboxAdapterVersion(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     claimRewards(
@@ -274,7 +274,7 @@ export interface ConvexV1ClaimZapAdapter extends BaseContract {
       arg6: BigNumberish,
       arg7: BigNumberish,
       arg8: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;

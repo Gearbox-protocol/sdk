@@ -41,66 +41,66 @@ export interface LinearInterestRateModelInterface extends utils.Interface {
       | "_U_Optimal_inverted_WAD"
       | "calcBorrowRate"
       | "getModelParameters"
-      | "version"
+      | "version",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "_R_base_RAY",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_R_slope1_RAY",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_R_slope2_RAY",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_U_Optimal_WAD",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_U_Optimal_inverted_WAD",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "calcBorrowRate",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "getModelParameters",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "_R_base_RAY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_R_slope1_RAY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_R_slope2_RAY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_U_Optimal_WAD",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_U_Optimal_inverted_WAD",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "calcBorrowRate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getModelParameters",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
@@ -117,15 +117,15 @@ export interface LinearInterestRateModel extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -147,12 +147,10 @@ export interface LinearInterestRateModel extends BaseContract {
     calcBorrowRate(
       expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
-    getModelParameters(
-      overrides?: CallOverrides
-    ): Promise<
+    getModelParameters(overrides?: CallOverrides): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber] & {
         U_optimal: BigNumber;
         R_base: BigNumber;
@@ -177,12 +175,10 @@ export interface LinearInterestRateModel extends BaseContract {
   calcBorrowRate(
     expectedLiquidity: BigNumberish,
     availableLiquidity: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
-  getModelParameters(
-    overrides?: CallOverrides
-  ): Promise<
+  getModelParameters(overrides?: CallOverrides): Promise<
     [BigNumber, BigNumber, BigNumber, BigNumber] & {
       U_optimal: BigNumber;
       R_base: BigNumber;
@@ -207,12 +203,10 @@ export interface LinearInterestRateModel extends BaseContract {
     calcBorrowRate(
       expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    getModelParameters(
-      overrides?: CallOverrides
-    ): Promise<
+    getModelParameters(overrides?: CallOverrides): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber] & {
         U_optimal: BigNumber;
         R_base: BigNumber;
@@ -240,7 +234,7 @@ export interface LinearInterestRateModel extends BaseContract {
     calcBorrowRate(
       expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getModelParameters(overrides?: CallOverrides): Promise<BigNumber>;
@@ -258,17 +252,17 @@ export interface LinearInterestRateModel extends BaseContract {
     _U_Optimal_WAD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     _U_Optimal_inverted_WAD(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     calcBorrowRate(
       expectedLiquidity: BigNumberish,
       availableLiquidity: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     getModelParameters(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;

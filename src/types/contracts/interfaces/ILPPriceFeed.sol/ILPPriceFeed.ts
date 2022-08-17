@@ -53,42 +53,42 @@ export interface ILPPriceFeedInterface extends utils.Interface {
       | "setLimiter"
       | "skipPriceCheck"
       | "upperBound"
-      | "version"
+      | "version",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(functionFragment: "delta", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "description",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "getRoundData",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "latestRoundData",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "lowerBound",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "priceFeedType",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "setLimiter",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "skipPriceCheck",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "upperBound",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -96,25 +96,25 @@ export interface ILPPriceFeedInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "delta", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "description",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getRoundData",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "latestRoundData",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "lowerBound", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "priceFeedType",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "setLimiter", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "skipPriceCheck",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "upperBound", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
@@ -148,15 +148,15 @@ export interface ILPPriceFeed extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -173,7 +173,7 @@ export interface ILPPriceFeed extends BaseContract {
 
     getRoundData(
       _roundId: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
         roundId: BigNumber;
@@ -184,9 +184,7 @@ export interface ILPPriceFeed extends BaseContract {
       }
     >;
 
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<
+    latestRoundData(overrides?: CallOverrides): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
         roundId: BigNumber;
         answer: BigNumber;
@@ -202,7 +200,7 @@ export interface ILPPriceFeed extends BaseContract {
 
     setLimiter(
       _lowerBound: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     skipPriceCheck(overrides?: CallOverrides): Promise<[boolean]>;
@@ -220,7 +218,7 @@ export interface ILPPriceFeed extends BaseContract {
 
   getRoundData(
     _roundId: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<
     [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
       roundId: BigNumber;
@@ -231,9 +229,7 @@ export interface ILPPriceFeed extends BaseContract {
     }
   >;
 
-  latestRoundData(
-    overrides?: CallOverrides
-  ): Promise<
+  latestRoundData(overrides?: CallOverrides): Promise<
     [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
       roundId: BigNumber;
       answer: BigNumber;
@@ -249,7 +245,7 @@ export interface ILPPriceFeed extends BaseContract {
 
   setLimiter(
     _lowerBound: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
@@ -267,7 +263,7 @@ export interface ILPPriceFeed extends BaseContract {
 
     getRoundData(
       _roundId: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
         roundId: BigNumber;
@@ -278,9 +274,7 @@ export interface ILPPriceFeed extends BaseContract {
       }
     >;
 
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<
+    latestRoundData(overrides?: CallOverrides): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
         roundId: BigNumber;
         answer: BigNumber;
@@ -296,7 +290,7 @@ export interface ILPPriceFeed extends BaseContract {
 
     setLimiter(
       _lowerBound: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
@@ -309,11 +303,11 @@ export interface ILPPriceFeed extends BaseContract {
   filters: {
     "NewLimiterParams(uint256,uint256)"(
       lowerBound?: null,
-      upperBound?: null
+      upperBound?: null,
     ): NewLimiterParamsEventFilter;
     NewLimiterParams(
       lowerBound?: null,
-      upperBound?: null
+      upperBound?: null,
     ): NewLimiterParamsEventFilter;
   };
 
@@ -326,7 +320,7 @@ export interface ILPPriceFeed extends BaseContract {
 
     getRoundData(
       _roundId: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
@@ -337,7 +331,7 @@ export interface ILPPriceFeed extends BaseContract {
 
     setLimiter(
       _lowerBound: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     skipPriceCheck(overrides?: CallOverrides): Promise<BigNumber>;
@@ -356,7 +350,7 @@ export interface ILPPriceFeed extends BaseContract {
 
     getRoundData(
       _roundId: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -367,7 +361,7 @@ export interface ILPPriceFeed extends BaseContract {
 
     setLimiter(
       _lowerBound: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     skipPriceCheck(overrides?: CallOverrides): Promise<PopulatedTransaction>;

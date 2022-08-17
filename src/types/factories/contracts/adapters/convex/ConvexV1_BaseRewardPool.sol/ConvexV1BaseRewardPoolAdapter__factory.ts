@@ -743,7 +743,7 @@ type ConvexV1BaseRewardPoolAdapterConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ConvexV1BaseRewardPoolAdapterConstructorParams
+  xs: ConvexV1BaseRewardPoolAdapterConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ConvexV1BaseRewardPoolAdapter__factory extends ContractFactory {
@@ -759,26 +759,26 @@ export class ConvexV1BaseRewardPoolAdapter__factory extends ContractFactory {
     _creditManager: string,
     _baseRewardPool: string,
     _stakedPhantomToken: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ConvexV1BaseRewardPoolAdapter> {
     return super.deploy(
       _creditManager,
       _baseRewardPool,
       _stakedPhantomToken,
-      overrides || {}
+      overrides || {},
     ) as Promise<ConvexV1BaseRewardPoolAdapter>;
   }
   override getDeployTransaction(
     _creditManager: string,
     _baseRewardPool: string,
     _stakedPhantomToken: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       _creditManager,
       _baseRewardPool,
       _stakedPhantomToken,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): ConvexV1BaseRewardPoolAdapter {
@@ -795,12 +795,12 @@ export class ConvexV1BaseRewardPoolAdapter__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ConvexV1BaseRewardPoolAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as ConvexV1BaseRewardPoolAdapter;
   }
 }

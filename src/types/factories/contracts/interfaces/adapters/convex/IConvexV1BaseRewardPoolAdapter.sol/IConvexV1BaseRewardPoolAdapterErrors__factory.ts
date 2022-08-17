@@ -27,17 +27,17 @@ export class IConvexV1BaseRewardPoolAdapterErrors__factory {
   static readonly abi = _abi;
   static createInterface(): IConvexV1BaseRewardPoolAdapterErrorsInterface {
     return new utils.Interface(
-      _abi
+      _abi,
     ) as IConvexV1BaseRewardPoolAdapterErrorsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IConvexV1BaseRewardPoolAdapterErrors {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IConvexV1BaseRewardPoolAdapterErrors;
   }
 }

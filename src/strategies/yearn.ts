@@ -1,4 +1,5 @@
 import { BigNumberish } from "ethers";
+
 import {
   contractParams,
   contractsByNetwork,
@@ -10,9 +11,7 @@ import { CreditManagerData } from "../core/creditManager";
 import { CurveLPTokenData } from "../tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import { TokenType } from "../tokens/tokenType";
-
 import { YearnV2Adapter__factory } from "../types";
-
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { CurveStrategies } from "./curve";
 import { UniswapV2Multicaller } from "./uniswapV2";

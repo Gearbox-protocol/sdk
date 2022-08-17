@@ -282,12 +282,12 @@ export class ICreditConfiguratorEvents__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ICreditConfiguratorEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as ICreditConfiguratorEvents;
   }
 }

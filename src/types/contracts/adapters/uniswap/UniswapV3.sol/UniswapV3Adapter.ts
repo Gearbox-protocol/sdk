@@ -33,7 +33,7 @@ export declare namespace IUniswapV3Adapter {
   export type ExactAllInputParamsStructOutput = [
     string,
     BigNumber,
-    BigNumber
+    BigNumber,
   ] & { path: string; deadline: BigNumber; rateMinRAY: BigNumber };
 
   export type ExactAllInputSingleParamsStruct = {
@@ -51,7 +51,7 @@ export declare namespace IUniswapV3Adapter {
     number,
     BigNumber,
     BigNumber,
-    BigNumber
+    BigNumber,
   ] & {
     tokenIn: string;
     tokenOut: string;
@@ -76,7 +76,7 @@ export declare namespace ISwapRouter {
     string,
     BigNumber,
     BigNumber,
-    BigNumber
+    BigNumber,
   ] & {
     path: string;
     recipient: string;
@@ -104,7 +104,7 @@ export declare namespace ISwapRouter {
     BigNumber,
     BigNumber,
     BigNumber,
-    BigNumber
+    BigNumber,
   ] & {
     tokenIn: string;
     tokenOut: string;
@@ -129,7 +129,7 @@ export declare namespace ISwapRouter {
     string,
     BigNumber,
     BigNumber,
-    BigNumber
+    BigNumber,
   ] & {
     path: string;
     recipient: string;
@@ -157,7 +157,7 @@ export declare namespace ISwapRouter {
     BigNumber,
     BigNumber,
     BigNumber,
-    BigNumber
+    BigNumber,
   ] & {
     tokenIn: string;
     tokenOut: string;
@@ -197,94 +197,94 @@ export interface UniswapV3AdapterInterface extends utils.Interface {
       | "exactInputSingle"
       | "exactOutput"
       | "exactOutputSingle"
-      | "targetContract"
+      | "targetContract",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "exactAllInput",
-    values: [IUniswapV3Adapter.ExactAllInputParamsStruct]
+    values: [IUniswapV3Adapter.ExactAllInputParamsStruct],
   ): string;
   encodeFunctionData(
     functionFragment: "exactAllInputSingle",
-    values: [IUniswapV3Adapter.ExactAllInputSingleParamsStruct]
+    values: [IUniswapV3Adapter.ExactAllInputSingleParamsStruct],
   ): string;
   encodeFunctionData(
     functionFragment: "exactInput",
-    values: [ISwapRouter.ExactInputParamsStruct]
+    values: [ISwapRouter.ExactInputParamsStruct],
   ): string;
   encodeFunctionData(
     functionFragment: "exactInputSingle",
-    values: [ISwapRouter.ExactInputSingleParamsStruct]
+    values: [ISwapRouter.ExactInputSingleParamsStruct],
   ): string;
   encodeFunctionData(
     functionFragment: "exactOutput",
-    values: [ISwapRouter.ExactOutputParamsStruct]
+    values: [ISwapRouter.ExactOutputParamsStruct],
   ): string;
   encodeFunctionData(
     functionFragment: "exactOutputSingle",
-    values: [ISwapRouter.ExactOutputSingleParamsStruct]
+    values: [ISwapRouter.ExactOutputSingleParamsStruct],
   ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterType",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "exactAllInput",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "exactAllInputSingle",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "exactInput", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "exactInputSingle",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "exactOutput",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "exactOutputSingle",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -300,15 +300,15 @@ export interface UniswapV3Adapter extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -327,32 +327,32 @@ export interface UniswapV3Adapter extends BaseContract {
 
     exactAllInput(
       params: IUniswapV3Adapter.ExactAllInputParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     exactAllInputSingle(
       params: IUniswapV3Adapter.ExactAllInputSingleParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     exactInput(
       params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     exactInputSingle(
       params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     exactOutput(
       params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     exactOutputSingle(
       params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     targetContract(overrides?: CallOverrides): Promise<[string]>;
@@ -368,32 +368,32 @@ export interface UniswapV3Adapter extends BaseContract {
 
   exactAllInput(
     params: IUniswapV3Adapter.ExactAllInputParamsStruct,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   exactAllInputSingle(
     params: IUniswapV3Adapter.ExactAllInputSingleParamsStruct,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   exactInput(
     params: ISwapRouter.ExactInputParamsStruct,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   exactInputSingle(
     params: ISwapRouter.ExactInputSingleParamsStruct,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   exactOutput(
     params: ISwapRouter.ExactOutputParamsStruct,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   exactOutputSingle(
     params: ISwapRouter.ExactOutputSingleParamsStruct,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   targetContract(overrides?: CallOverrides): Promise<string>;
@@ -409,32 +409,32 @@ export interface UniswapV3Adapter extends BaseContract {
 
     exactAllInput(
       params: IUniswapV3Adapter.ExactAllInputParamsStruct,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     exactAllInputSingle(
       params: IUniswapV3Adapter.ExactAllInputSingleParamsStruct,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     exactInput(
       params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     exactInputSingle(
       params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     exactOutput(
       params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     exactOutputSingle(
       params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     targetContract(overrides?: CallOverrides): Promise<string>;
@@ -453,32 +453,32 @@ export interface UniswapV3Adapter extends BaseContract {
 
     exactAllInput(
       params: IUniswapV3Adapter.ExactAllInputParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     exactAllInputSingle(
       params: IUniswapV3Adapter.ExactAllInputSingleParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     exactInput(
       params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     exactInputSingle(
       params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     exactOutput(
       params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     exactOutputSingle(
       params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     targetContract(overrides?: CallOverrides): Promise<BigNumber>;
@@ -486,11 +486,11 @@ export interface UniswapV3Adapter extends BaseContract {
 
   populateTransaction: {
     _gearboxAdapterType(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     _gearboxAdapterVersion(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -499,32 +499,32 @@ export interface UniswapV3Adapter extends BaseContract {
 
     exactAllInput(
       params: IUniswapV3Adapter.ExactAllInputParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     exactAllInputSingle(
       params: IUniswapV3Adapter.ExactAllInputSingleParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     exactInput(
       params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     exactInputSingle(
       params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     exactOutput(
       params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     exactOutputSingle(
       params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;

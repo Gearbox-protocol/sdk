@@ -395,7 +395,7 @@ type ERC20BlockingMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ERC20BlockingMockConstructorParams
+  xs: ERC20BlockingMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ERC20BlockingMock__factory extends ContractFactory {
@@ -410,18 +410,18 @@ export class ERC20BlockingMock__factory extends ContractFactory {
   override deploy(
     name_: string,
     symbol_: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ERC20BlockingMock> {
     return super.deploy(
       name_,
       symbol_,
-      overrides || {}
+      overrides || {},
     ) as Promise<ERC20BlockingMock>;
   }
   override getDeployTransaction(
     name_: string,
     symbol_: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(name_, symbol_, overrides || {});
   }
@@ -439,7 +439,7 @@ export class ERC20BlockingMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ERC20BlockingMock {
     return new Contract(address, _abi, signerOrProvider) as ERC20BlockingMock;
   }

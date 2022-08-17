@@ -369,12 +369,12 @@ export class AbstractCurveLPPriceFeed__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): AbstractCurveLPPriceFeed {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as AbstractCurveLPPriceFeed;
   }
 }

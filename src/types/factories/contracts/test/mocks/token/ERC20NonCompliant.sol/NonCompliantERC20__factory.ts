@@ -43,7 +43,7 @@ type NonCompliantERC20ConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: NonCompliantERC20ConstructorParams
+  xs: NonCompliantERC20ConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class NonCompliantERC20__factory extends ContractFactory {
@@ -56,12 +56,12 @@ export class NonCompliantERC20__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<NonCompliantERC20> {
     return super.deploy(overrides || {}) as Promise<NonCompliantERC20>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -79,7 +79,7 @@ export class NonCompliantERC20__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): NonCompliantERC20 {
     return new Contract(address, _abi, signerOrProvider) as NonCompliantERC20;
   }

@@ -1,7 +1,8 @@
 import { BigNumber } from "ethers";
-import { TokenDataPayload } from "../payload/token";
+
 import { STATIC_TOKEN } from "../config";
 import { NetworkType } from "../core/constants";
+import { TokenDataPayload } from "../payload/token";
 import { SupportedToken, tokenDataByNetwork } from "./token";
 
 type SymbolReplacements = Record<string, string>;

@@ -4,10 +4,10 @@ import type {
   UniswapV2Contract,
   YearnVaultContract,
 } from "../contracts/contracts";
-import type { NormalToken } from "../tokens/normal";
-import type { CurveLPToken } from "../tokens/curveLP";
-import type { YearnLPToken } from "../tokens/yearn";
 import type { ConvexLPToken, ConvexStakedPhantomToken } from "../tokens/convex";
+import type { CurveLPToken } from "../tokens/curveLP";
+import type { NormalToken } from "../tokens/normal";
+import type { YearnLPToken } from "../tokens/yearn";
 
 export enum TradeType {
   UniswapV2Swap,

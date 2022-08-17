@@ -1,19 +1,22 @@
 import { BigNumber } from "ethers";
+
 import {
   CreditAccountDataExtendedPayload,
   CreditAccountDataPayload,
 } from "../payload/creditAccount";
-import { calcTotalPrice } from "../utils/price";
-
-import {
-  PERCENTAGE_FACTOR,
-  RAY,
-  PERCENTAGE_DECIMALS,
-  PRICE_DECIMALS,
-} from "./constants";
 import { TokenData } from "../tokens/tokenData";
+import { calcTotalPrice } from "../utils/price";
+import {
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  PRICE_DECIMALS,
+  RAY,
+} from "./constants";
 
-export type Balance = { address: string; balance: BigNumber };
+export interface Balance {
+  address: string;
+  balance: BigNumber;
+}
 
 export class CreditAccountData {
   public readonly id: string;

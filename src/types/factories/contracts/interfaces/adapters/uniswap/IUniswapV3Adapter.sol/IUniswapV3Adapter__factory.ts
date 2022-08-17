@@ -401,7 +401,7 @@ export class IUniswapV3Adapter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IUniswapV3Adapter {
     return new Contract(address, _abi, signerOrProvider) as IUniswapV3Adapter;
   }

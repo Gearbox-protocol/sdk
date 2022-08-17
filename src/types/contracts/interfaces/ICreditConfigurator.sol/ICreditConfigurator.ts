@@ -51,78 +51,78 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
       | "creditManager"
       | "forbidContract"
       | "underlying"
-      | "version"
+      | "version",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addCollateralToken",
-    values: [string, BigNumberish]
+    values: [string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "allowContract",
-    values: [string, string]
+    values: [string, string],
   ): string;
   encodeFunctionData(
     functionFragment: "allowedContracts",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "allowedContractsCount",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "forbidContract",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "addCollateralToken",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "addressProvider",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "allowContract",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "allowedContracts",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "allowedContractsCount",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "forbidContract",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
@@ -164,7 +164,7 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenForbidden"): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated"
+    nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated",
   ): EventFragment;
 }
 
@@ -364,15 +364,15 @@ export interface ICreditConfigurator extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -384,7 +384,7 @@ export interface ICreditConfigurator extends BaseContract {
     addCollateralToken(
       token: string,
       liquidationThreshold: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
@@ -392,12 +392,12 @@ export interface ICreditConfigurator extends BaseContract {
     allowContract(
       targetContract: string,
       adapter: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     allowedContracts(
       i: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     allowedContractsCount(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -408,7 +408,7 @@ export interface ICreditConfigurator extends BaseContract {
 
     forbidContract(
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<[string]>;
@@ -419,7 +419,7 @@ export interface ICreditConfigurator extends BaseContract {
   addCollateralToken(
     token: string,
     liquidationThreshold: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
@@ -427,7 +427,7 @@ export interface ICreditConfigurator extends BaseContract {
   allowContract(
     targetContract: string,
     adapter: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   allowedContracts(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
@@ -440,7 +440,7 @@ export interface ICreditConfigurator extends BaseContract {
 
   forbidContract(
     targetContract: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   underlying(overrides?: CallOverrides): Promise<string>;
@@ -451,7 +451,7 @@ export interface ICreditConfigurator extends BaseContract {
     addCollateralToken(
       token: string,
       liquidationThreshold: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     addressProvider(overrides?: CallOverrides): Promise<string>;
@@ -459,12 +459,12 @@ export interface ICreditConfigurator extends BaseContract {
     allowContract(
       targetContract: string,
       adapter: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     allowedContracts(
       i: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -475,7 +475,7 @@ export interface ICreditConfigurator extends BaseContract {
 
     forbidContract(
       targetContract: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     underlying(overrides?: CallOverrides): Promise<string>;
@@ -489,37 +489,37 @@ export interface ICreditConfigurator extends BaseContract {
 
     "ContractAllowed(address,address)"(
       protocol?: string | null,
-      adapter?: string | null
+      adapter?: string | null,
     ): ContractAllowedEventFilter;
     ContractAllowed(
       protocol?: string | null,
-      adapter?: string | null
+      adapter?: string | null,
     ): ContractAllowedEventFilter;
 
     "ContractForbidden(address)"(
-      protocol?: string | null
+      protocol?: string | null,
     ): ContractForbiddenEventFilter;
     ContractForbidden(protocol?: string | null): ContractForbiddenEventFilter;
 
     "CreditConfiguratorUpgraded(address)"(
-      newCreditConfigurator?: string | null
+      newCreditConfigurator?: string | null,
     ): CreditConfiguratorUpgradedEventFilter;
     CreditConfiguratorUpgraded(
-      newCreditConfigurator?: string | null
+      newCreditConfigurator?: string | null,
     ): CreditConfiguratorUpgradedEventFilter;
 
     "CreditFacadeUpgraded(address)"(
-      newCreditFacade?: string | null
+      newCreditFacade?: string | null,
     ): CreditFacadeUpgradedEventFilter;
     CreditFacadeUpgraded(
-      newCreditFacade?: string | null
+      newCreditFacade?: string | null,
     ): CreditFacadeUpgradedEventFilter;
 
     "DegenModeUpdated(bool)"(arg0?: null): DegenModeUpdatedEventFilter;
     DegenModeUpdated(arg0?: null): DegenModeUpdatedEventFilter;
 
     "ExpirationDateUpdated(uint40)"(
-      arg0?: null
+      arg0?: null,
     ): ExpirationDateUpdatedEventFilter;
     ExpirationDateUpdated(arg0?: null): ExpirationDateUpdatedEventFilter;
 
@@ -528,49 +528,49 @@ export interface ICreditConfigurator extends BaseContract {
       feeLiquidation?: null,
       liquidationPremium?: null,
       feeLiquidationExpired?: null,
-      liquidationPremiumExpired?: null
+      liquidationPremiumExpired?: null,
     ): FeesUpdatedEventFilter;
     FeesUpdated(
       feeInterest?: null,
       feeLiquidation?: null,
       liquidationPremium?: null,
       feeLiquidationExpired?: null,
-      liquidationPremiumExpired?: null
+      liquidationPremiumExpired?: null,
     ): FeesUpdatedEventFilter;
 
     "IncreaseDebtModeUpdated(bool)"(
-      arg0?: null
+      arg0?: null,
     ): IncreaseDebtModeUpdatedEventFilter;
     IncreaseDebtModeUpdated(arg0?: null): IncreaseDebtModeUpdatedEventFilter;
 
     "LimitPerBlockUpdated(uint128)"(
-      arg0?: null
+      arg0?: null,
     ): LimitPerBlockUpdatedEventFilter;
     LimitPerBlockUpdated(arg0?: null): LimitPerBlockUpdatedEventFilter;
 
     "LimitsUpdated(uint256,uint256)"(
       minBorrowedAmount?: null,
-      maxBorrowedAmount?: null
+      maxBorrowedAmount?: null,
     ): LimitsUpdatedEventFilter;
     LimitsUpdated(
       minBorrowedAmount?: null,
-      maxBorrowedAmount?: null
+      maxBorrowedAmount?: null,
     ): LimitsUpdatedEventFilter;
 
     "MaxEnabledTokensUpdated(uint8)"(
-      arg0?: null
+      arg0?: null,
     ): MaxEnabledTokensUpdatedEventFilter;
     MaxEnabledTokensUpdated(arg0?: null): MaxEnabledTokensUpdatedEventFilter;
 
     "PriceOracleUpgraded(address)"(
-      newPriceOracle?: string | null
+      newPriceOracle?: string | null,
     ): PriceOracleUpgradedEventFilter;
     PriceOracleUpgraded(
-      newPriceOracle?: string | null
+      newPriceOracle?: string | null,
     ): PriceOracleUpgradedEventFilter;
 
     "RemovedFromUpgradeable(address)"(
-      arg0?: null
+      arg0?: null,
     ): RemovedFromUpgradeableEventFilter;
     RemovedFromUpgradeable(arg0?: null): RemovedFromUpgradeableEventFilter;
 
@@ -582,11 +582,11 @@ export interface ICreditConfigurator extends BaseContract {
 
     "TokenLiquidationThresholdUpdated(address,uint16)"(
       token?: string | null,
-      liquidityThreshold?: null
+      liquidityThreshold?: null,
     ): TokenLiquidationThresholdUpdatedEventFilter;
     TokenLiquidationThresholdUpdated(
       token?: string | null,
-      liquidityThreshold?: null
+      liquidityThreshold?: null,
     ): TokenLiquidationThresholdUpdatedEventFilter;
   };
 
@@ -594,7 +594,7 @@ export interface ICreditConfigurator extends BaseContract {
     addCollateralToken(
       token: string,
       liquidationThreshold: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
@@ -602,12 +602,12 @@ export interface ICreditConfigurator extends BaseContract {
     allowContract(
       targetContract: string,
       adapter: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     allowedContracts(
       i: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -618,7 +618,7 @@ export interface ICreditConfigurator extends BaseContract {
 
     forbidContract(
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
@@ -630,7 +630,7 @@ export interface ICreditConfigurator extends BaseContract {
     addCollateralToken(
       token: string,
       liquidationThreshold: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -638,16 +638,16 @@ export interface ICreditConfigurator extends BaseContract {
     allowContract(
       targetContract: string,
       adapter: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     allowedContracts(
       i: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     allowedContractsCount(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -656,7 +656,7 @@ export interface ICreditConfigurator extends BaseContract {
 
     forbidContract(
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;

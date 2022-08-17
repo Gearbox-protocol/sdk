@@ -869,7 +869,7 @@ type SwapPathFinderTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: SwapPathFinderTestConstructorParams
+  xs: SwapPathFinderTestConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class SwapPathFinderTest__factory extends ContractFactory {
@@ -882,12 +882,12 @@ export class SwapPathFinderTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<SwapPathFinderTest> {
     return super.deploy(overrides || {}) as Promise<SwapPathFinderTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -905,7 +905,7 @@ export class SwapPathFinderTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): SwapPathFinderTest {
     return new Contract(address, _abi, signerOrProvider) as SwapPathFinderTest;
   }

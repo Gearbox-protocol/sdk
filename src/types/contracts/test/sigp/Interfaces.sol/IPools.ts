@@ -41,50 +41,50 @@ export interface IPoolsInterface extends utils.Interface {
       | "poolInfo"
       | "poolLength"
       | "setPoolManager"
-      | "shutdownPool"
+      | "shutdownPool",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addPool",
-    values: [string, string, BigNumberish]
+    values: [string, string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "forceAddPool",
-    values: [string, string, BigNumberish]
+    values: [string, string, BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "gaugeMap", values: [string]): string;
   encodeFunctionData(
     functionFragment: "poolInfo",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "poolLength",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "setPoolManager",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "shutdownPool",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
 
   decodeFunctionResult(functionFragment: "addPool", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "forceAddPool",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "gaugeMap", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "poolInfo", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "poolLength", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setPoolManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "shutdownPool",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -100,15 +100,15 @@ export interface IPools extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -121,33 +121,33 @@ export interface IPools extends BaseContract {
       _lptoken: string,
       _gauge: string,
       _stashVersion: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     forceAddPool(
       _lptoken: string,
       _gauge: string,
       _stashVersion: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     gaugeMap(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     poolInfo(
       arg0: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string, string, string, string, string, boolean]>;
 
     poolLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     setPoolManager(
       _poolM: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     shutdownPool(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
 
@@ -155,33 +155,33 @@ export interface IPools extends BaseContract {
     _lptoken: string,
     _gauge: string,
     _stashVersion: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   forceAddPool(
     _lptoken: string,
     _gauge: string,
     _stashVersion: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   gaugeMap(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   poolInfo(
     arg0: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<[string, string, string, string, string, boolean]>;
 
   poolLength(overrides?: CallOverrides): Promise<BigNumber>;
 
   setPoolManager(
     _poolM: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   shutdownPool(
     _pid: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -189,21 +189,21 @@ export interface IPools extends BaseContract {
       _lptoken: string,
       _gauge: string,
       _stashVersion: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     forceAddPool(
       _lptoken: string,
       _gauge: string,
       _stashVersion: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     gaugeMap(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     poolInfo(
       arg0: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string, string, string, string, string, boolean]>;
 
     poolLength(overrides?: CallOverrides): Promise<BigNumber>;
@@ -212,7 +212,7 @@ export interface IPools extends BaseContract {
 
     shutdownPool(
       _pid: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
   };
 
@@ -223,14 +223,14 @@ export interface IPools extends BaseContract {
       _lptoken: string,
       _gauge: string,
       _stashVersion: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     forceAddPool(
       _lptoken: string,
       _gauge: string,
       _stashVersion: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     gaugeMap(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -241,12 +241,12 @@ export interface IPools extends BaseContract {
 
     setPoolManager(
       _poolM: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     shutdownPool(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
   };
 
@@ -255,36 +255,36 @@ export interface IPools extends BaseContract {
       _lptoken: string,
       _gauge: string,
       _stashVersion: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     forceAddPool(
       _lptoken: string,
       _gauge: string,
       _stashVersion: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     gaugeMap(
       arg0: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     poolInfo(
       arg0: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     poolLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setPoolManager(
       _poolM: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     shutdownPool(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

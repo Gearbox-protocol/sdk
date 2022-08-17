@@ -47,65 +47,65 @@ export interface IUniversalAdapterInterface extends utils.Interface {
       | "creditManager"
       | "revokeAdapterAllowances((address,address)[])"
       | "revokeAdapterAllowances((address,address)[],address)"
-      | "targetContract"
+      | "targetContract",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "revokeAdapterAllowances((address,address)[])",
-    values: [RevocationPairStruct[]]
+    values: [RevocationPairStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "revokeAdapterAllowances((address,address)[],address)",
-    values: [RevocationPairStruct[], string]
+    values: [RevocationPairStruct[], string],
   ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterType",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "revokeAdapterAllowances((address,address)[])",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "revokeAdapterAllowances((address,address)[],address)",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -121,15 +121,15 @@ export interface IUniversalAdapter extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -148,13 +148,13 @@ export interface IUniversalAdapter extends BaseContract {
 
     "revokeAdapterAllowances((address,address)[])"(
       revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     "revokeAdapterAllowances((address,address)[],address)"(
       revocations: RevocationPairStruct[],
       expectedCreditAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     targetContract(overrides?: CallOverrides): Promise<[string]>;
@@ -170,13 +170,13 @@ export interface IUniversalAdapter extends BaseContract {
 
   "revokeAdapterAllowances((address,address)[])"(
     revocations: RevocationPairStruct[],
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   "revokeAdapterAllowances((address,address)[],address)"(
     revocations: RevocationPairStruct[],
     expectedCreditAccount: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   targetContract(overrides?: CallOverrides): Promise<string>;
@@ -192,13 +192,13 @@ export interface IUniversalAdapter extends BaseContract {
 
     "revokeAdapterAllowances((address,address)[])"(
       revocations: RevocationPairStruct[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     "revokeAdapterAllowances((address,address)[],address)"(
       revocations: RevocationPairStruct[],
       expectedCreditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     targetContract(overrides?: CallOverrides): Promise<string>;
@@ -217,13 +217,13 @@ export interface IUniversalAdapter extends BaseContract {
 
     "revokeAdapterAllowances((address,address)[])"(
       revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     "revokeAdapterAllowances((address,address)[],address)"(
       revocations: RevocationPairStruct[],
       expectedCreditAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     targetContract(overrides?: CallOverrides): Promise<BigNumber>;
@@ -231,11 +231,11 @@ export interface IUniversalAdapter extends BaseContract {
 
   populateTransaction: {
     _gearboxAdapterType(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     _gearboxAdapterVersion(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -244,13 +244,13 @@ export interface IUniversalAdapter extends BaseContract {
 
     "revokeAdapterAllowances((address,address)[])"(
       revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     "revokeAdapterAllowances((address,address)[],address)"(
       revocations: RevocationPairStruct[],
       expectedCreditAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;

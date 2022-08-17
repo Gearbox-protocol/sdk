@@ -35,12 +35,12 @@ export class IUniversalAdapterExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IUniversalAdapterExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IUniversalAdapterExceptions;
   }
 }

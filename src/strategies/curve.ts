@@ -1,4 +1,5 @@
 import { BigNumberish } from "ethers";
+
 import {
   contractParams,
   contractsByNetwork,
@@ -8,14 +9,12 @@ import {
 import { ADDRESS_0X0, NetworkType } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
 import { tokenDataByNetwork } from "../tokens/token";
-
 import {
-  CurveV1AdapterBase__factory,
   CurveV1Adapter2Assets__factory,
   CurveV1Adapter3Assets__factory,
   CurveV1Adapter4Assets__factory,
+  CurveV1AdapterBase__factory,
 } from "../types";
-
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { UniswapV2Multicaller } from "./uniswapV2";
 

@@ -799,7 +799,7 @@ type UniswapV3AdapterTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: UniswapV3AdapterTestConstructorParams
+  xs: UniswapV3AdapterTestConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class UniswapV3AdapterTest__factory extends ContractFactory {
@@ -812,12 +812,12 @@ export class UniswapV3AdapterTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<UniswapV3AdapterTest> {
     return super.deploy(overrides || {}) as Promise<UniswapV3AdapterTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -835,12 +835,12 @@ export class UniswapV3AdapterTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): UniswapV3AdapterTest {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as UniswapV3AdapterTest;
   }
 }

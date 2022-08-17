@@ -195,7 +195,7 @@ type ConvexV1ClaimZapAdapterConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ConvexV1ClaimZapAdapterConstructorParams
+  xs: ConvexV1ClaimZapAdapterConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ConvexV1ClaimZapAdapter__factory extends ContractFactory {
@@ -210,23 +210,23 @@ export class ConvexV1ClaimZapAdapter__factory extends ContractFactory {
   override deploy(
     _creditManager: string,
     _claimZap: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ConvexV1ClaimZapAdapter> {
     return super.deploy(
       _creditManager,
       _claimZap,
-      overrides || {}
+      overrides || {},
     ) as Promise<ConvexV1ClaimZapAdapter>;
   }
   override getDeployTransaction(
     _creditManager: string,
     _claimZap: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       _creditManager,
       _claimZap,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): ConvexV1ClaimZapAdapter {
@@ -243,12 +243,12 @@ export class ConvexV1ClaimZapAdapter__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ConvexV1ClaimZapAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as ConvexV1ClaimZapAdapter;
   }
 }

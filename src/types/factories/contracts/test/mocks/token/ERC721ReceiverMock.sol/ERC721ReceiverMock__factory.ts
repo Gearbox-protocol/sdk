@@ -53,7 +53,7 @@ type ERC721ReceiverMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ERC721ReceiverMockConstructorParams
+  xs: ERC721ReceiverMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ERC721ReceiverMock__factory extends ContractFactory {
@@ -66,12 +66,12 @@ export class ERC721ReceiverMock__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ERC721ReceiverMock> {
     return super.deploy(overrides || {}) as Promise<ERC721ReceiverMock>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -89,7 +89,7 @@ export class ERC721ReceiverMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ERC721ReceiverMock {
     return new Contract(address, _abi, signerOrProvider) as ERC721ReceiverMock;
   }

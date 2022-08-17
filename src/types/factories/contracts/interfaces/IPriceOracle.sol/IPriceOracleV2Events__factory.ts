@@ -38,12 +38,12 @@ export class IPriceOracleV2Events__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IPriceOracleV2Events {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IPriceOracleV2Events;
   }
 }

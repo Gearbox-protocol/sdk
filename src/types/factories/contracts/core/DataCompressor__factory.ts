@@ -862,7 +862,7 @@ type DataCompressorConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: DataCompressorConstructorParams
+  xs: DataCompressorConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class DataCompressor__factory extends ContractFactory {
@@ -876,16 +876,16 @@ export class DataCompressor__factory extends ContractFactory {
 
   override deploy(
     _addressProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<DataCompressor> {
     return super.deploy(
       _addressProvider,
-      overrides || {}
+      overrides || {},
     ) as Promise<DataCompressor>;
   }
   override getDeployTransaction(
     _addressProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_addressProvider, overrides || {});
   }
@@ -903,7 +903,7 @@ export class DataCompressor__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): DataCompressor {
     return new Contract(address, _abi, signerOrProvider) as DataCompressor;
   }

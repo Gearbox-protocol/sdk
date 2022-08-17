@@ -48,7 +48,7 @@ export interface ACLTestInterface extends utils.Interface {
       | "test_ACL_03_removePausableAdmin_removes_admin"
       | "test_ACL_04_addUnpausableAdmin_adds_pool"
       | "test_ACL_05_removeUnpausableAdmin_removes_admin"
-      | "test_ACL_06_isConfigurator_correct"
+      | "test_ACL_06_isConfigurator_correct",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
@@ -56,27 +56,27 @@ export interface ACLTestInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_ACL_01_add_remove_reverts_on_non_owner",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACL_02_addPausableAdmin_adds_pool",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACL_03_removePausableAdmin_removes_admin",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACL_04_addUnpausableAdmin_adds_pool",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACL_05_removeUnpausableAdmin_removes_admin",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACL_06_isConfigurator_correct",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
@@ -84,27 +84,27 @@ export interface ACLTestInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_ACL_01_add_remove_reverts_on_non_owner",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACL_02_addPausableAdmin_adds_pool",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACL_03_removePausableAdmin_removes_admin",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACL_04_addUnpausableAdmin_adds_pool",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACL_05_removeUnpausableAdmin_removes_admin",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACL_06_isConfigurator_correct",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {
@@ -357,15 +357,15 @@ export interface ACLTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -377,70 +377,70 @@ export interface ACLTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_ACL_01_add_remove_reverts_on_non_owner(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_ACL_02_addPausableAdmin_adds_pool(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_ACL_03_removePausableAdmin_removes_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_ACL_04_addUnpausableAdmin_adds_pool(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_ACL_05_removeUnpausableAdmin_removes_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_ACL_06_isConfigurator_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
 
   IS_TEST(overrides?: CallOverrides): Promise<boolean>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_ACL_01_add_remove_reverts_on_non_owner(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_ACL_02_addPausableAdmin_adds_pool(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_ACL_03_removePausableAdmin_removes_admin(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_ACL_04_addUnpausableAdmin_adds_pool(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_ACL_05_removeUnpausableAdmin_removes_admin(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_ACL_06_isConfigurator_correct(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -451,55 +451,55 @@ export interface ACLTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_ACL_01_add_remove_reverts_on_non_owner(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_ACL_02_addPausableAdmin_adds_pool(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_ACL_03_removePausableAdmin_removes_admin(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_ACL_04_addUnpausableAdmin_adds_pool(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_ACL_05_removeUnpausableAdmin_removes_admin(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_ACL_06_isConfigurator_correct(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
   };
 
   filters: {
     "PausableAdminAdded(address)"(
-      newAdmin?: string | null
+      newAdmin?: string | null,
     ): PausableAdminAddedEventFilter;
     PausableAdminAdded(newAdmin?: string | null): PausableAdminAddedEventFilter;
 
     "PausableAdminRemoved(address)"(
-      admin?: string | null
+      admin?: string | null,
     ): PausableAdminRemovedEventFilter;
     PausableAdminRemoved(
-      admin?: string | null
+      admin?: string | null,
     ): PausableAdminRemovedEventFilter;
 
     "UnpausableAdminAdded(address)"(
-      newAdmin?: string | null
+      newAdmin?: string | null,
     ): UnpausableAdminAddedEventFilter;
     UnpausableAdminAdded(
-      newAdmin?: string | null
+      newAdmin?: string | null,
     ): UnpausableAdminAddedEventFilter;
 
     "UnpausableAdminRemoved(address)"(
-      admin?: string | null
+      admin?: string | null,
     ): UnpausableAdminRemovedEventFilter;
     UnpausableAdminRemoved(
-      admin?: string | null
+      admin?: string | null,
     ): UnpausableAdminRemovedEventFilter;
 
     "log(string)"(arg0?: null): logEventFilter;
@@ -519,59 +519,59 @@ export interface ACLTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -589,35 +589,35 @@ export interface ACLTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_ACL_01_add_remove_reverts_on_non_owner(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_ACL_02_addPausableAdmin_adds_pool(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_ACL_03_removePausableAdmin_removes_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_ACL_04_addUnpausableAdmin_adds_pool(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_ACL_05_removeUnpausableAdmin_removes_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_ACL_06_isConfigurator_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
   };
 
@@ -625,35 +625,35 @@ export interface ACLTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_ACL_01_add_remove_reverts_on_non_owner(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_ACL_02_addPausableAdmin_adds_pool(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_ACL_03_removePausableAdmin_removes_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_ACL_04_addUnpausableAdmin_adds_pool(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_ACL_05_removeUnpausableAdmin_removes_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_ACL_06_isConfigurator_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

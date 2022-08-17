@@ -1,5 +1,5 @@
-import { OracleType, TokenPriceFeedData } from "./oracles";
 import { SupportedToken } from "../tokens/token";
+import { OracleType, TokenPriceFeedData } from "./oracles";
 
 export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
   "1INCH": {

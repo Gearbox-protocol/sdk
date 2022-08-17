@@ -1,18 +1,15 @@
 import { BigNumber } from "ethers";
 
-import { YearnLPToken, yearnTokens } from "../tokens/yearn";
-import { NormalToken } from "../tokens/normal";
 import { CurveLPToken } from "../tokens/curveLP";
+import { NormalToken } from "../tokens/normal";
 import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
-
-import { PartialRecord } from "../utils/types";
-import { MCall, multicall } from "../utils/multicall";
-import { objectEntries } from "../utils/mappers";
-
+import { YearnLPToken, yearnTokens } from "../tokens/yearn";
 import { IYVault__factory } from "../types";
 import { IYVaultInterface } from "../types/contracts/integrations/yearn/IYVault";
-
-import type { Path, LPWithdrawPathFinder } from "./path";
+import { objectEntries } from "../utils/mappers";
+import { MCall, multicall } from "../utils/multicall";
+import { PartialRecord } from "../utils/types";
+import type { LPWithdrawPathFinder, Path } from "./path";
 
 interface WithdrawBalance {
   token: SupportedToken;

@@ -30,30 +30,30 @@ export interface ICurveRegistryInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "get_lp_token"
       | "get_n_coins"
-      | "get_pool_from_lp_token"
+      | "get_pool_from_lp_token",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "get_lp_token",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(functionFragment: "get_n_coins", values: [string]): string;
   encodeFunctionData(
     functionFragment: "get_pool_from_lp_token",
-    values: [string]
+    values: [string],
   ): string;
 
   decodeFunctionResult(
     functionFragment: "get_lp_token",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_n_coins",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_pool_from_lp_token",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -69,15 +69,15 @@ export interface ICurveRegistry extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -92,7 +92,7 @@ export interface ICurveRegistry extends BaseContract {
 
     get_pool_from_lp_token(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
   };
 
@@ -102,7 +102,7 @@ export interface ICurveRegistry extends BaseContract {
 
   get_pool_from_lp_token(
     token: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   callStatic: {
@@ -112,7 +112,7 @@ export interface ICurveRegistry extends BaseContract {
 
     get_pool_from_lp_token(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
   };
 
@@ -125,24 +125,24 @@ export interface ICurveRegistry extends BaseContract {
 
     get_pool_from_lp_token(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     get_lp_token(
       pool: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     get_n_coins(
       pool: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     get_pool_from_lp_token(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
   };
 }

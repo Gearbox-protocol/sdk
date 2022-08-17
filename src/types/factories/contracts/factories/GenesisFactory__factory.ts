@@ -151,7 +151,7 @@ type GenesisFactoryConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: GenesisFactoryConstructorParams
+  xs: GenesisFactoryConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class GenesisFactory__factory extends ContractFactory {
@@ -166,18 +166,18 @@ export class GenesisFactory__factory extends ContractFactory {
   override deploy(
     wethToken: string,
     treasury: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<GenesisFactory> {
     return super.deploy(
       wethToken,
       treasury,
-      overrides || {}
+      overrides || {},
     ) as Promise<GenesisFactory>;
   }
   override getDeployTransaction(
     wethToken: string,
     treasury: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(wethToken, treasury, overrides || {});
   }
@@ -195,7 +195,7 @@ export class GenesisFactory__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): GenesisFactory {
     return new Contract(address, _abi, signerOrProvider) as GenesisFactory;
   }

@@ -109,130 +109,130 @@ export interface BoosterMockInterface extends utils.Interface {
       | "voteParameter"
       | "withdraw"
       | "withdrawAll"
-      | "withdrawTo"
+      | "withdrawTo",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "FEE_DENOMINATOR",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "MaxFees", values?: undefined): string;
   encodeFunctionData(functionFragment: "addPool", values: [string]): string;
   encodeFunctionData(functionFragment: "crv", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [BigNumberish, BigNumberish, boolean]
+    values: [BigNumberish, BigNumberish, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "depositAll",
-    values: [BigNumberish, boolean]
+    values: [BigNumberish, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "distributionAddressId",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "earmarkIncentive",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "feeDistro", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "feeManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "feeToken", values?: undefined): string;
   encodeFunctionData(functionFragment: "gaugeMap", values: [string]): string;
   encodeFunctionData(functionFragment: "index", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "isShutdown",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "lockFees", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "lockIncentive",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "lockRewards",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "minter", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "platformFee",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "poolInfo",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "poolLength",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "poolManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "registry", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "rewardArbitrator",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "rewardClaimed",
-    values: [BigNumberish, string, BigNumberish]
+    values: [BigNumberish, string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "rewardFactory",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "staker", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stakerIncentive",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "stakerRewards",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "stashFactory",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "tokenFactory",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "voteDelegate",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "voteOwnership",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "voteParameter",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAll",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawTo",
-    values: [BigNumberish, BigNumberish, string]
+    values: [BigNumberish, BigNumberish, string],
   ): string;
 
   decodeFunctionResult(
     functionFragment: "FEE_DENOMINATOR",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "MaxFees", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "addPool", data: BytesLike): Result;
@@ -241,11 +241,11 @@ export interface BoosterMockInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "depositAll", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "distributionAddressId",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "earmarkIncentive",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "feeDistro", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "feeManager", data: BytesLike): Result;
@@ -256,71 +256,71 @@ export interface BoosterMockInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "lockFees", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lockIncentive",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "lockRewards",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "minter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "platformFee",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "poolInfo", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "poolLength", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "poolManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "registry", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "rewardArbitrator",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardClaimed",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardFactory",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "staker", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "stakerIncentive",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "stakerRewards",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "stashFactory",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "tokenFactory",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "voteDelegate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "voteOwnership",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "voteParameter",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAll",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "withdrawTo", data: BytesLike): Result;
 
@@ -370,15 +370,15 @@ export interface BoosterMock extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -393,7 +393,7 @@ export interface BoosterMock extends BaseContract {
 
     addPool(
       _lptoken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     crv(overrides?: CallOverrides): Promise<[string]>;
@@ -402,13 +402,13 @@ export interface BoosterMock extends BaseContract {
       _pid: BigNumberish,
       _amount: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     depositAll(
       _pid: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     distributionAddressId(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -441,7 +441,7 @@ export interface BoosterMock extends BaseContract {
 
     poolInfo(
       arg0: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [string, string, string, string, string, boolean] & {
         lptoken: string;
@@ -465,7 +465,7 @@ export interface BoosterMock extends BaseContract {
       _pid: BigNumberish,
       _address: string,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     rewardFactory(overrides?: CallOverrides): Promise<[string]>;
@@ -491,19 +491,19 @@ export interface BoosterMock extends BaseContract {
     withdraw(
       _pid: BigNumberish,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     withdrawAll(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     withdrawTo(
       _pid: BigNumberish,
       _amount: BigNumberish,
       _to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
 
@@ -513,7 +513,7 @@ export interface BoosterMock extends BaseContract {
 
   addPool(
     _lptoken: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   crv(overrides?: CallOverrides): Promise<string>;
@@ -522,13 +522,13 @@ export interface BoosterMock extends BaseContract {
     _pid: BigNumberish,
     _amount: BigNumberish,
     _stake: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   depositAll(
     _pid: BigNumberish,
     _stake: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   distributionAddressId(overrides?: CallOverrides): Promise<BigNumber>;
@@ -561,7 +561,7 @@ export interface BoosterMock extends BaseContract {
 
   poolInfo(
     arg0: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<
     [string, string, string, string, string, boolean] & {
       lptoken: string;
@@ -585,7 +585,7 @@ export interface BoosterMock extends BaseContract {
     _pid: BigNumberish,
     _address: string,
     _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   rewardFactory(overrides?: CallOverrides): Promise<string>;
@@ -611,19 +611,19 @@ export interface BoosterMock extends BaseContract {
   withdraw(
     _pid: BigNumberish,
     _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   withdrawAll(
     _pid: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   withdrawTo(
     _pid: BigNumberish,
     _amount: BigNumberish,
     _to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -639,13 +639,13 @@ export interface BoosterMock extends BaseContract {
       _pid: BigNumberish,
       _amount: BigNumberish,
       _stake: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     depositAll(
       _pid: BigNumberish,
       _stake: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     distributionAddressId(overrides?: CallOverrides): Promise<BigNumber>;
@@ -678,7 +678,7 @@ export interface BoosterMock extends BaseContract {
 
     poolInfo(
       arg0: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [string, string, string, string, string, boolean] & {
         lptoken: string;
@@ -702,7 +702,7 @@ export interface BoosterMock extends BaseContract {
       _pid: BigNumberish,
       _address: string,
       _amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     rewardFactory(overrides?: CallOverrides): Promise<string>;
@@ -728,19 +728,19 @@ export interface BoosterMock extends BaseContract {
     withdraw(
       _pid: BigNumberish,
       _amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     withdrawAll(
       _pid: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     withdrawTo(
       _pid: BigNumberish,
       _amount: BigNumberish,
       _to: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
   };
 
@@ -750,27 +750,27 @@ export interface BoosterMock extends BaseContract {
       user?: string | null,
       poolid?: BigNumberish | null,
       amount?: null,
-      _stake?: null
+      _stake?: null,
     ): Mock_DepositedEventFilter;
     Mock_Deposited(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
       amount?: null,
-      _stake?: null
+      _stake?: null,
     ): Mock_DepositedEventFilter;
 
     "Mock_Withdrawn(uint256,address,uint256,uint256)"(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
-      amount?: null
+      amount?: null,
     ): Mock_WithdrawnEventFilter;
     Mock_Withdrawn(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
-      amount?: null
+      amount?: null,
     ): Mock_WithdrawnEventFilter;
   };
 
@@ -781,7 +781,7 @@ export interface BoosterMock extends BaseContract {
 
     addPool(
       _lptoken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     crv(overrides?: CallOverrides): Promise<BigNumber>;
@@ -790,13 +790,13 @@ export interface BoosterMock extends BaseContract {
       _pid: BigNumberish,
       _amount: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     depositAll(
       _pid: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     distributionAddressId(overrides?: CallOverrides): Promise<BigNumber>;
@@ -841,7 +841,7 @@ export interface BoosterMock extends BaseContract {
       _pid: BigNumberish,
       _address: string,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     rewardFactory(overrides?: CallOverrides): Promise<BigNumber>;
@@ -867,19 +867,19 @@ export interface BoosterMock extends BaseContract {
     withdraw(
       _pid: BigNumberish,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     withdrawAll(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     withdrawTo(
       _pid: BigNumberish,
       _amount: BigNumberish,
       _to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
   };
 
@@ -890,7 +890,7 @@ export interface BoosterMock extends BaseContract {
 
     addPool(
       _lptoken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     crv(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -899,17 +899,17 @@ export interface BoosterMock extends BaseContract {
       _pid: BigNumberish,
       _amount: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     depositAll(
       _pid: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     distributionAddressId(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     earmarkIncentive(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -922,7 +922,7 @@ export interface BoosterMock extends BaseContract {
 
     gaugeMap(
       arg0: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     index(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -943,7 +943,7 @@ export interface BoosterMock extends BaseContract {
 
     poolInfo(
       arg0: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     poolLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -958,7 +958,7 @@ export interface BoosterMock extends BaseContract {
       _pid: BigNumberish,
       _address: string,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     rewardFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -984,19 +984,19 @@ export interface BoosterMock extends BaseContract {
     withdraw(
       _pid: BigNumberish,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     withdrawAll(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     withdrawTo(
       _pid: BigNumberish,
       _amount: BigNumberish,
       _to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

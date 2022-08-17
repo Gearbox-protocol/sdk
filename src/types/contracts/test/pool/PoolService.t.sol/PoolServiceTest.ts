@@ -106,7 +106,7 @@ export interface PoolServiceTestInterface extends utils.Interface {
       | "test_PS_32_setWithdrawFee_correct_and_emits_event"
       | "test_PS_33_removeLiquidity_takes_withdrawal_fee"
       | "test_PS_34_connectCreditManager_reverts_on_duplicate"
-      | "test_PS_35_updateInterestRateModel_reverts_on_zero_address"
+      | "test_PS_35_updateInterestRateModel_reverts_on_zero_address",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
@@ -114,143 +114,143 @@ export interface PoolServiceTestInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_PS_01_start_parameters_correct",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_02_add_liquidity_adds_correctly",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_03_remove_liquidity_removes_correctly",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_04_cannot_be_used_while_paused",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_05_starting_cumulative_index_correct",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_06_diesel_rate_computes_correctly",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_07_correctly_adds_liquidity_at_new_diesel_rate",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_08_correctly_removes_liquidity_at_new_diesel_rate",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_09_admin_functions_revert_on_non_admin",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_10_connectCreditManager_fails_on_incompatible_CM",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_11_CM_is_connected_correctly",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_12_CA_can_be_lent_repaid_only_by_CM",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_13_lendCreditAccount_reverts_on_forbidden_CM",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_14_lendCreditAccount_correctly_transfers_tokens",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_15_lendCreditAccount_emits_event",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_16_lendCreditAccount_correctly_updates_parameters",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_17_lendCreditAccount_correctly_updates_borrow_rate",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_18_repayCreditAccount_emits_event",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_19_repayCreditAccount_correctly_updates_on_uncovered_loss",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_20_repayCreditAccount_correctly_updates_on_covered_loss",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_21_repayCreditAccount_correctly_updates_on_profit",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_22_repayCreditAccount_does_not_change_diesel_rate",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_23_diesel_conversion_is_correct",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_24_updateInterestRateModel_works_correctly_and_emits_event",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_25_updateInterestRateModel_correctly_computes_new_borrow_rate",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_26_updateBorrowRate_correct",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_27_calcLinearCumulative_RAY_correct",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_28_expectedLiquidity_correct",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_29_setExpectedLiquidityLimit_correct_and_emits_event",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_30_addLiquidity_reverts_above_liquidity_limit",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_31_setWithdrawFee_reverts_on_fee_too_lage",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_32_setWithdrawFee_correct_and_emits_event",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_33_removeLiquidity_takes_withdrawal_fee",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_34_connectCreditManager_reverts_on_duplicate",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PS_35_updateInterestRateModel_reverts_on_zero_address",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
@@ -258,143 +258,143 @@ export interface PoolServiceTestInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_01_start_parameters_correct",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_02_add_liquidity_adds_correctly",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_03_remove_liquidity_removes_correctly",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_04_cannot_be_used_while_paused",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_05_starting_cumulative_index_correct",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_06_diesel_rate_computes_correctly",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_07_correctly_adds_liquidity_at_new_diesel_rate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_08_correctly_removes_liquidity_at_new_diesel_rate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_09_admin_functions_revert_on_non_admin",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_10_connectCreditManager_fails_on_incompatible_CM",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_11_CM_is_connected_correctly",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_12_CA_can_be_lent_repaid_only_by_CM",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_13_lendCreditAccount_reverts_on_forbidden_CM",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_14_lendCreditAccount_correctly_transfers_tokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_15_lendCreditAccount_emits_event",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_16_lendCreditAccount_correctly_updates_parameters",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_17_lendCreditAccount_correctly_updates_borrow_rate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_18_repayCreditAccount_emits_event",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_19_repayCreditAccount_correctly_updates_on_uncovered_loss",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_20_repayCreditAccount_correctly_updates_on_covered_loss",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_21_repayCreditAccount_correctly_updates_on_profit",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_22_repayCreditAccount_does_not_change_diesel_rate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_23_diesel_conversion_is_correct",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_24_updateInterestRateModel_works_correctly_and_emits_event",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_25_updateInterestRateModel_correctly_computes_new_borrow_rate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_26_updateBorrowRate_correct",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_27_calcLinearCumulative_RAY_correct",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_28_expectedLiquidity_correct",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_29_setExpectedLiquidityLimit_correct_and_emits_event",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_30_addLiquidity_reverts_above_liquidity_limit",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_31_setWithdrawFee_reverts_on_fee_too_lage",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_32_setWithdrawFee_correct_and_emits_event",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_33_removeLiquidity_takes_withdrawal_fee",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_34_connectCreditManager_reverts_on_duplicate",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PS_35_updateInterestRateModel_reverts_on_zero_address",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {
@@ -729,15 +729,15 @@ export interface PoolServiceTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -749,302 +749,302 @@ export interface PoolServiceTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_01_start_parameters_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_02_add_liquidity_adds_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_03_remove_liquidity_removes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_04_cannot_be_used_while_paused(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_05_starting_cumulative_index_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_06_diesel_rate_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_07_correctly_adds_liquidity_at_new_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_08_correctly_removes_liquidity_at_new_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_09_admin_functions_revert_on_non_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_10_connectCreditManager_fails_on_incompatible_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_11_CM_is_connected_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_12_CA_can_be_lent_repaid_only_by_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_13_lendCreditAccount_reverts_on_forbidden_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_14_lendCreditAccount_correctly_transfers_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_15_lendCreditAccount_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_16_lendCreditAccount_correctly_updates_parameters(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_17_lendCreditAccount_correctly_updates_borrow_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_18_repayCreditAccount_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_19_repayCreditAccount_correctly_updates_on_uncovered_loss(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_20_repayCreditAccount_correctly_updates_on_covered_loss(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_21_repayCreditAccount_correctly_updates_on_profit(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_22_repayCreditAccount_does_not_change_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_23_diesel_conversion_is_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_24_updateInterestRateModel_works_correctly_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_25_updateInterestRateModel_correctly_computes_new_borrow_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_26_updateBorrowRate_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_27_calcLinearCumulative_RAY_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_28_expectedLiquidity_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_29_setExpectedLiquidityLimit_correct_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_30_addLiquidity_reverts_above_liquidity_limit(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_31_setWithdrawFee_reverts_on_fee_too_lage(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_32_setWithdrawFee_correct_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_33_removeLiquidity_takes_withdrawal_fee(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_34_connectCreditManager_reverts_on_duplicate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PS_35_updateInterestRateModel_reverts_on_zero_address(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
 
   IS_TEST(overrides?: CallOverrides): Promise<boolean>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_01_start_parameters_correct(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_02_add_liquidity_adds_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_03_remove_liquidity_removes_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_04_cannot_be_used_while_paused(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_05_starting_cumulative_index_correct(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_06_diesel_rate_computes_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_07_correctly_adds_liquidity_at_new_diesel_rate(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_08_correctly_removes_liquidity_at_new_diesel_rate(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_09_admin_functions_revert_on_non_admin(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_10_connectCreditManager_fails_on_incompatible_CM(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_11_CM_is_connected_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_12_CA_can_be_lent_repaid_only_by_CM(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_13_lendCreditAccount_reverts_on_forbidden_CM(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_14_lendCreditAccount_correctly_transfers_tokens(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_15_lendCreditAccount_emits_event(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_16_lendCreditAccount_correctly_updates_parameters(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_17_lendCreditAccount_correctly_updates_borrow_rate(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_18_repayCreditAccount_emits_event(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_19_repayCreditAccount_correctly_updates_on_uncovered_loss(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_20_repayCreditAccount_correctly_updates_on_covered_loss(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_21_repayCreditAccount_correctly_updates_on_profit(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_22_repayCreditAccount_does_not_change_diesel_rate(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_23_diesel_conversion_is_correct(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_24_updateInterestRateModel_works_correctly_and_emits_event(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_25_updateInterestRateModel_correctly_computes_new_borrow_rate(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_26_updateBorrowRate_correct(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_27_calcLinearCumulative_RAY_correct(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_28_expectedLiquidity_correct(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_29_setExpectedLiquidityLimit_correct_and_emits_event(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_30_addLiquidity_reverts_above_liquidity_limit(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_31_setWithdrawFee_reverts_on_fee_too_lage(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_32_setWithdrawFee_correct_and_emits_event(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_33_removeLiquidity_takes_withdrawal_fee(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_34_connectCreditManager_reverts_on_duplicate(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PS_35_updateInterestRateModel_reverts_on_zero_address(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -1055,143 +1055,143 @@ export interface PoolServiceTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_PS_01_start_parameters_correct(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_02_add_liquidity_adds_correctly(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_03_remove_liquidity_removes_correctly(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_04_cannot_be_used_while_paused(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_05_starting_cumulative_index_correct(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_06_diesel_rate_computes_correctly(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_07_correctly_adds_liquidity_at_new_diesel_rate(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_08_correctly_removes_liquidity_at_new_diesel_rate(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_09_admin_functions_revert_on_non_admin(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_10_connectCreditManager_fails_on_incompatible_CM(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_11_CM_is_connected_correctly(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_12_CA_can_be_lent_repaid_only_by_CM(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_13_lendCreditAccount_reverts_on_forbidden_CM(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_14_lendCreditAccount_correctly_transfers_tokens(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_15_lendCreditAccount_emits_event(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_16_lendCreditAccount_correctly_updates_parameters(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_17_lendCreditAccount_correctly_updates_borrow_rate(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_18_repayCreditAccount_emits_event(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_19_repayCreditAccount_correctly_updates_on_uncovered_loss(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_20_repayCreditAccount_correctly_updates_on_covered_loss(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_21_repayCreditAccount_correctly_updates_on_profit(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_22_repayCreditAccount_does_not_change_diesel_rate(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_23_diesel_conversion_is_correct(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_24_updateInterestRateModel_works_correctly_and_emits_event(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_25_updateInterestRateModel_correctly_computes_new_borrow_rate(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_26_updateBorrowRate_correct(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_27_calcLinearCumulative_RAY_correct(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_28_expectedLiquidity_correct(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_29_setExpectedLiquidityLimit_correct_and_emits_event(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_30_addLiquidity_reverts_above_liquidity_limit(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_31_setWithdrawFee_reverts_on_fee_too_lage(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_32_setWithdrawFee_correct_and_emits_event(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_33_removeLiquidity_takes_withdrawal_fee(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_34_connectCreditManager_reverts_on_duplicate(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PS_35_updateInterestRateModel_reverts_on_zero_address(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
   };
 
@@ -1200,50 +1200,50 @@ export interface PoolServiceTest extends BaseContract {
       sender?: string | null,
       onBehalfOf?: string | null,
       amount?: null,
-      referralCode?: null
+      referralCode?: null,
     ): AddLiquidityEventFilter;
     AddLiquidity(
       sender?: string | null,
       onBehalfOf?: string | null,
       amount?: null,
-      referralCode?: null
+      referralCode?: null,
     ): AddLiquidityEventFilter;
 
     "Borrow(address,address,uint256)"(
       creditManager?: string | null,
       creditAccount?: string | null,
-      amount?: null
+      amount?: null,
     ): BorrowEventFilter;
     Borrow(
       creditManager?: string | null,
       creditAccount?: string | null,
-      amount?: null
+      amount?: null,
     ): BorrowEventFilter;
 
     "BorrowForbidden(address)"(
-      creditManager?: string | null
+      creditManager?: string | null,
     ): BorrowForbiddenEventFilter;
     BorrowForbidden(creditManager?: string | null): BorrowForbiddenEventFilter;
 
     "NewCreditManagerConnected(address)"(
-      creditManager?: string | null
+      creditManager?: string | null,
     ): NewCreditManagerConnectedEventFilter;
     NewCreditManagerConnected(
-      creditManager?: string | null
+      creditManager?: string | null,
     ): NewCreditManagerConnectedEventFilter;
 
     "NewExpectedLiquidityLimit(uint256)"(
-      newLimit?: null
+      newLimit?: null,
     ): NewExpectedLiquidityLimitEventFilter;
     NewExpectedLiquidityLimit(
-      newLimit?: null
+      newLimit?: null,
     ): NewExpectedLiquidityLimitEventFilter;
 
     "NewInterestRateModel(address)"(
-      newInterestRateModel?: string | null
+      newInterestRateModel?: string | null,
     ): NewInterestRateModelEventFilter;
     NewInterestRateModel(
-      newInterestRateModel?: string | null
+      newInterestRateModel?: string | null,
     ): NewInterestRateModelEventFilter;
 
     "NewWithdrawFee(uint256)"(fee?: null): NewWithdrawFeeEventFilter;
@@ -1252,34 +1252,34 @@ export interface PoolServiceTest extends BaseContract {
     "RemoveLiquidity(address,address,uint256)"(
       sender?: string | null,
       to?: string | null,
-      amount?: null
+      amount?: null,
     ): RemoveLiquidityEventFilter;
     RemoveLiquidity(
       sender?: string | null,
       to?: string | null,
-      amount?: null
+      amount?: null,
     ): RemoveLiquidityEventFilter;
 
     "Repay(address,uint256,uint256,uint256)"(
       creditManager?: string | null,
       borrowedAmount?: null,
       profit?: null,
-      loss?: null
+      loss?: null,
     ): RepayEventFilter;
     Repay(
       creditManager?: string | null,
       borrowedAmount?: null,
       profit?: null,
-      loss?: null
+      loss?: null,
     ): RepayEventFilter;
 
     "UncoveredLoss(address,uint256)"(
       creditManager?: string | null,
-      loss?: null
+      loss?: null,
     ): UncoveredLossEventFilter;
     UncoveredLoss(
       creditManager?: string | null,
-      loss?: null
+      loss?: null,
     ): UncoveredLossEventFilter;
 
     "log(string)"(arg0?: null): logEventFilter;
@@ -1299,59 +1299,59 @@ export interface PoolServiceTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -1369,151 +1369,151 @@ export interface PoolServiceTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_01_start_parameters_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_02_add_liquidity_adds_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_03_remove_liquidity_removes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_04_cannot_be_used_while_paused(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_05_starting_cumulative_index_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_06_diesel_rate_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_07_correctly_adds_liquidity_at_new_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_08_correctly_removes_liquidity_at_new_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_09_admin_functions_revert_on_non_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_10_connectCreditManager_fails_on_incompatible_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_11_CM_is_connected_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_12_CA_can_be_lent_repaid_only_by_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_13_lendCreditAccount_reverts_on_forbidden_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_14_lendCreditAccount_correctly_transfers_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_15_lendCreditAccount_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_16_lendCreditAccount_correctly_updates_parameters(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_17_lendCreditAccount_correctly_updates_borrow_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_18_repayCreditAccount_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_19_repayCreditAccount_correctly_updates_on_uncovered_loss(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_20_repayCreditAccount_correctly_updates_on_covered_loss(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_21_repayCreditAccount_correctly_updates_on_profit(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_22_repayCreditAccount_does_not_change_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_23_diesel_conversion_is_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_24_updateInterestRateModel_works_correctly_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_25_updateInterestRateModel_correctly_computes_new_borrow_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_26_updateBorrowRate_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_27_calcLinearCumulative_RAY_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_28_expectedLiquidity_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_29_setExpectedLiquidityLimit_correct_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_30_addLiquidity_reverts_above_liquidity_limit(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_31_setWithdrawFee_reverts_on_fee_too_lage(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_32_setWithdrawFee_correct_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_33_removeLiquidity_takes_withdrawal_fee(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_34_connectCreditManager_reverts_on_duplicate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PS_35_updateInterestRateModel_reverts_on_zero_address(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
   };
 
@@ -1521,151 +1521,151 @@ export interface PoolServiceTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_01_start_parameters_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_02_add_liquidity_adds_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_03_remove_liquidity_removes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_04_cannot_be_used_while_paused(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_05_starting_cumulative_index_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_06_diesel_rate_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_07_correctly_adds_liquidity_at_new_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_08_correctly_removes_liquidity_at_new_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_09_admin_functions_revert_on_non_admin(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_10_connectCreditManager_fails_on_incompatible_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_11_CM_is_connected_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_12_CA_can_be_lent_repaid_only_by_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_13_lendCreditAccount_reverts_on_forbidden_CM(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_14_lendCreditAccount_correctly_transfers_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_15_lendCreditAccount_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_16_lendCreditAccount_correctly_updates_parameters(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_17_lendCreditAccount_correctly_updates_borrow_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_18_repayCreditAccount_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_19_repayCreditAccount_correctly_updates_on_uncovered_loss(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_20_repayCreditAccount_correctly_updates_on_covered_loss(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_21_repayCreditAccount_correctly_updates_on_profit(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_22_repayCreditAccount_does_not_change_diesel_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_23_diesel_conversion_is_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_24_updateInterestRateModel_works_correctly_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_25_updateInterestRateModel_correctly_computes_new_borrow_rate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_26_updateBorrowRate_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_27_calcLinearCumulative_RAY_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_28_expectedLiquidity_correct(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_29_setExpectedLiquidityLimit_correct_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_30_addLiquidity_reverts_above_liquidity_limit(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_31_setWithdrawFee_reverts_on_fee_too_lage(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_32_setWithdrawFee_correct_and_emits_event(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_33_removeLiquidity_takes_withdrawal_fee(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_34_connectCreditManager_reverts_on_duplicate(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PS_35_updateInterestRateModel_reverts_on_zero_address(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

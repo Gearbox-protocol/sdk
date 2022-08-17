@@ -1,4 +1,5 @@
 import { BigNumberish } from "ethers";
+
 import {
   contractParams,
   contractsByNetwork,
@@ -8,16 +9,13 @@ import {
 import { NetworkType } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
 import { ConvexPhantomTokenData } from "../tokens/convex";
-
-import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import { CurveLPTokenData } from "../tokens/curveLP";
-
+import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import {
-  ConvexV1BoosterAdapter__factory,
   ConvexV1BaseRewardPoolAdapter__factory,
+  ConvexV1BoosterAdapter__factory,
   ConvexV1ClaimZapAdapter__factory,
 } from "../types";
-
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { CurveStrategies } from "./curve";
 import { UniswapV2Multicaller } from "./uniswapV2";

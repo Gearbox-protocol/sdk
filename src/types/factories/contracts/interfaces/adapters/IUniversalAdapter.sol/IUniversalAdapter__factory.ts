@@ -166,7 +166,7 @@ export class IUniversalAdapter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IUniversalAdapter {
     return new Contract(address, _abi, signerOrProvider) as IUniversalAdapter;
   }

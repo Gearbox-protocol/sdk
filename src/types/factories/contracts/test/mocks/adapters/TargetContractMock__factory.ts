@@ -41,7 +41,7 @@ type TargetContractMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: TargetContractMockConstructorParams
+  xs: TargetContractMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class TargetContractMock__factory extends ContractFactory {
@@ -54,12 +54,12 @@ export class TargetContractMock__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<TargetContractMock> {
     return super.deploy(overrides || {}) as Promise<TargetContractMock>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -77,7 +77,7 @@ export class TargetContractMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): TargetContractMock {
     return new Contract(address, _abi, signerOrProvider) as TargetContractMock;
   }

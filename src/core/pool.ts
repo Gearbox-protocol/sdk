@@ -1,10 +1,8 @@
 import { BigNumber, Signer } from "ethers";
 
 import { PoolDataPayload } from "../payload/pool";
-import { rayToNumber } from "../utils/formatter";
-
 import { IPoolService, IPoolService__factory } from "../types";
-
+import { rayToNumber } from "../utils/formatter";
 import { PERCENTAGE_DECIMALS } from "./constants";
 
 export class PoolData {

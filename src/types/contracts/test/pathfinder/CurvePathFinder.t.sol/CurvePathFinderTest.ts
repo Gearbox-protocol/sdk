@@ -93,212 +93,212 @@ export interface CurvePathFinderTestInterface extends utils.Interface {
       | "uniV3pathFinder"
       | "yearnAdapter"
       | "yearnMock"
-      | "yearnPathFinder"
+      | "yearnPathFinder",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_setUpCurve",
-    values: [boolean]
+    values: [boolean],
   ): string;
   encodeFunctionData(functionFragment: "cft", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "creditConfigurator",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "curveAdapter",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "curveLPPathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "curveMetaAdapter",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "curvePathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "curveV1MetaMock",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "curveV1Mock",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_PCV_01_addPool_correctly_sets_values",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PCV_02_setGasUsage_correctly_sets_values",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PCV_03_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PCV_04_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_PCV_05_getBestDirectPairSwap_returns_correct_swapQuote",
-    values: [BigNumberish, BigNumberish, boolean, boolean]
+    values: [BigNumberish, BigNumberish, boolean, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "test_PCV_06_getBestDirectPairSwap_returns_correct_swapQuote",
-    values: [BigNumberish, BigNumberish, boolean, boolean]
+    values: [BigNumberish, BigNumberish, boolean, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "tokenMasksMap",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "uniV2adapter",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "uniV2mock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "uniV2pathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "uniV3adapter",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "uniV3mock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "uniV3pathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "yearnAdapter",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "yearnMock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "yearnPathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_setUpCurve",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "cft", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditConfigurator",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveAdapter",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveLPPathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveMetaAdapter",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "curvePathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveV1MetaMock",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveV1Mock",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_PCV_01_addPool_correctly_sets_values",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PCV_02_setGasUsage_correctly_sets_values",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PCV_03_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PCV_04_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PCV_05_getBestDirectPairSwap_returns_correct_swapQuote",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PCV_06_getBestDirectPairSwap_returns_correct_swapQuote",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "tokenMasksMap",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniV2adapter",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "uniV2mock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniV2pathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "uniV3adapter",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "uniV3mock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniV3pathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "yearnAdapter",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "yearnMock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "yearnPathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {
@@ -499,15 +499,15 @@ export interface CurvePathFinderTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -520,7 +520,7 @@ export interface CurvePathFinderTest extends BaseContract {
 
     _setUpCurve(
       withUnderlyings: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     cft(overrides?: CallOverrides): Promise<[string]>;
@@ -544,27 +544,27 @@ export interface CurvePathFinderTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<[string]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PCV_01_addPool_correctly_sets_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PCV_02_setGasUsage_correctly_sets_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PCV_03_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PCV_04_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PCV_05_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -572,7 +572,7 @@ export interface CurvePathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_PCV_06_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -580,12 +580,12 @@ export interface CurvePathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     tokenMasksMap(
       arg0: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     underlying(overrides?: CallOverrides): Promise<[string]>;
@@ -613,7 +613,7 @@ export interface CurvePathFinderTest extends BaseContract {
 
   _setUpCurve(
     withUnderlyings: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   cft(overrides?: CallOverrides): Promise<string>;
@@ -637,27 +637,27 @@ export interface CurvePathFinderTest extends BaseContract {
   curveV1Mock(overrides?: CallOverrides): Promise<string>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PCV_01_addPool_correctly_sets_values(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PCV_02_setGasUsage_correctly_sets_values(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PCV_03_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PCV_04_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PCV_05_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -665,7 +665,7 @@ export interface CurvePathFinderTest extends BaseContract {
     slippage: BigNumberish,
     isAll: boolean,
     externalSlippage: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_PCV_06_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -673,7 +673,7 @@ export interface CurvePathFinderTest extends BaseContract {
     slippage: BigNumberish,
     isAll: boolean,
     externalSlippage: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   tokenMasksMap(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -703,7 +703,7 @@ export interface CurvePathFinderTest extends BaseContract {
 
     _setUpCurve(
       withUnderlyings: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     cft(overrides?: CallOverrides): Promise<string>;
@@ -731,19 +731,19 @@ export interface CurvePathFinderTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_PCV_01_addPool_correctly_sets_values(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PCV_02_setGasUsage_correctly_sets_values(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PCV_03_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PCV_04_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PCV_05_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -751,7 +751,7 @@ export interface CurvePathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_PCV_06_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -759,7 +759,7 @@ export interface CurvePathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     tokenMasksMap(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -803,59 +803,59 @@ export interface CurvePathFinderTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -874,7 +874,7 @@ export interface CurvePathFinderTest extends BaseContract {
 
     _setUpCurve(
       withUnderlyings: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     cft(overrides?: CallOverrides): Promise<BigNumber>;
@@ -898,27 +898,27 @@ export interface CurvePathFinderTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PCV_01_addPool_correctly_sets_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PCV_02_setGasUsage_correctly_sets_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PCV_03_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PCV_04_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PCV_05_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -926,7 +926,7 @@ export interface CurvePathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_PCV_06_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -934,7 +934,7 @@ export interface CurvePathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     tokenMasksMap(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -965,13 +965,13 @@ export interface CurvePathFinderTest extends BaseContract {
 
     _setUpCurve(
       withUnderlyings: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     cft(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditConfigurator(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -991,27 +991,27 @@ export interface CurvePathFinderTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PCV_01_addPool_correctly_sets_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PCV_02_setGasUsage_correctly_sets_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PCV_03_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PCV_04_getBestDirectPairSwap_returns_empty_quote_for_unknown_tokens(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PCV_05_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -1019,7 +1019,7 @@ export interface CurvePathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_PCV_06_getBestDirectPairSwap_returns_correct_swapQuote(
@@ -1027,12 +1027,12 @@ export interface CurvePathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     tokenMasksMap(
       arg0: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;

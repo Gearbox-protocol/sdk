@@ -29,12 +29,12 @@ export class ILPPriceFeedExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ILPPriceFeedExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as ILPPriceFeedExceptions;
   }
 }

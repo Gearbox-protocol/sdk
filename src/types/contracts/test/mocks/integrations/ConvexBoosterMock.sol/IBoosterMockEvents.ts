@@ -66,15 +66,15 @@ export interface IBoosterMockEvents extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -92,27 +92,27 @@ export interface IBoosterMockEvents extends BaseContract {
       user?: string | null,
       poolid?: BigNumberish | null,
       amount?: null,
-      _stake?: null
+      _stake?: null,
     ): Mock_DepositedEventFilter;
     Mock_Deposited(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
       amount?: null,
-      _stake?: null
+      _stake?: null,
     ): Mock_DepositedEventFilter;
 
     "Mock_Withdrawn(uint256,address,uint256,uint256)"(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
-      amount?: null
+      amount?: null,
     ): Mock_WithdrawnEventFilter;
     Mock_Withdrawn(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
-      amount?: null
+      amount?: null,
     ): Mock_WithdrawnEventFilter;
   };
 

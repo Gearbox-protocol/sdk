@@ -422,7 +422,7 @@ type UniswapV3AdapterConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: UniswapV3AdapterConstructorParams
+  xs: UniswapV3AdapterConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class UniswapV3Adapter__factory extends ContractFactory {
@@ -437,18 +437,18 @@ export class UniswapV3Adapter__factory extends ContractFactory {
   override deploy(
     _creditManager: string,
     _router: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<UniswapV3Adapter> {
     return super.deploy(
       _creditManager,
       _router,
-      overrides || {}
+      overrides || {},
     ) as Promise<UniswapV3Adapter>;
   }
   override getDeployTransaction(
     _creditManager: string,
     _router: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_creditManager, _router, overrides || {});
   }
@@ -466,7 +466,7 @@ export class UniswapV3Adapter__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): UniswapV3Adapter {
     return new Contract(address, _abi, signerOrProvider) as UniswapV3Adapter;
   }

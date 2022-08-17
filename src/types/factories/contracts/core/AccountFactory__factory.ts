@@ -431,7 +431,7 @@ type AccountFactoryConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: AccountFactoryConstructorParams
+  xs: AccountFactoryConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class AccountFactory__factory extends ContractFactory {
@@ -445,16 +445,16 @@ export class AccountFactory__factory extends ContractFactory {
 
   override deploy(
     addressProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<AccountFactory> {
     return super.deploy(
       addressProvider,
-      overrides || {}
+      overrides || {},
     ) as Promise<AccountFactory>;
   }
   override getDeployTransaction(
     addressProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(addressProvider, overrides || {});
   }
@@ -472,7 +472,7 @@ export class AccountFactory__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): AccountFactory {
     return new Contract(address, _abi, signerOrProvider) as AccountFactory;
   }

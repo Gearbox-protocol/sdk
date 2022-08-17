@@ -330,7 +330,7 @@ type Multicall2ConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: Multicall2ConstructorParams
+  xs: Multicall2ConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class Multicall2__factory extends ContractFactory {
@@ -343,12 +343,12 @@ export class Multicall2__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<Multicall2> {
     return super.deploy(overrides || {}) as Promise<Multicall2>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -366,7 +366,7 @@ export class Multicall2__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): Multicall2 {
     return new Contract(address, _abi, signerOrProvider) as Multicall2;
   }

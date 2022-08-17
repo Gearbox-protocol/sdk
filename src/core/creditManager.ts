@@ -1,24 +1,23 @@
 import { BigNumber, ethers, Signer } from "ethers";
+
 import {
   CreditManagerDataPayload,
   CreditManagerStatPayload,
 } from "../payload/creditManager";
-
 import {
+  ICreditFacade__factory,
   ICreditManager,
   ICreditManager__factory,
-  ICreditFacade__factory,
 } from "../types";
-
-import { MultiCall } from "./multicall";
 import {
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
   UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
-  LEVERAGE_DECIMALS,
-  PERCENTAGE_DECIMALS,
 } from "./constants";
 import { OpenAccountError } from "./errors";
+import { MultiCall } from "./multicall";
 
 export class CreditManagerData {
   public readonly id: string;

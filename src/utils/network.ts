@@ -1,7 +1,8 @@
 import { ethers } from "ethers";
+
+import { ADDRESS_0X0, NetworkType } from "../core/constants";
 import { tokenDataByNetwork } from "../tokens/token";
 import { ERC20__factory } from "../types";
-import { ADDRESS_0X0, NetworkType } from "../core/constants";
 
 export async function detectNetwork(
   provider: ethers.providers.Provider,

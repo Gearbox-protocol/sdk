@@ -97,7 +97,7 @@ export class IPriceFeedAddress__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IPriceFeedAddress {
     return new Contract(address, _abi, signerOrProvider) as IPriceFeedAddress;
   }

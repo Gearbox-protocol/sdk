@@ -139,7 +139,7 @@ type VirtualBalanceWrapperConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: VirtualBalanceWrapperConstructorParams
+  xs: VirtualBalanceWrapperConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class VirtualBalanceWrapper__factory extends ContractFactory {
@@ -152,12 +152,12 @@ export class VirtualBalanceWrapper__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<VirtualBalanceWrapper> {
     return super.deploy(overrides || {}) as Promise<VirtualBalanceWrapper>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -175,12 +175,12 @@ export class VirtualBalanceWrapper__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): VirtualBalanceWrapper {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as VirtualBalanceWrapper;
   }
 }

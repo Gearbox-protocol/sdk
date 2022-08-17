@@ -51,7 +51,7 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenForbidden"): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated"
+    nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated",
   ): EventFragment;
 }
 
@@ -251,15 +251,15 @@ export interface ICreditConfiguratorEvents extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -277,37 +277,37 @@ export interface ICreditConfiguratorEvents extends BaseContract {
 
     "ContractAllowed(address,address)"(
       protocol?: string | null,
-      adapter?: string | null
+      adapter?: string | null,
     ): ContractAllowedEventFilter;
     ContractAllowed(
       protocol?: string | null,
-      adapter?: string | null
+      adapter?: string | null,
     ): ContractAllowedEventFilter;
 
     "ContractForbidden(address)"(
-      protocol?: string | null
+      protocol?: string | null,
     ): ContractForbiddenEventFilter;
     ContractForbidden(protocol?: string | null): ContractForbiddenEventFilter;
 
     "CreditConfiguratorUpgraded(address)"(
-      newCreditConfigurator?: string | null
+      newCreditConfigurator?: string | null,
     ): CreditConfiguratorUpgradedEventFilter;
     CreditConfiguratorUpgraded(
-      newCreditConfigurator?: string | null
+      newCreditConfigurator?: string | null,
     ): CreditConfiguratorUpgradedEventFilter;
 
     "CreditFacadeUpgraded(address)"(
-      newCreditFacade?: string | null
+      newCreditFacade?: string | null,
     ): CreditFacadeUpgradedEventFilter;
     CreditFacadeUpgraded(
-      newCreditFacade?: string | null
+      newCreditFacade?: string | null,
     ): CreditFacadeUpgradedEventFilter;
 
     "DegenModeUpdated(bool)"(arg0?: null): DegenModeUpdatedEventFilter;
     DegenModeUpdated(arg0?: null): DegenModeUpdatedEventFilter;
 
     "ExpirationDateUpdated(uint40)"(
-      arg0?: null
+      arg0?: null,
     ): ExpirationDateUpdatedEventFilter;
     ExpirationDateUpdated(arg0?: null): ExpirationDateUpdatedEventFilter;
 
@@ -316,49 +316,49 @@ export interface ICreditConfiguratorEvents extends BaseContract {
       feeLiquidation?: null,
       liquidationPremium?: null,
       feeLiquidationExpired?: null,
-      liquidationPremiumExpired?: null
+      liquidationPremiumExpired?: null,
     ): FeesUpdatedEventFilter;
     FeesUpdated(
       feeInterest?: null,
       feeLiquidation?: null,
       liquidationPremium?: null,
       feeLiquidationExpired?: null,
-      liquidationPremiumExpired?: null
+      liquidationPremiumExpired?: null,
     ): FeesUpdatedEventFilter;
 
     "IncreaseDebtModeUpdated(bool)"(
-      arg0?: null
+      arg0?: null,
     ): IncreaseDebtModeUpdatedEventFilter;
     IncreaseDebtModeUpdated(arg0?: null): IncreaseDebtModeUpdatedEventFilter;
 
     "LimitPerBlockUpdated(uint128)"(
-      arg0?: null
+      arg0?: null,
     ): LimitPerBlockUpdatedEventFilter;
     LimitPerBlockUpdated(arg0?: null): LimitPerBlockUpdatedEventFilter;
 
     "LimitsUpdated(uint256,uint256)"(
       minBorrowedAmount?: null,
-      maxBorrowedAmount?: null
+      maxBorrowedAmount?: null,
     ): LimitsUpdatedEventFilter;
     LimitsUpdated(
       minBorrowedAmount?: null,
-      maxBorrowedAmount?: null
+      maxBorrowedAmount?: null,
     ): LimitsUpdatedEventFilter;
 
     "MaxEnabledTokensUpdated(uint8)"(
-      arg0?: null
+      arg0?: null,
     ): MaxEnabledTokensUpdatedEventFilter;
     MaxEnabledTokensUpdated(arg0?: null): MaxEnabledTokensUpdatedEventFilter;
 
     "PriceOracleUpgraded(address)"(
-      newPriceOracle?: string | null
+      newPriceOracle?: string | null,
     ): PriceOracleUpgradedEventFilter;
     PriceOracleUpgraded(
-      newPriceOracle?: string | null
+      newPriceOracle?: string | null,
     ): PriceOracleUpgradedEventFilter;
 
     "RemovedFromUpgradeable(address)"(
-      arg0?: null
+      arg0?: null,
     ): RemovedFromUpgradeableEventFilter;
     RemovedFromUpgradeable(arg0?: null): RemovedFromUpgradeableEventFilter;
 
@@ -370,11 +370,11 @@ export interface ICreditConfiguratorEvents extends BaseContract {
 
     "TokenLiquidationThresholdUpdated(address,uint16)"(
       token?: string | null,
-      liquidityThreshold?: null
+      liquidityThreshold?: null,
     ): TokenLiquidationThresholdUpdatedEventFilter;
     TokenLiquidationThresholdUpdated(
       token?: string | null,
-      liquidityThreshold?: null
+      liquidityThreshold?: null,
     ): TokenLiquidationThresholdUpdatedEventFilter;
   };
 

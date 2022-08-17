@@ -564,7 +564,7 @@ type YearnV2MockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: YearnV2MockConstructorParams
+  xs: YearnV2MockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class YearnV2Mock__factory extends ContractFactory {
@@ -578,13 +578,13 @@ export class YearnV2Mock__factory extends ContractFactory {
 
   override deploy(
     _token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<YearnV2Mock> {
     return super.deploy(_token, overrides || {}) as Promise<YearnV2Mock>;
   }
   override getDeployTransaction(
     _token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_token, overrides || {});
   }
@@ -602,7 +602,7 @@ export class YearnV2Mock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): YearnV2Mock {
     return new Contract(address, _abi, signerOrProvider) as YearnV2Mock;
   }

@@ -1,17 +1,15 @@
 import { providers } from "ethers";
 
-import { multicall, MCall } from "../utils/multicall";
 import { contractParams, LidoParams } from "../contracts/contracts";
+import { NetworkType, SECONDS_PER_YEAR, WAD } from "../core/constants";
 import { tokenDataByNetwork } from "../tokens/token";
-
-import { WAD, SECONDS_PER_YEAR, NetworkType } from "../core/constants";
-
 import {
-  ILidoOracle__factory,
   ILidoOracle,
-  IstETH__factory,
+  ILidoOracle__factory,
   IstETH,
+  IstETH__factory,
 } from "../types";
+import { MCall, multicall } from "../utils/multicall";
 
 type ILidoOracleInterface = ILidoOracle["interface"];
 

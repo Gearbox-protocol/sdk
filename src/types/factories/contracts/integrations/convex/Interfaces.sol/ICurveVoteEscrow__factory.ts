@@ -83,7 +83,7 @@ export class ICurveVoteEscrow__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ICurveVoteEscrow {
     return new Contract(address, _abi, signerOrProvider) as ICurveVoteEscrow;
   }

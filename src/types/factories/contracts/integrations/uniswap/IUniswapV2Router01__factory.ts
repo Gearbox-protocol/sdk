@@ -768,7 +768,7 @@ export class IUniswapV2Router01__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IUniswapV2Router01 {
     return new Contract(address, _abi, signerOrProvider) as IUniswapV2Router01;
   }

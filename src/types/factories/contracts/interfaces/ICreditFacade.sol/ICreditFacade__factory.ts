@@ -965,7 +965,7 @@ export class ICreditFacade__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ICreditFacade {
     return new Contract(address, _abi, signerOrProvider) as ICreditFacade;
   }

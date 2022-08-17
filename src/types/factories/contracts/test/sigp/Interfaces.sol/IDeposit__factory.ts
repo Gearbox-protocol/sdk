@@ -223,7 +223,7 @@ export class IDeposit__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IDeposit {
     return new Contract(address, _abi, signerOrProvider) as IDeposit;
   }

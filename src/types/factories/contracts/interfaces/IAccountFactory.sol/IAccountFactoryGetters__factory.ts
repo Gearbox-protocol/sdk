@@ -109,12 +109,12 @@ export class IAccountFactoryGetters__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IAccountFactoryGetters {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IAccountFactoryGetters;
   }
 }

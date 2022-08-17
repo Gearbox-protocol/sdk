@@ -1,7 +1,7 @@
-import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
-import type { TokenBase } from "./token";
 import type { ConvexPoolContract } from "../contracts/contracts";
+import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
 import type { CurveLPToken } from "./curveLP";
+import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
 export type ConvexLPToken =

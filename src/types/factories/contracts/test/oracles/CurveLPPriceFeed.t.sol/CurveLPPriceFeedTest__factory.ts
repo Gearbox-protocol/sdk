@@ -496,7 +496,7 @@ type CurveLPPriceFeedTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveLPPriceFeedTestConstructorParams
+  xs: CurveLPPriceFeedTestConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveLPPriceFeedTest__factory extends ContractFactory {
@@ -509,12 +509,12 @@ export class CurveLPPriceFeedTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<CurveLPPriceFeedTest> {
     return super.deploy(overrides || {}) as Promise<CurveLPPriceFeedTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -532,12 +532,12 @@ export class CurveLPPriceFeedTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): CurveLPPriceFeedTest {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as CurveLPPriceFeedTest;
   }
 }

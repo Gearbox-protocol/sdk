@@ -1,25 +1,25 @@
 import { BigNumber, ethers } from "ethers";
+
+import { NetworkType } from "../core/constants";
+import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { MultiCall } from "../core/multicall";
+import { CurveLPToken } from "../tokens/curveLP";
 import {
   SupportedToken,
   supportedTokens,
   tokenSymbolByAddress,
 } from "../tokens/token";
-import { NetworkType } from "../core/constants";
-import { CreditAccountData } from "../core/creditAccount";
-
-import { SwapPathFinder__factory } from "../types";
-import { priority } from "./priority";
+import { TokenType } from "../tokens/tokenType";
 import { YearnLPToken } from "../tokens/yearn";
-import { YearnVaultPathFinder } from "./yVault";
+import { SwapPathFinder__factory } from "../types";
+import { detectNetwork } from "../utils/network";
+import { PartialRecord } from "../utils/types";
+import { pathFindersByNetwork } from "./contracts";
 import { ConvexLPPathFinder } from "./convexLP";
 import { CurvePathFinder } from "./curveLP";
-import { CurveLPToken } from "../tokens/curveLP";
-import { PartialRecord } from "../utils/types";
-import { detectNetwork } from "../utils/network";
-import { pathFindersByNetwork } from "./contracts";
-import { TokenType } from "../tokens/tokenType";
+import { priority } from "./priority";
+import { YearnVaultPathFinder } from "./yVault";
 
 export class Path {
   public readonly calls: Array<MultiCall> = [];
@@ -170,5 +170,5 @@ export class Path {
 }
 
 export interface LPWithdrawPathFinder {
-  findWithdrawPaths(p: Path): Promise<Array<Path>>;
+  findWithdrawPaths: (p: Path) => Promise<Array<Path>>;
 }

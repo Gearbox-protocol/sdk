@@ -30,7 +30,7 @@ export class IAdapterExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IAdapterExceptions {
     return new Contract(address, _abi, signerOrProvider) as IAdapterExceptions;
   }

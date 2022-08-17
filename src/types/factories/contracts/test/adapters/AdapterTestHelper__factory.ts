@@ -697,7 +697,7 @@ type AdapterTestHelperConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: AdapterTestHelperConstructorParams
+  xs: AdapterTestHelperConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class AdapterTestHelper__factory extends ContractFactory {
@@ -710,12 +710,12 @@ export class AdapterTestHelper__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<AdapterTestHelper> {
     return super.deploy(overrides || {}) as Promise<AdapterTestHelper>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -733,7 +733,7 @@ export class AdapterTestHelper__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): AdapterTestHelper {
     return new Contract(address, _abi, signerOrProvider) as AdapterTestHelper;
   }

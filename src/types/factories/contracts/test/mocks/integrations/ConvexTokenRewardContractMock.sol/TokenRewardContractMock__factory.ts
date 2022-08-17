@@ -290,7 +290,7 @@ type TokenRewardContractMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: TokenRewardContractMockConstructorParams
+  xs: TokenRewardContractMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class TokenRewardContractMock__factory extends ContractFactory {
@@ -305,18 +305,18 @@ export class TokenRewardContractMock__factory extends ContractFactory {
   override deploy(
     deposit_: string,
     op_: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<TokenRewardContractMock> {
     return super.deploy(
       deposit_,
       op_,
-      overrides || {}
+      overrides || {},
     ) as Promise<TokenRewardContractMock>;
   }
   override getDeployTransaction(
     deposit_: string,
     op_: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(deposit_, op_, overrides || {});
   }
@@ -334,12 +334,12 @@ export class TokenRewardContractMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): TokenRewardContractMock {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as TokenRewardContractMock;
   }
 }

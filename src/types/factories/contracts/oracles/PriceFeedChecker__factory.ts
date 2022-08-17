@@ -34,7 +34,7 @@ type PriceFeedCheckerConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PriceFeedCheckerConstructorParams
+  xs: PriceFeedCheckerConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PriceFeedChecker__factory extends ContractFactory {
@@ -47,12 +47,12 @@ export class PriceFeedChecker__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<PriceFeedChecker> {
     return super.deploy(overrides || {}) as Promise<PriceFeedChecker>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -70,7 +70,7 @@ export class PriceFeedChecker__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): PriceFeedChecker {
     return new Contract(address, _abi, signerOrProvider) as PriceFeedChecker;
   }

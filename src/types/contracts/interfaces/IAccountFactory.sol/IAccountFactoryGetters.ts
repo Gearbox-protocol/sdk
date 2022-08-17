@@ -37,20 +37,20 @@ export interface IAccountFactoryGettersInterface extends utils.Interface {
       | "creditAccounts"
       | "getNext"
       | "head"
-      | "tail"
+      | "tail",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "countCreditAccounts",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "countCreditAccountsInStock",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditAccounts",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "getNext", values: [string]): string;
   encodeFunctionData(functionFragment: "head", values?: undefined): string;
@@ -58,15 +58,15 @@ export interface IAccountFactoryGettersInterface extends utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "countCreditAccounts",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "countCreditAccountsInStock",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditAccounts",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "getNext", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "head", data: BytesLike): Result;
@@ -85,15 +85,15 @@ export interface IAccountFactoryGetters extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -108,12 +108,12 @@ export interface IAccountFactoryGetters extends BaseContract {
 
     creditAccounts(
       id: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     getNext(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     head(overrides?: CallOverrides): Promise<[string]>;
@@ -140,7 +140,7 @@ export interface IAccountFactoryGetters extends BaseContract {
 
     creditAccounts(
       id: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     getNext(creditAccount: string, overrides?: CallOverrides): Promise<string>;
@@ -159,12 +159,12 @@ export interface IAccountFactoryGetters extends BaseContract {
 
     creditAccounts(
       id: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getNext(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     head(overrides?: CallOverrides): Promise<BigNumber>;
@@ -174,21 +174,21 @@ export interface IAccountFactoryGetters extends BaseContract {
 
   populateTransaction: {
     countCreditAccounts(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     countCreditAccountsInStock(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     creditAccounts(
       id: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     getNext(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     head(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -5,7 +5,6 @@ import {
   ISwapRouter,
   IUniswapV3Adapter,
 } from "../types/contracts/adapters/uniswap/UniswapV3.sol/UniswapV3Adapter";
-
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 
 export class UniswapV3Calls {

@@ -729,7 +729,7 @@ type NewBoosterMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: NewBoosterMockConstructorParams
+  xs: NewBoosterMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class NewBoosterMock__factory extends ContractFactory {
@@ -744,14 +744,14 @@ export class NewBoosterMock__factory extends ContractFactory {
   override deploy(
     _crv: string,
     _cvx: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<NewBoosterMock> {
     return super.deploy(_crv, _cvx, overrides || {}) as Promise<NewBoosterMock>;
   }
   override getDeployTransaction(
     _crv: string,
     _cvx: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_crv, _cvx, overrides || {});
   }
@@ -769,7 +769,7 @@ export class NewBoosterMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): NewBoosterMock {
     return new Contract(address, _abi, signerOrProvider) as NewBoosterMock;
   }

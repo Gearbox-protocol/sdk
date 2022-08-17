@@ -32,7 +32,12 @@ export interface ClaimZapMockInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "claimRewards" | "crv" | "cvx" | "getName" | "owner"
+    nameOrSignatureOrTopic:
+      | "claimRewards"
+      | "crv"
+      | "cvx"
+      | "getName"
+      | "owner",
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -46,8 +51,8 @@ export interface ClaimZapMockInterface extends utils.Interface {
       BigNumberish,
       BigNumberish,
       BigNumberish,
-      BigNumberish
-    ]
+      BigNumberish,
+    ],
   ): string;
   encodeFunctionData(functionFragment: "crv", values?: undefined): string;
   encodeFunctionData(functionFragment: "cvx", values?: undefined): string;
@@ -56,7 +61,7 @@ export interface ClaimZapMockInterface extends utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "claimRewards",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "crv", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "cvx", data: BytesLike): Result;
@@ -76,15 +81,15 @@ export interface ClaimZapMock extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -103,7 +108,7 @@ export interface ClaimZapMock extends BaseContract {
       depositCvxMaxAmount: BigNumberish,
       spendCvxAmount: BigNumberish,
       options: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     crv(overrides?: CallOverrides): Promise<[string]>;
@@ -125,7 +130,7 @@ export interface ClaimZapMock extends BaseContract {
     depositCvxMaxAmount: BigNumberish,
     spendCvxAmount: BigNumberish,
     options: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   crv(overrides?: CallOverrides): Promise<string>;
@@ -147,7 +152,7 @@ export interface ClaimZapMock extends BaseContract {
       depositCvxMaxAmount: BigNumberish,
       spendCvxAmount: BigNumberish,
       options: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     crv(overrides?: CallOverrides): Promise<string>;
@@ -172,7 +177,7 @@ export interface ClaimZapMock extends BaseContract {
       depositCvxMaxAmount: BigNumberish,
       spendCvxAmount: BigNumberish,
       options: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     crv(overrides?: CallOverrides): Promise<BigNumber>;
@@ -195,7 +200,7 @@ export interface ClaimZapMock extends BaseContract {
       depositCvxMaxAmount: BigNumberish,
       spendCvxAmount: BigNumberish,
       options: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     crv(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -90,273 +90,273 @@ export interface ErrorsInterface extends utils.Interface {
       | "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE"
       | "WG_NOT_ENOUGH_FUNDS"
       | "WG_RECEIVE_IS_NOT_ALLOWED"
-      | "ZERO_ADDRESS_IS_NOT_ALLOWED"
+      | "ZERO_ADDRESS_IS_NOT_ALLOWED",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "ACL_CALLER_NOT_CONFIGURATOR",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "ACL_CALLER_NOT_PAUSABLE_ADMIN",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "AF_CREDIT_ACCOUNT_NOT_IN_STOCK",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "AF_EXTERNAL_ACCOUNTS_ARE_FORBIDDEN",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "AF_MINING_IS_FINISHED",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "AS_ADDRESS_NOT_FOUND",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "CA_CONNECTED_CREDIT_MANAGER_ONLY",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "CA_FACTORY_ONLY",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "CR_CREDIT_MANAGER_ALREADY_ADDED",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "CR_POOL_ALREADY_ADDED",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "INCORRECT_ARRAY_LENGTH",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "INCORRECT_PARAMETER",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "INCORRECT_PATH_LENGTH",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "MATH_ADDITION_OVERFLOW",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "MATH_DIVISION_BY_ZERO",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "MATH_MULTIPLICATION_OVERFLOW",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "NOT_IMPLEMENTED",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "POOL_CANT_ADD_CREDIT_MANAGER_TWICE",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "POOL_CONNECTED_CREDIT_MANAGERS_ONLY",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "POOL_INCORRECT_WITHDRAW_FEE",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "REGISTERED_CREDIT_ACCOUNT_MANAGERS_ONLY",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "REGISTERED_POOLS_ONLY",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "TD_CONTRIBUTOR_IS_NOT_REGISTERED",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "TD_INCORRECT_WEIGHTS",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "TD_NON_ZERO_BALANCE_AFTER_DISTRIBUTION",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "TD_WALLET_IS_ALREADY_CONNECTED_TO_VC",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "WG_NOT_ENOUGH_FUNDS",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "WG_RECEIVE_IS_NOT_ALLOWED",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "ZERO_ADDRESS_IS_NOT_ALLOWED",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(
     functionFragment: "ACL_CALLER_NOT_CONFIGURATOR",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "ACL_CALLER_NOT_PAUSABLE_ADMIN",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "AF_CREDIT_ACCOUNT_NOT_IN_STOCK",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "AF_EXTERNAL_ACCOUNTS_ARE_FORBIDDEN",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "AF_MINING_IS_FINISHED",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "AS_ADDRESS_NOT_FOUND",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "CA_CONNECTED_CREDIT_MANAGER_ONLY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "CA_FACTORY_ONLY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "CR_CREDIT_MANAGER_ALREADY_ADDED",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "CR_POOL_ALREADY_ADDED",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "INCORRECT_ARRAY_LENGTH",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "INCORRECT_PARAMETER",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "INCORRECT_PATH_LENGTH",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "MATH_ADDITION_OVERFLOW",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "MATH_DIVISION_BY_ZERO",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "MATH_MULTIPLICATION_OVERFLOW",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "NOT_IMPLEMENTED",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "POOL_CANT_ADD_CREDIT_MANAGER_TWICE",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "POOL_CONNECTED_CREDIT_MANAGERS_ONLY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "POOL_INCORRECT_WITHDRAW_FEE",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "REGISTERED_CREDIT_ACCOUNT_MANAGERS_ONLY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "REGISTERED_POOLS_ONLY",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "TD_CONTRIBUTOR_IS_NOT_REGISTERED",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "TD_INCORRECT_WEIGHTS",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "TD_NON_ZERO_BALANCE_AFTER_DISTRIBUTION",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "TD_WALLET_IS_ALREADY_CONNECTED_TO_VC",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "WG_DESTINATION_IS_NOT_WETH_COMPATIBLE",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "WG_NOT_ENOUGH_FUNDS",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "WG_RECEIVE_IS_NOT_ALLOWED",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "ZERO_ADDRESS_IS_NOT_ALLOWED",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -372,15 +372,15 @@ export interface Errors extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -394,15 +394,15 @@ export interface Errors extends BaseContract {
     ACL_CALLER_NOT_PAUSABLE_ADMIN(overrides?: CallOverrides): Promise<[string]>;
 
     AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     AF_CREDIT_ACCOUNT_NOT_IN_STOCK(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     AF_EXTERNAL_ACCOUNTS_ARE_FORBIDDEN(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     AF_MINING_IS_FINISHED(overrides?: CallOverrides): Promise<[string]>;
@@ -410,13 +410,13 @@ export interface Errors extends BaseContract {
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<[string]>;
 
     CA_CONNECTED_CREDIT_MANAGER_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
     CR_CREDIT_MANAGER_ALREADY_ADDED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<[string]>;
@@ -436,45 +436,45 @@ export interface Errors extends BaseContract {
     NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<[string]>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     POOL_CONNECTED_CREDIT_MANAGERS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     POOL_INCORRECT_WITHDRAW_FEE(overrides?: CallOverrides): Promise<[string]>;
 
     POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     REGISTERED_CREDIT_ACCOUNT_MANAGERS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     REGISTERED_POOLS_ONLY(overrides?: CallOverrides): Promise<[string]>;
 
     TD_CONTRIBUTOR_IS_NOT_REGISTERED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     TD_INCORRECT_WEIGHTS(overrides?: CallOverrides): Promise<[string]>;
 
     TD_NON_ZERO_BALANCE_AFTER_DISTRIBUTION(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     TD_WALLET_IS_ALREADY_CONNECTED_TO_VC(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     WG_NOT_ENOUGH_FUNDS(overrides?: CallOverrides): Promise<[string]>;
@@ -489,13 +489,13 @@ export interface Errors extends BaseContract {
   ACL_CALLER_NOT_PAUSABLE_ADMIN(overrides?: CallOverrides): Promise<string>;
 
   AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   AF_CREDIT_ACCOUNT_NOT_IN_STOCK(overrides?: CallOverrides): Promise<string>;
 
   AF_EXTERNAL_ACCOUNTS_ARE_FORBIDDEN(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   AF_MINING_IS_FINISHED(overrides?: CallOverrides): Promise<string>;
@@ -525,25 +525,25 @@ export interface Errors extends BaseContract {
   NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<string>;
 
   POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   POOL_CONNECTED_CREDIT_MANAGERS_ONLY(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   POOL_INCORRECT_WITHDRAW_FEE(overrides?: CallOverrides): Promise<string>;
 
   POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   REGISTERED_CREDIT_ACCOUNT_MANAGERS_ONLY(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   REGISTERED_POOLS_ONLY(overrides?: CallOverrides): Promise<string>;
@@ -553,15 +553,15 @@ export interface Errors extends BaseContract {
   TD_INCORRECT_WEIGHTS(overrides?: CallOverrides): Promise<string>;
 
   TD_NON_ZERO_BALANCE_AFTER_DISTRIBUTION(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   TD_WALLET_IS_ALREADY_CONNECTED_TO_VC(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<string>;
 
   WG_NOT_ENOUGH_FUNDS(overrides?: CallOverrides): Promise<string>;
@@ -576,13 +576,13 @@ export interface Errors extends BaseContract {
     ACL_CALLER_NOT_PAUSABLE_ADMIN(overrides?: CallOverrides): Promise<string>;
 
     AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     AF_CREDIT_ACCOUNT_NOT_IN_STOCK(overrides?: CallOverrides): Promise<string>;
 
     AF_EXTERNAL_ACCOUNTS_ARE_FORBIDDEN(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     AF_MINING_IS_FINISHED(overrides?: CallOverrides): Promise<string>;
@@ -590,7 +590,7 @@ export interface Errors extends BaseContract {
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<string>;
 
     CA_CONNECTED_CREDIT_MANAGER_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<string>;
@@ -614,45 +614,45 @@ export interface Errors extends BaseContract {
     NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<string>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     POOL_CONNECTED_CREDIT_MANAGERS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     POOL_INCORRECT_WITHDRAW_FEE(overrides?: CallOverrides): Promise<string>;
 
     POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     REGISTERED_CREDIT_ACCOUNT_MANAGERS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     REGISTERED_POOLS_ONLY(overrides?: CallOverrides): Promise<string>;
 
     TD_CONTRIBUTOR_IS_NOT_REGISTERED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     TD_INCORRECT_WEIGHTS(overrides?: CallOverrides): Promise<string>;
 
     TD_NON_ZERO_BALANCE_AFTER_DISTRIBUTION(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     TD_WALLET_IS_ALREADY_CONNECTED_TO_VC(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     WG_NOT_ENOUGH_FUNDS(overrides?: CallOverrides): Promise<string>;
@@ -668,19 +668,19 @@ export interface Errors extends BaseContract {
     ACL_CALLER_NOT_CONFIGURATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
     ACL_CALLER_NOT_PAUSABLE_ADMIN(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     AF_CREDIT_ACCOUNT_NOT_IN_STOCK(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     AF_EXTERNAL_ACCOUNTS_ARE_FORBIDDEN(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     AF_MINING_IS_FINISHED(overrides?: CallOverrides): Promise<BigNumber>;
@@ -688,13 +688,13 @@ export interface Errors extends BaseContract {
     AS_ADDRESS_NOT_FOUND(overrides?: CallOverrides): Promise<BigNumber>;
 
     CA_CONNECTED_CREDIT_MANAGER_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
 
     CR_CREDIT_MANAGER_ALREADY_ADDED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     CR_POOL_ALREADY_ADDED(overrides?: CallOverrides): Promise<BigNumber>;
@@ -714,45 +714,45 @@ export interface Errors extends BaseContract {
     NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<BigNumber>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     POOL_CONNECTED_CREDIT_MANAGERS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     POOL_INCORRECT_WITHDRAW_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
     POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     REGISTERED_CREDIT_ACCOUNT_MANAGERS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     REGISTERED_POOLS_ONLY(overrides?: CallOverrides): Promise<BigNumber>;
 
     TD_CONTRIBUTOR_IS_NOT_REGISTERED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     TD_INCORRECT_WEIGHTS(overrides?: CallOverrides): Promise<BigNumber>;
 
     TD_NON_ZERO_BALANCE_AFTER_DISTRIBUTION(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     TD_WALLET_IS_ALREADY_CONNECTED_TO_VC(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     WG_NOT_ENOUGH_FUNDS(overrides?: CallOverrides): Promise<BigNumber>;
@@ -764,131 +764,131 @@ export interface Errors extends BaseContract {
 
   populateTransaction: {
     ACL_CALLER_NOT_CONFIGURATOR(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     ACL_CALLER_NOT_PAUSABLE_ADMIN(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     AF_CANT_CLOSE_CREDIT_ACCOUNT_IN_THE_SAME_BLOCK(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     AF_CREDIT_ACCOUNT_NOT_IN_STOCK(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     AF_EXTERNAL_ACCOUNTS_ARE_FORBIDDEN(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     AF_MINING_IS_FINISHED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     AS_ADDRESS_NOT_FOUND(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     CA_CONNECTED_CREDIT_MANAGER_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     CA_FACTORY_ONLY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     CR_CREDIT_MANAGER_ALREADY_ADDED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     CR_POOL_ALREADY_ADDED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     INCORRECT_ARRAY_LENGTH(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     INCORRECT_PARAMETER(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     INCORRECT_PATH_LENGTH(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     MATH_ADDITION_OVERFLOW(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     MATH_DIVISION_BY_ZERO(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     MATH_MULTIPLICATION_OVERFLOW(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     NOT_IMPLEMENTED(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     POOL_CANT_ADD_CREDIT_MANAGER_TWICE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     POOL_CONNECTED_CREDIT_MANAGERS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     POOL_INCOMPATIBLE_CREDIT_ACCOUNT_MANAGER(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     POOL_INCORRECT_WITHDRAW_FEE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     POOL_MORE_THAN_EXPECTED_LIQUIDITY_LIMIT(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     REGISTERED_CREDIT_ACCOUNT_MANAGERS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     REGISTERED_POOLS_ONLY(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     TD_CONTRIBUTOR_IS_NOT_REGISTERED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     TD_INCORRECT_WEIGHTS(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     TD_NON_ZERO_BALANCE_AFTER_DISTRIBUTION(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     TD_WALLET_IS_ALREADY_CONNECTED_TO_VC(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     WG_DESTINATION_IS_NOT_WETH_COMPATIBLE(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     WG_NOT_ENOUGH_FUNDS(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     WG_RECEIVE_IS_NOT_ALLOWED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     ZERO_ADDRESS_IS_NOT_ALLOWED(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
   };
 }

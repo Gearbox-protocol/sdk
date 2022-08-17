@@ -361,7 +361,7 @@ type AddressProviderConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: AddressProviderConstructorParams
+  xs: AddressProviderConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class AddressProvider__factory extends ContractFactory {
@@ -374,12 +374,12 @@ export class AddressProvider__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<AddressProvider> {
     return super.deploy(overrides || {}) as Promise<AddressProvider>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -397,7 +397,7 @@ export class AddressProvider__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): AddressProvider {
     return new Contract(address, _abi, signerOrProvider) as AddressProvider;
   }

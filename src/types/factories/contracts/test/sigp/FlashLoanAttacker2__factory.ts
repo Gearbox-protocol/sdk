@@ -116,7 +116,7 @@ type FlashLoanAttacker2ConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: FlashLoanAttacker2ConstructorParams
+  xs: FlashLoanAttacker2ConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class FlashLoanAttacker2__factory extends ContractFactory {
@@ -130,16 +130,16 @@ export class FlashLoanAttacker2__factory extends ContractFactory {
 
   override deploy(
     creditFacade: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<FlashLoanAttacker2> {
     return super.deploy(
       creditFacade,
-      overrides || {}
+      overrides || {},
     ) as Promise<FlashLoanAttacker2>;
   }
   override getDeployTransaction(
     creditFacade: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(creditFacade, overrides || {});
   }
@@ -157,7 +157,7 @@ export class FlashLoanAttacker2__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): FlashLoanAttacker2 {
     return new Contract(address, _abi, signerOrProvider) as FlashLoanAttacker2;
   }

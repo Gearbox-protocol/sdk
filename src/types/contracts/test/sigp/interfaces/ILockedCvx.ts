@@ -83,101 +83,101 @@ export interface ILockedCvxInterface extends utils.Interface {
       | "setStakeLimits"
       | "shutdown"
       | "totalSupply"
-      | "totalSupplyAtEpoch"
+      | "totalSupplyAtEpoch",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addReward",
-    values: [string, string, boolean]
+    values: [string, string, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "approveRewardDistributor",
-    values: [string, string, boolean]
+    values: [string, string, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "balanceAtEpochOf",
-    values: [BigNumberish, string]
+    values: [BigNumberish, string],
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "checkpointEpoch",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "epochCount",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "epochs",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "getReward",
-    values: [string, boolean]
+    values: [string, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "lock",
-    values: [string, BigNumberish, BigNumberish]
+    values: [string, BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "lockedBalanceOf",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "lockedBalances",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "pendingLockAtEpochOf",
-    values: [BigNumberish, string]
+    values: [BigNumberish, string],
   ): string;
   encodeFunctionData(
     functionFragment: "pendingLockOf",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "processExpiredLocks",
-    values: [boolean]
+    values: [boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "recoverERC20",
-    values: [string, BigNumberish]
+    values: [string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "setBoost",
-    values: [BigNumberish, BigNumberish, string]
+    values: [BigNumberish, BigNumberish, string],
   ): string;
   encodeFunctionData(
     functionFragment: "setKickIncentive",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "setStakeLimits",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "shutdown", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupplyAtEpoch",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
 
   decodeFunctionResult(functionFragment: "addReward", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "approveRewardDistributor",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "balanceAtEpochOf",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "checkpointEpoch",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "epochCount", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "epochs", data: BytesLike): Result;
@@ -185,45 +185,45 @@ export interface ILockedCvxInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "lock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lockedBalanceOf",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "lockedBalances",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "pendingLockAtEpochOf",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "pendingLockOf",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "processExpiredLocks",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "recoverERC20",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "setBoost", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setKickIncentive",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "setStakeLimits",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "shutdown", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupplyAtEpoch",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -239,15 +239,15 @@ export interface ILockedCvx extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -260,65 +260,65 @@ export interface ILockedCvx extends BaseContract {
       _rewardsToken: string,
       _distributor: string,
       _useBoost: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     approveRewardDistributor(
       _rewardsToken: string,
       _distributor: string,
       _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     balanceAtEpochOf(
       _epoch: BigNumberish,
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { amount: BigNumber }>;
 
     balanceOf(
       _account: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     checkpointEpoch(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     epochCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     epochs(
       _id: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, number]>;
 
     getReward(
       _account: string,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     lock(
       _account: string,
       _amount: BigNumberish,
       _spendRatio: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     lockedBalanceOf(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { amount: BigNumber }>;
 
     lockedBalances(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [
         BigNumber,
         BigNumber,
         BigNumber,
-        ILockedCvx.LockedBalanceStructOutput[]
+        ILockedCvx.LockedBalanceStructOutput[],
       ] & {
         total: BigNumber;
         unlockable: BigNumber;
@@ -330,55 +330,55 @@ export interface ILockedCvx extends BaseContract {
     pendingLockAtEpochOf(
       _epoch: BigNumberish,
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { amount: BigNumber }>;
 
     pendingLockOf(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { amount: BigNumber }>;
 
     processExpiredLocks(
       _relock: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     recoverERC20(
       _tokenAddress: string,
       _tokenAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     setBoost(
       _max: BigNumberish,
       _rate: BigNumberish,
       _receivingAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     setKickIncentive(
       _rate: BigNumberish,
       _delay: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     setStakeLimits(
       _minimum: BigNumberish,
       _maximum: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     shutdown(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     totalSupply(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { supply: BigNumber }>;
 
     totalSupplyAtEpoch(
       _epoch: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { supply: BigNumber }>;
   };
 
@@ -386,59 +386,59 @@ export interface ILockedCvx extends BaseContract {
     _rewardsToken: string,
     _distributor: string,
     _useBoost: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   approveRewardDistributor(
     _rewardsToken: string,
     _distributor: string,
     _approved: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   balanceAtEpochOf(
     _epoch: BigNumberish,
     _user: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   checkpointEpoch(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   epochCount(overrides?: CallOverrides): Promise<BigNumber>;
 
   epochs(
     _id: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<[BigNumber, number]>;
 
   getReward(
     _account: string,
     _stake: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   lock(
     _account: string,
     _amount: BigNumberish,
     _spendRatio: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   lockedBalanceOf(_user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   lockedBalances(
     _user: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<
     [
       BigNumber,
       BigNumber,
       BigNumber,
-      ILockedCvx.LockedBalanceStructOutput[]
+      ILockedCvx.LockedBalanceStructOutput[],
     ] & {
       total: BigNumber;
       unlockable: BigNumber;
@@ -450,50 +450,50 @@ export interface ILockedCvx extends BaseContract {
   pendingLockAtEpochOf(
     _epoch: BigNumberish,
     _user: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   pendingLockOf(_user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   processExpiredLocks(
     _relock: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   recoverERC20(
     _tokenAddress: string,
     _tokenAmount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   setBoost(
     _max: BigNumberish,
     _rate: BigNumberish,
     _receivingAddress: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   setKickIncentive(
     _rate: BigNumberish,
     _delay: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   setStakeLimits(
     _minimum: BigNumberish,
     _maximum: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   shutdown(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   totalSupplyAtEpoch(
     _epoch: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   callStatic: {
@@ -501,20 +501,20 @@ export interface ILockedCvx extends BaseContract {
       _rewardsToken: string,
       _distributor: string,
       _useBoost: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     approveRewardDistributor(
       _rewardsToken: string,
       _distributor: string,
       _approved: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     balanceAtEpochOf(
       _epoch: BigNumberish,
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -525,36 +525,36 @@ export interface ILockedCvx extends BaseContract {
 
     epochs(
       _id: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, number]>;
 
     getReward(
       _account: string,
       _stake: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     lock(
       _account: string,
       _amount: BigNumberish,
       _spendRatio: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     lockedBalanceOf(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     lockedBalances(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [
         BigNumber,
         BigNumber,
         BigNumber,
-        ILockedCvx.LockedBalanceStructOutput[]
+        ILockedCvx.LockedBalanceStructOutput[],
       ] & {
         total: BigNumber;
         unlockable: BigNumber;
@@ -566,39 +566,39 @@ export interface ILockedCvx extends BaseContract {
     pendingLockAtEpochOf(
       _epoch: BigNumberish,
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     pendingLockOf(_user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     processExpiredLocks(
       _relock: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     recoverERC20(
       _tokenAddress: string,
       _tokenAmount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     setBoost(
       _max: BigNumberish,
       _rate: BigNumberish,
       _receivingAddress: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     setKickIncentive(
       _rate: BigNumberish,
       _delay: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     setStakeLimits(
       _minimum: BigNumberish,
       _maximum: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     shutdown(overrides?: CallOverrides): Promise<void>;
@@ -607,7 +607,7 @@ export interface ILockedCvx extends BaseContract {
 
     totalSupplyAtEpoch(
       _epoch: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
   };
 
@@ -618,26 +618,26 @@ export interface ILockedCvx extends BaseContract {
       _rewardsToken: string,
       _distributor: string,
       _useBoost: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     approveRewardDistributor(
       _rewardsToken: string,
       _distributor: string,
       _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     balanceAtEpochOf(
       _epoch: BigNumberish,
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     checkpointEpoch(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     epochCount(overrides?: CallOverrides): Promise<BigNumber>;
@@ -647,73 +647,73 @@ export interface ILockedCvx extends BaseContract {
     getReward(
       _account: string,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     lock(
       _account: string,
       _amount: BigNumberish,
       _spendRatio: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     lockedBalanceOf(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     lockedBalances(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     pendingLockAtEpochOf(
       _epoch: BigNumberish,
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     pendingLockOf(_user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     processExpiredLocks(
       _relock: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     recoverERC20(
       _tokenAddress: string,
       _tokenAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     setBoost(
       _max: BigNumberish,
       _rate: BigNumberish,
       _receivingAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     setKickIncentive(
       _rate: BigNumberish,
       _delay: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     setStakeLimits(
       _minimum: BigNumberish,
       _maximum: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     shutdown(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupplyAtEpoch(
       _epoch: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
   };
 
@@ -722,111 +722,111 @@ export interface ILockedCvx extends BaseContract {
       _rewardsToken: string,
       _distributor: string,
       _useBoost: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     approveRewardDistributor(
       _rewardsToken: string,
       _distributor: string,
       _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     balanceAtEpochOf(
       _epoch: BigNumberish,
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       _account: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     checkpointEpoch(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     epochCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     epochs(
       _id: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     getReward(
       _account: string,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     lock(
       _account: string,
       _amount: BigNumberish,
       _spendRatio: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     lockedBalanceOf(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     lockedBalances(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     pendingLockAtEpochOf(
       _epoch: BigNumberish,
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     pendingLockOf(
       _user: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     processExpiredLocks(
       _relock: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     recoverERC20(
       _tokenAddress: string,
       _tokenAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     setBoost(
       _max: BigNumberish,
       _rate: BigNumberish,
       _receivingAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     setKickIncentive(
       _rate: BigNumberish,
       _delay: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     setStakeLimits(
       _minimum: BigNumberish,
       _maximum: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     shutdown(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     totalSupplyAtEpoch(
       _epoch: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
   };
 }

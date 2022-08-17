@@ -39,7 +39,7 @@ export class IFeeDistro__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IFeeDistro {
     return new Contract(address, _abi, signerOrProvider) as IFeeDistro;
   }

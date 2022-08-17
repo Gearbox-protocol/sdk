@@ -137,7 +137,7 @@ type ACLTraitTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ACLTraitTestConstructorParams
+  xs: ACLTraitTestConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ACLTraitTest__factory extends ContractFactory {
@@ -151,16 +151,16 @@ export class ACLTraitTest__factory extends ContractFactory {
 
   override deploy(
     addressProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ACLTraitTest> {
     return super.deploy(
       addressProvider,
-      overrides || {}
+      overrides || {},
     ) as Promise<ACLTraitTest>;
   }
   override getDeployTransaction(
     addressProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(addressProvider, overrides || {});
   }
@@ -178,7 +178,7 @@ export class ACLTraitTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ACLTraitTest {
     return new Contract(address, _abi, signerOrProvider) as ACLTraitTest;
   }

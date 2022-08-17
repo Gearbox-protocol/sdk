@@ -321,7 +321,7 @@ type WETHMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: WETHMockConstructorParams
+  xs: WETHMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class WETHMock__factory extends ContractFactory {
@@ -334,12 +334,12 @@ export class WETHMock__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<WETHMock> {
     return super.deploy(overrides || {}) as Promise<WETHMock>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -357,7 +357,7 @@ export class WETHMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): WETHMock {
     return new Contract(address, _abi, signerOrProvider) as WETHMock;
   }

@@ -633,7 +633,7 @@ type YearnPathFinderTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: YearnPathFinderTestConstructorParams
+  xs: YearnPathFinderTestConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class YearnPathFinderTest__factory extends ContractFactory {
@@ -646,12 +646,12 @@ export class YearnPathFinderTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<YearnPathFinderTest> {
     return super.deploy(overrides || {}) as Promise<YearnPathFinderTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -669,7 +669,7 @@ export class YearnPathFinderTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): YearnPathFinderTest {
     return new Contract(address, _abi, signerOrProvider) as YearnPathFinderTest;
   }

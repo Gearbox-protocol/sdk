@@ -439,7 +439,7 @@ type StETHMockERC20ConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: StETHMockERC20ConstructorParams
+  xs: StETHMockERC20ConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class StETHMockERC20__factory extends ContractFactory {
@@ -452,12 +452,12 @@ export class StETHMockERC20__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<StETHMockERC20> {
     return super.deploy(overrides || {}) as Promise<StETHMockERC20>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -475,7 +475,7 @@ export class StETHMockERC20__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): StETHMockERC20 {
     return new Contract(address, _abi, signerOrProvider) as StETHMockERC20;
   }

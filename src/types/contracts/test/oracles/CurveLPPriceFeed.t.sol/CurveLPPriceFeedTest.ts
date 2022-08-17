@@ -68,20 +68,20 @@ export interface CurveLPPriceFeedTestInterface extends utils.Interface {
       | "test_OCLP_04_latestRoundData_works_correctly_for_2_assets_CurveLPPriceFeed"
       | "test_OCLP_05_latestRoundData_works_correctly_for_3_assets_CurveLPPriceFeed"
       | "test_OCLP_06_latestRoundData_works_correctly_for_4_assets_CurveLPPriceFeed"
-      | "test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices"
+      | "test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "c2feed", values?: undefined): string;
   encodeFunctionData(functionFragment: "c3feed", values?: undefined): string;
   encodeFunctionData(functionFragment: "c4feed", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "curveV1Mock",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(functionFragment: "pfm1", values?: undefined): string;
@@ -91,44 +91,44 @@ export interface CurveLPPriceFeedTestInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_OCLP_01_constructor_sets_correct_values",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_OCLP_02_constructor_reverts_for_zero_addresses",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_OCLP_03_constructor_reverts_at_getRoundData_call",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_OCLP_04_latestRoundData_works_correctly_for_2_assets_CurveLPPriceFeed",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_OCLP_05_latestRoundData_works_correctly_for_3_assets_CurveLPPriceFeed",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_OCLP_06_latestRoundData_works_correctly_for_4_assets_CurveLPPriceFeed",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addressProvider",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "c2feed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "c3feed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "c4feed", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "curveV1Mock",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pfm1", data: BytesLike): Result;
@@ -138,31 +138,31 @@ export interface CurveLPPriceFeedTestInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_OCLP_01_constructor_sets_correct_values",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_OCLP_02_constructor_reverts_for_zero_addresses",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_OCLP_03_constructor_reverts_at_getRoundData_call",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_OCLP_04_latestRoundData_works_correctly_for_2_assets_CurveLPPriceFeed",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_OCLP_05_latestRoundData_works_correctly_for_3_assets_CurveLPPriceFeed",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_OCLP_06_latestRoundData_works_correctly_for_4_assets_CurveLPPriceFeed",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {
@@ -363,15 +363,15 @@ export interface CurveLPPriceFeedTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -393,7 +393,7 @@ export interface CurveLPPriceFeedTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<[string]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     pfm1(overrides?: CallOverrides): Promise<[string]>;
@@ -405,35 +405,35 @@ export interface CurveLPPriceFeedTest extends BaseContract {
     pfm4(overrides?: CallOverrides): Promise<[string]>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_OCLP_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_OCLP_02_constructor_reverts_for_zero_addresses(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_OCLP_03_constructor_reverts_at_getRoundData_call(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_OCLP_04_latestRoundData_works_correctly_for_2_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_OCLP_05_latestRoundData_works_correctly_for_3_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_OCLP_06_latestRoundData_works_correctly_for_4_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
   };
 
@@ -450,7 +450,7 @@ export interface CurveLPPriceFeedTest extends BaseContract {
   curveV1Mock(overrides?: CallOverrides): Promise<string>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   pfm1(overrides?: CallOverrides): Promise<string>;
@@ -462,35 +462,35 @@ export interface CurveLPPriceFeedTest extends BaseContract {
   pfm4(overrides?: CallOverrides): Promise<string>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_OCLP_01_constructor_sets_correct_values(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_OCLP_02_constructor_reverts_for_zero_addresses(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_OCLP_03_constructor_reverts_at_getRoundData_call(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_OCLP_04_latestRoundData_works_correctly_for_2_assets_CurveLPPriceFeed(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_OCLP_05_latestRoundData_works_correctly_for_3_assets_CurveLPPriceFeed(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_OCLP_06_latestRoundData_works_correctly_for_4_assets_CurveLPPriceFeed(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -519,31 +519,31 @@ export interface CurveLPPriceFeedTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_OCLP_01_constructor_sets_correct_values(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_OCLP_02_constructor_reverts_for_zero_addresses(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_OCLP_03_constructor_reverts_at_getRoundData_call(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_OCLP_04_latestRoundData_works_correctly_for_2_assets_CurveLPPriceFeed(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_OCLP_05_latestRoundData_works_correctly_for_3_assets_CurveLPPriceFeed(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_OCLP_06_latestRoundData_works_correctly_for_4_assets_CurveLPPriceFeed(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
   };
 
@@ -565,59 +565,59 @@ export interface CurveLPPriceFeedTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null
+      decimals?: null,
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null
+      val?: null,
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -645,7 +645,7 @@ export interface CurveLPPriceFeedTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     pfm1(overrides?: CallOverrides): Promise<BigNumber>;
@@ -657,35 +657,35 @@ export interface CurveLPPriceFeedTest extends BaseContract {
     pfm4(overrides?: CallOverrides): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_OCLP_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_OCLP_02_constructor_reverts_for_zero_addresses(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_OCLP_03_constructor_reverts_at_getRoundData_call(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_OCLP_04_latestRoundData_works_correctly_for_2_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_OCLP_05_latestRoundData_works_correctly_for_3_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_OCLP_06_latestRoundData_works_correctly_for_4_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
   };
 
@@ -703,7 +703,7 @@ export interface CurveLPPriceFeedTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     pfm1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -715,35 +715,35 @@ export interface CurveLPPriceFeedTest extends BaseContract {
     pfm4(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_OCLP_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_OCLP_02_constructor_reverts_for_zero_addresses(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_OCLP_03_constructor_reverts_at_getRoundData_call(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_OCLP_04_latestRoundData_works_correctly_for_2_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_OCLP_05_latestRoundData_works_correctly_for_3_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_OCLP_06_latestRoundData_works_correctly_for_4_assets_CurveLPPriceFeed(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     test_OCLP_07_latestRoundData_reverts_for_out_of_bounds_prices(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -1231,7 +1231,7 @@ type ConvexV1AdapterBasePoolTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ConvexV1AdapterBasePoolTestConstructorParams
+  xs: ConvexV1AdapterBasePoolTestConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ConvexV1AdapterBasePoolTest__factory extends ContractFactory {
@@ -1244,14 +1244,14 @@ export class ConvexV1AdapterBasePoolTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ConvexV1AdapterBasePoolTest> {
     return super.deploy(
-      overrides || {}
+      overrides || {},
     ) as Promise<ConvexV1AdapterBasePoolTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -1269,12 +1269,12 @@ export class ConvexV1AdapterBasePoolTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ConvexV1AdapterBasePoolTest {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as ConvexV1AdapterBasePoolTest;
   }
 }

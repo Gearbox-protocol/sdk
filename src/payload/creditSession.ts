@@ -1,4 +1,5 @@
 import { BigNumberish } from "ethers";
+
 import { CreditOperation } from "../core/creditOperation";
 
 export interface CreditSessionPayload {

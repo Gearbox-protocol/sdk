@@ -696,7 +696,7 @@ type CurveV1MetapoolMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveV1MetapoolMockConstructorParams
+  xs: CurveV1MetapoolMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveV1MetapoolMock__factory extends ContractFactory {
@@ -711,18 +711,18 @@ export class CurveV1MetapoolMock__factory extends ContractFactory {
   override deploy(
     _token0: string,
     _basePool: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<CurveV1MetapoolMock> {
     return super.deploy(
       _token0,
       _basePool,
-      overrides || {}
+      overrides || {},
     ) as Promise<CurveV1MetapoolMock>;
   }
   override getDeployTransaction(
     _token0: string,
     _basePool: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_token0, _basePool, overrides || {});
   }
@@ -740,7 +740,7 @@ export class CurveV1MetapoolMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): CurveV1MetapoolMock {
     return new Contract(address, _abi, signerOrProvider) as CurveV1MetapoolMock;
   }

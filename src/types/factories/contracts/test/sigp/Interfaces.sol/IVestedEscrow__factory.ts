@@ -43,7 +43,7 @@ export class IVestedEscrow__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IVestedEscrow {
     return new Contract(address, _abi, signerOrProvider) as IVestedEscrow;
   }

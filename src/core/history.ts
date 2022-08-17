@@ -1,10 +1,10 @@
 import { BigNumber } from "ethers";
 
-export type BasicEvent = {
+export interface BasicEvent {
   protocol: string; // address of creditManager. Address of target account for EXECUTE event
   txHash: string;
   timestamp: number; // timestamp in Unix format
-};
+}
 
 export type BasicSwapEvent = BasicEvent & {
   from: string; // address

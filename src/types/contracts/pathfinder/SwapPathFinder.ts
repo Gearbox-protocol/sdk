@@ -45,7 +45,7 @@ export type SwapTaskStructOutput = [
   string[],
   BigNumber,
   BigNumber,
-  boolean
+  boolean,
 ] & {
   swapOperation: number;
   creditAccount: string;
@@ -75,7 +75,7 @@ export type SwapQuoteStructOutput = [
   MultiCallStructOutput,
   BigNumber,
   boolean,
-  BigNumber
+  BigNumber,
 ] & {
   multiCall: MultiCallStructOutput;
   amount: BigNumber;
@@ -108,76 +108,76 @@ export interface SwapPathFinderInterface extends utils.Interface {
       | "transferOwnership"
       | "uniV2pathFinder"
       | "uniV3pathFinder"
-      | "version"
+      | "version",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "curvePathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "findAllSwaps",
-    values: [SwapTaskStruct, string[]]
+    values: [SwapTaskStruct, string[]],
   ): string;
   encodeFunctionData(
     functionFragment: "getBestDirectPairSwap",
-    values: [SwapTaskStruct, string[], BigNumberish]
+    values: [SwapTaskStruct, string[], BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "getPathFinder",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "uniV2pathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "uniV3pathFinder",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "curvePathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "findAllSwaps",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getBestDirectPairSwap",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "uniV2pathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "uniV3pathFinder",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
@@ -210,15 +210,15 @@ export interface SwapPathFinder extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -232,30 +232,30 @@ export interface SwapPathFinder extends BaseContract {
     findAllSwaps(
       swapTask: SwapTaskStruct,
       adapters: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     getBestDirectPairSwap(
       swapTask: SwapTaskStruct,
       adapters: string[],
       gasPriceInTokenOut: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     getPathFinder(
       adapter: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string] & { pathFinder: string }>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     uniV2pathFinder(overrides?: CallOverrides): Promise<[string]>;
@@ -270,14 +270,14 @@ export interface SwapPathFinder extends BaseContract {
   findAllSwaps(
     swapTask: SwapTaskStruct,
     adapters: string[],
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   getBestDirectPairSwap(
     swapTask: SwapTaskStruct,
     adapters: string[],
     gasPriceInTokenOut: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   getPathFinder(adapter: string, overrides?: CallOverrides): Promise<string>;
@@ -285,12 +285,12 @@ export interface SwapPathFinder extends BaseContract {
   owner(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   transferOwnership(
     newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   uniV2pathFinder(overrides?: CallOverrides): Promise<string>;
@@ -305,14 +305,14 @@ export interface SwapPathFinder extends BaseContract {
     findAllSwaps(
       swapTask: SwapTaskStruct,
       adapters: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<SwapQuoteStructOutput[]>;
 
     getBestDirectPairSwap(
       swapTask: SwapTaskStruct,
       adapters: string[],
       gasPriceInTokenOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<SwapQuoteStructOutput>;
 
     getPathFinder(adapter: string, overrides?: CallOverrides): Promise<string>;
@@ -323,7 +323,7 @@ export interface SwapPathFinder extends BaseContract {
 
     transferOwnership(
       newOwner: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     uniV2pathFinder(overrides?: CallOverrides): Promise<string>;
@@ -336,11 +336,11 @@ export interface SwapPathFinder extends BaseContract {
   filters: {
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
-      newOwner?: string | null
+      newOwner?: string | null,
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
       previousOwner?: string | null,
-      newOwner?: string | null
+      newOwner?: string | null,
     ): OwnershipTransferredEventFilter;
   };
 
@@ -350,30 +350,30 @@ export interface SwapPathFinder extends BaseContract {
     findAllSwaps(
       swapTask: SwapTaskStruct,
       adapters: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     getBestDirectPairSwap(
       swapTask: SwapTaskStruct,
       adapters: string[],
       gasPriceInTokenOut: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     getPathFinder(
       adapter: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     uniV2pathFinder(overrides?: CallOverrides): Promise<BigNumber>;
@@ -389,30 +389,30 @@ export interface SwapPathFinder extends BaseContract {
     findAllSwaps(
       swapTask: SwapTaskStruct,
       adapters: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     getBestDirectPairSwap(
       swapTask: SwapTaskStruct,
       adapters: string[],
       gasPriceInTokenOut: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     getPathFinder(
       adapter: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     uniV2pathFinder(overrides?: CallOverrides): Promise<PopulatedTransaction>;

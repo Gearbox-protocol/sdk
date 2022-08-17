@@ -123,7 +123,7 @@ export class ContractUpgrader__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ContractUpgrader {
     return new Contract(address, _abi, signerOrProvider) as ContractUpgrader;
   }

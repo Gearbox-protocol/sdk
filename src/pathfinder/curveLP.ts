@@ -1,16 +1,17 @@
 import { BigNumber } from "ethers";
-import type { LPWithdrawPathFinder, Path } from "./path";
-import { CurveLPToken, curveTokens } from "../tokens/curveLP";
+
 import {
   contractParams,
   contractsByAddress,
   CurveParams,
   CurvePoolContract,
 } from "../contracts/contracts";
-import { TradeType } from "./tradeTypes";
-import { CallData, MultiCallContract } from "../utils/multicall";
+import { CurveLPToken, curveTokens } from "../tokens/curveLP";
 import { ICurvePool__factory } from "../types";
 import { ICurvePoolInterface } from "../types/contracts/integrations/curve/ICurvePool";
+import { CallData, MultiCallContract } from "../utils/multicall";
+import type { LPWithdrawPathFinder, Path } from "./path";
+import { TradeType } from "./tradeTypes";
 
 export class CurvePathFinder implements LPWithdrawPathFinder {
   lpToken: CurveLPToken;

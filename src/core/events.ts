@@ -1,9 +1,10 @@
 import { BigNumber } from "ethers";
+
+import { getContractName } from "../contracts/contractsRegister";
 import { TokenData } from "../tokens/tokenData";
 import { formatBN } from "../utils/formatter";
 import { LEVERAGE_DECIMALS, PERCENTAGE_DECIMALS } from "./constants";
-import { EVMEvent, EVMTx, EVMEventProps } from "./eventOrTx";
-import { getContractName } from "../contracts/contractsRegister";
+import { EVMEvent, EVMEventProps, EVMTx } from "./eventOrTx";
 
 export interface EventSerialized {
   type:
@@ -46,6 +47,7 @@ export class EventParser {
     return JSON.stringify(items.map(i => i.serialize()));
   }
 
+  // eslint-disable-next-line complexity
   static deserialize(data: EventSerialized): EVMEvent {
     const params = data.content;
     switch (data.type) {

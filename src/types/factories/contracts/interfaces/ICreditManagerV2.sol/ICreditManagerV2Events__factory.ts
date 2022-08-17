@@ -51,12 +51,12 @@ export class ICreditManagerV2Events__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ICreditManagerV2Events {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as ICreditManagerV2Events;
   }
 }

@@ -246,7 +246,7 @@ type PriceFeedMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PriceFeedMockConstructorParams
+  xs: PriceFeedMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PriceFeedMock__factory extends ContractFactory {
@@ -261,18 +261,18 @@ export class PriceFeedMock__factory extends ContractFactory {
   override deploy(
     _price: BigNumberish,
     _decimals: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<PriceFeedMock> {
     return super.deploy(
       _price,
       _decimals,
-      overrides || {}
+      overrides || {},
     ) as Promise<PriceFeedMock>;
   }
   override getDeployTransaction(
     _price: BigNumberish,
     _decimals: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_price, _decimals, overrides || {});
   }
@@ -290,7 +290,7 @@ export class PriceFeedMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): PriceFeedMock {
     return new Contract(address, _abi, signerOrProvider) as PriceFeedMock;
   }

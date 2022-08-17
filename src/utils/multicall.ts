@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+
 import { MULTICALL_ADDRESS } from "../config";
 import { Multicall2, Multicall2__factory } from "../types";
 

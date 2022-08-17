@@ -38,12 +38,12 @@ export class IAddressProviderEvents__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IAddressProviderEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IAddressProviderEvents;
   }
 }

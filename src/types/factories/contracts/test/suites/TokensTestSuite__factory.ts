@@ -701,7 +701,7 @@ type TokensTestSuiteConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: TokensTestSuiteConstructorParams
+  xs: TokensTestSuiteConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class TokensTestSuite__factory extends ContractFactory {
@@ -714,12 +714,12 @@ export class TokensTestSuite__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<TokensTestSuite> {
     return super.deploy(overrides || {}) as Promise<TokensTestSuite>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -737,7 +737,7 @@ export class TokensTestSuite__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): TokensTestSuite {
     return new Contract(address, _abi, signerOrProvider) as TokensTestSuite;
   }

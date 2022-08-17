@@ -534,7 +534,7 @@ type BaseCreditTestSuiteConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: BaseCreditTestSuiteConstructorParams
+  xs: BaseCreditTestSuiteConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class BaseCreditTestSuite__factory extends ContractFactory {
@@ -549,23 +549,23 @@ export class BaseCreditTestSuite__factory extends ContractFactory {
   override deploy(
     _testTokenSuite: string,
     _underlying: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<BaseCreditTestSuite> {
     return super.deploy(
       _testTokenSuite,
       _underlying,
-      overrides || {}
+      overrides || {},
     ) as Promise<BaseCreditTestSuite>;
   }
   override getDeployTransaction(
     _testTokenSuite: string,
     _underlying: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       _testTokenSuite,
       _underlying,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): BaseCreditTestSuite {
@@ -582,7 +582,7 @@ export class BaseCreditTestSuite__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): BaseCreditTestSuite {
     return new Contract(address, _abi, signerOrProvider) as BaseCreditTestSuite;
   }

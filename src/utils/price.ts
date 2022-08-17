@@ -1,10 +1,11 @@
 import { BigNumber } from "ethers";
-import { WAD, PRICE_DECIMALS } from "../core/constants";
+
+import { PRICE_DECIMALS, WAD } from "../core/constants";
 
 export const calcTotalPrice = (
   price: BigNumber,
   amount: BigNumber,
-  decimals: number = 18,
+  decimals = 18,
 ) =>
   amount
     .mul(WAD)

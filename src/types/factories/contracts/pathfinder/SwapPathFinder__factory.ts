@@ -384,7 +384,7 @@ type SwapPathFinderConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: SwapPathFinderConstructorParams
+  xs: SwapPathFinderConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class SwapPathFinder__factory extends ContractFactory {
@@ -400,26 +400,26 @@ export class SwapPathFinder__factory extends ContractFactory {
     _curvePathFinder: string,
     _uniV2PathFinder: string,
     _uniV3PathFinder: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<SwapPathFinder> {
     return super.deploy(
       _curvePathFinder,
       _uniV2PathFinder,
       _uniV3PathFinder,
-      overrides || {}
+      overrides || {},
     ) as Promise<SwapPathFinder>;
   }
   override getDeployTransaction(
     _curvePathFinder: string,
     _uniV2PathFinder: string,
     _uniV3PathFinder: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       _curvePathFinder,
       _uniV2PathFinder,
       _uniV3PathFinder,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): SwapPathFinder {
@@ -436,7 +436,7 @@ export class SwapPathFinder__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): SwapPathFinder {
     return new Contract(address, _abi, signerOrProvider) as SwapPathFinder;
   }

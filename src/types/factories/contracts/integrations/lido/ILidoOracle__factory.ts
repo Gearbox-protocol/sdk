@@ -42,7 +42,7 @@ export class ILidoOracle__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ILidoOracle {
     return new Contract(address, _abi, signerOrProvider) as ILidoOracle;
   }

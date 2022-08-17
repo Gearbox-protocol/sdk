@@ -42,12 +42,12 @@ export class IUniswapV3SwapCallback__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IUniswapV3SwapCallback {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IUniswapV3SwapCallback;
   }
 }

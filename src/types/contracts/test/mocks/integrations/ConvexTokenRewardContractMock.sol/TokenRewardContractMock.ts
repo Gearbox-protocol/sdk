@@ -51,58 +51,58 @@ export interface TokenRewardContractMockInterface extends utils.Interface {
       | "operator"
       | "stake"
       | "totalSupply"
-      | "withdraw"
+      | "withdraw",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addRewardAmount",
-    values: [string, BigNumberish]
+    values: [string, BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "deposits", values?: undefined): string;
   encodeFunctionData(functionFragment: "duration", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getReward(address,address)",
-    values: [string, string]
+    values: [string, string],
   ): string;
   encodeFunctionData(
     functionFragment: "getReward(address)",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(functionFragment: "operator", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stake",
-    values: [string, BigNumberish]
+    values: [string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [string, BigNumberish]
+    values: [string, BigNumberish],
   ): string;
 
   decodeFunctionResult(
     functionFragment: "addRewardAmount",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposits", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "duration", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getReward(address,address)",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getReward(address)",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "operator", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
@@ -166,15 +166,15 @@ export interface TokenRewardContractMock extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -186,7 +186,7 @@ export interface TokenRewardContractMock extends BaseContract {
     addRewardAmount(
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -198,12 +198,12 @@ export interface TokenRewardContractMock extends BaseContract {
     "getReward(address,address)"(
       _account: string,
       _token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     "getReward(address)"(
       _token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     operator(overrides?: CallOverrides): Promise<[string]>;
@@ -211,7 +211,7 @@ export interface TokenRewardContractMock extends BaseContract {
     stake(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[boolean]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -219,14 +219,14 @@ export interface TokenRewardContractMock extends BaseContract {
     withdraw(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[boolean]>;
   };
 
   addRewardAmount(
     token: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -238,12 +238,12 @@ export interface TokenRewardContractMock extends BaseContract {
   "getReward(address,address)"(
     _account: string,
     _token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   "getReward(address)"(
     _token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   operator(overrides?: CallOverrides): Promise<string>;
@@ -251,7 +251,7 @@ export interface TokenRewardContractMock extends BaseContract {
   stake(
     arg0: string,
     arg1: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<boolean>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -259,14 +259,14 @@ export interface TokenRewardContractMock extends BaseContract {
   withdraw(
     arg0: string,
     arg1: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<boolean>;
 
   callStatic: {
     addRewardAmount(
       token: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -278,12 +278,12 @@ export interface TokenRewardContractMock extends BaseContract {
     "getReward(address,address)"(
       _account: string,
       _token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     "getReward(address)"(
       _token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     operator(overrides?: CallOverrides): Promise<string>;
@@ -291,7 +291,7 @@ export interface TokenRewardContractMock extends BaseContract {
     stake(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -299,7 +299,7 @@ export interface TokenRewardContractMock extends BaseContract {
     withdraw(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
   };
 
@@ -307,34 +307,34 @@ export interface TokenRewardContractMock extends BaseContract {
     "Mock_ExtraRewardPaid(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null
+      reward?: null,
     ): Mock_ExtraRewardPaidEventFilter;
     Mock_ExtraRewardPaid(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null
+      reward?: null,
     ): Mock_ExtraRewardPaidEventFilter;
 
     "Mock_ExtraStaked(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null
+      amount?: null,
     ): Mock_ExtraStakedEventFilter;
     Mock_ExtraStaked(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null
+      amount?: null,
     ): Mock_ExtraStakedEventFilter;
 
     "Mock_ExtraWithdrawn(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null
+      amount?: null,
     ): Mock_ExtraWithdrawnEventFilter;
     Mock_ExtraWithdrawn(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null
+      amount?: null,
     ): Mock_ExtraWithdrawnEventFilter;
   };
 
@@ -342,7 +342,7 @@ export interface TokenRewardContractMock extends BaseContract {
     addRewardAmount(
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -354,12 +354,12 @@ export interface TokenRewardContractMock extends BaseContract {
     "getReward(address,address)"(
       _account: string,
       _token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     "getReward(address)"(
       _token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     operator(overrides?: CallOverrides): Promise<BigNumber>;
@@ -367,7 +367,7 @@ export interface TokenRewardContractMock extends BaseContract {
     stake(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
@@ -375,7 +375,7 @@ export interface TokenRewardContractMock extends BaseContract {
     withdraw(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
   };
 
@@ -383,12 +383,12 @@ export interface TokenRewardContractMock extends BaseContract {
     addRewardAmount(
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       account: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     deposits(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -398,12 +398,12 @@ export interface TokenRewardContractMock extends BaseContract {
     "getReward(address,address)"(
       _account: string,
       _token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     "getReward(address)"(
       _token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     operator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -411,7 +411,7 @@ export interface TokenRewardContractMock extends BaseContract {
     stake(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -419,7 +419,7 @@ export interface TokenRewardContractMock extends BaseContract {
     withdraw(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
   };
 }

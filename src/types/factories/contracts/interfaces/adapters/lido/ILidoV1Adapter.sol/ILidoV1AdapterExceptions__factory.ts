@@ -24,12 +24,12 @@ export class ILidoV1AdapterExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ILidoV1AdapterExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as ILidoV1AdapterExceptions;
   }
 }

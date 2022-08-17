@@ -390,7 +390,7 @@ type LPPriceFeedMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: LPPriceFeedMockConstructorParams
+  xs: LPPriceFeedMockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class LPPriceFeedMock__factory extends ContractFactory {
@@ -406,26 +406,26 @@ export class LPPriceFeedMock__factory extends ContractFactory {
     addressProvider: string,
     range: BigNumberish,
     descrition: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<LPPriceFeedMock> {
     return super.deploy(
       addressProvider,
       range,
       descrition,
-      overrides || {}
+      overrides || {},
     ) as Promise<LPPriceFeedMock>;
   }
   override getDeployTransaction(
     addressProvider: string,
     range: BigNumberish,
     descrition: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       addressProvider,
       range,
       descrition,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): LPPriceFeedMock {
@@ -442,7 +442,7 @@ export class LPPriceFeedMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): LPPriceFeedMock {
     return new Contract(address, _abi, signerOrProvider) as LPPriceFeedMock;
   }

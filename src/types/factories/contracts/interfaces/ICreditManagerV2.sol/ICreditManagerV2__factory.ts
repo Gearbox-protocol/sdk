@@ -921,7 +921,7 @@ export class ICreditManagerV2__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ICreditManagerV2 {
     return new Contract(address, _abi, signerOrProvider) as ICreditManagerV2;
   }

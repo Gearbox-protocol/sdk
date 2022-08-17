@@ -467,7 +467,7 @@ type ERC20MockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ERC20MockConstructorParams
+  xs: ERC20MockConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ERC20Mock__factory extends ContractFactory {
@@ -483,26 +483,26 @@ export class ERC20Mock__factory extends ContractFactory {
     name_: string,
     symbol_: string,
     decimals_: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ERC20Mock> {
     return super.deploy(
       name_,
       symbol_,
       decimals_,
-      overrides || {}
+      overrides || {},
     ) as Promise<ERC20Mock>;
   }
   override getDeployTransaction(
     name_: string,
     symbol_: string,
     decimals_: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       name_,
       symbol_,
       decimals_,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): ERC20Mock {
@@ -519,7 +519,7 @@ export class ERC20Mock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ERC20Mock {
     return new Contract(address, _abi, signerOrProvider) as ERC20Mock;
   }

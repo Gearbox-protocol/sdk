@@ -117,7 +117,7 @@ export class IMerkleDistributor__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IMerkleDistributor {
     return new Contract(address, _abi, signerOrProvider) as IMerkleDistributor;
   }

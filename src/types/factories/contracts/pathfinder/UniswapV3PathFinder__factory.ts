@@ -473,7 +473,7 @@ type UniswapV3PathFinderConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: UniswapV3PathFinderConstructorParams
+  xs: UniswapV3PathFinderConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class UniswapV3PathFinder__factory extends ContractFactory {
@@ -486,12 +486,12 @@ export class UniswapV3PathFinder__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<UniswapV3PathFinder> {
     return super.deploy(overrides || {}) as Promise<UniswapV3PathFinder>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -509,7 +509,7 @@ export class UniswapV3PathFinder__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): UniswapV3PathFinder {
     return new Contract(address, _abi, signerOrProvider) as UniswapV3PathFinder;
   }

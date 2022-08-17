@@ -88,17 +88,17 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       | "swapExactTokensForTokensSupportingFeeOnTransferTokens"
       | "swapTokensForExactETH"
       | "swapTokensForExactTokens"
-      | "targetContract"
+      | "targetContract",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "WETH", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "addLiquidity",
@@ -110,8 +110,8 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       BigNumberish,
       BigNumberish,
       string,
-      BigNumberish
-    ]
+      BigNumberish,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "addLiquidityETH",
@@ -121,37 +121,37 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       BigNumberish,
       BigNumberish,
       string,
-      BigNumberish
-    ]
+      BigNumberish,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getAmountIn",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "getAmountOut",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "getAmountsIn",
-    values: [BigNumberish, string[]]
+    values: [BigNumberish, string[]],
   ): string;
   encodeFunctionData(
     functionFragment: "getAmountsOut",
-    values: [BigNumberish, string[]]
+    values: [BigNumberish, string[]],
   ): string;
   encodeFunctionData(
     functionFragment: "quote",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidity",
@@ -162,8 +162,8 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       BigNumberish,
       BigNumberish,
       string,
-      BigNumberish
-    ]
+      BigNumberish,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityETH",
@@ -173,8 +173,8 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       BigNumberish,
       BigNumberish,
       string,
-      BigNumberish
-    ]
+      BigNumberish,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityETHSupportingFeeOnTransferTokens",
@@ -184,8 +184,8 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       BigNumberish,
       BigNumberish,
       string,
-      BigNumberish
-    ]
+      BigNumberish,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityETHWithPermit",
@@ -199,8 +199,8 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       boolean,
       BigNumberish,
       BytesLike,
-      BytesLike
-    ]
+      BytesLike,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens",
@@ -214,8 +214,8 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       boolean,
       BigNumberish,
       BytesLike,
-      BytesLike
-    ]
+      BytesLike,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityWithPermit",
@@ -230,164 +230,164 @@ export interface UniswapV2AdapterInterface extends utils.Interface {
       boolean,
       BigNumberish,
       BytesLike,
-      BytesLike
-    ]
+      BytesLike,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "swapAllTokensForTokens",
-    values: [BigNumberish, string[], BigNumberish]
+    values: [BigNumberish, string[], BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapETHForExactTokens",
-    values: [BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactETHForTokens",
-    values: [BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactETHForTokensSupportingFeeOnTransferTokens",
-    values: [BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForETH",
-    values: [BigNumberish, BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForETHSupportingFeeOnTransferTokens",
-    values: [BigNumberish, BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForTokens",
-    values: [BigNumberish, BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForTokensSupportingFeeOnTransferTokens",
-    values: [BigNumberish, BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapTokensForExactETH",
-    values: [BigNumberish, BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "swapTokensForExactTokens",
-    values: [BigNumberish, BigNumberish, string[], string, BigNumberish]
+    values: [BigNumberish, BigNumberish, string[], string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
-    values?: undefined
+    values?: undefined,
   ): string;
 
   decodeFunctionResult(functionFragment: "WETH", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterType",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "addLiquidity",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "addLiquidityETH",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getAmountIn",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getAmountOut",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getAmountsIn",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getAmountsOut",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "quote", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidity",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidityETH",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidityETHSupportingFeeOnTransferTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidityETHWithPermit",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidityWithPermit",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapAllTokensForTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapETHForExactTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapExactETHForTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapExactETHForTokensSupportingFeeOnTransferTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapExactTokensForETH",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapExactTokensForETHSupportingFeeOnTransferTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapExactTokensForTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapExactTokensForTokensSupportingFeeOnTransferTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapTokensForExactETH",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "swapTokensForExactTokens",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {};
@@ -403,15 +403,15 @@ export interface UniswapV2Adapter extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -435,7 +435,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg5: BigNumberish,
       arg6: string,
       arg7: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     addLiquidityETH(
@@ -445,7 +445,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
@@ -458,33 +458,33 @@ export interface UniswapV2Adapter extends BaseContract {
       amountOut: BigNumberish,
       reserveIn: BigNumberish,
       reserveOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { amountIn: BigNumber }>;
 
     getAmountOut(
       amountIn: BigNumberish,
       reserveIn: BigNumberish,
       reserveOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { amountOut: BigNumber }>;
 
     getAmountsIn(
       amountOut: BigNumberish,
       path: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     getAmountsOut(
       amountIn: BigNumberish,
       path: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     quote(
       amountA: BigNumberish,
       reserveA: BigNumberish,
       reserveB: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { amountB: BigNumber }>;
 
     removeLiquidity(
@@ -495,7 +495,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg4: BigNumberish,
       arg5: string,
       arg6: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber]>;
 
     removeLiquidityETH(
@@ -505,7 +505,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber]>;
 
     removeLiquidityETHSupportingFeeOnTransferTokens(
@@ -515,7 +515,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     removeLiquidityETHWithPermit(
@@ -529,7 +529,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg7: BigNumberish,
       arg8: BytesLike,
       arg9: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber]>;
 
     removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
@@ -543,7 +543,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg7: BigNumberish,
       arg8: BytesLike,
       arg9: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     removeLiquidityWithPermit(
@@ -558,14 +558,14 @@ export interface UniswapV2Adapter extends BaseContract {
       arg8: BigNumberish,
       arg9: BytesLike,
       arg10: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber]>;
 
     swapAllTokensForTokens(
       rateMinRAY: BigNumberish,
       path: string[],
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     swapETHForExactTokens(
@@ -573,7 +573,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     swapExactETHForTokens(
@@ -581,7 +581,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -589,7 +589,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     swapExactTokensForETH(
@@ -598,7 +598,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber[]]>;
 
     swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -607,7 +607,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[void]>;
 
     swapExactTokensForTokens(
@@ -616,7 +616,7 @@ export interface UniswapV2Adapter extends BaseContract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -625,7 +625,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[void]>;
 
     swapTokensForExactETH(
@@ -634,7 +634,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber[]]>;
 
     swapTokensForExactTokens(
@@ -643,7 +643,7 @@ export interface UniswapV2Adapter extends BaseContract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     targetContract(overrides?: CallOverrides): Promise<[string]>;
@@ -664,7 +664,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg5: BigNumberish,
     arg6: string,
     arg7: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   addLiquidityETH(
@@ -674,7 +674,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg3: BigNumberish,
     arg4: string,
     arg5: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   creditFacade(overrides?: CallOverrides): Promise<string>;
@@ -687,33 +687,33 @@ export interface UniswapV2Adapter extends BaseContract {
     amountOut: BigNumberish,
     reserveIn: BigNumberish,
     reserveOut: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   getAmountOut(
     amountIn: BigNumberish,
     reserveIn: BigNumberish,
     reserveOut: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   getAmountsIn(
     amountOut: BigNumberish,
     path: string[],
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber[]>;
 
   getAmountsOut(
     amountIn: BigNumberish,
     path: string[],
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber[]>;
 
   quote(
     amountA: BigNumberish,
     reserveA: BigNumberish,
     reserveB: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   removeLiquidity(
@@ -724,7 +724,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg4: BigNumberish,
     arg5: string,
     arg6: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<[BigNumber, BigNumber]>;
 
   removeLiquidityETH(
@@ -734,7 +734,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg3: BigNumberish,
     arg4: string,
     arg5: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<[BigNumber, BigNumber]>;
 
   removeLiquidityETHSupportingFeeOnTransferTokens(
@@ -744,7 +744,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg3: BigNumberish,
     arg4: string,
     arg5: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   removeLiquidityETHWithPermit(
@@ -758,7 +758,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg7: BigNumberish,
     arg8: BytesLike,
     arg9: BytesLike,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<[BigNumber, BigNumber]>;
 
   removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
@@ -772,7 +772,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg7: BigNumberish,
     arg8: BytesLike,
     arg9: BytesLike,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   removeLiquidityWithPermit(
@@ -787,14 +787,14 @@ export interface UniswapV2Adapter extends BaseContract {
     arg8: BigNumberish,
     arg9: BytesLike,
     arg10: BytesLike,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<[BigNumber, BigNumber]>;
 
   swapAllTokensForTokens(
     rateMinRAY: BigNumberish,
     path: string[],
     deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   swapETHForExactTokens(
@@ -802,7 +802,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg1: string[],
     arg2: string,
     arg3: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   swapExactETHForTokens(
@@ -810,7 +810,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg1: string[],
     arg2: string,
     arg3: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -818,7 +818,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg1: string[],
     arg2: string,
     arg3: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   swapExactTokensForETH(
@@ -827,7 +827,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg2: string[],
     arg3: string,
     arg4: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber[]>;
 
   swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -836,7 +836,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg2: string[],
     arg3: string,
     arg4: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<void>;
 
   swapExactTokensForTokens(
@@ -845,7 +845,7 @@ export interface UniswapV2Adapter extends BaseContract {
     path: string[],
     arg3: string,
     deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -854,7 +854,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg2: string[],
     arg3: string,
     arg4: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<void>;
 
   swapTokensForExactETH(
@@ -863,7 +863,7 @@ export interface UniswapV2Adapter extends BaseContract {
     arg2: string[],
     arg3: string,
     arg4: BigNumberish,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber[]>;
 
   swapTokensForExactTokens(
@@ -872,7 +872,7 @@ export interface UniswapV2Adapter extends BaseContract {
     path: string[],
     arg3: string,
     deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   targetContract(overrides?: CallOverrides): Promise<string>;
@@ -893,7 +893,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg5: BigNumberish,
       arg6: string,
       arg7: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     addLiquidityETH(
@@ -903,7 +903,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     creditFacade(overrides?: CallOverrides): Promise<string>;
@@ -916,33 +916,33 @@ export interface UniswapV2Adapter extends BaseContract {
       amountOut: BigNumberish,
       reserveIn: BigNumberish,
       reserveOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getAmountOut(
       amountIn: BigNumberish,
       reserveIn: BigNumberish,
       reserveOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getAmountsIn(
       amountOut: BigNumberish,
       path: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     getAmountsOut(
       amountIn: BigNumberish,
       path: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     quote(
       amountA: BigNumberish,
       reserveA: BigNumberish,
       reserveB: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidity(
@@ -953,7 +953,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg4: BigNumberish,
       arg5: string,
       arg6: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber]>;
 
     removeLiquidityETH(
@@ -963,7 +963,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber]>;
 
     removeLiquidityETHSupportingFeeOnTransferTokens(
@@ -973,7 +973,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidityETHWithPermit(
@@ -987,7 +987,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg7: BigNumberish,
       arg8: BytesLike,
       arg9: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber]>;
 
     removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
@@ -1001,7 +1001,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg7: BigNumberish,
       arg8: BytesLike,
       arg9: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidityWithPermit(
@@ -1016,14 +1016,14 @@ export interface UniswapV2Adapter extends BaseContract {
       arg8: BigNumberish,
       arg9: BytesLike,
       arg10: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber]>;
 
     swapAllTokensForTokens(
       rateMinRAY: BigNumberish,
       path: string[],
       deadline: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapETHForExactTokens(
@@ -1031,7 +1031,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapExactETHForTokens(
@@ -1039,7 +1039,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -1047,7 +1047,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     swapExactTokensForETH(
@@ -1056,7 +1056,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -1065,7 +1065,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     swapExactTokensForTokens(
@@ -1074,7 +1074,7 @@ export interface UniswapV2Adapter extends BaseContract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -1083,7 +1083,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     swapTokensForExactETH(
@@ -1092,7 +1092,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapTokensForExactTokens(
@@ -1101,7 +1101,7 @@ export interface UniswapV2Adapter extends BaseContract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     targetContract(overrides?: CallOverrides): Promise<string>;
@@ -1125,7 +1125,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg5: BigNumberish,
       arg6: string,
       arg7: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     addLiquidityETH(
@@ -1135,7 +1135,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1148,33 +1148,33 @@ export interface UniswapV2Adapter extends BaseContract {
       amountOut: BigNumberish,
       reserveIn: BigNumberish,
       reserveOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getAmountOut(
       amountIn: BigNumberish,
       reserveIn: BigNumberish,
       reserveOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getAmountsIn(
       amountOut: BigNumberish,
       path: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getAmountsOut(
       amountIn: BigNumberish,
       path: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     quote(
       amountA: BigNumberish,
       reserveA: BigNumberish,
       reserveB: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidity(
@@ -1185,7 +1185,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg4: BigNumberish,
       arg5: string,
       arg6: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidityETH(
@@ -1195,7 +1195,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidityETHSupportingFeeOnTransferTokens(
@@ -1205,7 +1205,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidityETHWithPermit(
@@ -1219,7 +1219,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg7: BigNumberish,
       arg8: BytesLike,
       arg9: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
@@ -1233,7 +1233,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg7: BigNumberish,
       arg8: BytesLike,
       arg9: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     removeLiquidityWithPermit(
@@ -1248,14 +1248,14 @@ export interface UniswapV2Adapter extends BaseContract {
       arg8: BigNumberish,
       arg9: BytesLike,
       arg10: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     swapAllTokensForTokens(
       rateMinRAY: BigNumberish,
       path: string[],
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     swapETHForExactTokens(
@@ -1263,7 +1263,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     swapExactETHForTokens(
@@ -1271,7 +1271,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -1279,7 +1279,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     swapExactTokensForETH(
@@ -1288,7 +1288,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -1297,7 +1297,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     swapExactTokensForTokens(
@@ -1306,7 +1306,7 @@ export interface UniswapV2Adapter extends BaseContract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -1315,7 +1315,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     swapTokensForExactETH(
@@ -1324,7 +1324,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     swapTokensForExactTokens(
@@ -1333,7 +1333,7 @@ export interface UniswapV2Adapter extends BaseContract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     targetContract(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1343,11 +1343,11 @@ export interface UniswapV2Adapter extends BaseContract {
     WETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     _gearboxAdapterType(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     _gearboxAdapterVersion(
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     addLiquidity(
@@ -1359,7 +1359,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg5: BigNumberish,
       arg6: string,
       arg7: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     addLiquidityETH(
@@ -1369,7 +1369,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1382,33 +1382,33 @@ export interface UniswapV2Adapter extends BaseContract {
       amountOut: BigNumberish,
       reserveIn: BigNumberish,
       reserveOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     getAmountOut(
       amountIn: BigNumberish,
       reserveIn: BigNumberish,
       reserveOut: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     getAmountsIn(
       amountOut: BigNumberish,
       path: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     getAmountsOut(
       amountIn: BigNumberish,
       path: string[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     quote(
       amountA: BigNumberish,
       reserveA: BigNumberish,
       reserveB: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     removeLiquidity(
@@ -1419,7 +1419,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg4: BigNumberish,
       arg5: string,
       arg6: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityETH(
@@ -1429,7 +1429,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityETHSupportingFeeOnTransferTokens(
@@ -1439,7 +1439,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg3: BigNumberish,
       arg4: string,
       arg5: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityETHWithPermit(
@@ -1453,7 +1453,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg7: BigNumberish,
       arg8: BytesLike,
       arg9: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
@@ -1467,7 +1467,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg7: BigNumberish,
       arg8: BytesLike,
       arg9: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityWithPermit(
@@ -1482,14 +1482,14 @@ export interface UniswapV2Adapter extends BaseContract {
       arg8: BigNumberish,
       arg9: BytesLike,
       arg10: BytesLike,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     swapAllTokensForTokens(
       rateMinRAY: BigNumberish,
       path: string[],
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     swapETHForExactTokens(
@@ -1497,7 +1497,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     swapExactETHForTokens(
@@ -1505,7 +1505,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -1513,7 +1513,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg1: string[],
       arg2: string,
       arg3: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     swapExactTokensForETH(
@@ -1522,7 +1522,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -1531,7 +1531,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     swapExactTokensForTokens(
@@ -1540,7 +1540,7 @@ export interface UniswapV2Adapter extends BaseContract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -1549,7 +1549,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     swapTokensForExactETH(
@@ -1558,7 +1558,7 @@ export interface UniswapV2Adapter extends BaseContract {
       arg2: string[],
       arg3: string,
       arg4: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     swapTokensForExactTokens(
@@ -1567,7 +1567,7 @@ export interface UniswapV2Adapter extends BaseContract {
       path: string[],
       arg3: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;

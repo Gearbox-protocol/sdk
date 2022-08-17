@@ -1,6 +1,6 @@
-import { keyToLowercase } from "../utils/mappers";
 import { shortAddress } from "../utils/formatter";
-import { contractsByAddress, contractParams } from "./contracts";
+import { keyToLowercase } from "../utils/mappers";
+import { contractParams, contractsByAddress } from "./contracts";
 
 export const deployedContracts: Record<string, string> = {
   // MAINNET

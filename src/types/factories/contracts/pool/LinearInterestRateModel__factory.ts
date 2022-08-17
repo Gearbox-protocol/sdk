@@ -182,7 +182,7 @@ type LinearInterestRateModelConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: LinearInterestRateModelConstructorParams
+  xs: LinearInterestRateModelConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class LinearInterestRateModel__factory extends ContractFactory {
@@ -199,14 +199,14 @@ export class LinearInterestRateModel__factory extends ContractFactory {
     R_base: BigNumberish,
     R_slope1: BigNumberish,
     R_slope2: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<LinearInterestRateModel> {
     return super.deploy(
       U_optimal,
       R_base,
       R_slope1,
       R_slope2,
-      overrides || {}
+      overrides || {},
     ) as Promise<LinearInterestRateModel>;
   }
   override getDeployTransaction(
@@ -214,14 +214,14 @@ export class LinearInterestRateModel__factory extends ContractFactory {
     R_base: BigNumberish,
     R_slope1: BigNumberish,
     R_slope2: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       U_optimal,
       R_base,
       R_slope1,
       R_slope2,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): LinearInterestRateModel {
@@ -238,12 +238,12 @@ export class LinearInterestRateModel__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): LinearInterestRateModel {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as LinearInterestRateModel;
   }
 }

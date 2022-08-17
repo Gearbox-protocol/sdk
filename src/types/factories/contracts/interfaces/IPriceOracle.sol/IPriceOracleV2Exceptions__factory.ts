@@ -34,12 +34,12 @@ export class IPriceOracleV2Exceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IPriceOracleV2Exceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IPriceOracleV2Exceptions;
   }
 }

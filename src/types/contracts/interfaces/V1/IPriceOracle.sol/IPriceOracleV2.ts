@@ -34,30 +34,30 @@ export interface IPriceOracleV2Interface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "addPriceFeed" | "convert" | "getLastPrice"
+    nameOrSignatureOrTopic: "addPriceFeed" | "convert" | "getLastPrice",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addPriceFeed",
-    values: [string, string]
+    values: [string, string],
   ): string;
   encodeFunctionData(
     functionFragment: "convert",
-    values: [BigNumberish, string, string]
+    values: [BigNumberish, string, string],
   ): string;
   encodeFunctionData(
     functionFragment: "getLastPrice",
-    values: [string, string]
+    values: [string, string],
   ): string;
 
   decodeFunctionResult(
     functionFragment: "addPriceFeed",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "convert", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLastPrice",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
 
   events: {
@@ -88,15 +88,15 @@ export interface IPriceOracleV2 extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -108,71 +108,71 @@ export interface IPriceOracleV2 extends BaseContract {
     addPriceFeed(
       token: string,
       priceFeedToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     convert(
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     getLastPrice(
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
   };
 
   addPriceFeed(
     token: string,
     priceFeedToken: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   convert(
     amount: BigNumberish,
     tokenFrom: string,
     tokenTo: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   getLastPrice(
     tokenFrom: string,
     tokenTo: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   callStatic: {
     addPriceFeed(
       token: string,
       priceFeedToken: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     convert(
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getLastPrice(
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
   };
 
   filters: {
     "NewPriceFeed(address,address)"(
       token?: string | null,
-      priceFeed?: string | null
+      priceFeed?: string | null,
     ): NewPriceFeedEventFilter;
     NewPriceFeed(
       token?: string | null,
-      priceFeed?: string | null
+      priceFeed?: string | null,
     ): NewPriceFeedEventFilter;
   };
 
@@ -180,20 +180,20 @@ export interface IPriceOracleV2 extends BaseContract {
     addPriceFeed(
       token: string,
       priceFeedToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     convert(
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     getLastPrice(
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
   };
 
@@ -201,20 +201,20 @@ export interface IPriceOracleV2 extends BaseContract {
     addPriceFeed(
       token: string,
       priceFeedToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     convert(
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     getLastPrice(
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
   };
 }

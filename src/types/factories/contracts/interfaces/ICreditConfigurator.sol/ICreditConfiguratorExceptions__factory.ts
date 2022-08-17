@@ -79,12 +79,12 @@ export class ICreditConfiguratorExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): ICreditConfiguratorExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as ICreditConfiguratorExceptions;
   }
 }

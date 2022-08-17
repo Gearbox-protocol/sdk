@@ -182,7 +182,7 @@ type UniversalAdapterConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: UniversalAdapterConstructorParams
+  xs: UniversalAdapterConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class UniversalAdapter__factory extends ContractFactory {
@@ -196,16 +196,16 @@ export class UniversalAdapter__factory extends ContractFactory {
 
   override deploy(
     _creditManager: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<UniversalAdapter> {
     return super.deploy(
       _creditManager,
-      overrides || {}
+      overrides || {},
     ) as Promise<UniversalAdapter>;
   }
   override getDeployTransaction(
     _creditManager: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_creditManager, overrides || {});
   }
@@ -223,7 +223,7 @@ export class UniversalAdapter__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): UniversalAdapter {
     return new Contract(address, _abi, signerOrProvider) as UniversalAdapter;
   }

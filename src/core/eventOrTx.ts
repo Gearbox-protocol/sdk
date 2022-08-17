@@ -2,7 +2,7 @@ import { TokenData } from "../tokens/tokenData";
 import type { TxSerialized } from "./transactions";
 
 export interface Display {
-  toString(tokenData: Record<string, TokenData>): string;
+  toString: (tokenData: Record<string, TokenData>) => string;
 }
 
 export type TxStatus = "pending" | "success" | "reverted";

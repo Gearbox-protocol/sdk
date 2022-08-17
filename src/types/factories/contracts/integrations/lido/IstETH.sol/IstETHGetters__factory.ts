@@ -337,7 +337,7 @@ export class IstETHGetters__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IstETHGetters {
     return new Contract(address, _abi, signerOrProvider) as IstETHGetters;
   }

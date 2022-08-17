@@ -1,4 +1,5 @@
 import { NetworkType } from "src/core/constants";
+
 import { SupportedToken } from "../tokens/token";
 
 export interface PriceFeed {
@@ -41,7 +42,7 @@ export type PriceFeedData =
       curveSymbol: SupportedToken;
     };
 
-export type TokenPriceFeedData = {
+export interface TokenPriceFeedData {
   priceFeedETH?: PriceFeedData;
   priceFeedUSD?: PriceFeedData;
-};
+}

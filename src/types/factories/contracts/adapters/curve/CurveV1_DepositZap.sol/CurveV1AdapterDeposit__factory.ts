@@ -931,7 +931,7 @@ type CurveV1AdapterDepositConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveV1AdapterDepositConstructorParams
+  xs: CurveV1AdapterDepositConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveV1AdapterDeposit__factory extends ContractFactory {
@@ -948,14 +948,14 @@ export class CurveV1AdapterDeposit__factory extends ContractFactory {
     _curveDeposit: string,
     _lp_token: string,
     _nCoins: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<CurveV1AdapterDeposit> {
     return super.deploy(
       _creditManager,
       _curveDeposit,
       _lp_token,
       _nCoins,
-      overrides || {}
+      overrides || {},
     ) as Promise<CurveV1AdapterDeposit>;
   }
   override getDeployTransaction(
@@ -963,14 +963,14 @@ export class CurveV1AdapterDeposit__factory extends ContractFactory {
     _curveDeposit: string,
     _lp_token: string,
     _nCoins: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(
       _creditManager,
       _curveDeposit,
       _lp_token,
       _nCoins,
-      overrides || {}
+      overrides || {},
     );
   }
   override attach(address: string): CurveV1AdapterDeposit {
@@ -987,12 +987,12 @@ export class CurveV1AdapterDeposit__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): CurveV1AdapterDeposit {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as CurveV1AdapterDeposit;
   }
 }

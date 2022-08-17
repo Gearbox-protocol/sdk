@@ -285,7 +285,7 @@ type LidoV1GatewayConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: LidoV1GatewayConstructorParams
+  xs: LidoV1GatewayConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class LidoV1Gateway__factory extends ContractFactory {
@@ -300,18 +300,18 @@ export class LidoV1Gateway__factory extends ContractFactory {
   override deploy(
     _weth: string,
     _stETH: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<LidoV1Gateway> {
     return super.deploy(
       _weth,
       _stETH,
-      overrides || {}
+      overrides || {},
     ) as Promise<LidoV1Gateway>;
   }
   override getDeployTransaction(
     _weth: string,
     _stETH: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(_weth, _stETH, overrides || {});
   }
@@ -329,7 +329,7 @@ export class LidoV1Gateway__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): LidoV1Gateway {
     return new Contract(address, _abi, signerOrProvider) as LidoV1Gateway;
   }
