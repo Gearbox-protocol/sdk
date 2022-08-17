@@ -13,13 +13,13 @@ export class LidoCalls {
   public static submit(amount: BigNumberish) {
     return LidoV1Adapter__factory.createInterface().encodeFunctionData(
       "submit",
-      [amount]
+      [amount],
     );
   }
 
   public static submitAll() {
     return LidoV1Adapter__factory.createInterface().encodeFunctionData(
-      "submitAll"
+      "submitAll",
     );
   }
 }
@@ -38,14 +38,14 @@ export class LidoMulticaller {
   submit(amount: BigNumberish): MultiCallStruct {
     return {
       target: this._address,
-      callData: LidoCalls.submit(amount)
+      callData: LidoCalls.submit(amount),
     };
   }
 
   submitAll(): MultiCallStruct {
     return {
       target: this._address,
-      callData: LidoCalls.submitAll()
+      callData: LidoCalls.submitAll(),
     };
   }
 }
@@ -54,7 +54,7 @@ export class LidoStrategies {
   static mintSteth(
     data: CreditManagerData,
     network: NetworkType,
-    underlyingAmount: BigNumberish
+    underlyingAmount: BigNumberish,
   ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
 
@@ -64,14 +64,14 @@ export class LidoStrategies {
         UniswapV2Multicaller.connect(
           data.adapters[
             contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-          ]
+          ],
         ).swapExactTokensForTokens(
           underlyingAmount,
           0,
           [data.underlyingToken, tokenDataByNetwork[network].WETH],
           ADDRESS_0X0,
-          Math.floor(new Date().getTime() / 1000) + 3600
-        )
+          Math.floor(new Date().getTime() / 1000) + 3600,
+        ),
       );
     }
 
@@ -79,8 +79,8 @@ export class LidoStrategies {
       LidoMulticaller.connect(
         data.adapters[
           contractsByNetwork[network].LIDO_STETH_GATEWAY.toLowerCase()
-        ]
-      ).submitAll()
+        ],
+      ).submitAll(),
     );
 
     return calls;

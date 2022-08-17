@@ -3,7 +3,7 @@ import {
   contractParams,
   contractsByNetwork,
   CurveParams,
-  CurvePoolContract
+  CurvePoolContract,
 } from "../contracts/contracts";
 import { ADDRESS_0X0, NetworkType } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
@@ -13,7 +13,7 @@ import {
   CurveV1AdapterBase__factory,
   CurveV1Adapter2Assets__factory,
   CurveV1Adapter3Assets__factory,
-  CurveV1Adapter4Assets__factory
+  CurveV1Adapter4Assets__factory,
 } from "../types";
 
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
@@ -24,22 +24,22 @@ export class CurveCalls {
     i: BigNumberish,
     j: BigNumberish,
     dx: BigNumberish,
-    min_dy: BigNumberish
+    min_dy: BigNumberish,
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "exchange",
-      [i, j, dx, min_dy]
+      [i, j, dx, min_dy],
     );
   }
 
   public static exchange_all(
     i: BigNumberish,
     j: BigNumberish,
-    rateMinRAY: BigNumberish
+    rateMinRAY: BigNumberish,
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "exchange_all",
-      [i, j, rateMinRAY]
+      [i, j, rateMinRAY],
     );
   }
 
@@ -47,64 +47,64 @@ export class CurveCalls {
     i: BigNumberish,
     j: BigNumberish,
     dx: BigNumberish,
-    min_dy: BigNumberish
+    min_dy: BigNumberish,
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "exchange_underlying",
-      [i, j, dx, min_dy]
+      [i, j, dx, min_dy],
     );
   }
 
   public static exchange_all_underlying(
     i: BigNumberish,
     j: BigNumberish,
-    rateMinRAY: BigNumberish
+    rateMinRAY: BigNumberish,
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "exchange_all_underlying",
-      [i, j, rateMinRAY]
+      [i, j, rateMinRAY],
     );
   }
 
   public static add_liquidity_one_coin(
     amount: BigNumberish,
     i: BigNumberish,
-    minAmount: BigNumberish
+    minAmount: BigNumberish,
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "add_liquidity_one_coin",
-      [amount, i, minAmount]
+      [amount, i, minAmount],
     );
   }
 
   public static add_all_liquidity_one_coin(
     i: BigNumberish,
-    rateMinRAY: BigNumberish
+    rateMinRAY: BigNumberish,
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "add_all_liquidity_one_coin",
-      [i, rateMinRAY]
+      [i, rateMinRAY],
     );
   }
 
   public static remove_liquidity_one_coin(
     token_amount: BigNumberish,
     i: BigNumberish,
-    min_amount: BigNumberish
+    min_amount: BigNumberish,
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "remove_liquidity_one_coin",
-      [token_amount, i, min_amount]
+      [token_amount, i, min_amount],
     );
   }
 
   public static remove_all_liquidity_one_coin(
     i: BigNumberish,
-    minRateRAY: BigNumberish
+    minRateRAY: BigNumberish,
   ) {
     return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
       "remove_all_liquidity_one_coin",
-      [i, minRateRAY]
+      [i, minRateRAY],
     );
   }
 
@@ -113,23 +113,23 @@ export class CurveCalls {
       | [BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish, BigNumberish],
-    min_mint_amount: BigNumberish
+    min_mint_amount: BigNumberish,
   ): string {
     switch (amounts.length) {
       case 2:
         return CurveV1Adapter2Assets__factory.createInterface().encodeFunctionData(
           "add_liquidity",
-          [amounts, min_mint_amount]
+          [amounts, min_mint_amount],
         );
       case 3:
         return CurveV1Adapter3Assets__factory.createInterface().encodeFunctionData(
           "add_liquidity",
-          [amounts, min_mint_amount]
+          [amounts, min_mint_amount],
         );
       case 4:
         return CurveV1Adapter4Assets__factory.createInterface().encodeFunctionData(
           "add_liquidity",
-          [amounts, min_mint_amount]
+          [amounts, min_mint_amount],
         );
       default:
         throw new Error("Wrong calls number: add_liquidity");
@@ -141,23 +141,23 @@ export class CurveCalls {
     min_amounts:
       | [BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish]
-      | [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+      | [BigNumberish, BigNumberish, BigNumberish, BigNumberish],
   ) {
     switch (min_amounts.length) {
       case 2:
         return CurveV1Adapter2Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity",
-          [amount, min_amounts]
+          [amount, min_amounts],
         );
       case 3:
         return CurveV1Adapter3Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity",
-          [amount, min_amounts]
+          [amount, min_amounts],
         );
       case 4:
         return CurveV1Adapter4Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity",
-          [amount, min_amounts]
+          [amount, min_amounts],
         );
       default:
         throw new Error("Wrong calls number: remove_liquidity");
@@ -169,23 +169,23 @@ export class CurveCalls {
       | [BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish, BigNumberish],
-    max_burn_amount: BigNumberish
+    max_burn_amount: BigNumberish,
   ) {
     switch (amounts.length) {
       case 2:
         return CurveV1Adapter2Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity_imbalance",
-          [amounts, max_burn_amount]
+          [amounts, max_burn_amount],
         );
       case 3:
         return CurveV1Adapter3Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity_imbalance",
-          [amounts, max_burn_amount]
+          [amounts, max_burn_amount],
         );
       case 4:
         return CurveV1Adapter4Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity_imbalance",
-          [amounts, max_burn_amount]
+          [amounts, max_burn_amount],
         );
       default:
         throw new Error("Wrong calls number: remove_liquidity_imbalance");
@@ -208,22 +208,22 @@ export class CurveMulticaller {
     i: BigNumberish,
     j: BigNumberish,
     dx: BigNumberish,
-    min_dy: BigNumberish
+    min_dy: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.exchange(i, j, dx, min_dy)
+      callData: CurveCalls.exchange(i, j, dx, min_dy),
     };
   }
 
   exchange_all(
     i: BigNumberish,
     j: BigNumberish,
-    rateMinRAY: BigNumberish
+    rateMinRAY: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.exchange_all(i, j, rateMinRAY)
+      callData: CurveCalls.exchange_all(i, j, rateMinRAY),
     };
   }
 
@@ -231,65 +231,65 @@ export class CurveMulticaller {
     i: BigNumberish,
     j: BigNumberish,
     dx: BigNumberish,
-    min_dy: BigNumberish
+    min_dy: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.exchange_underlying(i, j, dx, min_dy)
+      callData: CurveCalls.exchange_underlying(i, j, dx, min_dy),
     };
   }
 
   exchange_all_underlying(
     i: BigNumberish,
     j: BigNumberish,
-    rateMinRAY: BigNumberish
+    rateMinRAY: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.exchange_all_underlying(i, j, rateMinRAY)
+      callData: CurveCalls.exchange_all_underlying(i, j, rateMinRAY),
     };
   }
 
   add_liquidity_one_coin(
     amount: BigNumberish,
     i: BigNumberish,
-    minAmount: BigNumberish
+    minAmount: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.add_liquidity_one_coin(amount, i, minAmount)
+      callData: CurveCalls.add_liquidity_one_coin(amount, i, minAmount),
     };
   }
 
   add_all_liquidity_one_coin(
     i: BigNumberish,
-    rateMinRAY: BigNumberish
+    rateMinRAY: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.add_all_liquidity_one_coin(i, rateMinRAY)
+      callData: CurveCalls.add_all_liquidity_one_coin(i, rateMinRAY),
     };
   }
 
   remove_liquidity_one_coin(
     token_amount: BigNumberish,
     i: BigNumberish,
-    min_amount: BigNumberish
+    min_amount: BigNumberish,
   ) {
     return {
       target: this._address,
       callData: CurveCalls.remove_liquidity_one_coin(
         token_amount,
         i,
-        min_amount
-      )
+        min_amount,
+      ),
     };
   }
 
   remove_all_liquidity_one_coin(i: BigNumberish, minRateRAY: BigNumberish) {
     return {
       target: this._address,
-      callData: CurveCalls.remove_all_liquidity_one_coin(i, minRateRAY)
+      callData: CurveCalls.remove_all_liquidity_one_coin(i, minRateRAY),
     };
   }
 
@@ -298,11 +298,11 @@ export class CurveMulticaller {
       | [BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish, BigNumberish],
-    min_mint_amount: BigNumberish
+    min_mint_amount: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.add_liquidity(amounts, min_mint_amount)
+      callData: CurveCalls.add_liquidity(amounts, min_mint_amount),
     };
   }
 
@@ -311,11 +311,11 @@ export class CurveMulticaller {
     min_amounts:
       | [BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish]
-      | [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+      | [BigNumberish, BigNumberish, BigNumberish, BigNumberish],
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.remove_liquidity(amount, min_amounts)
+      callData: CurveCalls.remove_liquidity(amount, min_amounts),
     };
   }
 
@@ -324,11 +324,11 @@ export class CurveMulticaller {
       | [BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish]
       | [BigNumberish, BigNumberish, BigNumberish, BigNumberish],
-    max_burn_amount: BigNumberish
+    max_burn_amount: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CurveCalls.remove_liquidity_imbalance(amounts, max_burn_amount)
+      callData: CurveCalls.remove_liquidity_imbalance(amounts, max_burn_amount),
     };
   }
 }
@@ -338,7 +338,7 @@ export class CurveStrategies {
     data: CreditManagerData,
     network: NetworkType,
     curvePool: CurvePoolContract,
-    underlyingAmount: BigNumberish
+    underlyingAmount: BigNumberish,
   ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
@@ -352,23 +352,23 @@ export class CurveStrategies {
         UniswapV2Multicaller.connect(
           data.adapters[
             contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-          ]
+          ],
         ).swapExactTokensForTokens(
           underlyingAmount,
           0,
           [data.underlyingToken, tokenDataByNetwork[network][tokenToDeposit]],
           ADDRESS_0X0,
-          Math.floor(new Date().getTime() / 1000) + 3600
+          Math.floor(new Date().getTime() / 1000) + 3600,
         ),
         CurveMulticaller.connect(
-          data.adapters[contractsByNetwork[network][curvePool].toLowerCase()]
-        ).add_all_liquidity_one_coin(0, 0)
+          data.adapters[contractsByNetwork[network][curvePool].toLowerCase()],
+        ).add_all_liquidity_one_coin(0, 0),
       );
     } else {
       calls.push(
         CurveMulticaller.connect(
-          data.adapters[contractsByNetwork[network][curvePool].toLowerCase()]
-        ).add_liquidity_one_coin(underlyingAmount, 0, 0)
+          data.adapters[contractsByNetwork[network][curvePool].toLowerCase()],
+        ).add_liquidity_one_coin(underlyingAmount, 0, 0),
       );
     }
 
@@ -379,7 +379,7 @@ export class CurveStrategies {
     data: CreditManagerData,
     network: NetworkType,
     curvePool: CurvePoolContract,
-    curveLPAmount: BigNumberish
+    curveLPAmount: BigNumberish,
   ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
@@ -400,8 +400,8 @@ export class CurveStrategies {
       CurveMulticaller.connect(curveContractAddress).remove_liquidity_one_coin(
         curveLPAmount,
         0,
-        0
-      )
+        0,
+      ),
     );
 
     if (
@@ -412,15 +412,15 @@ export class CurveStrategies {
         UniswapV2Multicaller.connect(
           data.adapters[
             contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-          ]
+          ],
         ).swapAllTokensForTokens(
           0,
           [
             tokenDataByNetwork[network][curveParams.tokens[0]],
-            data.underlyingToken
+            data.underlyingToken,
           ],
-          Math.floor(new Date().getTime() / 1000) + 3600
-        )
+          Math.floor(new Date().getTime() / 1000) + 3600,
+        ),
       );
     }
 
@@ -430,7 +430,7 @@ export class CurveStrategies {
   static allCurveLPToUnderlying(
     data: CreditManagerData,
     network: NetworkType,
-    curvePool: CurvePoolContract
+    curvePool: CurvePoolContract,
   ): MultiCallStruct[] {
     const calls: Array<MultiCallStruct> = [];
     const curveParams = contractParams[curvePool] as CurveParams;
@@ -449,8 +449,8 @@ export class CurveStrategies {
 
     calls.push(
       CurveMulticaller.connect(
-        curveContractAddress
-      ).remove_all_liquidity_one_coin(0, 0)
+        curveContractAddress,
+      ).remove_all_liquidity_one_coin(0, 0),
     );
 
     if (
@@ -461,15 +461,15 @@ export class CurveStrategies {
         UniswapV2Multicaller.connect(
           data.adapters[
             contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-          ]
+          ],
         ).swapAllTokensForTokens(
           0,
           [
             tokenDataByNetwork[network][curveParams.tokens[0]],
-            data.underlyingToken
+            data.underlyingToken,
           ],
-          Math.floor(new Date().getTime() / 1000) + 3600
-        )
+          Math.floor(new Date().getTime() / 1000) + 3600,
+        ),
       );
     }
 

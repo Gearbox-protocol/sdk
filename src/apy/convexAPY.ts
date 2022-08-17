@@ -5,14 +5,14 @@ import {
   contractParams,
   contractsByNetwork,
   ConvexPoolContract,
-  ConvexPoolParams
+  ConvexPoolParams,
 } from "../contracts/contracts";
 import {
   NetworkType,
   PRICE_DECIMALS,
   SECONDS_PER_YEAR,
   WAD,
-  WAD_DECIMALS_POW
+  WAD_DECIMALS_POW,
 } from "../core/constants";
 import { ConvexPhantomTokenData } from "../tokens/convex";
 import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
@@ -23,7 +23,7 @@ import {
   IBaseRewardPool,
   IBaseRewardPool__factory,
   IConvexToken,
-  IConvexToken__factory
+  IConvexToken__factory,
 } from "../types";
 import { toBN } from "../utils/formatter";
 import { MCall, multicall } from "../utils/multicall";
@@ -33,7 +33,7 @@ export async function getConvexApy(
   pool: ConvexPoolContract,
   provider: providers.Provider,
   networkType: NetworkType,
-  getTokenPrice: (tokenAddress: string) => BigNumber
+  getTokenPrice: (tokenAddress: string) => BigNumber,
 ) {
   const tokenList = tokenDataByNetwork[networkType];
   const contractsList = contractsByNetwork[networkType];
@@ -52,7 +52,7 @@ export async function getConvexApy(
   const cvxAddress = tokenList.CVX;
 
   const extraPoolAddresses = poolParams.extraRewards.map(
-    d => d.poolAddress[networkType]
+    d => d.poolAddress[networkType],
   );
 
   const [basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra] =
@@ -61,7 +61,7 @@ export async function getConvexApy(
       swapPoolAddress,
       cvxAddress,
       extraPoolAddresses,
-      provider
+      provider,
     });
 
   const cvxPrice = getTokenPrice(tokenList.CVX);
@@ -90,12 +90,12 @@ export async function getConvexApy(
       const extraAPY = perYear.mul(extraPrice).div(PRICE_DECIMALS);
 
       return extraAPY;
-    })
+    }),
   );
 
   const extraAPYTotal = extraAPRs.reduce(
     (acc, apy) => acc.add(apy),
-    BigNumber.from(0)
+    BigNumber.from(0),
   );
 
   const baseApyRAY = await getCurveBaseApy(underlying);
@@ -140,42 +140,42 @@ async function getPoolData({
   swapPoolAddress,
   cvxAddress,
   extraPoolAddresses,
-  provider
+  provider,
 }: GetPoolDataProps) {
   const calls: [
     MCall<IBaseRewardPoolInterface>,
     MCall<IBaseRewardPoolInterface>,
     MCall<CurveV1AdapterStETHInterface>,
     MCall<IConvexTokenInterface>,
-    ...Array<MCall<IBaseRewardPoolInterface>>
+    ...Array<MCall<IBaseRewardPoolInterface>>,
   ] = [
     {
       address: basePoolAddress,
       interface: IBaseRewardPool__factory.createInterface(),
-      method: "rewardRate()"
+      method: "rewardRate()",
     },
     {
       address: basePoolAddress,
       interface: IBaseRewardPool__factory.createInterface(),
-      method: "totalSupply()"
+      method: "totalSupply()",
     },
     {
       address: swapPoolAddress,
       interface: CurveV1AdapterStETH__factory.createInterface(),
-      method: "get_virtual_price()"
+      method: "get_virtual_price()",
     },
     {
       address: cvxAddress,
       interface: IConvexToken__factory.createInterface(),
-      method: "totalSupply()"
+      method: "totalSupply()",
     },
     ...extraPoolAddresses.map(
       (extraPoolAddress): MCall<IBaseRewardPoolInterface> => ({
         address: extraPoolAddress,
         interface: IBaseRewardPool__factory.createInterface(),
-        method: "rewardRate()"
-      })
-    )
+        method: "rewardRate()",
+      }),
+    ),
   ];
 
   return multicall<
@@ -184,7 +184,7 @@ async function getPoolData({
       AwaitedRes<IBaseRewardPool["totalSupply"]>,
       AwaitedRes<CurveV1AdapterStETH["get_virtual_price"]>,
       AwaitedRes<IConvexToken["totalSupply"]>,
-      ...Array<AwaitedRes<IBaseRewardPool["rewardRate"]>>
+      ...Array<AwaitedRes<IBaseRewardPool["rewardRate"]>>,
     ]
   >(calls, provider);
 }
@@ -206,7 +206,7 @@ const curveLPTokenToPoolName: Record<CurveLPToken, string> = {
   gusd3CRV: "gusd",
   LUSD3CRV: "lusd",
   crvPlain3andSUSD: "susdv2",
-  steCRV: "steth"
+  steCRV: "steth",
 };
 
 const RESPONSE_DECIMALS = 100;
@@ -214,7 +214,7 @@ const RESPONSE_DECIMALS = 100;
 // https://www.convexfinance.com/api/curve-apys
 
 export async function getCurveBaseApy(
-  curveLPToken: CurveLPToken
+  curveLPToken: CurveLPToken,
 ): Promise<BigNumber> {
   const poolName = curveLPTokenToPoolName[curveLPToken];
 

@@ -10,11 +10,11 @@ export class UniswapV2Calls {
     amountOutMin: BigNumberish,
     path: Array<string>,
     to: string,
-    deadline: BigNumberish
+    deadline: BigNumberish,
   ) {
     return UniswapV2Adapter__factory.createInterface().encodeFunctionData(
       "swapExactTokensForTokens",
-      [amountIn, amountOutMin, path, to, deadline]
+      [amountIn, amountOutMin, path, to, deadline],
     );
   }
 
@@ -23,22 +23,22 @@ export class UniswapV2Calls {
     amountInMax: BigNumberish,
     path: Array<string>,
     to: string,
-    deadline: BigNumberish
+    deadline: BigNumberish,
   ) {
     return UniswapV2Adapter__factory.createInterface().encodeFunctionData(
       "swapTokensForExactTokens",
-      [amountOut, amountInMax, path, to, deadline]
+      [amountOut, amountInMax, path, to, deadline],
     );
   }
 
   public static swapAllTokensForTokens(
     rateMinRAY: BigNumberish,
     path: Array<string>,
-    deadline: BigNumberish
+    deadline: BigNumberish,
   ) {
     return UniswapV2Adapter__factory.createInterface().encodeFunctionData(
       "swapAllTokensForTokens",
-      [rateMinRAY, path, deadline]
+      [rateMinRAY, path, deadline],
     );
   }
 }
@@ -59,7 +59,7 @@ export class UniswapV2Multicaller {
     amountOutMin: BigNumberish,
     path: Array<string>,
     to: string,
-    deadline: BigNumberish
+    deadline: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
@@ -68,8 +68,8 @@ export class UniswapV2Multicaller {
         amountOutMin,
         path,
         to,
-        deadline
-      )
+        deadline,
+      ),
     };
   }
 
@@ -78,7 +78,7 @@ export class UniswapV2Multicaller {
     amountInMax: BigNumberish,
     path: Array<string>,
     to: string,
-    deadline: BigNumberish
+    deadline: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
@@ -87,23 +87,23 @@ export class UniswapV2Multicaller {
         amountInMax,
         path,
         to,
-        deadline
-      )
+        deadline,
+      ),
     };
   }
 
   swapAllTokensForTokens(
     rateMinRAY: BigNumberish,
     path: Array<string>,
-    deadline: BigNumberish
+    deadline: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
       callData: UniswapV2Calls.swapAllTokensForTokens(
         rateMinRAY,
         path,
-        deadline
-      )
+        deadline,
+      ),
     };
   }
 }

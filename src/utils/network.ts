@@ -4,12 +4,12 @@ import { ERC20__factory } from "../types";
 import { ADDRESS_0X0, NetworkType } from "../core/constants";
 
 export async function detectNetwork(
-  provider: ethers.providers.Provider
+  provider: ethers.providers.Provider,
 ): Promise<NetworkType> {
   try {
     const usdcMainnet = ERC20__factory.connect(
       tokenDataByNetwork.Mainnet.USDC,
-      provider
+      provider,
     );
     await usdcMainnet.balanceOf(ADDRESS_0X0);
     return "Mainnet";
@@ -17,7 +17,7 @@ export async function detectNetwork(
     try {
       const usdcMainnet = ERC20__factory.connect(
         tokenDataByNetwork.Kovan.USDC,
-        provider
+        provider,
       );
       await usdcMainnet.balanceOf(ADDRESS_0X0);
       return "Kovan";

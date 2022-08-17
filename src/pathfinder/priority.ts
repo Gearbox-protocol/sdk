@@ -10,5 +10,5 @@ export const priority: Record<TokenType, number> = {
   [TokenType.CONVEX_LP_TOKEN]: 5,
   [TokenType.YEARN_VAULT_OF_META_CURVE_LP]: 5,
   [TokenType.CONVEX_STAKED_PHANTOM_TOKEN]: 5,
-  [TokenType.DIESEL_LP_TOKEN]: 6
+  [TokenType.DIESEL_LP_TOKEN]: 6,
 };

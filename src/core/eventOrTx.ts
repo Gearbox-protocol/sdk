@@ -70,13 +70,13 @@ export abstract class EVMTx extends EventOrTx {
     txHash,
     block = 0,
     txStatus = "pending",
-    timestamp = 0
+    timestamp = 0,
   }: EVMTxProps) {
     super({
       block,
       txStatus,
       txHash,
-      timestamp
+      timestamp,
     });
     if (this.txStatus !== "pending" && this.block === 0) {
       throw new Error("Block not specified for non-pending tx");

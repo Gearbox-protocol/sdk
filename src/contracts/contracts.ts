@@ -8,7 +8,7 @@ import {
   keyToLowercase,
   objectEntries,
   swapKeyValue,
-  filterEmptyKeys
+  filterEmptyKeys,
 } from "../utils/mappers";
 import { AdapterInterface } from "./adapters";
 import { NetworkType } from "../core/constants";
@@ -92,7 +92,7 @@ export const contractsByNetwork: Record<
     CONVEX_CLAIM_ZAP: "0x92Cf9E5e4D1Dfbf7dA0d2BB3e884a68416a65070",
 
     // LIDO
-    LIDO_STETH_GATEWAY: "0x55045Eaae19d92680E02231e4Ce7bBEB4814ca64"
+    LIDO_STETH_GATEWAY: "0x55045Eaae19d92680E02231e4Ce7bBEB4814ca64",
   },
 
   ///
@@ -133,7 +133,7 @@ export const contractsByNetwork: Record<
     CONVEX_CLAIM_ZAP: "0x1330C2E5Cd8c333683aE511550f82d25918FFdd5",
 
     // LIDO
-    LIDO_STETH_GATEWAY: "0x7C1C4eC1f1510E3978a96a1d024D7689F05a7Ca1"
+    LIDO_STETH_GATEWAY: "0x7C1C4eC1f1510E3978a96a1d024D7689F05a7Ca1",
   },
   ///
   ///
@@ -173,8 +173,8 @@ export const contractsByNetwork: Record<
     CONVEX_CLAIM_ZAP: "0x186758879f2609536e0ea7d20C4cEBAcfE83a818",
 
     // LIDO
-    LIDO_STETH_GATEWAY: "TODO: DEPLOY ME"
-  }
+    LIDO_STETH_GATEWAY: "TODO: DEPLOY ME",
+  },
 };
 
 export const UNISWAP_V3_QUOTER = "0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6";
@@ -260,19 +260,19 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   UNISWAP_V2_ROUTER: {
     name: "Uniswap V2",
     protocol: Protocols.Uniswap,
-    type: AdapterInterface.UNISWAP_V2_ROUTER
+    type: AdapterInterface.UNISWAP_V2_ROUTER,
   },
   UNISWAP_V3_ROUTER: {
     name: "Uniswap V3",
     protocol: Protocols.Uniswap,
     quoter: UNISWAP_V3_QUOTER,
-    type: AdapterInterface.UNISWAP_V3_ROUTER
+    type: AdapterInterface.UNISWAP_V3_ROUTER,
   },
 
   SUSHISWAP_ROUTER: {
     name: "Sushiswap",
     protocol: Protocols.Sushiswap,
-    type: AdapterInterface.UNISWAP_V2_ROUTER
+    type: AdapterInterface.UNISWAP_V2_ROUTER,
   },
 
   CURVE_3CRV_POOL: {
@@ -280,7 +280,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "3Crv",
-    tokens: ["DAI", "USDC", "USDT"]
+    tokens: ["DAI", "USDC", "USDT"],
   },
   CURVE_STETH_GATEWAY: {
     name: "Curve stETH",
@@ -289,24 +289,24 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
       Kovan: "0xF5C73b58B70709e89aA1D322d48b0D0C71123cB4",
-      Goerli: "0x5200ff0ce8965Ac565DA4dE9D56CCAdAd995136c" // CURVE_STECRV_POOL
+      Goerli: "0x5200ff0ce8965Ac565DA4dE9D56CCAdAd995136c", // CURVE_STECRV_POOL
     },
     tokens: ["WETH", "STETH"],
-    lpToken: "steCRV"
+    lpToken: "steCRV",
   },
   CURVE_FRAX_POOL: {
     name: "Curve FRAX",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "FRAX3CRV",
-    tokens: ["FRAX", "3Crv"]
+    tokens: ["FRAX", "3Crv"],
   },
   CURVE_LUSD_POOL: {
     name: "Curve LUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "LUSD3CRV",
-    tokens: ["LUSD", "3Crv"]
+    tokens: ["LUSD", "3Crv"],
   },
   CURVE_SUSD_POOL: {
     name: "Curve SUSD",
@@ -314,7 +314,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_4ASSETS,
     lpToken: "crvPlain3andSUSD",
     tokens: ["DAI", "USDC", "USDT", "sUSD"],
-    wrapper: "CURVE_SUSD_DEPOSIT"
+    wrapper: "CURVE_SUSD_DEPOSIT",
   },
 
   CURVE_SUSD_DEPOSIT: {
@@ -322,7 +322,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_WRAPPER,
     lpToken: "crvPlain3andSUSD",
-    tokens: ["DAI", "USDC", "USDT", "sUSD"]
+    tokens: ["DAI", "USDC", "USDT", "sUSD"],
   },
 
   CURVE_GUSD_POOL: {
@@ -330,55 +330,55 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "gusd3CRV",
-    tokens: ["GUSD", "3Crv"]
+    tokens: ["GUSD", "3Crv"],
   },
 
   YEARN_DAI_VAULT: {
     name: "Yearn DAI",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2,
-    shareToken: "yvDAI"
+    shareToken: "yvDAI",
   },
   YEARN_USDC_VAULT: {
     name: "Yearn USDC",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2,
-    shareToken: "yvUSDC"
+    shareToken: "yvUSDC",
   },
   YEARN_WETH_VAULT: {
     name: "Yearn WETH",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2,
-    shareToken: "yvWETH"
+    shareToken: "yvWETH",
   },
   YEARN_WBTC_VAULT: {
     name: "Yearn WBTC",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2,
-    shareToken: "yvWBTC"
+    shareToken: "yvWBTC",
   },
   YEARN_CURVE_FRAX_VAULT: {
     name: "Yearn Curve FRAX",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2,
-    shareToken: "yvCurve_FRAX"
+    shareToken: "yvCurve_FRAX",
   },
   YEARN_CURVE_STETH_VAULT: {
     name: "Yearn Curve STETH",
     protocol: Protocols.Yearn,
     type: AdapterInterface.YEARN_V2,
-    shareToken: "yvCurve_stETH"
+    shareToken: "yvCurve_stETH",
   },
 
   CONVEX_BOOSTER: {
     name: "Convex BOOSTER",
     protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_BOOSTER
+    type: AdapterInterface.CONVEX_V1_BOOSTER,
   },
   CONVEX_CLAIM_ZAP: {
     name: "Convex ZAP",
     protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_CLAIM_ZAP
+    type: AdapterInterface.CONVEX_V1_CLAIM_ZAP,
   },
 
   CONVEX_3CRV_POOL: {
@@ -386,14 +386,14 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvx3Crv",
-    extraRewards: []
+    extraRewards: [],
   },
   CONVEX_GUSD_POOL: {
     name: "Convex GUSD",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxgusd3CRV",
-    extraRewards: []
+    extraRewards: [],
   },
   CONVEX_SUSD_POOL: {
     name: "Convex SUSD",
@@ -406,10 +406,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         poolAddress: {
           Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
           Kovan: "0x26a535146557FA58FA37e3078FEAc523b554939C",
-          Goerli: "0x9ebcfa7995e7A192a4538b39BaBC5D8D3bceCB26" // CONVEX_SUSD_POOL
-        }
-      }
-    ]
+          Goerli: "0x9ebcfa7995e7A192a4538b39BaBC5D8D3bceCB26", // CONVEX_SUSD_POOL
+        },
+      },
+    ],
   },
   CONVEX_STECRV_POOL: {
     name: "Convex STECRV",
@@ -422,10 +422,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         poolAddress: {
           Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
           Kovan: "0xd0B1CC3B4839363b1eC92F35eF45794CB07B1183",
-          Goerli: "0xe76FeE503dAdC275d0605D769dA0356B5C5aBD28"
-        }
-      }
-    ]
+          Goerli: "0xe76FeE503dAdC275d0605D769dA0356B5C5aBD28",
+        },
+      },
+    ],
   },
   CONVEX_FRAX3CRV_POOL: {
     name: "Convex FRAX3CRV",
@@ -438,10 +438,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         poolAddress: {
           Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
           Kovan: "0x89869c2e79FC6EFf51e714F1239D53702B5CDFCD",
-          Goerli: "0x232fEaC5da8829aA6433FAf164396a57d282DA53"
-        }
-      }
-    ]
+          Goerli: "0x232fEaC5da8829aA6433FAf164396a57d282DA53",
+        },
+      },
+    ],
   },
   CONVEX_LUSD3CRV_POOL: {
     name: "Convex LUSD3CRV",
@@ -454,10 +454,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         poolAddress: {
           Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
           Kovan: "",
-          Goerli: "0xf851A051bD0f987f774701580443d69a6e3B8fe4"
-        }
-      }
-    ]
+          Goerli: "0xf851A051bD0f987f774701580443d69a6e3B8fe4",
+        },
+      },
+    ],
   },
 
   LIDO_STETH_GATEWAY: {
@@ -467,10 +467,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     oracle: {
       Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
       Kovan: "0x65EBFF1D5C02418AaeCd0f953da518cF6a6c68A0",
-      Goerli: "0x426dcD4fa088D7b33797Da0002bF36a669B398D5" // LidoOracleK.sol
+      Goerli: "0x426dcD4fa088D7b33797Da0002bF36a669B398D5", // LidoOracleK.sol
     },
-    lpToken: "steCRV"
-  }
+    lpToken: "steCRV",
+  },
 };
 
 export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
@@ -478,7 +478,7 @@ export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
 >(
   (acc, [, contracts]) => ({
     ...acc,
-    ...filterEmptyKeys(keyToLowercase(swapKeyValue(contracts)))
+    ...filterEmptyKeys(keyToLowercase(swapKeyValue(contracts))),
   }),
-  {}
+  {},
 );

@@ -1,13 +1,13 @@
 import { BigNumber, ethers, Signer } from "ethers";
 import {
   CreditManagerDataPayload,
-  CreditManagerStatPayload
+  CreditManagerStatPayload,
 } from "../payload/creditManager";
 
 import {
   ICreditManager,
   ICreditManager__factory,
-  ICreditFacade__factory
+  ICreditFacade__factory,
 } from "../types";
 
 import { MultiCall } from "./multicall";
@@ -16,7 +16,7 @@ import {
   RAY,
   UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
   LEVERAGE_DECIMALS,
-  PERCENTAGE_DECIMALS
+  PERCENTAGE_DECIMALS,
 } from "./constants";
 import { OpenAccountError } from "./errors";
 
@@ -80,19 +80,19 @@ export class CreditManagerData {
     this.maxAmount = BigNumber.from(payload.maxAmount || 0);
 
     this.maxLeverageFactor = BigNumber.from(
-      payload.maxLeverageFactor || 0
+      payload.maxLeverageFactor || 0,
     ).toNumber();
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
 
     this.allowedTokens = (payload.collateralTokens || []).map(t =>
-      t.toLowerCase()
+      t.toLowerCase(),
     );
     this.adapters = (payload.adapters || []).reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({
         ...acc,
-        [allowedContract.toLowerCase()]: adapter.toLowerCase()
+        [allowedContract.toLowerCase()]: adapter.toLowerCase(),
       }),
-      {}
+      {},
     );
 
     this.liquidationThresholds = (payload.liquidationThresholds || []).reduce<
@@ -124,7 +124,7 @@ export class CreditManagerData {
   encodeAddCollateral(
     accountAddress: string,
     tokenAddress: string,
-    amount: BigNumber
+    amount: BigNumber,
   ): MultiCall {
     if (this.version !== 2)
       throw new Error("Multicall is eligible only for version 2");
@@ -132,8 +132,8 @@ export class CreditManagerData {
       target: this.creditFacade,
       callData: ICreditFacade__factory.createInterface().encodeFunctionData(
         "addCollateral",
-        [accountAddress, tokenAddress, amount]
-      )
+        [accountAddress, tokenAddress, amount],
+      ),
     };
   }
 
@@ -144,8 +144,8 @@ export class CreditManagerData {
       target: this.creditFacade,
       callData: ICreditFacade__factory.createInterface().encodeFunctionData(
         "increaseDebt",
-        [amount]
-      )
+        [amount],
+      ),
     };
   }
 
@@ -156,8 +156,8 @@ export class CreditManagerData {
       target: this.creditFacade,
       callData: ICreditFacade__factory.createInterface().encodeFunctionData(
         "decreaseDebt",
-        [amount]
-      )
+        [amount],
+      ),
     };
   }
 
@@ -169,7 +169,7 @@ export class CreditManagerData {
 
   protected validateOpenAccountV1(
     collateral: BigNumber,
-    debt: BigNumber
+    debt: BigNumber,
   ): true {
     if (collateral.lt(this.minAmount))
       throw new OpenAccountError("amountLessMin", this.minAmount);
@@ -185,13 +185,13 @@ export class CreditManagerData {
     if (leverage > this.maxLeverageFactor)
       throw new OpenAccountError(
         "leverageGreaterMax",
-        BigNumber.from(this.maxLeverageFactor)
+        BigNumber.from(this.maxLeverageFactor),
       );
 
     if (debt.gt(this.availableLiquidity))
       throw new OpenAccountError(
         "insufficientPoolLiquidity",
-        BigNumber.from(this.availableLiquidity)
+        BigNumber.from(this.availableLiquidity),
       );
 
     return true;
@@ -207,7 +207,7 @@ export class CreditManagerData {
     if (debt.gt(this.availableLiquidity))
       throw new OpenAccountError(
         "insufficientPoolLiquidity",
-        BigNumber.from(this.availableLiquidity)
+        BigNumber.from(this.availableLiquidity),
       );
 
     return true;
@@ -217,14 +217,14 @@ export class CreditManagerData {
 export function calcMaxIncreaseBorrow(
   healthFactor: number,
   borrowAmountPlusInterest: BigNumber,
-  maxLeverageFactor: number
+  maxLeverageFactor: number,
 ): BigNumber {
   const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
 
   const minHealthFactor = Math.floor(
     (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD *
       (maxLeverageFactor + LEVERAGE_DECIMALS)) /
-      maxLeverageFactor
+      maxLeverageFactor,
   );
 
   const result = borrowAmountPlusInterest
@@ -236,7 +236,7 @@ export function calcMaxIncreaseBorrow(
 export function calcHealthFactorAfterIncreasingBorrow(
   healthFactor: number | undefined,
   borrowAmountPlusInterest: BigNumber | undefined,
-  additional: BigNumber
+  additional: BigNumber,
 ): number {
   if (!healthFactor || !borrowAmountPlusInterest) return 0;
 
@@ -254,7 +254,7 @@ export function calcHealthFactorAfterIncreasingBorrow(
 export function calcHealthFactorAfterAddingCollateral(
   healthFactor: number | undefined,
   borrowAmountPlusInterest: BigNumber | undefined,
-  additionalCollateral: BigNumber
+  additionalCollateral: BigNumber,
 ): number {
   if (!healthFactor || !borrowAmountPlusInterest) return 0;
 

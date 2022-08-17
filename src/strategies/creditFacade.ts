@@ -2,7 +2,7 @@ import { BigNumberish } from "ethers";
 
 import {
   ICreditFacade__factory,
-  ICreditFacadeExtended__factory
+  ICreditFacadeExtended__factory,
 } from "../types";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 
@@ -10,49 +10,49 @@ export class CreditFacadeCalls {
   public static addCollateral(
     onBehalfOf: string,
     token: string,
-    amount: BigNumberish
+    amount: BigNumberish,
   ) {
     return ICreditFacade__factory.createInterface().encodeFunctionData(
       "addCollateral",
-      [onBehalfOf, token, amount]
+      [onBehalfOf, token, amount],
     );
   }
 
   public static increaseDebt(amount: BigNumberish) {
     return ICreditFacade__factory.createInterface().encodeFunctionData(
       "increaseDebt",
-      [amount]
+      [amount],
     );
   }
 
   public static decreaseDebt(amount: BigNumberish) {
     return ICreditFacade__factory.createInterface().encodeFunctionData(
       "decreaseDebt",
-      [amount]
+      [amount],
     );
   }
 
   public static revertIfBalanceLessThan(
     token: string,
-    minBalance: BigNumberish
+    minBalance: BigNumberish,
   ) {
     return ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
       "revertIfBalanceLessThan",
-      [token, minBalance]
+      [token, minBalance],
     );
   }
 
   public static disableToken(token: string) {
     return ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
       "disableToken",
-      [token]
+      [token],
     );
   }
 
   public static enableToken(token: string) {
     return ICreditFacade__factory.createInterface().encodeFunctionData(
       "enableToken",
-      [token]
+      [token],
     );
   }
 }
@@ -71,49 +71,49 @@ export class CreditFacadeMulticaller {
   addCollateral(
     onBehalfOf: string,
     token: string,
-    amount: BigNumberish
+    amount: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CreditFacadeCalls.addCollateral(onBehalfOf, token, amount)
+      callData: CreditFacadeCalls.addCollateral(onBehalfOf, token, amount),
     };
   }
 
   increaseDebt(amount: BigNumberish): MultiCallStruct {
     return {
       target: this._address,
-      callData: CreditFacadeCalls.increaseDebt(amount)
+      callData: CreditFacadeCalls.increaseDebt(amount),
     };
   }
 
   decreaseDebt(amount: BigNumberish): MultiCallStruct {
     return {
       target: this._address,
-      callData: CreditFacadeCalls.decreaseDebt(amount)
+      callData: CreditFacadeCalls.decreaseDebt(amount),
     };
   }
 
   revertIfBalanceLessThan(
     token: string,
-    minBalance: BigNumberish
+    minBalance: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: CreditFacadeCalls.revertIfBalanceLessThan(token, minBalance)
+      callData: CreditFacadeCalls.revertIfBalanceLessThan(token, minBalance),
     };
   }
 
   disableToken(token: string): MultiCallStruct {
     return {
       target: this._address,
-      callData: CreditFacadeCalls.disableToken(token)
+      callData: CreditFacadeCalls.disableToken(token),
     };
   }
 
   enableToken(token: string): MultiCallStruct {
     return {
       target: this._address,
-      callData: CreditFacadeCalls.enableToken(token)
+      callData: CreditFacadeCalls.enableToken(token),
     };
   }
 }

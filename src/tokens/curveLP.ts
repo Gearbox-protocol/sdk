@@ -36,7 +36,7 @@ export const Curve3CrvUnderlyingTokenIndex: PartialRecord<
 > = {
   DAI: BigNumber.from(0),
   USDC: BigNumber.from(1),
-  USDT: BigNumber.from(2)
+  USDT: BigNumber.from(2),
 };
 
 export const curveTokens: Record<
@@ -54,19 +54,19 @@ export const curveTokens: Record<
       {
         type: TradeType.CurveWithdrawLP,
         contract: "CURVE_3CRV_POOL",
-        tokenOut: ["DAI", "USDC", "USDT"]
+        tokenOut: ["DAI", "USDC", "USDT"],
       },
       {
         type: TradeType.ConvexDepositLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "cvx3Crv"
+        tokenOut: "cvx3Crv",
       },
       {
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "stkcvx3Crv"
-      }
-    ]
+        tokenOut: "stkcvx3Crv",
+      },
+    ],
   },
 
   steCRV: {
@@ -79,19 +79,19 @@ export const curveTokens: Record<
       {
         type: TradeType.CurveWithdrawLP,
         contract: "CURVE_STETH_GATEWAY",
-        tokenOut: ["STETH", "WETH"]
+        tokenOut: ["STETH", "WETH"],
       },
       {
         type: TradeType.ConvexDepositLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "cvxsteCRV"
+        tokenOut: "cvxsteCRV",
       },
       {
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "stkcvxsteCRV"
-      }
-    ]
+        tokenOut: "stkcvxsteCRV",
+      },
+    ],
   },
 
   crvPlain3andSUSD: {
@@ -105,19 +105,19 @@ export const curveTokens: Record<
       {
         type: TradeType.CurveWithdrawLP,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: ["DAI", "USDC", "USDT", "sUSD"]
+        tokenOut: ["DAI", "USDC", "USDT", "sUSD"],
       },
       {
         type: TradeType.ConvexDepositLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "cvxcrvPlain3andSUSD"
+        tokenOut: "cvxcrvPlain3andSUSD",
       },
       {
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "stkcvxcrvPlain3andSUSD"
-      }
-    ]
+        tokenOut: "stkcvxcrvPlain3andSUSD",
+      },
+    ],
   },
 
   //  META CURVE LP TOKENS
@@ -131,19 +131,19 @@ export const curveTokens: Record<
       {
         type: TradeType.CurveWithdrawLP,
         contract: "CURVE_FRAX_POOL",
-        tokenOut: ["FRAX", "3Crv"]
+        tokenOut: ["FRAX", "3Crv"],
       },
       {
         type: TradeType.ConvexDepositLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "cvxFRAX3CRV"
+        tokenOut: "cvxFRAX3CRV",
       },
       {
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "stkcvxFRAX3CRV"
-      }
-    ]
+        tokenOut: "stkcvxFRAX3CRV",
+      },
+    ],
   },
 
   LUSD3CRV: {
@@ -156,9 +156,9 @@ export const curveTokens: Record<
       {
         type: TradeType.CurveWithdrawLP,
         contract: "CURVE_LUSD_POOL",
-        tokenOut: ["LUSD", "3Crv"]
-      }
-    ]
+        tokenOut: ["LUSD", "3Crv"],
+      },
+    ],
   },
 
   gusd3CRV: {
@@ -171,20 +171,20 @@ export const curveTokens: Record<
       {
         type: TradeType.CurveWithdrawLP,
         contract: "CURVE_GUSD_POOL",
-        tokenOut: ["GUSD", "3Crv"]
+        tokenOut: ["GUSD", "3Crv"],
       },
       {
         type: TradeType.ConvexDepositLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "cvxgusd3CRV"
+        tokenOut: "cvxgusd3CRV",
       },
       {
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "stkcvxgusd3CRV"
-      }
-    ]
-  }
+        tokenOut: "stkcvxgusd3CRV",
+      },
+    ],
+  },
 };
 
 export const isCurveLPToken = (t: unknown): t is CurveLPToken =>

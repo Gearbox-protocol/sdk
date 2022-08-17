@@ -4,7 +4,7 @@ import { MultiCall } from "../core/multicall";
 import {
   SupportedToken,
   supportedTokens,
-  tokenSymbolByAddress
+  tokenSymbolByAddress,
 } from "../tokens/token";
 import { NetworkType } from "../core/constants";
 import { CreditAccountData } from "../core/creditAccount";
@@ -68,7 +68,7 @@ export class Path {
 
   private static comparedByPriority(
     [tokenA]: [string, BigNumber],
-    [tokenB]: [string, BigNumber]
+    [tokenB]: [string, BigNumber],
   ): number {
     const priorityTokenA =
       priority[supportedTokens[tokenA as SupportedToken].type];
@@ -87,19 +87,19 @@ export class Path {
   static async findBestPath(
     creditAccount: CreditAccountData,
     creditManager: CreditManagerData,
-    provider: ethers.providers.Provider
+    provider: ethers.providers.Provider,
   ) {
     const networkType = await detectNetwork(provider);
 
     const balances = Object.entries(creditAccount.balances)
       .map(([address, balance]) => ({
         token: tokenSymbolByAddress[address.toLowerCase()],
-        balance
+        balance,
       }))
       .filter(t => t.balance.gt(1))
       .reduce(
         (obj, curValue) => ({ ...obj, [curValue.token]: curValue.balance }),
-        {}
+        {},
       );
 
     const initialPath = new Path({
@@ -109,13 +109,13 @@ export class Path {
       networkType,
       provider,
       underlying: "DAI", // creditManager.underlyingToken
-      totalGasLimit: 0
+      totalGasLimit: 0,
     });
 
     const lpPaths = await initialPath.withdrawTokens();
     const pathFinder = SwapPathFinder__factory.connect(
       pathFindersByNetwork[networkType].PATH_FINDER,
-      provider
+      provider,
     );
 
     console.debug(lpPaths);

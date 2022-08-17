@@ -2,7 +2,7 @@ import {
   keyToLowercase,
   objectEntries,
   swapKeyValue,
-  filterEmptyKeys
+  filterEmptyKeys,
 } from "../utils/mappers";
 import { NetworkType } from "../core/constants";
 import { NormalToken, NormalTokenData, normalTokens } from "./normal";
@@ -10,28 +10,28 @@ import {
   CurveLPToken,
   CurveLPTokenData,
   curveTokens,
-  MetaCurveLPTokenData
+  MetaCurveLPTokenData,
 } from "./curveLP";
 import {
   YearnLPToken,
   yearnTokens,
   YearnVaultOfCurveLPTokenData,
   YearnVaultOfMetaCurveLPTokenData,
-  YearnVaultTokenData
+  YearnVaultTokenData,
 } from "./yearn";
 import {
   ConvexLPToken,
   ConvexLPTokenData,
   ConvexPhantomTokenData,
   ConvexStakedPhantomToken,
-  convexTokens
+  convexTokens,
 } from "./convex";
 import {
   DieselTokenData,
   DieselTokenTypes,
   GearboxToken,
   GearboxTokenData,
-  gearTokens
+  gearTokens,
 } from "./gear";
 
 export type LPTokens =
@@ -70,7 +70,7 @@ export type TokenDataI =
 export const lpTokens: Record<LPTokens, LPTokenDataI> = {
   ...curveTokens,
   ...convexTokens,
-  ...yearnTokens
+  ...yearnTokens,
 };
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
@@ -78,7 +78,7 @@ export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   ...curveTokens,
   ...convexTokens,
   ...yearnTokens,
-  ...gearTokens
+  ...gearTokens,
 };
 
 export const tokenDataByNetwork: Record<
@@ -157,7 +157,7 @@ export const tokenDataByNetwork: Record<
     dWBTC: "0xe753260F1955e8678DCeA8887759e07aa57E8c54",
     dWETH: "0xF21fc650C1B34eb0FDE786D52d23dA99Db3D6278",
 
-    GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D"
+    GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D",
   },
 
   ///
@@ -235,7 +235,7 @@ export const tokenDataByNetwork: Record<
     dWBTC: "0x34D9B3c13B25632879B2DaabBde702F612902238",
     dWETH: "0x19e4F905749D3b487CA4927b54e55b64625a1143",
 
-    GEAR: "0xe01c5d0297c56e992dab3886057a1441485ff7c7"
+    GEAR: "0xe01c5d0297c56e992dab3886057a1441485ff7c7",
   },
   Goerli: {
     "1INCH": "0xf070f5a2Ddf4d106502235597bd42fd9eDaF7bFE", // TODO: DEPLOY ME
@@ -307,8 +307,8 @@ export const tokenDataByNetwork: Record<
     dWBTC: "TODO: DEPLOY ME", // DieselToken.sol
     dWETH: "TODO: DEPLOY ME", // DieselToken.sol
 
-    GEAR: "TODO: DEPLOY ME"
-  }
+    GEAR: "TODO: DEPLOY ME",
+  },
 };
 
 export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
@@ -316,9 +316,9 @@ export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
 >(
   (acc, [, tokens]) => ({
     ...acc,
-    ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens)))
+    ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens))),
   }),
-  {}
+  {},
 );
 
 export const isSupportedToken = (t: unknown): t is SupportedToken =>

@@ -55,7 +55,7 @@ export class PoolData {
 
     this.expectedLiquidity = BigNumber.from(payload.expectedLiquidity);
     this.expectedLiquidityLimit = BigNumber.from(
-      payload.expectedLiquidityLimit || 0
+      payload.expectedLiquidityLimit || 0,
     );
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed);

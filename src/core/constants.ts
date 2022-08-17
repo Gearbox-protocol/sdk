@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 
 export const MAX_INT = BigNumber.from(
-  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 );
 
 export const MAINNET_NETWORK = 1;
@@ -47,7 +47,7 @@ export const timeRanges: Record<string, number> = {
   "1D": 3600 * 24,
   "1W": 3600 * 24 * 7,
   "1M": 3600 * 24 * 30,
-  "1Y": 3600 * 24 * 365
+  "1Y": 3600 * 24 * 365,
 };
 
 export const LEVERAGE_DECIMALS = 100;

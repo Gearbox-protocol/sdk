@@ -1,4 +1,4 @@
 module.exports = {
   root: true,
-  extends: ["@gearbox-protocol/eslint-config"]
+  extends: ["@gearbox-protocol/eslint-config"],
 };

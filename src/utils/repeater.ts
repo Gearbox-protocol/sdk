@@ -2,7 +2,7 @@ import { MetamaskError } from "../core/errors";
 
 export async function callRepeater<T>(
   call: () => Promise<T>,
-  step: number = 0
+  step: number = 0,
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     try {

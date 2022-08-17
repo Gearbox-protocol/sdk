@@ -54,14 +54,14 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       {
         type: TradeType.ConvexWithdrawLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "3Crv"
+        tokenOut: "3Crv",
       },
       {
         type: TradeType.ConvexStake,
         contract: "CONVEX_3CRV_POOL",
-        tokenOut: "stkcvx3Crv"
-      }
-    ]
+        tokenOut: "stkcvx3Crv",
+      },
+    ],
   },
 
   cvxsteCRV: {
@@ -78,14 +78,14 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       {
         type: TradeType.ConvexWithdrawLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "steCRV"
+        tokenOut: "steCRV",
       },
       {
         type: TradeType.ConvexStake,
         contract: "CONVEX_STECRV_POOL",
-        tokenOut: "stkcvxsteCRV"
-      }
-    ]
+        tokenOut: "stkcvxsteCRV",
+      },
+    ],
   },
 
   cvxFRAX3CRV: {
@@ -102,14 +102,14 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       {
         type: TradeType.ConvexWithdrawLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "FRAX3CRV"
+        tokenOut: "FRAX3CRV",
       },
       {
         type: TradeType.ConvexStake,
         contract: "CONVEX_FRAX3CRV_POOL",
-        tokenOut: "stkcvxFRAX3CRV"
-      }
-    ]
+        tokenOut: "stkcvxFRAX3CRV",
+      },
+    ],
   },
 
   cvxLUSD3CRV: {
@@ -126,14 +126,14 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       {
         type: TradeType.ConvexWithdrawLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "LUSD3CRV"
+        tokenOut: "LUSD3CRV",
       },
       {
         type: TradeType.ConvexStake,
         contract: "CONVEX_LUSD3CRV_POOL",
-        tokenOut: "stkcvxLUSD3CRV"
-      }
-    ]
+        tokenOut: "stkcvxLUSD3CRV",
+      },
+    ],
   },
 
   cvxcrvPlain3andSUSD: {
@@ -150,14 +150,14 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       {
         type: TradeType.ConvexWithdrawLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "crvPlain3andSUSD"
+        tokenOut: "crvPlain3andSUSD",
       },
       {
         type: TradeType.ConvexStake,
         contract: "CONVEX_SUSD_POOL",
-        tokenOut: "stkcvxcrvPlain3andSUSD"
-      }
-    ]
+        tokenOut: "stkcvxcrvPlain3andSUSD",
+      },
+    ],
   },
 
   cvxgusd3CRV: {
@@ -174,15 +174,15 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       {
         type: TradeType.ConvexWithdrawLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "gusd3CRV"
+        tokenOut: "gusd3CRV",
       },
       {
         type: TradeType.ConvexStake,
         contract: "CONVEX_GUSD_POOL",
-        tokenOut: "stkcvxgusd3CRV"
-      }
-    ]
-  }
+        tokenOut: "stkcvxgusd3CRV",
+      },
+    ],
+  },
 };
 
 const convexStakedPhantomTokens: Record<
@@ -203,14 +203,14 @@ const convexStakedPhantomTokens: Record<
       {
         type: TradeType.ConvexWithdraw,
         contract: "CONVEX_3CRV_POOL",
-        tokenOut: "cvx3Crv"
+        tokenOut: "cvx3Crv",
       },
       {
         type: TradeType.ConvexWithdrawAndUnwrap,
         contract: "CONVEX_3CRV_POOL",
-        tokenOut: "3Crv"
-      }
-    ]
+        tokenOut: "3Crv",
+      },
+    ],
   },
 
   stkcvxsteCRV: {
@@ -227,14 +227,14 @@ const convexStakedPhantomTokens: Record<
       {
         type: TradeType.ConvexWithdraw,
         contract: "CONVEX_STECRV_POOL",
-        tokenOut: "cvxsteCRV"
+        tokenOut: "cvxsteCRV",
       },
       {
         type: TradeType.ConvexWithdrawAndUnwrap,
         contract: "CONVEX_STECRV_POOL",
-        tokenOut: "steCRV"
-      }
-    ]
+        tokenOut: "steCRV",
+      },
+    ],
   },
 
   stkcvxFRAX3CRV: {
@@ -251,14 +251,14 @@ const convexStakedPhantomTokens: Record<
       {
         type: TradeType.ConvexWithdraw,
         contract: "CONVEX_FRAX3CRV_POOL",
-        tokenOut: "cvxFRAX3CRV"
+        tokenOut: "cvxFRAX3CRV",
       },
       {
         type: TradeType.ConvexWithdrawAndUnwrap,
         contract: "CONVEX_FRAX3CRV_POOL",
-        tokenOut: "FRAX3CRV"
-      }
-    ]
+        tokenOut: "FRAX3CRV",
+      },
+    ],
   },
 
   stkcvxLUSD3CRV: {
@@ -275,14 +275,14 @@ const convexStakedPhantomTokens: Record<
       {
         type: TradeType.ConvexWithdraw,
         contract: "CONVEX_LUSD3CRV_POOL",
-        tokenOut: "cvxLUSD3CRV"
+        tokenOut: "cvxLUSD3CRV",
       },
       {
         type: TradeType.ConvexWithdrawAndUnwrap,
         contract: "CONVEX_LUSD3CRV_POOL",
-        tokenOut: "LUSD3CRV"
-      }
-    ]
+        tokenOut: "LUSD3CRV",
+      },
+    ],
   },
 
   stkcvxcrvPlain3andSUSD: {
@@ -299,14 +299,14 @@ const convexStakedPhantomTokens: Record<
       {
         type: TradeType.ConvexWithdraw,
         contract: "CONVEX_SUSD_POOL",
-        tokenOut: "cvxcrvPlain3andSUSD"
+        tokenOut: "cvxcrvPlain3andSUSD",
       },
       {
         type: TradeType.ConvexWithdrawAndUnwrap,
         contract: "CONVEX_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD"
-      }
-    ]
+        tokenOut: "crvPlain3andSUSD",
+      },
+    ],
   },
 
   stkcvxgusd3CRV: {
@@ -323,15 +323,15 @@ const convexStakedPhantomTokens: Record<
       {
         type: TradeType.ConvexWithdraw,
         contract: "CONVEX_GUSD_POOL",
-        tokenOut: "cvxgusd3CRV"
+        tokenOut: "cvxgusd3CRV",
       },
       {
         type: TradeType.ConvexWithdrawAndUnwrap,
         contract: "CONVEX_GUSD_POOL",
-        tokenOut: "gusd3CRV"
-      }
-    ]
-  }
+        tokenOut: "gusd3CRV",
+      },
+    ],
+  },
 };
 
 export const convexTokens: Record<
@@ -339,11 +339,11 @@ export const convexTokens: Record<
   ConvexLPTokenData | ConvexPhantomTokenData
 > = {
   ...convexLpTokens,
-  ...convexStakedPhantomTokens
+  ...convexStakedPhantomTokens,
 };
 
 export const isConvexToken = (
-  t: unknown
+  t: unknown,
 ): t is ConvexLPToken | ConvexStakedPhantomToken =>
   typeof t === "string" &&
   !!convexTokens[t as ConvexLPToken | ConvexStakedPhantomToken];
@@ -352,7 +352,7 @@ export const isConvexLPToken = (t: unknown): t is ConvexLPToken =>
   typeof t === "string" && !!convexLpTokens[t as ConvexLPToken];
 
 export const isConvexStakedPhantomToken = (
-  t: unknown
+  t: unknown,
 ): t is ConvexStakedPhantomToken =>
   typeof t === "string" &&
   !!convexStakedPhantomTokens[t as ConvexStakedPhantomToken];

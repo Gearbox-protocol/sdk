@@ -10,7 +10,7 @@ import {
   ILidoOracle__factory,
   ILidoOracle,
   IstETH__factory,
-  IstETH
+  IstETH,
 } from "../types";
 
 type ILidoOracleInterface = ILidoOracle["interface"];
@@ -22,16 +22,16 @@ const lidoOracles = (contractParams.LIDO_STETH_GATEWAY as LidoParams).oracle;
 const lidoStEth: Record<NetworkType, string> = {
   Mainnet: tokenDataByNetwork.Mainnet.STETH,
   Kovan: tokenDataByNetwork.Kovan.STETH,
-  Goerli: tokenDataByNetwork.Goerli.STETH
+  Goerli: tokenDataByNetwork.Goerli.STETH,
 };
 
 export async function getLidoApy(
   provider: providers.Provider,
-  networkType: NetworkType
+  networkType: NetworkType,
 ) {
   if (!lidoOracles[networkType]) {
     throw new Error(
-      `No Lido APR oracle found on current network: ${networkType}`
+      `No Lido APR oracle found on current network: ${networkType}`,
     );
   }
   if (!lidoStEth[networkType]) {
@@ -43,7 +43,7 @@ export async function getLidoApy(
       lidoOracles[networkType],
       lidoStEth[networkType],
       provider,
-      networkType
+      networkType,
     );
 
   const lidoAPRRay = postTotalPooledEther
@@ -61,28 +61,28 @@ async function geLidoData(
   lidoOracleAddress: string,
   stETHAddress: string,
   provider: providers.Provider,
-  network: NetworkType
+  network: NetworkType,
 ) {
   const calls: [MCall<ILidoOracleInterface>, ...Array<MCall<IstETHInterface>>] =
     [
       {
         address: lidoOracleAddress,
         interface: ILidoOracle__factory.createInterface(),
-        method: "getLastCompletedReportDelta()"
-      }
+        method: "getLastCompletedReportDelta()",
+      },
     ];
 
   if (network === "Mainnet")
     calls.push({
       address: stETHAddress,
       interface: IstETH__factory.createInterface(),
-      method: "getFee()"
+      method: "getFee()",
     });
 
   const [stats, fee = Math.floor(LIDO_FEE_DECIMALS / 10)] = await multicall<
     [
       Awaited<ReturnType<ILidoOracle["getLastCompletedReportDelta"]>>,
-      Awaited<ReturnType<IstETH["getFee"]>>
+      Awaited<ReturnType<IstETH["getFee"]>>,
     ]
   >(calls, provider);
 

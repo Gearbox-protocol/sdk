@@ -7,7 +7,7 @@ import { SupportedToken, tokenDataByNetwork } from "./token";
 type SymbolReplacements = Record<string, string>;
 const defaultSymbolReplacement: SymbolReplacements = {
   dWETH: "dETH",
-  WETH: "ETH"
+  WETH: "ETH",
 };
 
 export class TokenData {
@@ -23,7 +23,7 @@ export class TokenData {
 
   constructor(
     payload: TokenDataPayload,
-    symbolReplacements: SymbolReplacements = defaultSymbolReplacement
+    symbolReplacements: SymbolReplacements = defaultSymbolReplacement,
   ) {
     this.id = payload.addr.toLowerCase();
     this.address = payload.addr.toLowerCase();
@@ -50,7 +50,7 @@ export interface TokenAllowance {
 export const WETHToken: Record<NetworkType, string> = {
   Mainnet: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
   Kovan: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
-  Goerli: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+  Goerli: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
 };
 
 export const connectors: Record<NetworkType, Array<SupportedToken>> = {
@@ -60,7 +60,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
     "DAI",
     "USDC",
     // "USDT",
-    "WBTC"
+    "WBTC",
     // "stETH",
     // "PAX",
     // "TUSD",
@@ -69,7 +69,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
     // "sUSD",
   ],
   Kovan: ["WETH", "DAI", "USDC", "WBTC"],
-  Goerli: ["WETH", "DAI", "USDC", "WBTC"]
+  Goerli: ["WETH", "DAI", "USDC", "WBTC"],
 };
 
 export function getConnectors(networkType: NetworkType) {

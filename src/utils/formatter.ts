@@ -16,7 +16,7 @@ export function formatRAY(num?: BigNumber): string {
 export function formatBN(
   numArg: BigNumberish | undefined,
   decimals: number,
-  precisionArg?: number
+  precisionArg?: number,
 ): string {
   let num = numArg;
   let precision = precisionArg;
@@ -47,7 +47,7 @@ export function formatBN(
     number = BigNumber.from(num).mul(BigNumber.from(10).pow(6 - decimals));
   } else {
     number = BigNumber.from(num).div(
-      BigNumber.from(10).pow((decimals || 18) - 6)
+      BigNumber.from(10).pow((decimals || 18) - 6),
     );
   }
 
@@ -84,7 +84,7 @@ export function formatBn4dig(num: BigNumber, precision = 2): string {
     ? `0.${numStr.slice(0, precision)}`
     : `${numStr.slice(0, numStr.length - 6)}.${numStr.slice(
         numStr.length - 6,
-        numStr.length - 6 + precision
+        numStr.length - 6 + precision,
       )}`;
 }
 

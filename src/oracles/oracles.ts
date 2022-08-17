@@ -12,7 +12,7 @@ export enum OracleType {
   CURVE_LP_ORACLE,
   YEARN_CURVE_LP_ORACLE,
   ZERO_ORACLE,
-  LIKE_CURVE_LP_ORACLE
+  LIKE_CURVE_LP_ORACLE,
 }
 
 export type PriceFeedData =

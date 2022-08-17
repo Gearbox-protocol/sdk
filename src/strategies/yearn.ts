@@ -3,7 +3,7 @@ import {
   contractParams,
   contractsByNetwork,
   YearnParams,
-  YearnVaultContract
+  YearnVaultContract,
 } from "../contracts/contracts";
 import { ADDRESS_0X0, NetworkType } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
@@ -23,7 +23,7 @@ export class YearnV2Calls {
     if (amount && recipient) {
       return contractInterface.encodeFunctionData("deposit(uint256,address)", [
         amount,
-        recipient
+        recipient,
       ]);
     }
     if (amount) {
@@ -35,24 +35,24 @@ export class YearnV2Calls {
   public static withdraw(
     maxShares?: BigNumberish,
     recipient?: string,
-    maxLoss?: BigNumberish
+    maxLoss?: BigNumberish,
   ): string {
     const contractInterface = YearnV2Adapter__factory.createInterface();
     if (maxShares && recipient && maxLoss) {
       return contractInterface.encodeFunctionData(
         "withdraw(uint256,address,uint256)",
-        [maxShares, recipient, maxLoss]
+        [maxShares, recipient, maxLoss],
       );
     }
     if (maxShares && recipient) {
       return contractInterface.encodeFunctionData("withdraw(uint256,address)", [
         maxShares,
-        recipient
+        recipient,
       ]);
     }
     if (maxShares) {
       return contractInterface.encodeFunctionData("withdraw(uint256)", [
-        maxShares
+        maxShares,
       ]);
     }
     return contractInterface.encodeFunctionData("withdraw()");
@@ -73,18 +73,18 @@ export class YearnV2Multicaller {
   deposit(amount?: BigNumberish, recipient?: string): MultiCallStruct {
     return {
       target: this._address,
-      callData: YearnV2Calls.deposit(amount, recipient)
+      callData: YearnV2Calls.deposit(amount, recipient),
     };
   }
 
   withdraw(
     maxShares?: BigNumberish,
     recipient?: string,
-    maxLoss?: BigNumberish
+    maxLoss?: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: YearnV2Calls.withdraw(maxShares, recipient, maxLoss)
+      callData: YearnV2Calls.withdraw(maxShares, recipient, maxLoss),
     };
   }
 }
@@ -94,7 +94,7 @@ export class YearnV2Strategies {
     data: CreditManagerData,
     network: NetworkType,
     yearnVault: YearnVaultContract,
-    underlyingAmount: BigNumberish
+    underlyingAmount: BigNumberish,
   ): MultiCallStruct[] {
     let calls: Array<MultiCallStruct> = [];
     const vaultParams = contractParams[yearnVault] as YearnParams;
@@ -111,23 +111,25 @@ export class YearnV2Strategies {
           UniswapV2Multicaller.connect(
             data.adapters[
               contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-            ]
+            ],
           ).swapExactTokensForTokens(
             underlyingAmount,
             0,
             [
               data.underlyingToken,
-              tokenDataByNetwork[network][yearnParams.underlying]
+              tokenDataByNetwork[network][yearnParams.underlying],
             ],
             ADDRESS_0X0,
-            Math.floor(new Date().getTime() / 1000) + 3600
-          )
+            Math.floor(new Date().getTime() / 1000) + 3600,
+          ),
         );
       } else {
         calls.push(
           YearnV2Multicaller.connect(
-            data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
-          ).deposit(underlyingAmount)
+            data.adapters[
+              contractsByNetwork[network][yearnVault].toLowerCase()
+            ],
+          ).deposit(underlyingAmount),
         );
         return calls;
       }
@@ -144,7 +146,7 @@ export class YearnV2Strategies {
         data,
         network,
         curvePool,
-        underlyingAmount
+        underlyingAmount,
       );
     } else {
       throw new Error("Yearn vault type unknown");
@@ -152,8 +154,8 @@ export class YearnV2Strategies {
 
     calls.push(
       YearnV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
-      ).deposit()
+        data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()],
+      ).deposit(),
     );
 
     return calls;
@@ -163,7 +165,7 @@ export class YearnV2Strategies {
     data: CreditManagerData,
     network: NetworkType,
     yearnVault: YearnVaultContract,
-    yearnSharesAmount: BigNumberish
+    yearnSharesAmount: BigNumberish,
   ): MultiCallStruct[] {
     let calls: Array<MultiCallStruct> = [];
     const vaultParams = contractParams[yearnVault] as YearnParams;
@@ -172,8 +174,8 @@ export class YearnV2Strategies {
 
     calls.push(
       YearnV2Multicaller.connect(
-        data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()]
-      ).withdraw(yearnSharesAmount)
+        data.adapters[contractsByNetwork[network][yearnVault].toLowerCase()],
+      ).withdraw(yearnSharesAmount),
     );
 
     if (yearnParams.type === TokenType.YEARN_VAULT) {
@@ -186,15 +188,15 @@ export class YearnV2Strategies {
           UniswapV2Multicaller.connect(
             data.adapters[
               contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-            ]
+            ],
           ).swapAllTokensForTokens(
             0,
             [
               tokenDataByNetwork[network][yearnParams.underlying],
-              data.underlyingToken
+              data.underlyingToken,
             ],
-            Math.floor(new Date().getTime() / 1000) + 3600
-          )
+            Math.floor(new Date().getTime() / 1000) + 3600,
+          ),
         );
       }
     } else if (
@@ -208,7 +210,7 @@ export class YearnV2Strategies {
 
       calls = [
         ...calls,
-        ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool)
+        ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool),
       ];
     } else {
       throw new Error("Yearn vault type unknown");

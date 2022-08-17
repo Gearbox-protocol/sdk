@@ -10,7 +10,7 @@ const statusEnum: Array<CreditSessionStatus> = [
   "active",
   "closed",
   "repaid",
-  "liquidated"
+  "liquidated",
 ];
 
 export class CreditSession {
@@ -73,15 +73,15 @@ export class CreditSession {
     this.operations = (payload.operations || []).map(op => {
       const formattedOp = {
         ...op,
-        date: moment(op.timestamp * 1000).format("Do MMM YYYY")
+        date: moment(op.timestamp * 1000).format("Do MMM YYYY"),
       };
       return formattedOp;
     });
     this.sinceDate = moment(payload.sinceTimestamp * 1000).format(
-      "Do MMM YYYY"
+      "Do MMM YYYY",
     );
     this.closedAtDate = moment(payload.closedAtTimestamp * 1000).format(
-      "Do MMM YYYY"
+      "Do MMM YYYY",
     );
   }
 }

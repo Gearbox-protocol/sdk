@@ -74,7 +74,7 @@ export class TxAddLiquidity extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
@@ -85,14 +85,14 @@ export class TxAddLiquidity extends EVMTx {
     const token = tokenData[this.underlyingToken.toLowerCase()];
     return `${getContractName(this.pool)}: Deposit ${formatBN(
       this.amount,
-      token?.decimals || 18
+      token?.decimals || 18,
     )} ${token?.symbol || ""}`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxAddLiquidity",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -115,7 +115,7 @@ export class TxRemoveLiquidity extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = opts.amount;
     this.dieselToken = opts.dieselToken;
@@ -126,14 +126,14 @@ export class TxRemoveLiquidity extends EVMTx {
     const dtoken = tokenData[this.dieselToken.toLowerCase()];
     return `${getContractName(this.pool)}: Withdraw ${formatBN(
       this.amount,
-      dtoken?.decimals || 18
+      dtoken?.decimals || 18,
     )} ${dtoken?.symbol || ""}`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxRemoveLiquidity",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -168,7 +168,7 @@ export class TXSwap extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.protocol = opts.protocol;
     this.operation = opts.operation;
@@ -200,7 +200,7 @@ export class TXSwap extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxSwap",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -223,7 +223,7 @@ export class TxAddCollateral extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = opts.amount;
     this.addedToken = opts.addedToken;
@@ -233,7 +233,7 @@ export class TxAddCollateral extends EVMTx {
   toString(tokenData: Record<string, TokenData>): string {
     const addedToken = tokenData[this.addedToken.toLowerCase()];
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: Added ${formatBN(this.amount, addedToken.decimals)} ${
       addedToken.symbol
     } as collateral`;
@@ -242,7 +242,7 @@ export class TxAddCollateral extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxAddCollateral",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -265,7 +265,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
@@ -275,17 +275,17 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken.toLowerCase()];
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: Borrowed amount was increased for ${formatBN(
       this.amount,
-      token?.decimals || 18
+      token?.decimals || 18,
     )} ${token?.symbol}`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxIncreaseBorrowAmount",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -311,7 +311,7 @@ export class TxOpenAccount extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
@@ -322,7 +322,7 @@ export class TxOpenAccount extends EVMTx {
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.underlyingToken.toLowerCase()];
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: opening ${formatBN(this.amount, token?.decimals || 18)} ${
       token?.symbol
     } x ${this.leverage.toFixed(2)} ⇒ 
@@ -330,14 +330,14 @@ export class TxOpenAccount extends EVMTx {
       this.amount
         .mul(Math.floor(this.leverage * LEVERAGE_DECIMALS))
         .div(LEVERAGE_DECIMALS),
-      token?.decimals || 18
+      token?.decimals || 18,
     )} ${token?.symbol}`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxOpenAccount",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -363,7 +363,7 @@ export class TxOpenMultitokenAccount extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.borrowedAmount = BigNumber.from(opts.borrowedAmount);
     this.underlyingToken = opts.underlyingToken;
@@ -380,21 +380,21 @@ export class TxOpenMultitokenAccount extends EVMTx {
         if (token) acc.push(token.symbol);
         return acc;
       },
-      []
+      [],
     );
 
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: opening. Borrowed amount: ${formatBN(
       this.borrowedAmount,
-      underlyingToken?.decimals || 18
+      underlyingToken?.decimals || 18,
     )} ${underlyingToken?.symbol}; assets: ${assetSymbols.join(", ")}`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxOpenMultitokenAccount",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -411,21 +411,21 @@ export class TxRepayAccount extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
   }
 
   toString(): string {
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: Repaying account`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxRepayAccount",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -442,21 +442,21 @@ export class TxCloseAccount extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
   }
 
   toString(): string {
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: Closing account`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxCloseAccount",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }
@@ -473,7 +473,7 @@ export class TxApprove extends EVMTx {
       block: opts.block,
       txHash: opts.txHash,
       txStatus: opts.txStatus,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.token = opts.token;
   }
@@ -486,7 +486,7 @@ export class TxApprove extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxApprove",
-      content: JSON.stringify(this)
+      content: JSON.stringify(this),
     };
   }
 }

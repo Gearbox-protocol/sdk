@@ -2,7 +2,7 @@ import type {
   ConvexPoolContract,
   CurvePoolContract,
   UniswapV2Contract,
-  YearnVaultContract
+  YearnVaultContract,
 } from "../contracts/contracts";
 import type { NormalToken } from "../tokens/normal";
 import type { CurveLPToken } from "../tokens/curveLP";
@@ -24,7 +24,7 @@ export enum TradeType {
   ConvexDepositLPAndStake,
   ConvexWithdrawLP,
   ConvexWithdraw,
-  ConvexWithdrawAndUnwrap
+  ConvexWithdrawAndUnwrap,
 }
 
 export type TradeAction =
@@ -101,5 +101,5 @@ export type TradeAction =
 
 export enum SwapType {
   ExactInput = 1,
-  ExactOutput = 2
+  ExactOutput = 2,
 }

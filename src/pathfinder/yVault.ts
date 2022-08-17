@@ -38,7 +38,7 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
     // make path copy
     const p: Path = Object.assign(
       Object.create(Object.getPrototypeOf(path)),
-      path
+      path,
     );
 
     const vaultBalances = objectEntries(yearnTokens).reduce<
@@ -49,7 +49,7 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
       if (currentBalance.gt(1)) {
         acc[typedVault] = {
           token: tokenData.underlying,
-          balance: currentBalance
+          balance: currentBalance,
         };
       }
       return acc;
@@ -63,7 +63,7 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
       .map(addr => ({
         address: addr,
         interface: IYVault__factory.createInterface(),
-        method: "pricePerShare()"
+        method: "pricePerShare()",
       }));
 
     const prices = await multicall<Array<BigNumber>>(multicallData, p.provider);
@@ -73,7 +73,7 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
       const vb = vaultBalances[vault];
 
       p.balances[vb!.token] = (p.balances[vb!.token] || BigNumber.from(0)).add(
-        BigNumber.from(vb?.balance || 0).mul(prices[i])
+        BigNumber.from(vb?.balance || 0).mul(prices[i]),
       );
 
       const tokenAddress = tokenDataByNetwork[p.networkType][vault];
