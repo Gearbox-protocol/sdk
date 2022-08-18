@@ -9,7 +9,6 @@ const swapKeyValue = <K extends SupportedValue, T extends SupportedValue>(
 ): Record<T, K> =>
   objectEntries(o).reduce(
     (acc, [key, value]) => ({ ...acc, [value]: key }),
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     {} as Record<T, K>,
   );
 
@@ -19,7 +18,6 @@ const keyToLowercase = <K extends SupportedValue, T>(
   objectEntries(o).reduce((acc, [key, value]) => {
     const keyTransformed = typeof key === "string" ? key.toLowerCase() : key;
     return { ...acc, [keyTransformed]: value };
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   }, {} as Record<K, T>);
 
 const filterEmptyKeys = <K extends SupportedValue, T>(
@@ -27,7 +25,6 @@ const filterEmptyKeys = <K extends SupportedValue, T>(
 ): Record<K, T> =>
   objectEntries(o).reduce(
     (acc, [key, value]) => (key ? { ...acc, [key]: value } : acc),
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     {} as Record<K, T>,
   );
 
