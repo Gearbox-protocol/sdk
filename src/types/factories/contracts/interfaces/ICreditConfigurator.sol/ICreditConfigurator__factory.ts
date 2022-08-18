@@ -488,7 +488,7 @@ export class ICreditConfigurator__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICreditConfigurator {
     return new Contract(address, _abi, signerOrProvider) as ICreditConfigurator;
   }

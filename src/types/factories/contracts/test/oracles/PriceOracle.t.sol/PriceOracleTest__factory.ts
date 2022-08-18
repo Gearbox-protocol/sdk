@@ -468,7 +468,7 @@ type PriceOracleTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PriceOracleTestConstructorParams,
+  xs: PriceOracleTestConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PriceOracleTest__factory extends ContractFactory {
@@ -481,12 +481,12 @@ export class PriceOracleTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<PriceOracleTest> {
     return super.deploy(overrides || {}) as Promise<PriceOracleTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -504,7 +504,7 @@ export class PriceOracleTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): PriceOracleTest {
     return new Contract(address, _abi, signerOrProvider) as PriceOracleTest;
   }

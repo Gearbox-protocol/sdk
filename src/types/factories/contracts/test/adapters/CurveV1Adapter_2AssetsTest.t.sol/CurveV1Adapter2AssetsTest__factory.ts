@@ -784,7 +784,7 @@ type CurveV1Adapter2AssetsTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveV1Adapter2AssetsTestConstructorParams,
+  xs: CurveV1Adapter2AssetsTestConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveV1Adapter2AssetsTest__factory extends ContractFactory {
@@ -797,12 +797,12 @@ export class CurveV1Adapter2AssetsTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CurveV1Adapter2AssetsTest> {
     return super.deploy(overrides || {}) as Promise<CurveV1Adapter2AssetsTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -820,12 +820,12 @@ export class CurveV1Adapter2AssetsTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CurveV1Adapter2AssetsTest {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as CurveV1Adapter2AssetsTest;
   }
 }

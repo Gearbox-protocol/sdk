@@ -73,7 +73,7 @@ export type CreditAccountDataStructOutput = [
   BigNumber,
   BigNumber,
   number,
-  BigNumber,
+  BigNumber
 ] & {
   addr: string;
   borrower: string;
@@ -146,7 +146,7 @@ export type CreditManagerDataStructOutput = [
   string,
   boolean,
   BigNumber,
-  number,
+  number
 ] & {
   addr: string;
   underlying: string;
@@ -204,7 +204,7 @@ export type PoolDataStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
-  number,
+  number
 ] & {
   addr: string;
   isWETH: boolean;
@@ -253,86 +253,86 @@ export interface DataCompressorInterface extends utils.Interface {
       | "getPoolData"
       | "getPoolsList"
       | "hasOpenedCreditAccount"
-      | "version",
+      | "version"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "WETHToken", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "contractsRegister",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getAdapter",
-    values: [string, string],
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountData",
-    values: [string, string],
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountList",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditManagerData",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditManagersList",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "getPoolData", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getPoolsList",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "hasOpenedCreditAccount",
-    values: [string, string],
+    values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "WETHToken", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addressProvider",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "contractsRegister",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getAdapter", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountData",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountList",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditManagerData",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditManagersList",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPoolData",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPoolsList",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "hasOpenedCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
@@ -349,15 +349,15 @@ export interface DataCompressor extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -375,13 +375,13 @@ export interface DataCompressor extends BaseContract {
     getAdapter(
       _creditManager: string,
       _allowedContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string] & { adapter: string }>;
 
     getCreditAccountData(
       _creditManager: string,
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [CreditAccountDataStructOutput] & {
         result: CreditAccountDataStructOutput;
@@ -390,7 +390,7 @@ export interface DataCompressor extends BaseContract {
 
     getCreditAccountList(
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [CreditAccountDataStructOutput[]] & {
         result: CreditAccountDataStructOutput[];
@@ -399,14 +399,16 @@ export interface DataCompressor extends BaseContract {
 
     getCreditManagerData(
       _creditManager: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [CreditManagerDataStructOutput] & {
         result: CreditManagerDataStructOutput;
       }
     >;
 
-    getCreditManagersList(overrides?: CallOverrides): Promise<
+    getCreditManagersList(
+      overrides?: CallOverrides
+    ): Promise<
       [CreditManagerDataStructOutput[]] & {
         result: CreditManagerDataStructOutput[];
       }
@@ -414,17 +416,17 @@ export interface DataCompressor extends BaseContract {
 
     getPoolData(
       _pool: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[PoolDataStructOutput] & { result: PoolDataStructOutput }>;
 
     getPoolsList(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[PoolDataStructOutput[]] & { result: PoolDataStructOutput[] }>;
 
     hasOpenedCreditAccount(
       _creditManager: string,
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -439,32 +441,32 @@ export interface DataCompressor extends BaseContract {
   getAdapter(
     _creditManager: string,
     _allowedContract: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   getCreditAccountData(
     _creditManager: string,
     borrower: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<CreditAccountDataStructOutput>;
 
   getCreditAccountList(
     borrower: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<CreditAccountDataStructOutput[]>;
 
   getCreditManagerData(
     _creditManager: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<CreditManagerDataStructOutput>;
 
   getCreditManagersList(
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<CreditManagerDataStructOutput[]>;
 
   getPoolData(
     _pool: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<PoolDataStructOutput>;
 
   getPoolsList(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
@@ -472,7 +474,7 @@ export interface DataCompressor extends BaseContract {
   hasOpenedCreditAccount(
     _creditManager: string,
     borrower: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<boolean>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -487,32 +489,32 @@ export interface DataCompressor extends BaseContract {
     getAdapter(
       _creditManager: string,
       _allowedContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     getCreditAccountData(
       _creditManager: string,
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<CreditAccountDataStructOutput>;
 
     getCreditAccountList(
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<CreditAccountDataStructOutput[]>;
 
     getCreditManagerData(
       _creditManager: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<CreditManagerDataStructOutput>;
 
     getCreditManagersList(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<CreditManagerDataStructOutput[]>;
 
     getPoolData(
       _pool: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PoolDataStructOutput>;
 
     getPoolsList(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
@@ -520,7 +522,7 @@ export interface DataCompressor extends BaseContract {
     hasOpenedCreditAccount(
       _creditManager: string,
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -538,23 +540,23 @@ export interface DataCompressor extends BaseContract {
     getAdapter(
       _creditManager: string,
       _allowedContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCreditAccountData(
       _creditManager: string,
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCreditAccountList(
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCreditManagerData(
       _creditManager: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCreditManagersList(overrides?: CallOverrides): Promise<BigNumber>;
@@ -566,7 +568,7 @@ export interface DataCompressor extends BaseContract {
     hasOpenedCreditAccount(
       _creditManager: string,
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -582,32 +584,32 @@ export interface DataCompressor extends BaseContract {
     getAdapter(
       _creditManager: string,
       _allowedContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCreditAccountData(
       _creditManager: string,
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCreditAccountList(
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCreditManagerData(
       _creditManager: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCreditManagersList(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getPoolData(
       _pool: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getPoolsList(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -615,7 +617,7 @@ export interface DataCompressor extends BaseContract {
     hasOpenedCreditAccount(
       _creditManager: string,
       borrower: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;

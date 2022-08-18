@@ -81,15 +81,15 @@ export interface IACLEvents extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -103,29 +103,29 @@ export interface IACLEvents extends BaseContract {
 
   filters: {
     "PausableAdminAdded(address)"(
-      newAdmin?: string | null,
+      newAdmin?: string | null
     ): PausableAdminAddedEventFilter;
     PausableAdminAdded(newAdmin?: string | null): PausableAdminAddedEventFilter;
 
     "PausableAdminRemoved(address)"(
-      admin?: string | null,
+      admin?: string | null
     ): PausableAdminRemovedEventFilter;
     PausableAdminRemoved(
-      admin?: string | null,
+      admin?: string | null
     ): PausableAdminRemovedEventFilter;
 
     "UnpausableAdminAdded(address)"(
-      newAdmin?: string | null,
+      newAdmin?: string | null
     ): UnpausableAdminAddedEventFilter;
     UnpausableAdminAdded(
-      newAdmin?: string | null,
+      newAdmin?: string | null
     ): UnpausableAdminAddedEventFilter;
 
     "UnpausableAdminRemoved(address)"(
-      admin?: string | null,
+      admin?: string | null
     ): UnpausableAdminRemovedEventFilter;
     UnpausableAdminRemoved(
-      admin?: string | null,
+      admin?: string | null
     ): UnpausableAdminRemovedEventFilter;
   };
 

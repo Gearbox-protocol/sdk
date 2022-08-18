@@ -220,7 +220,7 @@ type CreditAccountConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CreditAccountConstructorParams,
+  xs: CreditAccountConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CreditAccount__factory extends ContractFactory {
@@ -233,12 +233,12 @@ export class CreditAccount__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CreditAccount> {
     return super.deploy(overrides || {}) as Promise<CreditAccount>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -256,7 +256,7 @@ export class CreditAccount__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CreditAccount {
     return new Contract(address, _abi, signerOrProvider) as CreditAccount;
   }

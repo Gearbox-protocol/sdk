@@ -103,252 +103,252 @@ export interface SwapPathFinderTestInterface extends utils.Interface {
       | "uniV3pathFinder"
       | "yearnAdapter"
       | "yearnMock"
-      | "yearnPathFinder",
+      | "yearnPathFinder"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_setUpCurve",
-    values: [boolean],
+    values: [boolean]
   ): string;
   encodeFunctionData(functionFragment: "cft", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "creditConfigurator",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "curveAdapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "curveLPPathFinder",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "curveMetaAdapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "curvePathFinder",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "curveV1MetaMock",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "curveV1Mock",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_NTP_01_constructor_correctly_sets_initial_values",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_02_getPathFinder_returns_correct_values",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_03_findAllSwaps_found_a_pair_if_only_one_is_depdloyed",
-    values: [boolean],
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_04_findAllSwaps_found_quotes_INPUT",
-    values: [BigNumberish, BigNumberish, boolean, boolean],
+    values: [BigNumberish, BigNumberish, boolean, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_05_findAllSwaps_found_quotes_OUTPUT",
-    values: [BigNumberish, BigNumberish, boolean],
+    values: [BigNumberish, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_06_findAllSwaps_found_connector_quotes_and_take_the_best_INPUT",
-    values: [BigNumberish, BigNumberish, boolean, boolean],
+    values: [BigNumberish, BigNumberish, boolean, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_07_findAllSwaps_found_connector_quotes_and_take_the_best_OUTPUT",
-    values: [BigNumberish, BigNumberish, boolean],
+    values: [BigNumberish, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_0",
-    values: [BigNumberish, BigNumberish, boolean, boolean],
+    values: [BigNumberish, BigNumberish, boolean, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_non_zero",
-    values: [BigNumberish, BigNumberish, boolean, boolean, BigNumberish],
+    values: [BigNumberish, BigNumberish, boolean, boolean, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_09_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_0",
-    values: [BigNumberish, BigNumberish, boolean, boolean],
+    values: [BigNumberish, BigNumberish, boolean, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "test_NTP_10_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_non_zero",
-    values: [BigNumberish, BigNumberish, boolean, BigNumberish],
+    values: [BigNumberish, BigNumberish, boolean, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenMasksMap",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "uniV2adapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "uniV2mock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "uniV2pathFinder",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "uniV3adapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "uniV3mock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "uniV3pathFinder",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "yearnAdapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "yearnMock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "yearnPathFinder",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_setUpCurve",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "cft", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditConfigurator",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveAdapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveLPPathFinder",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveMetaAdapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "curvePathFinder",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveV1MetaMock",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveV1Mock",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_01_constructor_correctly_sets_initial_values",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_02_getPathFinder_returns_correct_values",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_03_findAllSwaps_found_a_pair_if_only_one_is_depdloyed",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_04_findAllSwaps_found_quotes_INPUT",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_05_findAllSwaps_found_quotes_OUTPUT",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_06_findAllSwaps_found_connector_quotes_and_take_the_best_INPUT",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_07_findAllSwaps_found_connector_quotes_and_take_the_best_OUTPUT",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_0",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_non_zero",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_09_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_0",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_NTP_10_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_non_zero",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "tokenMasksMap",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniV2adapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "uniV2mock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniV2pathFinder",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "uniV3adapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "uniV3mock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniV3pathFinder",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "yearnAdapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "yearnMock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "yearnPathFinder",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {
@@ -549,15 +549,15 @@ export interface SwapPathFinderTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -570,7 +570,7 @@ export interface SwapPathFinderTest extends BaseContract {
 
     _setUpCurve(
       withUnderlyings: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     cft(overrides?: CallOverrides): Promise<[string]>;
@@ -594,24 +594,24 @@ export interface SwapPathFinderTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<[string]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_01_constructor_correctly_sets_initial_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_02_getPathFinder_returns_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_03_findAllSwaps_found_a_pair_if_only_one_is_depdloyed(
       isAll: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_04_findAllSwaps_found_quotes_INPUT(
@@ -619,14 +619,14 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_05_findAllSwaps_found_quotes_OUTPUT(
       amountOut: BigNumberish,
       slippage: BigNumberish,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_06_findAllSwaps_found_connector_quotes_and_take_the_best_INPUT(
@@ -634,14 +634,14 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_07_findAllSwaps_found_connector_quotes_and_take_the_best_OUTPUT(
       amountOut: BigNumberish,
       slippage: BigNumberish,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_0(
@@ -649,7 +649,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_non_zero(
@@ -658,7 +658,7 @@ export interface SwapPathFinderTest extends BaseContract {
       isAll: boolean,
       externalSlippage: boolean,
       whoWins: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_09_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_0(
@@ -666,7 +666,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_NTP_10_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_non_zero(
@@ -674,12 +674,12 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       externalSlippage: boolean,
       whoWins: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     tokenMasksMap(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     underlying(overrides?: CallOverrides): Promise<[string]>;
@@ -707,7 +707,7 @@ export interface SwapPathFinderTest extends BaseContract {
 
   _setUpCurve(
     withUnderlyings: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   cft(overrides?: CallOverrides): Promise<string>;
@@ -731,24 +731,24 @@ export interface SwapPathFinderTest extends BaseContract {
   curveV1Mock(overrides?: CallOverrides): Promise<string>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_01_constructor_correctly_sets_initial_values(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_02_getPathFinder_returns_correct_values(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_03_findAllSwaps_found_a_pair_if_only_one_is_depdloyed(
     isAll: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_04_findAllSwaps_found_quotes_INPUT(
@@ -756,14 +756,14 @@ export interface SwapPathFinderTest extends BaseContract {
     slippage: BigNumberish,
     isAll: boolean,
     externalSlippage: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_05_findAllSwaps_found_quotes_OUTPUT(
     amountOut: BigNumberish,
     slippage: BigNumberish,
     externalSlippage: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_06_findAllSwaps_found_connector_quotes_and_take_the_best_INPUT(
@@ -771,14 +771,14 @@ export interface SwapPathFinderTest extends BaseContract {
     slippage: BigNumberish,
     isAll: boolean,
     externalSlippage: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_07_findAllSwaps_found_connector_quotes_and_take_the_best_OUTPUT(
     amountOut: BigNumberish,
     slippage: BigNumberish,
     externalSlippage: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_0(
@@ -786,7 +786,7 @@ export interface SwapPathFinderTest extends BaseContract {
     slippage: BigNumberish,
     isAll: boolean,
     externalSlippage: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_non_zero(
@@ -795,7 +795,7 @@ export interface SwapPathFinderTest extends BaseContract {
     isAll: boolean,
     externalSlippage: boolean,
     whoWins: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_09_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_0(
@@ -803,7 +803,7 @@ export interface SwapPathFinderTest extends BaseContract {
     slippage: BigNumberish,
     isAll: boolean,
     externalSlippage: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_NTP_10_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_non_zero(
@@ -811,7 +811,7 @@ export interface SwapPathFinderTest extends BaseContract {
     slippage: BigNumberish,
     externalSlippage: boolean,
     whoWins: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   tokenMasksMap(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -841,7 +841,7 @@ export interface SwapPathFinderTest extends BaseContract {
 
     _setUpCurve(
       withUnderlyings: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     cft(overrides?: CallOverrides): Promise<string>;
@@ -869,16 +869,16 @@ export interface SwapPathFinderTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_NTP_01_constructor_correctly_sets_initial_values(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_02_getPathFinder_returns_correct_values(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_03_findAllSwaps_found_a_pair_if_only_one_is_depdloyed(
       isAll: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_04_findAllSwaps_found_quotes_INPUT(
@@ -886,14 +886,14 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_05_findAllSwaps_found_quotes_OUTPUT(
       amountOut: BigNumberish,
       slippage: BigNumberish,
       externalSlippage: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_06_findAllSwaps_found_connector_quotes_and_take_the_best_INPUT(
@@ -901,14 +901,14 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_07_findAllSwaps_found_connector_quotes_and_take_the_best_OUTPUT(
       amountOut: BigNumberish,
       slippage: BigNumberish,
       externalSlippage: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_0(
@@ -916,7 +916,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_non_zero(
@@ -925,7 +925,7 @@ export interface SwapPathFinderTest extends BaseContract {
       isAll: boolean,
       externalSlippage: boolean,
       whoWins: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_09_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_0(
@@ -933,7 +933,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_NTP_10_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_non_zero(
@@ -941,7 +941,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       externalSlippage: boolean,
       whoWins: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     tokenMasksMap(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -985,59 +985,59 @@ export interface SwapPathFinderTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -1056,7 +1056,7 @@ export interface SwapPathFinderTest extends BaseContract {
 
     _setUpCurve(
       withUnderlyings: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     cft(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1080,24 +1080,24 @@ export interface SwapPathFinderTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_01_constructor_correctly_sets_initial_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_02_getPathFinder_returns_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_03_findAllSwaps_found_a_pair_if_only_one_is_depdloyed(
       isAll: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_04_findAllSwaps_found_quotes_INPUT(
@@ -1105,14 +1105,14 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_05_findAllSwaps_found_quotes_OUTPUT(
       amountOut: BigNumberish,
       slippage: BigNumberish,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_06_findAllSwaps_found_connector_quotes_and_take_the_best_INPUT(
@@ -1120,14 +1120,14 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_07_findAllSwaps_found_connector_quotes_and_take_the_best_OUTPUT(
       amountOut: BigNumberish,
       slippage: BigNumberish,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_0(
@@ -1135,7 +1135,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_non_zero(
@@ -1144,7 +1144,7 @@ export interface SwapPathFinderTest extends BaseContract {
       isAll: boolean,
       externalSlippage: boolean,
       whoWins: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_09_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_0(
@@ -1152,7 +1152,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_NTP_10_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_non_zero(
@@ -1160,7 +1160,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       externalSlippage: boolean,
       whoWins: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     tokenMasksMap(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -1191,13 +1191,13 @@ export interface SwapPathFinderTest extends BaseContract {
 
     _setUpCurve(
       withUnderlyings: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     cft(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditConfigurator(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1217,24 +1217,24 @@ export interface SwapPathFinderTest extends BaseContract {
     curveV1Mock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_01_constructor_correctly_sets_initial_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_02_getPathFinder_returns_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_03_findAllSwaps_found_a_pair_if_only_one_is_depdloyed(
       isAll: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_04_findAllSwaps_found_quotes_INPUT(
@@ -1242,14 +1242,14 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_05_findAllSwaps_found_quotes_OUTPUT(
       amountOut: BigNumberish,
       slippage: BigNumberish,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_06_findAllSwaps_found_connector_quotes_and_take_the_best_INPUT(
@@ -1257,14 +1257,14 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_07_findAllSwaps_found_connector_quotes_and_take_the_best_OUTPUT(
       amountOut: BigNumberish,
       slippage: BigNumberish,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_0(
@@ -1272,7 +1272,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_08_getBestDirectPairSwap_found_the_best_swap_with_INPUT_GP_non_zero(
@@ -1281,7 +1281,7 @@ export interface SwapPathFinderTest extends BaseContract {
       isAll: boolean,
       externalSlippage: boolean,
       whoWins: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_09_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_0(
@@ -1289,7 +1289,7 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       isAll: boolean,
       externalSlippage: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_NTP_10_getBestDirectPairSwap_found_the_best_swap_with_OUTPUT_GP_non_zero(
@@ -1297,12 +1297,12 @@ export interface SwapPathFinderTest extends BaseContract {
       slippage: BigNumberish,
       externalSlippage: boolean,
       whoWins: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     tokenMasksMap(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;

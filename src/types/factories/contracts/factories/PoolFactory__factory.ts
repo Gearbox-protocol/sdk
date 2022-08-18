@@ -203,7 +203,7 @@ type PoolFactoryConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PoolFactoryConstructorParams,
+  xs: PoolFactoryConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PoolFactory__factory extends ContractFactory {
@@ -217,13 +217,13 @@ export class PoolFactory__factory extends ContractFactory {
 
   override deploy(
     opts: PoolOptsStruct,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<PoolFactory> {
     return super.deploy(opts, overrides || {}) as Promise<PoolFactory>;
   }
   override getDeployTransaction(
     opts: PoolOptsStruct,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(opts, overrides || {});
   }
@@ -241,7 +241,7 @@ export class PoolFactory__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): PoolFactory {
     return new Contract(address, _abi, signerOrProvider) as PoolFactory;
   }

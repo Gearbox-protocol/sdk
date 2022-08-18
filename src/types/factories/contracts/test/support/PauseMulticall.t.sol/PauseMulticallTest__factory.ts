@@ -355,7 +355,7 @@ type PauseMulticallTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PauseMulticallTestConstructorParams,
+  xs: PauseMulticallTestConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PauseMulticallTest__factory extends ContractFactory {
@@ -368,12 +368,12 @@ export class PauseMulticallTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<PauseMulticallTest> {
     return super.deploy(overrides || {}) as Promise<PauseMulticallTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -391,7 +391,7 @@ export class PauseMulticallTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): PauseMulticallTest {
     return new Contract(address, _abi, signerOrProvider) as PauseMulticallTest;
   }

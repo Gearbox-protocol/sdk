@@ -45,48 +45,48 @@ export interface IPriceOracleV2Interface extends utils.Interface {
       | "getPrice"
       | "priceFeeds"
       | "priceFeedsWithFlags"
-      | "version",
+      | "version"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "convert",
-    values: [BigNumberish, string, string],
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "convertFromUSD",
-    values: [BigNumberish, string],
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "convertToUSD",
-    values: [BigNumberish, string],
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "fastCheck",
-    values: [BigNumberish, string, BigNumberish, string],
+    values: [BigNumberish, string, BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "getPrice", values: [string]): string;
   encodeFunctionData(functionFragment: "priceFeeds", values: [string]): string;
   encodeFunctionData(
     functionFragment: "priceFeedsWithFlags",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "convert", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "convertFromUSD",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "convertToUSD",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "fastCheck", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getPrice", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "priceFeeds", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "priceFeedsWithFlags",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
@@ -118,15 +118,15 @@ export interface IPriceOracleV2 extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -139,19 +139,19 @@ export interface IPriceOracleV2 extends BaseContract {
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     convertFromUSD(
       amount: BigNumberish,
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     convertToUSD(
       amount: BigNumberish,
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     fastCheck(
@@ -159,7 +159,7 @@ export interface IPriceOracleV2 extends BaseContract {
       tokenFrom: string,
       amountTo: BigNumberish,
       tokenTo: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
         collateralFrom: BigNumber;
@@ -171,12 +171,12 @@ export interface IPriceOracleV2 extends BaseContract {
 
     priceFeeds(
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string] & { priceFeed: string }>;
 
     priceFeedsWithFlags(
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [string, boolean, BigNumber] & {
         priceFeed: string;
@@ -192,19 +192,19 @@ export interface IPriceOracleV2 extends BaseContract {
     amount: BigNumberish,
     tokenFrom: string,
     tokenTo: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   convertFromUSD(
     amount: BigNumberish,
     token: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   convertToUSD(
     amount: BigNumberish,
     token: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   fastCheck(
@@ -212,7 +212,7 @@ export interface IPriceOracleV2 extends BaseContract {
     tokenFrom: string,
     amountTo: BigNumberish,
     tokenTo: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<
     [BigNumber, BigNumber] & {
       collateralFrom: BigNumber;
@@ -226,7 +226,7 @@ export interface IPriceOracleV2 extends BaseContract {
 
   priceFeedsWithFlags(
     token: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<
     [string, boolean, BigNumber] & {
       priceFeed: string;
@@ -242,19 +242,19 @@ export interface IPriceOracleV2 extends BaseContract {
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertFromUSD(
       amount: BigNumberish,
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToUSD(
       amount: BigNumberish,
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     fastCheck(
@@ -262,7 +262,7 @@ export interface IPriceOracleV2 extends BaseContract {
       tokenFrom: string,
       amountTo: BigNumberish,
       tokenTo: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
         collateralFrom: BigNumber;
@@ -276,7 +276,7 @@ export interface IPriceOracleV2 extends BaseContract {
 
     priceFeedsWithFlags(
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [string, boolean, BigNumber] & {
         priceFeed: string;
@@ -291,11 +291,11 @@ export interface IPriceOracleV2 extends BaseContract {
   filters: {
     "NewPriceFeed(address,address)"(
       token?: string | null,
-      priceFeed?: string | null,
+      priceFeed?: string | null
     ): NewPriceFeedEventFilter;
     NewPriceFeed(
       token?: string | null,
-      priceFeed?: string | null,
+      priceFeed?: string | null
     ): NewPriceFeedEventFilter;
   };
 
@@ -304,19 +304,19 @@ export interface IPriceOracleV2 extends BaseContract {
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertFromUSD(
       amount: BigNumberish,
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToUSD(
       amount: BigNumberish,
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     fastCheck(
@@ -324,7 +324,7 @@ export interface IPriceOracleV2 extends BaseContract {
       tokenFrom: string,
       amountTo: BigNumberish,
       tokenTo: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getPrice(token: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -333,7 +333,7 @@ export interface IPriceOracleV2 extends BaseContract {
 
     priceFeedsWithFlags(
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -344,19 +344,19 @@ export interface IPriceOracleV2 extends BaseContract {
       amount: BigNumberish,
       tokenFrom: string,
       tokenTo: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     convertFromUSD(
       amount: BigNumberish,
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     convertToUSD(
       amount: BigNumberish,
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     fastCheck(
@@ -364,22 +364,22 @@ export interface IPriceOracleV2 extends BaseContract {
       tokenFrom: string,
       amountTo: BigNumberish,
       tokenTo: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getPrice(
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     priceFeeds(
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     priceFeedsWithFlags(
       token: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;

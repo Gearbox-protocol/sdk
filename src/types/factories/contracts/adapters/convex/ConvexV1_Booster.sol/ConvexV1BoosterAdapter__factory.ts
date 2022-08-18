@@ -474,7 +474,7 @@ type ConvexV1BoosterAdapterConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ConvexV1BoosterAdapterConstructorParams,
+  xs: ConvexV1BoosterAdapterConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ConvexV1BoosterAdapter__factory extends ContractFactory {
@@ -489,23 +489,23 @@ export class ConvexV1BoosterAdapter__factory extends ContractFactory {
   override deploy(
     _creditManager: string,
     _booster: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ConvexV1BoosterAdapter> {
     return super.deploy(
       _creditManager,
       _booster,
-      overrides || {},
+      overrides || {}
     ) as Promise<ConvexV1BoosterAdapter>;
   }
   override getDeployTransaction(
     _creditManager: string,
     _booster: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _creditManager,
       _booster,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): ConvexV1BoosterAdapter {
@@ -522,12 +522,12 @@ export class ConvexV1BoosterAdapter__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ConvexV1BoosterAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as ConvexV1BoosterAdapter;
   }
 }

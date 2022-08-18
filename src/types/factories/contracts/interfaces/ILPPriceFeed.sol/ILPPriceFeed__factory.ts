@@ -237,7 +237,7 @@ export class ILPPriceFeed__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ILPPriceFeed {
     return new Contract(address, _abi, signerOrProvider) as ILPPriceFeed;
   }

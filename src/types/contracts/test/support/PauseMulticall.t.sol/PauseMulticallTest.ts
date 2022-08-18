@@ -46,7 +46,7 @@ export interface PauseMulticallTestInterface extends utils.Interface {
       | "test_PM_02_pauseAllCreditManagers_works_correctly"
       | "test_PM_03_pauseAllPools_works_correctly"
       | "test_PM_04_pauseAllContracts_works_correctly"
-      | "test_PM_05_functions_revert_when_caller_not_pausable_admin",
+      | "test_PM_05_functions_revert_when_caller_not_pausable_admin"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
@@ -54,23 +54,23 @@ export interface PauseMulticallTestInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_PM_01_constructor_sets_correct_values",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_PM_02_pauseAllCreditManagers_works_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_PM_03_pauseAllPools_works_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_PM_04_pauseAllContracts_works_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_PM_05_functions_revert_when_caller_not_pausable_admin",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
@@ -78,23 +78,23 @@ export interface PauseMulticallTestInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_PM_01_constructor_sets_correct_values",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PM_02_pauseAllCreditManagers_works_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PM_03_pauseAllPools_works_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PM_04_pauseAllContracts_works_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_PM_05_functions_revert_when_caller_not_pausable_admin",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {
@@ -295,15 +295,15 @@ export interface PauseMulticallTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -315,62 +315,62 @@ export interface PauseMulticallTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_PM_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_PM_02_pauseAllCreditManagers_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_PM_03_pauseAllPools_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_PM_04_pauseAllContracts_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_PM_05_functions_revert_when_caller_not_pausable_admin(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   IS_TEST(overrides?: CallOverrides): Promise<boolean>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_PM_01_constructor_sets_correct_values(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_PM_02_pauseAllCreditManagers_works_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_PM_03_pauseAllPools_works_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_PM_04_pauseAllContracts_works_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_PM_05_functions_revert_when_caller_not_pausable_admin(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -381,23 +381,23 @@ export interface PauseMulticallTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_PM_01_constructor_sets_correct_values(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_PM_02_pauseAllCreditManagers_works_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_PM_03_pauseAllPools_works_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_PM_04_pauseAllContracts_works_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_PM_05_functions_revert_when_caller_not_pausable_admin(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
   };
 
@@ -419,59 +419,59 @@ export interface PauseMulticallTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -489,31 +489,31 @@ export interface PauseMulticallTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_PM_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_PM_02_pauseAllCreditManagers_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_PM_03_pauseAllPools_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_PM_04_pauseAllContracts_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_PM_05_functions_revert_when_caller_not_pausable_admin(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -521,31 +521,31 @@ export interface PauseMulticallTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_PM_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_PM_02_pauseAllCreditManagers_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_PM_03_pauseAllPools_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_PM_04_pauseAllContracts_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_PM_05_functions_revert_when_caller_not_pausable_admin(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

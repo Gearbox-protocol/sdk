@@ -95,7 +95,7 @@ export class IAdapter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IAdapter {
     return new Contract(address, _abi, signerOrProvider) as IAdapter;
   }

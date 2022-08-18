@@ -84,7 +84,7 @@ type DummyMulticallTargetConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: DummyMulticallTargetConstructorParams,
+  xs: DummyMulticallTargetConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class DummyMulticallTarget__factory extends ContractFactory {
@@ -97,12 +97,12 @@ export class DummyMulticallTarget__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<DummyMulticallTarget> {
     return super.deploy(overrides || {}) as Promise<DummyMulticallTarget>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -120,12 +120,12 @@ export class DummyMulticallTarget__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): DummyMulticallTarget {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as DummyMulticallTarget;
   }
 }

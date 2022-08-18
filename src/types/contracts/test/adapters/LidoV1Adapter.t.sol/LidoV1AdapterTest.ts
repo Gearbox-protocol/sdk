@@ -67,122 +67,122 @@ export interface LidoV1AdapterTestInterface extends utils.Interface {
       | "test_LDOV1_05_submit_updates_limit_and_reverts_on_limit_exceeded"
       | "test_LDOV1_06_submit_updates_limit_and_reverts_on_limit_exceeded"
       | "test_LDOV1_07_submit_updates_limit_properly"
-      | "underlying",
+      | "underlying"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
   encodeFunctionData(functionFragment: "cft", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "creditConfigurator",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "lidoV1Adapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "lidoV1Gateway",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "lidoV1Mock",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_LDOV1_01_constructor_sets_correct_params",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_LDOV1_02_submit_and_submitAll_reverts_if_user_has_no_account",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_LDOV1_03_submit_works_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_LDOV1_04_submitAll_works_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_LDOV1_05_submit_updates_limit_and_reverts_on_limit_exceeded",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_LDOV1_06_submit_updates_limit_and_reverts_on_limit_exceeded",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_LDOV1_07_submit_updates_limit_properly",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "cft", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditConfigurator",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lidoV1Adapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "lidoV1Gateway",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "lidoV1Mock", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_LDOV1_01_constructor_sets_correct_params",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_LDOV1_02_submit_and_submitAll_reverts_if_user_has_no_account",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_LDOV1_03_submit_works_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_LDOV1_04_submitAll_works_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_LDOV1_05_submit_updates_limit_and_reverts_on_limit_exceeded",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_LDOV1_06_submit_updates_limit_and_reverts_on_limit_exceeded",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_LDOV1_07_submit_updates_limit_properly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
 
@@ -229,7 +229,7 @@ export interface LidoV1AdapterTestInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount",
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_Submitted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
@@ -616,15 +616,15 @@ export interface LidoV1AdapterTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -644,7 +644,7 @@ export interface LidoV1AdapterTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     lidoV1Adapter(overrides?: CallOverrides): Promise<[string]>;
@@ -654,36 +654,36 @@ export interface LidoV1AdapterTest extends BaseContract {
     lidoV1Mock(overrides?: CallOverrides): Promise<[string]>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_LDOV1_01_constructor_sets_correct_params(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_LDOV1_02_submit_and_submitAll_reverts_if_user_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_LDOV1_03_submit_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_LDOV1_04_submitAll_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_LDOV1_05_submit_updates_limit_and_reverts_on_limit_exceeded(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_LDOV1_06_submit_updates_limit_and_reverts_on_limit_exceeded(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_LDOV1_07_submit_updates_limit_properly(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<[string]>;
@@ -700,7 +700,7 @@ export interface LidoV1AdapterTest extends BaseContract {
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   lidoV1Adapter(overrides?: CallOverrides): Promise<string>;
@@ -710,36 +710,36 @@ export interface LidoV1AdapterTest extends BaseContract {
   lidoV1Mock(overrides?: CallOverrides): Promise<string>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_LDOV1_01_constructor_sets_correct_params(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_LDOV1_02_submit_and_submitAll_reverts_if_user_has_no_account(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_LDOV1_03_submit_works_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_LDOV1_04_submitAll_works_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_LDOV1_05_submit_updates_limit_and_reverts_on_limit_exceeded(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_LDOV1_06_submit_updates_limit_and_reverts_on_limit_exceeded(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_LDOV1_07_submit_updates_limit_properly(
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   underlying(overrides?: CallOverrides): Promise<string>;
@@ -766,32 +766,32 @@ export interface LidoV1AdapterTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_LDOV1_01_constructor_sets_correct_params(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_LDOV1_02_submit_and_submitAll_reverts_if_user_has_no_account(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_LDOV1_03_submit_works_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_LDOV1_04_submitAll_works_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_LDOV1_05_submit_updates_limit_and_reverts_on_limit_exceeded(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_LDOV1_06_submit_updates_limit_and_reverts_on_limit_exceeded(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_LDOV1_07_submit_updates_limit_properly(
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     underlying(overrides?: CallOverrides): Promise<string>;
@@ -801,100 +801,100 @@ export interface LidoV1AdapterTest extends BaseContract {
     "AddCollateral(address,address,uint256)"(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null,
+      value?: null
     ): AddCollateralEventFilter;
     AddCollateral(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null,
+      value?: null
     ): AddCollateralEventFilter;
 
     "CloseCreditAccount(address,address)"(
       owner?: string | null,
-      to?: string | null,
+      to?: string | null
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
       owner?: string | null,
-      to?: string | null,
+      to?: string | null
     ): CloseCreditAccountEventFilter;
 
     "DecreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): DecreaseBorrowedAmountEventFilter;
     DecreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): DecreaseBorrowedAmountEventFilter;
 
     "ExecuteOrder(address,address)"(
       borrower?: string | null,
-      target?: string | null,
+      target?: string | null
     ): ExecuteOrderEventFilter;
     ExecuteOrder(
       borrower?: string | null,
-      target?: string | null,
+      target?: string | null
     ): ExecuteOrderEventFilter;
 
     "IncreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): IncreaseBorrowedAmountEventFilter;
     IncreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): IncreaseBorrowedAmountEventFilter;
 
     "LiquidateCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
     "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
     LiquidateExpiredCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
 
     "Mock_Submitted(address,uint256,address)"(
       sender?: string | null,
       amount?: null,
-      referral?: null,
+      referral?: null
     ): Mock_SubmittedEventFilter;
     Mock_Submitted(
       sender?: string | null,
       amount?: null,
-      referral?: null,
+      referral?: null
     ): Mock_SubmittedEventFilter;
 
     "MultiCallFinished()"(): MultiCallFinishedEventFilter;
     MultiCallFinished(): MultiCallFinishedEventFilter;
 
     "MultiCallStarted(address)"(
-      borrower?: string | null,
+      borrower?: string | null
     ): MultiCallStartedEventFilter;
     MultiCallStarted(borrower?: string | null): MultiCallStartedEventFilter;
 
     "NewConfigurator(address)"(
-      newConfigurator?: string | null,
+      newConfigurator?: string | null
     ): NewConfiguratorEventFilter;
     NewConfigurator(
-      newConfigurator?: string | null,
+      newConfigurator?: string | null
     ): NewConfiguratorEventFilter;
 
     "NewLimit(uint256)"(_limit?: null): NewLimitEventFilter;
@@ -904,45 +904,45 @@ export interface LidoV1AdapterTest extends BaseContract {
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): OpenCreditAccountEventFilter;
     OpenCreditAccount(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
       creditAccount?: null,
-      token?: null,
+      token?: null
     ): TokenDisabledEventFilter;
     TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
       creditAccount?: null,
-      token?: null,
+      token?: null
     ): TokenEnabledEventFilter;
     TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): TransferAccountEventFilter;
     TransferAccount(
       oldOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): TransferAccountEventFilter;
 
     "TransferAccountAllowed(address,address,bool)"(
       from?: string | null,
       to?: string | null,
-      state?: null,
+      state?: null
     ): TransferAccountAllowedEventFilter;
     TransferAccountAllowed(
       from?: string | null,
       to?: string | null,
-      state?: null,
+      state?: null
     ): TransferAccountAllowedEventFilter;
 
     "log(string)"(arg0?: null): logEventFilter;
@@ -962,59 +962,59 @@ export interface LidoV1AdapterTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -1040,7 +1040,7 @@ export interface LidoV1AdapterTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     lidoV1Adapter(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1050,36 +1050,36 @@ export interface LidoV1AdapterTest extends BaseContract {
     lidoV1Mock(overrides?: CallOverrides): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_LDOV1_01_constructor_sets_correct_params(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_LDOV1_02_submit_and_submitAll_reverts_if_user_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_LDOV1_03_submit_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_LDOV1_04_submitAll_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_LDOV1_05_submit_updates_limit_and_reverts_on_limit_exceeded(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_LDOV1_06_submit_updates_limit_and_reverts_on_limit_exceeded(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_LDOV1_07_submit_updates_limit_properly(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1091,7 +1091,7 @@ export interface LidoV1AdapterTest extends BaseContract {
     cft(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditConfigurator(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1099,7 +1099,7 @@ export interface LidoV1AdapterTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     lidoV1Adapter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1109,36 +1109,36 @@ export interface LidoV1AdapterTest extends BaseContract {
     lidoV1Mock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_LDOV1_01_constructor_sets_correct_params(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_LDOV1_02_submit_and_submitAll_reverts_if_user_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_LDOV1_03_submit_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_LDOV1_04_submitAll_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_LDOV1_05_submit_updates_limit_and_reverts_on_limit_exceeded(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_LDOV1_06_submit_updates_limit_and_reverts_on_limit_exceeded(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_LDOV1_07_submit_updates_limit_properly(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;

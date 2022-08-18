@@ -1070,7 +1070,7 @@ type CurveV1Adapter3AssetsConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveV1Adapter3AssetsConstructorParams,
+  xs: CurveV1Adapter3AssetsConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveV1Adapter3Assets__factory extends ContractFactory {
@@ -1087,14 +1087,14 @@ export class CurveV1Adapter3Assets__factory extends ContractFactory {
     _curvePool: string,
     _lp_token: string,
     _metapoolBase: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CurveV1Adapter3Assets> {
     return super.deploy(
       _creditManager,
       _curvePool,
       _lp_token,
       _metapoolBase,
-      overrides || {},
+      overrides || {}
     ) as Promise<CurveV1Adapter3Assets>;
   }
   override getDeployTransaction(
@@ -1102,14 +1102,14 @@ export class CurveV1Adapter3Assets__factory extends ContractFactory {
     _curvePool: string,
     _lp_token: string,
     _metapoolBase: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _creditManager,
       _curvePool,
       _lp_token,
       _metapoolBase,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): CurveV1Adapter3Assets {
@@ -1126,12 +1126,12 @@ export class CurveV1Adapter3Assets__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CurveV1Adapter3Assets {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as CurveV1Adapter3Assets;
   }
 }

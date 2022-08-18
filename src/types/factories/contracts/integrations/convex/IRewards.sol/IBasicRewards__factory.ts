@@ -86,7 +86,7 @@ export class IBasicRewards__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IBasicRewards {
     return new Contract(address, _abi, signerOrProvider) as IBasicRewards;
   }

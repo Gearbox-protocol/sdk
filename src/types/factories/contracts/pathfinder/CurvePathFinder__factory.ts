@@ -400,7 +400,7 @@ type CurvePathFinderConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurvePathFinderConstructorParams,
+  xs: CurvePathFinderConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurvePathFinder__factory extends ContractFactory {
@@ -413,12 +413,12 @@ export class CurvePathFinder__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CurvePathFinder> {
     return super.deploy(overrides || {}) as Promise<CurvePathFinder>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -436,7 +436,7 @@ export class CurvePathFinder__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CurvePathFinder {
     return new Contract(address, _abi, signerOrProvider) as CurvePathFinder;
   }

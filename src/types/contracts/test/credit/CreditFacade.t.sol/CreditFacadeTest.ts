@@ -181,581 +181,581 @@ export interface CreditFacadeTestInterface extends utils.Interface {
       | "test_FA_52_enableToken_works_as_expected"
       | "test_FA_53_enableToken_works_as_expected_multicall"
       | "test_FA_54_disableToken_works_as_expected_multicall"
-      | "underlying",
+      | "underlying"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
   encodeFunctionData(functionFragment: "cft", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "creditConfigurator",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_FA_01A_constructor_sets_correct_values",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_01_constructor_reverts_for_zero_address",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_02_functions_reverts_if_borrower_has_no_account",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_03A_openCreditAccount_correctly_wraps_ETH",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_03C_closeCreditAccount_correctly_wraps_ETH",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_03D_liquidate_correctly_wraps_ETH",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_03E_addCollateral_correctly_wraps_ETH",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_03F_multicall_correctly_wraps_ETH",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_05_openCreditAccount_sets_correct_values",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_06_openCreditAccount_reverts_for_hf_less_one",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_10_no_free_flashloans_during_openCreditAccount",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_12_closeCreditAccount_runs_operations_in_correct_order",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_17_increaseDebt_executes_actions_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_18A_increaseDebt_revets_if_more_than_block_limit",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_18B_increaseDebt_revets_if_more_than_block_limit",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_19_decreaseDebt_executes_actions_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_21_addCollateral_executes_actions_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_23_multicall_reverts_for_unknown_methods",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_24_multicall_reverts_for_creditManager_address",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_25_multicall_reverts_for_non_adapters",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_29_multicall_works_with_adapters_calls_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_31_approve_works_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_34_transferAccountOwnership_reverts_if_hf_less_1",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_39_enable_token_balance",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_40_isTokenAllowed_works_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_41_calcTotalValue_computes_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_42_calcCreditAccountHealthFactor_computes_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_43_hasOpenedCreditAccount_returns_correct_values",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_44_config_functions_revert_if_called_non_configurator",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_45_revertIfBalanceLessThan_works_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_50_upgradeableContracts_setters_and_getters_work_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_51_approve_reverts_for_upgradeable_contract",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_52_enableToken_works_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_53_enableToken_works_as_expected_multicall",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_FA_54_disableToken_works_as_expected_multicall",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "cft", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditConfigurator",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_01A_constructor_sets_correct_values",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_01_constructor_reverts_for_zero_address",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_02_functions_reverts_if_borrower_has_no_account",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_03A_openCreditAccount_correctly_wraps_ETH",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_03C_closeCreditAccount_correctly_wraps_ETH",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_03D_liquidate_correctly_wraps_ETH",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_03E_addCollateral_correctly_wraps_ETH",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_03F_multicall_correctly_wraps_ETH",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_05_openCreditAccount_sets_correct_values",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_06_openCreditAccount_reverts_for_hf_less_one",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_10_no_free_flashloans_during_openCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_12_closeCreditAccount_runs_operations_in_correct_order",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_17_increaseDebt_executes_actions_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_18A_increaseDebt_revets_if_more_than_block_limit",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_18B_increaseDebt_revets_if_more_than_block_limit",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_19_decreaseDebt_executes_actions_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_21_addCollateral_executes_actions_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_23_multicall_reverts_for_unknown_methods",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_24_multicall_reverts_for_creditManager_address",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_25_multicall_reverts_for_non_adapters",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_29_multicall_works_with_adapters_calls_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_31_approve_works_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_34_transferAccountOwnership_reverts_if_hf_less_1",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_39_enable_token_balance",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_40_isTokenAllowed_works_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_41_calcTotalValue_computes_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_42_calcCreditAccountHealthFactor_computes_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_43_hasOpenedCreditAccount_returns_correct_values",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_44_config_functions_revert_if_called_non_configurator",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_45_revertIfBalanceLessThan_works_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_50_upgradeableContracts_setters_and_getters_work_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_51_approve_reverts_for_upgradeable_contract",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_52_enableToken_works_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_53_enableToken_works_as_expected_multicall",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_FA_54_disableToken_works_as_expected_multicall",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
 
@@ -800,7 +800,7 @@ export interface CreditFacadeTestInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount",
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
@@ -1166,15 +1166,15 @@ export interface CreditFacadeTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -1194,282 +1194,282 @@ export interface CreditFacadeTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_01A_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_01_constructor_reverts_for_zero_address(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_02_functions_reverts_if_borrower_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_03A_openCreditAccount_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_03C_closeCreditAccount_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_03D_liquidate_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_03E_addCollateral_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_03F_multicall_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_05_openCreditAccount_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_06_openCreditAccount_reverts_for_hf_less_one(
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one(
       amount: BigNumberish,
       token1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_10_no_free_flashloans_during_openCreditAccount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_12_closeCreditAccount_runs_operations_in_correct_order(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_17_increaseDebt_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_18A_increaseDebt_revets_if_more_than_block_limit(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_18B_increaseDebt_revets_if_more_than_block_limit(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_19_decreaseDebt_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_21_addCollateral_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_23_multicall_reverts_for_unknown_methods(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_24_multicall_reverts_for_creditManager_address(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_25_multicall_reverts_for_non_adapters(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_29_multicall_works_with_adapters_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_31_approve_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_34_transferAccountOwnership_reverts_if_hf_less_1(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_39_enable_token_balance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_40_isTokenAllowed_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_41_calcTotalValue_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_42_calcCreditAccountHealthFactor_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_43_hasOpenedCreditAccount_returns_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_44_config_functions_revert_if_called_non_configurator(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_45_revertIfBalanceLessThan_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_51_approve_reverts_for_upgradeable_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_52_enableToken_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_53_enableToken_works_as_expected_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_FA_54_disableToken_works_as_expected_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<[string]>;
@@ -1486,282 +1486,282 @@ export interface CreditFacadeTest extends BaseContract {
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_01A_constructor_sets_correct_values(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_01_constructor_reverts_for_zero_address(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_02_functions_reverts_if_borrower_has_no_account(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_03A_openCreditAccount_correctly_wraps_ETH(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_03C_closeCreditAccount_correctly_wraps_ETH(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_03D_liquidate_correctly_wraps_ETH(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_03E_addCollateral_correctly_wraps_ETH(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_03F_multicall_correctly_wraps_ETH(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_05_openCreditAccount_sets_correct_values(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_06_openCreditAccount_reverts_for_hf_less_one(
     leverageFactor: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one(
     amount: BigNumberish,
     token1: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_10_no_free_flashloans_during_openCreditAccount(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_12_closeCreditAccount_runs_operations_in_correct_order(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_17_increaseDebt_executes_actions_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_18A_increaseDebt_revets_if_more_than_block_limit(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_18B_increaseDebt_revets_if_more_than_block_limit(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_19_decreaseDebt_executes_actions_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_21_addCollateral_executes_actions_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_23_multicall_reverts_for_unknown_methods(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_24_multicall_reverts_for_creditManager_address(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_25_multicall_reverts_for_non_adapters(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_29_multicall_works_with_adapters_calls_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_31_approve_works_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_34_transferAccountOwnership_reverts_if_hf_less_1(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_39_enable_token_balance(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_40_isTokenAllowed_works_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_41_calcTotalValue_computes_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_42_calcCreditAccountHealthFactor_computes_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_43_hasOpenedCreditAccount_returns_correct_values(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_44_config_functions_revert_if_called_non_configurator(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_45_revertIfBalanceLessThan_works_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_51_approve_reverts_for_upgradeable_contract(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_52_enableToken_works_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_53_enableToken_works_as_expected_multicall(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_FA_54_disableToken_works_as_expected_multicall(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   underlying(overrides?: CallOverrides): Promise<string>;
@@ -1782,272 +1782,272 @@ export interface CreditFacadeTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_FA_01A_constructor_sets_correct_values(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_01_constructor_reverts_for_zero_address(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_02_functions_reverts_if_borrower_has_no_account(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_03A_openCreditAccount_correctly_wraps_ETH(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_03C_closeCreditAccount_correctly_wraps_ETH(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_03D_liquidate_correctly_wraps_ETH(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_03E_addCollateral_correctly_wraps_ETH(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_03F_multicall_correctly_wraps_ETH(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_05_openCreditAccount_sets_correct_values(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_06_openCreditAccount_reverts_for_hf_less_one(
       leverageFactor: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one(
       amount: BigNumberish,
       token1: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_10_no_free_flashloans_during_openCreditAccount(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_12_closeCreditAccount_runs_operations_in_correct_order(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_17_increaseDebt_executes_actions_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_18A_increaseDebt_revets_if_more_than_block_limit(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_18B_increaseDebt_revets_if_more_than_block_limit(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_19_decreaseDebt_executes_actions_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_21_addCollateral_executes_actions_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_23_multicall_reverts_for_unknown_methods(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_24_multicall_reverts_for_creditManager_address(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_25_multicall_reverts_for_non_adapters(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_29_multicall_works_with_adapters_calls_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_31_approve_works_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_34_transferAccountOwnership_reverts_if_hf_less_1(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_39_enable_token_balance(overrides?: CallOverrides): Promise<void>;
 
     test_FA_40_isTokenAllowed_works_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_41_calcTotalValue_computes_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_42_calcCreditAccountHealthFactor_computes_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_43_hasOpenedCreditAccount_returns_correct_values(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_44_config_functions_revert_if_called_non_configurator(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_45_revertIfBalanceLessThan_works_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_51_approve_reverts_for_upgradeable_contract(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_52_enableToken_works_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_53_enableToken_works_as_expected_multicall(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_FA_54_disableToken_works_as_expected_multicall(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     underlying(overrides?: CallOverrides): Promise<string>;
@@ -2057,134 +2057,134 @@ export interface CreditFacadeTest extends BaseContract {
     "AddCollateral(address,address,uint256)"(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null,
+      value?: null
     ): AddCollateralEventFilter;
     AddCollateral(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null,
+      value?: null
     ): AddCollateralEventFilter;
 
     "CloseCreditAccount(address,address)"(
       owner?: string | null,
-      to?: string | null,
+      to?: string | null
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
       owner?: string | null,
-      to?: string | null,
+      to?: string | null
     ): CloseCreditAccountEventFilter;
 
     "DecreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): DecreaseBorrowedAmountEventFilter;
     DecreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): DecreaseBorrowedAmountEventFilter;
 
     "ExecuteOrder(address,address)"(
       borrower?: string | null,
-      target?: string | null,
+      target?: string | null
     ): ExecuteOrderEventFilter;
     ExecuteOrder(
       borrower?: string | null,
-      target?: string | null,
+      target?: string | null
     ): ExecuteOrderEventFilter;
 
     "IncreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): IncreaseBorrowedAmountEventFilter;
     IncreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): IncreaseBorrowedAmountEventFilter;
 
     "LiquidateCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
     "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
     LiquidateExpiredCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
 
     "MultiCallFinished()"(): MultiCallFinishedEventFilter;
     MultiCallFinished(): MultiCallFinishedEventFilter;
 
     "MultiCallStarted(address)"(
-      borrower?: string | null,
+      borrower?: string | null
     ): MultiCallStartedEventFilter;
     MultiCallStarted(borrower?: string | null): MultiCallStartedEventFilter;
 
     "NewConfigurator(address)"(
-      newConfigurator?: string | null,
+      newConfigurator?: string | null
     ): NewConfiguratorEventFilter;
     NewConfigurator(
-      newConfigurator?: string | null,
+      newConfigurator?: string | null
     ): NewConfiguratorEventFilter;
 
     "OpenCreditAccount(address,address,uint256,uint16)"(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): OpenCreditAccountEventFilter;
     OpenCreditAccount(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
       creditAccount?: null,
-      token?: null,
+      token?: null
     ): TokenDisabledEventFilter;
     TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
       creditAccount?: null,
-      token?: null,
+      token?: null
     ): TokenEnabledEventFilter;
     TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): TransferAccountEventFilter;
     TransferAccount(
       oldOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): TransferAccountEventFilter;
 
     "TransferAccountAllowed(address,address,bool)"(
       from?: string | null,
       to?: string | null,
-      state?: null,
+      state?: null
     ): TransferAccountAllowedEventFilter;
     TransferAccountAllowed(
       from?: string | null,
       to?: string | null,
-      state?: null,
+      state?: null
     ): TransferAccountAllowedEventFilter;
 
     "log(string)"(arg0?: null): logEventFilter;
@@ -2204,59 +2204,59 @@ export interface CreditFacadeTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -2282,282 +2282,282 @@ export interface CreditFacadeTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_01A_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_01_constructor_reverts_for_zero_address(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_02_functions_reverts_if_borrower_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_03A_openCreditAccount_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_03C_closeCreditAccount_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_03D_liquidate_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_03E_addCollateral_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_03F_multicall_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_05_openCreditAccount_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_06_openCreditAccount_reverts_for_hf_less_one(
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one(
       amount: BigNumberish,
       token1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_10_no_free_flashloans_during_openCreditAccount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_12_closeCreditAccount_runs_operations_in_correct_order(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_17_increaseDebt_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_18A_increaseDebt_revets_if_more_than_block_limit(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_18B_increaseDebt_revets_if_more_than_block_limit(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_19_decreaseDebt_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_21_addCollateral_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_23_multicall_reverts_for_unknown_methods(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_24_multicall_reverts_for_creditManager_address(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_25_multicall_reverts_for_non_adapters(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_29_multicall_works_with_adapters_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_31_approve_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_34_transferAccountOwnership_reverts_if_hf_less_1(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_39_enable_token_balance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_40_isTokenAllowed_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_41_calcTotalValue_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_42_calcCreditAccountHealthFactor_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_43_hasOpenedCreditAccount_returns_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_44_config_functions_revert_if_called_non_configurator(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_45_revertIfBalanceLessThan_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_51_approve_reverts_for_upgradeable_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_52_enableToken_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_53_enableToken_works_as_expected_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_FA_54_disableToken_works_as_expected_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
@@ -2569,7 +2569,7 @@ export interface CreditFacadeTest extends BaseContract {
     cft(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditConfigurator(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -2577,282 +2577,282 @@ export interface CreditFacadeTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_01A_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_01_constructor_reverts_for_zero_address(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_02_functions_reverts_if_borrower_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_03A_openCreditAccount_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_03B_openCreditAccountMulticall_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_03C_closeCreditAccount_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_03D_liquidate_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_03E_addCollateral_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_03F_multicall_correctly_wraps_ETH(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_04A_openCreditAccount_reverts_for_using_addresses_which_is_not_allowed_by_transfer_allowance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_04B_openCreditAccount_reverts_for_non_whitelisted_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_04C_openCreditAccount_burns_token_in_whitelisted_mode(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_05_openCreditAccount_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_06_openCreditAccount_reverts_for_hf_less_one(
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_07_openCreditAccountMulticall_reverts_if_increase_debt_forbidden(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_08_openCreditAccountMulticall_runs_operations_in_correct_order(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_09_openCreditAccountMulticall_cant_open_credit_account_with_hf_less_one(
       amount: BigNumberish,
       token1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_10_no_free_flashloans_during_openCreditAccount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_11A_openCreditAccount_reverts_if_met_borrowed_limit_per_block(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_11B_openCreditAccount_reverts_if_amount_less_minBorrowedAmount_or_bigger_than_maxBorrowedAmount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_12_closeCreditAccount_runs_operations_in_correct_order(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_13_closeCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_14_liquidateCreditAccount_reverts_if_hf_is_greater_than_1(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_15_liquidateCreditAccount_executes_needed_calls_and_emits_events(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_16_liquidateCreditAccount_reverts_on_internal_call_in_multicall_on_closure(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_17_increaseDebt_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_18A_increaseDebt_revets_if_more_than_block_limit(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_18B_increaseDebt_revets_if_more_than_block_limit(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_18C_increaseDebt_revets_isIncreaseDebtForbidden_is_enabled(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_19_decreaseDebt_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_20_decreaseDebt_revets_if_less_than_minBorrowedAmount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_21A_addCollateral_reverts_on_account_transfer_not_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_21B_addCollateral_reverts_on_account_transfer_not_allowed_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_21_addCollateral_executes_actions_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_22_multicall_reverts_if_calldata_length_is_less_than_4_bytes(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_23_multicall_reverts_for_unknown_methods(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_24_multicall_reverts_for_creditManager_address(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_25_multicall_reverts_for_non_adapters(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_26_multicall_addCollateral_and_increase_debt_works_with_creditFacade_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_27_multicall_addCollateral_and_decreaseDebt_works_with_creditFacade_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_28_multicall_reverts_for_decrease_opeartion_after_increase_one(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_29_multicall_works_with_adapters_calls_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_30_approve_reverts_for_not_allowed_token_and_not_allower_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_31_approve_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_32_transferAccountOwnership_reverts_if_whitelisted_enabled(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_33_transferAccountOwnership_reverts_if_to_user_doesnt_provide_allowance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_34_transferAccountOwnership_reverts_if_hf_less_1(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_35_transferAccountOwnership_transfers_account_if_its_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_36_checkAndUpdateBorrowedBlockLimit_doesnt_change_block_limit_if_set_to_max(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_37_checkAndUpdateBorrowedBlockLimit_updates_block_limit_properly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_38_transferAccountOwnership_with_allowed_to_transfers_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_39_enable_token_balance(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_40_isTokenAllowed_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_41_calcTotalValue_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_42_calcCreditAccountHealthFactor_computes_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_43_hasOpenedCreditAccount_returns_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_44_config_functions_revert_if_called_non_configurator(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_45_revertIfBalanceLessThan_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_46_openCreditAccount_reverts_on_expired_CreditFacade(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_47_liquidateExpiredCreditAccount_reverts_before_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_48_liquidateExpiredCreditAccount_reverts_on_CreditFacade_with_no_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_49_liquidateExpiredCreditAccount_works_correctly_after_expiration(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_50_upgradeableContracts_setters_and_getters_work_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_51_approve_reverts_for_upgradeable_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_52_enableToken_works_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_53_enableToken_works_as_expected_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_FA_54_disableToken_works_as_expected_multicall(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;

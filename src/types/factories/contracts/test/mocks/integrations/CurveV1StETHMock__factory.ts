@@ -549,7 +549,7 @@ type CurveV1StETHMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveV1StETHMockConstructorParams,
+  xs: CurveV1StETHMockConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveV1StETHMock__factory extends ContractFactory {
@@ -563,13 +563,13 @@ export class CurveV1StETHMock__factory extends ContractFactory {
 
   override deploy(
     _coins: string[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CurveV1StETHMock> {
     return super.deploy(_coins, overrides || {}) as Promise<CurveV1StETHMock>;
   }
   override getDeployTransaction(
     _coins: string[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_coins, overrides || {});
   }
@@ -587,7 +587,7 @@ export class CurveV1StETHMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CurveV1StETHMock {
     return new Contract(address, _abi, signerOrProvider) as CurveV1StETHMock;
   }

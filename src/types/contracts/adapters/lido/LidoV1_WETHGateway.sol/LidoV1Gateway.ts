@@ -57,43 +57,43 @@ export interface LidoV1GatewayInterface extends utils.Interface {
       | "submit"
       | "symbol"
       | "totalSupply"
-      | "weth",
+      | "weth"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [string, string],
+    values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(functionFragment: "getFee", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getPooledEthByShares",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getSharesByPooledEth",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getTotalPooledEther",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getTotalShares",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "sharesOf", values: [string]): string;
   encodeFunctionData(functionFragment: "stETH", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "submit",
-    values: [BigNumberish, string],
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "weth", values?: undefined): string;
 
@@ -103,19 +103,19 @@ export interface LidoV1GatewayInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "getFee", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPooledEthByShares",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getSharesByPooledEth",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getTotalPooledEther",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getTotalShares",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sharesOf", data: BytesLike): Result;
@@ -124,7 +124,7 @@ export interface LidoV1GatewayInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
 
@@ -141,15 +141,15 @@ export interface LidoV1Gateway extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -161,12 +161,12 @@ export interface LidoV1Gateway extends BaseContract {
     allowance(
       _owner: string,
       _spender: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     balanceOf(
       _account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     decimals(overrides?: CallOverrides): Promise<[number]>;
@@ -175,12 +175,12 @@ export interface LidoV1Gateway extends BaseContract {
 
     getPooledEthByShares(
       _sharesAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getSharesByPooledEth(
       _ethAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getTotalPooledEther(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -196,7 +196,7 @@ export interface LidoV1Gateway extends BaseContract {
     submit(
       amount: BigNumberish,
       _referral: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
@@ -209,7 +209,7 @@ export interface LidoV1Gateway extends BaseContract {
   allowance(
     _owner: string,
     _spender: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -220,12 +220,12 @@ export interface LidoV1Gateway extends BaseContract {
 
   getPooledEthByShares(
     _sharesAmount: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getSharesByPooledEth(
     _ethAmount: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
@@ -241,7 +241,7 @@ export interface LidoV1Gateway extends BaseContract {
   submit(
     amount: BigNumberish,
     _referral: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
@@ -254,7 +254,7 @@ export interface LidoV1Gateway extends BaseContract {
     allowance(
       _owner: string,
       _spender: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -265,12 +265,12 @@ export interface LidoV1Gateway extends BaseContract {
 
     getPooledEthByShares(
       _sharesAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSharesByPooledEth(
       _ethAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
@@ -286,7 +286,7 @@ export interface LidoV1Gateway extends BaseContract {
     submit(
       amount: BigNumberish,
       _referral: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
@@ -302,7 +302,7 @@ export interface LidoV1Gateway extends BaseContract {
     allowance(
       _owner: string,
       _spender: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -313,12 +313,12 @@ export interface LidoV1Gateway extends BaseContract {
 
     getPooledEthByShares(
       _sharesAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSharesByPooledEth(
       _ethAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
@@ -334,7 +334,7 @@ export interface LidoV1Gateway extends BaseContract {
     submit(
       amount: BigNumberish,
       _referral: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
@@ -348,12 +348,12 @@ export interface LidoV1Gateway extends BaseContract {
     allowance(
       _owner: string,
       _spender: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       _account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -362,16 +362,16 @@ export interface LidoV1Gateway extends BaseContract {
 
     getPooledEthByShares(
       _sharesAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSharesByPooledEth(
       _ethAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTotalPooledEther(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTotalShares(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -380,7 +380,7 @@ export interface LidoV1Gateway extends BaseContract {
 
     sharesOf(
       _account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     stETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -388,7 +388,7 @@ export interface LidoV1Gateway extends BaseContract {
     submit(
       amount: BigNumberish,
       _referral: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;

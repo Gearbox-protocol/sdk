@@ -118,185 +118,185 @@ export interface ConvexV1BaseRewardPoolAdapterInterface
       | "withdraw"
       | "withdrawAll"
       | "withdrawAllAndUnwrap"
-      | "withdrawAndUnwrap",
+      | "withdrawAndUnwrap"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "crv", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "currentRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "curveLPtoken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "cvx", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "cvxLPtoken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "donate",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "duration", values?: undefined): string;
   encodeFunctionData(functionFragment: "earned", values: [string]): string;
   encodeFunctionData(
     functionFragment: "extraReward1",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "extraReward2",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "extraRewards",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "extraRewardsLength",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getReward()",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getReward(address,bool)",
-    values: [string, boolean],
+    values: [string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "historicalRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "lastTimeRewardApplicable",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "lastUpdateTime",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "newRewardRatio",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "operator", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "periodFinish",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "pid", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queuedRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardPerToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardPerTokenStored",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardRate",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "rewards", values: [string]): string;
   encodeFunctionData(functionFragment: "stake", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "stakeAll", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stakeFor",
-    values: [string, BigNumberish],
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "stakedPhantomToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "stakingToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "userRewardPerTokenPaid",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish, boolean],
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAll",
-    values: [boolean],
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAllAndUnwrap",
-    values: [boolean],
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAndUnwrap",
-    values: [BigNumberish, boolean],
+    values: [BigNumberish, boolean]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterType",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "crv", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "currentRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveLPtoken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "cvx", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "cvxLPtoken", data: BytesLike): Result;
@@ -305,70 +305,70 @@ export interface ConvexV1BaseRewardPoolAdapterInterface
   decodeFunctionResult(functionFragment: "earned", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "extraReward1",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extraReward2",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extraRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extraRewardsLength",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getReward()",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getReward(address,bool)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "historicalRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "lastTimeRewardApplicable",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "lastUpdateTime",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "newRewardRatio",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "operator", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "periodFinish",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "pid", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queuedRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardPerToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardPerTokenStored",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "rewardRate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "rewardToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "rewards", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
@@ -376,36 +376,36 @@ export interface ConvexV1BaseRewardPoolAdapterInterface
   decodeFunctionResult(functionFragment: "stakeFor", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "stakedPhantomToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "stakingToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "userRewardPerTokenPaid",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAll",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAllAndUnwrap",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAndUnwrap",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -421,15 +421,15 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -473,13 +473,13 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
     extraRewardsLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "getReward()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "getReward(address,bool)"(
       _account: string,
       _claimExtras: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     historicalRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -512,17 +512,17 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     stake(
       arg0: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     stakeAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     stakeFor(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     stakedPhantomToken(overrides?: CallOverrides): Promise<[string]>;
@@ -535,29 +535,29 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     userRewardPerTokenPaid(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     withdraw(
       arg0: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAll(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAllAndUnwrap(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAndUnwrap(
       arg0: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
@@ -596,13 +596,13 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
   extraRewardsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
   "getReward()"(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "getReward(address,bool)"(
     _account: string,
     _claimExtras: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -635,17 +635,17 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
   stake(
     arg0: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   stakeAll(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   stakeFor(
     arg0: string,
     arg1: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<boolean>;
 
   stakedPhantomToken(overrides?: CallOverrides): Promise<string>;
@@ -658,29 +658,29 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
   userRewardPerTokenPaid(
     account: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   withdraw(
     arg0: BigNumberish,
     claim: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAll(
     claim: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAllAndUnwrap(
     claim: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAndUnwrap(
     arg0: BigNumberish,
     claim: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -723,7 +723,7 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
     "getReward(address,bool)"(
       _account: string,
       _claimExtras: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -761,7 +761,7 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
     stakeFor(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     stakedPhantomToken(overrides?: CallOverrides): Promise<string>;
@@ -774,26 +774,26 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     userRewardPerTokenPaid(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     withdraw(
       arg0: BigNumberish,
       claim: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     withdrawAll(claim: boolean, overrides?: CallOverrides): Promise<void>;
 
     withdrawAllAndUnwrap(
       claim: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     withdrawAndUnwrap(
       arg0: BigNumberish,
       claim: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
   };
 
@@ -832,19 +832,19 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     extraRewards(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     extraRewardsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getReward()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "getReward(address,bool)"(
       _account: string,
       _claimExtras: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -877,17 +877,17 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     stake(
       arg0: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     stakeAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     stakeFor(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     stakedPhantomToken(overrides?: CallOverrides): Promise<BigNumber>;
@@ -900,44 +900,44 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     userRewardPerTokenPaid(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     withdraw(
       arg0: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAll(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAllAndUnwrap(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAndUnwrap(
       arg0: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     _gearboxAdapterType(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     _gearboxAdapterVersion(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -956,14 +956,14 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     donate(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     duration(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     earned(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     extraReward1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -972,27 +972,27 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     extraRewards(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     extraRewardsLength(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "getReward()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "getReward(address,bool)"(
       _account: string,
       _claimExtras: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     historicalRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     lastTimeRewardApplicable(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     lastUpdateTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1012,7 +1012,7 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
     rewardPerToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     rewardPerTokenStored(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     rewardRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1021,26 +1021,26 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     rewards(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     stake(
       arg0: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     stakeAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     stakeFor(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     stakedPhantomToken(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     stakingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1051,29 +1051,29 @@ export interface ConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     userRewardPerTokenPaid(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     withdraw(
       arg0: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAll(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAllAndUnwrap(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAndUnwrap(
       arg0: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

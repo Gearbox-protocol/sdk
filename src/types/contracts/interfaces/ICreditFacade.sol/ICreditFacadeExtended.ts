@@ -29,25 +29,25 @@ export interface ICreditFacadeExtendedInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "disableToken" | "revertIfBalanceLessThan",
+    nameOrSignatureOrTopic: "disableToken" | "revertIfBalanceLessThan"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "disableToken",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "revertIfBalanceLessThan",
-    values: [string, BigNumberish],
+    values: [string, BigNumberish]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "disableToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "revertIfBalanceLessThan",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -63,15 +63,15 @@ export interface ICreditFacadeExtended extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -82,25 +82,25 @@ export interface ICreditFacadeExtended extends BaseContract {
   functions: {
     disableToken(
       token: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     revertIfBalanceLessThan(
       token: string,
       minBalance: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   disableToken(
     token: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   revertIfBalanceLessThan(
     token: string,
     minBalance: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -109,7 +109,7 @@ export interface ICreditFacadeExtended extends BaseContract {
     revertIfBalanceLessThan(
       token: string,
       minBalance: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
   };
 
@@ -118,26 +118,26 @@ export interface ICreditFacadeExtended extends BaseContract {
   estimateGas: {
     disableToken(
       token: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     revertIfBalanceLessThan(
       token: string,
       minBalance: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     disableToken(
       token: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     revertIfBalanceLessThan(
       token: string,
       minBalance: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

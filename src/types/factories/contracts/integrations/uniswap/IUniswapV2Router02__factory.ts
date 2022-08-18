@@ -970,7 +970,7 @@ export class IUniswapV2Router02__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUniswapV2Router02 {
     return new Contract(address, _abi, signerOrProvider) as IUniswapV2Router02;
   }

@@ -142,7 +142,7 @@ type CreditManagerMockForPoolTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CreditManagerMockForPoolTestConstructorParams,
+  xs: CreditManagerMockForPoolTestConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CreditManagerMockForPoolTest__factory extends ContractFactory {
@@ -156,16 +156,16 @@ export class CreditManagerMockForPoolTest__factory extends ContractFactory {
 
   override deploy(
     _poolService: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CreditManagerMockForPoolTest> {
     return super.deploy(
       _poolService,
-      overrides || {},
+      overrides || {}
     ) as Promise<CreditManagerMockForPoolTest>;
   }
   override getDeployTransaction(
     _poolService: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_poolService, overrides || {});
   }
@@ -183,12 +183,12 @@ export class CreditManagerMockForPoolTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CreditManagerMockForPoolTest {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as CreditManagerMockForPoolTest;
   }
 }

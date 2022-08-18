@@ -69,51 +69,51 @@ export interface CurveLPPathFinderInterface extends utils.Interface {
       | "renounceOwnership"
       | "transferOwnership"
       | "withdrawAll"
-      | "withdrawAllMeta",
+      | "withdrawAllMeta"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "filterCurveLPAdapters",
-    values: [string[], boolean],
+    values: [string[], boolean]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAll",
-    values: [BalanceStruct[], string[], PathOptionStruct[]],
+    values: [BalanceStruct[], string[], PathOptionStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAllMeta",
-    values: [BalanceStruct[], string[], PathOptionStruct[]],
+    values: [BalanceStruct[], string[], PathOptionStruct[]]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "filterCurveLPAdapters",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAll",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAllMeta",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {
@@ -145,15 +145,15 @@ export interface CurveLPPathFinder extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -165,71 +165,71 @@ export interface CurveLPPathFinder extends BaseContract {
     filterCurveLPAdapters(
       adapters: string[],
       metaPool: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string[]] & { result: string[] }>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAll(
       b: BalanceStruct[],
       adapters: string[],
       pathOptions: PathOptionStruct[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
 
     withdrawAllMeta(
       b: BalanceStruct[],
       adapters: string[],
       pathOptions: PathOptionStruct[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
   };
 
   filterCurveLPAdapters(
     adapters: string[],
     metaPool: boolean,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string[]>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnership(
     newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAll(
     b: BalanceStruct[],
     adapters: string[],
     pathOptions: PathOptionStruct[],
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
 
   withdrawAllMeta(
     b: BalanceStruct[],
     adapters: string[],
     pathOptions: PathOptionStruct[],
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
 
   callStatic: {
     filterCurveLPAdapters(
       adapters: string[],
       metaPool: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string[]>;
 
     owner(overrides?: CallOverrides): Promise<string>;
@@ -238,32 +238,32 @@ export interface CurveLPPathFinder extends BaseContract {
 
     transferOwnership(
       newOwner: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     withdrawAll(
       b: BalanceStruct[],
       adapters: string[],
       pathOptions: PathOptionStruct[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
 
     withdrawAllMeta(
       b: BalanceStruct[],
       adapters: string[],
       pathOptions: PathOptionStruct[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
   };
 
   filters: {
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
       previousOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
   };
 
@@ -271,32 +271,32 @@ export interface CurveLPPathFinder extends BaseContract {
     filterCurveLPAdapters(
       adapters: string[],
       metaPool: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAll(
       b: BalanceStruct[],
       adapters: string[],
       pathOptions: PathOptionStruct[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     withdrawAllMeta(
       b: BalanceStruct[],
       adapters: string[],
       pathOptions: PathOptionStruct[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -304,32 +304,32 @@ export interface CurveLPPathFinder extends BaseContract {
     filterCurveLPAdapters(
       adapters: string[],
       metaPool: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAll(
       b: BalanceStruct[],
       adapters: string[],
       pathOptions: PathOptionStruct[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     withdrawAllMeta(
       b: BalanceStruct[],
       adapters: string[],
       pathOptions: PathOptionStruct[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

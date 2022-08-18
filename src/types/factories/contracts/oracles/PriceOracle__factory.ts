@@ -403,7 +403,7 @@ type PriceOracleConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PriceOracleConstructorParams,
+  xs: PriceOracleConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PriceOracle__factory extends ContractFactory {
@@ -418,23 +418,23 @@ export class PriceOracle__factory extends ContractFactory {
   override deploy(
     addressProvider: string,
     defaults: PriceFeedConfigStruct[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<PriceOracle> {
     return super.deploy(
       addressProvider,
       defaults,
-      overrides || {},
+      overrides || {}
     ) as Promise<PriceOracle>;
   }
   override getDeployTransaction(
     addressProvider: string,
     defaults: PriceFeedConfigStruct[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       addressProvider,
       defaults,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): PriceOracle {
@@ -451,7 +451,7 @@ export class PriceOracle__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): PriceOracle {
     return new Contract(address, _abi, signerOrProvider) as PriceOracle;
   }

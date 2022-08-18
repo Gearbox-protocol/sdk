@@ -346,7 +346,7 @@ type ERC20ApproveRestrictedRevertConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ERC20ApproveRestrictedRevertConstructorParams,
+  xs: ERC20ApproveRestrictedRevertConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ERC20ApproveRestrictedRevert__factory extends ContractFactory {
@@ -359,14 +359,14 @@ export class ERC20ApproveRestrictedRevert__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ERC20ApproveRestrictedRevert> {
     return super.deploy(
-      overrides || {},
+      overrides || {}
     ) as Promise<ERC20ApproveRestrictedRevert>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -384,12 +384,12 @@ export class ERC20ApproveRestrictedRevert__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ERC20ApproveRestrictedRevert {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as ERC20ApproveRestrictedRevert;
   }
 }

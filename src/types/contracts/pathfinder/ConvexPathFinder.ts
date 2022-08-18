@@ -49,31 +49,31 @@ export interface ConvexPathFinderInterface extends utils.Interface {
       | "cvx"
       | "filterConvexAdapters"
       | "version"
-      | "withdrawAll",
+      | "withdrawAll"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "booster", values?: undefined): string;
   encodeFunctionData(functionFragment: "cvx", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "filterConvexAdapters",
-    values: [string[]],
+    values: [string[]]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdrawAll",
-    values: [string, BalanceStruct[], string[]],
+    values: [string, BalanceStruct[], string[]]
   ): string;
 
   decodeFunctionResult(functionFragment: "booster", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "cvx", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "filterConvexAdapters",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAll",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -89,15 +89,15 @@ export interface ConvexPathFinder extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -112,7 +112,7 @@ export interface ConvexPathFinder extends BaseContract {
 
     filterConvexAdapters(
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [string[], string] & { result: string[]; boosterAdapter: string }
     >;
@@ -123,7 +123,7 @@ export interface ConvexPathFinder extends BaseContract {
       creditAccount: string,
       b: BalanceStruct[],
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
   };
 
@@ -133,7 +133,7 @@ export interface ConvexPathFinder extends BaseContract {
 
   filterConvexAdapters(
     adapters: string[],
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[string[], string] & { result: string[]; boosterAdapter: string }>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -142,7 +142,7 @@ export interface ConvexPathFinder extends BaseContract {
     creditAccount: string,
     b: BalanceStruct[],
     adapters: string[],
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
 
   callStatic: {
@@ -152,7 +152,7 @@ export interface ConvexPathFinder extends BaseContract {
 
     filterConvexAdapters(
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [string[], string] & { result: string[]; boosterAdapter: string }
     >;
@@ -163,7 +163,7 @@ export interface ConvexPathFinder extends BaseContract {
       creditAccount: string,
       b: BalanceStruct[],
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
   };
 
@@ -176,7 +176,7 @@ export interface ConvexPathFinder extends BaseContract {
 
     filterConvexAdapters(
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -185,7 +185,7 @@ export interface ConvexPathFinder extends BaseContract {
       creditAccount: string,
       b: BalanceStruct[],
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -196,7 +196,7 @@ export interface ConvexPathFinder extends BaseContract {
 
     filterConvexAdapters(
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -205,7 +205,7 @@ export interface ConvexPathFinder extends BaseContract {
       creditAccount: string,
       b: BalanceStruct[],
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

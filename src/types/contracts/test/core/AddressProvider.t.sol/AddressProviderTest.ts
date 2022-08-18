@@ -60,7 +60,7 @@ export interface AddressProviderTestInterface extends utils.Interface {
       | "test_AP_09_setGearToken_correctly_sets_GearToken"
       | "test_AP_10_setWethToken_correctly_sets_WethToken"
       | "test_AP_11_setWETHGateway_correctly_sets_WethGateway"
-      | "test_AP_12_set_functions_revert_if_called_by_non_owner",
+      | "test_AP_12_set_functions_revert_if_called_by_non_owner"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
@@ -68,51 +68,51 @@ export interface AddressProviderTestInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_AP_01_getAddress_reverts_if_contact_not_found",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_02_setAddress_emits_event_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_03_setACL_correctly_sets_ACL",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_04_setContractsRegister_correctly_sets_ContractsRegister",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_05_setPriceOracle_correctly_sets_PriceOracle",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_06_setAccountFactory_correctly_sets_AccountFactory",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_07_setDataCompressor_correctly_sets_DataCompressor",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_08_setTreasuryContract_correctly_sets_TreasuryContract",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_09_setGearToken_correctly_sets_GearToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_10_setWethToken_correctly_sets_WethToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_11_setWETHGateway_correctly_sets_WethGateway",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AP_12_set_functions_revert_if_called_by_non_owner",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
@@ -120,51 +120,51 @@ export interface AddressProviderTestInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_01_getAddress_reverts_if_contact_not_found",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_02_setAddress_emits_event_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_03_setACL_correctly_sets_ACL",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_04_setContractsRegister_correctly_sets_ContractsRegister",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_05_setPriceOracle_correctly_sets_PriceOracle",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_06_setAccountFactory_correctly_sets_AccountFactory",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_07_setDataCompressor_correctly_sets_DataCompressor",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_08_setTreasuryContract_correctly_sets_TreasuryContract",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_09_setGearToken_correctly_sets_GearToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_10_setWethToken_correctly_sets_WethToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_11_setWETHGateway_correctly_sets_WethGateway",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AP_12_set_functions_revert_if_called_by_non_owner",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {
@@ -378,15 +378,15 @@ export interface AddressProviderTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -398,118 +398,118 @@ export interface AddressProviderTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_01_getAddress_reverts_if_contact_not_found(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_02_setAddress_emits_event_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_03_setACL_correctly_sets_ACL(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_04_setContractsRegister_correctly_sets_ContractsRegister(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_05_setPriceOracle_correctly_sets_PriceOracle(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_06_setAccountFactory_correctly_sets_AccountFactory(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_07_setDataCompressor_correctly_sets_DataCompressor(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_08_setTreasuryContract_correctly_sets_TreasuryContract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_09_setGearToken_correctly_sets_GearToken(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_10_setWethToken_correctly_sets_WethToken(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_11_setWETHGateway_correctly_sets_WethGateway(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AP_12_set_functions_revert_if_called_by_non_owner(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   IS_TEST(overrides?: CallOverrides): Promise<boolean>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_01_getAddress_reverts_if_contact_not_found(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_02_setAddress_emits_event_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_03_setACL_correctly_sets_ACL(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_04_setContractsRegister_correctly_sets_ContractsRegister(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_05_setPriceOracle_correctly_sets_PriceOracle(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_06_setAccountFactory_correctly_sets_AccountFactory(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_07_setDataCompressor_correctly_sets_DataCompressor(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_08_setTreasuryContract_correctly_sets_TreasuryContract(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_09_setGearToken_correctly_sets_GearToken(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_10_setWethToken_correctly_sets_WethToken(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_11_setWETHGateway_correctly_sets_WethGateway(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AP_12_set_functions_revert_if_called_by_non_owner(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -520,62 +520,62 @@ export interface AddressProviderTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_AP_01_getAddress_reverts_if_contact_not_found(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_02_setAddress_emits_event_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_03_setACL_correctly_sets_ACL(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_04_setContractsRegister_correctly_sets_ContractsRegister(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_05_setPriceOracle_correctly_sets_PriceOracle(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_06_setAccountFactory_correctly_sets_AccountFactory(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_07_setDataCompressor_correctly_sets_DataCompressor(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_08_setTreasuryContract_correctly_sets_TreasuryContract(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_09_setGearToken_correctly_sets_GearToken(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_10_setWethToken_correctly_sets_WethToken(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_11_setWETHGateway_correctly_sets_WethGateway(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AP_12_set_functions_revert_if_called_by_non_owner(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
   };
 
   filters: {
     "AddressSet(bytes32,address)"(
       service?: BytesLike | null,
-      newAddress?: string | null,
+      newAddress?: string | null
     ): AddressSetEventFilter;
     AddressSet(
       service?: BytesLike | null,
-      newAddress?: string | null,
+      newAddress?: string | null
     ): AddressSetEventFilter;
 
     "log(string)"(arg0?: null): logEventFilter;
@@ -595,59 +595,59 @@ export interface AddressProviderTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -665,59 +665,59 @@ export interface AddressProviderTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_01_getAddress_reverts_if_contact_not_found(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_02_setAddress_emits_event_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_03_setACL_correctly_sets_ACL(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_04_setContractsRegister_correctly_sets_ContractsRegister(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_05_setPriceOracle_correctly_sets_PriceOracle(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_06_setAccountFactory_correctly_sets_AccountFactory(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_07_setDataCompressor_correctly_sets_DataCompressor(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_08_setTreasuryContract_correctly_sets_TreasuryContract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_09_setGearToken_correctly_sets_GearToken(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_10_setWethToken_correctly_sets_WethToken(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_11_setWETHGateway_correctly_sets_WethGateway(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AP_12_set_functions_revert_if_called_by_non_owner(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -725,59 +725,59 @@ export interface AddressProviderTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_01_getAddress_reverts_if_contact_not_found(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_02_setAddress_emits_event_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_03_setACL_correctly_sets_ACL(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_04_setContractsRegister_correctly_sets_ContractsRegister(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_05_setPriceOracle_correctly_sets_PriceOracle(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_06_setAccountFactory_correctly_sets_AccountFactory(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_07_setDataCompressor_correctly_sets_DataCompressor(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_08_setTreasuryContract_correctly_sets_TreasuryContract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_09_setGearToken_correctly_sets_GearToken(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_10_setWethToken_correctly_sets_WethToken(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_11_setWETHGateway_correctly_sets_WethGateway(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AP_12_set_functions_revert_if_called_by_non_owner(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

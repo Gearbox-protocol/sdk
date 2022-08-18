@@ -710,7 +710,7 @@ export class ICurvePool4Assets__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICurvePool4Assets {
     return new Contract(address, _abi, signerOrProvider) as ICurvePool4Assets;
   }

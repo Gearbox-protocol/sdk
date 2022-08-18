@@ -157,7 +157,7 @@ export class IRewardFactory__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IRewardFactory {
     return new Contract(address, _abi, signerOrProvider) as IRewardFactory;
   }

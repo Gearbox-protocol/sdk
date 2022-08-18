@@ -30,27 +30,27 @@ export interface IVotingInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "getVote" | "vote" | "vote_for_gauge_weights",
+    nameOrSignatureOrTopic: "getVote" | "vote" | "vote_for_gauge_weights"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "getVote",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "vote",
-    values: [BigNumberish, boolean, boolean],
+    values: [BigNumberish, boolean, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "vote_for_gauge_weights",
-    values: [string, BigNumberish],
+    values: [string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "getVote", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "vote_for_gauge_weights",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -66,15 +66,15 @@ export interface IVoting extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -85,7 +85,7 @@ export interface IVoting extends BaseContract {
   functions: {
     getVote(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [
         boolean,
@@ -97,7 +97,7 @@ export interface IVoting extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        string,
+        string
       ]
     >;
 
@@ -105,19 +105,19 @@ export interface IVoting extends BaseContract {
       arg0: BigNumberish,
       arg1: boolean,
       arg2: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     vote_for_gauge_weights(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   getVote(
     arg0: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<
     [
       boolean,
@@ -129,7 +129,7 @@ export interface IVoting extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      string,
+      string
     ]
   >;
 
@@ -137,19 +137,19 @@ export interface IVoting extends BaseContract {
     arg0: BigNumberish,
     arg1: boolean,
     arg2: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   vote_for_gauge_weights(
     arg0: string,
     arg1: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     getVote(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [
         boolean,
@@ -161,7 +161,7 @@ export interface IVoting extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        string,
+        string
       ]
     >;
 
@@ -169,13 +169,13 @@ export interface IVoting extends BaseContract {
       arg0: BigNumberish,
       arg1: boolean,
       arg2: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     vote_for_gauge_weights(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
   };
 
@@ -188,33 +188,33 @@ export interface IVoting extends BaseContract {
       arg0: BigNumberish,
       arg1: boolean,
       arg2: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     vote_for_gauge_weights(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     getVote(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     vote(
       arg0: BigNumberish,
       arg1: boolean,
       arg2: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     vote_for_gauge_weights(
       arg0: string,
       arg1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

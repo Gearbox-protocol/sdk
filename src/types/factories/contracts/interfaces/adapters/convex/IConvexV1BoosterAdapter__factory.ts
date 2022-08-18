@@ -366,12 +366,12 @@ export class IConvexV1BoosterAdapter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IConvexV1BoosterAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IConvexV1BoosterAdapter;
   }
 }

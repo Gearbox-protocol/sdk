@@ -25,17 +25,17 @@ export interface ILidoOracleInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "getLastCompletedReportDelta",
+    nameOrSignatureOrTopic: "getLastCompletedReportDelta"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "getLastCompletedReportDelta",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(
     functionFragment: "getLastCompletedReportDelta",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -51,15 +51,15 @@ export interface ILidoOracle extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -68,7 +68,9 @@ export interface ILidoOracle extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    getLastCompletedReportDelta(overrides?: CallOverrides): Promise<
+    getLastCompletedReportDelta(
+      overrides?: CallOverrides
+    ): Promise<
       [BigNumber, BigNumber, BigNumber] & {
         postTotalPooledEther: BigNumber;
         preTotalPooledEther: BigNumber;
@@ -77,7 +79,9 @@ export interface ILidoOracle extends BaseContract {
     >;
   };
 
-  getLastCompletedReportDelta(overrides?: CallOverrides): Promise<
+  getLastCompletedReportDelta(
+    overrides?: CallOverrides
+  ): Promise<
     [BigNumber, BigNumber, BigNumber] & {
       postTotalPooledEther: BigNumber;
       preTotalPooledEther: BigNumber;
@@ -86,7 +90,9 @@ export interface ILidoOracle extends BaseContract {
   >;
 
   callStatic: {
-    getLastCompletedReportDelta(overrides?: CallOverrides): Promise<
+    getLastCompletedReportDelta(
+      overrides?: CallOverrides
+    ): Promise<
       [BigNumber, BigNumber, BigNumber] & {
         postTotalPooledEther: BigNumber;
         preTotalPooledEther: BigNumber;
@@ -103,7 +109,7 @@ export interface ILidoOracle extends BaseContract {
 
   populateTransaction: {
     getLastCompletedReportDelta(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -44,44 +44,44 @@ export interface MainnetTokensTestSuiteInterface extends utils.Interface {
       | "tokens"
       | "topUpWETH"
       | "transfer"
-      | "wethToken",
+      | "wethToken"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [BigNumberish, string, string],
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "approve(uint8,address,address,uint256)",
-    values: [BigNumberish, string, string, BigNumberish],
+    values: [BigNumberish, string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "approve(uint8,address,address)",
-    values: [BigNumberish, string, string],
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [BigNumberish, string],
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "tokens",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "topUpWETH", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transfer",
-    values: [BigNumberish, string, BigNumberish],
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "wethToken", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "approve(uint8,address,address,uint256)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "approve(uint8,address,address)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "tokens", data: BytesLike): Result;
@@ -102,15 +102,15 @@ export interface MainnetTokensTestSuite extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -123,7 +123,7 @@ export interface MainnetTokensTestSuite extends BaseContract {
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     "approve(uint8,address,address,uint256)"(
@@ -131,33 +131,33 @@ export interface MainnetTokensTestSuite extends BaseContract {
       holder: string,
       targetContract: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "approve(uint8,address,address)"(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     balanceOf(
       t: BigNumberish,
       holder: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
     tokens(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     topUpWETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transfer(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     wethToken(overrides?: CallOverrides): Promise<[string]>;
@@ -167,7 +167,7 @@ export interface MainnetTokensTestSuite extends BaseContract {
     t: BigNumberish,
     holder: string,
     targetContract: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "approve(uint8,address,address,uint256)"(
@@ -175,33 +175,33 @@ export interface MainnetTokensTestSuite extends BaseContract {
     holder: string,
     targetContract: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "approve(uint8,address,address)"(
     t: BigNumberish,
     holder: string,
     targetContract: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   balanceOf(
     t: BigNumberish,
     holder: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   tokens(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   topUpWETH(
-    overrides?: PayableOverrides & { from?: string | Promise<string> },
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transfer(
     t: BigNumberish,
     to: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   wethToken(overrides?: CallOverrides): Promise<string>;
@@ -211,7 +211,7 @@ export interface MainnetTokensTestSuite extends BaseContract {
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "approve(uint8,address,address,uint256)"(
@@ -219,20 +219,20 @@ export interface MainnetTokensTestSuite extends BaseContract {
       holder: string,
       targetContract: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     "approve(uint8,address,address)"(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     balanceOf(
       t: BigNumberish,
       holder: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     tokens(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
@@ -243,7 +243,7 @@ export interface MainnetTokensTestSuite extends BaseContract {
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     wethToken(overrides?: CallOverrides): Promise<string>;
@@ -256,7 +256,7 @@ export interface MainnetTokensTestSuite extends BaseContract {
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "approve(uint8,address,address,uint256)"(
@@ -264,33 +264,33 @@ export interface MainnetTokensTestSuite extends BaseContract {
       holder: string,
       targetContract: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "approve(uint8,address,address)"(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     balanceOf(
       t: BigNumberish,
       holder: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     tokens(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     topUpWETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transfer(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     wethToken(overrides?: CallOverrides): Promise<BigNumber>;
@@ -301,7 +301,7 @@ export interface MainnetTokensTestSuite extends BaseContract {
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "approve(uint8,address,address,uint256)"(
@@ -309,36 +309,36 @@ export interface MainnetTokensTestSuite extends BaseContract {
       holder: string,
       targetContract: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "approve(uint8,address,address)"(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       t: BigNumberish,
       holder: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     tokens(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     topUpWETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transfer(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     wethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;

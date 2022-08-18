@@ -30,7 +30,7 @@ type BalanceOpsConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: BalanceOpsConstructorParams,
+  xs: BalanceOpsConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class BalanceOps__factory extends ContractFactory {
@@ -43,12 +43,12 @@ export class BalanceOps__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<BalanceOps> {
     return super.deploy(overrides || {}) as Promise<BalanceOps>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -66,7 +66,7 @@ export class BalanceOps__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): BalanceOps {
     return new Contract(address, _abi, signerOrProvider) as BalanceOps;
   }

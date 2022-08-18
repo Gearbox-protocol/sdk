@@ -797,7 +797,7 @@ type CurveV1StETHPoolGatewayConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveV1StETHPoolGatewayConstructorParams,
+  xs: CurveV1StETHPoolGatewayConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveV1StETHPoolGateway__factory extends ContractFactory {
@@ -813,20 +813,20 @@ export class CurveV1StETHPoolGateway__factory extends ContractFactory {
     _weth: string,
     _steth: string,
     _pool: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CurveV1StETHPoolGateway> {
     return super.deploy(
       _weth,
       _steth,
       _pool,
-      overrides || {},
+      overrides || {}
     ) as Promise<CurveV1StETHPoolGateway>;
   }
   override getDeployTransaction(
     _weth: string,
     _steth: string,
     _pool: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_weth, _steth, _pool, overrides || {});
   }
@@ -844,12 +844,12 @@ export class CurveV1StETHPoolGateway__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CurveV1StETHPoolGateway {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as CurveV1StETHPoolGateway;
   }
 }

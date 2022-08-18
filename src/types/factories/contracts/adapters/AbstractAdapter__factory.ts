@@ -100,7 +100,7 @@ export class AbstractAdapter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): AbstractAdapter {
     return new Contract(address, _abi, signerOrProvider) as AbstractAdapter;
   }

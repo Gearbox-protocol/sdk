@@ -534,7 +534,7 @@ export class IBaseRewardPool__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IBaseRewardPool {
     return new Contract(address, _abi, signerOrProvider) as IBaseRewardPool;
   }

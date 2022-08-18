@@ -27,16 +27,16 @@ export interface PercentageMathTestInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "percentDiv" | "percentMul",
+    nameOrSignatureOrTopic: "percentDiv" | "percentMul"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "percentDiv",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "percentMul",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "percentDiv", data: BytesLike): Result;
@@ -55,15 +55,15 @@ export interface PercentageMathTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -75,39 +75,39 @@ export interface PercentageMathTest extends BaseContract {
     percentDiv(
       value: BigNumberish,
       percentage: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     percentMul(
       value: BigNumberish,
       percentage: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
 
   percentDiv(
     value: BigNumberish,
     percentage: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   percentMul(
     value: BigNumberish,
     percentage: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   callStatic: {
     percentDiv(
       value: BigNumberish,
       percentage: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     percentMul(
       value: BigNumberish,
       percentage: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -117,13 +117,13 @@ export interface PercentageMathTest extends BaseContract {
     percentDiv(
       value: BigNumberish,
       percentage: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     percentMul(
       value: BigNumberish,
       percentage: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -131,13 +131,13 @@ export interface PercentageMathTest extends BaseContract {
     percentDiv(
       value: BigNumberish,
       percentage: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     percentMul(
       value: BigNumberish,
       percentage: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

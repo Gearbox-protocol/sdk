@@ -69,58 +69,58 @@ export interface AccountFactoryInterface extends utils.Interface {
       | "takeCreditAccount"
       | "takeOut"
       | "unpause"
-      | "version",
+      | "version"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "_acl", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_contractsRegister",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "addCreditAccount",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "cancelAllowance",
-    values: [string, string, string],
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "countCreditAccounts",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "countCreditAccountsInStock",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditAccounts",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "getNext", values: [string]): string;
   encodeFunctionData(functionFragment: "head", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "isCreditAccount",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "masterCreditAccount",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "returnCreditAccount",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "tail", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "takeCreditAccount",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "takeOut",
-    values: [string, string, string],
+    values: [string, string, string]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
@@ -128,48 +128,48 @@ export interface AccountFactoryInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "_acl", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_contractsRegister",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "addCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "cancelAllowance",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "countCreditAccounts",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "countCreditAccountsInStock",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditAccounts",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getNext", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "head", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "masterCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "returnCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "tail", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "takeCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "takeOut", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
@@ -274,15 +274,15 @@ export interface AccountFactory extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -296,14 +296,14 @@ export interface AccountFactory extends BaseContract {
     _contractsRegister(overrides?: CallOverrides): Promise<[string]>;
 
     addCreditAccount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     cancelAllowance(
       account: string,
       token: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     countCreditAccounts(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -312,32 +312,32 @@ export interface AccountFactory extends BaseContract {
 
     creditAccounts(
       id: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     getNext(
       creditAccount: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     head(overrides?: CallOverrides): Promise<[string]>;
 
     isCreditAccount(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     masterCreditAccount(overrides?: CallOverrides): Promise<[string]>;
 
     pause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     returnCreditAccount(
       usedAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     tail(overrides?: CallOverrides): Promise<[string]>;
@@ -345,18 +345,18 @@ export interface AccountFactory extends BaseContract {
     takeCreditAccount(
       _borrowedAmount: BigNumberish,
       _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     takeOut(
       prev: string,
       creditAccount: string,
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     unpause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -367,14 +367,14 @@ export interface AccountFactory extends BaseContract {
   _contractsRegister(overrides?: CallOverrides): Promise<string>;
 
   addCreditAccount(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   cancelAllowance(
     account: string,
     token: string,
     targetContract: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
@@ -392,14 +392,14 @@ export interface AccountFactory extends BaseContract {
   masterCreditAccount(overrides?: CallOverrides): Promise<string>;
 
   pause(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
   returnCreditAccount(
     usedAccount: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   tail(overrides?: CallOverrides): Promise<string>;
@@ -407,18 +407,18 @@ export interface AccountFactory extends BaseContract {
   takeCreditAccount(
     _borrowedAmount: BigNumberish,
     _cumulativeIndexAtOpen: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   takeOut(
     prev: string,
     creditAccount: string,
     to: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   unpause(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -434,7 +434,7 @@ export interface AccountFactory extends BaseContract {
       account: string,
       token: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
@@ -443,7 +443,7 @@ export interface AccountFactory extends BaseContract {
 
     creditAccounts(
       id: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     getNext(creditAccount: string, overrides?: CallOverrides): Promise<string>;
@@ -460,7 +460,7 @@ export interface AccountFactory extends BaseContract {
 
     returnCreditAccount(
       usedAccount: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     tail(overrides?: CallOverrides): Promise<string>;
@@ -468,14 +468,14 @@ export interface AccountFactory extends BaseContract {
     takeCreditAccount(
       _borrowedAmount: BigNumberish,
       _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     takeOut(
       prev: string,
       creditAccount: string,
       to: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
@@ -485,21 +485,21 @@ export interface AccountFactory extends BaseContract {
 
   filters: {
     "AccountMinerChanged(address)"(
-      miner?: string | null,
+      miner?: string | null
     ): AccountMinerChangedEventFilter;
     AccountMinerChanged(miner?: string | null): AccountMinerChangedEventFilter;
 
     "InitializeCreditAccount(address,address)"(
       account?: string | null,
-      creditManager?: string | null,
+      creditManager?: string | null
     ): InitializeCreditAccountEventFilter;
     InitializeCreditAccount(
       account?: string | null,
-      creditManager?: string | null,
+      creditManager?: string | null
     ): InitializeCreditAccountEventFilter;
 
     "NewCreditAccount(address)"(
-      account?: string | null,
+      account?: string | null
     ): NewCreditAccountEventFilter;
     NewCreditAccount(account?: string | null): NewCreditAccountEventFilter;
 
@@ -507,19 +507,19 @@ export interface AccountFactory extends BaseContract {
     Paused(account?: null): PausedEventFilter;
 
     "ReturnCreditAccount(address)"(
-      account?: string | null,
+      account?: string | null
     ): ReturnCreditAccountEventFilter;
     ReturnCreditAccount(
-      account?: string | null,
+      account?: string | null
     ): ReturnCreditAccountEventFilter;
 
     "TakeForever(address,address)"(
       creditAccount?: string | null,
-      to?: string | null,
+      to?: string | null
     ): TakeForeverEventFilter;
     TakeForever(
       creditAccount?: string | null,
-      to?: string | null,
+      to?: string | null
     ): TakeForeverEventFilter;
 
     "Unpaused(address)"(account?: null): UnpausedEventFilter;
@@ -532,14 +532,14 @@ export interface AccountFactory extends BaseContract {
     _contractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
 
     addCreditAccount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     cancelAllowance(
       account: string,
       token: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     countCreditAccounts(overrides?: CallOverrides): Promise<BigNumber>;
@@ -548,32 +548,32 @@ export interface AccountFactory extends BaseContract {
 
     creditAccounts(
       id: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getNext(
       creditAccount: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     head(overrides?: CallOverrides): Promise<BigNumber>;
 
     isCreditAccount(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     masterCreditAccount(overrides?: CallOverrides): Promise<BigNumber>;
 
     pause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     returnCreditAccount(
       usedAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     tail(overrides?: CallOverrides): Promise<BigNumber>;
@@ -581,18 +581,18 @@ export interface AccountFactory extends BaseContract {
     takeCreditAccount(
       _borrowedAmount: BigNumberish,
       _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     takeOut(
       prev: string,
       creditAccount: string,
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     unpause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -602,58 +602,58 @@ export interface AccountFactory extends BaseContract {
     _acl(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     _contractsRegister(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     addCreditAccount(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     cancelAllowance(
       account: string,
       token: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     countCreditAccounts(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     countCreditAccountsInStock(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     creditAccounts(
       id: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getNext(
       creditAccount: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     head(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isCreditAccount(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     masterCreditAccount(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     pause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     returnCreditAccount(
       usedAccount: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     tail(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -661,18 +661,18 @@ export interface AccountFactory extends BaseContract {
     takeCreditAccount(
       _borrowedAmount: BigNumberish,
       _cumulativeIndexAtOpen: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     takeOut(
       prev: string,
       creditAccount: string,
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     unpause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;

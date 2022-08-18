@@ -35,43 +35,43 @@ export interface IRegistryInterface extends utils.Interface {
       | "get_address"
       | "get_gauges"
       | "get_lp_token"
-      | "get_registry",
+      | "get_registry"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "gauge_controller",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "get_address",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "get_gauges", values: [string]): string;
   encodeFunctionData(
     functionFragment: "get_lp_token",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "get_registry",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(
     functionFragment: "gauge_controller",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_address",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "get_gauges", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "get_lp_token",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_registry",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -87,15 +87,15 @@ export interface IRegistry extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -108,12 +108,12 @@ export interface IRegistry extends BaseContract {
 
     get_address(
       _id: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     get_gauges(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string[], BigNumber[]]>;
 
     get_lp_token(arg0: string, overrides?: CallOverrides): Promise<[string]>;
@@ -127,7 +127,7 @@ export interface IRegistry extends BaseContract {
 
   get_gauges(
     arg0: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[string[], BigNumber[]]>;
 
   get_lp_token(arg0: string, overrides?: CallOverrides): Promise<string>;
@@ -141,7 +141,7 @@ export interface IRegistry extends BaseContract {
 
     get_gauges(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string[], BigNumber[]]>;
 
     get_lp_token(arg0: string, overrides?: CallOverrides): Promise<string>;
@@ -156,7 +156,7 @@ export interface IRegistry extends BaseContract {
 
     get_address(
       _id: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     get_gauges(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -171,17 +171,17 @@ export interface IRegistry extends BaseContract {
 
     get_address(
       _id: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_gauges(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_lp_token(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_registry(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -505,7 +505,7 @@ type YearnV2AdapterConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: YearnV2AdapterConstructorParams,
+  xs: YearnV2AdapterConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class YearnV2Adapter__factory extends ContractFactory {
@@ -520,18 +520,18 @@ export class YearnV2Adapter__factory extends ContractFactory {
   override deploy(
     _creditManager: string,
     _yVault: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<YearnV2Adapter> {
     return super.deploy(
       _creditManager,
       _yVault,
-      overrides || {},
+      overrides || {}
     ) as Promise<YearnV2Adapter>;
   }
   override getDeployTransaction(
     _creditManager: string,
     _yVault: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_creditManager, _yVault, overrides || {});
   }
@@ -549,7 +549,7 @@ export class YearnV2Adapter__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): YearnV2Adapter {
     return new Contract(address, _abi, signerOrProvider) as YearnV2Adapter;
   }

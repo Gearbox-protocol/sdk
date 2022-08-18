@@ -43,7 +43,7 @@ type TotalValueCalculatorConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: TotalValueCalculatorConstructorParams,
+  xs: TotalValueCalculatorConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class TotalValueCalculator__factory extends ContractFactory {
@@ -57,16 +57,16 @@ export class TotalValueCalculator__factory extends ContractFactory {
 
   override deploy(
     _creditFacade: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<TotalValueCalculator> {
     return super.deploy(
       _creditFacade,
-      overrides || {},
+      overrides || {}
     ) as Promise<TotalValueCalculator>;
   }
   override getDeployTransaction(
     _creditFacade: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_creditFacade, overrides || {});
   }
@@ -84,12 +84,12 @@ export class TotalValueCalculator__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): TotalValueCalculator {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as TotalValueCalculator;
   }
 }

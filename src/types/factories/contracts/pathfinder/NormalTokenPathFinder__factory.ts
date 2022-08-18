@@ -564,7 +564,7 @@ type NormalTokenPathFinderConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: NormalTokenPathFinderConstructorParams,
+  xs: NormalTokenPathFinderConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class NormalTokenPathFinder__factory extends ContractFactory {
@@ -579,23 +579,23 @@ export class NormalTokenPathFinder__factory extends ContractFactory {
   override deploy(
     _addressProvider: string,
     _swapPathFinder: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<NormalTokenPathFinder> {
     return super.deploy(
       _addressProvider,
       _swapPathFinder,
-      overrides || {},
+      overrides || {}
     ) as Promise<NormalTokenPathFinder>;
   }
   override getDeployTransaction(
     _addressProvider: string,
     _swapPathFinder: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _addressProvider,
       _swapPathFinder,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): NormalTokenPathFinder {
@@ -612,12 +612,12 @@ export class NormalTokenPathFinder__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): NormalTokenPathFinder {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as NormalTokenPathFinder;
   }
 }

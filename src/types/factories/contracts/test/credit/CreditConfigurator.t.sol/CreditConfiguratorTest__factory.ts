@@ -1001,7 +1001,7 @@ type CreditConfiguratorTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CreditConfiguratorTestConstructorParams,
+  xs: CreditConfiguratorTestConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CreditConfiguratorTest__factory extends ContractFactory {
@@ -1014,12 +1014,12 @@ export class CreditConfiguratorTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CreditConfiguratorTest> {
     return super.deploy(overrides || {}) as Promise<CreditConfiguratorTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -1037,12 +1037,12 @@ export class CreditConfiguratorTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CreditConfiguratorTest {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as CreditConfiguratorTest;
   }
 }

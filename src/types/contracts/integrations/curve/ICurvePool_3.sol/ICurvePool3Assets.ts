@@ -105,244 +105,244 @@ export interface ICurvePool3AssetsInterface extends utils.Interface {
       | "token"
       | "totalSupply"
       | "underlying_coins(int128)"
-      | "underlying_coins(uint256)",
+      | "underlying_coins(uint256)"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "A", values?: undefined): string;
   encodeFunctionData(functionFragment: "A_precise", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "add_liquidity",
-    values: [[BigNumberish, BigNumberish, BigNumberish], BigNumberish],
+    values: [[BigNumberish, BigNumberish, BigNumberish], BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "admin", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "admin_balances",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "admin_fee", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [string, string],
+    values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "balances(int128)",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "balances(uint256)",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "block_timestamp_last",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "calc_token_amount",
-    values: [[BigNumberish, BigNumberish, BigNumberish], boolean],
+    values: [[BigNumberish, BigNumberish, BigNumberish], boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "calc_withdraw_one_coin",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "coins(int128)",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "coins(uint256)",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "exchange",
-    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "exchange_underlying",
-    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "fee", values?: undefined): string;
   encodeFunctionData(functionFragment: "future_A", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "future_A_time",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "get_balances",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "get_dy",
-    values: [BigNumberish, BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "get_dy_underlying",
-    values: [BigNumberish, BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "get_previous_balances",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "get_price_cumulative_last",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "get_twap_balances",
     values: [
       [BigNumberish, BigNumberish, BigNumberish],
       [BigNumberish, BigNumberish, BigNumberish],
-      BigNumberish,
-    ],
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "get_virtual_price",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "initial_A", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "initial_A_time",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "remove_liquidity",
-    values: [BigNumberish, [BigNumberish, BigNumberish, BigNumberish]],
+    values: [BigNumberish, [BigNumberish, BigNumberish, BigNumberish]]
   ): string;
   encodeFunctionData(
     functionFragment: "remove_liquidity_imbalance",
-    values: [[BigNumberish, BigNumberish, BigNumberish], BigNumberish],
+    values: [[BigNumberish, BigNumberish, BigNumberish], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "remove_liquidity_one_coin",
-    values: [BigNumberish, BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "underlying_coins(int128)",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "underlying_coins(uint256)",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "A", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "A_precise", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "add_liquidity",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "admin_balances",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "admin_fee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "balances(int128)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "balances(uint256)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "block_timestamp_last",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "calc_token_amount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "calc_withdraw_one_coin",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "coins(int128)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "coins(uint256)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "exchange", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "exchange_underlying",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "fee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "future_A", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "future_A_time",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_balances",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "get_dy", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "get_dy_underlying",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_previous_balances",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_price_cumulative_last",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_twap_balances",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "get_virtual_price",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initial_A", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "initial_A_time",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "remove_liquidity",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "remove_liquidity_imbalance",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "remove_liquidity_one_coin",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "underlying_coins(int128)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "underlying_coins(uint256)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -358,15 +358,15 @@ export interface ICurvePool3Assets extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -382,14 +382,14 @@ export interface ICurvePool3Assets extends BaseContract {
     add_liquidity(
       amounts: [BigNumberish, BigNumberish, BigNumberish],
       min_mint_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     admin(overrides?: CallOverrides): Promise<[string]>;
 
     admin_balances(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     admin_fee(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -397,19 +397,19 @@ export interface ICurvePool3Assets extends BaseContract {
     allowance(
       arg0: string,
       arg1: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     balanceOf(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "balances(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     "balances(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     block_timestamp_last(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -417,23 +417,23 @@ export interface ICurvePool3Assets extends BaseContract {
     calc_token_amount(
       _amounts: [BigNumberish, BigNumberish, BigNumberish],
       _is_deposit: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     calc_withdraw_one_coin(
       _burn_amount: BigNumberish,
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     "coins(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     "coins(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     decimals(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -443,7 +443,7 @@ export interface ICurvePool3Assets extends BaseContract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     exchange_underlying(
@@ -451,7 +451,7 @@ export interface ICurvePool3Assets extends BaseContract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     fee(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -461,36 +461,36 @@ export interface ICurvePool3Assets extends BaseContract {
     future_A_time(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     get_balances(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[[BigNumber, BigNumber, BigNumber]]>;
 
     get_dy(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     get_dy_underlying(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     get_previous_balances(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[[BigNumber, BigNumber, BigNumber]]>;
 
     get_price_cumulative_last(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[[BigNumber, BigNumber, BigNumber]]>;
 
     get_twap_balances(
       _first_balances: [BigNumberish, BigNumberish, BigNumberish],
       _last_balances: [BigNumberish, BigNumberish, BigNumberish],
       _time_elapsed: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[[BigNumber, BigNumber, BigNumber]]>;
 
     get_virtual_price(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -504,20 +504,20 @@ export interface ICurvePool3Assets extends BaseContract {
     remove_liquidity(
       _amount: BigNumberish,
       min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     remove_liquidity_imbalance(
       amounts: [BigNumberish, BigNumberish, BigNumberish],
       max_burn_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     remove_liquidity_one_coin(
       _token_amount: BigNumberish,
       i: BigNumberish,
       min_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
@@ -528,12 +528,12 @@ export interface ICurvePool3Assets extends BaseContract {
 
     "underlying_coins(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     "underlying_coins(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
   };
 
@@ -544,14 +544,14 @@ export interface ICurvePool3Assets extends BaseContract {
   add_liquidity(
     amounts: [BigNumberish, BigNumberish, BigNumberish],
     min_mint_amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   admin(overrides?: CallOverrides): Promise<string>;
 
   admin_balances(
     i: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   admin_fee(overrides?: CallOverrides): Promise<BigNumber>;
@@ -559,19 +559,19 @@ export interface ICurvePool3Assets extends BaseContract {
   allowance(
     arg0: string,
     arg1: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   "balances(int128)"(
     arg0: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "balances(uint256)"(
     i: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
@@ -579,18 +579,18 @@ export interface ICurvePool3Assets extends BaseContract {
   calc_token_amount(
     _amounts: [BigNumberish, BigNumberish, BigNumberish],
     _is_deposit: boolean,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calc_withdraw_one_coin(
     _burn_amount: BigNumberish,
     i: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "coins(int128)"(
     arg0: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   "coins(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
@@ -602,7 +602,7 @@ export interface ICurvePool3Assets extends BaseContract {
     j: BigNumberish,
     dx: BigNumberish,
     min_dy: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   exchange_underlying(
@@ -610,7 +610,7 @@ export interface ICurvePool3Assets extends BaseContract {
     j: BigNumberish,
     dx: BigNumberish,
     min_dy: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   fee(overrides?: CallOverrides): Promise<BigNumber>;
@@ -620,36 +620,36 @@ export interface ICurvePool3Assets extends BaseContract {
   future_A_time(overrides?: CallOverrides): Promise<BigNumber>;
 
   get_balances(
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   get_dy(
     i: BigNumberish,
     j: BigNumberish,
     dx: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   get_dy_underlying(
     i: BigNumberish,
     j: BigNumberish,
     dx: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   get_previous_balances(
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   get_price_cumulative_last(
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   get_twap_balances(
     _first_balances: [BigNumberish, BigNumberish, BigNumberish],
     _last_balances: [BigNumberish, BigNumberish, BigNumberish],
     _time_elapsed: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
@@ -663,20 +663,20 @@ export interface ICurvePool3Assets extends BaseContract {
   remove_liquidity(
     _amount: BigNumberish,
     min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   remove_liquidity_imbalance(
     amounts: [BigNumberish, BigNumberish, BigNumberish],
     max_burn_amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   remove_liquidity_one_coin(
     _token_amount: BigNumberish,
     i: BigNumberish,
     min_amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
@@ -687,12 +687,12 @@ export interface ICurvePool3Assets extends BaseContract {
 
   "underlying_coins(int128)"(
     arg0: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   "underlying_coins(uint256)"(
     i: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   callStatic: {
@@ -703,14 +703,14 @@ export interface ICurvePool3Assets extends BaseContract {
     add_liquidity(
       amounts: [BigNumberish, BigNumberish, BigNumberish],
       min_mint_amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     admin(overrides?: CallOverrides): Promise<string>;
 
     admin_balances(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     admin_fee(overrides?: CallOverrides): Promise<BigNumber>;
@@ -718,19 +718,19 @@ export interface ICurvePool3Assets extends BaseContract {
     allowance(
       arg0: string,
       arg1: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "balances(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "balances(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
@@ -738,23 +738,23 @@ export interface ICurvePool3Assets extends BaseContract {
     calc_token_amount(
       _amounts: [BigNumberish, BigNumberish, BigNumberish],
       _is_deposit: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calc_withdraw_one_coin(
       _burn_amount: BigNumberish,
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "coins(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     "coins(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
@@ -764,7 +764,7 @@ export interface ICurvePool3Assets extends BaseContract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     exchange_underlying(
@@ -772,7 +772,7 @@ export interface ICurvePool3Assets extends BaseContract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     fee(overrides?: CallOverrides): Promise<BigNumber>;
@@ -782,36 +782,36 @@ export interface ICurvePool3Assets extends BaseContract {
     future_A_time(overrides?: CallOverrides): Promise<BigNumber>;
 
     get_balances(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     get_dy(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     get_dy_underlying(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     get_previous_balances(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     get_price_cumulative_last(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     get_twap_balances(
       _first_balances: [BigNumberish, BigNumberish, BigNumberish],
       _last_balances: [BigNumberish, BigNumberish, BigNumberish],
       _time_elapsed: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
@@ -825,20 +825,20 @@ export interface ICurvePool3Assets extends BaseContract {
     remove_liquidity(
       _amount: BigNumberish,
       min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     remove_liquidity_imbalance(
       amounts: [BigNumberish, BigNumberish, BigNumberish],
       max_burn_amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     remove_liquidity_one_coin(
       _token_amount: BigNumberish,
       i: BigNumberish,
       min_amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
@@ -849,12 +849,12 @@ export interface ICurvePool3Assets extends BaseContract {
 
     "underlying_coins(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     "underlying_coins(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
   };
 
@@ -868,14 +868,14 @@ export interface ICurvePool3Assets extends BaseContract {
     add_liquidity(
       amounts: [BigNumberish, BigNumberish, BigNumberish],
       min_mint_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     admin(overrides?: CallOverrides): Promise<BigNumber>;
 
     admin_balances(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     admin_fee(overrides?: CallOverrides): Promise<BigNumber>;
@@ -883,19 +883,19 @@ export interface ICurvePool3Assets extends BaseContract {
     allowance(
       arg0: string,
       arg1: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "balances(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "balances(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
@@ -903,23 +903,23 @@ export interface ICurvePool3Assets extends BaseContract {
     calc_token_amount(
       _amounts: [BigNumberish, BigNumberish, BigNumberish],
       _is_deposit: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calc_withdraw_one_coin(
       _burn_amount: BigNumberish,
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "coins(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "coins(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
@@ -929,7 +929,7 @@ export interface ICurvePool3Assets extends BaseContract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     exchange_underlying(
@@ -937,7 +937,7 @@ export interface ICurvePool3Assets extends BaseContract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     fee(overrides?: CallOverrides): Promise<BigNumber>;
@@ -952,14 +952,14 @@ export interface ICurvePool3Assets extends BaseContract {
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     get_dy_underlying(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     get_previous_balances(overrides?: CallOverrides): Promise<BigNumber>;
@@ -970,7 +970,7 @@ export interface ICurvePool3Assets extends BaseContract {
       _first_balances: [BigNumberish, BigNumberish, BigNumberish],
       _last_balances: [BigNumberish, BigNumberish, BigNumberish],
       _time_elapsed: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     get_virtual_price(overrides?: CallOverrides): Promise<BigNumber>;
@@ -984,20 +984,20 @@ export interface ICurvePool3Assets extends BaseContract {
     remove_liquidity(
       _amount: BigNumberish,
       min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     remove_liquidity_imbalance(
       amounts: [BigNumberish, BigNumberish, BigNumberish],
       max_burn_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     remove_liquidity_one_coin(
       _token_amount: BigNumberish,
       i: BigNumberish,
       min_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1008,12 +1008,12 @@ export interface ICurvePool3Assets extends BaseContract {
 
     "underlying_coins(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "underlying_coins(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -1025,14 +1025,14 @@ export interface ICurvePool3Assets extends BaseContract {
     add_liquidity(
       amounts: [BigNumberish, BigNumberish, BigNumberish],
       min_mint_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     admin_balances(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     admin_fee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1040,48 +1040,48 @@ export interface ICurvePool3Assets extends BaseContract {
     allowance(
       arg0: string,
       arg1: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "balances(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "balances(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     block_timestamp_last(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calc_token_amount(
       _amounts: [BigNumberish, BigNumberish, BigNumberish],
       _is_deposit: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calc_withdraw_one_coin(
       _burn_amount: BigNumberish,
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "coins(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "coins(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1091,7 +1091,7 @@ export interface ICurvePool3Assets extends BaseContract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     exchange_underlying(
@@ -1099,7 +1099,7 @@ export interface ICurvePool3Assets extends BaseContract {
       j: BigNumberish,
       dx: BigNumberish,
       min_dy: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     fee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1114,29 +1114,29 @@ export interface ICurvePool3Assets extends BaseContract {
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_dy_underlying(
       i: BigNumberish,
       j: BigNumberish,
       dx: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_previous_balances(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_price_cumulative_last(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_twap_balances(
       _first_balances: [BigNumberish, BigNumberish, BigNumberish],
       _last_balances: [BigNumberish, BigNumberish, BigNumberish],
       _time_elapsed: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     get_virtual_price(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1150,20 +1150,20 @@ export interface ICurvePool3Assets extends BaseContract {
     remove_liquidity(
       _amount: BigNumberish,
       min_amounts: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     remove_liquidity_imbalance(
       amounts: [BigNumberish, BigNumberish, BigNumberish],
       max_burn_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     remove_liquidity_one_coin(
       _token_amount: BigNumberish,
       i: BigNumberish,
       min_amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1174,12 +1174,12 @@ export interface ICurvePool3Assets extends BaseContract {
 
     "underlying_coins(int128)"(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "underlying_coins(uint256)"(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

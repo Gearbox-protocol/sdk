@@ -77,101 +77,101 @@ export interface CreditManagerTestSuiteInterface extends utils.Interface {
       | "poolMock"
       | "priceOracle"
       | "testTokenSuite"
-      | "underlying",
+      | "underlying"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_getAccountAmount",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "_getCollateralTokens",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "acl", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "addMockPriceFeed",
-    values: [string, BigNumberish],
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "af", values?: undefined): string;
   encodeFunctionData(functionFragment: "cr", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(functionFragment: "gp", values?: undefined): string;
   encodeFunctionData(functionFragment: "lt", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount()",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount(uint256)",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "poolMock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "priceOracle",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "testTokenSuite",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_getAccountAmount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "_getCollateralTokens",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "acl", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addMockPriceFeed",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "addressProvider",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "af", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "cr", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "gp", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "lt", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "openCreditAccount()",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "openCreditAccount(uint256)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "poolMock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "priceOracle",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "testTokenSuite",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
 
@@ -373,15 +373,15 @@ export interface CreditManagerTestSuite extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -396,7 +396,7 @@ export interface CreditManagerTestSuite extends BaseContract {
 
     _getCollateralTokens(
       t: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     acl(overrides?: CallOverrides): Promise<[string]>;
@@ -404,7 +404,7 @@ export interface CreditManagerTestSuite extends BaseContract {
     addMockPriceFeed(
       token: string,
       price: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
@@ -416,7 +416,7 @@ export interface CreditManagerTestSuite extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     gp(overrides?: CallOverrides): Promise<[string]>;
@@ -424,12 +424,12 @@ export interface CreditManagerTestSuite extends BaseContract {
     lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
 
     "openCreditAccount()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "openCreditAccount(uint256)"(
       _borrowedAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     poolMock(overrides?: CallOverrides): Promise<[string]>;
@@ -447,7 +447,7 @@ export interface CreditManagerTestSuite extends BaseContract {
 
   _getCollateralTokens(
     t: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   acl(overrides?: CallOverrides): Promise<string>;
@@ -455,7 +455,7 @@ export interface CreditManagerTestSuite extends BaseContract {
   addMockPriceFeed(
     token: string,
     price: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
@@ -467,7 +467,7 @@ export interface CreditManagerTestSuite extends BaseContract {
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   gp(overrides?: CallOverrides): Promise<string>;
@@ -475,12 +475,12 @@ export interface CreditManagerTestSuite extends BaseContract {
   lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
   "openCreditAccount()"(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "openCreditAccount(uint256)"(
     _borrowedAmount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   poolMock(overrides?: CallOverrides): Promise<string>;
@@ -498,7 +498,7 @@ export interface CreditManagerTestSuite extends BaseContract {
 
     _getCollateralTokens(
       t: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<CollateralTokenStructOutput[]>;
 
     acl(overrides?: CallOverrides): Promise<string>;
@@ -506,7 +506,7 @@ export interface CreditManagerTestSuite extends BaseContract {
     addMockPriceFeed(
       token: string,
       price: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     addressProvider(overrides?: CallOverrides): Promise<string>;
@@ -523,7 +523,9 @@ export interface CreditManagerTestSuite extends BaseContract {
 
     lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
-    "openCreditAccount()"(overrides?: CallOverrides): Promise<
+    "openCreditAccount()"(
+      overrides?: CallOverrides
+    ): Promise<
       [BigNumber, BigNumber, BigNumber, string] & {
         borrowedAmount: BigNumber;
         cumulativeIndexAtOpen: BigNumber;
@@ -534,7 +536,7 @@ export interface CreditManagerTestSuite extends BaseContract {
 
     "openCreditAccount(uint256)"(
       _borrowedAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber, BigNumber, string] & {
         borrowedAmount: BigNumber;
@@ -571,59 +573,59 @@ export interface CreditManagerTestSuite extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -644,7 +646,7 @@ export interface CreditManagerTestSuite extends BaseContract {
 
     _getCollateralTokens(
       t: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     acl(overrides?: CallOverrides): Promise<BigNumber>;
@@ -652,7 +654,7 @@ export interface CreditManagerTestSuite extends BaseContract {
     addMockPriceFeed(
       token: string,
       price: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
@@ -664,7 +666,7 @@ export interface CreditManagerTestSuite extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     gp(overrides?: CallOverrides): Promise<BigNumber>;
@@ -672,12 +674,12 @@ export interface CreditManagerTestSuite extends BaseContract {
     lt(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     "openCreditAccount()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "openCreditAccount(uint256)"(
       _borrowedAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     poolMock(overrides?: CallOverrides): Promise<BigNumber>;
@@ -696,7 +698,7 @@ export interface CreditManagerTestSuite extends BaseContract {
 
     _getCollateralTokens(
       t: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     acl(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -704,7 +706,7 @@ export interface CreditManagerTestSuite extends BaseContract {
     addMockPriceFeed(
       token: string,
       price: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -716,23 +718,23 @@ export interface CreditManagerTestSuite extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     gp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     lt(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "openCreditAccount()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "openCreditAccount(uint256)"(
       _borrowedAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     poolMock(overrides?: CallOverrides): Promise<PopulatedTransaction>;

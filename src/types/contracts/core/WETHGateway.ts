@@ -42,40 +42,40 @@ export interface WETHGatewayInterface extends utils.Interface {
       | "removeLiquidityETH"
       | "unwrapWETH"
       | "version"
-      | "wethAddress",
+      | "wethAddress"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addLiquidityETH",
-    values: [string, string, BigNumberish],
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityETH",
-    values: [string, BigNumberish, string],
+    values: [string, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "unwrapWETH",
-    values: [string, BigNumberish],
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "wethAddress",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(
     functionFragment: "addLiquidityETH",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidityETH",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unwrapWETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "wethAddress",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {
@@ -106,15 +106,15 @@ export interface WETHGateway extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -127,20 +127,20 @@ export interface WETHGateway extends BaseContract {
       pool: string,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeLiquidityETH(
       pool: string,
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     unwrapWETH(
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -152,20 +152,20 @@ export interface WETHGateway extends BaseContract {
     pool: string,
     onBehalfOf: string,
     referralCode: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> },
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeLiquidityETH(
     pool: string,
     amount: BigNumberish,
     to: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   unwrapWETH(
     to: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -177,20 +177,20 @@ export interface WETHGateway extends BaseContract {
       pool: string,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     removeLiquidityETH(
       pool: string,
       amount: BigNumberish,
       to: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     unwrapWETH(
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -201,11 +201,11 @@ export interface WETHGateway extends BaseContract {
   filters: {
     "WithdrawETH(address,address)"(
       pool?: string | null,
-      to?: string | null,
+      to?: string | null
     ): WithdrawETHEventFilter;
     WithdrawETH(
       pool?: string | null,
-      to?: string | null,
+      to?: string | null
     ): WithdrawETHEventFilter;
   };
 
@@ -214,20 +214,20 @@ export interface WETHGateway extends BaseContract {
       pool: string,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeLiquidityETH(
       pool: string,
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     unwrapWETH(
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -240,20 +240,20 @@ export interface WETHGateway extends BaseContract {
       pool: string,
       onBehalfOf: string,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityETH(
       pool: string,
       amount: BigNumberish,
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     unwrapWETH(
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;

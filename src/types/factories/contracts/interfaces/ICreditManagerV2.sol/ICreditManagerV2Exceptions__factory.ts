@@ -84,12 +84,12 @@ export class ICreditManagerV2Exceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICreditManagerV2Exceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as ICreditManagerV2Exceptions;
   }
 }

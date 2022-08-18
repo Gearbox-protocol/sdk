@@ -45,12 +45,12 @@ export class IContractsRegisterEvents__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IContractsRegisterEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IContractsRegisterEvents;
   }
 }

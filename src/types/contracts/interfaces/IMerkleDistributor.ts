@@ -35,20 +35,20 @@ export interface IMerkleDistributorInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "claim" | "isClaimed" | "merkleRoot" | "token",
+    nameOrSignatureOrTopic: "claim" | "isClaimed" | "merkleRoot" | "token"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "claim",
-    values: [BigNumberish, string, BigNumberish, BytesLike[]],
+    values: [BigNumberish, string, BigNumberish, BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "isClaimed",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "merkleRoot",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
 
@@ -86,15 +86,15 @@ export interface IMerkleDistributor extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -108,12 +108,12 @@ export interface IMerkleDistributor extends BaseContract {
       account: string,
       amount: BigNumberish,
       merkleProof: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     isClaimed(
       index: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     merkleRoot(overrides?: CallOverrides): Promise<[string]>;
@@ -126,7 +126,7 @@ export interface IMerkleDistributor extends BaseContract {
     account: string,
     amount: BigNumberish,
     merkleProof: BytesLike[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   isClaimed(index: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
@@ -141,7 +141,7 @@ export interface IMerkleDistributor extends BaseContract {
       account: string,
       amount: BigNumberish,
       merkleProof: BytesLike[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     isClaimed(index: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
@@ -155,7 +155,7 @@ export interface IMerkleDistributor extends BaseContract {
     "Claimed(uint256,address,uint256)"(
       index?: null,
       account?: null,
-      amount?: null,
+      amount?: null
     ): ClaimedEventFilter;
     Claimed(index?: null, account?: null, amount?: null): ClaimedEventFilter;
   };
@@ -166,12 +166,12 @@ export interface IMerkleDistributor extends BaseContract {
       account: string,
       amount: BigNumberish,
       merkleProof: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     isClaimed(
       index: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     merkleRoot(overrides?: CallOverrides): Promise<BigNumber>;
@@ -185,12 +185,12 @@ export interface IMerkleDistributor extends BaseContract {
       account: string,
       amount: BigNumberish,
       merkleProof: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     isClaimed(
       index: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     merkleRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;

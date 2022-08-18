@@ -1195,7 +1195,7 @@ type CreditFacadeConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CreditFacadeConstructorParams,
+  xs: CreditFacadeConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CreditFacade__factory extends ContractFactory {
@@ -1211,26 +1211,26 @@ export class CreditFacade__factory extends ContractFactory {
     _creditManager: string,
     _degenNFT: string,
     _expirable: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CreditFacade> {
     return super.deploy(
       _creditManager,
       _degenNFT,
       _expirable,
-      overrides || {},
+      overrides || {}
     ) as Promise<CreditFacade>;
   }
   override getDeployTransaction(
     _creditManager: string,
     _degenNFT: string,
     _expirable: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _creditManager,
       _degenNFT,
       _expirable,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): CreditFacade {
@@ -1247,7 +1247,7 @@ export class CreditFacade__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CreditFacade {
     return new Contract(address, _abi, signerOrProvider) as CreditFacade;
   }

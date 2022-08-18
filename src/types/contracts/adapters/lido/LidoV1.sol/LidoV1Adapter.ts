@@ -87,48 +87,48 @@ export interface LidoV1AdapterInterface extends utils.Interface {
       | "totalSupply"
       | "treasury"
       | "unpause"
-      | "weth",
+      | "weth"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "_acl", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [string, string],
+    values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(functionFragment: "getFee", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getPooledEthByShares",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getSharesByPooledEth",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getTotalPooledEther",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getTotalShares",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "limit", values?: undefined): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
@@ -136,23 +136,23 @@ export interface LidoV1AdapterInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setLimit",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "sharesOf", values: [string]): string;
   encodeFunctionData(functionFragment: "stETH", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "submit",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "submitAll", values?: undefined): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "targetContract",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
@@ -161,39 +161,39 @@ export interface LidoV1AdapterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "_acl", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterType",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getFee", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPooledEthByShares",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getSharesByPooledEth",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getTotalPooledEther",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getTotalShares",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "limit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
@@ -207,11 +207,11 @@ export interface LidoV1AdapterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
@@ -259,15 +259,15 @@ export interface LidoV1Adapter extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -285,12 +285,12 @@ export interface LidoV1Adapter extends BaseContract {
     allowance(
       _owner: string,
       _spender: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     balanceOf(
       _account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
@@ -303,12 +303,12 @@ export interface LidoV1Adapter extends BaseContract {
 
     getPooledEthByShares(
       _sharesAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getSharesByPooledEth(
       _ethAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getTotalPooledEther(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -320,14 +320,14 @@ export interface LidoV1Adapter extends BaseContract {
     name(overrides?: CallOverrides): Promise<[string]>;
 
     pause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     setLimit(
       _limit: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     sharesOf(_account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -336,11 +336,11 @@ export interface LidoV1Adapter extends BaseContract {
 
     submit(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     submitAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
@@ -352,7 +352,7 @@ export interface LidoV1Adapter extends BaseContract {
     treasury(overrides?: CallOverrides): Promise<[string]>;
 
     unpause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     weth(overrides?: CallOverrides): Promise<[string]>;
@@ -367,7 +367,7 @@ export interface LidoV1Adapter extends BaseContract {
   allowance(
     _owner: string,
     _spender: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -382,12 +382,12 @@ export interface LidoV1Adapter extends BaseContract {
 
   getPooledEthByShares(
     _sharesAmount: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getSharesByPooledEth(
     _ethAmount: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
@@ -399,14 +399,14 @@ export interface LidoV1Adapter extends BaseContract {
   name(overrides?: CallOverrides): Promise<string>;
 
   pause(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
   setLimit(
     _limit: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -415,11 +415,11 @@ export interface LidoV1Adapter extends BaseContract {
 
   submit(
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   submitAll(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
@@ -431,7 +431,7 @@ export interface LidoV1Adapter extends BaseContract {
   treasury(overrides?: CallOverrides): Promise<string>;
 
   unpause(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   weth(overrides?: CallOverrides): Promise<string>;
@@ -446,7 +446,7 @@ export interface LidoV1Adapter extends BaseContract {
     allowance(
       _owner: string,
       _spender: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -461,12 +461,12 @@ export interface LidoV1Adapter extends BaseContract {
 
     getPooledEthByShares(
       _sharesAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSharesByPooledEth(
       _ethAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
@@ -525,7 +525,7 @@ export interface LidoV1Adapter extends BaseContract {
     allowance(
       _owner: string,
       _spender: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -540,12 +540,12 @@ export interface LidoV1Adapter extends BaseContract {
 
     getPooledEthByShares(
       _sharesAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSharesByPooledEth(
       _ethAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTotalPooledEther(overrides?: CallOverrides): Promise<BigNumber>;
@@ -557,14 +557,14 @@ export interface LidoV1Adapter extends BaseContract {
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     pause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     setLimit(
       _limit: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -573,11 +573,11 @@ export interface LidoV1Adapter extends BaseContract {
 
     submit(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     submitAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
@@ -589,7 +589,7 @@ export interface LidoV1Adapter extends BaseContract {
     treasury(overrides?: CallOverrides): Promise<BigNumber>;
 
     unpause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     weth(overrides?: CallOverrides): Promise<BigNumber>;
@@ -599,22 +599,22 @@ export interface LidoV1Adapter extends BaseContract {
     _acl(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     _gearboxAdapterType(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     _gearboxAdapterVersion(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     allowance(
       _owner: string,
       _spender: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       _account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -627,16 +627,16 @@ export interface LidoV1Adapter extends BaseContract {
 
     getPooledEthByShares(
       _sharesAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSharesByPooledEth(
       _ethAmount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTotalPooledEther(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTotalShares(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -646,30 +646,30 @@ export interface LidoV1Adapter extends BaseContract {
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setLimit(
       _limit: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     sharesOf(
       _account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     stETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     submit(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     submitAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -681,7 +681,7 @@ export interface LidoV1Adapter extends BaseContract {
     treasury(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     unpause(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -95,15 +95,15 @@ export interface IAccountFactoryEvents extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -117,38 +117,38 @@ export interface IAccountFactoryEvents extends BaseContract {
 
   filters: {
     "AccountMinerChanged(address)"(
-      miner?: string | null,
+      miner?: string | null
     ): AccountMinerChangedEventFilter;
     AccountMinerChanged(miner?: string | null): AccountMinerChangedEventFilter;
 
     "InitializeCreditAccount(address,address)"(
       account?: string | null,
-      creditManager?: string | null,
+      creditManager?: string | null
     ): InitializeCreditAccountEventFilter;
     InitializeCreditAccount(
       account?: string | null,
-      creditManager?: string | null,
+      creditManager?: string | null
     ): InitializeCreditAccountEventFilter;
 
     "NewCreditAccount(address)"(
-      account?: string | null,
+      account?: string | null
     ): NewCreditAccountEventFilter;
     NewCreditAccount(account?: string | null): NewCreditAccountEventFilter;
 
     "ReturnCreditAccount(address)"(
-      account?: string | null,
+      account?: string | null
     ): ReturnCreditAccountEventFilter;
     ReturnCreditAccount(
-      account?: string | null,
+      account?: string | null
     ): ReturnCreditAccountEventFilter;
 
     "TakeForever(address,address)"(
       creditAccount?: string | null,
-      to?: string | null,
+      to?: string | null
     ): TakeForeverEventFilter;
     TakeForever(
       creditAccount?: string | null,
-      to?: string | null,
+      to?: string | null
     ): TakeForeverEventFilter;
   };
 

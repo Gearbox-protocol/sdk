@@ -426,7 +426,7 @@ type CurveLP2PriceFeedConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveLP2PriceFeedConstructorParams,
+  xs: CurveLP2PriceFeedConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveLP2PriceFeed__factory extends ContractFactory {
@@ -444,7 +444,7 @@ export class CurveLP2PriceFeed__factory extends ContractFactory {
     _priceFeed1: string,
     _priceFeed2: string,
     _description: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CurveLP2PriceFeed> {
     return super.deploy(
       addressProvider,
@@ -452,7 +452,7 @@ export class CurveLP2PriceFeed__factory extends ContractFactory {
       _priceFeed1,
       _priceFeed2,
       _description,
-      overrides || {},
+      overrides || {}
     ) as Promise<CurveLP2PriceFeed>;
   }
   override getDeployTransaction(
@@ -461,7 +461,7 @@ export class CurveLP2PriceFeed__factory extends ContractFactory {
     _priceFeed1: string,
     _priceFeed2: string,
     _description: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       addressProvider,
@@ -469,7 +469,7 @@ export class CurveLP2PriceFeed__factory extends ContractFactory {
       _priceFeed1,
       _priceFeed2,
       _description,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): CurveLP2PriceFeed {
@@ -486,7 +486,7 @@ export class CurveLP2PriceFeed__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CurveLP2PriceFeed {
     return new Contract(address, _abi, signerOrProvider) as CurveLP2PriceFeed;
   }

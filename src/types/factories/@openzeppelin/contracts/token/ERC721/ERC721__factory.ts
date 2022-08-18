@@ -365,7 +365,7 @@ type ERC721ConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ERC721ConstructorParams,
+  xs: ERC721ConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ERC721__factory extends ContractFactory {
@@ -380,14 +380,14 @@ export class ERC721__factory extends ContractFactory {
   override deploy(
     name_: string,
     symbol_: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ERC721> {
     return super.deploy(name_, symbol_, overrides || {}) as Promise<ERC721>;
   }
   override getDeployTransaction(
     name_: string,
     symbol_: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(name_, symbol_, overrides || {});
   }

@@ -116,7 +116,7 @@ export class ICurveGauge__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICurveGauge {
     return new Contract(address, _abi, signerOrProvider) as ICurveGauge;
   }

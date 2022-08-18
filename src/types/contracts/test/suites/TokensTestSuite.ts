@@ -79,74 +79,74 @@ export interface TokensTestSuiteInterface extends utils.Interface {
       | "tokenIndexes"
       | "tokenToType"
       | "topUpWETH"
-      | "wethToken",
+      | "wethToken"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "addressOf",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [BigNumberish, string, string],
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "approve(uint8,address,address,uint256)",
-    values: [BigNumberish, string, string, BigNumberish],
+    values: [BigNumberish, string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "approve(uint8,address,address)",
-    values: [BigNumberish, string, string],
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "approve(address,address,address)",
-    values: [string, string, string],
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [BigNumberish, string],
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "burn",
-    values: [BigNumberish, string, BigNumberish],
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getPriceFeeds",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "mint(address,address,uint256)",
-    values: [string, string, BigNumberish],
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "mint(uint8,address,uint256)",
-    values: [BigNumberish, string, BigNumberish],
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "priceFeeds",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "priceFeedsMap",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "prices",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "symbols",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenIndexes",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenToType",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "topUpWETH", values?: undefined): string;
   encodeFunctionData(functionFragment: "wethToken", values?: undefined): string;
@@ -156,45 +156,45 @@ export interface TokensTestSuiteInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "approve(uint8,address,address,uint256)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "approve(uint8,address,address)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "approve(address,address,address)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPriceFeeds",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "mint(address,address,uint256)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "mint(uint8,address,uint256)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "priceFeeds", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "priceFeedsMap",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "prices", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbols", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenIndexes",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "tokenToType",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "topUpWETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "wethToken", data: BytesLike): Result;
@@ -397,15 +397,15 @@ export interface TokensTestSuite extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -422,7 +422,7 @@ export interface TokensTestSuite extends BaseContract {
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     "approve(uint8,address,address,uint256)"(
@@ -430,66 +430,66 @@ export interface TokensTestSuite extends BaseContract {
       holder: string,
       targetContract: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "approve(uint8,address,address)"(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "approve(address,address,address)"(
       token: string,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     balanceOf(
       t: BigNumberish,
       holder: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
     burn(
       t: BigNumberish,
       from: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getPriceFeeds(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[PriceFeedConfigStructOutput[]]>;
 
     "mint(address,address,uint256)"(
       token: string,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "mint(uint8,address,uint256)"(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     priceFeeds(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string] & { token: string; priceFeed: string }>;
 
     priceFeedsMap(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     prices(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -500,11 +500,11 @@ export interface TokensTestSuite extends BaseContract {
 
     tokenToType(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[number]>;
 
     topUpWETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     wethToken(overrides?: CallOverrides): Promise<[string]>;
@@ -518,7 +518,7 @@ export interface TokensTestSuite extends BaseContract {
     t: BigNumberish,
     holder: string,
     targetContract: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "approve(uint8,address,address,uint256)"(
@@ -526,61 +526,61 @@ export interface TokensTestSuite extends BaseContract {
     holder: string,
     targetContract: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "approve(uint8,address,address)"(
     t: BigNumberish,
     holder: string,
     targetContract: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "approve(address,address,address)"(
     token: string,
     holder: string,
     targetContract: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   balanceOf(
     t: BigNumberish,
     holder: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   burn(
     t: BigNumberish,
     from: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getPriceFeeds(
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<PriceFeedConfigStructOutput[]>;
 
   "mint(address,address,uint256)"(
     token: string,
     to: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "mint(uint8,address,uint256)"(
     t: BigNumberish,
     to: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   priceFeeds(
     arg0: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[string, string] & { token: string; priceFeed: string }>;
 
   priceFeedsMap(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
@@ -594,7 +594,7 @@ export interface TokensTestSuite extends BaseContract {
   tokenToType(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
   topUpWETH(
-    overrides?: PayableOverrides & { from?: string | Promise<string> },
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   wethToken(overrides?: CallOverrides): Promise<string>;
@@ -608,7 +608,7 @@ export interface TokensTestSuite extends BaseContract {
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "approve(uint8,address,address,uint256)"(
@@ -616,64 +616,64 @@ export interface TokensTestSuite extends BaseContract {
       holder: string,
       targetContract: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     "approve(uint8,address,address)"(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     "approve(address,address,address)"(
       token: string,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     balanceOf(
       t: BigNumberish,
       holder: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     burn(
       t: BigNumberish,
       from: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     failed(overrides?: CallOverrides): Promise<boolean>;
 
     getPriceFeeds(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PriceFeedConfigStructOutput[]>;
 
     "mint(address,address,uint256)"(
       token: string,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     "mint(uint8,address,uint256)"(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     priceFeeds(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string] & { token: string; priceFeed: string }>;
 
     priceFeedsMap(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     prices(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -707,59 +707,59 @@ export interface TokensTestSuite extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -778,14 +778,14 @@ export interface TokensTestSuite extends BaseContract {
 
     addressOf(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     allowance(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "approve(uint8,address,address,uint256)"(
@@ -793,38 +793,38 @@ export interface TokensTestSuite extends BaseContract {
       holder: string,
       targetContract: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "approve(uint8,address,address)"(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "approve(address,address,address)"(
       token: string,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     balanceOf(
       t: BigNumberish,
       holder: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     burn(
       t: BigNumberish,
       from: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getPriceFeeds(overrides?: CallOverrides): Promise<BigNumber>;
@@ -833,24 +833,24 @@ export interface TokensTestSuite extends BaseContract {
       token: string,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "mint(uint8,address,uint256)"(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     priceFeeds(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     priceFeedsMap(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     prices(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -861,11 +861,11 @@ export interface TokensTestSuite extends BaseContract {
 
     tokenToType(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     topUpWETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     wethToken(overrides?: CallOverrides): Promise<BigNumber>;
@@ -876,14 +876,14 @@ export interface TokensTestSuite extends BaseContract {
 
     addressOf(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     allowance(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "approve(uint8,address,address,uint256)"(
@@ -891,38 +891,38 @@ export interface TokensTestSuite extends BaseContract {
       holder: string,
       targetContract: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "approve(uint8,address,address)"(
       t: BigNumberish,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "approve(address,address,address)"(
       token: string,
       holder: string,
       targetContract: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       t: BigNumberish,
       holder: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     burn(
       t: BigNumberish,
       from: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getPriceFeeds(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -931,48 +931,48 @@ export interface TokensTestSuite extends BaseContract {
       token: string,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "mint(uint8,address,uint256)"(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     priceFeeds(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     priceFeedsMap(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     prices(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     symbols(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     tokenIndexes(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     tokenToType(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     topUpWETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     wethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;

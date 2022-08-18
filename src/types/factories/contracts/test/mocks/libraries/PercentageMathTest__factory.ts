@@ -67,7 +67,7 @@ type PercentageMathTestConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PercentageMathTestConstructorParams,
+  xs: PercentageMathTestConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PercentageMathTest__factory extends ContractFactory {
@@ -80,12 +80,12 @@ export class PercentageMathTest__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<PercentageMathTest> {
     return super.deploy(overrides || {}) as Promise<PercentageMathTest>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -103,7 +103,7 @@ export class PercentageMathTest__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): PercentageMathTest {
     return new Contract(address, _abi, signerOrProvider) as PercentageMathTest;
   }

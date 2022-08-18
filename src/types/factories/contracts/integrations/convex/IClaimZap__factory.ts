@@ -98,7 +98,7 @@ export class IClaimZap__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IClaimZap {
     return new Contract(address, _abi, signerOrProvider) as IClaimZap;
   }

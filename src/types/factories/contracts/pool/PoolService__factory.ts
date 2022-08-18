@@ -850,7 +850,7 @@ type PoolServiceConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PoolServiceConstructorParams,
+  xs: PoolServiceConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PoolService__factory extends ContractFactory {
@@ -868,7 +868,7 @@ export class PoolService__factory extends ContractFactory {
     _dieselAddress: string,
     _interestRateModelAddress: string,
     _expectedLiquidityLimit: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<PoolService> {
     return super.deploy(
       _addressProvider,
@@ -876,7 +876,7 @@ export class PoolService__factory extends ContractFactory {
       _dieselAddress,
       _interestRateModelAddress,
       _expectedLiquidityLimit,
-      overrides || {},
+      overrides || {}
     ) as Promise<PoolService>;
   }
   override getDeployTransaction(
@@ -885,7 +885,7 @@ export class PoolService__factory extends ContractFactory {
     _dieselAddress: string,
     _interestRateModelAddress: string,
     _expectedLiquidityLimit: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _addressProvider,
@@ -893,7 +893,7 @@ export class PoolService__factory extends ContractFactory {
       _dieselAddress,
       _interestRateModelAddress,
       _expectedLiquidityLimit,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): PoolService {
@@ -910,7 +910,7 @@ export class PoolService__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): PoolService {
     return new Contract(address, _abi, signerOrProvider) as PoolService;
   }

@@ -29,12 +29,12 @@ export interface ERC721ReceiverMockInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "onERC721Received",
-    values: [string, string, BigNumberish, BytesLike],
+    values: [string, string, BigNumberish, BytesLike]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "onERC721Received",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -50,15 +50,15 @@ export interface ERC721ReceiverMock extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -72,7 +72,7 @@ export interface ERC721ReceiverMock extends BaseContract {
       arg1: string,
       arg2: BigNumberish,
       arg3: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
   };
 
@@ -81,7 +81,7 @@ export interface ERC721ReceiverMock extends BaseContract {
     arg1: string,
     arg2: BigNumberish,
     arg3: BytesLike,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   callStatic: {
@@ -90,7 +90,7 @@ export interface ERC721ReceiverMock extends BaseContract {
       arg1: string,
       arg2: BigNumberish,
       arg3: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
   };
 
@@ -102,7 +102,7 @@ export interface ERC721ReceiverMock extends BaseContract {
       arg1: string,
       arg2: BigNumberish,
       arg3: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -112,7 +112,7 @@ export interface ERC721ReceiverMock extends BaseContract {
       arg1: string,
       arg2: BigNumberish,
       arg3: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

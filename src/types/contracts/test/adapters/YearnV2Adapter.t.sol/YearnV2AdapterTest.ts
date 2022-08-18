@@ -88,7 +88,7 @@ export interface YearnV2AdapterTestInterface extends utils.Interface {
       | "token"
       | "underlying"
       | "yearnV2Mock"
-      | "yvDAI",
+      | "yvDAI"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
@@ -96,94 +96,94 @@ export interface YearnV2AdapterTestInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "cft", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "creditConfigurator",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_01_constructor_sets_correct_values",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_02_constructor_reverts_if_token_is_not_allowed",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_03_deposit_and_withdraw_if_uses_has_no_account",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_04_deposit_works_for_user_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_05_deposit_uint256_works_for_user_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_06_deposit_uint256_address_works_for_user_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_07_withdraw_works_for_user_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_08_withdraw_uint256_works_for_user_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_09_withdraw_uint256_address_works_for_user_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_10_withdraw_uint256_address_uint256_works_for_user_as_expected",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_11_withdraw_correctly_passes_maxLoss",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_12_adapter_pricePerShare_consistent",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_13_adapter_name_consistent",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_14_adapter_symbol_consistent",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_15_adapter_decimals_consistent",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_16_adapter_allowance_consistent",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_AYV2_17_adapter_balanceOf_totalSupply_consistent",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "yearnV2Mock",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "yvDAI", values?: undefined): string;
 
@@ -192,91 +192,91 @@ export interface YearnV2AdapterTestInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "cft", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditConfigurator",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_01_constructor_sets_correct_values",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_02_constructor_reverts_if_token_is_not_allowed",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_03_deposit_and_withdraw_if_uses_has_no_account",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_04_deposit_works_for_user_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_05_deposit_uint256_works_for_user_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_06_deposit_uint256_address_works_for_user_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_07_withdraw_works_for_user_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_08_withdraw_uint256_works_for_user_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_09_withdraw_uint256_address_works_for_user_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_10_withdraw_uint256_address_uint256_works_for_user_as_expected",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_11_withdraw_correctly_passes_maxLoss",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_12_adapter_pricePerShare_consistent",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_13_adapter_name_consistent",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_14_adapter_symbol_consistent",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_15_adapter_decimals_consistent",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_16_adapter_allowance_consistent",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_AYV2_17_adapter_balanceOf_totalSupply_consistent",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "yearnV2Mock",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "yvDAI", data: BytesLike): Result;
 
@@ -321,7 +321,7 @@ export interface YearnV2AdapterTestInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount",
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
@@ -687,15 +687,15 @@ export interface YearnV2AdapterTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -717,79 +717,79 @@ export interface YearnV2AdapterTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_02_constructor_reverts_if_token_is_not_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_03_deposit_and_withdraw_if_uses_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_04_deposit_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_05_deposit_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_06_deposit_uint256_address_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_07_withdraw_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_08_withdraw_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_09_withdraw_uint256_address_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_10_withdraw_uint256_address_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_11_withdraw_correctly_passes_maxLoss(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_12_adapter_pricePerShare_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_13_adapter_name_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_14_adapter_symbol_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_15_adapter_decimals_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_16_adapter_allowance_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_AYV2_17_adapter_balanceOf_totalSupply_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     token(overrides?: CallOverrides): Promise<[string]>;
@@ -814,79 +814,79 @@ export interface YearnV2AdapterTest extends BaseContract {
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_01_constructor_sets_correct_values(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_02_constructor_reverts_if_token_is_not_allowed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_03_deposit_and_withdraw_if_uses_has_no_account(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_04_deposit_works_for_user_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_05_deposit_uint256_works_for_user_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_06_deposit_uint256_address_works_for_user_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_07_withdraw_works_for_user_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_08_withdraw_uint256_works_for_user_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_09_withdraw_uint256_address_works_for_user_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_10_withdraw_uint256_address_uint256_works_for_user_as_expected(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_11_withdraw_correctly_passes_maxLoss(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_12_adapter_pricePerShare_consistent(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_13_adapter_name_consistent(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_14_adapter_symbol_consistent(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_15_adapter_decimals_consistent(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_16_adapter_allowance_consistent(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_AYV2_17_adapter_balanceOf_totalSupply_consistent(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   token(overrides?: CallOverrides): Promise<string>;
@@ -915,71 +915,71 @@ export interface YearnV2AdapterTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_AYV2_01_constructor_sets_correct_values(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_02_constructor_reverts_if_token_is_not_allowed(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_03_deposit_and_withdraw_if_uses_has_no_account(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_04_deposit_works_for_user_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_05_deposit_uint256_works_for_user_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_06_deposit_uint256_address_works_for_user_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_07_withdraw_works_for_user_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_08_withdraw_uint256_works_for_user_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_09_withdraw_uint256_address_works_for_user_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_10_withdraw_uint256_address_uint256_works_for_user_as_expected(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_11_withdraw_correctly_passes_maxLoss(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_12_adapter_pricePerShare_consistent(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_13_adapter_name_consistent(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_14_adapter_symbol_consistent(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_15_adapter_decimals_consistent(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_16_adapter_allowance_consistent(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_AYV2_17_adapter_balanceOf_totalSupply_consistent(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     token(overrides?: CallOverrides): Promise<string>;
@@ -995,134 +995,134 @@ export interface YearnV2AdapterTest extends BaseContract {
     "AddCollateral(address,address,uint256)"(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null,
+      value?: null
     ): AddCollateralEventFilter;
     AddCollateral(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null,
+      value?: null
     ): AddCollateralEventFilter;
 
     "CloseCreditAccount(address,address)"(
       owner?: string | null,
-      to?: string | null,
+      to?: string | null
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
       owner?: string | null,
-      to?: string | null,
+      to?: string | null
     ): CloseCreditAccountEventFilter;
 
     "DecreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): DecreaseBorrowedAmountEventFilter;
     DecreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): DecreaseBorrowedAmountEventFilter;
 
     "ExecuteOrder(address,address)"(
       borrower?: string | null,
-      target?: string | null,
+      target?: string | null
     ): ExecuteOrderEventFilter;
     ExecuteOrder(
       borrower?: string | null,
-      target?: string | null,
+      target?: string | null
     ): ExecuteOrderEventFilter;
 
     "IncreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): IncreaseBorrowedAmountEventFilter;
     IncreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): IncreaseBorrowedAmountEventFilter;
 
     "LiquidateCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
     "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
     LiquidateExpiredCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
 
     "MultiCallFinished()"(): MultiCallFinishedEventFilter;
     MultiCallFinished(): MultiCallFinishedEventFilter;
 
     "MultiCallStarted(address)"(
-      borrower?: string | null,
+      borrower?: string | null
     ): MultiCallStartedEventFilter;
     MultiCallStarted(borrower?: string | null): MultiCallStartedEventFilter;
 
     "NewConfigurator(address)"(
-      newConfigurator?: string | null,
+      newConfigurator?: string | null
     ): NewConfiguratorEventFilter;
     NewConfigurator(
-      newConfigurator?: string | null,
+      newConfigurator?: string | null
     ): NewConfiguratorEventFilter;
 
     "OpenCreditAccount(address,address,uint256,uint16)"(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): OpenCreditAccountEventFilter;
     OpenCreditAccount(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
       creditAccount?: null,
-      token?: null,
+      token?: null
     ): TokenDisabledEventFilter;
     TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
       creditAccount?: null,
-      token?: null,
+      token?: null
     ): TokenEnabledEventFilter;
     TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): TransferAccountEventFilter;
     TransferAccount(
       oldOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): TransferAccountEventFilter;
 
     "TransferAccountAllowed(address,address,bool)"(
       from?: string | null,
       to?: string | null,
-      state?: null,
+      state?: null
     ): TransferAccountAllowedEventFilter;
     TransferAccountAllowed(
       from?: string | null,
       to?: string | null,
-      state?: null,
+      state?: null
     ): TransferAccountAllowedEventFilter;
 
     "log(string)"(arg0?: null): logEventFilter;
@@ -1142,59 +1142,59 @@ export interface YearnV2AdapterTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -1222,79 +1222,79 @@ export interface YearnV2AdapterTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_02_constructor_reverts_if_token_is_not_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_03_deposit_and_withdraw_if_uses_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_04_deposit_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_05_deposit_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_06_deposit_uint256_address_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_07_withdraw_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_08_withdraw_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_09_withdraw_uint256_address_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_10_withdraw_uint256_address_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_11_withdraw_correctly_passes_maxLoss(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_12_adapter_pricePerShare_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_13_adapter_name_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_14_adapter_symbol_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_15_adapter_decimals_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_16_adapter_allowance_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_AYV2_17_adapter_balanceOf_totalSupply_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     token(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1314,7 +1314,7 @@ export interface YearnV2AdapterTest extends BaseContract {
     cft(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditConfigurator(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1322,79 +1322,79 @@ export interface YearnV2AdapterTest extends BaseContract {
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_01_constructor_sets_correct_values(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_02_constructor_reverts_if_token_is_not_allowed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_03_deposit_and_withdraw_if_uses_has_no_account(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_04_deposit_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_05_deposit_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_06_deposit_uint256_address_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_07_withdraw_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_08_withdraw_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_09_withdraw_uint256_address_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_10_withdraw_uint256_address_uint256_works_for_user_as_expected(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_11_withdraw_correctly_passes_maxLoss(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_12_adapter_pricePerShare_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_13_adapter_name_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_14_adapter_symbol_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_15_adapter_decimals_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_16_adapter_allowance_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_AYV2_17_adapter_balanceOf_totalSupply_consistent(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     token(overrides?: CallOverrides): Promise<PopulatedTransaction>;

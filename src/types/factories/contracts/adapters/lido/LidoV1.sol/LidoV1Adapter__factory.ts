@@ -503,7 +503,7 @@ type LidoV1AdapterConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: LidoV1AdapterConstructorParams,
+  xs: LidoV1AdapterConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class LidoV1Adapter__factory extends ContractFactory {
@@ -518,23 +518,23 @@ export class LidoV1Adapter__factory extends ContractFactory {
   override deploy(
     _creditManager: string,
     _lidoGateway: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<LidoV1Adapter> {
     return super.deploy(
       _creditManager,
       _lidoGateway,
-      overrides || {},
+      overrides || {}
     ) as Promise<LidoV1Adapter>;
   }
   override getDeployTransaction(
     _creditManager: string,
     _lidoGateway: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _creditManager,
       _lidoGateway,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): LidoV1Adapter {
@@ -551,7 +551,7 @@ export class LidoV1Adapter__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): LidoV1Adapter {
     return new Contract(address, _abi, signerOrProvider) as LidoV1Adapter;
   }

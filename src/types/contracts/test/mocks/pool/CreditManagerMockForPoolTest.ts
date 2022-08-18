@@ -41,61 +41,61 @@ export interface CreditManagerMockForPoolTestInterface extends utils.Interface {
       | "lendCreditAccount"
       | "poolService"
       | "repayCreditAccount"
-      | "underlying",
+      | "underlying"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "changePoolService",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "creditAccount",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountOrRevert",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "lendCreditAccount",
-    values: [BigNumberish, string],
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "poolService",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "repayCreditAccount",
-    values: [BigNumberish, BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(
     functionFragment: "changePoolService",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountOrRevert",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "lendCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "poolService",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "repayCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
 
@@ -112,15 +112,15 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -131,20 +131,20 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
   functions: {
     changePoolService(
       newPool: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     creditAccount(overrides?: CallOverrides): Promise<[string]>;
 
     getCreditAccountOrRevert(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string] & { result: string }>;
 
     lendCreditAccount(
       borrowedAmount: BigNumberish,
       ca: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     poolService(overrides?: CallOverrides): Promise<[string]>;
@@ -153,7 +153,7 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
       borrowedAmount: BigNumberish,
       profit: BigNumberish,
       loss: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<[string]>;
@@ -161,20 +161,20 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
 
   changePoolService(
     newPool: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   creditAccount(overrides?: CallOverrides): Promise<string>;
 
   getCreditAccountOrRevert(
     arg0: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   lendCreditAccount(
     borrowedAmount: BigNumberish,
     ca: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   poolService(overrides?: CallOverrides): Promise<string>;
@@ -183,7 +183,7 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
     borrowedAmount: BigNumberish,
     profit: BigNumberish,
     loss: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   underlying(overrides?: CallOverrides): Promise<string>;
@@ -191,20 +191,20 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
   callStatic: {
     changePoolService(
       newPool: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     creditAccount(overrides?: CallOverrides): Promise<string>;
 
     getCreditAccountOrRevert(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     lendCreditAccount(
       borrowedAmount: BigNumberish,
       ca: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     poolService(overrides?: CallOverrides): Promise<string>;
@@ -213,7 +213,7 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
       borrowedAmount: BigNumberish,
       profit: BigNumberish,
       loss: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     underlying(overrides?: CallOverrides): Promise<string>;
@@ -224,20 +224,20 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
   estimateGas: {
     changePoolService(
       newPool: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     creditAccount(overrides?: CallOverrides): Promise<BigNumber>;
 
     getCreditAccountOrRevert(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     lendCreditAccount(
       borrowedAmount: BigNumberish,
       ca: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     poolService(overrides?: CallOverrides): Promise<BigNumber>;
@@ -246,7 +246,7 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
       borrowedAmount: BigNumberish,
       profit: BigNumberish,
       loss: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
@@ -255,20 +255,20 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
   populateTransaction: {
     changePoolService(
       newPool: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     creditAccount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getCreditAccountOrRevert(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     lendCreditAccount(
       borrowedAmount: BigNumberish,
       ca: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     poolService(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -277,7 +277,7 @@ export interface CreditManagerMockForPoolTest extends BaseContract {
       borrowedAmount: BigNumberish,
       profit: BigNumberish,
       loss: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;

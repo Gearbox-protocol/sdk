@@ -45,7 +45,7 @@ export interface WadRayMathTestInterface extends utils.Interface {
       | "wad"
       | "wadDiv"
       | "wadMul"
-      | "wadToRay",
+      | "wadToRay"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "halfRay", values?: undefined): string;
@@ -53,28 +53,28 @@ export interface WadRayMathTestInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "ray", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "rayDiv",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "rayMul",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "rayToWad",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "wad", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "wadDiv",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "wadMul",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "wadToRay",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "halfRay", data: BytesLike): Result;
@@ -101,15 +101,15 @@ export interface WadRayMathTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -127,13 +127,13 @@ export interface WadRayMathTest extends BaseContract {
     rayDiv(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     rayMul(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     rayToWad(a: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -143,13 +143,13 @@ export interface WadRayMathTest extends BaseContract {
     wadDiv(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     wadMul(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     wadToRay(a: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -164,13 +164,13 @@ export interface WadRayMathTest extends BaseContract {
   rayDiv(
     a: BigNumberish,
     b: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   rayMul(
     a: BigNumberish,
     b: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   rayToWad(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -180,13 +180,13 @@ export interface WadRayMathTest extends BaseContract {
   wadDiv(
     a: BigNumberish,
     b: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   wadMul(
     a: BigNumberish,
     b: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   wadToRay(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -201,13 +201,13 @@ export interface WadRayMathTest extends BaseContract {
     rayDiv(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     rayMul(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     rayToWad(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -217,13 +217,13 @@ export interface WadRayMathTest extends BaseContract {
     wadDiv(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     wadMul(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     wadToRay(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -241,13 +241,13 @@ export interface WadRayMathTest extends BaseContract {
     rayDiv(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     rayMul(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     rayToWad(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -257,13 +257,13 @@ export interface WadRayMathTest extends BaseContract {
     wadDiv(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     wadMul(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     wadToRay(a: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -279,18 +279,18 @@ export interface WadRayMathTest extends BaseContract {
     rayDiv(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     rayMul(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     rayToWad(
       a: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     wad(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -298,18 +298,18 @@ export interface WadRayMathTest extends BaseContract {
     wadDiv(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     wadMul(
       a: BigNumberish,
       b: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     wadToRay(
       a: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

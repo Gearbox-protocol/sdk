@@ -674,7 +674,7 @@ type GearTokenConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: GearTokenConstructorParams,
+  xs: GearTokenConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class GearToken__factory extends ContractFactory {
@@ -688,13 +688,13 @@ export class GearToken__factory extends ContractFactory {
 
   override deploy(
     account: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<GearToken> {
     return super.deploy(account, overrides || {}) as Promise<GearToken>;
   }
   override getDeployTransaction(
     account: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(account, overrides || {});
   }
@@ -712,7 +712,7 @@ export class GearToken__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): GearToken {
     return new Contract(address, _abi, signerOrProvider) as GearToken;
   }

@@ -893,7 +893,7 @@ export class ICurveV1Adapter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICurveV1Adapter {
     return new Contract(address, _abi, signerOrProvider) as ICurveV1Adapter;
   }

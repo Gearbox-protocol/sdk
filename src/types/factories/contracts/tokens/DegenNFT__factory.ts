@@ -640,7 +640,7 @@ type DegenNFTConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: DegenNFTConstructorParams,
+  xs: DegenNFTConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class DegenNFT__factory extends ContractFactory {
@@ -656,26 +656,26 @@ export class DegenNFT__factory extends ContractFactory {
     _addressProvider: string,
     _name: string,
     _symbol: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<DegenNFT> {
     return super.deploy(
       _addressProvider,
       _name,
       _symbol,
-      overrides || {},
+      overrides || {}
     ) as Promise<DegenNFT>;
   }
   override getDeployTransaction(
     _addressProvider: string,
     _name: string,
     _symbol: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _addressProvider,
       _name,
       _symbol,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): DegenNFT {
@@ -692,7 +692,7 @@ export class DegenNFT__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): DegenNFT {
     return new Contract(address, _abi, signerOrProvider) as DegenNFT;
   }

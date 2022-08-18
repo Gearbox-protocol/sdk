@@ -909,7 +909,7 @@ type TestPoolServiceConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: TestPoolServiceConstructorParams,
+  xs: TestPoolServiceConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class TestPoolService__factory extends ContractFactory {
@@ -927,7 +927,7 @@ export class TestPoolService__factory extends ContractFactory {
     _dieselAddress: string,
     interestRateModelAddress: string,
     _expectedLiquidityLimit: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<TestPoolService> {
     return super.deploy(
       addressProvider,
@@ -935,7 +935,7 @@ export class TestPoolService__factory extends ContractFactory {
       _dieselAddress,
       interestRateModelAddress,
       _expectedLiquidityLimit,
-      overrides || {},
+      overrides || {}
     ) as Promise<TestPoolService>;
   }
   override getDeployTransaction(
@@ -944,7 +944,7 @@ export class TestPoolService__factory extends ContractFactory {
     _dieselAddress: string,
     interestRateModelAddress: string,
     _expectedLiquidityLimit: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       addressProvider,
@@ -952,7 +952,7 @@ export class TestPoolService__factory extends ContractFactory {
       _dieselAddress,
       interestRateModelAddress,
       _expectedLiquidityLimit,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): TestPoolService {
@@ -969,7 +969,7 @@ export class TestPoolService__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): TestPoolService {
     return new Contract(address, _abi, signerOrProvider) as TestPoolService;
   }

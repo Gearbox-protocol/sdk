@@ -71,7 +71,7 @@ export class IACLEvents__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IACLEvents {
     return new Contract(address, _abi, signerOrProvider) as IACLEvents;
   }

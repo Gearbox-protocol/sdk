@@ -36,34 +36,34 @@ export interface IACLInterface extends utils.Interface {
       | "isConfigurator"
       | "isPausableAdmin"
       | "isUnpausableAdmin"
-      | "version",
+      | "version"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "isConfigurator",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "isPausableAdmin",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "isUnpausableAdmin",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "isConfigurator",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "isPausableAdmin",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "isUnpausableAdmin",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
@@ -134,15 +134,15 @@ export interface IACL extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -153,17 +153,17 @@ export interface IACL extends BaseContract {
   functions: {
     isConfigurator(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     isPausableAdmin(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     isUnpausableAdmin(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -180,14 +180,14 @@ export interface IACL extends BaseContract {
   callStatic: {
     isConfigurator(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     isPausableAdmin(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
     isUnpausableAdmin(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -195,46 +195,46 @@ export interface IACL extends BaseContract {
 
   filters: {
     "PausableAdminAdded(address)"(
-      newAdmin?: string | null,
+      newAdmin?: string | null
     ): PausableAdminAddedEventFilter;
     PausableAdminAdded(newAdmin?: string | null): PausableAdminAddedEventFilter;
 
     "PausableAdminRemoved(address)"(
-      admin?: string | null,
+      admin?: string | null
     ): PausableAdminRemovedEventFilter;
     PausableAdminRemoved(
-      admin?: string | null,
+      admin?: string | null
     ): PausableAdminRemovedEventFilter;
 
     "UnpausableAdminAdded(address)"(
-      newAdmin?: string | null,
+      newAdmin?: string | null
     ): UnpausableAdminAddedEventFilter;
     UnpausableAdminAdded(
-      newAdmin?: string | null,
+      newAdmin?: string | null
     ): UnpausableAdminAddedEventFilter;
 
     "UnpausableAdminRemoved(address)"(
-      admin?: string | null,
+      admin?: string | null
     ): UnpausableAdminRemovedEventFilter;
     UnpausableAdminRemoved(
-      admin?: string | null,
+      admin?: string | null
     ): UnpausableAdminRemovedEventFilter;
   };
 
   estimateGas: {
     isConfigurator(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     isPausableAdmin(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     isUnpausableAdmin(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
@@ -243,17 +243,17 @@ export interface IACL extends BaseContract {
   populateTransaction: {
     isConfigurator(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isPausableAdmin(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isUnpausableAdmin(
       addr: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;

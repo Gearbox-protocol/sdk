@@ -339,7 +339,7 @@ export class IGearToken__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IGearToken {
     return new Contract(address, _abi, signerOrProvider) as IGearToken;
   }

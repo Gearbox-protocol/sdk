@@ -400,7 +400,7 @@ type TokenFeeMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: TokenFeeMockConstructorParams,
+  xs: TokenFeeMockConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class TokenFeeMock__factory extends ContractFactory {
@@ -416,20 +416,20 @@ export class TokenFeeMock__factory extends ContractFactory {
     name_: string,
     symbol_: string,
     fee_: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<TokenFeeMock> {
     return super.deploy(
       name_,
       symbol_,
       fee_,
-      overrides || {},
+      overrides || {}
     ) as Promise<TokenFeeMock>;
   }
   override getDeployTransaction(
     name_: string,
     symbol_: string,
     fee_: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(name_, symbol_, fee_, overrides || {});
   }
@@ -447,7 +447,7 @@ export class TokenFeeMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): TokenFeeMock {
     return new Contract(address, _abi, signerOrProvider) as TokenFeeMock;
   }

@@ -38,7 +38,7 @@ export declare namespace IBooster {
     string,
     string,
     string,
-    boolean,
+    boolean
   ] & {
     lptoken: string;
     token: string;
@@ -80,45 +80,45 @@ export interface IBoosterInterface extends utils.Interface {
       | "staker"
       | "stakerRewards"
       | "withdraw"
-      | "withdrawAll",
+      | "withdrawAll"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "crv", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [BigNumberish, BigNumberish, boolean],
+    values: [BigNumberish, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "depositAll",
-    values: [BigNumberish, boolean],
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(functionFragment: "lockFees", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "lockRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "minter", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "poolInfo",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "poolLength",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "registry", values?: undefined): string;
   encodeFunctionData(functionFragment: "staker", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stakerRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish, BigNumberish],
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAll",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "crv", data: BytesLike): Result;
@@ -127,7 +127,7 @@ export interface IBoosterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "lockFees", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lockRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "minter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "poolInfo", data: BytesLike): Result;
@@ -136,12 +136,12 @@ export interface IBoosterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "staker", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "stakerRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAll",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -157,15 +157,15 @@ export interface IBooster extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -180,13 +180,13 @@ export interface IBooster extends BaseContract {
       _pid: BigNumberish,
       _amount: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     depositAll(
       _pid: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     lockFees(overrides?: CallOverrides): Promise<[string]>;
@@ -197,7 +197,7 @@ export interface IBooster extends BaseContract {
 
     poolInfo(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[IBooster.PoolInfoStructOutput]>;
 
     poolLength(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -211,12 +211,12 @@ export interface IBooster extends BaseContract {
     withdraw(
       _pid: BigNumberish,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAll(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
@@ -226,13 +226,13 @@ export interface IBooster extends BaseContract {
     _pid: BigNumberish,
     _amount: BigNumberish,
     _stake: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   depositAll(
     _pid: BigNumberish,
     _stake: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   lockFees(overrides?: CallOverrides): Promise<string>;
@@ -243,7 +243,7 @@ export interface IBooster extends BaseContract {
 
   poolInfo(
     i: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<IBooster.PoolInfoStructOutput>;
 
   poolLength(overrides?: CallOverrides): Promise<BigNumber>;
@@ -257,12 +257,12 @@ export interface IBooster extends BaseContract {
   withdraw(
     _pid: BigNumberish,
     _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAll(
     _pid: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -272,13 +272,13 @@ export interface IBooster extends BaseContract {
       _pid: BigNumberish,
       _amount: BigNumberish,
       _stake: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     depositAll(
       _pid: BigNumberish,
       _stake: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     lockFees(overrides?: CallOverrides): Promise<string>;
@@ -289,7 +289,7 @@ export interface IBooster extends BaseContract {
 
     poolInfo(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<IBooster.PoolInfoStructOutput>;
 
     poolLength(overrides?: CallOverrides): Promise<BigNumber>;
@@ -303,12 +303,12 @@ export interface IBooster extends BaseContract {
     withdraw(
       _pid: BigNumberish,
       _amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     withdrawAll(
       _pid: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
   };
 
@@ -321,13 +321,13 @@ export interface IBooster extends BaseContract {
       _pid: BigNumberish,
       _amount: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     depositAll(
       _pid: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     lockFees(overrides?: CallOverrides): Promise<BigNumber>;
@@ -349,12 +349,12 @@ export interface IBooster extends BaseContract {
     withdraw(
       _pid: BigNumberish,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAll(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -365,13 +365,13 @@ export interface IBooster extends BaseContract {
       _pid: BigNumberish,
       _amount: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     depositAll(
       _pid: BigNumberish,
       _stake: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     lockFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -382,7 +382,7 @@ export interface IBooster extends BaseContract {
 
     poolInfo(
       i: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     poolLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -396,12 +396,12 @@ export interface IBooster extends BaseContract {
     withdraw(
       _pid: BigNumberish,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAll(
       _pid: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

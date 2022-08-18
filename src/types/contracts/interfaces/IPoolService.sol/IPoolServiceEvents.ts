@@ -163,15 +163,15 @@ export interface IPoolServiceEvents extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -188,50 +188,50 @@ export interface IPoolServiceEvents extends BaseContract {
       sender?: string | null,
       onBehalfOf?: string | null,
       amount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): AddLiquidityEventFilter;
     AddLiquidity(
       sender?: string | null,
       onBehalfOf?: string | null,
       amount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): AddLiquidityEventFilter;
 
     "Borrow(address,address,uint256)"(
       creditManager?: string | null,
       creditAccount?: string | null,
-      amount?: null,
+      amount?: null
     ): BorrowEventFilter;
     Borrow(
       creditManager?: string | null,
       creditAccount?: string | null,
-      amount?: null,
+      amount?: null
     ): BorrowEventFilter;
 
     "BorrowForbidden(address)"(
-      creditManager?: string | null,
+      creditManager?: string | null
     ): BorrowForbiddenEventFilter;
     BorrowForbidden(creditManager?: string | null): BorrowForbiddenEventFilter;
 
     "NewCreditManagerConnected(address)"(
-      creditManager?: string | null,
+      creditManager?: string | null
     ): NewCreditManagerConnectedEventFilter;
     NewCreditManagerConnected(
-      creditManager?: string | null,
+      creditManager?: string | null
     ): NewCreditManagerConnectedEventFilter;
 
     "NewExpectedLiquidityLimit(uint256)"(
-      newLimit?: null,
+      newLimit?: null
     ): NewExpectedLiquidityLimitEventFilter;
     NewExpectedLiquidityLimit(
-      newLimit?: null,
+      newLimit?: null
     ): NewExpectedLiquidityLimitEventFilter;
 
     "NewInterestRateModel(address)"(
-      newInterestRateModel?: string | null,
+      newInterestRateModel?: string | null
     ): NewInterestRateModelEventFilter;
     NewInterestRateModel(
-      newInterestRateModel?: string | null,
+      newInterestRateModel?: string | null
     ): NewInterestRateModelEventFilter;
 
     "NewWithdrawFee(uint256)"(fee?: null): NewWithdrawFeeEventFilter;
@@ -240,34 +240,34 @@ export interface IPoolServiceEvents extends BaseContract {
     "RemoveLiquidity(address,address,uint256)"(
       sender?: string | null,
       to?: string | null,
-      amount?: null,
+      amount?: null
     ): RemoveLiquidityEventFilter;
     RemoveLiquidity(
       sender?: string | null,
       to?: string | null,
-      amount?: null,
+      amount?: null
     ): RemoveLiquidityEventFilter;
 
     "Repay(address,uint256,uint256,uint256)"(
       creditManager?: string | null,
       borrowedAmount?: null,
       profit?: null,
-      loss?: null,
+      loss?: null
     ): RepayEventFilter;
     Repay(
       creditManager?: string | null,
       borrowedAmount?: null,
       profit?: null,
-      loss?: null,
+      loss?: null
     ): RepayEventFilter;
 
     "UncoveredLoss(address,uint256)"(
       creditManager?: string | null,
-      loss?: null,
+      loss?: null
     ): UncoveredLossEventFilter;
     UncoveredLoss(
       creditManager?: string | null,
-      loss?: null,
+      loss?: null
     ): UncoveredLossEventFilter;
   };
 

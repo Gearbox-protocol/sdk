@@ -45,33 +45,33 @@ export interface YearnPathFinderInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "estimateWithdraw"
       | "filterYearnAdapters"
-      | "withdrawAll",
+      | "withdrawAll"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "estimateWithdraw",
-    values: [string, BigNumberish],
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "filterYearnAdapters",
-    values: [string[]],
+    values: [string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAll",
-    values: [BalanceStruct[], string[]],
+    values: [BalanceStruct[], string[]]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "estimateWithdraw",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "filterYearnAdapters",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAll",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -87,15 +87,15 @@ export interface YearnPathFinder extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -107,54 +107,54 @@ export interface YearnPathFinder extends BaseContract {
     estimateWithdraw(
       yVault: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     filterYearnAdapters(
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string[]] & { result: string[] }>;
 
     withdrawAll(
       b: BalanceStruct[],
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
   };
 
   estimateWithdraw(
     yVault: string,
     amount: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   filterYearnAdapters(
     adapters: string[],
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string[]>;
 
   withdrawAll(
     b: BalanceStruct[],
     adapters: string[],
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
 
   callStatic: {
     estimateWithdraw(
       yVault: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     filterYearnAdapters(
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string[]>;
 
     withdrawAll(
       b: BalanceStruct[],
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], MultiCallStructOutput[]]>;
   };
 
@@ -164,18 +164,18 @@ export interface YearnPathFinder extends BaseContract {
     estimateWithdraw(
       yVault: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     filterYearnAdapters(
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     withdrawAll(
       b: BalanceStruct[],
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -183,18 +183,18 @@ export interface YearnPathFinder extends BaseContract {
     estimateWithdraw(
       yVault: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     filterYearnAdapters(
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     withdrawAll(
       b: BalanceStruct[],
       adapters: string[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

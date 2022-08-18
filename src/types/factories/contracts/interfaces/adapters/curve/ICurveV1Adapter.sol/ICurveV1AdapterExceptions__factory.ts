@@ -24,12 +24,12 @@ export class ICurveV1AdapterExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICurveV1AdapterExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as ICurveV1AdapterExceptions;
   }
 }

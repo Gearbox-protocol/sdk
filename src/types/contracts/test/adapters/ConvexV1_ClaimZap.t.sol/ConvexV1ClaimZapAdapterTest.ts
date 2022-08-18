@@ -93,211 +93,211 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
       | "test_ACVX1_Z_03_claimRewards_ignores_options"
       | "test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract"
       | "test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras"
-      | "underlying",
+      | "underlying"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "IS_TEST", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_setUpZeroExtras",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "basePoolAdapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "basePoolMock",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "boosterAdapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "boosterMock",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "cft", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "claimZapAdapter",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "claimZapMock",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "convexLPToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditConfigurator",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "crv", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "curveLPToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "cvx", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "extraPoolMock1",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "extraPoolMock2",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "extraRewardToken1",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "extraRewardToken2",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "failed", values?: undefined): string;
   encodeFunctionData(functionFragment: "feed", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "phantomToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "priceOracle",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "setUp", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "test_ACVX1_Z_01_claimRewards_works_correctly",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACVX1_Z_03_claimRewards_ignores_options",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "IS_TEST", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_setUpZeroExtras",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "basePoolAdapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "basePoolMock",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "boosterAdapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "boosterMock",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "cft", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "claimZapAdapter",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "claimZapMock",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "convexLPToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditConfigurator",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "crv", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "curveLPToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "cvx", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "extraPoolMock1",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extraPoolMock2",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extraRewardToken1",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extraRewardToken2",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "failed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "feed", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "phantomToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "priceOracle",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setUp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "test_ACVX1_Z_01_claimRewards_works_correctly",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACVX1_Z_03_claimRewards_ignores_options",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
 
@@ -350,7 +350,7 @@ export interface ConvexV1ClaimZapAdapterTestInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount",
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_BaseRewardPaid"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mock_BaseStaked"): EventFragment;
@@ -828,15 +828,15 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -848,7 +848,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<[boolean]>;
 
     _setUpZeroExtras(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     basePoolAdapter(overrides?: CallOverrides): Promise<[string]>;
@@ -888,7 +888,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     extraRewardToken2(overrides?: CallOverrides): Promise<[string]>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     feed(overrides?: CallOverrides): Promise<[string]>;
@@ -898,27 +898,27 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<[string]>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_ACVX1_Z_01_claimRewards_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_ACVX1_Z_03_claimRewards_ignores_options(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<[string]>;
@@ -927,7 +927,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
   IS_TEST(overrides?: CallOverrides): Promise<boolean>;
 
   _setUpZeroExtras(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   basePoolAdapter(overrides?: CallOverrides): Promise<string>;
@@ -967,7 +967,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
   extraRewardToken2(overrides?: CallOverrides): Promise<string>;
 
   failed(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   feed(overrides?: CallOverrides): Promise<string>;
@@ -977,27 +977,27 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
   priceOracle(overrides?: CallOverrides): Promise<string>;
 
   setUp(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_ACVX1_Z_01_claimRewards_works_correctly(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_ACVX1_Z_03_claimRewards_ignores_options(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   underlying(overrides?: CallOverrides): Promise<string>;
@@ -1054,23 +1054,23 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     setUp(overrides?: CallOverrides): Promise<void>;
 
     test_ACVX1_Z_01_claimRewards_works_correctly(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_ACVX1_Z_03_claimRewards_ignores_options(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     underlying(overrides?: CallOverrides): Promise<string>;
@@ -1080,107 +1080,107 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     "AddCollateral(address,address,uint256)"(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null,
+      value?: null
     ): AddCollateralEventFilter;
     AddCollateral(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null,
+      value?: null
     ): AddCollateralEventFilter;
 
     "CloseCreditAccount(address,address)"(
       owner?: string | null,
-      to?: string | null,
+      to?: string | null
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
       owner?: string | null,
-      to?: string | null,
+      to?: string | null
     ): CloseCreditAccountEventFilter;
 
     "DecreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): DecreaseBorrowedAmountEventFilter;
     DecreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): DecreaseBorrowedAmountEventFilter;
 
     "ExecuteOrder(address,address)"(
       borrower?: string | null,
-      target?: string | null,
+      target?: string | null
     ): ExecuteOrderEventFilter;
     ExecuteOrder(
       borrower?: string | null,
-      target?: string | null,
+      target?: string | null
     ): ExecuteOrderEventFilter;
 
     "IncreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): IncreaseBorrowedAmountEventFilter;
     IncreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null,
+      amount?: null
     ): IncreaseBorrowedAmountEventFilter;
 
     "LiquidateCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
     "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
     LiquidateExpiredCreditAccount(
       owner?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null,
+      remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
 
     "Mock_BaseRewardPaid(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null,
+      reward?: null
     ): Mock_BaseRewardPaidEventFilter;
     Mock_BaseRewardPaid(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null,
+      reward?: null
     ): Mock_BaseRewardPaidEventFilter;
 
     "Mock_BaseStaked(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseStakedEventFilter;
     Mock_BaseStaked(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseStakedEventFilter;
 
     "Mock_BaseWithdrawn(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseWithdrawnEventFilter;
     Mock_BaseWithdrawn(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseWithdrawnEventFilter;
 
     "Mock_Deposited(uint256,address,uint256,uint256,bool)"(
@@ -1188,120 +1188,120 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
       user?: string | null,
       poolid?: BigNumberish | null,
       amount?: null,
-      _stake?: null,
+      _stake?: null
     ): Mock_DepositedEventFilter;
     Mock_Deposited(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
       amount?: null,
-      _stake?: null,
+      _stake?: null
     ): Mock_DepositedEventFilter;
 
     "Mock_ExtraRewardPaid(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null,
+      reward?: null
     ): Mock_ExtraRewardPaidEventFilter;
     Mock_ExtraRewardPaid(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null,
+      reward?: null
     ): Mock_ExtraRewardPaidEventFilter;
 
     "Mock_ExtraStaked(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_ExtraStakedEventFilter;
     Mock_ExtraStaked(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_ExtraStakedEventFilter;
 
     "Mock_ExtraWithdrawn(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_ExtraWithdrawnEventFilter;
     Mock_ExtraWithdrawn(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_ExtraWithdrawnEventFilter;
 
     "Mock_Withdrawn(uint256,address,uint256,uint256)"(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
-      amount?: null,
+      amount?: null
     ): Mock_WithdrawnEventFilter;
     Mock_Withdrawn(
       index?: null,
       user?: string | null,
       poolid?: BigNumberish | null,
-      amount?: null,
+      amount?: null
     ): Mock_WithdrawnEventFilter;
 
     "MultiCallFinished()"(): MultiCallFinishedEventFilter;
     MultiCallFinished(): MultiCallFinishedEventFilter;
 
     "MultiCallStarted(address)"(
-      borrower?: string | null,
+      borrower?: string | null
     ): MultiCallStartedEventFilter;
     MultiCallStarted(borrower?: string | null): MultiCallStartedEventFilter;
 
     "NewConfigurator(address)"(
-      newConfigurator?: string | null,
+      newConfigurator?: string | null
     ): NewConfiguratorEventFilter;
     NewConfigurator(
-      newConfigurator?: string | null,
+      newConfigurator?: string | null
     ): NewConfiguratorEventFilter;
 
     "OpenCreditAccount(address,address,uint256,uint16)"(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): OpenCreditAccountEventFilter;
     OpenCreditAccount(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null,
+      referralCode?: null
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
       creditAccount?: null,
-      token?: null,
+      token?: null
     ): TokenDisabledEventFilter;
     TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
       creditAccount?: null,
-      token?: null,
+      token?: null
     ): TokenEnabledEventFilter;
     TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): TransferAccountEventFilter;
     TransferAccount(
       oldOwner?: string | null,
-      newOwner?: string | null,
+      newOwner?: string | null
     ): TransferAccountEventFilter;
 
     "TransferAccountAllowed(address,address,bool)"(
       from?: string | null,
       to?: string | null,
-      state?: null,
+      state?: null
     ): TransferAccountAllowedEventFilter;
     TransferAccountAllowed(
       from?: string | null,
       to?: string | null,
-      state?: null,
+      state?: null
     ): TransferAccountAllowedEventFilter;
 
     "log(string)"(arg0?: null): logEventFilter;
@@ -1321,59 +1321,59 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
 
     "log_named_address(string,address)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_addressEventFilter;
     log_named_address(key?: null, val?: null): log_named_addressEventFilter;
 
     "log_named_bytes(string,bytes)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytesEventFilter;
     log_named_bytes(key?: null, val?: null): log_named_bytesEventFilter;
 
     "log_named_bytes32(string,bytes32)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_bytes32EventFilter;
     log_named_bytes32(key?: null, val?: null): log_named_bytes32EventFilter;
 
     "log_named_decimal_int(string,int256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
     log_named_decimal_int(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_intEventFilter;
 
     "log_named_decimal_uint(string,uint256,uint256)"(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
     log_named_decimal_uint(
       key?: null,
       val?: null,
-      decimals?: null,
+      decimals?: null
     ): log_named_decimal_uintEventFilter;
 
     "log_named_int(string,int256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_intEventFilter;
     log_named_int(key?: null, val?: null): log_named_intEventFilter;
 
     "log_named_string(string,string)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_stringEventFilter;
     log_named_string(key?: null, val?: null): log_named_stringEventFilter;
 
     "log_named_uint(string,uint256)"(
       key?: null,
-      val?: null,
+      val?: null
     ): log_named_uintEventFilter;
     log_named_uint(key?: null, val?: null): log_named_uintEventFilter;
 
@@ -1391,7 +1391,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<BigNumber>;
 
     _setUpZeroExtras(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     basePoolAdapter(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1431,7 +1431,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     extraRewardToken2(overrides?: CallOverrides): Promise<BigNumber>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     feed(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1441,27 +1441,27 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_ACVX1_Z_01_claimRewards_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_ACVX1_Z_03_claimRewards_ignores_options(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1471,7 +1471,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     IS_TEST(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     _setUpZeroExtras(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     basePoolAdapter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1491,7 +1491,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     convexLPToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditConfigurator(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1513,7 +1513,7 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     extraRewardToken2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     failed(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     feed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1523,27 +1523,27 @@ export interface ConvexV1ClaimZapAdapterTest extends BaseContract {
     priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setUp(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_ACVX1_Z_01_claimRewards_works_correctly(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_ACVX1_Z_02_claimRewards_supports_claiming_from_extra_pools(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_ACVX1_Z_03_claimRewards_ignores_options(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_ACVX1_Z_04_claimRewards_only_covers_tokens_with_corresponding_contract(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     test_ACVX1_Z_05_claimRewards_does_not_fail_for_no_extras(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;

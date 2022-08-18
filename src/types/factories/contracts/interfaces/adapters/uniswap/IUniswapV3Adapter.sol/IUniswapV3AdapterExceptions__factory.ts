@@ -24,12 +24,12 @@ export class IUniswapV3AdapterExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IUniswapV3AdapterExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IUniswapV3AdapterExceptions;
   }
 }

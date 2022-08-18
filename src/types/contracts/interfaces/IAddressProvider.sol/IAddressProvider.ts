@@ -48,76 +48,76 @@ export interface IAddressProviderInterface extends utils.Interface {
       | "getTreasuryContract"
       | "getWETHGateway"
       | "getWethToken"
-      | "version",
+      | "version"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "getACL", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getAccountFactory",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getContractsRegister",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getDataCompressor",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getGearToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getPriceOracle",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getTreasuryContract",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getWETHGateway",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getWethToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "getACL", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getAccountFactory",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getContractsRegister",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getDataCompressor",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getGearToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPriceOracle",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getTreasuryContract",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getWETHGateway",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getWethToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
@@ -149,15 +149,15 @@ export interface IAddressProvider extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -232,11 +232,11 @@ export interface IAddressProvider extends BaseContract {
   filters: {
     "AddressSet(bytes32,address)"(
       service?: BytesLike | null,
-      newAddress?: string | null,
+      newAddress?: string | null
     ): AddressSetEventFilter;
     AddressSet(
       service?: BytesLike | null,
-      newAddress?: string | null,
+      newAddress?: string | null
     ): AddressSetEventFilter;
   };
 
@@ -268,7 +268,7 @@ export interface IAddressProvider extends BaseContract {
     getAccountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getContractsRegister(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getDataCompressor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -278,7 +278,7 @@ export interface IAddressProvider extends BaseContract {
     getPriceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getTreasuryContract(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getWETHGateway(overrides?: CallOverrides): Promise<PopulatedTransaction>;

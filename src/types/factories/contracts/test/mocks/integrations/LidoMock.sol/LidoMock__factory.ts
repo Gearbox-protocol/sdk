@@ -482,7 +482,7 @@ type LidoMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: LidoMockConstructorParams,
+  xs: LidoMockConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class LidoMock__factory extends ContractFactory {
@@ -495,12 +495,12 @@ export class LidoMock__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<LidoMock> {
     return super.deploy(overrides || {}) as Promise<LidoMock>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -518,7 +518,7 @@ export class LidoMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): LidoMock {
     return new Contract(address, _abi, signerOrProvider) as LidoMock;
   }

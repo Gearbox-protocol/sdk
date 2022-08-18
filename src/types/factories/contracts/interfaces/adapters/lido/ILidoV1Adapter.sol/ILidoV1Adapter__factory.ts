@@ -317,7 +317,7 @@ export class ILidoV1Adapter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ILidoV1Adapter {
     return new Contract(address, _abi, signerOrProvider) as ILidoV1Adapter;
   }

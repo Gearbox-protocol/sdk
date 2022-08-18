@@ -254,7 +254,7 @@ export class IPhantomERC20__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IPhantomERC20 {
     return new Contract(address, _abi, signerOrProvider) as IPhantomERC20;
   }

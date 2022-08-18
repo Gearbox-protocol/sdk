@@ -29,12 +29,12 @@ export class ICrediAccountExceptions__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICrediAccountExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as ICrediAccountExceptions;
   }
 }

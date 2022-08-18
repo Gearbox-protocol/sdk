@@ -733,7 +733,7 @@ type UniswapV3MockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: UniswapV3MockConstructorParams,
+  xs: UniswapV3MockConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class UniswapV3Mock__factory extends ContractFactory {
@@ -746,12 +746,12 @@ export class UniswapV3Mock__factory extends ContractFactory {
   }
 
   override deploy(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<UniswapV3Mock> {
     return super.deploy(overrides || {}) as Promise<UniswapV3Mock>;
   }
   override getDeployTransaction(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
@@ -769,7 +769,7 @@ export class UniswapV3Mock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): UniswapV3Mock {
     return new Contract(address, _abi, signerOrProvider) as UniswapV3Mock;
   }

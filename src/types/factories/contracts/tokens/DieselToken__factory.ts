@@ -405,7 +405,7 @@ type DieselTokenConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: DieselTokenConstructorParams,
+  xs: DieselTokenConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class DieselToken__factory extends ContractFactory {
@@ -421,26 +421,26 @@ export class DieselToken__factory extends ContractFactory {
     name_: string,
     symbol_: string,
     decimals_: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<DieselToken> {
     return super.deploy(
       name_,
       symbol_,
       decimals_,
-      overrides || {},
+      overrides || {}
     ) as Promise<DieselToken>;
   }
   override getDeployTransaction(
     name_: string,
     symbol_: string,
     decimals_: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       name_,
       symbol_,
       decimals_,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): DieselToken {
@@ -457,7 +457,7 @@ export class DieselToken__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): DieselToken {
     return new Contract(address, _abi, signerOrProvider) as DieselToken;
   }

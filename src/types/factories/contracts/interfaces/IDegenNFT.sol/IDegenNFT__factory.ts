@@ -127,7 +127,7 @@ export class IDegenNFT__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IDegenNFT {
     return new Contract(address, _abi, signerOrProvider) as IDegenNFT;
   }

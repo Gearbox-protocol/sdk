@@ -35,41 +35,41 @@ export interface FlashLoanAttacker2Interface extends utils.Interface {
       | "closeCreditAccount"
       | "fundAndCloseAttack"
       | "openAndCloseAttack"
-      | "openCreditAccount",
+      | "openCreditAccount"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "closeCreditAccount",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "fundAndCloseAttack",
-    values: [string, string, BigNumberish],
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "openAndCloseAttack",
-    values: [BigNumberish, string, BigNumberish],
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount",
-    values: [BigNumberish, string, BigNumberish],
+    values: [BigNumberish, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "closeCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "fundAndCloseAttack",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "openAndCloseAttack",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "openCreditAccount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -85,15 +85,15 @@ export interface FlashLoanAttacker2 extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -104,55 +104,55 @@ export interface FlashLoanAttacker2 extends BaseContract {
   functions: {
     closeCreditAccount(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     fundAndCloseAttack(
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     openAndCloseAttack(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     openCreditAccount(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   closeCreditAccount(
     to: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   fundAndCloseAttack(
     onBehalfOf: string,
     token: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   openAndCloseAttack(
     amount: BigNumberish,
     onBehalfOf: string,
     leverageFactor: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   openCreditAccount(
     amount: BigNumberish,
     onBehalfOf: string,
     leverageFactor: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -162,21 +162,21 @@ export interface FlashLoanAttacker2 extends BaseContract {
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     openAndCloseAttack(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     openCreditAccount(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
   };
 
@@ -185,56 +185,56 @@ export interface FlashLoanAttacker2 extends BaseContract {
   estimateGas: {
     closeCreditAccount(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     fundAndCloseAttack(
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     openAndCloseAttack(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     openCreditAccount(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     closeCreditAccount(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     fundAndCloseAttack(
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     openAndCloseAttack(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     openCreditAccount(
       amount: BigNumberish,
       onBehalfOf: string,
       leverageFactor: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

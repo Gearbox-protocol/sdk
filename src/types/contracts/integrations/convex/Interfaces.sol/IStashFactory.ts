@@ -31,12 +31,12 @@ export interface IStashFactoryInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "CreateStash",
-    values: [BigNumberish, string, string, BigNumberish],
+    values: [BigNumberish, string, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "CreateStash",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -52,15 +52,15 @@ export interface IStashFactory extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -74,7 +74,7 @@ export interface IStashFactory extends BaseContract {
       arg1: string,
       arg2: string,
       arg3: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
@@ -83,7 +83,7 @@ export interface IStashFactory extends BaseContract {
     arg1: string,
     arg2: string,
     arg3: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -92,7 +92,7 @@ export interface IStashFactory extends BaseContract {
       arg1: string,
       arg2: string,
       arg3: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
   };
 
@@ -104,7 +104,7 @@ export interface IStashFactory extends BaseContract {
       arg1: string,
       arg2: string,
       arg3: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -114,7 +114,7 @@ export interface IStashFactory extends BaseContract {
       arg1: string,
       arg2: string,
       arg3: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

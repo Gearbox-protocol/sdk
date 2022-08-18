@@ -179,7 +179,7 @@ type ConvexPathFinderConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ConvexPathFinderConstructorParams,
+  xs: ConvexPathFinderConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ConvexPathFinder__factory extends ContractFactory {
@@ -193,13 +193,13 @@ export class ConvexPathFinder__factory extends ContractFactory {
 
   override deploy(
     _booster: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ConvexPathFinder> {
     return super.deploy(_booster, overrides || {}) as Promise<ConvexPathFinder>;
   }
   override getDeployTransaction(
     _booster: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_booster, overrides || {});
   }
@@ -217,7 +217,7 @@ export class ConvexPathFinder__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ConvexPathFinder {
     return new Contract(address, _abi, signerOrProvider) as ConvexPathFinder;
   }

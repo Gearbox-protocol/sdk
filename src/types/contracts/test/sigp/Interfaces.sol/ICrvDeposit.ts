@@ -29,22 +29,22 @@ export interface ICrvDepositInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "deposit" | "lockIncentive",
+    nameOrSignatureOrTopic: "deposit" | "lockIncentive"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [BigNumberish, boolean],
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "lockIncentive",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lockIncentive",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -60,15 +60,15 @@ export interface ICrvDeposit extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -80,7 +80,7 @@ export interface ICrvDeposit extends BaseContract {
     deposit(
       arg0: BigNumberish,
       arg1: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     lockIncentive(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -89,7 +89,7 @@ export interface ICrvDeposit extends BaseContract {
   deposit(
     arg0: BigNumberish,
     arg1: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   lockIncentive(overrides?: CallOverrides): Promise<BigNumber>;
@@ -98,7 +98,7 @@ export interface ICrvDeposit extends BaseContract {
     deposit(
       arg0: BigNumberish,
       arg1: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     lockIncentive(overrides?: CallOverrides): Promise<BigNumber>;
@@ -110,7 +110,7 @@ export interface ICrvDeposit extends BaseContract {
     deposit(
       arg0: BigNumberish,
       arg1: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     lockIncentive(overrides?: CallOverrides): Promise<BigNumber>;
@@ -120,7 +120,7 @@ export interface ICrvDeposit extends BaseContract {
     deposit(
       arg0: BigNumberish,
       arg1: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     lockIncentive(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -504,7 +504,7 @@ type ExtraRewardPoolMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ExtraRewardPoolMockConstructorParams,
+  xs: ExtraRewardPoolMockConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ExtraRewardPoolMock__factory extends ContractFactory {
@@ -520,20 +520,20 @@ export class ExtraRewardPoolMock__factory extends ContractFactory {
     deposit_: string,
     reward_: string,
     op_: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ExtraRewardPoolMock> {
     return super.deploy(
       deposit_,
       reward_,
       op_,
-      overrides || {},
+      overrides || {}
     ) as Promise<ExtraRewardPoolMock>;
   }
   override getDeployTransaction(
     deposit_: string,
     reward_: string,
     op_: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(deposit_, reward_, op_, overrides || {});
   }
@@ -551,7 +551,7 @@ export class ExtraRewardPoolMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ExtraRewardPoolMock {
     return new Contract(address, _abi, signerOrProvider) as ExtraRewardPoolMock;
   }

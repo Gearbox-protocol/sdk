@@ -40,50 +40,50 @@ export interface PoolServiceTestSuiteInterface extends utils.Interface {
       | "linearIRModel"
       | "poolService"
       | "treasury"
-      | "underlying",
+      | "underlying"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "acl", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "cmMock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "dieselToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "linearIRModel",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "poolService",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined,
+    values?: undefined
   ): string;
 
   decodeFunctionResult(functionFragment: "acl", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addressProvider",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "cmMock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "dieselToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "linearIRModel",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "poolService",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
@@ -101,15 +101,15 @@ export interface PoolServiceTestSuite extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;

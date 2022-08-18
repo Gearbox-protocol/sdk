@@ -349,7 +349,7 @@ export class IERC721Metadata__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IERC721Metadata {
     return new Contract(address, _abi, signerOrProvider) as IERC721Metadata;
   }

@@ -94,12 +94,12 @@ export class IExtraRewardPoolMockEvents__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IExtraRewardPoolMockEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IExtraRewardPoolMockEvents;
   }
 }

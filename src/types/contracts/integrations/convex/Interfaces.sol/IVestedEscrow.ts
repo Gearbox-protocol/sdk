@@ -31,7 +31,7 @@ export interface IVestedEscrowInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "fund",
-    values: [string[], BigNumberish[]],
+    values: [string[], BigNumberish[]]
   ): string;
 
   decodeFunctionResult(functionFragment: "fund", data: BytesLike): Result;
@@ -49,15 +49,15 @@ export interface IVestedEscrow extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -69,21 +69,21 @@ export interface IVestedEscrow extends BaseContract {
     fund(
       _recipient: string[],
       _amount: BigNumberish[],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   fund(
     _recipient: string[],
     _amount: BigNumberish[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     fund(
       _recipient: string[],
       _amount: BigNumberish[],
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
   };
 
@@ -93,7 +93,7 @@ export interface IVestedEscrow extends BaseContract {
     fund(
       _recipient: string[],
       _amount: BigNumberish[],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -101,7 +101,7 @@ export interface IVestedEscrow extends BaseContract {
     fund(
       _recipient: string[],
       _amount: BigNumberish[],
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

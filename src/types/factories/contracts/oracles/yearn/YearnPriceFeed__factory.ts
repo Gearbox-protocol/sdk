@@ -403,7 +403,7 @@ type YearnPriceFeedConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: YearnPriceFeedConstructorParams,
+  xs: YearnPriceFeedConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class YearnPriceFeed__factory extends ContractFactory {
@@ -419,26 +419,26 @@ export class YearnPriceFeed__factory extends ContractFactory {
     addressProvider: string,
     _yVault: string,
     _priceFeed: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<YearnPriceFeed> {
     return super.deploy(
       addressProvider,
       _yVault,
       _priceFeed,
-      overrides || {},
+      overrides || {}
     ) as Promise<YearnPriceFeed>;
   }
   override getDeployTransaction(
     addressProvider: string,
     _yVault: string,
     _priceFeed: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       addressProvider,
       _yVault,
       _priceFeed,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): YearnPriceFeed {
@@ -455,7 +455,7 @@ export class YearnPriceFeed__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): YearnPriceFeed {
     return new Contract(address, _abi, signerOrProvider) as YearnPriceFeed;
   }

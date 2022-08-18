@@ -143,7 +143,7 @@ type WETHGatewayConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: WETHGatewayConstructorParams,
+  xs: WETHGatewayConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class WETHGateway__factory extends ContractFactory {
@@ -157,16 +157,16 @@ export class WETHGateway__factory extends ContractFactory {
 
   override deploy(
     addressProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<WETHGateway> {
     return super.deploy(
       addressProvider,
-      overrides || {},
+      overrides || {}
     ) as Promise<WETHGateway>;
   }
   override getDeployTransaction(
     addressProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(addressProvider, overrides || {});
   }
@@ -184,7 +184,7 @@ export class WETHGateway__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): WETHGateway {
     return new Contract(address, _abi, signerOrProvider) as WETHGateway;
   }

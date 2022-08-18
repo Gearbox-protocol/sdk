@@ -39,61 +39,61 @@ export interface UniswapV3AdapterTestHelperInterface extends utils.Interface {
       | "extractTokens"
       | "extractTokensNew"
       | "hasMultiplePools"
-      | "skipToken",
+      | "skipToken"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "decodeFirstPool",
-    values: [BytesLike],
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "encodePathMalicious",
-    values: [string, BigNumberish, string, string],
+    values: [string, BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "encodePathSingle",
-    values: [string, BigNumberish, string],
+    values: [string, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "extractTokens",
-    values: [BytesLike],
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "extractTokensNew",
-    values: [BytesLike],
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "hasMultiplePools",
-    values: [BytesLike],
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "skipToken",
-    values: [BytesLike],
+    values: [BytesLike]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "decodeFirstPool",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "encodePathMalicious",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "encodePathSingle",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extractTokens",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extractTokensNew",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "hasMultiplePools",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "skipToken", data: BytesLike): Result;
 
@@ -110,15 +110,15 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -129,7 +129,7 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
   functions: {
     decodeFirstPool(
       v3path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string, number]>;
 
     encodePathMalicious(
@@ -137,29 +137,29 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
       fee: BigNumberish,
       token2: string,
       token3: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     encodePathSingle(
       token1: string,
       fee: BigNumberish,
       token2: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     extractTokens(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string] & { tokenA: string; tokenB: string }>;
 
     extractTokensNew(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string] & { tokenA: string; tokenB: string }>;
 
     hasMultiplePools(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     skipToken(v3path: BytesLike, overrides?: CallOverrides): Promise<[string]>;
@@ -167,7 +167,7 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
 
   decodeFirstPool(
     v3path: BytesLike,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[string, string, number]>;
 
   encodePathMalicious(
@@ -175,29 +175,29 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
     fee: BigNumberish,
     token2: string,
     token3: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   encodePathSingle(
     token1: string,
     fee: BigNumberish,
     token2: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<string>;
 
   extractTokens(
     path: BytesLike,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[string, string] & { tokenA: string; tokenB: string }>;
 
   extractTokensNew(
     path: BytesLike,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<[string, string] & { tokenA: string; tokenB: string }>;
 
   hasMultiplePools(
     path: BytesLike,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<boolean>;
 
   skipToken(v3path: BytesLike, overrides?: CallOverrides): Promise<string>;
@@ -205,7 +205,7 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
   callStatic: {
     decodeFirstPool(
       v3path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string, number]>;
 
     encodePathMalicious(
@@ -213,29 +213,29 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
       fee: BigNumberish,
       token2: string,
       token3: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     encodePathSingle(
       token1: string,
       fee: BigNumberish,
       token2: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     extractTokens(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string] & { tokenA: string; tokenB: string }>;
 
     extractTokensNew(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string, string] & { tokenA: string; tokenB: string }>;
 
     hasMultiplePools(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     skipToken(v3path: BytesLike, overrides?: CallOverrides): Promise<string>;
@@ -246,7 +246,7 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
   estimateGas: {
     decodeFirstPool(
       v3path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     encodePathMalicious(
@@ -254,29 +254,29 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
       fee: BigNumberish,
       token2: string,
       token3: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     encodePathSingle(
       token1: string,
       fee: BigNumberish,
       token2: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     extractTokens(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     extractTokensNew(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     hasMultiplePools(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     skipToken(v3path: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
@@ -285,7 +285,7 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
   populateTransaction: {
     decodeFirstPool(
       v3path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     encodePathMalicious(
@@ -293,34 +293,34 @@ export interface UniswapV3AdapterTestHelper extends BaseContract {
       fee: BigNumberish,
       token2: string,
       token3: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     encodePathSingle(
       token1: string,
       fee: BigNumberish,
       token2: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     extractTokens(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     extractTokensNew(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     hasMultiplePools(
       path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     skipToken(
       v3path: BytesLike,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

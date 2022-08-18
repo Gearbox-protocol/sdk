@@ -712,12 +712,12 @@ export class IConvexV1BaseRewardPoolAdapter__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): IConvexV1BaseRewardPoolAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as IConvexV1BaseRewardPoolAdapter;
   }
 }

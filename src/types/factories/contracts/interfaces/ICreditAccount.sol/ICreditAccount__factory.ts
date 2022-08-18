@@ -220,7 +220,7 @@ export class ICreditAccount__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICreditAccount {
     return new Contract(address, _abi, signerOrProvider) as ICreditAccount;
   }

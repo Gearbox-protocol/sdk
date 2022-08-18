@@ -318,7 +318,7 @@ type AdapterMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: AdapterMockConstructorParams,
+  xs: AdapterMockConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class AdapterMock__factory extends ContractFactory {
@@ -333,23 +333,23 @@ export class AdapterMock__factory extends ContractFactory {
   override deploy(
     _creditManager: string,
     _targetContract: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<AdapterMock> {
     return super.deploy(
       _creditManager,
       _targetContract,
-      overrides || {},
+      overrides || {}
     ) as Promise<AdapterMock>;
   }
   override getDeployTransaction(
     _creditManager: string,
     _targetContract: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _creditManager,
       _targetContract,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): AdapterMock {
@@ -366,7 +366,7 @@ export class AdapterMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): AdapterMock {
     return new Contract(address, _abi, signerOrProvider) as AdapterMock;
   }

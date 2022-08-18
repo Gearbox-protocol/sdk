@@ -283,7 +283,7 @@ type ConvexStakedPositionTokenConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ConvexStakedPositionTokenConstructorParams,
+  xs: ConvexStakedPositionTokenConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ConvexStakedPositionToken__factory extends ContractFactory {
@@ -298,18 +298,18 @@ export class ConvexStakedPositionToken__factory extends ContractFactory {
   override deploy(
     _pool: string,
     _lptoken: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ConvexStakedPositionToken> {
     return super.deploy(
       _pool,
       _lptoken,
-      overrides || {},
+      overrides || {}
     ) as Promise<ConvexStakedPositionToken>;
   }
   override getDeployTransaction(
     _pool: string,
     _lptoken: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_pool, _lptoken, overrides || {});
   }
@@ -327,12 +327,12 @@ export class ConvexStakedPositionToken__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ConvexStakedPositionToken {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as ConvexStakedPositionToken;
   }
 }

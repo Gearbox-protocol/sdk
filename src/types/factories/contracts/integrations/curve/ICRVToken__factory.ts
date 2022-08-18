@@ -263,7 +263,7 @@ export class ICRVToken__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ICRVToken {
     return new Contract(address, _abi, signerOrProvider) as ICRVToken;
   }

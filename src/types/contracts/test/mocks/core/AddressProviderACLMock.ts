@@ -36,37 +36,37 @@ export interface AddressProviderACLMockInterface extends utils.Interface {
       | "getPriceOracle"
       | "isConfigurator"
       | "priceFeeds"
-      | "setPriceFeed",
+      | "setPriceFeed"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "getACL", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getPriceOracle",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "isConfigurator",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "priceFeeds", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setPriceFeed",
-    values: [string, string],
+    values: [string, string]
   ): string;
 
   decodeFunctionResult(functionFragment: "getACL", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPriceOracle",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "isConfigurator",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "priceFeeds", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setPriceFeed",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {};
@@ -82,15 +82,15 @@ export interface AddressProviderACLMock extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -110,7 +110,7 @@ export interface AddressProviderACLMock extends BaseContract {
     setPriceFeed(
       token: string,
       feed: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
@@ -125,7 +125,7 @@ export interface AddressProviderACLMock extends BaseContract {
   setPriceFeed(
     token: string,
     feed: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -140,7 +140,7 @@ export interface AddressProviderACLMock extends BaseContract {
     setPriceFeed(
       token: string,
       feed: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
   };
 
@@ -158,7 +158,7 @@ export interface AddressProviderACLMock extends BaseContract {
     setPriceFeed(
       token: string,
       feed: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -169,18 +169,18 @@ export interface AddressProviderACLMock extends BaseContract {
 
     isConfigurator(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     priceFeeds(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     setPriceFeed(
       token: string,
       feed: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -105,216 +105,216 @@ export interface BaseRewardPoolMockInterface extends utils.Interface {
       | "withdraw"
       | "withdrawAll"
       | "withdrawAllAndUnwrap"
-      | "withdrawAndUnwrap",
+      | "withdrawAndUnwrap"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addExtraReward",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "addRewardAmount",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "clearExtraRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "currentRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "donate",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "duration", values?: undefined): string;
   encodeFunctionData(functionFragment: "earned", values: [string]): string;
   encodeFunctionData(
     functionFragment: "extraRewards",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "extraRewardsLength",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getReward()",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getReward(address,bool)",
-    values: [string, boolean],
+    values: [string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "historicalRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "lastTimeRewardApplicable",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "lastUpdateTime",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "newRewardRatio",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "operator", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "periodFinish",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "pid", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "queueNewRewards",
-    values: [BigNumberish],
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "queuedRewards",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardManager",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardPerToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardPerTokenStored",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardRate",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "rewardToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "rewards", values: [string]): string;
   encodeFunctionData(functionFragment: "stake", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "stakeAll", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stakeFor",
-    values: [string, BigNumberish],
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "stakingToken",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
-    values?: undefined,
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "userRewardPerTokenPaid",
-    values: [string],
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish, boolean],
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAll",
-    values: [boolean],
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAllAndUnwrap",
-    values: [boolean],
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAndUnwrap",
-    values: [BigNumberish, boolean],
+    values: [BigNumberish, boolean]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "addExtraReward",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "addRewardAmount",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "clearExtraRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "currentRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "donate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "duration", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "earned", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "extraRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "extraRewardsLength",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getReward()",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getReward(address,bool)",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "historicalRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "lastTimeRewardApplicable",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "lastUpdateTime",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "newRewardRatio",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "operator", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "periodFinish",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "pid", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "queueNewRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "queuedRewards",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardManager",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardPerToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "rewardPerTokenStored",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "rewardRate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "rewardToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "rewards", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
@@ -322,28 +322,28 @@ export interface BaseRewardPoolMockInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "stakeFor", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "stakingToken",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "userRewardPerTokenPaid",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAll",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAllAndUnwrap",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAndUnwrap",
-    data: BytesLike,
+    data: BytesLike
   ): Result;
 
   events: {
@@ -405,15 +405,15 @@ export interface BaseRewardPoolMock extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -424,18 +424,18 @@ export interface BaseRewardPoolMock extends BaseContract {
   functions: {
     addExtraReward(
       _reward: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addRewardAmount(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     clearExtraRewards(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     currentRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -448,19 +448,19 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     extraRewards(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[string]>;
 
     extraRewardsLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "getReward()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "getReward(address,bool)"(
       _account: string,
       _claimExtras: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     historicalRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -479,7 +479,7 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     queueNewRewards(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     queuedRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -498,17 +498,17 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     stake(
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     stakeAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     stakeFor(
       _for: string,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     stakingToken(overrides?: CallOverrides): Promise<[string]>;
@@ -517,46 +517,46 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     userRewardPerTokenPaid(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     withdraw(
       amount: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAll(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAllAndUnwrap(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAndUnwrap(
       amount: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   addExtraReward(
     _reward: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addRewardAmount(
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   clearExtraRewards(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -572,13 +572,13 @@ export interface BaseRewardPoolMock extends BaseContract {
   extraRewardsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
   "getReward()"(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "getReward(address,bool)"(
     _account: string,
     _claimExtras: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -597,7 +597,7 @@ export interface BaseRewardPoolMock extends BaseContract {
 
   queueNewRewards(
     arg0: BigNumberish,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<boolean>;
 
   queuedRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -616,17 +616,17 @@ export interface BaseRewardPoolMock extends BaseContract {
 
   stake(
     _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   stakeAll(
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   stakeFor(
     _for: string,
     _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   stakingToken(overrides?: CallOverrides): Promise<string>;
@@ -635,40 +635,40 @@ export interface BaseRewardPoolMock extends BaseContract {
 
   userRewardPerTokenPaid(
     arg0: string,
-    overrides?: CallOverrides,
+    overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   withdraw(
     amount: BigNumberish,
     claim: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAll(
     claim: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAllAndUnwrap(
     claim: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAndUnwrap(
     amount: BigNumberish,
     claim: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     addExtraReward(
       _reward: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     addRewardAmount(
       amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -685,7 +685,7 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     extraRewards(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<string>;
 
     extraRewardsLength(overrides?: CallOverrides): Promise<BigNumber>;
@@ -695,7 +695,7 @@ export interface BaseRewardPoolMock extends BaseContract {
     "getReward(address,bool)"(
       _account: string,
       _claimExtras: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -714,7 +714,7 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     queueNewRewards(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     queuedRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -738,7 +738,7 @@ export interface BaseRewardPoolMock extends BaseContract {
     stakeFor(
       _for: string,
       _amount: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     stakingToken(overrides?: CallOverrides): Promise<string>;
@@ -747,26 +747,26 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     userRewardPerTokenPaid(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     withdraw(
       amount: BigNumberish,
       claim: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
 
     withdrawAll(claim: boolean, overrides?: CallOverrides): Promise<void>;
 
     withdrawAllAndUnwrap(
       claim: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<void>;
 
     withdrawAndUnwrap(
       amount: BigNumberish,
       claim: boolean,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<boolean>;
   };
 
@@ -774,52 +774,52 @@ export interface BaseRewardPoolMock extends BaseContract {
     "Mock_BaseRewardPaid(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null,
+      reward?: null
     ): Mock_BaseRewardPaidEventFilter;
     Mock_BaseRewardPaid(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null,
+      reward?: null
     ): Mock_BaseRewardPaidEventFilter;
 
     "Mock_BaseStaked(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseStakedEventFilter;
     Mock_BaseStaked(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseStakedEventFilter;
 
     "Mock_BaseWithdrawn(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseWithdrawnEventFilter;
     Mock_BaseWithdrawn(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseWithdrawnEventFilter;
   };
 
   estimateGas: {
     addExtraReward(
       _reward: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addRewardAmount(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     clearExtraRewards(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -832,19 +832,19 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     extraRewards(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     extraRewardsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getReward()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "getReward(address,bool)"(
       _account: string,
       _claimExtras: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -863,7 +863,7 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     queueNewRewards(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     queuedRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -882,17 +882,17 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     stake(
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     stakeAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     stakeFor(
       _for: string,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     stakingToken(overrides?: CallOverrides): Promise<BigNumber>;
@@ -901,89 +901,89 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     userRewardPerTokenPaid(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     withdraw(
       amount: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAll(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAllAndUnwrap(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAndUnwrap(
       amount: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     addExtraReward(
       _reward: string,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addRewardAmount(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     clearExtraRewards(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     currentRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     donate(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     duration(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     earned(
       account: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     extraRewards(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     extraRewardsLength(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "getReward()"(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "getReward(address,bool)"(
       _account: string,
       _claimExtras: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     historicalRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     lastTimeRewardApplicable(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     lastUpdateTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -998,7 +998,7 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     queueNewRewards(
       arg0: BigNumberish,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     queuedRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1008,7 +1008,7 @@ export interface BaseRewardPoolMock extends BaseContract {
     rewardPerToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     rewardPerTokenStored(
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     rewardRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1017,22 +1017,22 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     rewards(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     stake(
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     stakeAll(
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     stakeFor(
       _for: string,
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     stakingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1041,29 +1041,29 @@ export interface BaseRewardPoolMock extends BaseContract {
 
     userRewardPerTokenPaid(
       arg0: string,
-      overrides?: CallOverrides,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     withdraw(
       amount: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAll(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAllAndUnwrap(
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAndUnwrap(
       amount: BigNumberish,
       claim: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

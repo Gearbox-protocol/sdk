@@ -700,7 +700,7 @@ type NewBaseRewardPoolMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: NewBaseRewardPoolMockConstructorParams,
+  xs: NewBaseRewardPoolMockConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class NewBaseRewardPoolMock__factory extends ContractFactory {
@@ -717,14 +717,14 @@ export class NewBaseRewardPoolMock__factory extends ContractFactory {
     stakingToken_: string,
     rewardToken_: string,
     operator_: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<NewBaseRewardPoolMock> {
     return super.deploy(
       pid_,
       stakingToken_,
       rewardToken_,
       operator_,
-      overrides || {},
+      overrides || {}
     ) as Promise<NewBaseRewardPoolMock>;
   }
   override getDeployTransaction(
@@ -732,14 +732,14 @@ export class NewBaseRewardPoolMock__factory extends ContractFactory {
     stakingToken_: string,
     rewardToken_: string,
     operator_: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       pid_,
       stakingToken_,
       rewardToken_,
       operator_,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): NewBaseRewardPoolMock {
@@ -756,12 +756,12 @@ export class NewBaseRewardPoolMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): NewBaseRewardPoolMock {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as NewBaseRewardPoolMock;
   }
 }

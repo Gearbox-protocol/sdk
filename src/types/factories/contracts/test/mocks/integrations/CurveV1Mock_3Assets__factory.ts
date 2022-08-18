@@ -847,7 +847,7 @@ type CurveV1Mock_3AssetsConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: CurveV1Mock_3AssetsConstructorParams,
+  xs: CurveV1Mock_3AssetsConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class CurveV1Mock_3Assets__factory extends ContractFactory {
@@ -862,23 +862,23 @@ export class CurveV1Mock_3Assets__factory extends ContractFactory {
   override deploy(
     _coins: string[],
     _underlying_coins: string[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CurveV1Mock_3Assets> {
     return super.deploy(
       _coins,
       _underlying_coins,
-      overrides || {},
+      overrides || {}
     ) as Promise<CurveV1Mock_3Assets>;
   }
   override getDeployTransaction(
     _coins: string[],
     _underlying_coins: string[],
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(
       _coins,
       _underlying_coins,
-      overrides || {},
+      overrides || {}
     );
   }
   override attach(address: string): CurveV1Mock_3Assets {
@@ -895,7 +895,7 @@ export class CurveV1Mock_3Assets__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): CurveV1Mock_3Assets {
     return new Contract(address, _abi, signerOrProvider) as CurveV1Mock_3Assets;
   }

@@ -140,7 +140,7 @@ type ClaimZapMockConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ClaimZapMockConstructorParams,
+  xs: ClaimZapMockConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ClaimZapMock__factory extends ContractFactory {
@@ -155,14 +155,14 @@ export class ClaimZapMock__factory extends ContractFactory {
   override deploy(
     _crv: string,
     _cvx: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ClaimZapMock> {
     return super.deploy(_crv, _cvx, overrides || {}) as Promise<ClaimZapMock>;
   }
   override getDeployTransaction(
     _crv: string,
     _cvx: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_crv, _cvx, overrides || {});
   }
@@ -180,7 +180,7 @@ export class ClaimZapMock__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ClaimZapMock {
     return new Contract(address, _abi, signerOrProvider) as ClaimZapMock;
   }

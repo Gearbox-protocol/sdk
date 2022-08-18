@@ -134,7 +134,7 @@ type PoolServiceTestSuiteConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: PoolServiceTestSuiteConstructorParams,
+  xs: PoolServiceTestSuiteConstructorParams
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class PoolServiceTestSuite__factory extends ContractFactory {
@@ -148,16 +148,16 @@ export class PoolServiceTestSuite__factory extends ContractFactory {
 
   override deploy(
     _testTokenSuite: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<PoolServiceTestSuite> {
     return super.deploy(
       _testTokenSuite,
-      overrides || {},
+      overrides || {}
     ) as Promise<PoolServiceTestSuite>;
   }
   override getDeployTransaction(
     _testTokenSuite: string,
-    overrides?: Overrides & { from?: string | Promise<string> },
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
     return super.getDeployTransaction(_testTokenSuite, overrides || {});
   }
@@ -175,12 +175,12 @@ export class PoolServiceTestSuite__factory extends ContractFactory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): PoolServiceTestSuite {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as PoolServiceTestSuite;
   }
 }

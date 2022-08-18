@@ -79,15 +79,15 @@ export interface IBaseRewardPoolMockEvents extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined,
+    toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>,
+    eventFilter?: TypedEventFilter<TEvent>
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>,
+    eventFilter: TypedEventFilter<TEvent>
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -103,34 +103,34 @@ export interface IBaseRewardPoolMockEvents extends BaseContract {
     "Mock_BaseRewardPaid(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null,
+      reward?: null
     ): Mock_BaseRewardPaidEventFilter;
     Mock_BaseRewardPaid(
       index?: BigNumberish | null,
       user?: string | null,
-      reward?: null,
+      reward?: null
     ): Mock_BaseRewardPaidEventFilter;
 
     "Mock_BaseStaked(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseStakedEventFilter;
     Mock_BaseStaked(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseStakedEventFilter;
 
     "Mock_BaseWithdrawn(uint256,address,uint256)"(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseWithdrawnEventFilter;
     Mock_BaseWithdrawn(
       index?: BigNumberish | null,
       user?: string | null,
-      amount?: null,
+      amount?: null
     ): Mock_BaseWithdrawnEventFilter;
   };
 

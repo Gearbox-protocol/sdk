@@ -32,12 +32,12 @@ export class ILidoV1AdapterEvents__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider,
+    signerOrProvider: Signer | Provider
   ): ILidoV1AdapterEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider,
+      signerOrProvider
     ) as ILidoV1AdapterEvents;
   }
 }
