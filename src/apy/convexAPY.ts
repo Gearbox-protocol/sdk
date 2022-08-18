@@ -1,4 +1,3 @@
-import axios from "axios";
 import { BigNumber, providers } from "ethers";
 
 import {
@@ -12,10 +11,9 @@ import {
   PRICE_DECIMALS,
   SECONDS_PER_YEAR,
   WAD,
-  WAD_DECIMALS_POW,
 } from "../core/constants";
 import { ConvexPhantomTokenData } from "../tokens/convex";
-import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
+import { CurveLPTokenData } from "../tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import {
   CurveV1AdapterStETH,
@@ -25,16 +23,25 @@ import {
   IConvexToken,
   IConvexToken__factory,
 } from "../types";
-import { toBN } from "../utils/formatter";
 import { MCall, multicall } from "../utils/multicall";
 import { AwaitedRes } from "../utils/types";
+import { CurveAPYResult } from "./curveAPY";
 
-export async function getConvexApy(
-  pool: ConvexPoolContract,
-  provider: providers.Provider,
-  networkType: NetworkType,
-  getTokenPrice: (tokenAddress: string) => BigNumber,
-) {
+export interface GetConvexAPYProps {
+  pool: ConvexPoolContract;
+  provider: providers.Provider;
+  networkType: NetworkType;
+  getTokenPrice: (tokenAddress: string) => BigNumber;
+  curveAPY: CurveAPYResult;
+}
+
+export async function getConvexAPY({
+  pool,
+  provider,
+  networkType,
+  getTokenPrice,
+  curveAPY,
+}: GetConvexAPYProps) {
   const tokenList = tokenDataByNetwork[networkType];
   const contractsList = contractsByNetwork[networkType];
 
@@ -98,9 +105,9 @@ export async function getConvexApy(
     BigNumber.from(0),
   );
 
-  const baseApyRAY = await getCurveBaseApy(underlying);
+  const baseApyWAD = curveAPY[underlying];
 
-  return baseApyRAY.add(crvAPY).add(cvxAPY).add(extraAPYTotal);
+  return baseApyWAD.add(crvAPY).add(cvxAPY).add(extraAPYTotal);
 }
 
 const CVX_MAX_SUPPLY = WAD.mul(100000000);
@@ -187,45 +194,4 @@ async function getPoolData({
       ...Array<AwaitedRes<IBaseRewardPool["rewardRate"]>>,
     ]
   >(calls, provider);
-}
-
-interface CurveAPRData {
-  baseApy: number;
-  crvApy: number;
-  crvBoost: number;
-  crvPrice: number;
-}
-
-interface APYResponse {
-  apys: Record<string, CurveAPRData>;
-}
-
-const curveLPTokenToPoolName: Record<CurveLPToken, string> = {
-  "3Crv": "3pool",
-  FRAX3CRV: "frax",
-  gusd3CRV: "gusd",
-  LUSD3CRV: "lusd",
-  crvPlain3andSUSD: "susdv2",
-  steCRV: "steth",
-};
-
-const RESPONSE_DECIMALS = 100;
-
-// https://www.convexfinance.com/api/curve-apys
-
-export async function getCurveBaseApy(
-  curveLPToken: CurveLPToken,
-): Promise<BigNumber> {
-  const poolName = curveLPTokenToPoolName[curveLPToken];
-
-  try {
-    const url = "http://localhost:8000/api/curve-apys";
-    const result = await axios.get<APYResponse>(url);
-
-    const { baseApy = 0 } = result.data.apys[poolName] || {};
-
-    return toBN((baseApy / RESPONSE_DECIMALS).toString(), WAD_DECIMALS_POW);
-  } catch (e) {
-    return BigNumber.from(0);
-  }
 }

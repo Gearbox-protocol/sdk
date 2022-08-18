@@ -23,7 +23,7 @@ const lidoStEth: Record<NetworkType, string> = {
   Goerli: tokenDataByNetwork.Goerli.STETH,
 };
 
-export async function getLidoApy(
+export async function getLidoAPY(
   provider: providers.Provider,
   networkType: NetworkType,
 ) {
