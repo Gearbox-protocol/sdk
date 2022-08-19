@@ -14,10 +14,13 @@
     "build": "tsc",
     "dev": "tsc -w",
     "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc && yarn publish",
-    "lint": "eslint \"**/*.ts\" --fix",
     "prepush": "yarn lint --max-warnings=0",
     "prepare": "husky install",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "prettier:ci": "npx prettier --check .",
+    "lint": "eslint \"**/*.ts\" --fix",
+    "lint:ci": "eslint \"**/*.ts\"",
+    "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
     "decimal.js-light": "^2.5.1",
