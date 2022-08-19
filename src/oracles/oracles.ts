@@ -1,5 +1,4 @@
-import { NetworkType } from "src/core/constants";
-
+import { NetworkType } from "../core/constants";
 import { SupportedToken } from "../tokens/token";
 
 export interface PriceFeed {
