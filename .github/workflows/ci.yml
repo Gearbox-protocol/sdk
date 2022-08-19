@@ -6,6 +6,10 @@ on:
     branches:
       - "goerli"
 
+env:
+  HUSKY: 0
+  CI: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,5 +26,3 @@ jobs:
           yarn typecheck:ci
           yarn lint:ci
           yarn prettier:ci
-        env:
-          CI: true

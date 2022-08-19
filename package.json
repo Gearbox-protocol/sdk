@@ -24,11 +24,11 @@
   },
   "dependencies": {
     "decimal.js-light": "^2.5.1",
-    "moment": "^2.29.1"
+    "moment": "^2.29.4"
   },
   "devDependencies": {
     "@gearbox-protocol/eslint-config": "^1.4.1",
-    "@gearbox-protocol/prettier-config": "^1.4.0",
+    "@gearbox-protocol/prettier-config": "^1.4.1",
     "@types/jest": "^28.1.7",
     "@types/node": "^18.7.6",
     "axios": "^0.27.2",
@@ -39,9 +39,9 @@
     "jest": "^28.1.3",
     "lint-staged": ">=10",
     "prettier": "^2.7.1",
-    "ts-node": "^10.1.0",
+    "ts-node": "^10.9.1",
     "tslog": "^3.3.3",
-    "typescript": "^4.7.3"
+    "typescript": "^4.7.4"
   },
   "prettier": "@gearbox-protocol/prettier-config",
   "lint-staged": {
