@@ -22,7 +22,7 @@ export declare class UserHasNotAccountError extends Error {
 export declare class PathNotFoundError extends Error {
     constructor();
 }
-export declare class AccountsInAlllCreditManagersError extends Error {
+export declare class AccountsInAllCreditManagersError extends Error {
     constructor();
 }
 export declare type OpenAccountErrorTypes = "insufficientPoolLiquidity" | "leverageGreaterMax" | "wrongLeverage" | "amountGreaterMax" | "amountLessMin";
