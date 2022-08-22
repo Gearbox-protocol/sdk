@@ -95,51 +95,6 @@ export const contractsByNetwork: Record<
     LIDO_STETH_GATEWAY: "0x55045Eaae19d92680E02231e4Ce7bBEB4814ca64",
   },
 
-  ///
-  ///
-  /// KOVAN
-  ///
-  ///
-  Kovan: {
-    UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-    UNISWAP_V3_ROUTER: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
-    SUSHISWAP_ROUTER: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
-
-    // CURVE
-    CURVE_3CRV_POOL: "0x5C07cB1e8510DCC0DA262A71bb532B0e85368250",
-    CURVE_STETH_GATEWAY: "0xed4439dc6D555b5712E1B3815848B7a80E0bd8a2",
-    CURVE_FRAX_POOL: tokenDataByNetwork.Kovan.FRAX3CRV,
-    CURVE_LUSD_POOL: tokenDataByNetwork.Kovan.LUSD3CRV,
-    CURVE_SUSD_POOL: "0xcD0d789E7b0BCCa84ea23F309f9154B186606f4F",
-    CURVE_SUSD_DEPOSIT: "0x1F447F916649248cF091723e58c695F619d27BFf",
-    CURVE_GUSD_POOL: "0x08543E4CbE76C3461871A83C63E1d59684A66d7b",
-
-    // YEARN
-    YEARN_DAI_VAULT: tokenDataByNetwork.Kovan.yvDAI,
-    YEARN_USDC_VAULT: tokenDataByNetwork.Kovan.yvUSDC,
-    YEARN_WETH_VAULT: tokenDataByNetwork.Kovan.yvWETH,
-    YEARN_WBTC_VAULT: tokenDataByNetwork.Kovan.yvWBTC,
-    YEARN_CURVE_FRAX_VAULT: tokenDataByNetwork.Kovan.yvCurve_FRAX,
-    YEARN_CURVE_STETH_VAULT: tokenDataByNetwork.Kovan.yvCurve_stETH,
-
-    // CONVEX
-    CONVEX_BOOSTER: "0x56E507256808FB2692476181aA978e00Ca24d40f",
-    CONVEX_3CRV_POOL: "0xc2c705a619CF48241A9339763c6Cfd32Ca8C9deB",
-    CONVEX_STECRV_POOL: "0x25edfea00131DAF9b23a8E07720Eea2382d58E71",
-    CONVEX_SUSD_POOL: "0xE9998a1c357dc62550f2ED72b736a7CaEB262823",
-    CONVEX_FRAX3CRV_POOL: "0xEBE0A1B948eB83333906EB80eE4b87Ee0b5CC84f",
-    CONVEX_LUSD3CRV_POOL: "0x493Bd59EEcFfCa1BF88611CEd478aA5b74427e06",
-    CONVEX_GUSD_POOL: "0xE7370DA7FD3d511dAB095Dd7d10388653d5cDE21",
-    CONVEX_CLAIM_ZAP: "0x1330C2E5Cd8c333683aE511550f82d25918FFdd5",
-
-    // LIDO
-    LIDO_STETH_GATEWAY: "0x7C1C4eC1f1510E3978a96a1d024D7689F05a7Ca1",
-  },
-  ///
-  ///
-  /// GOERLI
-  ///
-  ///
   Goerli: {
     UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
     UNISWAP_V3_ROUTER: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
@@ -288,7 +243,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-      Kovan: "0xF5C73b58B70709e89aA1D322d48b0D0C71123cB4",
       Goerli: "TODO: DEPLOY ME",
     },
     tokens: ["WETH", "STETH"],
@@ -405,7 +359,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "SNX",
         poolAddress: {
           Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
-          Kovan: "0x26a535146557FA58FA37e3078FEAc523b554939C",
           Goerli: "TODO: DEPLOY ME", // CONVEX_SUSD_POOL_EXTRA_SNX
         },
       },
@@ -421,7 +374,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LDO",
         poolAddress: {
           Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
-          Kovan: "0xd0B1CC3B4839363b1eC92F35eF45794CB07B1183",
           Goerli: "TODO: DEPLOY ME", // CONVEX_STECRV_POOL_EXTRA_LDO
         },
       },
@@ -437,7 +389,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "FXS",
         poolAddress: {
           Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
-          Kovan: "0x89869c2e79FC6EFf51e714F1239D53702B5CDFCD",
           Goerli: "TODO: DEPLOY ME", // CONVEX_FRAX3CRV_POOL_EXTRA_FXS
         },
       },
@@ -453,7 +404,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LQTY",
         poolAddress: {
           Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
-          Kovan: "",
           Goerli: "TODO: DEPLOY ME", // CONVEX_LUSD3CRV_POOL_EXTRA_LQTY
         },
       },
@@ -466,7 +416,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.LIDO_V1,
     oracle: {
       Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
-      Kovan: "0x65EBFF1D5C02418AaeCd0f953da518cF6a6c68A0",
       Goerli: "TODO: DEPLOY ME",
     },
     lpToken: "steCRV",

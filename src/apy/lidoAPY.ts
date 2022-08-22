@@ -19,7 +19,6 @@ const lidoOracles = (contractParams.LIDO_STETH_GATEWAY as LidoParams).oracle;
 
 const lidoStEth: Record<NetworkType, string> = {
   Mainnet: tokenDataByNetwork.Mainnet.STETH,
-  Kovan: tokenDataByNetwork.Kovan.STETH,
   Goerli: tokenDataByNetwork.Goerli.STETH,
 };
 

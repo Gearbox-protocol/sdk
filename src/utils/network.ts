@@ -17,11 +17,11 @@ export async function detectNetwork(
   } catch {
     try {
       const usdcMainnet = ERC20__factory.connect(
-        tokenDataByNetwork.Kovan.USDC,
+        tokenDataByNetwork.Goerli.USDC,
         provider,
       );
       await usdcMainnet.balanceOf(ADDRESS_0X0);
-      return "Kovan";
+      return "Goerli";
     } catch {
       throw new Error("Unknown network");
     }

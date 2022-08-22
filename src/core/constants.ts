@@ -6,19 +6,16 @@ export const MAX_INT = BigNumber.from(
 
 export const MAINNET_NETWORK = 1;
 export const GOERLI_NETWORK = 5;
-export const KOVAN_NETWORK = 42;
 export const LOCAL_NETWORK = 1337;
 export const HARDHAT_NETWORK = 31337;
 
-export type NetworkType = "Mainnet" | "Kovan" | "Goerli";
+export type NetworkType = "Mainnet" | "Goerli";
 
 export const getNetworkType = (chainId: number): NetworkType => {
   switch (chainId) {
     case MAINNET_NETWORK:
     case LOCAL_NETWORK:
       return "Mainnet";
-    case KOVAN_NETWORK:
-      return "Kovan";
     case GOERLI_NETWORK:
       return "Goerli";
     default:
