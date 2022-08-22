@@ -1,22 +1,23 @@
 import { BigNumber } from "ethers";
 
 export const MAX_INT = BigNumber.from(
-  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 );
 
 export const MAINNET_NETWORK = 1;
-export const KOVAN_NETWORK = 42;
+export const GOERLI_NETWORK = 5;
 export const LOCAL_NETWORK = 1337;
+export const HARDHAT_NETWORK = 31337;
 
-export type NetworkType = "Mainnet" | "Kovan";
+export type NetworkType = "Mainnet" | "Goerli";
 
 export const getNetworkType = (chainId: number): NetworkType => {
   switch (chainId) {
     case MAINNET_NETWORK:
     case LOCAL_NETWORK:
       return "Mainnet";
-    case KOVAN_NETWORK:
-      return "Kovan";
+    case GOERLI_NETWORK:
+      return "Goerli";
     default:
       throw new Error("unknown network");
   }
@@ -43,7 +44,7 @@ export const timeRanges: Record<string, number> = {
   "1D": 3600 * 24,
   "1W": 3600 * 24 * 7,
   "1M": 3600 * 24 * 30,
-  "1Y": 3600 * 24 * 365
+  "1Y": 3600 * 24 * 365,
 };
 
 export const LEVERAGE_DECIMALS = 100;

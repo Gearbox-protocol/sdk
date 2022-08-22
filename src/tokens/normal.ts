@@ -51,17 +51,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   AAVE: {
@@ -73,17 +73,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   COMP: {
@@ -95,17 +95,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   CRV: {
@@ -117,17 +117,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   DAI: {
@@ -139,44 +139,44 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_3CRV_POOL",
-        tokenOut: ["USDC", "USDT"]
+        tokenOut: ["USDC", "USDT"],
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: ["USDC", "USDT", "sUSD"]
-      }
+        tokenOut: ["USDC", "USDT", "sUSD"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_3CRV_POOL",
-        tokenOut: "3Crv"
+        tokenOut: "3Crv",
       },
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD"
+        tokenOut: "crvPlain3andSUSD",
       },
       {
         type: TradeType.YearnDeposit,
         contract: "YEARN_DAI_VAULT",
-        tokenOut: "yvDAI"
-      }
-    ]
+        tokenOut: "yvDAI",
+      },
+    ],
   },
 
   DPI: {
@@ -188,17 +188,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   FEI: {
@@ -210,17 +210,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   LINK: {
@@ -232,17 +232,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   SNX: {
@@ -254,17 +254,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   SUSHI: {
@@ -276,9 +276,9 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   UNI: {
@@ -290,13 +290,13 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
-      }
-    ]
+        contract: "UNISWAP_V2_ROUTER",
+      },
+    ],
   },
 
   USDC: {
@@ -308,44 +308,44 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_3CRV_POOL",
-        tokenOut: ["DAI", "USDT"]
+        tokenOut: ["DAI", "USDT"],
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: ["DAI", "USDT", "sUSD"]
-      }
+        tokenOut: ["DAI", "USDT", "sUSD"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_3CRV_POOL",
-        tokenOut: "3Crv"
+        tokenOut: "3Crv",
       },
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD"
+        tokenOut: "crvPlain3andSUSD",
       },
       {
         type: TradeType.YearnDeposit,
         contract: "YEARN_USDC_VAULT",
-        tokenOut: "yvUSDC"
-      }
-    ]
+        tokenOut: "yvUSDC",
+      },
+    ],
   },
 
   USDT: {
@@ -357,39 +357,39 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_3CRV_POOL",
-        tokenOut: ["USDC", "DAI"]
+        tokenOut: ["USDC", "DAI"],
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: ["DAI", "USDC", "sUSD"]
-      }
+        tokenOut: ["DAI", "USDC", "sUSD"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_3CRV_POOL",
-        tokenOut: "3Crv"
+        tokenOut: "3Crv",
       },
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD"
-      }
-    ]
+        tokenOut: "crvPlain3andSUSD",
+      },
+    ],
   },
 
   WBTC: {
@@ -401,24 +401,24 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
+        contract: "SUSHISWAP_ROUTER",
+      },
     ],
     lpActions: [
       {
         type: TradeType.YearnDeposit,
         contract: "YEARN_WBTC_VAULT",
-        tokenOut: "yvWBTC"
-      }
-    ]
+        tokenOut: "yvWBTC",
+      },
+    ],
   },
 
   WETH: {
@@ -430,34 +430,34 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_STETH_GATEWAY",
-        tokenOut: ["STETH"]
-      }
+        tokenOut: ["STETH"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.YearnDeposit,
         contract: "YEARN_WETH_VAULT",
-        tokenOut: "yvWETH"
+        tokenOut: "yvWETH",
       },
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_STETH_GATEWAY",
-        tokenOut: "steCRV"
-      }
-    ]
+        tokenOut: "steCRV",
+      },
+    ],
   },
 
   YFI: {
@@ -469,17 +469,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   /// UPDATE
@@ -492,29 +492,29 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_STETH_GATEWAY",
-        tokenOut: ["WETH"]
-      }
+        tokenOut: ["WETH"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_STETH_GATEWAY",
-        tokenOut: "steCRV"
-      }
-    ]
+        tokenOut: "steCRV",
+      },
+    ],
   },
 
   FTM: {
@@ -526,17 +526,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   CVX: {
@@ -548,17 +548,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   FRAX: {
@@ -570,29 +570,29 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_FRAX_POOL",
-        tokenOut: ["3Crv"]
-      }
+        tokenOut: ["3Crv"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_FRAX_POOL",
-        tokenOut: "FRAX3CRV"
-      }
-    ]
+        tokenOut: "FRAX3CRV",
+      },
+    ],
   },
 
   FXS: {
@@ -604,17 +604,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   LDO: {
@@ -626,17 +626,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   SPELL: {
@@ -648,17 +648,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   LUSD: {
@@ -670,29 +670,29 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_LUSD_POOL",
-        tokenOut: ["3Crv"]
-      }
+        tokenOut: ["3Crv"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_LUSD_POOL",
-        tokenOut: "LUSD3CRV"
-      }
-    ]
+        tokenOut: "LUSD3CRV",
+      },
+    ],
   },
 
   sUSD: {
@@ -704,29 +704,29 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: ["DAI", "USDT", "USDC"]
-      }
+        tokenOut: ["DAI", "USDT", "USDC"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD"
-      }
-    ]
+        tokenOut: "crvPlain3andSUSD",
+      },
+    ],
   },
 
   GUSD: {
@@ -738,29 +738,29 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
+        contract: "SUSHISWAP_ROUTER",
       },
       {
         type: TradeType.CurveExchange,
         contract: "CURVE_GUSD_POOL",
-        tokenOut: ["3Crv"]
-      }
+        tokenOut: ["3Crv"],
+      },
     ],
     lpActions: [
       {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_GUSD_POOL",
-        tokenOut: "gusd3CRV"
-      }
-    ]
+        tokenOut: "gusd3CRV",
+      },
+    ],
   },
 
   LUNA: {
@@ -772,17 +772,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
   },
 
   LQTY: {
@@ -794,18 +794,18 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER"
+        contract: "UNISWAP_V3_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER"
+        contract: "UNISWAP_V2_ROUTER",
       },
       {
         type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER"
-      }
-    ]
-  }
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+  },
 };
 
 export const isNormalToken = (t: unknown): t is NormalToken =>

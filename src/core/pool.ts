@@ -1,10 +1,8 @@
 import { BigNumber, Signer } from "ethers";
 
 import { PoolDataPayload } from "../payload/pool";
-import { rayToNumber } from "../utils/formatter";
-
 import { IPoolService, IPoolService__factory } from "../types";
-
+import { rayToNumber } from "../utils/formatter";
 import { PERCENTAGE_DECIMALS } from "./constants";
 
 export class PoolData {
@@ -55,7 +53,7 @@ export class PoolData {
 
     this.expectedLiquidity = BigNumber.from(payload.expectedLiquidity);
     this.expectedLiquidityLimit = BigNumber.from(
-      payload.expectedLiquidityLimit || 0
+      payload.expectedLiquidityLimit || 0,
     );
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed);

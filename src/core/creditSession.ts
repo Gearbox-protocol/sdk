@@ -1,8 +1,9 @@
 import { BigNumber } from "ethers";
 import moment from "moment";
-import { CreditOperation } from "./creditOperation";
+
 import { CreditSessionPayload } from "../payload/creditSession";
 import { PERCENTAGE_FACTOR } from "./constants";
+import { CreditOperation } from "./creditOperation";
 
 export type CreditSessionStatus = "active" | "closed" | "repaid" | "liquidated";
 
@@ -10,7 +11,7 @@ const statusEnum: Array<CreditSessionStatus> = [
   "active",
   "closed",
   "repaid",
-  "liquidated"
+  "liquidated",
 ];
 
 export class CreditSession {
@@ -73,15 +74,15 @@ export class CreditSession {
     this.operations = (payload.operations || []).map(op => {
       const formattedOp = {
         ...op,
-        date: moment(op.timestamp * 1000).format("Do MMM YYYY")
+        date: moment(op.timestamp * 1000).format("Do MMM YYYY"),
       };
       return formattedOp;
     });
     this.sinceDate = moment(payload.sinceTimestamp * 1000).format(
-      "Do MMM YYYY"
+      "Do MMM YYYY",
     );
     this.closedAtDate = moment(payload.closedAtTimestamp * 1000).format(
-      "Do MMM YYYY"
+      "Do MMM YYYY",
     );
   }
 }

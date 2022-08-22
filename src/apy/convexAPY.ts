@@ -1,34 +1,30 @@
 import { BigNumber, providers } from "ethers";
+
 import {
+  contractParams,
+  contractsByNetwork,
   ConvexPoolContract,
   ConvexPoolParams,
-  contractsByNetwork,
-  contractParams
 } from "../contracts/contracts";
-
-import { tokenDataByNetwork, supportedTokens } from "../tokens/token";
-import { CurveLPTokenData } from "../tokens/curveLP";
-import { ConvexPhantomTokenData } from "../tokens/convex";
-
 import {
-  IBaseRewardPool__factory,
-  IBaseRewardPool,
-  IConvexToken__factory,
-  IConvexToken,
-  CurveV1AdapterStETH,
-  CurveV1AdapterStETH__factory
-} from "../types";
-
-import { multicall, MCall } from "../utils/multicall";
-import { AwaitedRes } from "../utils/types";
-
-import {
+  NetworkType,
+  PRICE_DECIMALS,
   SECONDS_PER_YEAR,
   WAD,
-  NetworkType,
-  PRICE_DECIMALS
 } from "../core/constants";
-
+import { ConvexPhantomTokenData } from "../tokens/convex";
+import { CurveLPTokenData } from "../tokens/curveLP";
+import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
+import {
+  CurveV1AdapterStETH,
+  CurveV1AdapterStETH__factory,
+  IBaseRewardPool,
+  IBaseRewardPool__factory,
+  IConvexToken,
+  IConvexToken__factory,
+} from "../types";
+import { MCall, multicall } from "../utils/multicall";
+import { AwaitedRes } from "../utils/types";
 import { CurveAPYResult } from "./curveAPY";
 
 export interface GetConvexAPYProps {
@@ -44,7 +40,7 @@ export async function getConvexAPY({
   provider,
   networkType,
   getTokenPrice,
-  curveAPY
+  curveAPY,
 }: GetConvexAPYProps) {
   const tokenList = tokenDataByNetwork[networkType];
   const contractsList = contractsByNetwork[networkType];
@@ -63,7 +59,7 @@ export async function getConvexAPY({
   const cvxAddress = tokenList.CVX;
 
   const extraPoolAddresses = poolParams.extraRewards.map(
-    d => d.poolAddress[networkType]
+    d => d.poolAddress[networkType],
   );
 
   const [basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra] =
@@ -72,7 +68,7 @@ export async function getConvexAPY({
       swapPoolAddress,
       cvxAddress,
       extraPoolAddresses,
-      provider
+      provider,
     });
 
   const cvxPrice = getTokenPrice(tokenList.CVX);
@@ -101,12 +97,12 @@ export async function getConvexAPY({
       const extraAPY = perYear.mul(extraPrice).div(PRICE_DECIMALS);
 
       return extraAPY;
-    })
+    }),
   );
 
   const extraAPYTotal = extraAPRs.reduce(
     (acc, apy) => acc.add(apy),
-    BigNumber.from(0)
+    BigNumber.from(0),
   );
 
   const baseApyWAD = curveAPY[underlying];
@@ -151,42 +147,42 @@ async function getPoolData({
   swapPoolAddress,
   cvxAddress,
   extraPoolAddresses,
-  provider
+  provider,
 }: GetPoolDataProps) {
   const calls: [
     MCall<IBaseRewardPoolInterface>,
     MCall<IBaseRewardPoolInterface>,
     MCall<CurveV1AdapterStETHInterface>,
     MCall<IConvexTokenInterface>,
-    ...Array<MCall<IBaseRewardPoolInterface>>
+    ...Array<MCall<IBaseRewardPoolInterface>>,
   ] = [
     {
       address: basePoolAddress,
       interface: IBaseRewardPool__factory.createInterface(),
-      method: "rewardRate()"
+      method: "rewardRate()",
     },
     {
       address: basePoolAddress,
       interface: IBaseRewardPool__factory.createInterface(),
-      method: "totalSupply()"
+      method: "totalSupply()",
     },
     {
       address: swapPoolAddress,
       interface: CurveV1AdapterStETH__factory.createInterface(),
-      method: "get_virtual_price()"
+      method: "get_virtual_price()",
     },
     {
       address: cvxAddress,
       interface: IConvexToken__factory.createInterface(),
-      method: "totalSupply()"
+      method: "totalSupply()",
     },
     ...extraPoolAddresses.map(
       (extraPoolAddress): MCall<IBaseRewardPoolInterface> => ({
         address: extraPoolAddress,
         interface: IBaseRewardPool__factory.createInterface(),
-        method: "rewardRate()"
-      })
-    )
+        method: "rewardRate()",
+      }),
+    ),
   ];
 
   return multicall<
@@ -195,7 +191,7 @@ async function getPoolData({
       AwaitedRes<IBaseRewardPool["totalSupply"]>,
       AwaitedRes<CurveV1AdapterStETH["get_virtual_price"]>,
       AwaitedRes<IConvexToken["totalSupply"]>,
-      ...Array<AwaitedRes<IBaseRewardPool["rewardRate"]>>
+      ...Array<AwaitedRes<IBaseRewardPool["rewardRate"]>>,
     ]
   >(calls, provider);
 }

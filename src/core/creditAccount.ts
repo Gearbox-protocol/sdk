@@ -1,19 +1,22 @@
 import { BigNumber } from "ethers";
+
 import {
   CreditAccountDataExtendedPayload,
-  CreditAccountDataPayload
+  CreditAccountDataPayload,
 } from "../payload/creditAccount";
-import { calcTotalPrice } from "../utils/price";
-
-import {
-  PERCENTAGE_FACTOR,
-  RAY,
-  PERCENTAGE_DECIMALS,
-  PRICE_DECIMALS
-} from "./constants";
 import { TokenData } from "../tokens/tokenData";
+import { calcTotalPrice } from "../utils/price";
+import {
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  PRICE_DECIMALS,
+  RAY,
+} from "./constants";
 
-export type Balance = { address: string; balance: BigNumber };
+export interface Balance {
+  address: string;
+  balance: BigNumber;
+}
 
 export class CreditAccountData {
   public readonly id: string;
@@ -56,7 +59,7 @@ export class CreditAccountData {
     this.creditManager = payload.creditManager.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
     this.borrowedAmountPlusInterest = BigNumber.from(
-      payload.borrowedAmountPlusInterest
+      payload.borrowedAmountPlusInterest,
     );
     this.totalValue = BigNumber.from(payload.totalValue);
     this.healthFactor =
@@ -84,10 +87,10 @@ export class CreditAccountData {
 
   balancesSorted(
     prices: Record<string, BigNumber>,
-    tokens: Record<string, TokenData>
+    tokens: Record<string, TokenData>,
   ): Array<Balance> {
     return sortBalances(this.balances, prices, tokens).map(
-      ([address, balance]) => ({ address, balance })
+      ([address, balance]) => ({ address, balance }),
     );
   }
 }
@@ -95,7 +98,7 @@ export class CreditAccountData {
 export function sortBalances(
   balances: Record<string, BigNumber>,
   prices: Record<string, BigNumber>,
-  tokens: Record<string, TokenData>
+  tokens: Record<string, TokenData>,
 ): Array<[string, BigNumber]> {
   return Object.entries(balances).sort(([addr1, amount1], [addr2, amount2]) => {
     const addr1Lc = addr1.toLowerCase();

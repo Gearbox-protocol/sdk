@@ -3,59 +3,58 @@
 import { UniswapV3Adapter__factory } from "../types";
 import {
   ISwapRouter,
-  IUniswapV3Adapter
+  IUniswapV3Adapter,
 } from "../types/contracts/adapters/uniswap/UniswapV3.sol/UniswapV3Adapter";
-
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 
 export class UniswapV3Calls {
   public static exactInputSingle(
-    params: ISwapRouter.ExactInputSingleParamsStructOutput
+    params: ISwapRouter.ExactInputSingleParamsStructOutput,
   ) {
     return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactInputSingle",
-      [params]
+      [params],
     );
   }
 
   public static exactAllInputSingle(
-    params: IUniswapV3Adapter.ExactAllInputSingleParamsStructOutput
+    params: IUniswapV3Adapter.ExactAllInputSingleParamsStructOutput,
   ) {
     return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactAllInputSingle",
-      [params]
+      [params],
     );
   }
 
   public static exactInput(params: ISwapRouter.ExactInputParamsStructOutput) {
     return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactInput",
-      [params]
+      [params],
     );
   }
 
   public static exactAllInput(
-    params: IUniswapV3Adapter.ExactAllInputParamsStructOutput
+    params: IUniswapV3Adapter.ExactAllInputParamsStructOutput,
   ) {
     return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactAllInput",
-      [params]
+      [params],
     );
   }
 
   public static exactOutputSingle(
-    params: ISwapRouter.ExactOutputSingleParamsStructOutput
+    params: ISwapRouter.ExactOutputSingleParamsStructOutput,
   ) {
     return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactOutputSingle",
-      [params]
+      [params],
     );
   }
 
   public static exactOutput(params: ISwapRouter.ExactOutputParamsStructOutput) {
     return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactOutput",
-      [params]
+      [params],
     );
   }
 }
@@ -72,56 +71,56 @@ export class UniswapV3Multicaller {
   }
 
   exactInputSingle(
-    params: ISwapRouter.ExactInputSingleParamsStructOutput
+    params: ISwapRouter.ExactInputSingleParamsStructOutput,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: UniswapV3Calls.exactInputSingle(params)
+      callData: UniswapV3Calls.exactInputSingle(params),
     };
   }
 
   exactAllInputSingle(
-    params: IUniswapV3Adapter.ExactAllInputSingleParamsStructOutput
+    params: IUniswapV3Adapter.ExactAllInputSingleParamsStructOutput,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: UniswapV3Calls.exactAllInputSingle(params)
+      callData: UniswapV3Calls.exactAllInputSingle(params),
     };
   }
 
   exactInput(
-    params: ISwapRouter.ExactInputParamsStructOutput
+    params: ISwapRouter.ExactInputParamsStructOutput,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: UniswapV3Calls.exactInput(params)
+      callData: UniswapV3Calls.exactInput(params),
     };
   }
 
   exactAllInput(
-    params: IUniswapV3Adapter.ExactAllInputParamsStructOutput
+    params: IUniswapV3Adapter.ExactAllInputParamsStructOutput,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: UniswapV3Calls.exactAllInput(params)
+      callData: UniswapV3Calls.exactAllInput(params),
     };
   }
 
   exactOutputSingle(
-    params: ISwapRouter.ExactOutputSingleParamsStructOutput
+    params: ISwapRouter.ExactOutputSingleParamsStructOutput,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: UniswapV3Calls.exactOutputSingle(params)
+      callData: UniswapV3Calls.exactOutputSingle(params),
     };
   }
 
   exactOutput(
-    params: ISwapRouter.ExactOutputParamsStructOutput
+    params: ISwapRouter.ExactOutputParamsStructOutput,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: UniswapV3Calls.exactOutput(params)
+      callData: UniswapV3Calls.exactOutput(params),
     };
   }
 }

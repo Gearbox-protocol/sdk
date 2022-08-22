@@ -4,5 +4,5 @@ export const connectorTokens: Array<NormalToken> = [
   "DAI",
   "USDC",
   "WETH",
-  "WBTC"
+  "WBTC",
 ];

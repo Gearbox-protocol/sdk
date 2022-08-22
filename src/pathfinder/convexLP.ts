@@ -13,7 +13,7 @@ export class ConvexLPPathFinder implements LPWithdrawPathFinder {
         }
         return acc;
       },
-      new Set<number>()
+      new Set<number>(),
     );
 
     // const convexPathFinder = ConvexPathFinder__factory.connect(

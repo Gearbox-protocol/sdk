@@ -1,16 +1,17 @@
 import { BigNumber } from "ethers";
-import type { LPWithdrawPathFinder, Path } from "./path";
-import { CurveLPToken, curveTokens } from "../tokens/curveLP";
+
 import {
   contractParams,
   contractsByAddress,
   CurveParams,
-  CurvePoolContract
+  CurvePoolContract,
 } from "../contracts/contracts";
-import { TradeType } from "./tradeTypes";
-import { CallData, MultiCallContract } from "../utils/multicall";
+import { CurveLPToken, curveTokens } from "../tokens/curveLP";
 import { ICurvePool__factory } from "../types";
 import { ICurvePoolInterface } from "../types/contracts/integrations/curve/ICurvePool";
+import { CallData, MultiCallContract } from "../utils/multicall";
+import type { LPWithdrawPathFinder, Path } from "./path";
+import { TradeType } from "./tradeTypes";
 
 export class CurvePathFinder implements LPWithdrawPathFinder {
   lpToken: CurveLPToken;
@@ -20,7 +21,7 @@ export class CurvePathFinder implements LPWithdrawPathFinder {
   constructor(token: CurveLPToken) {
     this.lpToken = token;
     const curvePools = curveTokens[this.lpToken].lpActions.filter(
-      a => a.type === TradeType.CurveWithdrawLP
+      a => a.type === TradeType.CurveWithdrawLP,
     );
 
     if (curvePools.length !== 1) throw new Error("Cant find Withdrawer");
@@ -43,7 +44,7 @@ export class CurvePathFinder implements LPWithdrawPathFinder {
     const multiCallContract = new MultiCallContract(
       contractsByAddress[this.contract],
       ICurvePool__factory.createInterface(),
-      p.provider
+      p.provider,
     );
 
     const data: Array<CallData<ICurvePoolInterface>> = [];
@@ -51,7 +52,7 @@ export class CurvePathFinder implements LPWithdrawPathFinder {
     for (let i = 0; i < nCoins; i += 1) {
       data.push({
         method: "calc_withdraw_one_coin(uint256,int128)",
-        params: [lpBalance, i]
+        params: [lpBalance, i],
       });
     }
 

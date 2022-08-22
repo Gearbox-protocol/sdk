@@ -9,11 +9,11 @@ export const pathFindersByNetwork: Record<
   Mainnet: {
     // PATH_FINDER
     PATH_FINDER: "",
-    CONVEX_PATH_FINDER: ""
+    CONVEX_PATH_FINDER: "",
   },
-  Kovan: {
+  Goerli: {
     // PATH_FINDER
     PATH_FINDER: "",
-    CONVEX_PATH_FINDER: ""
-  }
+    CONVEX_PATH_FINDER: "",
+  },
 };
