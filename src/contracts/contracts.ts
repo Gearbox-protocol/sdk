@@ -101,13 +101,13 @@ export const contractsByNetwork: Record<
     SUSHISWAP_ROUTER: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
 
     // CURVE
-    CURVE_3CRV_POOL: "TODO: DEPLOY ME",
+    CURVE_3CRV_POOL: "0x6491f8A62678c90C84b237791d9D7cF21b4D1418",
     CURVE_STETH_GATEWAY: "TODO: DEPLOY ME",
     CURVE_FRAX_POOL: tokenDataByNetwork.Goerli.FRAX3CRV,
     CURVE_LUSD_POOL: tokenDataByNetwork.Goerli.LUSD3CRV,
-    CURVE_SUSD_POOL: "TODO: DEPLOY ME",
-    CURVE_SUSD_DEPOSIT: "TODO: DEPLOY ME",
-    CURVE_GUSD_POOL: "TODO: DEPLOY ME",
+    CURVE_SUSD_POOL: "0x2A1b874C86734feA5be050d32fAb02FCF9eB1Bc2",
+    CURVE_SUSD_DEPOSIT: "0x9782f1fF1AEFb387F01cae72F668F13E8061d9Dd",
+    CURVE_GUSD_POOL: "0x8C954d89C2fB2c96F0195738b8c5538B34D5344E",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Goerli.yvDAI,
@@ -118,14 +118,14 @@ export const contractsByNetwork: Record<
     YEARN_CURVE_STETH_VAULT: tokenDataByNetwork.Goerli.yvCurve_stETH,
 
     // CONVEX
-    CONVEX_BOOSTER: "TODO: DEPLOY ME",
-    CONVEX_3CRV_POOL: "TODO: DEPLOY ME",
-    CONVEX_STECRV_POOL: "TODO: DEPLOY ME",
-    CONVEX_SUSD_POOL: "TODO: DEPLOY ME",
-    CONVEX_FRAX3CRV_POOL: "TODO: DEPLOY ME",
-    CONVEX_LUSD3CRV_POOL: "TODO: DEPLOY ME",
-    CONVEX_GUSD_POOL: "TODO: DEPLOY ME",
-    CONVEX_CLAIM_ZAP: "TODO: DEPLOY ME",
+    CONVEX_BOOSTER: "0xc9E1e57764a3aC374CFc945A3efF6383400ac4A7",
+    CONVEX_3CRV_POOL: "0x7A0bb35B1E0cfE9127B65CB816C04eEBc992FaD1",
+    CONVEX_STECRV_POOL: "0xa98b3C36Fdd697504c348402E7B47DC8E213e4f5",
+    CONVEX_SUSD_POOL: "0xC0baFa477eAB4F470f746e367bb5dC900997a93A",
+    CONVEX_FRAX3CRV_POOL: "0xbC7AF66374440f674D6bb4788Aa45D3326a8C902",
+    CONVEX_LUSD3CRV_POOL: "0x92C077f2599025C56ba335D87fc12718f04890D1",
+    CONVEX_GUSD_POOL: "0x75151C40CAD6060ff3786f7e734fF53B5A8a1940",
+    CONVEX_CLAIM_ZAP: "0x6767c6492Df4920Be1e7667531046Bd483eb177E",
 
     // LIDO
     LIDO_STETH_GATEWAY: "TODO: DEPLOY ME",
@@ -243,7 +243,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-      Goerli: "TODO: DEPLOY ME",
+      Goerli: "0x604a4aC025FbD873fB99EC67B1184a495Cc4f6D1", // CURVE_STECRV_POOL
     },
     tokens: ["WETH", "STETH"],
     lpToken: "steCRV",
@@ -359,7 +359,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "SNX",
         poolAddress: {
           Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
-          Goerli: "TODO: DEPLOY ME", // CONVEX_SUSD_POOL_EXTRA_SNX
+          Goerli: "0x7b8584d108DC235f5eBcFcbF18FcadF7C9A5c973", // CONVEX_SUSD_POOL_EXTRA_SNX
         },
       },
     ],
@@ -374,7 +374,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LDO",
         poolAddress: {
           Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
-          Goerli: "TODO: DEPLOY ME", // CONVEX_STECRV_POOL_EXTRA_LDO
+          Goerli: "0xf054E0a4880645BF931B38d3e5e0ebB662Fec61B", // CONVEX_STECRV_POOL_EXTRA_LDO
         },
       },
     ],
@@ -389,7 +389,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "FXS",
         poolAddress: {
           Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
-          Goerli: "TODO: DEPLOY ME", // CONVEX_FRAX3CRV_POOL_EXTRA_FXS
+          Goerli: "0x1cC308372C200E1BCDC13228984C0aF5cD2EC21C", // CONVEX_FRAX3CRV_POOL_EXTRA_FXS
         },
       },
     ],
@@ -404,7 +404,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LQTY",
         poolAddress: {
           Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
-          Goerli: "TODO: DEPLOY ME", // CONVEX_LUSD3CRV_POOL_EXTRA_LQTY
+          Goerli: "0xB1375A1cb890D1fA98Bb68aA250333f455E6a4c6", // CONVEX_LUSD3CRV_POOL_EXTRA_LQTY
         },
       },
     ],
@@ -416,7 +416,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.LIDO_V1,
     oracle: {
       Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
-      Goerli: "TODO: DEPLOY ME",
+      Goerli: "0x2840CeAeeA3d0Af1beDBeB64539406793180709E", // LIDO_ORACLE
     },
     lpToken: "steCRV",
   },
