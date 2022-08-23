@@ -40,7 +40,7 @@ export class PathNotFoundError extends Error {
   }
 }
 
-export class AccountsInAlllCreditManagersError extends Error {
+export class AccountsInAllCreditManagersError extends Error {
   constructor() {
     super("errors.youOpenedAccountsInAllCreditManagersError");
   }
