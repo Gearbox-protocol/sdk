@@ -75,9 +75,7 @@ export const lpTokens: Record<LPTokens, LPTokenDataI> = {
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   ...normalTokens,
-  ...curveTokens,
-  ...convexTokens,
-  ...yearnTokens,
+  ...lpTokens,
   ...gearTokens,
 };
 
@@ -253,4 +251,4 @@ export const isSupportedToken = (t: unknown): t is SupportedToken =>
   typeof t === "string" && !!supportedTokens[t as SupportedToken];
 
 export const isLPToken = (t: unknown): t is LPTokens =>
-  typeof t === "string" && !!supportedTokens[t as LPTokens];
+  typeof t === "string" && !!lpTokens[t as LPTokens];
