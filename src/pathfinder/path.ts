@@ -1,25 +1,25 @@
 import { BigNumber, ethers } from "ethers";
+
+import { NetworkType } from "../core/constants";
+import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { MultiCall } from "../core/multicall";
+import { CurveLPToken } from "../tokens/curveLP";
 import {
   SupportedToken,
   supportedTokens,
-  tokenSymbolByAddress
+  tokenSymbolByAddress,
 } from "../tokens/token";
-import { NetworkType } from "../core/constants";
-import { CreditAccountData } from "../core/creditAccount";
-
-import { SwapPathFinder__factory } from "../types";
-import { priority } from "./priority";
+import { TokenType } from "../tokens/tokenType";
 import { YearnLPToken } from "../tokens/yearn";
-import { YearnVaultPathFinder } from "./yVault";
+import { SwapPathFinder__factory } from "../types";
+import { detectNetwork } from "../utils/network";
+import { PartialRecord } from "../utils/types";
+import { pathFindersByNetwork } from "./contracts";
 import { ConvexLPPathFinder } from "./convexLP";
 import { CurvePathFinder } from "./curveLP";
-import { CurveLPToken } from "../tokens/curveLP";
-import { PartialRecord } from "../utils/types";
-import { detectNetwork } from "../utils/network";
-import { pathFindersByNetwork } from "./contracts";
-import { TokenType } from "../tokens/tokenType";
+import { priority } from "./priority";
+import { YearnVaultPathFinder } from "./yVault";
 
 export class Path {
   public readonly calls: Array<MultiCall> = [];
@@ -68,7 +68,7 @@ export class Path {
 
   private static comparedByPriority(
     [tokenA]: [string, BigNumber],
-    [tokenB]: [string, BigNumber]
+    [tokenB]: [string, BigNumber],
   ): number {
     const priorityTokenA =
       priority[supportedTokens[tokenA as SupportedToken].type];
@@ -87,19 +87,19 @@ export class Path {
   static async findBestPath(
     creditAccount: CreditAccountData,
     creditManager: CreditManagerData,
-    provider: ethers.providers.Provider
+    provider: ethers.providers.Provider,
   ) {
     const networkType = await detectNetwork(provider);
 
     const balances = Object.entries(creditAccount.balances)
       .map(([address, balance]) => ({
         token: tokenSymbolByAddress[address.toLowerCase()],
-        balance
+        balance,
       }))
       .filter(t => t.balance.gt(1))
       .reduce(
         (obj, curValue) => ({ ...obj, [curValue.token]: curValue.balance }),
-        {}
+        {},
       );
 
     const initialPath = new Path({
@@ -109,13 +109,13 @@ export class Path {
       networkType,
       provider,
       underlying: "DAI", // creditManager.underlyingToken
-      totalGasLimit: 0
+      totalGasLimit: 0,
     });
 
     const lpPaths = await initialPath.withdrawTokens();
     const pathFinder = SwapPathFinder__factory.connect(
       pathFindersByNetwork[networkType].PATH_FINDER,
-      provider
+      provider,
     );
 
     console.debug(lpPaths);
@@ -170,5 +170,5 @@ export class Path {
 }
 
 export interface LPWithdrawPathFinder {
-  findWithdrawPaths(p: Path): Promise<Array<Path>>;
+  findWithdrawPaths: (p: Path) => Promise<Array<Path>>;
 }

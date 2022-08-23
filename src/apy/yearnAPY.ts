@@ -1,11 +1,9 @@
-import { BigNumber } from "ethers";
 import axios from "axios";
-
-import { YearnLPToken, yearnTokens } from "../tokens/yearn";
-
-import { toBN } from "../utils/formatter";
+import { BigNumber } from "ethers";
 
 import { WAD_DECIMALS_POW } from "../core/constants";
+import { YearnLPToken, yearnTokens } from "../tokens/yearn";
+import { toBN } from "../utils/formatter";
 import { objectEntries } from "../utils/mappers";
 
 interface YearnAPYData {
@@ -45,11 +43,11 @@ export async function getYearnAPY(): Promise<YearnAPYResult> {
 
         acc[yearnSymbol] = toBN(
           (netApy / RESPONSE_DECIMALS).toString(),
-          WAD_DECIMALS_POW
+          WAD_DECIMALS_POW,
         );
         return acc;
       },
-      {} as YearnAPYResult
+      {} as YearnAPYResult,
     );
 
     return yearnAPY;
@@ -60,7 +58,7 @@ export async function getYearnAPY(): Promise<YearnAPYResult> {
       yvWETH: ZERO,
       yvWBTC: ZERO,
       yvCurve_stETH: ZERO,
-      yvCurve_FRAX: ZERO
+      yvCurve_FRAX: ZERO,
     };
   }
 }

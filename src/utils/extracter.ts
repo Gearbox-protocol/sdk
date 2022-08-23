@@ -11,7 +11,7 @@ export function getPoolTokens(pool: PoolData | undefined | Error): PoolTokens {
 
   return {
     dieselToken,
-    underlyingToken
+    underlyingToken,
   };
 }
 
@@ -20,7 +20,7 @@ interface WithUnderlyingToken {
 }
 
 export function getUnderlyingToken(
-  c: WithUnderlyingToken | undefined | Error
+  c: WithUnderlyingToken | undefined | Error,
 ): string | undefined {
   if (!c || c instanceof Error) {
     return undefined;

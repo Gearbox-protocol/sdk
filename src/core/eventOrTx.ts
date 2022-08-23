@@ -2,7 +2,7 @@ import { TokenData } from "../tokens/tokenData";
 import type { TxSerialized } from "./transactions";
 
 export interface Display {
-  toString(tokenData: Record<string, TokenData>): string;
+  toString: (tokenData: Record<string, TokenData>) => string;
 }
 
 export type TxStatus = "pending" | "success" | "reverted";
@@ -70,13 +70,13 @@ export abstract class EVMTx extends EventOrTx {
     txHash,
     block = 0,
     txStatus = "pending",
-    timestamp = 0
+    timestamp = 0,
   }: EVMTxProps) {
     super({
       block,
       txStatus,
       txHash,
-      timestamp
+      timestamp,
     });
     if (this.txStatus !== "pending" && this.block === 0) {
       throw new Error("Block not specified for non-pending tx");

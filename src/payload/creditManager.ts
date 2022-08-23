@@ -1,4 +1,5 @@
 import { BigNumberish } from "ethers";
+
 import { CreditManagerDataStruct } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 
 export interface AdapterPayload {

@@ -1,11 +1,9 @@
-import { BigNumber } from "ethers";
 import axios from "axios";
-
-import { CurveLPToken } from "../tokens/curveLP";
-
-import { toBN } from "../utils/formatter";
+import { BigNumber } from "ethers";
 
 import { WAD_DECIMALS_POW } from "../core/constants";
+import { CurveLPToken } from "../tokens/curveLP";
+import { toBN } from "../utils/formatter";
 import { objectEntries } from "../utils/mappers";
 
 interface CurveAPYData {
@@ -25,7 +23,7 @@ const NAME_DICTIONARY: Record<CurveLPToken, string> = {
   gusd3CRV: "gusd",
   LUSD3CRV: "lusd",
   crvPlain3andSUSD: "susdv2",
-  steCRV: "steth"
+  steCRV: "steth",
 };
 
 const RESPONSE_DECIMALS = 100;
@@ -47,11 +45,11 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
         const { baseApy = 0 } = apys[apiEntry] || {};
         acc[curveSymbol] = toBN(
           (baseApy / RESPONSE_DECIMALS).toString(),
-          WAD_DECIMALS_POW
+          WAD_DECIMALS_POW,
         );
         return acc;
       },
-      {} as CurveAPYResult
+      {} as CurveAPYResult,
     );
 
     return curveAPY;
@@ -62,7 +60,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
       gusd3CRV: ZERO,
       LUSD3CRV: ZERO,
       crvPlain3andSUSD: ZERO,
-      steCRV: ZERO
+      steCRV: ZERO,
     };
   }
 }

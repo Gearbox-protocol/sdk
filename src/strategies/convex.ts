@@ -1,23 +1,21 @@
 import { BigNumberish } from "ethers";
+
 import {
   contractParams,
   contractsByNetwork,
   ConvexPoolContract,
-  ConvexPoolParams
+  ConvexPoolParams,
 } from "../contracts/contracts";
 import { NetworkType } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
 import { ConvexPhantomTokenData } from "../tokens/convex";
-
-import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import { CurveLPTokenData } from "../tokens/curveLP";
-
+import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import {
-  ConvexV1BoosterAdapter__factory,
   ConvexV1BaseRewardPoolAdapter__factory,
-  ConvexV1ClaimZapAdapter__factory
+  ConvexV1BoosterAdapter__factory,
+  ConvexV1ClaimZapAdapter__factory,
 } from "../types";
-
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { CurveStrategies } from "./curve";
 import { UniswapV2Multicaller } from "./uniswapV2";
@@ -26,32 +24,32 @@ export class ConvexBoosterCalls {
   public static deposit(
     pid: BigNumberish,
     amount: BigNumberish,
-    stake: boolean
+    stake: boolean,
   ) {
     return ConvexV1BoosterAdapter__factory.createInterface().encodeFunctionData(
       "deposit",
-      [pid, amount, stake]
+      [pid, amount, stake],
     );
   }
 
   public static depositAll(pid: BigNumberish, stake: boolean) {
     return ConvexV1BoosterAdapter__factory.createInterface().encodeFunctionData(
       "depositAll",
-      [pid, stake]
+      [pid, stake],
     );
   }
 
   public static withdraw(pid: BigNumberish, amount: BigNumberish) {
     return ConvexV1BoosterAdapter__factory.createInterface().encodeFunctionData(
       "withdraw",
-      [pid, amount]
+      [pid, amount],
     );
   }
 
   public static withdrawAll(pid: BigNumberish) {
     return ConvexV1BoosterAdapter__factory.createInterface().encodeFunctionData(
       "withdrawAll",
-      [pid]
+      [pid],
     );
   }
 }
@@ -60,41 +58,41 @@ export class ConvexPoolCalls {
   public static stake(amount: BigNumberish) {
     return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "stake",
-      [amount]
+      [amount],
     );
   }
 
   public static stakeAll() {
     return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
-      "stakeAll"
+      "stakeAll",
     );
   }
 
   public static withdraw(amount: BigNumberish, claim: boolean) {
     return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "withdraw",
-      [amount, claim]
+      [amount, claim],
     );
   }
 
   public static withdrawAll(claim: boolean) {
     return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "withdrawAll",
-      [claim]
+      [claim],
     );
   }
 
   public static withdrawAndUnwrap(amount: BigNumberish, claim: boolean) {
     return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "withdrawAndUnwrap",
-      [amount, claim]
+      [amount, claim],
     );
   }
 
   public static withdrawAllAndUnwrap(claim: boolean) {
     return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "withdrawAllAndUnwrap",
-      [claim]
+      [claim],
     );
   }
 }
@@ -109,7 +107,7 @@ export class ConvexClaimZapCalls {
     minAmountOut: BigNumberish,
     depositCvxMaxAmount: BigNumberish,
     spendCvxAmount: BigNumberish,
-    options: BigNumberish
+    options: BigNumberish,
   ) {
     return ConvexV1ClaimZapAdapter__factory.createInterface().encodeFunctionData(
       "claimRewards",
@@ -122,8 +120,8 @@ export class ConvexClaimZapCalls {
         minAmountOut,
         depositCvxMaxAmount,
         spendCvxAmount,
-        options
-      ]
+        options,
+      ],
     );
   }
 }
@@ -142,32 +140,32 @@ export class ConvexBoosterMulticaller {
   deposit(
     pid: BigNumberish,
     amount: BigNumberish,
-    stake: boolean
+    stake: boolean,
   ): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexBoosterCalls.deposit(pid, amount, stake)
+      callData: ConvexBoosterCalls.deposit(pid, amount, stake),
     };
   }
 
   depositAll(pid: BigNumberish, stake: boolean): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexBoosterCalls.depositAll(pid, stake)
+      callData: ConvexBoosterCalls.depositAll(pid, stake),
     };
   }
 
   withdraw(pid: BigNumberish, amount: BigNumberish): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexBoosterCalls.withdraw(pid, amount)
+      callData: ConvexBoosterCalls.withdraw(pid, amount),
     };
   }
 
   withdrawAll(pid: BigNumberish): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexBoosterCalls.withdrawAll(pid)
+      callData: ConvexBoosterCalls.withdrawAll(pid),
     };
   }
 }
@@ -186,42 +184,42 @@ export class ConvexPoolMulticaller {
   stake(amount: BigNumberish): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexPoolCalls.stake(amount)
+      callData: ConvexPoolCalls.stake(amount),
     };
   }
 
   stakeAll(): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexPoolCalls.stakeAll()
+      callData: ConvexPoolCalls.stakeAll(),
     };
   }
 
   withdraw(amount: BigNumberish, claim: boolean): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexPoolCalls.withdraw(amount, claim)
+      callData: ConvexPoolCalls.withdraw(amount, claim),
     };
   }
 
   withdrawAll(claim: boolean): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexPoolCalls.withdrawAll(claim)
+      callData: ConvexPoolCalls.withdrawAll(claim),
     };
   }
 
   withdrawAndUnwrap(amount: BigNumberish, claim: boolean): MultiCallStruct {
     return {
       target: this._address,
-      callData: ConvexPoolCalls.withdrawAndUnwrap(amount, claim)
+      callData: ConvexPoolCalls.withdrawAndUnwrap(amount, claim),
     };
   }
 
   withdrawAllAndUnwrap(claim: boolean) {
     return {
       target: this._address,
-      callData: ConvexPoolCalls.withdrawAllAndUnwrap(claim)
+      callData: ConvexPoolCalls.withdrawAllAndUnwrap(claim),
     };
   }
 }
@@ -246,7 +244,7 @@ export class ConvexClaimZapMulticaller {
     minAmountOut: BigNumberish,
     depositCvxMaxAmount: BigNumberish,
     spendCvxAmount: BigNumberish,
-    options: BigNumberish
+    options: BigNumberish,
   ): MultiCallStruct {
     return {
       target: this._address,
@@ -259,8 +257,8 @@ export class ConvexClaimZapMulticaller {
         minAmountOut,
         depositCvxMaxAmount,
         spendCvxAmount,
-        options
-      )
+        options,
+      ),
     };
   }
 }
@@ -270,7 +268,7 @@ export class ConvexStrategies {
     data: CreditManagerData,
     network: NetworkType,
     convexPool: ConvexPoolContract,
-    underlyingAmount: BigNumberish
+    underlyingAmount: BigNumberish,
   ): MultiCallStruct[] {
     let calls: Array<MultiCallStruct> = [];
     const convexParams = contractParams[convexPool] as ConvexPoolParams;
@@ -286,13 +284,13 @@ export class ConvexStrategies {
       data,
       network,
       curvePool,
-      underlyingAmount
+      underlyingAmount,
     );
 
     calls.push(
       ConvexBoosterMulticaller.connect(
-        data.adapters[contractsByNetwork[network].CONVEX_BOOSTER.toLowerCase()]
-      ).depositAll(stakedTokenParams.pid, true)
+        data.adapters[contractsByNetwork[network].CONVEX_BOOSTER.toLowerCase()],
+      ).depositAll(stakedTokenParams.pid, true),
     );
 
     return calls;
@@ -303,7 +301,7 @@ export class ConvexStrategies {
     network: NetworkType,
     convexPool: ConvexPoolContract,
     convexLpAmount: BigNumberish,
-    sellRewards: boolean
+    sellRewards: boolean,
   ) {
     const calls: Array<MultiCallStruct> = [];
     const convexParams = contractParams[convexPool] as ConvexPoolParams;
@@ -317,12 +315,12 @@ export class ConvexStrategies {
 
     calls.push(
       ConvexPoolMulticaller.connect(
-        data.adapters[contractsByNetwork[network][convexPool].toLowerCase()]
-      ).withdrawAndUnwrap(convexLpAmount, true)
+        data.adapters[contractsByNetwork[network][convexPool].toLowerCase()],
+      ).withdrawAndUnwrap(convexLpAmount, true),
     );
 
     calls.push(
-      ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool)
+      ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool),
     );
 
     if (sellRewards) {
@@ -336,7 +334,7 @@ export class ConvexStrategies {
     data: CreditManagerData,
     network: NetworkType,
     convexPool: ConvexPoolContract,
-    sellRewards: boolean
+    sellRewards: boolean,
   ) {
     const calls: Array<MultiCallStruct> = [];
     const convexParams = contractParams[convexPool] as ConvexPoolParams;
@@ -350,12 +348,12 @@ export class ConvexStrategies {
 
     calls.push(
       ConvexPoolMulticaller.connect(
-        data.adapters[contractsByNetwork[network][convexPool].toLowerCase()]
-      ).withdrawAllAndUnwrap(true)
+        data.adapters[contractsByNetwork[network][convexPool].toLowerCase()],
+      ).withdrawAllAndUnwrap(true),
     );
 
     calls.push(
-      ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool)
+      ...CurveStrategies.allCurveLPToUnderlying(data, network, curvePool),
     );
 
     if (sellRewards) {
@@ -368,7 +366,7 @@ export class ConvexStrategies {
   static sellRewards(
     data: CreditManagerData,
     network: NetworkType,
-    convexPool: ConvexPoolContract
+    convexPool: ConvexPoolContract,
   ) {
     const calls: Array<MultiCallStruct> = [];
     const convexParams = contractParams[convexPool] as ConvexPoolParams;
@@ -377,35 +375,35 @@ export class ConvexStrategies {
       UniswapV2Multicaller.connect(
         data.adapters[
           contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-        ]
+        ],
       ).swapAllTokensForTokens(
         0,
         [tokenDataByNetwork[network].CRV, data.underlyingToken],
-        Math.floor(new Date().getTime() / 1000) + 3600
+        Math.floor(new Date().getTime() / 1000) + 3600,
       ),
       UniswapV2Multicaller.connect(
         data.adapters[
           contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-        ]
+        ],
       ).swapAllTokensForTokens(
         0,
         [tokenDataByNetwork[network].CVX, data.underlyingToken],
-        Math.floor(new Date().getTime() / 1000) + 3600
-      )
+        Math.floor(new Date().getTime() / 1000) + 3600,
+      ),
     );
 
     convexParams.extraRewards.forEach(extraReward => {
       UniswapV2Multicaller.connect(
         data.adapters[
           contractsByNetwork[network].UNISWAP_V2_ROUTER.toLowerCase()
-        ]
+        ],
       ).swapAllTokensForTokens(
         0,
         [
           tokenDataByNetwork[network][extraReward.rewardToken],
-          data.underlyingToken
+          data.underlyingToken,
         ],
-        Math.floor(new Date().getTime() / 1000) + 3600
+        Math.floor(new Date().getTime() / 1000) + 3600,
       );
     });
 

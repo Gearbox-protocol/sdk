@@ -1,38 +1,38 @@
+import { NetworkType } from "../core/constants";
 import {
+  filterEmptyKeys,
   keyToLowercase,
   objectEntries,
   swapKeyValue,
-  filterEmptyKeys
 } from "../utils/mappers";
-import { NetworkType } from "../core/constants";
-import { NormalToken, NormalTokenData, normalTokens } from "./normal";
-import {
-  CurveLPToken,
-  CurveLPTokenData,
-  curveTokens,
-  MetaCurveLPTokenData
-} from "./curveLP";
-import {
-  YearnLPToken,
-  yearnTokens,
-  YearnVaultOfCurveLPTokenData,
-  YearnVaultOfMetaCurveLPTokenData,
-  YearnVaultTokenData
-} from "./yearn";
 import {
   ConvexLPToken,
   ConvexLPTokenData,
   ConvexPhantomTokenData,
   ConvexStakedPhantomToken,
-  convexTokens
+  convexTokens,
 } from "./convex";
+import {
+  CurveLPToken,
+  CurveLPTokenData,
+  curveTokens,
+  MetaCurveLPTokenData,
+} from "./curveLP";
 import {
   DieselTokenData,
   DieselTokenTypes,
   GearboxToken,
   GearboxTokenData,
-  gearTokens
+  gearTokens,
 } from "./gear";
+import { NormalToken, NormalTokenData, normalTokens } from "./normal";
+import {
+  YearnLPToken,
+  yearnTokens,
+  YearnVaultOfCurveLPTokenData,
+  YearnVaultOfMetaCurveLPTokenData,
+  YearnVaultTokenData,
+} from "./yearn";
 
 export type LPTokens =
   | YearnLPToken
@@ -70,13 +70,13 @@ export type TokenDataI =
 export const lpTokens: Record<LPTokens, LPTokenDataI> = {
   ...curveTokens,
   ...convexTokens,
-  ...yearnTokens
+  ...yearnTokens,
 };
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
   ...normalTokens,
   ...lpTokens,
-  ...gearTokens
+  ...gearTokens,
 };
 
 export const tokenDataByNetwork: Record<
@@ -155,86 +155,86 @@ export const tokenDataByNetwork: Record<
     dWBTC: "0xe753260F1955e8678DCeA8887759e07aa57E8c54",
     dWETH: "0xF21fc650C1B34eb0FDE786D52d23dA99Db3D6278",
 
-    GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D"
+    GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D",
   },
 
   ///
   ///
-  /// KOVAN NETWORK
+  /// GOERLI NETWORK
   ///
   ///
-  Kovan: {
-    "1INCH": "0x6601ce61E41cd6760E763555A806AB5578EB2a9E",
-    AAVE: "0xed2eAe2533bc70dB9030174a7F085e0853289726",
-    COMP: "0x90F7A59Fa3993bBc6bA4C6c4ef515958a5bF8a24",
-    CRV: "0x0ccfD2Aef95775f080BF6C0E8318D37f720c1999",
-    DAI: "0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752",
-    DPI: "0xF4f06DE71eFc17799297573341C42f3B4C63D589",
-    FEI: "0xe1eC2f7B12d4be4075c3B53DB2e48C018B404179",
-    LINK: "0x6C994935826574E870549F09efF43BA8089A3D25",
-    SNX: "0xB48891df9267EF65AABd32F497F6F2d1eB22A186",
-    SUSHI: "0x635E9E7Aa9fA72C56B9A1286026A93E1b8c4090a",
-    UNI: "0x1B24F1F2CEFf945FE9EE017F929a6D31394f94b1",
-    USDT: "0x4a3964F69284eD6ab6975afc472fB0a072243CD5",
-    USDC: "0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df",
-    WBTC: "0xE36bC5d8b689AD6d80e78c3e736670e80d4b329D",
-    WETH: "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
-    YFI: "0x1df5DF6d0196bE6AE6A2EED915a0Cc6cAEA84C2D",
+  Goerli: {
+    "1INCH": "0xC69D4e2940950bf26977b421BDB9a06F40D37db4",
+    AAVE: "0xc28667333f193e0cfD69E8fbC60CC6cB875414fA",
+    COMP: "0xaDa57f2C1Ba941509ffF0eEb7e846C95A5933951",
+    CRV: "0x976d27eC7ebb1136cd7770F5e06aC917Aa9C672b",
+    DAI: "0x55a309598ABf543bF76FbB22859938ba2F29C2eA",
+    DPI: "0x130874718AfcC298894e0a60a1b87c9C2989C2E6",
+    FEI: "0x49FCC2B5978839FAB2E0364C8ed4be222689f1aF",
+    LINK: "0x609CeB4781A3A37C81122FD69b20dc5155dABe0B",
+    SNX: "0x293177E8F7DEA75e44C6799e975A42222cBB326B",
+    SUSHI: "0xe8e880b8280d264989e63cBD0b70C1EA52b5CD83",
+    UNI: "0xd354fEF0E34ef0ee467d61eee5Af8336fd36Cb7D",
+    USDT: "0xc81c248c44e96D85a0eCddc104843cE55B1ff35c",
+    USDC: "0x1F2cd0D7E5a7d8fE41f886063E9F11A05dE217Fa",
+    WBTC: "0x34852e54D9B4Ec4325C7344C28b584Ce972e5E62",
+    WETH: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6", // Well-known
+    YFI: "0xCad5D7701e0A85fe50B3aCaBDcdF7e75672F326e",
 
     /// UPDATE
-    STETH: "0x77c742b2e83367Ece64FC5f4440a796D08d82422",
-    FTM: "0x5DE02cFf707eBC43f58DFB022518c18C66147b1E",
-    CVX: "0xd3276d0549996fB6598df321dd6C4175f865A966",
-    FRAX: "0x301b0B83E5F5deC5233075368B8b459CEedc0948",
-    FXS: "0x25eb8A9B30981d1F04C306829FEBc855FA86695A",
-    LDO: "0x99bB41898474aDb38e098fFdB0cD17d2619cA3ef",
-    SPELL: "0x20f979FD40caF4aaa4e7A179E1a5C422a897ca6c",
-    LUSD: "0x397acA500A56706dd4aAC0592Ed5B8CCAeCfc2d5",
-    sUSD: "0x32aeb9B672a81C43391c90a95a4D6c9A9D4459B6",
-    GUSD: "0x3cee6494bf400F8C24871dBD331B9436a9CfaBbb",
-    LUNA: "0x9dc1D71fAeE18bF77C6166aBC8b218D3336919F1",
-    LQTY: "0xC948BB323d753B37eA8195DeAFE904138Df11fbC",
+    STETH: "0xd628baa42b3080593a231016bF3F229161C9F745",
+    FTM: "0x0bf727bFFB6008Fa8b0B480Dd8f77Fa47B539830",
+    CVX: "0x84F96e4e2c67C3737dA005572bEf639465a81777",
+    FRAX: "0x92d43093959C7DDa89896418bCE9DE0B87879646",
+    FXS: "0x34C035818Dd308f3aC20e68bC03C3E4FC8924d9d",
+    LDO: "0x13781b54cd88cC115a17Db53b058706B29FaD341",
+    SPELL: "0x7BEaF8B56974157b4Df2AFE139d6016572b0049D",
+    LUSD: "0xF1D178615E7BB6a7331EE73F84D5Ac6c95d8BC91",
+    sUSD: "0x4F02e25531520709114e470f45A1Fb50862e3147",
+    GUSD: "0x50688e51B3941BFdf6a878F810dAF85bFc0657cf",
+    LUNA: "0xc2b78fF97aF7b616DefE63285DA9cFf928eC9Af9",
+    LQTY: "0x7f5E8e47d982052bD6A1CA26551b80821802847d",
 
     // YEARN TOKENS
-    yvDAI: "0x236Fc952861DD9eB2B5768B858F66a925aD28d65",
-    yvUSDC: "0x5C170A7D0Bd8ec9B8c741Aa9Db330D7DD4685b27",
-    yvWETH: "0x09Aded0A8e1dfEDA8c086085e525c07ae635Bf58",
-    yvWBTC: "0x4FCbB75A117A886d2b09b167A34F6A4477aAD767",
-    yvCurve_stETH: "0x215E6a870D06E7aC0DDf2661C443bf5Ab14CAF18",
-    yvCurve_FRAX: "0xFa410646B9009866fC9bd39430d052877122FD23",
+    yvDAI: "0xd5bd19D424fF89131fE59993B97e7462f5B1c2fA",
+    yvUSDC: "0x3ede142571Cfc7A6E4e1c78A9Ccf50f39f95B515",
+    yvWETH: "0xecBf21B35f92335A13236661163d5585cF1EA2ea",
+    yvWBTC: "0xfCa2ED758F053b5A2B323Edd454ba4FB83B0FE51",
+    yvCurve_stETH: "0xAa2169Dc5Ae1C3F583CF8E5568226E465c260351",
+    yvCurve_FRAX: "0x24DAD24b81c9C6501c7fF4C67b3CfA1a7d6CF93f",
 
     // CURVE LP TOKENS
-    "3Crv": "0x5640391D2423e9349061DC045B5126A78ddE8CAc",
-    steCRV: "0x90F4D460B53F8650413539caB91c397e7b9fbc39",
-    crvPlain3andSUSD: "0x77082DC151f2D579f81BcC9cEF3e46DfF42B3474",
-    gusd3CRV: "0x289551b36f13A5AB838f912a83a32Deeda073a7b",
-    FRAX3CRV: "0xdBE4223fF10C4e6AdA4287249044Ead24fb7b135",
-    LUSD3CRV: "0x8835B68cC43bf249E22CB98FF32d025375f2513F",
+    "3Crv": "0xb2f394A64966a8892a43CcfBBD48D28bC58Aeb67",
+    steCRV: "0xf5c5e39F56fF90C0F63a97F3c77779eF495c1faD",
+    crvPlain3andSUSD: "0xC3d328CCA12347A31126d891D16fe8C5466625a5",
+    gusd3CRV: "0xbD919fcC47ae2b5Cc2fe646971aCcB1e88843DC5",
+    FRAX3CRV: "0x12Ad3125C67eC5325Cc94AFdA8B26cd12BCe1E9b",
+    LUSD3CRV: "0x348B1846b87cA12D23A9A4E73B1CfAc2Aad49cf4",
 
     // CONVEX LP TOKENS
-    cvx3Crv: "0xaC073A1756050c3170559Ae8997F251B2Db4D1A3",
-    cvxsteCRV: "0xb22c2015327cfbeD480eF45B6382d4bC963a4595",
-    cvxcrvPlain3andSUSD: "0xBBeAdEA3C648cF4026d0422EAF2463050202700b",
-    cvxFRAX3CRV: "0xBC523005975D86de9226785DD83e4f8d2A87fA73",
-    cvxLUSD3CRV: "0xF90d9a96985a80e6c2cA9952cd2C6Db5B720408F",
-    cvxgusd3CRV: "0xa3aDFDf18d166e26bF1Bc0ee63D26d0d1064b056",
+    cvx3Crv: "0xC45ade6D45970e517A6792DB5323842eDAF45246",
+    cvxsteCRV: "0x0d7380064d7C14Ac9ed2B4576fE7F3956CC1A4BB",
+    cvxcrvPlain3andSUSD: "0x9F1aEA2CB12b923aF5f4163EdCcF0459Eec06B80",
+    cvxFRAX3CRV: "0xfb899fb1869e4ac46fbA4bDbB7cFA2c0417bC6d3",
+    cvxLUSD3CRV: "0xe5E3C00Edb8A5270B34737bf926E87346906227f",
+    cvxgusd3CRV: "0xB8111E77D074Dd7820323751a373DC8d103c4EeD",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
-    stkcvx3Crv: "0xf4FC4Aa052346fEa87f1e864f10de0f7383e9502",
-    stkcvxFRAX3CRV: "0xd726f9684245065B120E1ac18de389f6b05351Ba",
-    stkcvxLUSD3CRV: "0x5c355c46413B45Cc58aB61AcaF5BB72E7c2d1465",
-    stkcvxgusd3CRV: "0x9A74e8106f6c28b21b1B6a0F985cf1227BE05F04",
-    stkcvxsteCRV: "0xd8bAbB7EfBF7F931a69B209f71b27421F8b18516",
-    stkcvxcrvPlain3andSUSD: "0x6b45Cab756B41a7204973b71362ef5F73E67F6DA",
+    stkcvx3Crv: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxFRAX3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxLUSD3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxgusd3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxsteCRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvxcrvPlain3andSUSD: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
 
     // GEARBOX
-    dDAI: "0x077a3Ce0D572b72436F6644793Fc7721353aF1f4",
-    dUSDC: "0x8147e00456c8A3128182730bFFdFd9D1E6bbC048",
-    dWBTC: "0x34D9B3c13B25632879B2DaabBde702F612902238",
-    dWETH: "0x19e4F905749D3b487CA4927b54e55b64625a1143",
+    dDAI: "TODO: DEPLOY ME", // DieselToken.sol
+    dUSDC: "TODO: DEPLOY ME", // DieselToken.sol
+    dWBTC: "TODO: DEPLOY ME", // DieselToken.sol
+    dWETH: "TODO: DEPLOY ME", // DieselToken.sol
 
-    GEAR: "0xe01c5d0297c56e992dab3886057a1441485ff7c7"
-  }
+    GEAR: "TODO: DEPLOY ME",
+  },
 };
 
 export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
@@ -242,9 +242,9 @@ export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
 >(
   (acc, [, tokens]) => ({
     ...acc,
-    ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens)))
+    ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens))),
   }),
-  {}
+  {},
 );
 
 export const isSupportedToken = (t: unknown): t is SupportedToken =>

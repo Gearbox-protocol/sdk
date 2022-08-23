@@ -1,6 +1,7 @@
 import { BigNumber } from "ethers";
-import { calcTotalPrice } from "../utils/price";
+
 import { TokensWithAPY } from "../apy";
+import { calcTotalPrice } from "../utils/price";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
 
 export interface StrategyPayload {
@@ -62,7 +63,7 @@ export class Strategy {
       this.apy || 0,
       maxLeverage,
       maxLeverage - LEVERAGE_DECIMALS,
-      minApy
+      minApy,
     );
   }
 
@@ -70,7 +71,7 @@ export class Strategy {
     apy: number,
     leverage: number,
     depositCollateral: string,
-    borrowAPY: number
+    borrowAPY: number,
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
 
@@ -82,17 +83,17 @@ export class Strategy {
     borrowed: TokenDescription,
     collateral: TokenDescription,
     lp: TokenDescription,
-    ltCollateral: BigNumber
+    ltCollateral: BigNumber,
   ) {
     const borrowedMoney = calcTotalPrice(
       borrowed.price,
       borrowed.amount,
-      borrowed.decimals
+      borrowed.decimals,
     );
     const collateralMoney = calcTotalPrice(
       collateral.price,
       collateral.amount,
-      collateral.decimals
+      collateral.decimals,
     )
       .mul(ltCollateral)
       .div(PERCENTAGE_FACTOR);
@@ -116,13 +117,13 @@ export class Strategy {
 
   protected inBaseAssets(depositCollateral: string) {
     return this.baseAssets.some(
-      c => c.toLowerCase() === depositCollateral.toLowerCase()
+      c => c.toLowerCase() === depositCollateral.toLowerCase(),
     );
   }
 
   protected inLeveragableAssets(depositCollateral: string) {
     return this.leveragableCollateral.some(
-      c => c.toLowerCase() === depositCollateral.toLowerCase()
+      c => c.toLowerCase() === depositCollateral.toLowerCase(),
     );
   }
 }
@@ -133,7 +134,7 @@ function roi(apy: number, farmLev: number, debtLev: number, borrowAPY: number) {
 
 function minBorrowApy(poolApy: PoolList) {
   const apys = Object.values(poolApy).sort(
-    (a, b) => a.borrowRate - b.borrowRate
+    (a, b) => a.borrowRate - b.borrowRate,
   );
 
   return apys.length > 0 ? apys[0].borrowRate : 0;

@@ -1,8 +1,8 @@
 import type { YearnVaultContract } from "../contracts/contracts";
 import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
-import type { TokenBase } from "./token";
 import type { CurveLPToken } from "./curveLP";
 import { NormalToken } from "./normal";
+import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
 export type YearnLPToken =
@@ -55,9 +55,9 @@ export const yearnTokens: Record<
       {
         type: TradeType.YearnWithdraw,
         contract: "YEARN_DAI_VAULT",
-        tokenOut: "DAI"
-      }
-    ]
+        tokenOut: "DAI",
+      },
+    ],
   },
 
   yvUSDC: {
@@ -71,9 +71,9 @@ export const yearnTokens: Record<
       {
         type: TradeType.YearnWithdraw,
         contract: "YEARN_USDC_VAULT",
-        tokenOut: "USDC"
-      }
-    ]
+        tokenOut: "USDC",
+      },
+    ],
   },
 
   yvWETH: {
@@ -87,9 +87,9 @@ export const yearnTokens: Record<
       {
         type: TradeType.YearnWithdraw,
         contract: "YEARN_WETH_VAULT",
-        tokenOut: "WETH"
-      }
-    ]
+        tokenOut: "WETH",
+      },
+    ],
   },
 
   yvWBTC: {
@@ -103,9 +103,9 @@ export const yearnTokens: Record<
       {
         type: TradeType.YearnWithdraw,
         contract: "YEARN_WBTC_VAULT",
-        tokenOut: "WBTC"
-      }
-    ]
+        tokenOut: "WBTC",
+      },
+    ],
   },
 
   // YEARN- CURVE TOKENS
@@ -120,9 +120,9 @@ export const yearnTokens: Record<
       {
         type: TradeType.YearnWithdraw,
         contract: "YEARN_CURVE_STETH_VAULT",
-        tokenOut: "steCRV"
-      }
-    ]
+        tokenOut: "steCRV",
+      },
+    ],
   },
 
   yvCurve_FRAX: {
@@ -136,10 +136,10 @@ export const yearnTokens: Record<
       {
         type: TradeType.YearnWithdraw,
         contract: "YEARN_CURVE_FRAX_VAULT",
-        tokenOut: "FRAX3CRV"
-      }
-    ]
-  }
+        tokenOut: "FRAX3CRV",
+      },
+    ],
+  },
 };
 
 export const isYearnLPToken = (t: unknown): t is YearnLPToken =>

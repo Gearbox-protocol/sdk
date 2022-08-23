@@ -1,6 +1,7 @@
+import { Decimal } from "decimal.js-light";
 import { BigNumber, BigNumberish } from "ethers";
-import Decimal from "decimal.js-light";
-import { PERCENTAGE_FACTOR, RAY, LEVERAGE_DECIMALS } from "../core/constants";
+
+import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, RAY } from "../core/constants";
 
 export function rayToNumber(num: BigNumberish): number {
   return (
@@ -15,12 +16,14 @@ export function formatRAY(num?: BigNumber): string {
 export function formatBN(
   numArg: BigNumberish | undefined,
   decimals: number,
-  precisionArg?: number
+  precisionArg?: number,
 ): string {
   let num = numArg;
   let precision = precisionArg;
 
-  if (!num) return "-";
+  if (!num) {
+    return "-";
+  }
 
   // if (BigNumber.from(num).gt(BigNumber.from(10).pow(37))) {
   //   return "MAX";
@@ -38,9 +41,15 @@ export function formatBN(
     num = BigNumber.from(0);
   }
 
-  const number = BigNumber.from(num).div(
-    BigNumber.from(10).pow((decimals || 18) - 6)
-  );
+  // GUSD: 2 decimals
+  let number: BigNumber;
+  if (decimals <= 6) {
+    number = BigNumber.from(num).mul(BigNumber.from(10).pow(6 - decimals));
+  } else {
+    number = BigNumber.from(num).div(
+      BigNumber.from(10).pow((decimals || 18) - 6),
+    );
+  }
 
   if (number.lte(10000) && !number.isZero()) {
     precision = 3;
@@ -61,20 +70,25 @@ export function formatBN(
   return toHumanFormat(number, precision);
 }
 
-export function formatBn4dig(num: BigNumber, precision: number = 2): string {
-  if (precision > 6) throw new Error("Incorrect precision");
+export function formatBn4dig(num: BigNumber, precision = 2): string {
+  if (precision > 6) {
+    throw new Error("Incorrect precision");
+  }
 
   let numStr = num.toString();
-  if (numStr.length < 6) numStr = "0".repeat(6 - numStr.length) + numStr;
+  if (numStr.length < 6) {
+    numStr = "0".repeat(6 - numStr.length) + numStr;
+  }
+
   return numStr.length <= 6
     ? `0.${numStr.slice(0, precision)}`
     : `${numStr.slice(0, numStr.length - 6)}.${numStr.slice(
         numStr.length - 6,
-        numStr.length - 6 + precision
+        numStr.length - 6 + precision,
       )}`;
 }
 
-export function toHumanFormat(num: BigNumber, precision: number = 2): string {
+export function toHumanFormat(num: BigNumber, precision = 2): string {
   if (num.gte(1e15)) {
     return `${formatBn4dig(num.div(1e9), precision)}Bn`;
   }
@@ -141,6 +155,6 @@ export function formatHf(healthFactor: number): string {
   return (healthFactor / 10000).toFixed(2);
 }
 
-export function formatLeverage(leverage: number, decimals: number = 2) {
+export function formatLeverage(leverage: number, decimals = 2) {
   return (leverage / LEVERAGE_DECIMALS).toFixed(decimals);
 }

@@ -1,5 +1,5 @@
-import type { TokenBase } from "./token";
 import type { TradeAction } from "../pathfinder/tradeTypes";
+import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
 export type DieselTokenTypes = "dDAI" | "dUSDC" | "dWBTC" | "dWETH";
@@ -25,34 +25,34 @@ export const gearTokens: Record<
     name: "dDAI",
     decimals: 18,
     symbol: "dDAI",
-    type: TokenType.DIESEL_LP_TOKEN
+    type: TokenType.DIESEL_LP_TOKEN,
   },
 
   dUSDC: {
     name: "dUSDC",
     decimals: 6,
     symbol: "dUSDC",
-    type: TokenType.DIESEL_LP_TOKEN
+    type: TokenType.DIESEL_LP_TOKEN,
   },
 
   dWBTC: {
     name: "dWBTC",
     decimals: 8,
     symbol: "dWBTC",
-    type: TokenType.DIESEL_LP_TOKEN
+    type: TokenType.DIESEL_LP_TOKEN,
   },
 
   dWETH: {
     name: "dWETH",
     decimals: 18,
     symbol: "dWETH",
-    type: TokenType.DIESEL_LP_TOKEN
+    type: TokenType.DIESEL_LP_TOKEN,
   },
 
   GEAR: {
     name: "GEAR",
     decimals: 18,
     symbol: "GEAR",
-    type: TokenType.NORMAL_TOKEN
-  }
+    type: TokenType.NORMAL_TOKEN,
+  },
 };

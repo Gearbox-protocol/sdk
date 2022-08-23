@@ -1,9 +1,10 @@
 import { BigNumber } from "ethers";
+
+import { getContractName } from "../contracts/contractsRegister";
 import { TokenData } from "../tokens/tokenData";
 import { formatBN } from "../utils/formatter";
 import { LEVERAGE_DECIMALS, PERCENTAGE_DECIMALS } from "./constants";
-import { EVMEvent, EVMTx, EVMEventProps } from "./eventOrTx";
-import { getContractName } from "../contracts/contractsRegister";
+import { EVMEvent, EVMEventProps, EVMTx } from "./eventOrTx";
 
 export interface EventSerialized {
   type:
@@ -46,6 +47,7 @@ export class EventParser {
     return JSON.stringify(items.map(i => i.serialize()));
   }
 
+  // eslint-disable-next-line complexity
   static deserialize(data: EventSerialized): EVMEvent {
     const params = data.content;
     switch (data.type) {
@@ -138,7 +140,7 @@ export class EventAddLiquidity extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
@@ -151,7 +153,7 @@ export class EventAddLiquidity extends EVMEvent {
 
     return `Pool ${getContractName(this.pool)}: Deposit ${formatBN(
       this.amount,
-      decimals
+      decimals,
     )} ${symbol}`;
   }
 }
@@ -176,7 +178,7 @@ export class EventRemoveLiquidity extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
@@ -190,7 +192,7 @@ export class EventRemoveLiquidity extends EVMEvent {
 
     return `Pool ${getContractName(this.pool)}: withdraw ${formatBN(
       this.amount,
-      decimals
+      decimals,
     )} ${symbol}`;
   }
 }
@@ -217,7 +219,7 @@ export class EventOpenCreditAccount extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
@@ -230,16 +232,16 @@ export class EventOpenCreditAccount extends EVMEvent {
       tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: open ${formatBN(
       this.amount,
-      decimals
+      decimals,
     )} ${symbol} x ${this.leverage.toFixed(2)} ⇒ 
     ${formatBN(
       this.amount
         .mul(Math.floor(this.leverage + LEVERAGE_DECIMALS))
         .div(LEVERAGE_DECIMALS),
-      decimals + 2
+      decimals + 2,
     )} ${symbol}`;
   }
 }
@@ -261,7 +263,7 @@ export class EventCloseCreditAccount extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
@@ -273,10 +275,10 @@ export class EventCloseCreditAccount extends EVMEvent {
       tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: was closed and got ${formatBN(
       this.amount,
-      decimals
+      decimals,
     )} ${symbol} as remaining funds`;
   }
 }
@@ -298,7 +300,7 @@ export class EventLiquidateCreditAccount extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
@@ -310,10 +312,10 @@ export class EventLiquidateCreditAccount extends EVMEvent {
       tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: was liquidated. ${formatBN(
       this.amount,
-      decimals
+      decimals,
     )} ${symbol} were paid back as remaining funds`;
   }
 }
@@ -332,7 +334,7 @@ export class EventRepayCreditAccount extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
@@ -360,7 +362,7 @@ export class EventAddCollateral extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = BigNumber.from(opts.amount);
 
@@ -373,7 +375,7 @@ export class EventAddCollateral extends EVMEvent {
       tokenData[this.addedToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: added ${formatBN(this.amount, decimals)} ${symbol} as collateral`;
   }
 }
@@ -395,7 +397,7 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
@@ -407,10 +409,10 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
       tokenData[this.underlyingToken.toLowerCase()] || {};
 
     return `Credit account ${getContractName(
-      this.creditManager
+      this.creditManager,
     )}: borrowed amount was increased for ${formatBN(
       this.amount,
-      decimals
+      decimals,
     )} ${symbol}`;
   }
 }
@@ -475,7 +477,7 @@ export class EventCMNewParameters extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
     this.underlyingToken = opts.underlyingToken;
@@ -501,14 +503,14 @@ export class EventCMNewParameters extends EVMEvent {
     if (this.minAmount !== this.prevMinAmount) {
       msg += `min amount: ${formatBN(
         this.prevMinAmount,
-        token.decimals
+        token.decimals,
       )} => ${formatBN(this.minAmount, token.decimals)} ${token.symbol}, `;
     }
 
     if (this.maxAmount !== this.prevMaxAmount) {
       msg += `max amount: ${formatBN(
         this.prevMaxAmount,
-        token.decimals
+        token.decimals,
       )} => ${formatBN(this.maxAmount, token.decimals)} ${token.symbol}, `;
     }
 
@@ -570,7 +572,7 @@ export class EventTokenAllowed extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
     this.token = opts.token;
@@ -582,7 +584,7 @@ export class EventTokenAllowed extends EVMEvent {
   toString(tokenData: Record<string, TokenData>): string {
     const token = tokenData[this.token.toLowerCase()];
     const msg = `Credit manager ${getContractName(
-      this.creditManager
+      this.creditManager,
     )} updated `;
     switch (this.status) {
       case "NewToken":
@@ -624,7 +626,7 @@ export class EventTokenForbidden extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
     this.token = opts.token;
@@ -664,7 +666,7 @@ export class EventContractAllowed extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
     this.protocol = opts.protocol;
@@ -678,11 +680,11 @@ export class EventContractAllowed extends EVMEvent {
     switch (this.status) {
       case "Connected":
         return `${msg} : ${getContractName(
-          this.protocol
+          this.protocol,
         )} was connected. Adapter at: ${this.adapter}`;
       case "AdapterUpdate":
         return `${msg} : ${getContractName(
-          this.protocol
+          this.protocol,
         )} adapter was updated. New adapter:  ${this.adapter}`;
       default:
         return "Error: EventContractAllowed";
@@ -708,7 +710,7 @@ export class EventContractForbidden extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
     this.protocol = opts.protocol;
@@ -716,7 +718,7 @@ export class EventContractForbidden extends EVMEvent {
 
   toString(): string {
     return `Credit manager ${getContractName(
-      this.creditManager
+      this.creditManager,
     )} updated: ${getContractName(this.protocol)}`;
   }
 }
@@ -748,7 +750,7 @@ export class EventNewFastCheckParameters extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
     this.chiThreshold = opts.chiThreshold;
@@ -788,7 +790,7 @@ export class EventPriceOracleUpdated extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
     this.priceOracle = opts.priceOracle;
@@ -796,9 +798,9 @@ export class EventPriceOracleUpdated extends EVMEvent {
 
   toString(): string {
     return `Credit manager ${getContractName(
-      this.creditManager
+      this.creditManager,
     )} updated: price oracle was updated. New price oracle ${getContractName(
-      this.priceOracle
+      this.priceOracle,
     )}`;
   }
 }
@@ -825,7 +827,7 @@ export class EventTransferPluginAllowed extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditManager = opts.creditManager;
     this.plugin = opts.priceOracle;
@@ -834,7 +836,7 @@ export class EventTransferPluginAllowed extends EVMEvent {
 
   toString(): string {
     return `Credit manager ${getContractName(
-      this.creditManager
+      this.creditManager,
     )} updated: transfer plugin  ${getContractName(this.plugin)} was ${
       this.state ? "allowed" : "forbidden"
     }`;
@@ -858,7 +860,7 @@ export class EventNewInterestRateModel extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.pool = opts.pool;
     this.newInterestRateModel = opts.newInterestRateModel;
@@ -866,9 +868,9 @@ export class EventNewInterestRateModel extends EVMEvent {
 
   toString(): string {
     return `Pool ${getContractName(
-      this.pool
+      this.pool,
     )} updated: interest rate model was updated. New model: ${getContractName(
-      this.newInterestRateModel
+      this.newInterestRateModel,
     )}`;
   }
 }
@@ -891,7 +893,7 @@ export class EventNewCreditManagerConnected extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.pool = opts.pool;
     this.creditManager = opts.creditManager;
@@ -899,9 +901,9 @@ export class EventNewCreditManagerConnected extends EVMEvent {
 
   toString(): string {
     return `Pool ${getContractName(
-      this.pool
+      this.pool,
     )} updated: new credit manager ${getContractName(
-      this.creditManager
+      this.creditManager,
     )} was connected`;
   }
 }
@@ -924,7 +926,7 @@ export class EventBorrowForbidden extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.pool = opts.pool;
     this.creditManager = opts.creditManager;
@@ -932,9 +934,9 @@ export class EventBorrowForbidden extends EVMEvent {
 
   toString(): string {
     return `Pool ${getContractName(
-      this.pool
+      this.pool,
     )} updated: credit manager ${getContractName(
-      this.creditManager
+      this.creditManager,
     )} was forbidden to borrow`;
   }
 }
@@ -962,7 +964,7 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
@@ -976,18 +978,18 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
 
     return this.prevLimit.isZero()
       ? `Pool ${getContractName(
-          this.pool
+          this.pool,
         )} updated: expected liquidity limit was set to ${formatBN(
           this.newLimit,
-          decimals
+          decimals,
         )} ${symbol}`
       : `Pool ${getContractName(
-          this.pool
+          this.pool,
         )} updated: expected liquidity limit was ${
           this.newLimit.gt(this.prevLimit) ? "increased" : "decreased"
         }: ${formatBN(this.prevLimit, decimals)} ${symbol} => ${formatBN(
           this.newLimit,
-          decimals
+          decimals,
         )} ${symbol}`;
   }
 }
@@ -1015,7 +1017,7 @@ export class EventNewWithdrawFee extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
@@ -1053,7 +1055,7 @@ export class EventNewPriceFeed extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.token = opts.token;
     this.priceFeed = opts.priceFeed;
@@ -1063,7 +1065,7 @@ export class EventNewPriceFeed extends EVMEvent {
     const { symbol } = tokenData[this.token.toLowerCase()] || {};
 
     return `PriceOracle: oracle for ${symbol} was updated to ${getContractName(
-      this.priceFeed
+      this.priceFeed,
     )}`;
   }
 }
@@ -1085,7 +1087,7 @@ export class EventTakeForever extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.creditAccount = opts.creditAccount;
     this.to = opts.to;
@@ -1109,7 +1111,7 @@ export class EventPaused extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.contract = opts.contract;
   }
@@ -1130,7 +1132,7 @@ export class EventUnPaused extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.contract = opts.contract;
   }
@@ -1154,7 +1156,7 @@ export class EventPausableAdminAdded extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.admin = opts.admin;
   }
@@ -1178,7 +1180,7 @@ export class EventPausableAdminRemoved extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.admin = opts.admin;
   }
@@ -1202,7 +1204,7 @@ export class EventUnPausableAdminAdded extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.admin = opts.admin;
   }
@@ -1226,7 +1228,7 @@ export class EventUnPausableAdminRemoved extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.admin = opts.admin;
   }
@@ -1248,7 +1250,7 @@ export class EventTransferOwnership extends EVMEvent {
     super({
       block: opts.block,
       txHash: opts.txHash,
-      timestamp: opts.timestamp
+      timestamp: opts.timestamp,
     });
     this.newOwner = opts.admin;
   }
