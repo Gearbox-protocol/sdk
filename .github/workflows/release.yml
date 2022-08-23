@@ -1,4 +1,4 @@
-name: Release Next
+name: Release
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   CI: true
 
 jobs:
-  release_next:
+  release:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,8 +29,6 @@ jobs:
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v3
-        with:
-          dry_run: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
