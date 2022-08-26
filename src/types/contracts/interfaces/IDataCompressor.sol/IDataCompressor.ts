@@ -41,6 +41,7 @@ export type CreditAccountDataStruct = {
   creditManager: string;
   underlying: string;
   borrowedAmountPlusInterest: BigNumberish;
+  borrowedAmountPlusInterestAndFees: BigNumberish;
   totalValue: BigNumberish;
   healthFactor: BigNumberish;
   borrowRate: BigNumberish;
@@ -65,6 +66,7 @@ export type CreditAccountDataStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
+  BigNumber,
   TokenBalanceStructOutput[],
   BigNumber,
   BigNumber,
@@ -81,6 +83,7 @@ export type CreditAccountDataStructOutput = [
   creditManager: string;
   underlying: string;
   borrowedAmountPlusInterest: BigNumber;
+  borrowedAmountPlusInterestAndFees: BigNumber;
   totalValue: BigNumber;
   healthFactor: BigNumber;
   borrowRate: BigNumber;

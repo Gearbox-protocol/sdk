@@ -3,3 +3,4 @@
 /* eslint-disable */
 export type { IACL } from "./IACL";
 export type { IACLEvents } from "./IACLEvents";
+export type { IACLExceptions } from "./IACLExceptions";

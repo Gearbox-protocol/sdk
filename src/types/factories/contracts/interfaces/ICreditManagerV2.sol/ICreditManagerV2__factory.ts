@@ -17,7 +17,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "AllowanceFailedExpcetion",
+    name: "AllowanceFailedException",
     type: "error",
   },
   {
@@ -47,7 +47,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "TargetContractNotAllowedExpcetion",
+    name: "TargetContractNotAllowedException",
     type: "error",
   },
   {
@@ -263,6 +263,30 @@ const _abi = [
         internalType: "uint256",
         name: "borrowedAmountWithInterest",
         type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "borrowedAmountWithInterestAndFees",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "canLiquidateWhilePaused",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",

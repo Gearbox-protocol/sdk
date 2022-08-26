@@ -262,6 +262,30 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "int128",
+        name: "i",
+        type: "int128",
+      },
+    ],
+    name: "calc_add_one_coin",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
         name: "_burn_amount",
         type: "uint256",
       },

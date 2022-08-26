@@ -105,19 +105,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "crv",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "currentRewards",
     outputs: [
       {
@@ -145,19 +132,6 @@ const _abi = [
   {
     inputs: [],
     name: "cvx",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "cvxLPtoken",
     outputs: [
       {
         internalType: "address",

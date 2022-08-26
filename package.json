@@ -14,6 +14,7 @@
     "build": "tsc",
     "dev": "tsc -w",
     "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc && yarn publish",
+    "copyTypes": "node ./scripts/copyTypes.js",
     "prepush": "yarn lint --max-warnings=0",
     "prepare": "husky install",
     "prettier": "prettier --write .",
@@ -29,8 +30,10 @@
   "devDependencies": {
     "@gearbox-protocol/eslint-config": "^1.4.1",
     "@gearbox-protocol/prettier-config": "^1.4.1",
+    "@typechain/ethers-v5": "10.0.0",
     "@types/jest": "^28.1.7",
     "@types/node": "^18.7.6",
+    "@types/rimraf": "^3.0.2",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
     "eslint": "^8.22.0",
@@ -39,16 +42,18 @@
     "jest": "^28.1.3",
     "lint-staged": ">=10",
     "prettier": "^2.7.1",
+    "rimraf": "^3.0.2",
     "ts-node": "^10.9.1",
     "tslog": "^3.3.3",
+    "typechain": "^8.1.0",
     "typescript": "^4.7.4"
   },
   "prettier": "@gearbox-protocol/prettier-config",
   "lint-staged": {
-    "*.{ts,js}": [
+    "*.{ts}": [
       "eslint --fix",
       "prettier --write"
     ],
-    "*.{sol,json,md}": "prettier --write"
+    "*.{json,md}": "prettier --write"
   }
 }

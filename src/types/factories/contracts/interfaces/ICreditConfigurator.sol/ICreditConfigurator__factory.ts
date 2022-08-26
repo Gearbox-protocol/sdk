@@ -159,6 +159,32 @@ const _abi = [
     inputs: [
       {
         indexed: false,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "EmergencyLiquidatorAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "EmergencyLiquidatorRemoved",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
         internalType: "uint40",
         name: "",
         type: "uint40",
@@ -383,32 +409,13 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-    ],
+    inputs: [],
     name: "allowedContracts",
     outputs: [
       {
-        internalType: "address",
+        internalType: "address[]",
         name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "allowedContractsCount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
+        type: "address[]",
       },
     ],
     stateMutability: "view",

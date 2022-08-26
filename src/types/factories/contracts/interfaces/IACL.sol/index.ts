@@ -3,3 +3,4 @@
 /* eslint-disable */
 export { IACL__factory } from "./IACL__factory";
 export { IACLEvents__factory } from "./IACLEvents__factory";
+export { IACLExceptions__factory } from "./IACLExceptions__factory";

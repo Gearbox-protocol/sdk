@@ -11,6 +11,28 @@ import type {
 
 const _abi = [
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+    ],
+    name: "AddressNotPausableAdminException",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+    ],
+    name: "AddressNotUnpausableAdminException",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {

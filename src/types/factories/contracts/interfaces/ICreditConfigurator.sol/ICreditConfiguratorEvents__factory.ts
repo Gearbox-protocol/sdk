@@ -99,6 +99,32 @@ const _abi = [
     inputs: [
       {
         indexed: false,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "EmergencyLiquidatorAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "EmergencyLiquidatorRemoved",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
         internalType: "uint40",
         name: "",
         type: "uint40",

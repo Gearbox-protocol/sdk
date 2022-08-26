@@ -31,8 +31,7 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     "addCollateralToken(address,uint16)": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "allowContract(address,address)": FunctionFragment;
-    "allowedContracts(uint256)": FunctionFragment;
-    "allowedContractsCount()": FunctionFragment;
+    "allowedContracts()": FunctionFragment;
     "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "forbidContract(address)": FunctionFragment;
@@ -46,7 +45,6 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
       | "addressProvider"
       | "allowContract"
       | "allowedContracts"
-      | "allowedContractsCount"
       | "creditFacade"
       | "creditManager"
       | "forbidContract"
@@ -68,10 +66,6 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "allowedContracts",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "allowedContractsCount",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -109,10 +103,6 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "allowedContractsCount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "creditFacade",
     data: BytesLike
   ): Result;
@@ -134,6 +124,8 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     "CreditConfiguratorUpgraded(address)": EventFragment;
     "CreditFacadeUpgraded(address)": EventFragment;
     "DegenModeUpdated(bool)": EventFragment;
+    "EmergencyLiquidatorAdded(address)": EventFragment;
+    "EmergencyLiquidatorRemoved(address)": EventFragment;
     "ExpirationDateUpdated(uint40)": EventFragment;
     "FeesUpdated(uint16,uint16,uint16,uint16,uint16)": EventFragment;
     "IncreaseDebtModeUpdated(bool)": EventFragment;
@@ -153,6 +145,8 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "CreditConfiguratorUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CreditFacadeUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DegenModeUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ExpirationDateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeesUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseDebtModeUpdated"): EventFragment;
@@ -233,6 +227,28 @@ export type DegenModeUpdatedEvent = TypedEvent<
 
 export type DegenModeUpdatedEventFilter =
   TypedEventFilter<DegenModeUpdatedEvent>;
+
+export interface EmergencyLiquidatorAddedEventObject {
+  arg0: string;
+}
+export type EmergencyLiquidatorAddedEvent = TypedEvent<
+  [string],
+  EmergencyLiquidatorAddedEventObject
+>;
+
+export type EmergencyLiquidatorAddedEventFilter =
+  TypedEventFilter<EmergencyLiquidatorAddedEvent>;
+
+export interface EmergencyLiquidatorRemovedEventObject {
+  arg0: string;
+}
+export type EmergencyLiquidatorRemovedEvent = TypedEvent<
+  [string],
+  EmergencyLiquidatorRemovedEventObject
+>;
+
+export type EmergencyLiquidatorRemovedEventFilter =
+  TypedEventFilter<EmergencyLiquidatorRemovedEvent>;
 
 export interface ExpirationDateUpdatedEventObject {
   arg0: number;
@@ -395,12 +411,7 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    allowedContracts(
-      i: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    allowedContractsCount(overrides?: CallOverrides): Promise<[BigNumber]>;
+    allowedContracts(overrides?: CallOverrides): Promise<[string[]]>;
 
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
 
@@ -430,9 +441,7 @@ export interface ICreditConfigurator extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  allowedContracts(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
+  allowedContracts(overrides?: CallOverrides): Promise<string[]>;
 
   creditFacade(overrides?: CallOverrides): Promise<string>;
 
@@ -462,12 +471,7 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    allowedContracts(
-      i: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
+    allowedContracts(overrides?: CallOverrides): Promise<string[]>;
 
     creditFacade(overrides?: CallOverrides): Promise<string>;
 
@@ -517,6 +521,18 @@ export interface ICreditConfigurator extends BaseContract {
 
     "DegenModeUpdated(bool)"(arg0?: null): DegenModeUpdatedEventFilter;
     DegenModeUpdated(arg0?: null): DegenModeUpdatedEventFilter;
+
+    "EmergencyLiquidatorAdded(address)"(
+      arg0?: null
+    ): EmergencyLiquidatorAddedEventFilter;
+    EmergencyLiquidatorAdded(arg0?: null): EmergencyLiquidatorAddedEventFilter;
+
+    "EmergencyLiquidatorRemoved(address)"(
+      arg0?: null
+    ): EmergencyLiquidatorRemovedEventFilter;
+    EmergencyLiquidatorRemoved(
+      arg0?: null
+    ): EmergencyLiquidatorRemovedEventFilter;
 
     "ExpirationDateUpdated(uint40)"(
       arg0?: null
@@ -605,12 +621,7 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    allowedContracts(
-      i: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    allowedContractsCount(overrides?: CallOverrides): Promise<BigNumber>;
+    allowedContracts(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -641,14 +652,7 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    allowedContracts(
-      i: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    allowedContractsCount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    allowedContracts(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
