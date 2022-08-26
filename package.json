@@ -28,6 +28,8 @@
     "moment": "^2.29.4"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
     "@gearbox-protocol/eslint-config": "^1.4.1",
     "@gearbox-protocol/prettier-config": "^1.4.1",
     "@typechain/ethers-v5": "10.0.0",
