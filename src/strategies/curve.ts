@@ -10,10 +10,10 @@ import { ADDRESS_0X0, NetworkType } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
 import { tokenDataByNetwork } from "../tokens/token";
 import {
-  CurveV1Adapter2Assets__factory,
-  CurveV1Adapter3Assets__factory,
-  CurveV1Adapter4Assets__factory,
-  CurveV1AdapterBase__factory,
+  ICurvePool2Assets__factory,
+  ICurvePool3Assets__factory,
+  ICurvePool4Assets__factory,
+  ICurveV1Adapter__factory,
 } from "../types";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { UniswapV2Multicaller } from "./uniswapV2";
@@ -25,7 +25,7 @@ export class CurveCalls {
     dx: BigNumberish,
     min_dy: BigNumberish,
   ) {
-    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+    return ICurveV1Adapter__factory.createInterface().encodeFunctionData(
       "exchange",
       [i, j, dx, min_dy],
     );
@@ -36,7 +36,7 @@ export class CurveCalls {
     j: BigNumberish,
     rateMinRAY: BigNumberish,
   ) {
-    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+    return ICurveV1Adapter__factory.createInterface().encodeFunctionData(
       "exchange_all",
       [i, j, rateMinRAY],
     );
@@ -48,7 +48,7 @@ export class CurveCalls {
     dx: BigNumberish,
     min_dy: BigNumberish,
   ) {
-    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+    return ICurveV1Adapter__factory.createInterface().encodeFunctionData(
       "exchange_underlying",
       [i, j, dx, min_dy],
     );
@@ -59,7 +59,7 @@ export class CurveCalls {
     j: BigNumberish,
     rateMinRAY: BigNumberish,
   ) {
-    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+    return ICurveV1Adapter__factory.createInterface().encodeFunctionData(
       "exchange_all_underlying",
       [i, j, rateMinRAY],
     );
@@ -70,7 +70,7 @@ export class CurveCalls {
     i: BigNumberish,
     minAmount: BigNumberish,
   ) {
-    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+    return ICurveV1Adapter__factory.createInterface().encodeFunctionData(
       "add_liquidity_one_coin",
       [amount, i, minAmount],
     );
@@ -80,7 +80,7 @@ export class CurveCalls {
     i: BigNumberish,
     rateMinRAY: BigNumberish,
   ) {
-    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+    return ICurveV1Adapter__factory.createInterface().encodeFunctionData(
       "add_all_liquidity_one_coin",
       [i, rateMinRAY],
     );
@@ -91,7 +91,7 @@ export class CurveCalls {
     i: BigNumberish,
     min_amount: BigNumberish,
   ) {
-    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+    return ICurveV1Adapter__factory.createInterface().encodeFunctionData(
       "remove_liquidity_one_coin",
       [token_amount, i, min_amount],
     );
@@ -101,7 +101,7 @@ export class CurveCalls {
     i: BigNumberish,
     minRateRAY: BigNumberish,
   ) {
-    return CurveV1AdapterBase__factory.createInterface().encodeFunctionData(
+    return ICurveV1Adapter__factory.createInterface().encodeFunctionData(
       "remove_all_liquidity_one_coin",
       [i, minRateRAY],
     );
@@ -116,17 +116,17 @@ export class CurveCalls {
   ): string {
     switch (amounts.length) {
       case 2:
-        return CurveV1Adapter2Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool2Assets__factory.createInterface().encodeFunctionData(
           "add_liquidity",
           [amounts, min_mint_amount],
         );
       case 3:
-        return CurveV1Adapter3Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool3Assets__factory.createInterface().encodeFunctionData(
           "add_liquidity",
           [amounts, min_mint_amount],
         );
       case 4:
-        return CurveV1Adapter4Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool4Assets__factory.createInterface().encodeFunctionData(
           "add_liquidity",
           [amounts, min_mint_amount],
         );
@@ -144,17 +144,17 @@ export class CurveCalls {
   ) {
     switch (min_amounts.length) {
       case 2:
-        return CurveV1Adapter2Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool2Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity",
           [amount, min_amounts],
         );
       case 3:
-        return CurveV1Adapter3Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool3Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity",
           [amount, min_amounts],
         );
       case 4:
-        return CurveV1Adapter4Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool4Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity",
           [amount, min_amounts],
         );
@@ -172,17 +172,17 @@ export class CurveCalls {
   ) {
     switch (amounts.length) {
       case 2:
-        return CurveV1Adapter2Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool2Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity_imbalance",
           [amounts, max_burn_amount],
         );
       case 3:
-        return CurveV1Adapter3Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool3Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity_imbalance",
           [amounts, max_burn_amount],
         );
       case 4:
-        return CurveV1Adapter4Assets__factory.createInterface().encodeFunctionData(
+        return ICurvePool4Assets__factory.createInterface().encodeFunctionData(
           "remove_liquidity_imbalance",
           [amounts, max_burn_amount],
         );

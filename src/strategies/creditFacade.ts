@@ -37,8 +37,8 @@ export class CreditFacadeCalls {
     minBalance: BigNumberish,
   ) {
     return ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
-      "revertIfBalanceLessThan",
-      [token, minBalance],
+      "revertIfGetLessThan",
+      [[{ token, balance: minBalance }]],
     );
   }
 

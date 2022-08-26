@@ -11,14 +11,14 @@ import { CreditManagerData } from "../core/creditManager";
 import { CurveLPTokenData } from "../tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import { TokenType } from "../tokens/tokenType";
-import { YearnV2Adapter__factory } from "../types";
+import { IYVault__factory } from "../types";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { CurveStrategies } from "./curve";
 import { UniswapV2Multicaller } from "./uniswapV2";
 
 export class YearnV2Calls {
   public static deposit(amount?: BigNumberish, recipient?: string): string {
-    const contractInterface = YearnV2Adapter__factory.createInterface();
+    const contractInterface = IYVault__factory.createInterface();
     if (amount && recipient) {
       return contractInterface.encodeFunctionData("deposit(uint256,address)", [
         amount,
@@ -36,7 +36,7 @@ export class YearnV2Calls {
     recipient?: string,
     maxLoss?: BigNumberish,
   ): string {
-    const contractInterface = YearnV2Adapter__factory.createInterface();
+    const contractInterface = IYVault__factory.createInterface();
     if (maxShares && recipient && maxLoss) {
       return contractInterface.encodeFunctionData(
         "withdraw(uint256,address,uint256)",

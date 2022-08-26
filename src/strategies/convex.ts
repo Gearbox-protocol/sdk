@@ -12,9 +12,9 @@ import { ConvexPhantomTokenData } from "../tokens/convex";
 import { CurveLPTokenData } from "../tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import {
-  ConvexV1BaseRewardPoolAdapter__factory,
-  ConvexV1BoosterAdapter__factory,
-  ConvexV1ClaimZapAdapter__factory,
+  IBooster__factory,
+  IClaimZap__factory,
+  IConvexV1BaseRewardPoolAdapter__factory,
 } from "../types";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { CurveStrategies } from "./curve";
@@ -26,28 +26,29 @@ export class ConvexBoosterCalls {
     amount: BigNumberish,
     stake: boolean,
   ) {
-    return ConvexV1BoosterAdapter__factory.createInterface().encodeFunctionData(
-      "deposit",
-      [pid, amount, stake],
-    );
+    return IBooster__factory.createInterface().encodeFunctionData("deposit", [
+      pid,
+      amount,
+      stake,
+    ]);
   }
 
   public static depositAll(pid: BigNumberish, stake: boolean) {
-    return ConvexV1BoosterAdapter__factory.createInterface().encodeFunctionData(
+    return IBooster__factory.createInterface().encodeFunctionData(
       "depositAll",
       [pid, stake],
     );
   }
 
   public static withdraw(pid: BigNumberish, amount: BigNumberish) {
-    return ConvexV1BoosterAdapter__factory.createInterface().encodeFunctionData(
-      "withdraw",
-      [pid, amount],
-    );
+    return IBooster__factory.createInterface().encodeFunctionData("withdraw", [
+      pid,
+      amount,
+    ]);
   }
 
   public static withdrawAll(pid: BigNumberish) {
-    return ConvexV1BoosterAdapter__factory.createInterface().encodeFunctionData(
+    return IBooster__factory.createInterface().encodeFunctionData(
       "withdrawAll",
       [pid],
     );
@@ -56,41 +57,41 @@ export class ConvexBoosterCalls {
 
 export class ConvexPoolCalls {
   public static stake(amount: BigNumberish) {
-    return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
+    return IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "stake",
       [amount],
     );
   }
 
   public static stakeAll() {
-    return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
+    return IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "stakeAll",
     );
   }
 
   public static withdraw(amount: BigNumberish, claim: boolean) {
-    return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
+    return IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "withdraw",
       [amount, claim],
     );
   }
 
   public static withdrawAll(claim: boolean) {
-    return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
+    return IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "withdrawAll",
       [claim],
     );
   }
 
   public static withdrawAndUnwrap(amount: BigNumberish, claim: boolean) {
-    return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
+    return IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "withdrawAndUnwrap",
       [amount, claim],
     );
   }
 
   public static withdrawAllAndUnwrap(claim: boolean) {
-    return ConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
+    return IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
       "withdrawAllAndUnwrap",
       [claim],
     );
@@ -109,7 +110,7 @@ export class ConvexClaimZapCalls {
     spendCvxAmount: BigNumberish,
     options: BigNumberish,
   ) {
-    return ConvexV1ClaimZapAdapter__factory.createInterface().encodeFunctionData(
+    return IClaimZap__factory.createInterface().encodeFunctionData(
       "claimRewards",
       [
         rewardContracts,

@@ -16,12 +16,12 @@ import { ConvexPhantomTokenData } from "../tokens/convex";
 import { CurveLPTokenData } from "../tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import {
-  CurveV1AdapterStETH,
-  CurveV1AdapterStETH__factory,
   IBaseRewardPool,
   IBaseRewardPool__factory,
   IConvexToken,
   IConvexToken__factory,
+  ICurvePool,
+  ICurvePool__factory,
 } from "../types";
 import { MCall, multicall } from "../utils/multicall";
 import { AwaitedRes } from "../utils/types";
@@ -132,7 +132,7 @@ function getCVXMintAmount(crvAmount: BigNumber, cvxSupply: BigNumber) {
 
 type IBaseRewardPoolInterface = IBaseRewardPool["interface"];
 type IConvexTokenInterface = IConvexToken["interface"];
-type CurveV1AdapterStETHInterface = CurveV1AdapterStETH["interface"];
+type CurveV1AdapterStETHInterface = ICurvePool["interface"];
 
 interface GetPoolDataProps {
   basePoolAddress: string;
@@ -168,7 +168,7 @@ async function getPoolData({
     },
     {
       address: swapPoolAddress,
-      interface: CurveV1AdapterStETH__factory.createInterface(),
+      interface: ICurvePool__factory.createInterface(),
       method: "get_virtual_price()",
     },
     {
@@ -189,7 +189,7 @@ async function getPoolData({
     [
       AwaitedRes<IBaseRewardPool["rewardRate"]>,
       AwaitedRes<IBaseRewardPool["totalSupply"]>,
-      AwaitedRes<CurveV1AdapterStETH["get_virtual_price"]>,
+      AwaitedRes<ICurvePool["get_virtual_price"]>,
       AwaitedRes<IConvexToken["totalSupply"]>,
       ...Array<AwaitedRes<IBaseRewardPool["rewardRate"]>>,
     ]
