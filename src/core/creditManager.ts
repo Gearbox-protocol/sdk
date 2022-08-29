@@ -58,6 +58,12 @@ export class CreditManagerData {
 
   public readonly forbiddenTokenMask: BigNumber; // V2 only: mask which forbids some particular tokens
 
+  public readonly feeInterest: number;
+  public readonly feeLiquidation: number;
+  public readonly liquidationDiscount: number;
+  public readonly feeLiquidationExpired: number;
+  public readonly liquidationDiscountExpired: number;
+
   public readonly isPaused: boolean = false;
 
   constructor(payload: CreditManagerDataPayload) {
@@ -110,6 +116,14 @@ export class CreditManagerData {
     this.degenNFT = (payload.degenNFT || "").toLowerCase();
     this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden || false;
     this.forbiddenTokenMask = BigNumber.from(payload.forbiddenTokenMask || 0);
+
+    this.feeInterest = BigNumber.from(payload.feeInterest).toNumber();
+    this.feeLiquidation = BigNumber.from(payload.feeInterest).toNumber();
+    this.liquidationDiscount = BigNumber.from(payload.feeInterest).toNumber();
+    this.feeLiquidationExpired = BigNumber.from(payload.feeInterest).toNumber();
+    this.liquidationDiscountExpired = BigNumber.from(
+      payload.feeInterest,
+    ).toNumber();
   }
 
   getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager {

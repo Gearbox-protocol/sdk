@@ -22,4 +22,9 @@ export interface CreditManagerStatPayload extends CreditManagerDataPayload {
   totalRepaid?: BigNumberish;
   totalProfit?: BigNumberish;
   totalLosses?: BigNumberish;
+  feeInterest: BigNumberish;
+  feeLiquidation: BigNumberish;
+  liquidationDiscount: BigNumberish;
+  feeLiquidationExpired: BigNumberish;
+  liquidationDiscountExpired: BigNumberish;
 }

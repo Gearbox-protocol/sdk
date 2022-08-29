@@ -12,10 +12,8 @@ import {
 } from "../tokens/token";
 import { TokenType } from "../tokens/tokenType";
 import { YearnLPToken } from "../tokens/yearn";
-import { ISwapPathFinder__factory } from "../types";
 import { detectNetwork } from "../utils/network";
 import { PartialRecord } from "../utils/types";
-import { pathFindersByNetwork } from "./contracts";
 import { ConvexLPPathFinder } from "./convexLP";
 import { CurvePathFinder } from "./curveLP";
 import { priority } from "./priority";
@@ -113,13 +111,13 @@ export class Path {
     });
 
     const lpPaths = await initialPath.withdrawTokens();
-    const pathFinder = ISwapPathFinder__factory.connect(
-      pathFindersByNetwork[networkType].PATH_FINDER,
-      provider,
-    );
+    // const pathFinder = ISwapPathFinder__factory.connect(
+    //   pathFindersByNetwork[networkType].PATH_FINDER,
+    //   provider,
+    // );
 
     console.debug(lpPaths);
-    console.debug(pathFinder);
+    // console.debug(pathFinder);
     // const bestPath = await pathFinder.bestPath();
   }
 
