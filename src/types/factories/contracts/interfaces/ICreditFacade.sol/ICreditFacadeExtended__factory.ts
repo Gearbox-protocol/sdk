@@ -43,7 +43,7 @@ const _abi = [
         type: "tuple[]",
       },
     ],
-    name: "revertIfGetLessThan",
+    name: "revertIfReceivedLessThan",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

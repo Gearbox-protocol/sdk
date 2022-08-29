@@ -29,32 +29,72 @@ import type {
 export interface ICreditConfiguratorInterface extends utils.Interface {
   functions: {
     "addCollateralToken(address,uint16)": FunctionFragment;
+    "addContractToUpgradeable(address)": FunctionFragment;
+    "addEmergencyLiquidator(address)": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "allowContract(address,address)": FunctionFragment;
+    "allowToken(address)": FunctionFragment;
     "allowedContracts()": FunctionFragment;
     "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "forbidContract(address)": FunctionFragment;
+    "forbidToken(address)": FunctionFragment;
+    "removeContractFromUpgradeable(address)": FunctionFragment;
+    "removeEmergencyLiquidator(address)": FunctionFragment;
+    "setExpirationDate(uint40)": FunctionFragment;
+    "setFees(uint16,uint16,uint16,uint16,uint16)": FunctionFragment;
+    "setIncreaseDebtForbidden(bool)": FunctionFragment;
+    "setLimitPerBlock(uint128)": FunctionFragment;
+    "setLimits(uint128,uint128)": FunctionFragment;
+    "setLiquidationThreshold(address,uint16)": FunctionFragment;
+    "setMaxEnabledTokens(uint8)": FunctionFragment;
     "underlying()": FunctionFragment;
+    "upgradeCreditConfigurator(address)": FunctionFragment;
+    "upgradeCreditFacade(address,bool)": FunctionFragment;
+    "upgradePriceOracle()": FunctionFragment;
     "version()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "addCollateralToken"
+      | "addContractToUpgradeable"
+      | "addEmergencyLiquidator"
       | "addressProvider"
       | "allowContract"
+      | "allowToken"
       | "allowedContracts"
       | "creditFacade"
       | "creditManager"
       | "forbidContract"
+      | "forbidToken"
+      | "removeContractFromUpgradeable"
+      | "removeEmergencyLiquidator"
+      | "setExpirationDate"
+      | "setFees"
+      | "setIncreaseDebtForbidden"
+      | "setLimitPerBlock"
+      | "setLimits"
+      | "setLiquidationThreshold"
+      | "setMaxEnabledTokens"
       | "underlying"
+      | "upgradeCreditConfigurator"
+      | "upgradeCreditFacade"
+      | "upgradePriceOracle"
       | "version"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addCollateralToken",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addContractToUpgradeable",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addEmergencyLiquidator",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
@@ -64,6 +104,7 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     functionFragment: "allowContract",
     values: [string, string]
   ): string;
+  encodeFunctionData(functionFragment: "allowToken", values: [string]): string;
   encodeFunctionData(
     functionFragment: "allowedContracts",
     values?: undefined
@@ -80,14 +121,77 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     functionFragment: "forbidContract",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "forbidToken", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "removeContractFromUpgradeable",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "removeEmergencyLiquidator",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setExpirationDate",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setFees",
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setIncreaseDebtForbidden",
+    values: [boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setLimitPerBlock",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setLimits",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setLiquidationThreshold",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMaxEnabledTokens",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "underlying",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "upgradeCreditConfigurator",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "upgradeCreditFacade",
+    values: [string, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "upgradePriceOracle",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "addCollateralToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addContractToUpgradeable",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addEmergencyLiquidator",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -98,6 +202,7 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     functionFragment: "allowContract",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "allowToken", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "allowedContracts",
     data: BytesLike
@@ -114,7 +219,53 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     functionFragment: "forbidContract",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "forbidToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "removeContractFromUpgradeable",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "removeEmergencyLiquidator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setExpirationDate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "setFees", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setIncreaseDebtForbidden",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setLimitPerBlock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "setLimits", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setLiquidationThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxEnabledTokens",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradeCreditConfigurator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradeCreditFacade",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradePriceOracle",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
@@ -123,12 +274,11 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     "ContractForbidden(address)": EventFragment;
     "CreditConfiguratorUpgraded(address)": EventFragment;
     "CreditFacadeUpgraded(address)": EventFragment;
-    "DegenModeUpdated(bool)": EventFragment;
     "EmergencyLiquidatorAdded(address)": EventFragment;
     "EmergencyLiquidatorRemoved(address)": EventFragment;
     "ExpirationDateUpdated(uint40)": EventFragment;
     "FeesUpdated(uint16,uint16,uint16,uint16,uint16)": EventFragment;
-    "IncreaseDebtModeUpdated(bool)": EventFragment;
+    "IncreaseDebtForbiddenModeChanged(bool)": EventFragment;
     "LimitPerBlockUpdated(uint128)": EventFragment;
     "LimitsUpdated(uint256,uint256)": EventFragment;
     "MaxEnabledTokensUpdated(uint8)": EventFragment;
@@ -144,12 +294,13 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CreditConfiguratorUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CreditFacadeUpgraded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "DegenModeUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ExpirationDateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeesUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "IncreaseDebtModeUpdated"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "IncreaseDebtForbiddenModeChanged"
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LimitPerBlockUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LimitsUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MaxEnabledTokensUpdated"): EventFragment;
@@ -217,17 +368,6 @@ export type CreditFacadeUpgradedEvent = TypedEvent<
 export type CreditFacadeUpgradedEventFilter =
   TypedEventFilter<CreditFacadeUpgradedEvent>;
 
-export interface DegenModeUpdatedEventObject {
-  arg0: boolean;
-}
-export type DegenModeUpdatedEvent = TypedEvent<
-  [boolean],
-  DegenModeUpdatedEventObject
->;
-
-export type DegenModeUpdatedEventFilter =
-  TypedEventFilter<DegenModeUpdatedEvent>;
-
 export interface EmergencyLiquidatorAddedEventObject {
   arg0: string;
 }
@@ -275,16 +415,16 @@ export type FeesUpdatedEvent = TypedEvent<
 
 export type FeesUpdatedEventFilter = TypedEventFilter<FeesUpdatedEvent>;
 
-export interface IncreaseDebtModeUpdatedEventObject {
+export interface IncreaseDebtForbiddenModeChangedEventObject {
   arg0: boolean;
 }
-export type IncreaseDebtModeUpdatedEvent = TypedEvent<
+export type IncreaseDebtForbiddenModeChangedEvent = TypedEvent<
   [boolean],
-  IncreaseDebtModeUpdatedEventObject
+  IncreaseDebtForbiddenModeChangedEventObject
 >;
 
-export type IncreaseDebtModeUpdatedEventFilter =
-  TypedEventFilter<IncreaseDebtModeUpdatedEvent>;
+export type IncreaseDebtForbiddenModeChangedEventFilter =
+  TypedEventFilter<IncreaseDebtForbiddenModeChangedEvent>;
 
 export interface LimitPerBlockUpdatedEventObject {
   arg0: BigNumber;
@@ -403,11 +543,26 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    addContractToUpgradeable(
+      addr: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    addEmergencyLiquidator(
+      liquidator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
 
     allowContract(
       targetContract: string,
       adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    allowToken(
+      token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -422,7 +577,78 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    forbidToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    removeContractFromUpgradeable(
+      addr: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    removeEmergencyLiquidator(
+      liquidator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setExpirationDate(
+      newExpirationDate: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setFees(
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationPremium: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationPremiumExpired: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setIncreaseDebtForbidden(
+      _mode: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setLimitPerBlock(
+      newLimit: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setLimits(
+      _minBorrowedAmount: BigNumberish,
+      _maxBorrowedAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setLiquidationThreshold(
+      token: string,
+      liquidationThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setMaxEnabledTokens(
+      maxEnabledTokens: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     underlying(overrides?: CallOverrides): Promise<[string]>;
+
+    upgradeCreditConfigurator(
+      _creditConfigurator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    upgradeCreditFacade(
+      _creditFacade: string,
+      migrateParams: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    upgradePriceOracle(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
@@ -433,11 +659,26 @@ export interface ICreditConfigurator extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  addContractToUpgradeable(
+    addr: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  addEmergencyLiquidator(
+    liquidator: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   addressProvider(overrides?: CallOverrides): Promise<string>;
 
   allowContract(
     targetContract: string,
     adapter: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  allowToken(
+    token: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -452,7 +693,78 @@ export interface ICreditConfigurator extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  forbidToken(
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  removeContractFromUpgradeable(
+    addr: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  removeEmergencyLiquidator(
+    liquidator: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setExpirationDate(
+    newExpirationDate: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setFees(
+    _feeInterest: BigNumberish,
+    _feeLiquidation: BigNumberish,
+    _liquidationPremium: BigNumberish,
+    _feeLiquidationExpired: BigNumberish,
+    _liquidationPremiumExpired: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setIncreaseDebtForbidden(
+    _mode: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setLimitPerBlock(
+    newLimit: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setLimits(
+    _minBorrowedAmount: BigNumberish,
+    _maxBorrowedAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setLiquidationThreshold(
+    token: string,
+    liquidationThreshold: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setMaxEnabledTokens(
+    maxEnabledTokens: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   underlying(overrides?: CallOverrides): Promise<string>;
+
+  upgradeCreditConfigurator(
+    _creditConfigurator: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  upgradeCreditFacade(
+    _creditFacade: string,
+    migrateParams: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  upgradePriceOracle(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -463,6 +775,16 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    addContractToUpgradeable(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addEmergencyLiquidator(
+      liquidator: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     addressProvider(overrides?: CallOverrides): Promise<string>;
 
     allowContract(
@@ -470,6 +792,8 @@ export interface ICreditConfigurator extends BaseContract {
       adapter: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    allowToken(token: string, overrides?: CallOverrides): Promise<void>;
 
     allowedContracts(overrides?: CallOverrides): Promise<string[]>;
 
@@ -482,7 +806,73 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    forbidToken(token: string, overrides?: CallOverrides): Promise<void>;
+
+    removeContractFromUpgradeable(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    removeEmergencyLiquidator(
+      liquidator: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setExpirationDate(
+      newExpirationDate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setFees(
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationPremium: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationPremiumExpired: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setIncreaseDebtForbidden(
+      _mode: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setLimitPerBlock(
+      newLimit: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setLimits(
+      _minBorrowedAmount: BigNumberish,
+      _maxBorrowedAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setLiquidationThreshold(
+      token: string,
+      liquidationThreshold: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMaxEnabledTokens(
+      maxEnabledTokens: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     underlying(overrides?: CallOverrides): Promise<string>;
+
+    upgradeCreditConfigurator(
+      _creditConfigurator: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    upgradeCreditFacade(
+      _creditFacade: string,
+      migrateParams: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    upgradePriceOracle(overrides?: CallOverrides): Promise<void>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -519,9 +909,6 @@ export interface ICreditConfigurator extends BaseContract {
       newCreditFacade?: string | null
     ): CreditFacadeUpgradedEventFilter;
 
-    "DegenModeUpdated(bool)"(arg0?: null): DegenModeUpdatedEventFilter;
-    DegenModeUpdated(arg0?: null): DegenModeUpdatedEventFilter;
-
     "EmergencyLiquidatorAdded(address)"(
       arg0?: null
     ): EmergencyLiquidatorAddedEventFilter;
@@ -554,10 +941,12 @@ export interface ICreditConfigurator extends BaseContract {
       liquidationPremiumExpired?: null
     ): FeesUpdatedEventFilter;
 
-    "IncreaseDebtModeUpdated(bool)"(
+    "IncreaseDebtForbiddenModeChanged(bool)"(
       arg0?: null
-    ): IncreaseDebtModeUpdatedEventFilter;
-    IncreaseDebtModeUpdated(arg0?: null): IncreaseDebtModeUpdatedEventFilter;
+    ): IncreaseDebtForbiddenModeChangedEventFilter;
+    IncreaseDebtForbiddenModeChanged(
+      arg0?: null
+    ): IncreaseDebtForbiddenModeChangedEventFilter;
 
     "LimitPerBlockUpdated(uint128)"(
       arg0?: null
@@ -613,11 +1002,26 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    addContractToUpgradeable(
+      addr: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    addEmergencyLiquidator(
+      liquidator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowContract(
       targetContract: string,
       adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    allowToken(
+      token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -632,7 +1036,78 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    forbidToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    removeContractFromUpgradeable(
+      addr: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    removeEmergencyLiquidator(
+      liquidator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setExpirationDate(
+      newExpirationDate: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setFees(
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationPremium: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationPremiumExpired: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setIncreaseDebtForbidden(
+      _mode: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setLimitPerBlock(
+      newLimit: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setLimits(
+      _minBorrowedAmount: BigNumberish,
+      _maxBorrowedAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setLiquidationThreshold(
+      token: string,
+      liquidationThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setMaxEnabledTokens(
+      maxEnabledTokens: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
+
+    upgradeCreditConfigurator(
+      _creditConfigurator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    upgradeCreditFacade(
+      _creditFacade: string,
+      migrateParams: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    upgradePriceOracle(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -644,11 +1119,26 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    addContractToUpgradeable(
+      addr: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addEmergencyLiquidator(
+      liquidator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowContract(
       targetContract: string,
       adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    allowToken(
+      token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -663,7 +1153,78 @@ export interface ICreditConfigurator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    forbidToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removeContractFromUpgradeable(
+      addr: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removeEmergencyLiquidator(
+      liquidator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setExpirationDate(
+      newExpirationDate: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setFees(
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationPremium: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationPremiumExpired: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setIncreaseDebtForbidden(
+      _mode: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setLimitPerBlock(
+      newLimit: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setLimits(
+      _minBorrowedAmount: BigNumberish,
+      _maxBorrowedAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setLiquidationThreshold(
+      token: string,
+      liquidationThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMaxEnabledTokens(
+      maxEnabledTokens: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    upgradeCreditConfigurator(
+      _creditConfigurator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    upgradeCreditFacade(
+      _creditFacade: string,
+      migrateParams: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    upgradePriceOracle(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

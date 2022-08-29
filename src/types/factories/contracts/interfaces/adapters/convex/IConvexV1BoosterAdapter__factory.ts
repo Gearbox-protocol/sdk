@@ -49,19 +49,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "booster",
-    outputs: [
-      {
-        internalType: "contract IBooster",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "creditFacade",
     outputs: [
       {

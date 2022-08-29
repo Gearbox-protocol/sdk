@@ -29,6 +29,30 @@ const _abi = [
       },
       {
         internalType: "address",
+        name: "_allowedContract",
+        type: "address",
+      },
+    ],
+    name: "getAdapter",
+    outputs: [
+      {
+        internalType: "address",
+        name: "adapter",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_creditManager",
+        type: "address",
+      },
+      {
+        internalType: "address",
         name: "borrower",
         type: "address",
       },
@@ -420,6 +444,31 @@ const _abi = [
             name: "maxEnabledTokensLength",
             type: "uint8",
           },
+          {
+            internalType: "uint16",
+            name: "feeInterest",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "feeLiquidation",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "liquidationDiscount",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "feeLiquidationExpired",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "liquidationDiscountExpired",
+            type: "uint16",
+          },
         ],
         internalType: "struct CreditManagerData",
         name: "",
@@ -541,6 +590,31 @@ const _abi = [
             internalType: "uint8",
             name: "maxEnabledTokensLength",
             type: "uint8",
+          },
+          {
+            internalType: "uint16",
+            name: "feeInterest",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "feeLiquidation",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "liquidationDiscount",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "feeLiquidationExpired",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "liquidationDiscountExpired",
+            type: "uint16",
           },
         ],
         internalType: "struct CreditManagerData[]",

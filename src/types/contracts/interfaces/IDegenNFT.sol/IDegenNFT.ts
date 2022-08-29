@@ -101,14 +101,14 @@ export interface IDegenNFT extends BaseContract {
     baseURI(overrides?: CallOverrides): Promise<[string]>;
 
     burn(
-      arg0: string,
-      arg1: BigNumberish,
+      from: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     mint(
-      arg0: string,
-      arg1: BigNumberish,
+      to: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -122,14 +122,14 @@ export interface IDegenNFT extends BaseContract {
   baseURI(overrides?: CallOverrides): Promise<string>;
 
   burn(
-    arg0: string,
-    arg1: BigNumberish,
+    from: string,
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   mint(
-    arg0: string,
-    arg1: BigNumberish,
+    to: string,
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -143,14 +143,14 @@ export interface IDegenNFT extends BaseContract {
     baseURI(overrides?: CallOverrides): Promise<string>;
 
     burn(
-      arg0: string,
-      arg1: BigNumberish,
+      from: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     mint(
-      arg0: string,
-      arg1: BigNumberish,
+      to: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -167,14 +167,14 @@ export interface IDegenNFT extends BaseContract {
     baseURI(overrides?: CallOverrides): Promise<BigNumber>;
 
     burn(
-      arg0: string,
-      arg1: BigNumberish,
+      from: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     mint(
-      arg0: string,
-      arg1: BigNumberish,
+      to: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -189,14 +189,14 @@ export interface IDegenNFT extends BaseContract {
     baseURI(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     burn(
-      arg0: string,
-      arg1: BigNumberish,
+      from: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     mint(
-      arg0: string,
-      arg1: BigNumberish,
+      to: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

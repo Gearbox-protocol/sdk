@@ -62,12 +62,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "TooMuchEnabledTokensException",
+    name: "TooManyEnabledTokensException",
     type: "error",
   },
   {
     inputs: [],
-    name: "TooMuchTokensException",
+    name: "TooManyTokensException",
     type: "error",
   },
   {
@@ -135,7 +135,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "onBehalfOf",
+        name: "creditAccount",
         type: "address",
       },
       {
@@ -150,19 +150,6 @@ const _abi = [
       },
     ],
     name: "addCollateral",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "addToken",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -296,30 +283,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "adapter",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "targetContract",
-        type: "address",
-      },
-    ],
-    name: "changeContractAllowance",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
       },
       {
         internalType: "address",
-        name: "tokenOut",
+        name: "token",
         type: "address",
       },
     ],
@@ -360,7 +329,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "caller",
+        name: "payer",
         type: "address",
       },
       {
@@ -455,7 +424,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "adapter",
+        name: "targetContract",
         type: "address",
       },
     ],
@@ -522,6 +491,25 @@ const _abi = [
         name: "creditAccount",
         type: "address",
       },
+    ],
+    name: "cumulativeDropAtFastCheckRAY",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
       {
         internalType: "address",
         name: "token",
@@ -561,7 +549,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "target",
+        name: "targetContract",
         type: "address",
       },
       {
@@ -696,7 +684,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "token",
         type: "address",
       },
     ],
@@ -715,7 +703,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "borrower",
+        name: "creditAccount",
         type: "address",
       },
       {
@@ -819,50 +807,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "_forbidMask",
-        type: "uint256",
-      },
-    ],
-    name: "setForbidMask",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint16",
-        name: "liquidationThreshold",
-        type: "uint16",
-      },
-    ],
-    name: "setLiquidationThreshold",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint8",
-        name: "_maxEnabledTokens",
-        type: "uint8",
-      },
-    ],
-    name: "setMaxEnabledTokens",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "address",
         name: "token",
         type: "address",
@@ -900,6 +844,19 @@ const _abi = [
   {
     inputs: [],
     name: "underlying",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "universalAdapter",
     outputs: [
       {
         internalType: "address",

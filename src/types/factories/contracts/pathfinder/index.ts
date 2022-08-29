@@ -2,4 +2,3 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as interfaces from "./interfaces";
-export { ISwapper__factory } from "./ISwapper__factory";

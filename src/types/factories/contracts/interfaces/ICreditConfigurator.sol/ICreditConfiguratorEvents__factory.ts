@@ -86,19 +86,6 @@ const _abi = [
     inputs: [
       {
         indexed: false,
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    name: "DegenModeUpdated",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
         internalType: "address",
         name: "",
         type: "address",
@@ -180,7 +167,7 @@ const _abi = [
         type: "bool",
       },
     ],
-    name: "IncreaseDebtModeUpdated",
+    name: "IncreaseDebtForbiddenModeChanged",
     type: "event",
   },
   {

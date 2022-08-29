@@ -424,7 +424,7 @@ export type TransferAccountAllowedEventFilter =
   TypedEventFilter<TransferAccountAllowedEvent>;
 
 export interface TransferPluginAllowedEventObject {
-  pugin: string;
+  plugin: string;
   state: boolean;
 }
 export type TransferPluginAllowedEvent = TypedEvent<
@@ -973,11 +973,11 @@ export interface ICreditFilter extends BaseContract {
     ): TransferAccountAllowedEventFilter;
 
     "TransferPluginAllowed(address,bool)"(
-      pugin?: string | null,
+      plugin?: string | null,
       state?: null
     ): TransferPluginAllowedEventFilter;
     TransferPluginAllowed(
-      pugin?: string | null,
+      plugin?: string | null,
       state?: null
     ): TransferPluginAllowedEventFilter;
   };

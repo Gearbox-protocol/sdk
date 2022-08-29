@@ -17,27 +17,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "ChiThresholdMoreOneException",
+    name: "ContractIsNotAnAllowedAdapterException",
     type: "error",
   },
   {
     inputs: [],
-    name: "ContractNotInAllowedList",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CreditManagerOrFacadeUsedAsAllowContractsException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DegenNFTnotSetException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "FastCheckNotCoverCollateralDropException",
+    name: "CreditManagerOrFacadeUsedAsTargetContractsException",
     type: "error",
   },
   {

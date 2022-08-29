@@ -53,7 +53,6 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
   functions: {
     "_gearboxAdapterType()": FunctionFragment;
     "_gearboxAdapterVersion()": FunctionFragment;
-    "booster()": FunctionFragment;
     "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "crv()": FunctionFragment;
@@ -77,7 +76,6 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
-      | "booster"
       | "creditFacade"
       | "creditManager"
       | "crv"
@@ -105,7 +103,6 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     functionFragment: "_gearboxAdapterVersion",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "booster", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "creditFacade",
     values?: undefined
@@ -168,7 +165,6 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     functionFragment: "_gearboxAdapterVersion",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "booster", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "creditFacade",
     data: BytesLike
@@ -242,8 +238,6 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
 
-    booster(overrides?: CallOverrides): Promise<[string]>;
-
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
@@ -304,8 +298,6 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
 
   _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
 
-  booster(overrides?: CallOverrides): Promise<string>;
-
   creditFacade(overrides?: CallOverrides): Promise<string>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
@@ -365,8 +357,6 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    booster(overrides?: CallOverrides): Promise<string>;
 
     creditFacade(overrides?: CallOverrides): Promise<string>;
 
@@ -429,8 +419,6 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
 
-    booster(overrides?: CallOverrides): Promise<BigNumber>;
-
     creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
@@ -492,8 +480,6 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
     _gearboxAdapterVersion(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    booster(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

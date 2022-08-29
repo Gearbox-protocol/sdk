@@ -128,6 +128,11 @@ export type CreditManagerDataStruct = {
   isIncreaseDebtForbidden: boolean;
   forbiddenTokenMask: BigNumberish;
   maxEnabledTokensLength: BigNumberish;
+  feeInterest: BigNumberish;
+  feeLiquidation: BigNumberish;
+  liquidationDiscount: BigNumberish;
+  feeLiquidationExpired: BigNumberish;
+  liquidationDiscountExpired: BigNumberish;
 };
 
 export type CreditManagerDataStructOutput = [
@@ -149,6 +154,11 @@ export type CreditManagerDataStructOutput = [
   string,
   boolean,
   BigNumber,
+  number,
+  number,
+  number,
+  number,
+  number,
   number
 ] & {
   addr: string;
@@ -170,6 +180,11 @@ export type CreditManagerDataStructOutput = [
   isIncreaseDebtForbidden: boolean;
   forbiddenTokenMask: BigNumber;
   maxEnabledTokensLength: number;
+  feeInterest: number;
+  feeLiquidation: number;
+  liquidationDiscount: number;
+  feeLiquidationExpired: number;
+  liquidationDiscountExpired: number;
 };
 
 export type PoolDataStruct = {
@@ -229,6 +244,7 @@ export type PoolDataStructOutput = [
 
 export interface IDataCompressorInterface extends utils.Interface {
   functions: {
+    "getAdapter(address,address)": FunctionFragment;
     "getCreditAccountData(address,address)": FunctionFragment;
     "getCreditAccountList(address)": FunctionFragment;
     "getCreditManagerData(address)": FunctionFragment;
@@ -241,6 +257,7 @@ export interface IDataCompressorInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "getAdapter"
       | "getCreditAccountData"
       | "getCreditAccountList"
       | "getCreditManagerData"
@@ -251,6 +268,10 @@ export interface IDataCompressorInterface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "getAdapter",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountData",
     values: [string, string]
@@ -278,6 +299,7 @@ export interface IDataCompressorInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: "getAdapter", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountData",
     data: BytesLike
@@ -338,6 +360,12 @@ export interface IDataCompressor extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    getAdapter(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<[string] & { adapter: string }>;
+
     getCreditAccountData(
       _creditManager: string,
       borrower: string,
@@ -373,6 +401,12 @@ export interface IDataCompressor extends BaseContract {
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
+
+  getAdapter(
+    _creditManager: string,
+    _allowedContract: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   getCreditAccountData(
     _creditManager: string,
@@ -410,6 +444,12 @@ export interface IDataCompressor extends BaseContract {
   version(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
+    getAdapter(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     getCreditAccountData(
       _creditManager: string,
       borrower: string,
@@ -449,6 +489,12 @@ export interface IDataCompressor extends BaseContract {
   filters: {};
 
   estimateGas: {
+    getAdapter(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getCreditAccountData(
       _creditManager: string,
       borrower: string,
@@ -481,6 +527,12 @@ export interface IDataCompressor extends BaseContract {
   };
 
   populateTransaction: {
+    getAdapter(
+      _creditManager: string,
+      _allowedContract: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getCreditAccountData(
       _creditManager: string,
       borrower: string,

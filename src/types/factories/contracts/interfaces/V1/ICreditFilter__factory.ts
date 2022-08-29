@@ -137,7 +137,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "pugin",
+        name: "plugin",
         type: "address",
       },
       {

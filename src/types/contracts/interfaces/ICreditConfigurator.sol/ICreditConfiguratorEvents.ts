@@ -20,12 +20,11 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
     "ContractForbidden(address)": EventFragment;
     "CreditConfiguratorUpgraded(address)": EventFragment;
     "CreditFacadeUpgraded(address)": EventFragment;
-    "DegenModeUpdated(bool)": EventFragment;
     "EmergencyLiquidatorAdded(address)": EventFragment;
     "EmergencyLiquidatorRemoved(address)": EventFragment;
     "ExpirationDateUpdated(uint40)": EventFragment;
     "FeesUpdated(uint16,uint16,uint16,uint16,uint16)": EventFragment;
-    "IncreaseDebtModeUpdated(bool)": EventFragment;
+    "IncreaseDebtForbiddenModeChanged(bool)": EventFragment;
     "LimitPerBlockUpdated(uint128)": EventFragment;
     "LimitsUpdated(uint256,uint256)": EventFragment;
     "MaxEnabledTokensUpdated(uint8)": EventFragment;
@@ -41,12 +40,13 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CreditConfiguratorUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CreditFacadeUpgraded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "DegenModeUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ExpirationDateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeesUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "IncreaseDebtModeUpdated"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "IncreaseDebtForbiddenModeChanged"
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LimitPerBlockUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LimitsUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MaxEnabledTokensUpdated"): EventFragment;
@@ -114,17 +114,6 @@ export type CreditFacadeUpgradedEvent = TypedEvent<
 export type CreditFacadeUpgradedEventFilter =
   TypedEventFilter<CreditFacadeUpgradedEvent>;
 
-export interface DegenModeUpdatedEventObject {
-  arg0: boolean;
-}
-export type DegenModeUpdatedEvent = TypedEvent<
-  [boolean],
-  DegenModeUpdatedEventObject
->;
-
-export type DegenModeUpdatedEventFilter =
-  TypedEventFilter<DegenModeUpdatedEvent>;
-
 export interface EmergencyLiquidatorAddedEventObject {
   arg0: string;
 }
@@ -172,16 +161,16 @@ export type FeesUpdatedEvent = TypedEvent<
 
 export type FeesUpdatedEventFilter = TypedEventFilter<FeesUpdatedEvent>;
 
-export interface IncreaseDebtModeUpdatedEventObject {
+export interface IncreaseDebtForbiddenModeChangedEventObject {
   arg0: boolean;
 }
-export type IncreaseDebtModeUpdatedEvent = TypedEvent<
+export type IncreaseDebtForbiddenModeChangedEvent = TypedEvent<
   [boolean],
-  IncreaseDebtModeUpdatedEventObject
+  IncreaseDebtForbiddenModeChangedEventObject
 >;
 
-export type IncreaseDebtModeUpdatedEventFilter =
-  TypedEventFilter<IncreaseDebtModeUpdatedEvent>;
+export type IncreaseDebtForbiddenModeChangedEventFilter =
+  TypedEventFilter<IncreaseDebtForbiddenModeChangedEvent>;
 
 export interface LimitPerBlockUpdatedEventObject {
   arg0: BigNumber;
@@ -329,9 +318,6 @@ export interface ICreditConfiguratorEvents extends BaseContract {
       newCreditFacade?: string | null
     ): CreditFacadeUpgradedEventFilter;
 
-    "DegenModeUpdated(bool)"(arg0?: null): DegenModeUpdatedEventFilter;
-    DegenModeUpdated(arg0?: null): DegenModeUpdatedEventFilter;
-
     "EmergencyLiquidatorAdded(address)"(
       arg0?: null
     ): EmergencyLiquidatorAddedEventFilter;
@@ -364,10 +350,12 @@ export interface ICreditConfiguratorEvents extends BaseContract {
       liquidationPremiumExpired?: null
     ): FeesUpdatedEventFilter;
 
-    "IncreaseDebtModeUpdated(bool)"(
+    "IncreaseDebtForbiddenModeChanged(bool)"(
       arg0?: null
-    ): IncreaseDebtModeUpdatedEventFilter;
-    IncreaseDebtModeUpdated(arg0?: null): IncreaseDebtModeUpdatedEventFilter;
+    ): IncreaseDebtForbiddenModeChangedEventFilter;
+    IncreaseDebtForbiddenModeChanged(
+      arg0?: null
+    ): IncreaseDebtForbiddenModeChangedEventFilter;
 
     "LimitPerBlockUpdated(uint128)"(
       arg0?: null

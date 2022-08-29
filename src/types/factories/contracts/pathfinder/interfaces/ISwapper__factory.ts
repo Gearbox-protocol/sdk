@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   ISwapper,
   ISwapperInterface,
-} from "../../../contracts/pathfinder/ISwapper";
+} from "../../../../contracts/pathfinder/interfaces/ISwapper";
 
 const _abi = [
   {

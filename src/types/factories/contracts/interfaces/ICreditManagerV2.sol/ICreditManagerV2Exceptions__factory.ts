@@ -62,12 +62,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "TooMuchEnabledTokensException",
+    name: "TooManyEnabledTokensException",
     type: "error",
   },
   {
     inputs: [],
-    name: "TooMuchTokensException",
+    name: "TooManyTokensException",
     type: "error",
   },
   {

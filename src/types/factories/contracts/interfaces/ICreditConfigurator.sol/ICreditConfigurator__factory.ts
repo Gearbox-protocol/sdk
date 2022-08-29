@@ -17,27 +17,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "ChiThresholdMoreOneException",
+    name: "ContractIsNotAnAllowedAdapterException",
     type: "error",
   },
   {
     inputs: [],
-    name: "ContractNotInAllowedList",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CreditManagerOrFacadeUsedAsAllowContractsException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DegenNFTnotSetException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "FastCheckNotCoverCollateralDropException",
+    name: "CreditManagerOrFacadeUsedAsTargetContractsException",
     type: "error",
   },
   {
@@ -146,19 +131,6 @@ const _abi = [
     inputs: [
       {
         indexed: false,
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    name: "DegenModeUpdated",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
         internalType: "address",
         name: "",
         type: "address",
@@ -240,7 +212,7 @@ const _abi = [
         type: "bool",
       },
     ],
-    name: "IncreaseDebtModeUpdated",
+    name: "IncreaseDebtForbiddenModeChanged",
     type: "event",
   },
   {
@@ -378,6 +350,32 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+    ],
+    name: "addContractToUpgradeable",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "liquidator",
+        type: "address",
+      },
+    ],
+    name: "addEmergencyLiquidator",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "addressProvider",
     outputs: [
@@ -404,6 +402,19 @@ const _abi = [
       },
     ],
     name: "allowContract",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "allowToken",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -461,6 +472,166 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "forbidToken",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+    ],
+    name: "removeContractFromUpgradeable",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "liquidator",
+        type: "address",
+      },
+    ],
+    name: "removeEmergencyLiquidator",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint40",
+        name: "newExpirationDate",
+        type: "uint40",
+      },
+    ],
+    name: "setExpirationDate",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint16",
+        name: "_feeInterest",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "_feeLiquidation",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "_liquidationPremium",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "_feeLiquidationExpired",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "_liquidationPremiumExpired",
+        type: "uint16",
+      },
+    ],
+    name: "setFees",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bool",
+        name: "_mode",
+        type: "bool",
+      },
+    ],
+    name: "setIncreaseDebtForbidden",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint128",
+        name: "newLimit",
+        type: "uint128",
+      },
+    ],
+    name: "setLimitPerBlock",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint128",
+        name: "_minBorrowedAmount",
+        type: "uint128",
+      },
+      {
+        internalType: "uint128",
+        name: "_maxBorrowedAmount",
+        type: "uint128",
+      },
+    ],
+    name: "setLimits",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint16",
+        name: "liquidationThreshold",
+        type: "uint16",
+      },
+    ],
+    name: "setLiquidationThreshold",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "maxEnabledTokens",
+        type: "uint8",
+      },
+    ],
+    name: "setMaxEnabledTokens",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "underlying",
     outputs: [
@@ -471,6 +642,44 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_creditConfigurator",
+        type: "address",
+      },
+    ],
+    name: "upgradeCreditConfigurator",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_creditFacade",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "migrateParams",
+        type: "bool",
+      },
+    ],
+    name: "upgradeCreditFacade",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "upgradePriceOracle",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

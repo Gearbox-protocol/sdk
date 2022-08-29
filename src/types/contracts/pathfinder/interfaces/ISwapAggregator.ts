@@ -79,20 +79,79 @@ export type SwapQuoteStructOutput = [
   gasUsage: BigNumber;
 };
 
-export interface ISwapPathFinderInterface extends utils.Interface {
+export type BalanceStruct = { token: string; balance: BigNumberish };
+
+export type BalanceStructOutput = [string, BigNumber] & {
+  token: string;
+  balance: BigNumber;
+};
+
+export type TokenAdaptersStruct = { token: string; adapters: string[] };
+
+export type TokenAdaptersStructOutput = [string, string[]] & {
+  token: string;
+  adapters: string[];
+};
+
+export type StrategyPathTaskStruct = {
+  creditAccount: string;
+  balances: BalanceStruct[];
+  target: string;
+  connectors: string[];
+  adapters: string[];
+  slippage: BigNumberish;
+  targetType: BigNumberish;
+  foundAdapters: TokenAdaptersStruct[];
+  gasPriceTargetRAY: BigNumberish;
+  gasUsage: BigNumberish;
+  initTargetBalance: BigNumberish;
+  calls: MultiCallStruct[];
+};
+
+export type StrategyPathTaskStructOutput = [
+  string,
+  BalanceStructOutput[],
+  string,
+  string[],
+  string[],
+  BigNumber,
+  number,
+  TokenAdaptersStructOutput[],
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  MultiCallStructOutput[]
+] & {
+  creditAccount: string;
+  balances: BalanceStructOutput[];
+  target: string;
+  connectors: string[];
+  adapters: string[];
+  slippage: BigNumber;
+  targetType: number;
+  foundAdapters: TokenAdaptersStructOutput[];
+  gasPriceTargetRAY: BigNumber;
+  gasUsage: BigNumber;
+  initTargetBalance: BigNumber;
+  calls: MultiCallStructOutput[];
+};
+
+export interface ISwapAggregatorInterface extends utils.Interface {
   functions: {
     "findAllSwaps((uint8,address,address,address,address[],uint256,uint256,bool),address[])": FunctionFragment;
     "findBestSwap((uint8,address,address,address,address[],uint256,uint256,bool),address[])": FunctionFragment;
+    "findBestSwapOrRevert(address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "getBestDirectPairSwap((uint8,address,address,address,address[],uint256,uint256,bool),address[],uint256)": FunctionFragment;
-    "getPathFinder(address)": FunctionFragment;
+    "swapAllNormalTokens((address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]),address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "findAllSwaps"
       | "findBestSwap"
+      | "findBestSwapOrRevert"
       | "getBestDirectPairSwap"
-      | "getPathFinder"
+      | "swapAllNormalTokens"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -104,12 +163,16 @@ export interface ISwapPathFinderInterface extends utils.Interface {
     values: [SwapTaskStruct, string[]]
   ): string;
   encodeFunctionData(
+    functionFragment: "findBestSwapOrRevert",
+    values: [string, BigNumberish, string, StrategyPathTaskStruct]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getBestDirectPairSwap",
     values: [SwapTaskStruct, string[], BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getPathFinder",
-    values: [string]
+    functionFragment: "swapAllNormalTokens",
+    values: [StrategyPathTaskStruct, string]
   ): string;
 
   decodeFunctionResult(
@@ -121,23 +184,27 @@ export interface ISwapPathFinderInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "findBestSwapOrRevert",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getBestDirectPairSwap",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPathFinder",
+    functionFragment: "swapAllNormalTokens",
     data: BytesLike
   ): Result;
 
   events: {};
 }
 
-export interface ISwapPathFinder extends BaseContract {
+export interface ISwapAggregator extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: ISwapPathFinderInterface;
+  interface: ISwapAggregatorInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -171,6 +238,14 @@ export interface ISwapPathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    findBestSwapOrRevert(
+      tokenIn: string,
+      amountIn: BigNumberish,
+      tokenOut: string,
+      task: StrategyPathTaskStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getBestDirectPairSwap(
       swapTask: SwapTaskStruct,
       adapters: string[],
@@ -178,10 +253,11 @@ export interface ISwapPathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getPathFinder(
-      adapter: string,
-      overrides?: CallOverrides
-    ): Promise<[string] & { pathFinder: string }>;
+    swapAllNormalTokens(
+      task: StrategyPathTaskStruct,
+      target: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   findAllSwaps(
@@ -196,6 +272,14 @@ export interface ISwapPathFinder extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  findBestSwapOrRevert(
+    tokenIn: string,
+    amountIn: BigNumberish,
+    tokenOut: string,
+    task: StrategyPathTaskStruct,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getBestDirectPairSwap(
     swapTask: SwapTaskStruct,
     adapters: string[],
@@ -203,7 +287,11 @@ export interface ISwapPathFinder extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getPathFinder(adapter: string, overrides?: CallOverrides): Promise<string>;
+  swapAllNormalTokens(
+    task: StrategyPathTaskStruct,
+    target: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     findAllSwaps(
@@ -218,6 +306,16 @@ export interface ISwapPathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<SwapQuoteStructOutput>;
 
+    findBestSwapOrRevert(
+      tokenIn: string,
+      amountIn: BigNumberish,
+      tokenOut: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, StrategyPathTaskStructOutput] & { amountOut: BigNumber }
+    >;
+
     getBestDirectPairSwap(
       swapTask: SwapTaskStruct,
       adapters: string[],
@@ -225,7 +323,11 @@ export interface ISwapPathFinder extends BaseContract {
       overrides?: CallOverrides
     ): Promise<SwapQuoteStructOutput>;
 
-    getPathFinder(adapter: string, overrides?: CallOverrides): Promise<string>;
+    swapAllNormalTokens(
+      task: StrategyPathTaskStruct,
+      target: string,
+      overrides?: CallOverrides
+    ): Promise<StrategyPathTaskStructOutput>;
   };
 
   filters: {};
@@ -243,6 +345,14 @@ export interface ISwapPathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    findBestSwapOrRevert(
+      tokenIn: string,
+      amountIn: BigNumberish,
+      tokenOut: string,
+      task: StrategyPathTaskStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getBestDirectPairSwap(
       swapTask: SwapTaskStruct,
       adapters: string[],
@@ -250,9 +360,10 @@ export interface ISwapPathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getPathFinder(
-      adapter: string,
-      overrides?: CallOverrides
+    swapAllNormalTokens(
+      task: StrategyPathTaskStruct,
+      target: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -269,6 +380,14 @@ export interface ISwapPathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    findBestSwapOrRevert(
+      tokenIn: string,
+      amountIn: BigNumberish,
+      tokenOut: string,
+      task: StrategyPathTaskStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getBestDirectPairSwap(
       swapTask: SwapTaskStruct,
       adapters: string[],
@@ -276,9 +395,10 @@ export interface ISwapPathFinder extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getPathFinder(
-      adapter: string,
-      overrides?: CallOverrides
+    swapAllNormalTokens(
+      task: StrategyPathTaskStruct,
+      target: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }
