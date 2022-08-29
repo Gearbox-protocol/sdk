@@ -1,4 +1,4 @@
-import { CreditAccountDataStruct } from "../types/contracts/core/DataCompressor";
+import { CreditAccountDataStruct } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 
 export type TokenBalancePayload = CreditAccountDataStruct["balances"];
 

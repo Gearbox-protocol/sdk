@@ -11,6 +11,7 @@ export * as iCreditFacadeSol from "./ICreditFacade.sol";
 export * as iCreditManagerV2Sol from "./ICreditManagerV2.sol";
 export * as iDataCompressorSol from "./IDataCompressor.sol";
 export * as iDegenNftSol from "./IDegenNFT.sol";
+export * as iDieselTokenSol from "./IDieselToken.sol";
 export * as ilpPriceFeedSol from "./ILPPriceFeed.sol";
 export * as iPoolServiceSol from "./IPoolService.sol";
 export * as iPriceOracleSol from "./IPriceOracle.sol";

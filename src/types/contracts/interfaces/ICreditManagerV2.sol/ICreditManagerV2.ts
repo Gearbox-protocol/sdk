@@ -34,6 +34,7 @@ export interface ICreditManagerV2Interface extends utils.Interface {
     "approveCreditAccount(address,address,address,uint256)": FunctionFragment;
     "calcClosePayments(uint256,uint8,uint256,uint256)": FunctionFragment;
     "calcCreditAccountAccruedInterest(address)": FunctionFragment;
+    "canLiquidateWhilePaused(address)": FunctionFragment;
     "changeContractAllowance(address,address)": FunctionFragment;
     "checkAndEnableToken(address,address)": FunctionFragment;
     "checkAndOptimizeEnabledTokens(address)": FunctionFragment;
@@ -78,6 +79,7 @@ export interface ICreditManagerV2Interface extends utils.Interface {
       | "approveCreditAccount"
       | "calcClosePayments"
       | "calcCreditAccountAccruedInterest"
+      | "canLiquidateWhilePaused"
       | "changeContractAllowance"
       | "checkAndEnableToken"
       | "checkAndOptimizeEnabledTokens"
@@ -133,6 +135,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "calcCreditAccountAccruedInterest",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "canLiquidateWhilePaused",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -290,6 +296,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "calcCreditAccountAccruedInterest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "canLiquidateWhilePaused",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -516,11 +526,17 @@ export interface ICreditManagerV2 extends BaseContract {
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         borrowedAmount: BigNumber;
         borrowedAmountWithInterest: BigNumber;
+        borrowedAmountWithInterestAndFees: BigNumber;
       }
     >;
+
+    canLiquidateWhilePaused(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     changeContractAllowance(
       adapter: string,
@@ -736,11 +752,17 @@ export interface ICreditManagerV2 extends BaseContract {
     creditAccount: string,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber] & {
+    [BigNumber, BigNumber, BigNumber] & {
       borrowedAmount: BigNumber;
       borrowedAmountWithInterest: BigNumber;
+      borrowedAmountWithInterestAndFees: BigNumber;
     }
   >;
+
+  canLiquidateWhilePaused(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   changeContractAllowance(
     adapter: string,
@@ -947,11 +969,17 @@ export interface ICreditManagerV2 extends BaseContract {
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         borrowedAmount: BigNumber;
         borrowedAmountWithInterest: BigNumber;
+        borrowedAmountWithInterestAndFees: BigNumber;
       }
     >;
+
+    canLiquidateWhilePaused(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     changeContractAllowance(
       adapter: string,
@@ -1177,6 +1205,11 @@ export interface ICreditManagerV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    canLiquidateWhilePaused(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     changeContractAllowance(
       adapter: string,
       targetContract: string,
@@ -1366,6 +1399,11 @@ export interface ICreditManagerV2 extends BaseContract {
 
     calcCreditAccountAccruedInterest(
       creditAccount: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    canLiquidateWhilePaused(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

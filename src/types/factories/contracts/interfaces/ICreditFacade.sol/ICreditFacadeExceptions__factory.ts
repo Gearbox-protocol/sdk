@@ -22,7 +22,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "AllowanceFailedExpcetion",
+    name: "AllowanceFailedException",
     type: "error",
   },
   {
@@ -33,7 +33,7 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "BalanceLessThanMinimumDesired",
+    name: "BalanceLessThanMinimumDesiredException",
     type: "error",
   },
   {
@@ -69,6 +69,11 @@ const _abi = [
   {
     inputs: [],
     name: "CreditFacadeOnlyException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ExpectedBalancesAlreadySetException",
     type: "error",
   },
   {
@@ -113,7 +118,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "OpenAccountNotAllowedAfterExpiration",
+    name: "OpenAccountNotAllowedAfterExpirationException",
     type: "error",
   },
   {
@@ -123,7 +128,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "TargetContractNotAllowedExpcetion",
+    name: "TargetContractNotAllowedException",
     type: "error",
   },
   {

@@ -1,17 +1,15 @@
-// import { BigNumberish } from "ethers";
-
-import { UniswapV3Adapter__factory } from "../types";
 import {
   ISwapRouter,
   IUniswapV3Adapter,
-} from "../types/contracts/adapters/uniswap/UniswapV3.sol/UniswapV3Adapter";
+  IUniswapV3Adapter__factory,
+} from "../types";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 
 export class UniswapV3Calls {
   public static exactInputSingle(
     params: ISwapRouter.ExactInputSingleParamsStructOutput,
   ) {
-    return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactInputSingle",
       [params],
     );
@@ -20,14 +18,14 @@ export class UniswapV3Calls {
   public static exactAllInputSingle(
     params: IUniswapV3Adapter.ExactAllInputSingleParamsStructOutput,
   ) {
-    return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactAllInputSingle",
       [params],
     );
   }
 
   public static exactInput(params: ISwapRouter.ExactInputParamsStructOutput) {
-    return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactInput",
       [params],
     );
@@ -36,7 +34,7 @@ export class UniswapV3Calls {
   public static exactAllInput(
     params: IUniswapV3Adapter.ExactAllInputParamsStructOutput,
   ) {
-    return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactAllInput",
       [params],
     );
@@ -45,14 +43,14 @@ export class UniswapV3Calls {
   public static exactOutputSingle(
     params: ISwapRouter.ExactOutputSingleParamsStructOutput,
   ) {
-    return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactOutputSingle",
       [params],
     );
   }
 
   public static exactOutput(params: ISwapRouter.ExactOutputParamsStructOutput) {
-    return UniswapV3Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV3Adapter__factory.createInterface().encodeFunctionData(
       "exactOutput",
       [params],
     );

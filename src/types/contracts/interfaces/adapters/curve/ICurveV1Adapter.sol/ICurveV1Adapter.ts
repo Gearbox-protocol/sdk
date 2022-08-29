@@ -38,6 +38,7 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
     "balances(int128)": FunctionFragment;
     "balances(uint256)": FunctionFragment;
     "block_timestamp_last()": FunctionFragment;
+    "calc_add_one_coin(uint256,int128)": FunctionFragment;
     "calc_withdraw_one_coin(uint256,int128)": FunctionFragment;
     "coins(int128)": FunctionFragment;
     "coins(uint256)": FunctionFragment;
@@ -94,6 +95,7 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
       | "balances(int128)"
       | "balances(uint256)"
       | "block_timestamp_last"
+      | "calc_add_one_coin"
       | "calc_withdraw_one_coin"
       | "coins(int128)"
       | "coins(uint256)"
@@ -174,6 +176,10 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "block_timestamp_last",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calc_add_one_coin",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calc_withdraw_one_coin",
@@ -325,6 +331,10 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "block_timestamp_last",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "calc_add_one_coin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -515,6 +525,12 @@ export interface ICurveV1Adapter extends BaseContract {
 
     block_timestamp_last(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    calc_add_one_coin(
+      amount: BigNumberish,
+      i: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     calc_withdraw_one_coin(
       _burn_amount: BigNumberish,
       i: BigNumberish,
@@ -699,6 +715,12 @@ export interface ICurveV1Adapter extends BaseContract {
 
   block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
 
+  calc_add_one_coin(
+    amount: BigNumberish,
+    i: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   calc_withdraw_one_coin(
     _burn_amount: BigNumberish,
     i: BigNumberish,
@@ -879,6 +901,12 @@ export interface ICurveV1Adapter extends BaseContract {
     ): Promise<BigNumber>;
 
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calc_add_one_coin(
+      amount: BigNumberish,
+      i: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     calc_withdraw_one_coin(
       _burn_amount: BigNumberish,
@@ -1066,6 +1094,12 @@ export interface ICurveV1Adapter extends BaseContract {
     ): Promise<BigNumber>;
 
     block_timestamp_last(overrides?: CallOverrides): Promise<BigNumber>;
+
+    calc_add_one_coin(
+      amount: BigNumberish,
+      i: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     calc_withdraw_one_coin(
       _burn_amount: BigNumberish,
@@ -1258,6 +1292,12 @@ export interface ICurveV1Adapter extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     block_timestamp_last(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    calc_add_one_coin(
+      amount: BigNumberish,
+      i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

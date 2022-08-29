@@ -21,6 +21,8 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
     "CreditConfiguratorUpgraded(address)": EventFragment;
     "CreditFacadeUpgraded(address)": EventFragment;
     "DegenModeUpdated(bool)": EventFragment;
+    "EmergencyLiquidatorAdded(address)": EventFragment;
+    "EmergencyLiquidatorRemoved(address)": EventFragment;
     "ExpirationDateUpdated(uint40)": EventFragment;
     "FeesUpdated(uint16,uint16,uint16,uint16,uint16)": EventFragment;
     "IncreaseDebtModeUpdated(bool)": EventFragment;
@@ -40,6 +42,8 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "CreditConfiguratorUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CreditFacadeUpgraded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DegenModeUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ExpirationDateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeesUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseDebtModeUpdated"): EventFragment;
@@ -120,6 +124,28 @@ export type DegenModeUpdatedEvent = TypedEvent<
 
 export type DegenModeUpdatedEventFilter =
   TypedEventFilter<DegenModeUpdatedEvent>;
+
+export interface EmergencyLiquidatorAddedEventObject {
+  arg0: string;
+}
+export type EmergencyLiquidatorAddedEvent = TypedEvent<
+  [string],
+  EmergencyLiquidatorAddedEventObject
+>;
+
+export type EmergencyLiquidatorAddedEventFilter =
+  TypedEventFilter<EmergencyLiquidatorAddedEvent>;
+
+export interface EmergencyLiquidatorRemovedEventObject {
+  arg0: string;
+}
+export type EmergencyLiquidatorRemovedEvent = TypedEvent<
+  [string],
+  EmergencyLiquidatorRemovedEventObject
+>;
+
+export type EmergencyLiquidatorRemovedEventFilter =
+  TypedEventFilter<EmergencyLiquidatorRemovedEvent>;
 
 export interface ExpirationDateUpdatedEventObject {
   arg0: number;
@@ -305,6 +331,18 @@ export interface ICreditConfiguratorEvents extends BaseContract {
 
     "DegenModeUpdated(bool)"(arg0?: null): DegenModeUpdatedEventFilter;
     DegenModeUpdated(arg0?: null): DegenModeUpdatedEventFilter;
+
+    "EmergencyLiquidatorAdded(address)"(
+      arg0?: null
+    ): EmergencyLiquidatorAddedEventFilter;
+    EmergencyLiquidatorAdded(arg0?: null): EmergencyLiquidatorAddedEventFilter;
+
+    "EmergencyLiquidatorRemoved(address)"(
+      arg0?: null
+    ): EmergencyLiquidatorRemovedEventFilter;
+    EmergencyLiquidatorRemoved(
+      arg0?: null
+    ): EmergencyLiquidatorRemovedEventFilter;
 
     "ExpirationDateUpdated(uint40)"(
       arg0?: null

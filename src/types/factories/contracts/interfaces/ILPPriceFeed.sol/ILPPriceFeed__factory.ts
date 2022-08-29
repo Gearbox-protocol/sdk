@@ -17,7 +17,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "ValueOutOfRangeExpcetion",
+    name: "ValueOutOfRangeException",
     type: "error",
   },
   {

@@ -17,7 +17,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "AllowanceFailedExpcetion",
+    name: "AllowanceFailedException",
     type: "error",
   },
   {
@@ -47,7 +47,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "TargetContractNotAllowedExpcetion",
+    name: "TargetContractNotAllowedException",
     type: "error",
   },
   {

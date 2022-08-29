@@ -26,17 +26,24 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "minBalance",
-        type: "uint256",
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "balance",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Balance[]",
+        name: "expected",
+        type: "tuple[]",
       },
     ],
-    name: "revertIfBalanceLessThan",
+    name: "revertIfGetLessThan",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

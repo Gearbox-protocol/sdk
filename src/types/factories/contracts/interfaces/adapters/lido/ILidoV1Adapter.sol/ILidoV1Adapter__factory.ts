@@ -270,6 +270,38 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "submit",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "result",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "submitAll",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "result",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "symbol",
     outputs: [

@@ -43,6 +43,8 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     "name()": FunctionFragment;
     "setLimit(uint256)": FunctionFragment;
     "sharesOf(address)": FunctionFragment;
+    "submit(uint256)": FunctionFragment;
+    "submitAll()": FunctionFragment;
     "symbol()": FunctionFragment;
     "targetContract()": FunctionFragment;
     "totalSupply()": FunctionFragment;
@@ -65,6 +67,8 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
       | "name"
       | "setLimit"
       | "sharesOf"
+      | "submit"
+      | "submitAll"
       | "symbol"
       | "targetContract"
       | "totalSupply"
@@ -115,6 +119,11 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "sharesOf", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "submit",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "submitAll", values?: undefined): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "targetContract",
@@ -164,6 +173,8 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setLimit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sharesOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "submit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "submitAll", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
@@ -261,6 +272,15 @@ export interface ILidoV1Adapter extends BaseContract {
 
     sharesOf(_account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    submit(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    submitAll(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
     targetContract(overrides?: CallOverrides): Promise<[string]>;
@@ -311,6 +331,15 @@ export interface ILidoV1Adapter extends BaseContract {
 
   sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+  submit(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  submitAll(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   symbol(overrides?: CallOverrides): Promise<string>;
 
   targetContract(overrides?: CallOverrides): Promise<string>;
@@ -357,6 +386,10 @@ export interface ILidoV1Adapter extends BaseContract {
     setLimit(_limit: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    submit(amount: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    submitAll(overrides?: CallOverrides): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
@@ -413,6 +446,15 @@ export interface ILidoV1Adapter extends BaseContract {
     ): Promise<BigNumber>;
 
     sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    submit(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    submitAll(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -475,6 +517,15 @@ export interface ILidoV1Adapter extends BaseContract {
     sharesOf(
       _account: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    submit(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    submitAll(
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;

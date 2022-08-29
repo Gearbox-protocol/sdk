@@ -69,6 +69,11 @@ const _abi = [
           },
           {
             internalType: "uint256",
+            name: "borrowedAmountPlusInterestAndFees",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
             name: "totalValue",
             type: "uint256",
           },
@@ -198,6 +203,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "borrowedAmountPlusInterest",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "borrowedAmountPlusInterestAndFees",
             type: "uint256",
           },
           {

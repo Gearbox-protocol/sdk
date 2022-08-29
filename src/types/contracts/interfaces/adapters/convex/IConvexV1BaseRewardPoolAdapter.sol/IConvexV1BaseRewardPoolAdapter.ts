@@ -30,11 +30,9 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     "balanceOf(address)": FunctionFragment;
     "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
-    "crv()": FunctionFragment;
     "currentRewards()": FunctionFragment;
     "curveLPtoken()": FunctionFragment;
     "cvx()": FunctionFragment;
-    "cvxLPtoken()": FunctionFragment;
     "donate(uint256)": FunctionFragment;
     "duration()": FunctionFragment;
     "earned(address)": FunctionFragment;
@@ -79,11 +77,9 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
       | "balanceOf"
       | "creditFacade"
       | "creditManager"
-      | "crv"
       | "currentRewards"
       | "curveLPtoken"
       | "cvx"
-      | "cvxLPtoken"
       | "donate"
       | "duration"
       | "earned"
@@ -138,7 +134,6 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     functionFragment: "creditManager",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "crv", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "currentRewards",
     values?: undefined
@@ -148,10 +143,6 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "cvx", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "cvxLPtoken",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "donate",
     values: [BigNumberish]
@@ -289,7 +280,6 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     functionFragment: "creditManager",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "crv", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "currentRewards",
     data: BytesLike
@@ -299,7 +289,6 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "cvx", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "cvxLPtoken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "donate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "duration", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "earned", data: BytesLike): Result;
@@ -448,15 +437,11 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    crv(overrides?: CallOverrides): Promise<[string]>;
-
     currentRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     curveLPtoken(overrides?: CallOverrides): Promise<[string]>;
 
     cvx(overrides?: CallOverrides): Promise<[string]>;
-
-    cvxLPtoken(overrides?: CallOverrides): Promise<[string]>;
 
     donate(
       _amount: BigNumberish,
@@ -574,15 +559,11 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  crv(overrides?: CallOverrides): Promise<string>;
-
   currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
 
   curveLPtoken(overrides?: CallOverrides): Promise<string>;
 
   cvx(overrides?: CallOverrides): Promise<string>;
-
-  cvxLPtoken(overrides?: CallOverrides): Promise<string>;
 
   donate(
     _amount: BigNumberish,
@@ -700,15 +681,11 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
-    crv(overrides?: CallOverrides): Promise<string>;
-
     currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
 
     curveLPtoken(overrides?: CallOverrides): Promise<string>;
 
     cvx(overrides?: CallOverrides): Promise<string>;
-
-    cvxLPtoken(overrides?: CallOverrides): Promise<string>;
 
     donate(_amount: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
@@ -816,15 +793,11 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    crv(overrides?: CallOverrides): Promise<BigNumber>;
-
     currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
 
     curveLPtoken(overrides?: CallOverrides): Promise<BigNumber>;
 
     cvx(overrides?: CallOverrides): Promise<BigNumber>;
-
-    cvxLPtoken(overrides?: CallOverrides): Promise<BigNumber>;
 
     donate(
       _amount: BigNumberish,
@@ -953,15 +926,11 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    crv(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     currentRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     curveLPtoken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     cvx(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    cvxLPtoken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     donate(
       _amount: BigNumberish,

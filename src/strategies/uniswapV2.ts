@@ -1,6 +1,6 @@
 import { BigNumberish } from "ethers";
 
-import { UniswapV2Adapter__factory } from "../types";
+import { IUniswapV2Adapter__factory } from "../types";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 
 export class UniswapV2Calls {
@@ -11,7 +11,7 @@ export class UniswapV2Calls {
     to: string,
     deadline: BigNumberish,
   ) {
-    return UniswapV2Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV2Adapter__factory.createInterface().encodeFunctionData(
       "swapExactTokensForTokens",
       [amountIn, amountOutMin, path, to, deadline],
     );
@@ -24,7 +24,7 @@ export class UniswapV2Calls {
     to: string,
     deadline: BigNumberish,
   ) {
-    return UniswapV2Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV2Adapter__factory.createInterface().encodeFunctionData(
       "swapTokensForExactTokens",
       [amountOut, amountInMax, path, to, deadline],
     );
@@ -35,7 +35,7 @@ export class UniswapV2Calls {
     path: Array<string>,
     deadline: BigNumberish,
   ) {
-    return UniswapV2Adapter__factory.createInterface().encodeFunctionData(
+    return IUniswapV2Adapter__factory.createInterface().encodeFunctionData(
       "swapAllTokensForTokens",
       [rateMinRAY, path, deadline],
     );

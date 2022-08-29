@@ -21,6 +21,8 @@ import type * as iDataCompressorSol from "./IDataCompressor.sol";
 export type { iDataCompressorSol };
 import type * as iDegenNftSol from "./IDegenNFT.sol";
 export type { iDegenNftSol };
+import type * as iDieselTokenSol from "./IDieselToken.sol";
+export type { iDieselTokenSol };
 import type * as ilpPriceFeedSol from "./ILPPriceFeed.sol";
 export type { ilpPriceFeedSol };
 import type * as iPoolServiceSol from "./IPoolService.sol";
