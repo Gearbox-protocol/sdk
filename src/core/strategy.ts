@@ -2,12 +2,7 @@ import { BigNumber } from "ethers";
 
 import { TokensWithAPY } from "../apy";
 import { calcTotalPrice } from "../utils/price";
-import {
-  LEVERAGE_DECIMALS,
-  PERCENTAGE_DECIMALS,
-  PERCENTAGE_FACTOR,
-  WAD,
-} from "./constants";
+import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
 
 export interface StrategyPayload {
   apy?: number;
@@ -24,7 +19,7 @@ export interface StrategyPayload {
 }
 
 interface PoolStats {
-  borrowRate: BigNumber;
+  borrowRate: number;
 }
 
 type PoolList = Record<string, PoolStats>;
@@ -76,7 +71,7 @@ export class Strategy {
     apy: number,
     leverage: number,
     depositCollateral: string,
-    borrowAPY: BigNumber,
+    borrowAPY: number,
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
 
@@ -133,21 +128,14 @@ export class Strategy {
   }
 }
 
-function roi(
-  apy: number,
-  farmLev: number,
-  debtLev: number,
-  borrowAPY: BigNumber,
-) {
-  const borrowRateNumber =
-    borrowAPY.toNumber() / PERCENTAGE_FACTOR / PERCENTAGE_DECIMALS;
-  return (apy * farmLev - borrowRateNumber * debtLev) / LEVERAGE_DECIMALS;
+function roi(apy: number, farmLev: number, debtLev: number, borrowAPY: number) {
+  return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
 }
 
 function minBorrowApy(poolApy: PoolList) {
-  const apys = Object.values(poolApy).sort((a, b) =>
-    a.borrowRate.sub(b.borrowRate).toNumber(),
+  const apys = Object.values(poolApy).sort(
+    (a, b) => a.borrowRate - b.borrowRate,
   );
 
-  return apys.length > 0 ? apys[0].borrowRate : BigNumber.from(0);
+  return apys.length > 0 ? apys[0].borrowRate : 0;
 }
