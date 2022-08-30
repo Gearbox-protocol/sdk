@@ -84,7 +84,7 @@ export class CreditManagerData {
     const feeInterest =
       BigNumber.from(payload.feeInterest).toNumber() / PERCENTAGE_FACTOR;
 
-    this.borrowRate = borrowRate + feeInterest;
+    this.borrowRate = borrowRate * (1 + feeInterest);
 
     this.minAmount = BigNumber.from(payload.minAmount || 0);
     this.maxAmount = BigNumber.from(payload.maxAmount || 0);
