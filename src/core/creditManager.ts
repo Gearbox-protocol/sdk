@@ -75,12 +75,17 @@ export class CreditManagerData {
     this.isWETH = payload.isWETH || false;
     this.canBorrow = payload.canBorrow || false;
 
-    this.borrowRate =
+    const borrowRate =
       BigNumber.from(payload.borrowRate || 0)
         .mul(PERCENTAGE_FACTOR)
         .mul(PERCENTAGE_DECIMALS)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
+    const feeInterest =
+      BigNumber.from(payload.feeInterest).toNumber() / PERCENTAGE_FACTOR;
+
+    this.borrowRate = borrowRate + feeInterest;
+
     this.minAmount = BigNumber.from(payload.minAmount || 0);
     this.maxAmount = BigNumber.from(payload.maxAmount || 0);
 
@@ -118,11 +123,15 @@ export class CreditManagerData {
     this.forbiddenTokenMask = BigNumber.from(payload.forbiddenTokenMask || 0);
 
     this.feeInterest = BigNumber.from(payload.feeInterest).toNumber();
-    this.feeLiquidation = BigNumber.from(payload.feeInterest).toNumber();
-    this.liquidationDiscount = BigNumber.from(payload.feeInterest).toNumber();
-    this.feeLiquidationExpired = BigNumber.from(payload.feeInterest).toNumber();
+    this.feeLiquidation = BigNumber.from(payload.feeLiquidation).toNumber();
+    this.liquidationDiscount = BigNumber.from(
+      payload.feeLiquidation,
+    ).toNumber();
+    this.feeLiquidationExpired = BigNumber.from(
+      payload.feeLiquidationExpired,
+    ).toNumber();
     this.liquidationDiscountExpired = BigNumber.from(
-      payload.feeInterest,
+      payload.feeLiquidationExpired,
     ).toNumber();
   }
 
