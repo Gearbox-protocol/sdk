@@ -30,7 +30,7 @@ export class CreditManagerData {
 
   public readonly canBorrow: boolean;
 
-  public readonly borrowRate: number;
+  public readonly borrowRate: BigNumber;
 
   public readonly minAmount: BigNumber;
 
@@ -75,16 +75,16 @@ export class CreditManagerData {
     this.isWETH = payload.isWETH || false;
     this.canBorrow = payload.canBorrow || false;
 
-    const borrowRate =
-      BigNumber.from(payload.borrowRate || 0)
-        .mul(PERCENTAGE_FACTOR)
-        .mul(PERCENTAGE_DECIMALS)
-        .div(RAY)
-        .toNumber() / PERCENTAGE_FACTOR;
-    const feeInterest =
-      BigNumber.from(payload.feeInterest).toNumber() / PERCENTAGE_FACTOR;
+    const borrowRate = BigNumber.from(payload.borrowRate || 0)
+      .mul(PERCENTAGE_FACTOR)
+      .mul(PERCENTAGE_DECIMALS)
+      .div(RAY);
 
-    this.borrowRate = borrowRate * (1 + feeInterest);
+    const feeInterest = BigNumber.from(payload.feeInterest);
+
+    this.borrowRate = borrowRate
+      .mul(feeInterest.add(PERCENTAGE_FACTOR))
+      .div(PERCENTAGE_FACTOR);
 
     this.minAmount = BigNumber.from(payload.minAmount || 0);
     this.maxAmount = BigNumber.from(payload.maxAmount || 0);
