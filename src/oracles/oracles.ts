@@ -43,5 +43,5 @@ export type PriceFeedData =
 
 export interface TokenPriceFeedData {
   priceFeedETH?: PriceFeedData;
-  priceFeedUSD?: PriceFeedData;
+  priceFeedUSD: PriceFeedData;
 }
