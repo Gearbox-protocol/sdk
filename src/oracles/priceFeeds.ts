@@ -64,7 +64,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0xcd627aa160a6fa45eb793d19ef54f5062f20f33f",
+        Mainnet: "0xCd627aA160A6fA45Eb793D19Ef54f5062F20f33f",
         Goerli: "0x7f93084ECf52D4361A3E3E25F9Dafe005830C98C",
       },
     },
@@ -115,7 +115,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0x31e0a88fecb6ec0a411dbe0e9e76391498296ee9",
+        Mainnet: "0x31e0a88fecB6eC0a411DBe0e9E76391498296EE9",
         Goerli: "0xAF884aF60E28214233039c243F5DF98a52355CFB",
       },
     },
@@ -176,7 +176,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0xcc70f09a6cc17553b2e31954cd36e4a2d89501f7",
+        Mainnet: "0xCc70F09A6CC17553b2E31954cD36E4A2d89501f7",
         Goerli: "0xD49468DFB9512a657D1B308d04B7e31DdC483960",
       },
     },
@@ -227,7 +227,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0x3e7d1eab13ad0104d2750b8863b489d65364e32d",
+        Mainnet: "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
         Goerli: "0x45a963a68848a850262Cb5aa1F5Be7dC4a6f0Abd",
       },
     },
@@ -312,7 +312,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0xd962fc30a72a84ce50161031391756bf2876af5d",
+        Mainnet: "0xd962fC30A72A84cE50161031391756Bf2876Af5D",
         Goerli: "0xF958760fd9c0E019e355f31c3D69f0E5239597D0",
       },
     },
@@ -322,7 +322,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0xb9e1e3a9feff48998e45fa90847ed4d467e8bcfd",
+        Mainnet: "0xB9E1E3A9feFf48998E45Fa90847ed4D467E8BcfD",
         Goerli: "0xC095CEa800dBAdcCc742124b68399Ac6ADF5d8eC",
       },
     },
@@ -340,7 +340,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0xad35bd71b9afe6e4bdc266b345c198eadef9ad94",
+        Mainnet: "0xad35Bd71b9aFE6e4bDc266B345c198eaDEf9Ad94",
         Goerli: "0x725F188BF87DaF7A7c3de39276ad78a2b8559793",
       },
     },
@@ -350,7 +350,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0x6ebc52c8c1089be9eb3945c4350b68b8e4c2233f",
+        Mainnet: "0x6Ebc52C8C1089be9eB3945C4350B68B8E4C2233f",
         Goerli: "0x2E49F1FbBdA0000E89376D3332A1d42dBeF3D205",
       },
     },
@@ -378,7 +378,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0x8c110b94c5f1d347facf5e1e938ab2db60e3c9a8",
+        Mainnet: "0x8c110B94C5f1d347fAcF5E1E938AB2db60E3c9a8",
         Goerli: "0x7F2414A025EA6BbF06e422bC9E78Acd66c94873a",
       },
     },
