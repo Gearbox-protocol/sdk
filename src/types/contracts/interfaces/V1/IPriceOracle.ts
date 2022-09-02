@@ -24,9 +24,9 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../../../../common";
+} from "../../../common";
 
-export interface IPriceOracleV2Interface extends utils.Interface {
+export interface IPriceOracleInterface extends utils.Interface {
   functions: {
     "addPriceFeed(address,address)": FunctionFragment;
     "convert(uint256,address,address)": FunctionFragment;
@@ -78,12 +78,12 @@ export type NewPriceFeedEvent = TypedEvent<
 
 export type NewPriceFeedEventFilter = TypedEventFilter<NewPriceFeedEvent>;
 
-export interface IPriceOracleV2 extends BaseContract {
+export interface IPriceOracle extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IPriceOracleV2Interface;
+  interface: IPriceOracleInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
