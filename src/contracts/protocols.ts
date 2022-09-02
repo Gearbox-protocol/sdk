@@ -38,4 +38,8 @@ export const protocolData: Record<Protocols, ProtocolData> = {
     name: "Lido",
     icon: "/protocols/lido.svg",
   },
+  [Protocols.Gearbox]: {
+    name: "Gearbox",
+    icon: "",
+  },
 };

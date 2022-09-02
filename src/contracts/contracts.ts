@@ -208,10 +208,10 @@ export type LidoParams = {
   lpToken: "steCRV";
 } & BaseContractParams;
 
-export interface UniversalParams {
+export type UniversalParams = {
   protocol: Protocols.Gearbox;
   type: AdapterInterface.UNIVERSAL;
-}
+} & BaseContractParams;
 
 export type ContractParams =
   | UniswapV2Params
@@ -432,6 +432,12 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
       Goerli: "0x2840CeAeeA3d0Af1beDBeB64539406793180709E", // LIDO_ORACLE
     },
     lpToken: "steCRV",
+  },
+
+  UNIVERSAL_ADAPTER: {
+    name: "Gearbox universal adapter",
+    protocol: Protocols.Gearbox,
+    type: AdapterInterface.UNIVERSAL,
   },
 };
 
