@@ -20,7 +20,7 @@ interface WithUnderlyingToken {
 }
 
 export function getUnderlyingToken(
-  c: WithUnderlyingToken | undefined | Error,
+  c: WithUnderlyingToken | undefined | null | Error,
 ): string | undefined {
   if (!c || c instanceof Error) {
     return undefined;
