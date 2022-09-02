@@ -15,4 +15,5 @@ export enum AdapterInterface {
   CONVEX_V1_BOOSTER, // 13
   CONVEX_V1_CLAIM_ZAP, // 14
   LIDO_V1, // 15
+  UNIVERSAL,
 }

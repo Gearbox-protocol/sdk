@@ -53,7 +53,8 @@ export type SupportedContract =
   | "CONVEX_BOOSTER"
   | ConvexPoolContract
   | "CONVEX_CLAIM_ZAP"
-  | "LIDO_STETH_GATEWAY";
+  | "LIDO_STETH_GATEWAY"
+  | "UNIVERSAL_ADAPTER";
 
 export const contractsByNetwork: Record<
   NetworkType,
@@ -93,6 +94,9 @@ export const contractsByNetwork: Record<
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x55045Eaae19d92680E02231e4Ce7bBEB4814ca64",
+
+    // GEARBOX
+    UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
   },
 
   Goerli: {
@@ -129,6 +133,9 @@ export const contractsByNetwork: Record<
 
     // LIDO
     LIDO_STETH_GATEWAY: "TODO: DEPLOY ME",
+
+    // GEARBOX
+    UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
   },
 };
 
@@ -201,6 +208,11 @@ export type LidoParams = {
   lpToken: "steCRV";
 } & BaseContractParams;
 
+export interface UniversalParams {
+  protocol: Protocols.Gearbox;
+  type: AdapterInterface.UNIVERSAL;
+}
+
 export type ContractParams =
   | UniswapV2Params
   | UniswapV3Params
@@ -209,7 +221,8 @@ export type ContractParams =
   | YearnParams
   | ConvexParams
   | ConvexPoolParams
-  | LidoParams;
+  | LidoParams
+  | UniversalParams;
 
 export const contractParams: Record<SupportedContract, ContractParams> = {
   UNISWAP_V2_ROUTER: {

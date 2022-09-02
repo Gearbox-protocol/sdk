@@ -5,6 +5,7 @@ export enum Protocols {
   Yearn,
   Convex,
   Lido,
+  Gearbox,
 }
 
 export interface ProtocolData {
