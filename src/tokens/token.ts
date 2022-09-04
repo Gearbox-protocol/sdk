@@ -137,7 +137,7 @@ export const tokenDataByNetwork: Record<
     stkcvx3Crv: "0x2eD0f32d7C8b0f7EA7E40277C62Fb9C5DE092003",
     stkcvxsteCRV: "0x2210aa245Bf766eE99325c607807A08e636B5173",
     stkcvxFRAX3CRV: "0x2AF29502110080081FDF726dfBf61ABE3bA9Ef3C",
-    stkcvxLUSD3CRV: "",
+    stkcvxLUSD3CRV: "0x77e6290D1779B606235407fdf37A14D94D0DFB40",
     stkcvxcrvPlain3andSUSD: "0xd622AD90386BBf0310668175f76eD958030E3635",
     stkcvxgusd3CRV: "0x074f66aE6e28f7e01DFe598ECbfbd3034cf3De47",
 
@@ -220,12 +220,12 @@ export const tokenDataByNetwork: Record<
     cvxgusd3CRV: "0xB8111E77D074Dd7820323751a373DC8d103c4EeD",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
-    stkcvx3Crv: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
-    stkcvxFRAX3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
-    stkcvxLUSD3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
-    stkcvxgusd3CRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
-    stkcvxsteCRV: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
-    stkcvxcrvPlain3andSUSD: "TODO: DEPLOY ME", // ConvexV1_StakedPositionToken.sol
+    stkcvx3Crv: "0x67dccf07a27182668ccF062392E696a95cDEfB7f",
+    stkcvxFRAX3CRV: "0xF98b96D84c87c214DbE50922B65DB10768AF13B0",
+    stkcvxgusd3CRV: "0x29532d0E34EAeda74e3c6620D1246C271D4cd3D3",
+    stkcvxsteCRV: "0x6F73a8206DfEd633C43ce24E1e3Da4aC2Cd1b9E2",
+    stkcvxcrvPlain3andSUSD: "0xC14f4b0c3483086ECE724F5a7771D144B45BdD1e",
+    stkcvxLUSD3CRV: "0xb72CeF4FE4cA8d2683A9434385650C2A8A650F59",
 
     // GEARBOX
     dDAI: "TODO: DEPLOY ME", // DieselToken.sol
