@@ -1,4 +1,5 @@
 export enum TokenType {
+  NO_TOKEN,
   NORMAL_TOKEN,
   CURVE_LP_TOKEN,
   YEARN_ON_NORMAL_TOKEN,
