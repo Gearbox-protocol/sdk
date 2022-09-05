@@ -1,4 +1,4 @@
-const isLoaded = (v: unknown) => v !== undefined;
+const isLoaded = (v: unknown) => v !== undefined && v !== null;
 
 export function allLoaded(itemsToLoad: Array<unknown>): boolean {
   return itemsToLoad.reduce<boolean>(

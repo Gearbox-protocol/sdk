@@ -5,9 +5,9 @@
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
 import type {
-  IPriceOracleV2,
-  IPriceOracleV2Interface,
-} from "../../../../../contracts/interfaces/V1/IPriceOracle.sol/IPriceOracleV2";
+  IPriceOracle,
+  IPriceOracleInterface,
+} from "../../../../contracts/interfaces/V1/IPriceOracle";
 
 const _abi = [
   {
@@ -102,15 +102,15 @@ const _abi = [
   },
 ];
 
-export class IPriceOracleV2__factory {
+export class IPriceOracle__factory {
   static readonly abi = _abi;
-  static createInterface(): IPriceOracleV2Interface {
-    return new utils.Interface(_abi) as IPriceOracleV2Interface;
+  static createInterface(): IPriceOracleInterface {
+    return new utils.Interface(_abi) as IPriceOracleInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IPriceOracleV2 {
-    return new Contract(address, _abi, signerOrProvider) as IPriceOracleV2;
+  ): IPriceOracle {
+    return new Contract(address, _abi, signerOrProvider) as IPriceOracle;
   }
 }

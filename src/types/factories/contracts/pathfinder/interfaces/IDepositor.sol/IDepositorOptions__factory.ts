@@ -253,6 +253,16 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "enum TokenType",
+        name: "ttIn",
+        type: "uint8",
+      },
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
         internalType: "address",
         name: "tokenOut",
         type: "address",
@@ -362,6 +372,231 @@ const _abi = [
       },
     ],
     name: "depositAll",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "creditAccount",
+            type: "address",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "balance",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct Balance[]",
+            name: "balances",
+            type: "tuple[]",
+          },
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "address[]",
+            name: "connectors",
+            type: "address[]",
+          },
+          {
+            internalType: "address[]",
+            name: "adapters",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256",
+            name: "slippage",
+            type: "uint256",
+          },
+          {
+            internalType: "enum TokenType",
+            name: "targetType",
+            type: "uint8",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "address[]",
+                name: "adapters",
+                type: "address[]",
+              },
+            ],
+            internalType: "struct TokenAdapters[]",
+            name: "foundAdapters",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint256",
+            name: "gasPriceTargetRAY",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "initTargetBalance",
+            type: "uint256",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "target",
+                type: "address",
+              },
+              {
+                internalType: "bytes",
+                name: "callData",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct MultiCall[]",
+            name: "calls",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct StrategyPathTask",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "creditAccount",
+            type: "address",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "balance",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct Balance[]",
+            name: "balances",
+            type: "tuple[]",
+          },
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "address[]",
+            name: "connectors",
+            type: "address[]",
+          },
+          {
+            internalType: "address[]",
+            name: "adapters",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256",
+            name: "slippage",
+            type: "uint256",
+          },
+          {
+            internalType: "enum TokenType",
+            name: "targetType",
+            type: "uint8",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "address[]",
+                name: "adapters",
+                type: "address[]",
+              },
+            ],
+            internalType: "struct TokenAdapters[]",
+            name: "foundAdapters",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint256",
+            name: "gasPriceTargetRAY",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "initTargetBalance",
+            type: "uint256",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "target",
+                type: "address",
+              },
+              {
+                internalType: "bytes",
+                name: "callData",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct MultiCall[]",
+            name: "calls",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct StrategyPathTask",
+        name: "task",
+        type: "tuple",
+      },
+    ],
+    name: "depositAllTokens",
     outputs: [
       {
         internalType: "uint256",

@@ -5,3 +5,5 @@ import type * as mocks from "./mocks";
 export type { mocks };
 import type * as sigp from "./sigp";
 export type { sigp };
+import type * as suites from "./suites";
+export type { suites };

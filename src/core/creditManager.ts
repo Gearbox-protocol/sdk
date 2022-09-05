@@ -77,10 +77,11 @@ export class CreditManagerData {
 
     this.borrowRate =
       BigNumber.from(payload.borrowRate || 0)
-        .mul(PERCENTAGE_FACTOR)
+        .mul(BigNumber.from(payload.feeInterest).add(PERCENTAGE_FACTOR))
         .mul(PERCENTAGE_DECIMALS)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
+
     this.minAmount = BigNumber.from(payload.minAmount || 0);
     this.maxAmount = BigNumber.from(payload.maxAmount || 0);
 
@@ -118,11 +119,15 @@ export class CreditManagerData {
     this.forbiddenTokenMask = BigNumber.from(payload.forbiddenTokenMask || 0);
 
     this.feeInterest = BigNumber.from(payload.feeInterest).toNumber();
-    this.feeLiquidation = BigNumber.from(payload.feeInterest).toNumber();
-    this.liquidationDiscount = BigNumber.from(payload.feeInterest).toNumber();
-    this.feeLiquidationExpired = BigNumber.from(payload.feeInterest).toNumber();
+    this.feeLiquidation = BigNumber.from(payload.feeLiquidation).toNumber();
+    this.liquidationDiscount = BigNumber.from(
+      payload.feeLiquidation,
+    ).toNumber();
+    this.feeLiquidationExpired = BigNumber.from(
+      payload.feeLiquidationExpired,
+    ).toNumber();
     this.liquidationDiscountExpired = BigNumber.from(
-      payload.feeInterest,
+      payload.feeLiquidationExpired,
     ).toNumber();
   }
 
@@ -234,11 +239,14 @@ export function calcMaxIncreaseBorrow(
 ): BigNumber {
   const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
 
-  const minHealthFactor = Math.floor(
-    (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD *
-      (maxLeverageFactor + LEVERAGE_DECIMALS)) /
-      maxLeverageFactor,
-  );
+  const minHealthFactor =
+    maxLeverageFactor > 0
+      ? Math.floor(
+          (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD *
+            (maxLeverageFactor + LEVERAGE_DECIMALS)) /
+            maxLeverageFactor,
+        )
+      : 10000;
 
   const result = borrowAmountPlusInterest
     .mul(healthFactorPercentage - minHealthFactor)

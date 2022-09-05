@@ -3,3 +3,4 @@
 /* eslint-disable */
 export * as mocks from "./mocks";
 export * as sigp from "./sigp";
+export * as suites from "./suites";
