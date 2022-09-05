@@ -313,7 +313,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
         Mainnet: "0xd962fC30A72A84cE50161031391756Bf2876Af5D",
-        Goerli: "0x633816FbeeA4d716fd4714B7f43E02729f914397",
+        Goerli: "0xF958760fd9c0E019e355f31c3D69f0E5239597D0",
       },
     },
   },
