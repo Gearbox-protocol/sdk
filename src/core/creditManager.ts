@@ -239,11 +239,14 @@ export function calcMaxIncreaseBorrow(
 ): BigNumber {
   const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
 
-  const minHealthFactor = Math.floor(
-    (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD *
-      (maxLeverageFactor + LEVERAGE_DECIMALS)) /
-      maxLeverageFactor,
-  );
+  const minHealthFactor =
+    maxLeverageFactor > 0
+      ? Math.floor(
+          (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD *
+            (maxLeverageFactor + LEVERAGE_DECIMALS)) /
+            maxLeverageFactor,
+        )
+      : 10000;
 
   const result = borrowAmountPlusInterest
     .mul(healthFactorPercentage - minHealthFactor)
