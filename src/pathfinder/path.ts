@@ -111,7 +111,7 @@ export class Path {
     });
 
     const lpPaths = await initialPath.withdrawTokens();
-    // const pathFinder = ISwapPathFinder__factory.connect(
+    // const pathFinder = ISwapAggregator__factory.connect(
     //   pathFindersByNetwork[networkType].PATH_FINDER,
     //   provider,
     // );

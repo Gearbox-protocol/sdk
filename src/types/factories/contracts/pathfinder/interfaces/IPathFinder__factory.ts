@@ -76,34 +76,51 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "tokenIn",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "tokenOut",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        internalType: "address[]",
-        name: "connectors",
-        type: "address[]",
-      },
-      {
-        internalType: "uint256",
-        name: "slippage",
-        type: "uint256",
+        components: [
+          {
+            internalType: "enum SwapOperation",
+            name: "swapOperation",
+            type: "uint8",
+          },
+          {
+            internalType: "address",
+            name: "creditAccount",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenIn",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenOut",
+            type: "address",
+          },
+          {
+            internalType: "address[]",
+            name: "connectors",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippage",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "externalSlippage",
+            type: "bool",
+          },
+        ],
+        internalType: "struct SwapTask",
+        name: "swapTask",
+        type: "tuple",
       },
     ],
     name: "findAllSwaps",

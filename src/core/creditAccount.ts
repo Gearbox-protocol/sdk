@@ -83,6 +83,7 @@ export class CreditAccountData {
     });
 
     this.isDeleting = false;
+    this.version = BigNumber.from(payload.version || 1).toNumber();
   }
 
   balancesSorted(

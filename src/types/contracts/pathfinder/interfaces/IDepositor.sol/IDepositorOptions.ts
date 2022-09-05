@@ -87,12 +87,17 @@ export type StrategyPathTaskStructOutput = [
 export interface IDepositorOptionsInterface extends utils.Interface {
   functions: {
     "deposit(uint8,address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "depositAll(address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "depositAll(uint8,address,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "depositAllTokens(address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "getUnderlyings(uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "deposit" | "depositAll" | "getUnderlyings"
+    nameOrSignatureOrTopic:
+      | "deposit"
+      | "depositAll"
+      | "depositAllTokens"
+      | "getUnderlyings"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -101,6 +106,10 @@ export interface IDepositorOptionsInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "depositAll",
+    values: [BigNumberish, string, string, StrategyPathTaskStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "depositAllTokens",
     values: [string, StrategyPathTaskStruct]
   ): string;
   encodeFunctionData(
@@ -110,6 +119,10 @@ export interface IDepositorOptionsInterface extends utils.Interface {
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "depositAll", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "depositAllTokens",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getUnderlyings",
     data: BytesLike
@@ -157,6 +170,16 @@ export interface IDepositorOptions extends BaseContract {
     >;
 
     depositAll(
+      ttIn: BigNumberish,
+      tokenIn: string,
+      tokenOut: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, StrategyPathTaskStructOutput] & { amountOut: BigNumber }
+    >;
+
+    depositAllTokens(
       tokenOut: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
@@ -186,6 +209,16 @@ export interface IDepositorOptions extends BaseContract {
   >;
 
   depositAll(
+    ttIn: BigNumberish,
+    tokenIn: string,
+    tokenOut: string,
+    task: StrategyPathTaskStruct,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, StrategyPathTaskStructOutput] & { amountOut: BigNumber }
+  >;
+
+  depositAllTokens(
     tokenOut: string,
     task: StrategyPathTaskStruct,
     overrides?: CallOverrides
@@ -213,6 +246,16 @@ export interface IDepositorOptions extends BaseContract {
     >;
 
     depositAll(
+      ttIn: BigNumberish,
+      tokenIn: string,
+      tokenOut: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, StrategyPathTaskStructOutput] & { amountOut: BigNumber }
+    >;
+
+    depositAllTokens(
       tokenOut: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
@@ -243,6 +286,14 @@ export interface IDepositorOptions extends BaseContract {
     ): Promise<BigNumber>;
 
     depositAll(
+      ttIn: BigNumberish,
+      tokenIn: string,
+      tokenOut: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    depositAllTokens(
       tokenOut: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
@@ -267,6 +318,14 @@ export interface IDepositorOptions extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     depositAll(
+      ttIn: BigNumberish,
+      tokenIn: string,
+      tokenOut: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    depositAllTokens(
       tokenOut: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides

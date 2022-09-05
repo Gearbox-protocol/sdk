@@ -33,10 +33,7 @@ export class YearnVaultPathFinder implements LPWithdrawPathFinder {
   // eslint-disable-next-line class-methods-use-this
   async findWithdrawPaths(path: Path): Promise<Array<Path>> {
     // make path copy
-    const p: Path = Object.assign(
-      Object.create(Object.getPrototypeOf(path)),
-      path,
-    );
+    const p = path.clone();
 
     const vaultBalances = objectEntries(yearnTokens).reduce<
       PartialRecord<SupportedToken, WithdrawBalance>

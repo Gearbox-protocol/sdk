@@ -26,6 +26,37 @@ import type {
   OnEvent,
 } from "../../../common";
 
+export type SwapTaskStruct = {
+  swapOperation: BigNumberish;
+  creditAccount: string;
+  tokenIn: string;
+  tokenOut: string;
+  connectors: string[];
+  amount: BigNumberish;
+  slippage: BigNumberish;
+  externalSlippage: boolean;
+};
+
+export type SwapTaskStructOutput = [
+  number,
+  string,
+  string,
+  string,
+  string[],
+  BigNumber,
+  BigNumber,
+  boolean
+] & {
+  swapOperation: number;
+  creditAccount: string;
+  tokenIn: string;
+  tokenOut: string;
+  connectors: string[];
+  amount: BigNumber;
+  slippage: BigNumber;
+  externalSlippage: boolean;
+};
+
 export type MultiCallStruct = { target: string; callData: BytesLike };
 
 export type MultiCallStructOutput = [string, string] & {
@@ -67,7 +98,7 @@ export type BalanceStructOutput = [string, BigNumber] & {
 export interface IPathFinderInterface extends utils.Interface {
   functions: {
     "componentAddressById(uint8)": FunctionFragment;
-    "findAllSwaps(address,uint256,address,address,address[],uint256)": FunctionFragment;
+    "findAllSwaps((uint8,address,address,address,address[],uint256,uint256,bool))": FunctionFragment;
     "findBestClosePath(address,address[],uint256,(address,uint8,uint8)[],uint256)": FunctionFragment;
     "findOneTokenPath(address,uint256,address,address,address[],uint256)": FunctionFragment;
     "findOpenStrategyPath(address,(address,uint256)[],address,address[],uint256)": FunctionFragment;
@@ -96,7 +127,7 @@ export interface IPathFinderInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "findAllSwaps",
-    values: [string, BigNumberish, string, string, string[], BigNumberish]
+    values: [SwapTaskStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "findBestClosePath",
@@ -218,12 +249,7 @@ export interface IPathFinder extends BaseContract {
     ): Promise<[string]>;
 
     findAllSwaps(
-      tokenIn: string,
-      amount: BigNumberish,
-      tokenOut: string,
-      creditAccount: string,
-      connectors: string[],
-      slippage: BigNumberish,
+      swapTask: SwapTaskStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -276,12 +302,7 @@ export interface IPathFinder extends BaseContract {
   ): Promise<string>;
 
   findAllSwaps(
-    tokenIn: string,
-    amount: BigNumberish,
-    tokenOut: string,
-    creditAccount: string,
-    connectors: string[],
-    slippage: BigNumberish,
+    swapTask: SwapTaskStruct,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -334,12 +355,7 @@ export interface IPathFinder extends BaseContract {
     ): Promise<string>;
 
     findAllSwaps(
-      tokenIn: string,
-      amount: BigNumberish,
-      tokenOut: string,
-      creditAccount: string,
-      connectors: string[],
-      slippage: BigNumberish,
+      swapTask: SwapTaskStruct,
       overrides?: CallOverrides
     ): Promise<PathFinderResultStructOutput[]>;
 
@@ -415,12 +431,7 @@ export interface IPathFinder extends BaseContract {
     ): Promise<BigNumber>;
 
     findAllSwaps(
-      tokenIn: string,
-      amount: BigNumberish,
-      tokenOut: string,
-      creditAccount: string,
-      connectors: string[],
-      slippage: BigNumberish,
+      swapTask: SwapTaskStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -474,12 +485,7 @@ export interface IPathFinder extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     findAllSwaps(
-      tokenIn: string,
-      amount: BigNumberish,
-      tokenOut: string,
-      creditAccount: string,
-      connectors: string[],
-      slippage: BigNumberish,
+      swapTask: SwapTaskStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
