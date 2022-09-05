@@ -14,7 +14,6 @@ export * from "./core/tokenDistributor";
 export * from "./core/transactions";
 export * from "./oracles/oracles";
 export * from "./oracles/priceFeeds";
-export * from "./pathfinder/trade";
 export * from "./payload/creditAccount";
 export * from "./payload/creditManager";
 export * from "./payload/creditSession";

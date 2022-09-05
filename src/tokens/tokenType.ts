@@ -1,5 +1,5 @@
 export enum TokenType {
-  CONNECTOR,
+  // CONNECTOR,
   NORMAL_TOKEN,
   CURVE_LP,
   META_CURVE_LP,

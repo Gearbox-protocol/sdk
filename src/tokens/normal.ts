@@ -36,7 +36,7 @@ export type NormalToken =
 
 export type NormalTokenData = {
   symbol: NormalToken;
-  type: TokenType.CONNECTOR | TokenType.NORMAL_TOKEN;
+  type: TokenType.NORMAL_TOKEN;
   swapActions: Array<TradeAction>;
   lpActions?: Array<TradeAction>;
 } & TokenBase;
@@ -135,7 +135,7 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     decimals: 18,
 
     symbol: "DAI",
-    type: TokenType.CONNECTOR,
+    type: TokenType.NORMAL_TOKEN,
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
@@ -304,7 +304,7 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     decimals: 6,
 
     symbol: "USDC",
-    type: TokenType.CONNECTOR,
+    type: TokenType.NORMAL_TOKEN,
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
@@ -397,7 +397,7 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     decimals: 8,
 
     symbol: "WBTC",
-    type: TokenType.CONNECTOR,
+    type: TokenType.NORMAL_TOKEN,
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
@@ -426,7 +426,7 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     decimals: 18,
 
     symbol: "WETH",
-    type: TokenType.CONNECTOR,
+    type: TokenType.NORMAL_TOKEN,
     swapActions: [
       {
         type: TradeType.UniswapV3Swap,
