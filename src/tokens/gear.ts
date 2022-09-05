@@ -13,7 +13,7 @@ export type DieselTokenData = {
 export type GearboxTokenData = {
   symbol: GearboxToken;
   swapActions?: Array<TradeAction>;
-  type: TokenType.NORMAL_TOKEN;
+  type: TokenType.GEAR_TOKEN;
 } & TokenBase;
 
 export const gearTokens: Record<
@@ -53,6 +53,6 @@ export const gearTokens: Record<
     name: "GEAR",
     decimals: 18,
     symbol: "GEAR",
-    type: TokenType.NORMAL_TOKEN,
+    type: TokenType.GEAR_TOKEN,
   },
 };
