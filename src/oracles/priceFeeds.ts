@@ -457,41 +457,41 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
 
   "3Crv": {
     priceFeedUSD: {
-      type: OracleType.CURVE_LP_ORACLE,
+      type: OracleType.CURVE_LP_TOKEN_ORACLE,
       assets: ["DAI", "USDC", "USDT"],
     },
   },
 
   steCRV: {
     priceFeedUSD: {
-      type: OracleType.CURVE_LP_ORACLE,
+      type: OracleType.CURVE_LP_TOKEN_ORACLE,
       assets: ["STETH", "WETH"],
     },
   },
   FRAX3CRV: {
     priceFeedUSD: {
-      type: OracleType.CURVE_LP_ORACLE,
+      type: OracleType.CURVE_LP_TOKEN_ORACLE,
       assets: ["FRAX", "DAI", "USDC", "USDT"],
     },
   },
 
   LUSD3CRV: {
     priceFeedUSD: {
-      type: OracleType.CURVE_LP_ORACLE,
+      type: OracleType.CURVE_LP_TOKEN_ORACLE,
       assets: ["LUSD", "DAI", "USDC", "USDT"],
     },
   },
 
   crvPlain3andSUSD: {
     priceFeedUSD: {
-      type: OracleType.CURVE_LP_ORACLE,
+      type: OracleType.CURVE_LP_TOKEN_ORACLE,
       assets: ["DAI", "USDC", "USDT", "sUSD"],
     },
   },
 
   gusd3CRV: {
     priceFeedUSD: {
-      type: OracleType.CURVE_LP_ORACLE,
+      type: OracleType.CURVE_LP_TOKEN_ORACLE,
       assets: ["GUSD", "DAI", "USDC", "USDT"],
     },
   },
@@ -500,13 +500,13 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
 
   yvCurve_stETH: {
     priceFeedUSD: {
-      type: OracleType.YEARN_CURVE_LP_ORACLE,
+      type: OracleType.YEARN_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "steCRV",
     },
   },
   yvCurve_FRAX: {
     priceFeedUSD: {
-      type: OracleType.YEARN_CURVE_LP_ORACLE,
+      type: OracleType.YEARN_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "FRAX3CRV",
     },
   },
@@ -514,74 +514,74 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
   // CVX tokens
   cvx3Crv: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "3Crv",
     },
   },
   cvxsteCRV: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "steCRV",
     },
   },
   cvxFRAX3CRV: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "FRAX3CRV",
     },
   },
   cvxLUSD3CRV: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "LUSD3CRV",
     },
   },
   cvxcrvPlain3andSUSD: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "crvPlain3andSUSD",
     },
   },
   cvxgusd3CRV: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "gusd3CRV",
     },
   },
   // CVX tokens
   stkcvx3Crv: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "3Crv",
     },
   },
   stkcvxsteCRV: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "steCRV",
     },
   },
   stkcvxFRAX3CRV: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "FRAX3CRV",
     },
   },
   stkcvxLUSD3CRV: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "LUSD3CRV",
     },
   },
   stkcvxcrvPlain3andSUSD: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "crvPlain3andSUSD",
     },
   },
   stkcvxgusd3CRV: {
     priceFeedUSD: {
-      type: OracleType.LIKE_CURVE_LP_ORACLE,
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "gusd3CRV",
     },
   },

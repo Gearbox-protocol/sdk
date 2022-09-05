@@ -15,7 +15,7 @@ export type YearnLPToken =
 
 export type YearnVaultTokenData = {
   symbol: YearnLPToken;
-  type: TokenType.YEARN_VAULT;
+  type: TokenType.YEARN_ON_NORMAL_TOKEN;
   underlying: NormalToken;
   lpActions: Array<TradeAction>;
   vault: YearnVaultContract;
@@ -23,7 +23,7 @@ export type YearnVaultTokenData = {
 
 export type YearnVaultOfCurveLPTokenData = {
   symbol: YearnLPToken;
-  type: TokenType.YEARN_VAULT_OF_CURVE_LP;
+  type: TokenType.YEARN_ON_CURVE_TOKEN;
   underlying: CurveLPToken;
   lpActions: Array<TradeAction>;
   vault: YearnVaultContract;
@@ -31,7 +31,7 @@ export type YearnVaultOfCurveLPTokenData = {
 
 export type YearnVaultOfMetaCurveLPTokenData = {
   symbol: YearnLPToken;
-  type: TokenType.YEARN_VAULT_OF_META_CURVE_LP;
+  type: TokenType.YEARN_ON_CURVE_TOKEN;
   underlying: CurveLPToken;
   lpActions: Array<TradeAction>;
   vault: YearnVaultContract;
@@ -48,7 +48,7 @@ export const yearnTokens: Record<
     name: "Yearn yvDAI",
     decimals: 18,
     symbol: "yvDAI",
-    type: TokenType.YEARN_VAULT,
+    type: TokenType.YEARN_ON_NORMAL_TOKEN,
     underlying: "DAI",
     vault: "YEARN_DAI_VAULT",
     lpActions: [
@@ -64,7 +64,7 @@ export const yearnTokens: Record<
     name: "Yearn yvUSDC",
     decimals: 6,
     symbol: "yvUSDC",
-    type: TokenType.YEARN_VAULT,
+    type: TokenType.YEARN_ON_NORMAL_TOKEN,
     underlying: "USDC",
     vault: "YEARN_USDC_VAULT",
     lpActions: [
@@ -80,7 +80,7 @@ export const yearnTokens: Record<
     name: "Yearn yvWETH",
     decimals: 18,
     symbol: "yvWETH",
-    type: TokenType.YEARN_VAULT,
+    type: TokenType.YEARN_ON_NORMAL_TOKEN,
     underlying: "WETH",
     vault: "YEARN_WETH_VAULT",
     lpActions: [
@@ -96,7 +96,7 @@ export const yearnTokens: Record<
     name: "Yearn yvWBTC",
     decimals: 8,
     symbol: "yvWBTC",
-    type: TokenType.YEARN_VAULT,
+    type: TokenType.YEARN_ON_NORMAL_TOKEN,
     underlying: "WBTC",
     vault: "YEARN_WBTC_VAULT",
     lpActions: [
@@ -113,7 +113,7 @@ export const yearnTokens: Record<
     name: "Yearn yvCurve-stETH",
     decimals: 18,
     symbol: "yvCurve_stETH",
-    type: TokenType.YEARN_VAULT_OF_CURVE_LP,
+    type: TokenType.YEARN_ON_CURVE_TOKEN,
     underlying: "steCRV",
     vault: "YEARN_CURVE_STETH_VAULT",
     lpActions: [
@@ -129,7 +129,7 @@ export const yearnTokens: Record<
     name: "Yearn yvCurve-FRAX",
     decimals: 18,
     symbol: "yvCurve_FRAX",
-    type: TokenType.YEARN_VAULT_OF_META_CURVE_LP,
+    type: TokenType.YEARN_ON_CURVE_TOKEN,
     underlying: "FRAX3CRV",
     vault: "YEARN_CURVE_FRAX_VAULT",
     lpActions: [

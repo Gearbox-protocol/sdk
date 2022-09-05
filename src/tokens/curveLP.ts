@@ -16,7 +16,7 @@ export type CurveLPToken =
 
 export type CurveLPTokenData = {
   symbol: CurveLPToken;
-  type: TokenType.CURVE_LP;
+  type: TokenType.CURVE_LP_TOKEN;
   swapActions?: Array<TradeAction>;
   lpActions: Array<TradeAction>;
   pool: CurvePoolContract;
@@ -25,7 +25,7 @@ export type CurveLPTokenData = {
 
 export type MetaCurveLPTokenData = {
   symbol: CurveLPToken;
-  type: TokenType.META_CURVE_LP;
+  type: TokenType.CURVE_LP_TOKEN;
   lpActions: Array<TradeAction>;
   pool: CurvePoolContract;
   wrapper?: CurvePoolContract;
@@ -49,7 +49,7 @@ export const curveTokens: Record<
     name: "Curve 3Crv",
     decimals: 18,
     symbol: "3Crv",
-    type: TokenType.CURVE_LP,
+    type: TokenType.CURVE_LP_TOKEN,
     pool: "CURVE_3CRV_POOL",
     lpActions: [
       {
@@ -74,7 +74,7 @@ export const curveTokens: Record<
     name: "Curve steCRV",
     decimals: 18,
     symbol: "steCRV",
-    type: TokenType.CURVE_LP,
+    type: TokenType.CURVE_LP_TOKEN,
     pool: "CURVE_STETH_GATEWAY",
     lpActions: [
       {
@@ -99,7 +99,7 @@ export const curveTokens: Record<
     name: "Curve crvPlain3andSUSD",
     decimals: 18,
     symbol: "crvPlain3andSUSD",
-    type: TokenType.CURVE_LP,
+    type: TokenType.CURVE_LP_TOKEN,
     pool: "CURVE_SUSD_POOL",
     wrapper: "CURVE_SUSD_DEPOSIT",
     lpActions: [
@@ -126,7 +126,7 @@ export const curveTokens: Record<
     name: "Curve FRAX3CRV-f",
     decimals: 18,
     symbol: "FRAX3CRV",
-    type: TokenType.META_CURVE_LP,
+    type: TokenType.CURVE_LP_TOKEN,
     pool: "CURVE_FRAX_POOL",
     lpActions: [
       {
@@ -151,7 +151,7 @@ export const curveTokens: Record<
     name: "Curve LUSD3CRV-f",
     decimals: 18,
     symbol: "LUSD3CRV",
-    type: TokenType.META_CURVE_LP,
+    type: TokenType.CURVE_LP_TOKEN,
     pool: "CURVE_LUSD_POOL",
     lpActions: [
       {
@@ -166,7 +166,7 @@ export const curveTokens: Record<
     name: "Curve gusd3CRV",
     decimals: 18,
     symbol: "gusd3CRV",
-    type: TokenType.META_CURVE_LP,
+    type: TokenType.CURVE_LP_TOKEN,
     pool: "CURVE_GUSD_POOL",
     lpActions: [
       {

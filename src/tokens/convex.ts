@@ -35,7 +35,7 @@ export type ConvexLPTokenData = {
 
 export type ConvexPhantomTokenData = {
   symbol: ConvexStakedPhantomToken;
-  type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN;
+  type: TokenType.CONVEX_STAKED_TOKEN;
   lpToken: ConvexLPToken;
 } & BaseConvexToken;
 
@@ -194,7 +194,7 @@ const convexStakedPhantomTokens: Record<
     decimals: 18,
 
     symbol: "stkcvx3Crv",
-    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    type: TokenType.CONVEX_STAKED_TOKEN,
     pool: "CONVEX_3CRV_POOL",
     pid: 9,
     underlying: "3Crv",
@@ -218,7 +218,7 @@ const convexStakedPhantomTokens: Record<
     decimals: 18,
 
     symbol: "stkcvxsteCRV",
-    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    type: TokenType.CONVEX_STAKED_TOKEN,
     pool: "CONVEX_STECRV_POOL",
     pid: 25,
     underlying: "steCRV",
@@ -242,7 +242,7 @@ const convexStakedPhantomTokens: Record<
     decimals: 18,
 
     symbol: "stkcvxFRAX3CRV",
-    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    type: TokenType.CONVEX_STAKED_TOKEN,
     pool: "CONVEX_FRAX3CRV_POOL",
     pid: 32,
     underlying: "FRAX3CRV",
@@ -266,7 +266,7 @@ const convexStakedPhantomTokens: Record<
     decimals: 18,
 
     symbol: "stkcvxLUSD3CRV",
-    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    type: TokenType.CONVEX_STAKED_TOKEN,
     pool: "CONVEX_LUSD3CRV_POOL",
     pid: 33,
     underlying: "LUSD3CRV",
@@ -290,7 +290,7 @@ const convexStakedPhantomTokens: Record<
     decimals: 18,
 
     symbol: "stkcvxcrvPlain3andSUSD",
-    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    type: TokenType.CONVEX_STAKED_TOKEN,
     pool: "CONVEX_SUSD_POOL",
     pid: 4,
     underlying: "crvPlain3andSUSD",
@@ -314,7 +314,7 @@ const convexStakedPhantomTokens: Record<
     decimals: 18,
 
     symbol: "stkcvxgusd3CRV",
-    type: TokenType.CONVEX_STAKED_PHANTOM_TOKEN,
+    type: TokenType.CONVEX_STAKED_TOKEN,
     pool: "CONVEX_GUSD_POOL",
     pid: 10,
     underlying: "gusd3CRV",

@@ -9,10 +9,10 @@ export interface PriceFeed {
 export enum OracleType {
   CHAINLINK_ORACLE,
   YEARN_TOKEN_ORACLE,
-  CURVE_LP_ORACLE,
-  YEARN_CURVE_LP_ORACLE,
+  CURVE_LP_TOKEN_ORACLE,
+  YEARN_CURVE_LP_TOKEN_ORACLE,
   ZERO_ORACLE,
-  LIKE_CURVE_LP_ORACLE,
+  LIKE_CURVE_LP_TOKEN_ORACLE,
 }
 
 export type PriceFeedData =
@@ -26,18 +26,18 @@ export type PriceFeedData =
       address: Record<NetworkType, string>;
     }
   | {
-      type: OracleType.CURVE_LP_ORACLE;
+      type: OracleType.CURVE_LP_TOKEN_ORACLE;
       assets: Array<SupportedToken>;
     }
   | {
-      type: OracleType.YEARN_CURVE_LP_ORACLE;
+      type: OracleType.YEARN_CURVE_LP_TOKEN_ORACLE;
       curveSymbol: SupportedToken;
     }
   | {
       type: OracleType.ZERO_ORACLE;
     }
   | {
-      type: OracleType.LIKE_CURVE_LP_ORACLE;
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE;
       curveSymbol: SupportedToken;
     };
 

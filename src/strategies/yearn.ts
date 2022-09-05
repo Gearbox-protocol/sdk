@@ -100,7 +100,7 @@ export class YearnV2Strategies {
     const yearnToken = vaultParams.shareToken;
     const yearnParams = supportedTokens[yearnToken];
 
-    if (yearnParams.type === TokenType.YEARN_VAULT) {
+    if (yearnParams.type === TokenType.YEARN_ON_NORMAL_TOKEN) {
       if (
         data.underlyingToken.toLowerCase() !==
         tokenDataByNetwork[network][yearnParams.underlying].toLowerCase()
@@ -132,10 +132,7 @@ export class YearnV2Strategies {
         );
         return calls;
       }
-    } else if (
-      yearnParams.type === TokenType.YEARN_VAULT_OF_CURVE_LP ||
-      yearnParams.type === TokenType.YEARN_VAULT_OF_META_CURVE_LP
-    ) {
+    } else if (yearnParams.type === TokenType.YEARN_ON_CURVE_TOKEN) {
       const curveTokenParams = supportedTokens[
         yearnParams.underlying
       ] as CurveLPTokenData;
@@ -177,7 +174,7 @@ export class YearnV2Strategies {
       ).withdraw(yearnSharesAmount),
     );
 
-    if (yearnParams.type === TokenType.YEARN_VAULT) {
+    if (yearnParams.type === TokenType.YEARN_ON_NORMAL_TOKEN) {
       if (
         data.underlyingToken.toLowerCase() !==
         tokenDataByNetwork[network][yearnParams.underlying].toLowerCase()
@@ -198,10 +195,7 @@ export class YearnV2Strategies {
           ),
         );
       }
-    } else if (
-      yearnParams.type === TokenType.YEARN_VAULT_OF_CURVE_LP ||
-      yearnParams.type === TokenType.YEARN_VAULT_OF_META_CURVE_LP
-    ) {
+    } else if (yearnParams.type === TokenType.YEARN_ON_CURVE_TOKEN) {
       const curveTokenParams = supportedTokens[
         yearnParams.underlying
       ] as CurveLPTokenData;
