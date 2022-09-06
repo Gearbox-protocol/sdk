@@ -86,8 +86,8 @@ export const memoWrapETH = (ethAddress: string, wethAddress: string) =>
     if (wethOrETH) {
       assetsRecord[wethAddress] = {
         ...wethOrETH,
-        tokenAddress: wethAddress,
-        amount: nonNegativeBn(ethAmount).add(nonNegativeBn(wethAmount)),
+        token: wethAddress,
+        balance: nonNegativeBn(ethAmount).add(nonNegativeBn(wethAmount)),
       };
     }
 
@@ -117,7 +117,7 @@ export function sumAssets<A extends Asset, B extends Asset>(
 
     acc[bAsset.token] = {
       ...aOrB,
-      amount: amountSum,
+      balance: amountSum,
     };
 
     return acc;
@@ -138,9 +138,9 @@ export function subAssets<A extends Asset, B extends Asset>(
 
   return a.map(asset => {
     const bAsset = bRecord[asset.token];
-    const { balance: amount = BigNumber.from(0) } = bAsset || {};
+    const { balance: bAmount = BigNumber.from(0) } = bAsset || {};
 
-    const amountSub = nonNegativeBn(asset.balance).sub(nonNegativeBn(amount));
-    return { ...asset, amount: nonNegativeBn(amountSub) };
+    const amountSub = nonNegativeBn(asset.balance).sub(nonNegativeBn(bAmount));
+    return { ...asset, balance: nonNegativeBn(amountSub) };
   });
 }
