@@ -3,6 +3,7 @@ import { BigNumber } from "ethers";
 import { TokensWithAPY } from "../apy";
 import { calcTotalPrice } from "../utils/price";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
+import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {
   apy?: number;
@@ -54,6 +55,14 @@ export class Strategy {
     this.unleveragableCollateral = payload.unleveragableCollateral;
     this.leveragableCollateral = payload.leveragableCollateral;
     this.baseAssets = payload.baseAssets;
+  }
+
+  static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
+    const [maxThreshold] = maxLeverageThreshold(lpToken, cms);
+
+    const ONE = BigNumber.from(PERCENTAGE_FACTOR);
+    const maxLeverage = ONE.mul(LEVERAGE_DECIMALS).div(ONE.sub(maxThreshold));
+    return maxLeverage.sub(LEVERAGE_DECIMALS).toNumber();
   }
 
   maxAPY(maxLeverage: number, poolApy: PoolList) {
@@ -138,4 +147,23 @@ function minBorrowApy(poolApy: PoolList) {
   );
 
   return apys.length > 0 ? apys[0].borrowRate : 0;
+}
+
+type PartialCM = Pick<CreditManagerData, "liquidationThresholds" | "address">;
+
+function maxLeverageThreshold(lpToken: string, cms: Array<PartialCM>) {
+  const ltByCM: Array<[string, BigNumber]> = cms.map(cm => {
+    const lt = cm.liquidationThresholds[lpToken] || BigNumber.from(0);
+    return [cm.address, lt];
+  });
+
+  const sorted = ltByCM.sort(([, ltA], [, ltB]) => {
+    if (ltA.gt(ltB)) return 1;
+    if (ltB.gt(ltA)) return -1;
+    return 0;
+  });
+
+  const [cm = "", lt = BigNumber.from(0)] = sorted[0] || [];
+
+  return [lt, cm];
 }
