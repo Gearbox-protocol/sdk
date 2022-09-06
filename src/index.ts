@@ -1,5 +1,6 @@
 export * from "./contracts/contracts";
 export * from "./contracts/protocols";
+export * from "./core/assets";
 export * from "./core/constants";
 export * from "./core/creditAccount";
 export * from "./core/creditManager";
