@@ -297,7 +297,7 @@ export function calcMaxIncreaseBorrow(
   return result.isNegative() ? BigNumber.from(0) : result;
 }
 
-interface CalcHFProps {
+export interface CalcHealthFactorProps {
   assets: Array<Asset>;
   prices: Record<string, BigNumber>;
   tokensList: Record<string, TokenData>;
@@ -313,7 +313,7 @@ export function calcHealthFactor({
   liquidationThresholds,
   underlyingToken,
   borrowed,
-}: CalcHFProps): number {
+}: CalcHealthFactorProps): number {
   const assetLTMoney = assets.reduce(
     (acc, { token: tokenAddress, balance: amount }) => {
       const lt = liquidationThresholds[tokenAddress] || BigNumber.from(0);

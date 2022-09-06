@@ -1,16 +1,21 @@
 import { BigNumber } from "ethers";
 
+import { LpTokensAPY } from "../apy";
 import {
   CreditAccountDataExtendedPayload,
   CreditAccountDataPayload,
 } from "../payload/creditAccount";
 import { TokenData } from "../tokens/tokenData";
-import { calcTotalPrice } from "../utils/price";
+import { toBN, toSignificant } from "../utils/formatter";
+import { calcTotalPrice, convertByPrice } from "../utils/price";
+import { LpAsset } from "./assets";
 import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   RAY,
+  WAD,
+  WAD_DECIMALS_POW,
 } from "./constants";
 
 export interface Balance {
@@ -161,4 +166,75 @@ export class CreditAccountDataExtended extends CreditAccountData {
     this.canBeClosed = payload.canBeClosed || false;
     this.since = BigNumber.from(payload.since).toNumber();
   }
+}
+
+export interface CalcOverallAPYProps {
+  lpAssets: Array<LpAsset>;
+  lpAPY: LpTokensAPY | undefined;
+  prices: Record<string, BigNumber>;
+
+  tokensList: Record<string, TokenData>;
+
+  totalValue: BigNumber | undefined;
+  debt: BigNumber | undefined;
+  borrowRate: number;
+  underlyingToken: string;
+}
+
+export function calcOverallAPY({
+  lpAssets,
+  lpAPY,
+  prices,
+
+  tokensList,
+
+  totalValue,
+  debt,
+  borrowRate,
+  underlyingToken,
+}: CalcOverallAPYProps): number | undefined {
+  if (!lpAPY || !totalValue || !debt) return undefined;
+
+  const assetAPYMoney = lpAssets.reduce(
+    (acc, { symbol, token: tokenAddress, balance: amount }) => {
+      const apy = lpAPY[symbol] || 0;
+      const price = prices[tokenAddress] || BigNumber.from(0);
+      const token = tokensList[tokenAddress];
+
+      const apyBN = toBN(
+        (apy / PERCENTAGE_DECIMALS).toString(),
+        WAD_DECIMALS_POW,
+      );
+
+      const money = calcTotalPrice(price, amount, token?.decimals);
+      const apyMoney = money.mul(apyBN).div(WAD);
+
+      return acc.add(apyMoney);
+    },
+    BigNumber.from(0),
+  );
+
+  const { decimals: underlyingDecimals = 18, address: underlyingAddress = "" } =
+    tokensList[underlyingToken] || {};
+  const underlyingPrice = prices[underlyingAddress] || PRICE_DECIMALS;
+  const assetAPYAmountInUnderlying = convertByPrice(assetAPYMoney, {
+    price: underlyingPrice,
+    decimals: underlyingDecimals,
+  });
+
+  const borrowAPY = toBN(
+    (borrowRate / PERCENTAGE_DECIMALS).toString(),
+    WAD_DECIMALS_POW,
+  );
+  const debtAPY = debt.mul(borrowAPY).div(WAD);
+
+  const yourAssets = totalValue.sub(debt);
+
+  const apyInPercent = assetAPYAmountInUnderlying
+    .sub(debtAPY)
+    .mul(PERCENTAGE_DECIMALS)
+    .mul(WAD)
+    .div(yourAssets);
+
+  return Number(toSignificant(apyInPercent, WAD_DECIMALS_POW));
 }

@@ -1,5 +1,6 @@
 import { BigNumber } from "ethers";
 
+import { LPTokens } from "../tokens/token";
 import { TokenData } from "../tokens/tokenData";
 import { nonNegativeBn } from "../utils/math";
 import { sortBalances } from "./creditAccount";
@@ -7,6 +8,11 @@ import { sortBalances } from "./creditAccount";
 export interface Asset {
   token: string;
   balance: BigNumber;
+}
+
+export interface LpAsset extends Asset {
+  symbol: LPTokens;
+  name: string;
 }
 
 interface NextAssetProps<T extends Asset> {
