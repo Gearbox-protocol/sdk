@@ -13,6 +13,7 @@ export * from "./core/pool";
 export * from "./core/strategy";
 export * from "./core/tokenDistributor";
 export * from "./core/transactions";
+export * from "./core/txOperation";
 export * from "./oracles/oracles";
 export * from "./oracles/priceFeeds";
 export * from "./payload/creditAccount";
