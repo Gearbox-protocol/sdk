@@ -1,8 +1,15 @@
 import { BigNumber } from "ethers";
 
 import { TokensWithAPY } from "../apy";
+import { TokenData } from "../tokens/tokenData";
 import { calcTotalPrice } from "../utils/price";
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
+import { Asset } from "./assets";
+import {
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  PRICE_DECIMALS,
+  WAD,
+} from "./constants";
 import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {
@@ -25,10 +32,17 @@ interface PoolStats {
 
 type PoolList = Record<string, PoolStats>;
 
-interface TokenDescription {
-  price: BigNumber;
-  amount: BigNumber;
-  decimals: number | undefined;
+interface LiquidationPriceProps {
+  assets: Array<Asset>;
+  prices: Record<string, BigNumber>;
+  tokensList: Record<string, TokenData>;
+  liquidationThresholds: Record<string, BigNumber>;
+
+  borrowed: BigNumber;
+  underlyingToken: TokenData;
+
+  lpAmount: BigNumber;
+  lpToken: TokenData;
 }
 
 export class Strategy {
@@ -88,28 +102,48 @@ export class Strategy {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  liquidationPrice(
-    borrowed: TokenDescription,
-    collateral: TokenDescription,
-    lp: TokenDescription,
-    ltCollateral: BigNumber,
-  ) {
-    const borrowedMoney = calcTotalPrice(
-      borrowed.price,
-      borrowed.amount,
-      borrowed.decimals,
+  liquidationPrice({
+    assets,
+    prices,
+    tokensList,
+    liquidationThresholds,
+
+    borrowed,
+    underlyingToken,
+
+    lpAmount,
+    lpToken,
+  }: LiquidationPriceProps) {
+    const collateralLTMoney = assets.reduce(
+      (acc, { token: tokenAddress, balance: amount }) => {
+        const lt = liquidationThresholds[tokenAddress] || BigNumber.from(0);
+        const price = prices[tokenAddress] || BigNumber.from(0);
+        const token = tokensList[tokenAddress];
+
+        const money = calcTotalPrice(price, amount, token?.decimals);
+        const ltMoney = money.mul(lt).div(PERCENTAGE_FACTOR);
+
+        return acc.add(ltMoney);
+      },
+      BigNumber.from(0),
     );
-    const collateralMoney = calcTotalPrice(
-      collateral.price,
-      collateral.amount,
-      collateral.decimals,
-    )
-      .mul(ltCollateral)
-      .div(PERCENTAGE_FACTOR);
-    const lpMoney = calcTotalPrice(lp.price, lp.amount, lp.decimals);
+
+    const underlyingPrice =
+      prices[underlyingToken?.address || ""] || PRICE_DECIMALS;
+    const borrowedMoney = calcTotalPrice(
+      underlyingPrice,
+      borrowed,
+      underlyingToken?.decimals,
+    );
+
+    const lpPrice = prices[lpToken?.address || ""] || PRICE_DECIMALS;
+    const lpMoney = calcTotalPrice(lpPrice, lpAmount, lpToken?.decimals);
 
     if (lpMoney.gt(0)) {
-      const lqPrice = borrowedMoney.sub(collateralMoney).mul(WAD).div(lpMoney);
+      const lqPrice = borrowedMoney
+        .sub(collateralLTMoney)
+        .mul(WAD)
+        .div(lpMoney);
 
       return lqPrice.gte(0) ? lqPrice : BigNumber.from(0);
     }
