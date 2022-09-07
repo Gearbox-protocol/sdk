@@ -83,10 +83,16 @@ export interface ISwapperInterface extends utils.Interface {
   functions: {
     "getBestConnectorSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
     "getBestDirectPairSwap((uint8,address,address,address,address[],uint256,uint256,bool),address)": FunctionFragment;
+    "getComponentId()": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "getBestConnectorSwap" | "getBestDirectPairSwap"
+    nameOrSignatureOrTopic:
+      | "getBestConnectorSwap"
+      | "getBestDirectPairSwap"
+      | "getComponentId"
+      | "version"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -97,6 +103,11 @@ export interface ISwapperInterface extends utils.Interface {
     functionFragment: "getBestDirectPairSwap",
     values: [SwapTaskStruct, string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "getComponentId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "getBestConnectorSwap",
@@ -106,6 +117,11 @@ export interface ISwapperInterface extends utils.Interface {
     functionFragment: "getBestDirectPairSwap",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getComponentId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {};
 }
@@ -148,6 +164,10 @@ export interface ISwapper extends BaseContract {
       adapter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getComponentId(overrides?: CallOverrides): Promise<[number]>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   getBestConnectorSwap(
@@ -162,6 +182,10 @@ export interface ISwapper extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getComponentId(overrides?: CallOverrides): Promise<number>;
+
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     getBestConnectorSwap(
       swapTask: SwapTaskStruct,
@@ -174,6 +198,10 @@ export interface ISwapper extends BaseContract {
       adapter: string,
       overrides?: CallOverrides
     ): Promise<SwapQuoteStructOutput>;
+
+    getComponentId(overrides?: CallOverrides): Promise<number>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
@@ -190,6 +218,10 @@ export interface ISwapper extends BaseContract {
       adapter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    getComponentId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -204,5 +236,9 @@ export interface ISwapper extends BaseContract {
       adapter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    getComponentId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

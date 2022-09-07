@@ -33,6 +33,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "ResolverComponentUpdateFailed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "enum TokenType",
         name: "",
@@ -52,6 +65,25 @@ const _abi = [
       },
     ],
     name: "ResolverUpdate",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "enum TokenType",
+        name: "",
+        type: "uint8",
+      },
+    ],
+    name: "TokenTypeUpdate",
     type: "event",
   },
   {

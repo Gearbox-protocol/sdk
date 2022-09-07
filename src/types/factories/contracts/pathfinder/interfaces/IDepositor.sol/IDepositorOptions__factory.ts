@@ -73,7 +73,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "slippagePerStep",
             type: "uint256",
           },
           {
@@ -89,9 +89,14 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "address[]",
-                name: "adapters",
-                type: "address[]",
+                internalType: "address",
+                name: "depositAdapter",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "withdrawAdapter",
+                type: "address",
               },
             ],
             internalType: "struct TokenAdapters[]",
@@ -106,6 +111,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -184,7 +194,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "slippagePerStep",
             type: "uint256",
           },
           {
@@ -200,9 +210,14 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "address[]",
-                name: "adapters",
-                type: "address[]",
+                internalType: "address",
+                name: "depositAdapter",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "withdrawAdapter",
+                type: "address",
               },
             ],
             internalType: "struct TokenAdapters[]",
@@ -217,6 +232,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -308,7 +328,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "slippagePerStep",
             type: "uint256",
           },
           {
@@ -324,9 +344,14 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "address[]",
-                name: "adapters",
-                type: "address[]",
+                internalType: "address",
+                name: "depositAdapter",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "withdrawAdapter",
+                type: "address",
               },
             ],
             internalType: "struct TokenAdapters[]",
@@ -341,6 +366,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -419,7 +449,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "slippagePerStep",
             type: "uint256",
           },
           {
@@ -435,9 +465,14 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "address[]",
-                name: "adapters",
-                type: "address[]",
+                internalType: "address",
+                name: "depositAdapter",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "withdrawAdapter",
+                type: "address",
               },
             ],
             internalType: "struct TokenAdapters[]",
@@ -452,6 +487,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -533,7 +573,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "slippagePerStep",
             type: "uint256",
           },
           {
@@ -549,9 +589,14 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "address[]",
-                name: "adapters",
-                type: "address[]",
+                internalType: "address",
+                name: "depositAdapter",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "withdrawAdapter",
+                type: "address",
               },
             ],
             internalType: "struct TokenAdapters[]",
@@ -566,6 +611,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -644,7 +694,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "slippagePerStep",
             type: "uint256",
           },
           {
@@ -660,9 +710,14 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "address[]",
-                name: "adapters",
-                type: "address[]",
+                internalType: "address",
+                name: "depositAdapter",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "withdrawAdapter",
+                type: "address",
               },
             ],
             internalType: "struct TokenAdapters[]",
@@ -677,6 +732,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -705,6 +765,19 @@ const _abi = [
         internalType: "struct StrategyPathTask",
         name: "",
         type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getComponentId",
+    outputs: [
+      {
+        internalType: "enum PathFinderComponent",
+        name: "",
+        type: "uint8",
       },
     ],
     stateMutability: "view",
@@ -763,7 +836,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "slippagePerStep",
             type: "uint256",
           },
           {
@@ -779,9 +852,14 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "address[]",
-                name: "adapters",
-                type: "address[]",
+                internalType: "address",
+                name: "depositAdapter",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "withdrawAdapter",
+                type: "address",
               },
             ],
             internalType: "struct TokenAdapters[]",
@@ -796,6 +874,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -874,7 +957,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "slippagePerStep",
             type: "uint256",
           },
           {
@@ -890,9 +973,14 @@ const _abi = [
                 type: "address",
               },
               {
-                internalType: "address[]",
-                name: "adapters",
-                type: "address[]",
+                internalType: "address",
+                name: "depositAdapter",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "withdrawAdapter",
+                type: "address",
               },
             ],
             internalType: "struct TokenAdapters[]",
@@ -907,6 +995,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -935,6 +1028,19 @@ const _abi = [
         internalType: "struct StrategyPathTask",
         name: "",
         type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "version",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",

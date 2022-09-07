@@ -7,6 +7,8 @@ import type {
   BigNumberish,
   BytesLike,
   CallOverrides,
+  ContractTransaction,
+  Overrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -23,15 +25,27 @@ import type {
 export interface ITokenTestSuiteInterface extends utils.Interface {
   functions: {
     "addressOf(uint8)": FunctionFragment;
-    "priceFeeds(uint8)": FunctionFragment;
-    "priceFeeds(address)": FunctionFragment;
+    "approve(uint8,address,address,uint256)": FunctionFragment;
+    "approve(uint8,address,address)": FunctionFragment;
+    "approve(address,address,address)": FunctionFragment;
+    "approveMany(uint8[],address,uint8)": FunctionFragment;
+    "balanceOf(uint8,address)": FunctionFragment;
+    "symbols(uint8)": FunctionFragment;
+    "tokenIndexes(address)": FunctionFragment;
+    "topUpWETH(address,uint256)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "addressOf"
-      | "priceFeeds(uint8)"
-      | "priceFeeds(address)"
+      | "approve(uint8,address,address,uint256)"
+      | "approve(uint8,address,address)"
+      | "approve(address,address,address)"
+      | "approveMany"
+      | "balanceOf"
+      | "symbols"
+      | "tokenIndexes"
+      | "topUpWETH"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -39,23 +53,62 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "priceFeeds(uint8)",
+    functionFragment: "approve(uint8,address,address,uint256)",
+    values: [BigNumberish, string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approve(uint8,address,address)",
+    values: [BigNumberish, string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approve(address,address,address)",
+    values: [string, string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approveMany",
+    values: [BigNumberish[], string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOf",
+    values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "symbols",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "priceFeeds(address)",
+    functionFragment: "tokenIndexes",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "topUpWETH",
+    values: [string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "addressOf", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "priceFeeds(uint8)",
+    functionFragment: "approve(uint8,address,address,uint256)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "priceFeeds(address)",
+    functionFragment: "approve(uint8,address,address)",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "approve(address,address,address)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "approveMany",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "symbols", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "tokenIndexes",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "topUpWETH", data: BytesLike): Result;
 
   events: {};
 }
@@ -89,41 +142,149 @@ export interface ITokenTestSuite extends BaseContract {
   functions: {
     addressOf(t: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
-    "priceFeeds(uint8)"(
+    "approve(uint8,address,address,uint256)"(
       t: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+      holder: string,
+      targetContract: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    "priceFeeds(address)"(
+    "approve(uint8,address,address)"(
+      t: BigNumberish,
+      holder: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "approve(address,address,address)"(
       token: string,
+      holder: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    approveMany(
+      tokensToApprove: BigNumberish[],
+      holder: string,
+      targetContract: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    balanceOf(
+      t: BigNumberish,
+      holder: string,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[BigNumber] & { balance: BigNumber }>;
+
+    symbols(t: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
+    tokenIndexes(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[number] & { t: number }>;
+
+    topUpWETH(
+      onBehalfOf: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   addressOf(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  "priceFeeds(uint8)"(
+  "approve(uint8,address,address,uint256)"(
     t: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
+    holder: string,
+    targetContract: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  "priceFeeds(address)"(
+  "approve(uint8,address,address)"(
+    t: BigNumberish,
+    holder: string,
+    targetContract: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "approve(address,address,address)"(
     token: string,
+    holder: string,
+    targetContract: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  approveMany(
+    tokensToApprove: BigNumberish[],
+    holder: string,
+    targetContract: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  balanceOf(
+    t: BigNumberish,
+    holder: string,
     overrides?: CallOverrides
-  ): Promise<string>;
+  ): Promise<BigNumber>;
+
+  symbols(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<number>;
+
+  topUpWETH(
+    onBehalfOf: string,
+    value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     addressOf(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    "priceFeeds(uint8)"(
+    "approve(uint8,address,address,uint256)"(
       t: BigNumberish,
+      holder: string,
+      targetContract: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
-    "priceFeeds(address)"(
-      token: string,
+    "approve(uint8,address,address)"(
+      t: BigNumberish,
+      holder: string,
+      targetContract: string,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
+
+    "approve(address,address,address)"(
+      token: string,
+      holder: string,
+      targetContract: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    approveMany(
+      tokensToApprove: BigNumberish[],
+      holder: string,
+      targetContract: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    balanceOf(
+      t: BigNumberish,
+      holder: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    symbols(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<number>;
+
+    topUpWETH(
+      onBehalfOf: string,
+      value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
   filters: {};
@@ -131,14 +292,49 @@ export interface ITokenTestSuite extends BaseContract {
   estimateGas: {
     addressOf(t: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "priceFeeds(uint8)"(
+    "approve(uint8,address,address,uint256)"(
       t: BigNumberish,
+      holder: string,
+      targetContract: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "approve(uint8,address,address)"(
+      t: BigNumberish,
+      holder: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "approve(address,address,address)"(
+      token: string,
+      holder: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    approveMany(
+      tokensToApprove: BigNumberish[],
+      holder: string,
+      targetContract: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    balanceOf(
+      t: BigNumberish,
+      holder: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "priceFeeds(address)"(
-      token: string,
-      overrides?: CallOverrides
+    symbols(t: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    topUpWETH(
+      onBehalfOf: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -148,14 +344,55 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "priceFeeds(uint8)"(
+    "approve(uint8,address,address,uint256)"(
+      t: BigNumberish,
+      holder: string,
+      targetContract: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "approve(uint8,address,address)"(
+      t: BigNumberish,
+      holder: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "approve(address,address,address)"(
+      token: string,
+      holder: string,
+      targetContract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    approveMany(
+      tokensToApprove: BigNumberish[],
+      holder: string,
+      targetContract: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      t: BigNumberish,
+      holder: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    symbols(
       t: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "priceFeeds(address)"(
-      token: string,
+    tokenIndexes(
+      arg0: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    topUpWETH(
+      onBehalfOf: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -4,7 +4,6 @@
 import type {
   BaseContract,
   BigNumber,
-  BigNumberish,
   BytesLike,
   CallOverrides,
   PopulatedTransaction,
@@ -18,31 +17,39 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../../../../common";
+} from "../../../common";
 
-export interface IPriceFeedsRegistryInterface extends utils.Interface {
+export interface IPathFinderComponentInterface extends utils.Interface {
   functions: {
-    "priceFeeds(uint8)": FunctionFragment;
+    "getComponentId()": FunctionFragment;
+    "version()": FunctionFragment;
   };
 
-  getFunction(nameOrSignatureOrTopic: "priceFeeds"): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic: "getComponentId" | "version"
+  ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "priceFeeds",
-    values: [BigNumberish]
+    functionFragment: "getComponentId",
+    values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "priceFeeds", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getComponentId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {};
 }
 
-export interface IPriceFeedsRegistry extends BaseContract {
+export interface IPathFinderComponent extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IPriceFeedsRegistryInterface;
+  interface: IPathFinderComponentInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -64,31 +71,32 @@ export interface IPriceFeedsRegistry extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    priceFeeds(
-      token: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    getComponentId(overrides?: CallOverrides): Promise<[number]>;
+
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
-  priceFeeds(token: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  getComponentId(overrides?: CallOverrides): Promise<number>;
+
+  version(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
-    priceFeeds(token: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    getComponentId(overrides?: CallOverrides): Promise<number>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
 
   estimateGas: {
-    priceFeeds(
-      token: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getComponentId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    priceFeeds(
-      token: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getComponentId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

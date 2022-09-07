@@ -27,11 +27,16 @@ export type BalanceStructOutput = [string, BigNumber] & {
   balance: BigNumber;
 };
 
-export type TokenAdaptersStruct = { token: string; adapters: string[] };
-
-export type TokenAdaptersStructOutput = [string, string[]] & {
+export type TokenAdaptersStruct = {
   token: string;
-  adapters: string[];
+  depositAdapter: string;
+  withdrawAdapter: string;
+};
+
+export type TokenAdaptersStructOutput = [string, string, string] & {
+  token: string;
+  depositAdapter: string;
+  withdrawAdapter: string;
 };
 
 export type MultiCallStruct = { target: string; callData: BytesLike };
@@ -47,11 +52,12 @@ export type StrategyPathTaskStruct = {
   target: string;
   connectors: string[];
   adapters: string[];
-  slippage: BigNumberish;
+  slippagePerStep: BigNumberish;
   targetType: BigNumberish;
   foundAdapters: TokenAdaptersStruct[];
   gasPriceTargetRAY: BigNumberish;
   gasUsage: BigNumberish;
+  slippageMultiplier: BigNumberish;
   initTargetBalance: BigNumberish;
   calls: MultiCallStruct[];
 };
@@ -68,6 +74,7 @@ export type StrategyPathTaskStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
+  BigNumber,
   MultiCallStructOutput[]
 ] & {
   creditAccount: string;
@@ -75,33 +82,52 @@ export type StrategyPathTaskStructOutput = [
   target: string;
   connectors: string[];
   adapters: string[];
-  slippage: BigNumber;
+  slippagePerStep: BigNumber;
   targetType: number;
   foundAdapters: TokenAdaptersStructOutput[];
   gasPriceTargetRAY: BigNumber;
   gasUsage: BigNumber;
+  slippageMultiplier: BigNumber;
   initTargetBalance: BigNumber;
   calls: MultiCallStructOutput[];
 };
 
 export interface IWithdrawerInterface extends utils.Interface {
   functions: {
-    "getUnderlying(address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "withdraw(uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "withdrawAllTokens((address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address[])[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "getComponentId()": FunctionFragment;
+    "getUnderlying(address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "version()": FunctionFragment;
+    "withdraw(uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "withdrawAll(address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "withdrawAllTokens((address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "getUnderlying" | "withdraw" | "withdrawAllTokens"
+    nameOrSignatureOrTopic:
+      | "getComponentId"
+      | "getUnderlying"
+      | "version"
+      | "withdraw"
+      | "withdrawAll"
+      | "withdrawAllTokens"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "getComponentId",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getUnderlying",
     values: [string, StrategyPathTaskStruct]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
     values: [BigNumberish, string, StrategyPathTaskStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAll",
+    values: [string, StrategyPathTaskStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAllTokens",
@@ -109,10 +135,19 @@ export interface IWithdrawerInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "getComponentId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getUnderlying",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAll",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAllTokens",
     data: BytesLike
@@ -148,14 +183,26 @@ export interface IWithdrawer extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    getComponentId(overrides?: CallOverrides): Promise<[number]>;
+
     getUnderlying(
       tokenOut: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
     ): Promise<[string, StrategyPathTaskStructOutput] & { tokenIn: string }>;
 
+    version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     withdraw(
       amountIn: BigNumberish,
+      lpToken: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, StrategyPathTaskStructOutput] & { amountOut: BigNumber }
+    >;
+
+    withdrawAll(
       lpToken: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
@@ -169,14 +216,26 @@ export interface IWithdrawer extends BaseContract {
     ): Promise<[StrategyPathTaskStructOutput]>;
   };
 
+  getComponentId(overrides?: CallOverrides): Promise<number>;
+
   getUnderlying(
     tokenOut: string,
     task: StrategyPathTaskStruct,
     overrides?: CallOverrides
   ): Promise<[string, StrategyPathTaskStructOutput] & { tokenIn: string }>;
 
+  version(overrides?: CallOverrides): Promise<BigNumber>;
+
   withdraw(
     amountIn: BigNumberish,
+    lpToken: string,
+    task: StrategyPathTaskStruct,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, StrategyPathTaskStructOutput] & { amountOut: BigNumber }
+  >;
+
+  withdrawAll(
     lpToken: string,
     task: StrategyPathTaskStruct,
     overrides?: CallOverrides
@@ -190,14 +249,26 @@ export interface IWithdrawer extends BaseContract {
   ): Promise<StrategyPathTaskStructOutput>;
 
   callStatic: {
+    getComponentId(overrides?: CallOverrides): Promise<number>;
+
     getUnderlying(
       tokenOut: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
     ): Promise<[string, StrategyPathTaskStructOutput] & { tokenIn: string }>;
 
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     withdraw(
       amountIn: BigNumberish,
+      lpToken: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, StrategyPathTaskStructOutput] & { amountOut: BigNumber }
+    >;
+
+    withdrawAll(
       lpToken: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
@@ -214,14 +285,24 @@ export interface IWithdrawer extends BaseContract {
   filters: {};
 
   estimateGas: {
+    getComponentId(overrides?: CallOverrides): Promise<BigNumber>;
+
     getUnderlying(
       tokenOut: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    version(overrides?: CallOverrides): Promise<BigNumber>;
+
     withdraw(
       amountIn: BigNumberish,
+      lpToken: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    withdrawAll(
       lpToken: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
@@ -234,14 +315,24 @@ export interface IWithdrawer extends BaseContract {
   };
 
   populateTransaction: {
+    getComponentId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getUnderlying(
       tokenOut: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     withdraw(
       amountIn: BigNumberish,
+      lpToken: string,
+      task: StrategyPathTaskStruct,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    withdrawAll(
       lpToken: string,
       task: StrategyPathTaskStruct,
       overrides?: CallOverrides

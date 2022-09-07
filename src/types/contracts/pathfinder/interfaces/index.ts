@@ -10,6 +10,7 @@ export type { iWithdrawerSol };
 export type { IClosePathResolver } from "./IClosePathResolver";
 export type { IGasPricer } from "./IGasPricer";
 export type { IPathFinder } from "./IPathFinder";
+export type { IPathFinderComponent } from "./IPathFinderComponent";
 export type { IPathResolver } from "./IPathResolver";
 export type { ISwapAggregator } from "./ISwapAggregator";
 export type { ISwapper } from "./ISwapper";

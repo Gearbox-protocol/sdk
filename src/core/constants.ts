@@ -50,3 +50,6 @@ export const timeRanges: Record<string, number> = {
 export const LEVERAGE_DECIMALS = 100;
 export const SLIPPAGE_DECIMALS = 100;
 export const ADDRESS_0X0 = "0x0000000000000000000000000000000000000000";
+
+// Used in tests
+export const DUMB_ADDRESS = "0xC4375B7De8af5a38a93548eb8453a498222C4fF2";

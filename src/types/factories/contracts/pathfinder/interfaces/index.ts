@@ -7,6 +7,7 @@ export * as iWithdrawerSol from "./IWithdrawer.sol";
 export { IClosePathResolver__factory } from "./IClosePathResolver__factory";
 export { IGasPricer__factory } from "./IGasPricer__factory";
 export { IPathFinder__factory } from "./IPathFinder__factory";
+export { IPathFinderComponent__factory } from "./IPathFinderComponent__factory";
 export { IPathResolver__factory } from "./IPathResolver__factory";
 export { ISwapAggregator__factory } from "./ISwapAggregator__factory";
 export { ISwapper__factory } from "./ISwapper__factory";

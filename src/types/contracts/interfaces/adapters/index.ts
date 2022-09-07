@@ -13,3 +13,5 @@ import type * as lido from "./lido";
 export type { lido };
 import type * as uniswap from "./uniswap";
 export type { uniswap };
+import type * as yearn from "./yearn";
+export type { yearn };

@@ -104,6 +104,12 @@ export type { IConvexV1BaseRewardPoolAdapterErrors } from "./contracts/interface
 export { IConvexV1BaseRewardPoolAdapterErrors__factory } from "./factories/contracts/interfaces/adapters/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapterErrors__factory";
 export type { IConvexV1BoosterAdapter } from "./contracts/interfaces/adapters/convex/IConvexV1BoosterAdapter";
 export { IConvexV1BoosterAdapter__factory } from "./factories/contracts/interfaces/adapters/convex/IConvexV1BoosterAdapter__factory";
+export type { ICurveV1_2AssetsAdapter } from "./contracts/interfaces/adapters/curve/ICurveV1_2AssetsAdapter";
+export { ICurveV1_2AssetsAdapter__factory } from "./factories/contracts/interfaces/adapters/curve/ICurveV1_2AssetsAdapter__factory";
+export type { ICurveV1_3AssetsAdapter } from "./contracts/interfaces/adapters/curve/ICurveV1_3AssetsAdapter";
+export { ICurveV1_3AssetsAdapter__factory } from "./factories/contracts/interfaces/adapters/curve/ICurveV1_3AssetsAdapter__factory";
+export type { ICurveV1_4AssetsAdapter } from "./contracts/interfaces/adapters/curve/ICurveV1_4AssetsAdapter";
+export { ICurveV1_4AssetsAdapter__factory } from "./factories/contracts/interfaces/adapters/curve/ICurveV1_4AssetsAdapter__factory";
 export type { ICurveV1Adapter } from "./contracts/interfaces/adapters/curve/ICurveV1Adapter.sol/ICurveV1Adapter";
 export { ICurveV1Adapter__factory } from "./factories/contracts/interfaces/adapters/curve/ICurveV1Adapter.sol/ICurveV1Adapter__factory";
 export type { ICurveV1AdapterExceptions } from "./contracts/interfaces/adapters/curve/ICurveV1Adapter.sol/ICurveV1AdapterExceptions";
@@ -128,6 +134,8 @@ export type { IUniswapV3Adapter } from "./contracts/interfaces/adapters/uniswap/
 export { IUniswapV3Adapter__factory } from "./factories/contracts/interfaces/adapters/uniswap/IUniswapV3Adapter.sol/IUniswapV3Adapter__factory";
 export type { IUniswapV3AdapterExceptions } from "./contracts/interfaces/adapters/uniswap/IUniswapV3Adapter.sol/IUniswapV3AdapterExceptions";
 export { IUniswapV3AdapterExceptions__factory } from "./factories/contracts/interfaces/adapters/uniswap/IUniswapV3Adapter.sol/IUniswapV3AdapterExceptions__factory";
+export type { IYearnV2Adapter } from "./contracts/interfaces/adapters/yearn/IYearnV2Adapter";
+export { IYearnV2Adapter__factory } from "./factories/contracts/interfaces/adapters/yearn/IYearnV2Adapter__factory";
 export type { IWETH } from "./contracts/interfaces/external/IWETH";
 export { IWETH__factory } from "./factories/contracts/interfaces/external/IWETH__factory";
 export type { IAccountFactory } from "./contracts/interfaces/IAccountFactory.sol/IAccountFactory";
@@ -240,6 +248,8 @@ export type { ILPWorkerOptions } from "./contracts/pathfinder/interfaces/ILPWork
 export { ILPWorkerOptions__factory } from "./factories/contracts/pathfinder/interfaces/ILPWorker.sol/ILPWorkerOptions__factory";
 export type { IPathFinder } from "./contracts/pathfinder/interfaces/IPathFinder";
 export { IPathFinder__factory } from "./factories/contracts/pathfinder/interfaces/IPathFinder__factory";
+export type { IPathFinderComponent } from "./contracts/pathfinder/interfaces/IPathFinderComponent";
+export { IPathFinderComponent__factory } from "./factories/contracts/pathfinder/interfaces/IPathFinderComponent__factory";
 export type { IPathResolver } from "./contracts/pathfinder/interfaces/IPathResolver";
 export { IPathResolver__factory } from "./factories/contracts/pathfinder/interfaces/IPathResolver__factory";
 export type { ISwapAggregator } from "./contracts/pathfinder/interfaces/ISwapAggregator";
@@ -254,10 +264,12 @@ export type { ILidoMockEvents } from "./contracts/test/mocks/integrations/LidoMo
 export { ILidoMockEvents__factory } from "./factories/contracts/test/mocks/integrations/LidoMock.sol/ILidoMockEvents__factory";
 export type { ILockedCvx } from "./contracts/test/sigp/interfaces/ILockedCvx";
 export { ILockedCvx__factory } from "./factories/contracts/test/sigp/interfaces/ILockedCvx__factory";
-export type { IPriceFeedsRegistry } from "./contracts/test/suites/mainnet/IPriceFeedsRegistry";
-export { IPriceFeedsRegistry__factory } from "./factories/contracts/test/suites/mainnet/IPriceFeedsRegistry__factory";
 export type { ITokenTestSuite } from "./contracts/test/suites/mainnet/ITokenTestSuite";
 export { ITokenTestSuite__factory } from "./factories/contracts/test/suites/mainnet/ITokenTestSuite__factory";
+export type { ISupportedContracts } from "./contracts/test/suites/mainnet/SupportedContracts.sol/ISupportedContracts";
+export { ISupportedContracts__factory } from "./factories/contracts/test/suites/mainnet/SupportedContracts.sol/ISupportedContracts__factory";
+export type { IToken } from "./contracts/test/suites/mainnet/Tokens.sol/IToken";
+export { IToken__factory } from "./factories/contracts/test/suites/mainnet/Tokens.sol/IToken__factory";
 export type { AggregatorV3Interface } from "./@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface";
 export { AggregatorV3Interface__factory } from "./factories/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface__factory";
 export type { Multicall2 } from "./contracts/support/MultiCall.sol/Multicall2";

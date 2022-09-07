@@ -13,17 +13,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "PriceFeedNotFoundException",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
         internalType: "enum Tokens",
         name: "t",
         type: "uint8",
@@ -47,16 +36,48 @@ const _abi = [
         name: "t",
         type: "uint8",
       },
-    ],
-    name: "priceFeeds",
-    outputs: [
       {
         internalType: "address",
-        name: "",
+        name: "holder",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "targetContract",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "approve",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum Tokens",
+        name: "t",
+        type: "uint8",
+      },
+      {
+        internalType: "address",
+        name: "holder",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "targetContract",
         type: "address",
       },
     ],
-    stateMutability: "view",
+    name: "approve",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -66,16 +87,123 @@ const _abi = [
         name: "token",
         type: "address",
       },
+      {
+        internalType: "address",
+        name: "holder",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "targetContract",
+        type: "address",
+      },
     ],
-    name: "priceFeeds",
+    name: "approve",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum Tokens[]",
+        name: "tokensToApprove",
+        type: "uint8[]",
+      },
+      {
+        internalType: "address",
+        name: "holder",
+        type: "address",
+      },
+      {
+        internalType: "enum Contracts",
+        name: "targetContract",
+        type: "uint8",
+      },
+    ],
+    name: "approveMany",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum Tokens",
+        name: "t",
+        type: "uint8",
+      },
+      {
+        internalType: "address",
+        name: "holder",
+        type: "address",
+      },
+    ],
+    name: "balanceOf",
     outputs: [
+      {
+        internalType: "uint256",
+        name: "balance",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum Tokens",
+        name: "t",
+        type: "uint8",
+      },
+    ],
+    name: "symbols",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
       {
         internalType: "address",
         name: "",
         type: "address",
       },
     ],
+    name: "tokenIndexes",
+    outputs: [
+      {
+        internalType: "enum Tokens",
+        name: "t",
+        type: "uint8",
+      },
+    ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "onBehalfOf",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "topUpWETH",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];

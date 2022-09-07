@@ -1,7 +1,10 @@
-import type { ConvexPoolContract } from "../contracts/contracts";
+import type {
+  ConvexPoolContract,
+  SupportedContract,
+} from "../contracts/contracts";
 import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
 import type { CurveLPToken } from "./curveLP";
-import type { TokenBase } from "./token";
+import type { SupportedToken, TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
 export type ConvexLPToken =
@@ -356,3 +359,17 @@ export const isConvexStakedPhantomToken = (
 ): t is ConvexStakedPhantomToken =>
   typeof t === "string" &&
   !!convexStakedPhantomTokens[t as ConvexStakedPhantomToken];
+
+export const convexPoolByPid = Object.values(convexLpTokens).reduce<
+  Record<number, SupportedContract>
+>((acc, value) => {
+  acc[value.pid] = value.pool;
+  return acc;
+}, {});
+
+export const convexLpTokenByPid = Object.entries(convexLpTokens).reduce<
+  Record<number, SupportedToken>
+>((acc, [token, data]) => {
+  acc[data.pid] = token as SupportedToken;
+  return acc;
+}, {});

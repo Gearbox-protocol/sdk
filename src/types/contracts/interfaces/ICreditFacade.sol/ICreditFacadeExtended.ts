@@ -9,6 +9,7 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -31,17 +32,40 @@ export type BalanceStructOutput = [string, BigNumber] & {
 
 export interface ICreditFacadeExtendedInterface extends utils.Interface {
   functions: {
+    "addCollateral(address,address,uint256)": FunctionFragment;
+    "decreaseDebt(uint256)": FunctionFragment;
     "disableToken(address)": FunctionFragment;
+    "enableToken(address)": FunctionFragment;
+    "increaseDebt(uint256)": FunctionFragment;
     "revertIfReceivedLessThan((address,uint256)[])": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "disableToken" | "revertIfReceivedLessThan"
+    nameOrSignatureOrTopic:
+      | "addCollateral"
+      | "decreaseDebt"
+      | "disableToken"
+      | "enableToken"
+      | "increaseDebt"
+      | "revertIfReceivedLessThan"
   ): FunctionFragment;
 
   encodeFunctionData(
+    functionFragment: "addCollateral",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "decreaseDebt",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "disableToken",
     values: [string]
+  ): string;
+  encodeFunctionData(functionFragment: "enableToken", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "increaseDebt",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "revertIfReceivedLessThan",
@@ -49,7 +73,23 @@ export interface ICreditFacadeExtendedInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "addCollateral",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "decreaseDebt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "disableToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "enableToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "increaseDebt",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -87,8 +127,30 @@ export interface ICreditFacadeExtended extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    decreaseDebt(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     disableToken(
       token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    enableToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    increaseDebt(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -98,8 +160,30 @@ export interface ICreditFacadeExtended extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
+  addCollateral(
+    onBehalfOf: string,
+    token: string,
+    amount: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  decreaseDebt(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   disableToken(
     token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  enableToken(
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  increaseDebt(
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -109,7 +193,26 @@ export interface ICreditFacadeExtended extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    decreaseDebt(
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     disableToken(token: string, overrides?: CallOverrides): Promise<void>;
+
+    enableToken(token: string, overrides?: CallOverrides): Promise<void>;
+
+    increaseDebt(
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     revertIfReceivedLessThan(
       expected: BalanceStruct[],
@@ -120,8 +223,30 @@ export interface ICreditFacadeExtended extends BaseContract {
   filters: {};
 
   estimateGas: {
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    decreaseDebt(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     disableToken(
       token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    enableToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    increaseDebt(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -132,8 +257,30 @@ export interface ICreditFacadeExtended extends BaseContract {
   };
 
   populateTransaction: {
+    addCollateral(
+      onBehalfOf: string,
+      token: string,
+      amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    decreaseDebt(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     disableToken(
       token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    enableToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    increaseDebt(
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
