@@ -41,3 +41,6 @@ export function sqrt(x: BigNumber) {
   }
   return y;
 }
+
+export const nonNegativeBn = (v: BigNumber) =>
+  v.isNegative() ? BigNumber.from(0) : v;
