@@ -19,13 +19,24 @@ export interface BaseTradeInterface {
 }
 
 export interface TradeProps {
-  adapter: AdapterData;
+  adapter: BaseAdapter;
   tradePath: PathFinderResultStructOutput;
+
+  swapType: SwapType;
+  expectedAmount: BigNumber;
+  rate: BigNumber;
+  tokenFrom: string;
+  tokenTo: string;
+  operationName: string;
 }
 
+export interface ConnectTradeProps {
+  adapter: BaseAdapter;
+  tradePath: PathFinderResultStructOutput;
+}
 export class Trade implements BaseTradeInterface {
   protected helper: BaseAdapter;
-  readonly tradePath: PathFinderResultStructOutput;
+  protected tradePath: PathFinderResultStructOutput;
 
   readonly swapType: SwapType;
   readonly expectedAmount: BigNumber;
@@ -44,6 +55,20 @@ export class Trade implements BaseTradeInterface {
     this.tokenFrom = "";
     this.tokenTo = "";
     this.operationName = "";
+  }
+
+  static connect({ tradePath, adapter }: ConnectTradeProps) {
+    return new Trade({
+      tradePath,
+      adapter,
+
+      swapType: SwapType.ExactInput,
+      expectedAmount: BigNumber.from(0),
+      rate: BigNumber.from(0),
+      tokenFrom: "",
+      tokenTo: "",
+      operationName: "",
+    });
   }
 
   getName(): string {

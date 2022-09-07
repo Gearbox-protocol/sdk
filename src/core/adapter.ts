@@ -44,6 +44,19 @@ export class BaseAdapter {
   }
 
   async execute(props: ExecuteProps): Promise<EVMTx> {
+    console.debug(props);
     return {} as TXSwap;
+  }
+
+  static connect(tradePath: PathFinderResultStructOutput) {
+    console.debug(tradePath);
+    return new BaseAdapter({
+      name: "",
+      type: AdapterType.Swap,
+      adapterInterface: AdapterInterface.NO_SWAP,
+      adapterAddress: "",
+      contractAddress: "",
+      contractSymbol: "CONVEX_3CRV_POOL",
+    });
   }
 }
