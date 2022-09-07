@@ -1,10 +1,8 @@
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import {
-  ICreditManager__factory,
-  IERC20__factory,
-} from "@gearbox-protocol/sdk";
 import { BigNumber, BytesLike } from "ethers";
 import { FunctionFragment } from "ethers/lib/utils";
+
+import { ICreditManager__factory, IERC20__factory } from "../types";
 
 export type TxType = "unsupported" | "swap" | "approve" | "lp";
 export type LpOperationType = "withdraw" | "deposit";
