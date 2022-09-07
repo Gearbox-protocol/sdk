@@ -5,18 +5,28 @@ import { SwapType } from "../pathfinder/tradeTypes";
 import { TokenData } from "../tokens/tokenData";
 import { PathFinderResultStructOutput } from "../types/contracts/pathfinder/interfaces/IPathFinder";
 import { formatBN } from "../utils/formatter";
-import { AdapterData, AdapterType } from "./adapter";
+import { AdapterType, BaseAdapter } from "./adapter";
 import { PERCENTAGE_FACTOR } from "./constants";
 import { EVMTx } from "./eventOrTx";
+
+export interface BaseTradeInterface {
+  swapType: SwapType;
+  expectedAmount: BigNumber;
+  rate: BigNumber;
+  tokenFrom: string;
+  tokenTo: string;
+  operationName: string;
+}
 
 export interface TradeProps {
   adapter: AdapterData;
   tradePath: PathFinderResultStructOutput;
 }
 
-export class Trade {
-  protected helper: AdapterData;
+export class Trade implements BaseTradeInterface {
+  protected helper: BaseAdapter;
   readonly tradePath: PathFinderResultStructOutput;
+
   readonly swapType: SwapType;
   readonly expectedAmount: BigNumber;
   readonly rate: BigNumber;
@@ -37,19 +47,19 @@ export class Trade {
   }
 
   getName(): string {
-    return this.helper.getName();
+    return this.helper.name;
   }
 
   getAdapterInterface(): AdapterInterface {
-    return this.helper.getAdapterInterface();
+    return this.helper.adapterInterface;
   }
 
   getContractAddress(): string {
-    return this.helper.getContractAddress();
+    return this.helper.contractAddress;
   }
 
   getAdapterAddress(): string {
-    return this.helper.getAdapterAddress();
+    return this.helper.adapterAddress;
   }
 
   execute(slippage: number, signer: Signer): Promise<EVMTx> {
@@ -58,7 +68,7 @@ export class Trade {
 
   toString(tokenData: Record<string, TokenData>): string {
     let result =
-      this.helper.getType() === AdapterType.Swap
+      this.helper.type === AdapterType.Swap
         ? `Swap `
         : `${this.operationName || "Farm"} `;
     const fromToken = tokenData[this.tokenFrom];
@@ -67,7 +77,7 @@ export class Trade {
       fromToken.symbol
     } ⇒ ${formatBN(this.expectedAmount, toToken.decimals)} ${
       toToken.symbol
-    } on ${this.helper.getName()}`;
+    } on ${this.helper.name}`;
     return result;
   }
 
