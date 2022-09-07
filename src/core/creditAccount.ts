@@ -8,7 +8,7 @@ import {
 import { TokenData } from "../tokens/tokenData";
 import { toBN, toSignificant } from "../utils/formatter";
 import { calcTotalPrice, convertByPrice } from "../utils/price";
-import { LpAsset } from "./assets";
+import { Asset, LpAsset } from "./assets";
 import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -17,11 +17,6 @@ import {
   WAD,
   WAD_DECIMALS_POW,
 } from "./constants";
-
-export interface Balance {
-  address: string;
-  balance: BigNumber;
-}
 
 export class CreditAccountData {
   public readonly id: string;
@@ -94,9 +89,9 @@ export class CreditAccountData {
   balancesSorted(
     prices: Record<string, BigNumber>,
     tokens: Record<string, TokenData>,
-  ): Array<Balance> {
+  ): Array<Asset> {
     return sortBalances(this.balances, prices, tokens).map(
-      ([address, balance]) => ({ address, balance }),
+      ([token, balance]) => ({ token, balance }),
     );
   }
 }
