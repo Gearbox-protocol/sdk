@@ -2,8 +2,8 @@ import { Signer } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
 import { SupportedContract } from "../contracts/contracts";
-import { PathFinderResultStructOutput } from "../types/contracts/pathfinder/interfaces/IPathFinder";
 import { EVMTx } from "./eventOrTx";
+import { TradePath } from "./trade";
 import { TXSwap } from "./transactions";
 
 export enum AdapterType {
@@ -21,7 +21,7 @@ interface BaseAdapterProps {
 }
 
 interface ExecuteProps {
-  tradePath: PathFinderResultStructOutput;
+  tradePath: TradePath;
   slippage: number;
   signer: Signer;
 }
@@ -48,7 +48,7 @@ export class BaseAdapter {
     return {} as TXSwap;
   }
 
-  static connect(tradePath: PathFinderResultStructOutput) {
+  static connect(tradePath: TradePath) {
     console.debug(tradePath);
     return new BaseAdapter({
       name: "",

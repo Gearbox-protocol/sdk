@@ -1,13 +1,22 @@
 import { BigNumber, Signer } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
+import { TxParser } from "../parsers/txParser";
 import { SwapType } from "../pathfinder/tradeTypes";
 import { TokenData } from "../tokens/tokenData";
-import { PathFinderResultStructOutput } from "../types/contracts/pathfinder/interfaces/IPathFinder";
+import {
+  PathFinderResultStruct,
+  PathFinderResultStructOutput,
+} from "../types/contracts/pathfinder/interfaces/IPathFinder";
 import { formatBN } from "../utils/formatter";
 import { AdapterType, BaseAdapter } from "./adapter";
 import { PERCENTAGE_FACTOR } from "./constants";
 import { EVMTx } from "./eventOrTx";
+
+export type TradePath = Pick<
+  PathFinderResultStructOutput,
+  keyof PathFinderResultStruct
+>;
 
 export interface BaseTradeInterface {
   swapType: SwapType;
@@ -18,25 +27,18 @@ export interface BaseTradeInterface {
   operationName: string;
 }
 
-export interface TradeProps {
+export interface TradeProps extends BaseTradeInterface {
   adapter: BaseAdapter;
-  tradePath: PathFinderResultStructOutput;
-
-  swapType: SwapType;
-  expectedAmount: BigNumber;
-  rate: BigNumber;
-  tokenFrom: string;
-  tokenTo: string;
-  operationName: string;
+  tradePath: TradePath;
 }
 
 export interface ConnectTradeProps {
   adapter: BaseAdapter;
-  tradePath: PathFinderResultStructOutput;
+  tradePath: TradePath;
 }
 export class Trade implements BaseTradeInterface {
   protected helper: BaseAdapter;
-  protected tradePath: PathFinderResultStructOutput;
+  protected tradePath: TradePath;
 
   readonly swapType: SwapType;
   readonly expectedAmount: BigNumber;
@@ -45,25 +47,27 @@ export class Trade implements BaseTradeInterface {
   readonly tokenTo: string;
   readonly operationName: string;
 
-  constructor({ tradePath, adapter }: TradeProps) {
-    this.helper = adapter;
-    this.tradePath = tradePath;
+  constructor(props: TradeProps) {
+    this.helper = props.adapter;
+    this.tradePath = props.tradePath;
 
-    this.swapType = SwapType.ExactInput;
-    this.expectedAmount = BigNumber.from(0);
-    this.rate = BigNumber.from(0);
-    this.tokenFrom = "";
-    this.tokenTo = "";
-    this.operationName = "";
+    this.swapType = props.swapType;
+    this.expectedAmount = props.expectedAmount;
+    this.rate = props.rate;
+    this.tokenFrom = props.tokenFrom;
+    this.tokenTo = props.tokenTo;
+    this.operationName = props.operationName;
   }
 
   static connect({ tradePath, adapter }: ConnectTradeProps) {
+    const calls = TxParser.parseMultiCall(tradePath.calls);
+
     return new Trade({
       tradePath,
       adapter,
 
       swapType: SwapType.ExactInput,
-      expectedAmount: BigNumber.from(0),
+      expectedAmount: tradePath.amount,
       rate: BigNumber.from(0),
       tokenFrom: "",
       tokenTo: "",

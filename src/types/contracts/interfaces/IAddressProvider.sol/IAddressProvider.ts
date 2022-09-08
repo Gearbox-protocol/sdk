@@ -30,6 +30,7 @@ export interface IAddressProviderInterface extends utils.Interface {
     "getContractsRegister()": FunctionFragment;
     "getDataCompressor()": FunctionFragment;
     "getGearToken()": FunctionFragment;
+    "getLeveragedActions()": FunctionFragment;
     "getPriceOracle()": FunctionFragment;
     "getTreasuryContract()": FunctionFragment;
     "getWETHGateway()": FunctionFragment;
@@ -44,6 +45,7 @@ export interface IAddressProviderInterface extends utils.Interface {
       | "getContractsRegister"
       | "getDataCompressor"
       | "getGearToken"
+      | "getLeveragedActions"
       | "getPriceOracle"
       | "getTreasuryContract"
       | "getWETHGateway"
@@ -66,6 +68,10 @@ export interface IAddressProviderInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getGearToken",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLeveragedActions",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -101,6 +107,10 @@ export interface IAddressProviderInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getGearToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLeveragedActions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -176,6 +186,8 @@ export interface IAddressProvider extends BaseContract {
 
     getGearToken(overrides?: CallOverrides): Promise<[string]>;
 
+    getLeveragedActions(overrides?: CallOverrides): Promise<[string]>;
+
     getPriceOracle(overrides?: CallOverrides): Promise<[string]>;
 
     getTreasuryContract(overrides?: CallOverrides): Promise<[string]>;
@@ -197,6 +209,8 @@ export interface IAddressProvider extends BaseContract {
 
   getGearToken(overrides?: CallOverrides): Promise<string>;
 
+  getLeveragedActions(overrides?: CallOverrides): Promise<string>;
+
   getPriceOracle(overrides?: CallOverrides): Promise<string>;
 
   getTreasuryContract(overrides?: CallOverrides): Promise<string>;
@@ -217,6 +231,8 @@ export interface IAddressProvider extends BaseContract {
     getDataCompressor(overrides?: CallOverrides): Promise<string>;
 
     getGearToken(overrides?: CallOverrides): Promise<string>;
+
+    getLeveragedActions(overrides?: CallOverrides): Promise<string>;
 
     getPriceOracle(overrides?: CallOverrides): Promise<string>;
 
@@ -251,6 +267,8 @@ export interface IAddressProvider extends BaseContract {
 
     getGearToken(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getLeveragedActions(overrides?: CallOverrides): Promise<BigNumber>;
+
     getPriceOracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTreasuryContract(overrides?: CallOverrides): Promise<BigNumber>;
@@ -274,6 +292,10 @@ export interface IAddressProvider extends BaseContract {
     getDataCompressor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getGearToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLeveragedActions(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getPriceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
