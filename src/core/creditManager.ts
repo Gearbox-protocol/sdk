@@ -1,9 +1,11 @@
 import { BigNumber, ethers, Signer } from "ethers";
 
+import { TxParser } from "../parsers/txParser";
 import {
   CreditManagerDataPayload,
   CreditManagerStatPayload,
 } from "../payload/creditManager";
+import { tokenSymbolByAddress } from "../tokens/token";
 import { TokenData } from "../tokens/tokenData";
 import {
   ICreditFacade__factory,
@@ -133,6 +135,20 @@ export class CreditManagerData {
     this.liquidationDiscountExpired = BigNumber.from(
       payload.feeLiquidationExpired,
     ).toNumber();
+
+    if (this.creditFacade !== "") {
+      TxParser.addCreditFacade(
+        this.creditFacade,
+        tokenSymbolByAddress[this.underlyingToken],
+      );
+
+      TxParser.addAdapters(
+        payload.adapters.map(a => ({
+          adapter: a.adapter,
+          contract: a.allowedContract,
+        })),
+      );
+    }
   }
 
   getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager {

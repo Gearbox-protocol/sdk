@@ -38,7 +38,7 @@ export class TxParser {
     );
   }
 
-  public static async addAdapters(adapters: Array<AdapterForParser>) {
+  public static addAdapters(adapters: Array<AdapterForParser>) {
     for (let a of adapters) {
       const contract = contractsByAddress[a.contract.toLowerCase()];
       TxParser.addParser(
