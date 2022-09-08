@@ -72,16 +72,17 @@ export class TxParser {
     adapterType: number,
     isContract: boolean,
   ) {
+    const addressLC = address.toLowerCase();
     switch (AdapterInterface[adapterType]) {
       case "UNISWAP_V2_ROUTER":
-        TxParser.parsers[address] = new UniswapV2AdapterParser(
+        TxParser.parsers[addressLC] = new UniswapV2AdapterParser(
           contract,
           isContract,
         );
         break;
 
       case "UNISWAP_V3_ROUTER":
-        TxParser.parsers[address] = new UniswapV3AdapterParser(
+        TxParser.parsers[addressLC] = new UniswapV3AdapterParser(
           contract,
           isContract,
         );
@@ -92,27 +93,27 @@ export class TxParser {
       case "CURVE_V1_4ASSETS":
       case "CURVE_V1_STECRV_POOL":
       case "CURVE_V1_WRAPPER":
-        TxParser.parsers[address] = new CurveAdapterParser(
+        TxParser.parsers[addressLC] = new CurveAdapterParser(
           contract,
           isContract,
         );
         break;
       case "YEARN_V2":
-        TxParser.parsers[address] = new YearnV2AdapterParser(
+        TxParser.parsers[addressLC] = new YearnV2AdapterParser(
           contract,
           isContract,
         );
         break;
 
       case "CONVEX_V1_BASE_REWARD_POOL":
-        TxParser.parsers[address] = new ConvexBaseRewardPoolAdapterParser(
+        TxParser.parsers[addressLC] = new ConvexBaseRewardPoolAdapterParser(
           contract,
           isContract,
         );
         break;
 
       case "CONVEX_V1_BOOSTER":
-        TxParser.parsers[address] = new ConvexBoosterAdapterParser(
+        TxParser.parsers[addressLC] = new ConvexBoosterAdapterParser(
           contract,
           isContract,
         );
@@ -120,7 +121,10 @@ export class TxParser {
       case "CONVEX_V1_CLAIM_ZAP":
         break;
       case "LIDO_V1":
-        TxParser.parsers[address] = new LidoAdapterParser(contract, isContract);
+        TxParser.parsers[addressLC] = new LidoAdapterParser(
+          contract,
+          isContract,
+        );
         break;
     }
   }
