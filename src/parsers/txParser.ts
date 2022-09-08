@@ -27,7 +27,7 @@ export class TxParser {
   protected static parsers: Record<string, IParser> = {};
 
   public static parse(address: string, calldata: string): string {
-    const parser = this.parsers[address];
+    const parser = this.parsers[address.toLowerCase()];
     if (!parser) throw new Error(`Can find parser for ${address}`);
     return parser.parse(calldata);
   }
@@ -57,7 +57,7 @@ export class TxParser {
     }
   }
 
-  public static addCreditFacades(
+  public static addCreditFacade(
     creditFacade: string,
     underlying: SupportedToken,
   ) {
