@@ -1,5 +1,7 @@
 export * from "./contracts/contracts";
 export * from "./contracts/protocols";
+export * from "./core/adapter";
+export * from "./core/assets";
 export * from "./core/constants";
 export * from "./core/creditAccount";
 export * from "./core/creditManager";
@@ -11,7 +13,9 @@ export * from "./core/operations";
 export * from "./core/pool";
 export * from "./core/strategy";
 export * from "./core/tokenDistributor";
+export * from "./core/trade";
 export * from "./core/transactions";
+export * from "./core/wcOperation";
 export * from "./oracles/oracles";
 export * from "./oracles/priceFeeds";
 export * from "./payload/creditAccount";

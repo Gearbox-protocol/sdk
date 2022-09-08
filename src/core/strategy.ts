@@ -1,8 +1,16 @@
 import { BigNumber } from "ethers";
 
 import { TokensWithAPY } from "../apy";
+import { TokenData } from "../tokens/tokenData";
 import { calcTotalPrice } from "../utils/price";
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, WAD } from "./constants";
+import { Asset } from "./assets";
+import {
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  PRICE_DECIMALS,
+  WAD,
+} from "./constants";
+import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {
   apy?: number;
@@ -24,10 +32,17 @@ interface PoolStats {
 
 type PoolList = Record<string, PoolStats>;
 
-interface TokenDescription {
-  price: BigNumber;
-  amount: BigNumber;
-  decimals: number | undefined;
+interface LiquidationPriceProps {
+  assets: Array<Asset>;
+  prices: Record<string, BigNumber>;
+  tokensList: Record<string, TokenData>;
+  liquidationThresholds: Record<string, BigNumber>;
+
+  borrowed: BigNumber;
+  underlyingToken: TokenData;
+
+  lpAmount: BigNumber;
+  lpToken: TokenData;
 }
 
 export class Strategy {
@@ -56,6 +71,14 @@ export class Strategy {
     this.baseAssets = payload.baseAssets;
   }
 
+  static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
+    const [maxThreshold] = maxLeverageThreshold(lpToken, cms);
+
+    const ONE = BigNumber.from(PERCENTAGE_FACTOR);
+    const maxLeverage = ONE.mul(LEVERAGE_DECIMALS).div(ONE.sub(maxThreshold));
+    return maxLeverage.sub(LEVERAGE_DECIMALS).toNumber();
+  }
+
   maxAPY(maxLeverage: number, poolApy: PoolList) {
     const minApy = minBorrowApy(poolApy);
 
@@ -79,28 +102,48 @@ export class Strategy {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  liquidationPrice(
-    borrowed: TokenDescription,
-    collateral: TokenDescription,
-    lp: TokenDescription,
-    ltCollateral: BigNumber,
-  ) {
-    const borrowedMoney = calcTotalPrice(
-      borrowed.price,
-      borrowed.amount,
-      borrowed.decimals,
+  liquidationPrice({
+    assets,
+    prices,
+    tokensList,
+    liquidationThresholds,
+
+    borrowed,
+    underlyingToken,
+
+    lpAmount,
+    lpToken,
+  }: LiquidationPriceProps) {
+    const collateralLTMoney = assets.reduce(
+      (acc, { token: tokenAddress, balance: amount }) => {
+        const lt = liquidationThresholds[tokenAddress] || BigNumber.from(0);
+        const price = prices[tokenAddress] || BigNumber.from(0);
+        const token = tokensList[tokenAddress];
+
+        const money = calcTotalPrice(price, amount, token?.decimals);
+        const ltMoney = money.mul(lt).div(PERCENTAGE_FACTOR);
+
+        return acc.add(ltMoney);
+      },
+      BigNumber.from(0),
     );
-    const collateralMoney = calcTotalPrice(
-      collateral.price,
-      collateral.amount,
-      collateral.decimals,
-    )
-      .mul(ltCollateral)
-      .div(PERCENTAGE_FACTOR);
-    const lpMoney = calcTotalPrice(lp.price, lp.amount, lp.decimals);
+
+    const underlyingPrice =
+      prices[underlyingToken?.address || ""] || PRICE_DECIMALS;
+    const borrowedMoney = calcTotalPrice(
+      underlyingPrice,
+      borrowed,
+      underlyingToken?.decimals,
+    );
+
+    const lpPrice = prices[lpToken?.address || ""] || PRICE_DECIMALS;
+    const lpMoney = calcTotalPrice(lpPrice, lpAmount, lpToken?.decimals);
 
     if (lpMoney.gt(0)) {
-      const lqPrice = borrowedMoney.sub(collateralMoney).mul(WAD).div(lpMoney);
+      const lqPrice = borrowedMoney
+        .sub(collateralLTMoney)
+        .mul(WAD)
+        .div(lpMoney);
 
       return lqPrice.gte(0) ? lqPrice : BigNumber.from(0);
     }
@@ -138,4 +181,23 @@ function minBorrowApy(poolApy: PoolList) {
   );
 
   return apys.length > 0 ? apys[0].borrowRate : 0;
+}
+
+type PartialCM = Pick<CreditManagerData, "liquidationThresholds" | "address">;
+
+function maxLeverageThreshold(lpToken: string, cms: Array<PartialCM>) {
+  const ltByCM: Array<[string, BigNumber]> = cms.map(cm => {
+    const lt = cm.liquidationThresholds[lpToken] || BigNumber.from(0);
+    return [cm.address, lt];
+  });
+
+  const sorted = ltByCM.sort(([, ltA], [, ltB]) => {
+    if (ltA.gt(ltB)) return 1;
+    if (ltB.gt(ltA)) return -1;
+    return 0;
+  });
+
+  const [cm = "", lt = BigNumber.from(0)] = sorted[0] || [];
+
+  return [lt, cm];
 }
