@@ -77,9 +77,17 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
           calldata,
         );
 
-        return `${functionName}(i: ${this.getTokenByIndex(
-          i,
-        )}, j: ${this.getTokenByIndex(j)}, rateMinRAY: ${formatBN(
+        const iSym =
+          functionFragment.name === "exchange_all_underlying"
+            ? this.getUnderlyingTokenByIndex(i)
+            : this.getTokenByIndex(i);
+
+        const jSym =
+          functionFragment.name === "exchange_all_underlying"
+            ? this.getUnderlyingTokenByIndex(j)
+            : this.getTokenByIndex(j);
+
+        return `${functionName}(i: ${iSym}, j: ${jSym}, rateMinRAY: ${formatBN(
           rateMinRAY,
           27,
         )}`;
