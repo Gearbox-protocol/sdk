@@ -27,7 +27,7 @@ describe("CurveAdapterParser test", () => {
       ]),
     );
     expect(parsed).to.be.eq(
-      "Curve2AssetsAdapter[CURVE_FRAX_POOL].exchange_underlying(i ,j: FRAX => 3Crv, dx: 3.00 [3000000000000000000], min_dy: 32.00 [32000000000000000000])",
+      "Curve2AssetsAdapter[CURVE_FRAX_POOL].exchange_underlying(i ,j: FRAX => DAI, dx: 3.00 [3000000000000000000], min_dy: 32.00 [32000000000000000000])",
       "Curve2AssetsAdapter: Incorrect parse exchange_underlying",
     );
 

@@ -165,6 +165,7 @@ export type CurveParams = {
     | AdapterInterface.CURVE_V1_WRAPPER;
   lpToken: CurveLPToken;
   tokens: Array<NormalToken | CurveLPToken>;
+  underlyings?: Array<NormalToken>;
   wrapper?: CurvePoolContract;
 } & BaseContractParams;
 
@@ -267,6 +268,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "FRAX3CRV",
     tokens: ["FRAX", "3Crv"],
+    underlyings: ["FRAX", "DAI", "USDC", "USDT"],
   },
   CURVE_LUSD_POOL: {
     name: "Curve LUSD",
@@ -274,6 +276,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "LUSD3CRV",
     tokens: ["LUSD", "3Crv"],
+    underlyings: ["LUSD", "DAI", "USDC", "USDT"],
   },
   CURVE_SUSD_POOL: {
     name: "Curve SUSD",
@@ -298,6 +301,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "gusd3CRV",
     tokens: ["GUSD", "3Crv"],
+    underlyings: ["GUSD", "DAI", "USDC", "USDT"],
   },
 
   YEARN_DAI_VAULT: {

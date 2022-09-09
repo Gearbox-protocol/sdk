@@ -54,8 +54,15 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
           calldata,
         );
 
-        const iSym = this.getTokenByIndex(i);
-        const jSym = this.getTokenByIndex(j);
+        const iSym =
+          functionFragment.name === "exchange_underlying"
+            ? this.getUnderlyingTokenByIndex(i)
+            : this.getTokenByIndex(i);
+
+        const jSym =
+          functionFragment.name === "exchange_underlying"
+            ? this.getUnderlyingTokenByIndex(j)
+            : this.getTokenByIndex(j);
 
         return `${functionName}(i ,j: ${iSym} => ${jSym}, dx: ${this.formatBN(
           dx,
@@ -146,6 +153,11 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
   getTokenByIndex(index: number): SupportedToken {
     return (contractParams[this.contract as SupportedContract] as CurveParams)
       .tokens[index];
+  }
+
+  getUnderlyingTokenByIndex(index: number): SupportedToken {
+    return (contractParams[this.contract as SupportedContract] as CurveParams)
+      .underlyings![index];
   }
 
   convertAmounts(amounts: Array<BigNumberish>): string {
