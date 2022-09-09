@@ -12,6 +12,7 @@ interface BaseAdapterProps {
   contractAddress: string;
   adapterAddress: string;
   contractSymbol: SupportedContract;
+  creditManager: string;
 }
 
 interface ExecuteProps {
@@ -26,6 +27,7 @@ export class BaseAdapter {
   readonly contractAddress: string;
   readonly adapterAddress: string;
   readonly contractSymbol: SupportedContract;
+  readonly creditManager: string;
 
   constructor(props: BaseAdapterProps) {
     this.name = props.name;
@@ -33,6 +35,7 @@ export class BaseAdapter {
     this.adapterAddress = props.adapterAddress;
     this.contractAddress = props.contractAddress;
     this.contractSymbol = props.contractSymbol;
+    this.creditManager = props.creditManager;
   }
 
   async execute(props: ExecuteProps): Promise<EVMTx> {

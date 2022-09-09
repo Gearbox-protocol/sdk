@@ -1,10 +1,10 @@
-import { BigNumber, Signer } from "ethers";
+import { BigNumber } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
-import { TxParser } from "../parsers/txParser";
 import { SwapType } from "../pathfinder/tradeTypes";
 import { decimals } from "../tokens/decimals";
-import { tokenSymbolByAddress } from "../tokens/token";
+import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
+import { ICreditFacade } from "../types";
 import {
   PathFinderResultStruct,
   PathFinderResultStructOutput,
@@ -13,6 +13,7 @@ import { formatBN } from "../utils/formatter";
 import { BaseAdapter } from "./adapter";
 import { PERCENTAGE_FACTOR } from "./constants";
 import { EVMTx } from "./eventOrTx";
+import { TXSwap } from "./transactions";
 
 export type TradePath = Pick<
   PathFinderResultStructOutput,
@@ -21,61 +22,58 @@ export type TradePath = Pick<
 
 export interface BaseTradeInterface {
   swapType: SwapType;
+  sourceAmount: BigNumber;
   expectedAmount: BigNumber;
   rate: BigNumber;
   tokenFrom: string;
   tokenTo: string;
-  operationName: string;
+  operationName: TradeOperations;
 }
 
 export interface TradeProps extends BaseTradeInterface {
   adapter: BaseAdapter;
   tradePath: TradePath;
+  creditFacade: ICreditFacade;
 }
 
-export interface ConnectTradeProps {
-  adapter: BaseAdapter;
-  tradePath: TradePath;
-}
+export type TradeOperations =
+  | "farmWithdraw"
+  | "farmDeposit"
+  | "swap"
+  | "unknownOperation";
+
+const OPERATION_NAMES: Record<TradeOperations, string> = {
+  farmWithdraw: "Farm withdraw",
+  farmDeposit: "Farm deposit",
+  swap: "Swap",
+  unknownOperation: "Unknown operation",
+};
+
 export class Trade implements BaseTradeInterface {
   protected helper: BaseAdapter;
   protected tradePath: TradePath;
+  protected creditFacade: ICreditFacade;
 
   readonly swapType: SwapType;
+  readonly sourceAmount: BigNumber;
   readonly expectedAmount: BigNumber;
   readonly rate: BigNumber;
   readonly tokenFrom: string;
   readonly tokenTo: string;
-  readonly operationName: string;
+  readonly operationName: TradeOperations;
 
   constructor(props: TradeProps) {
     this.helper = props.adapter;
     this.tradePath = props.tradePath;
+    this.creditFacade = props.creditFacade;
 
     this.swapType = props.swapType;
+    this.sourceAmount = props.sourceAmount;
     this.expectedAmount = props.expectedAmount;
     this.rate = props.rate;
     this.tokenFrom = props.tokenFrom;
     this.tokenTo = props.tokenTo;
     this.operationName = props.operationName;
-  }
-
-  static connect({ tradePath, adapter }: ConnectTradeProps) {
-    const calls = TxParser.parseMultiCall(tradePath.calls);
-
-    console.log("TRADE CALLS", calls);
-
-    return new Trade({
-      tradePath,
-      adapter,
-
-      swapType: SwapType.ExactInput,
-      expectedAmount: tradePath.amount,
-      rate: BigNumber.from(0),
-      tokenFrom: "",
-      tokenTo: "",
-      operationName: "",
-    });
   }
 
   getName(): string {
@@ -94,8 +92,24 @@ export class Trade implements BaseTradeInterface {
     return this.helper.adapterAddress;
   }
 
-  execute(slippage: number, signer: Signer): Promise<EVMTx> {
-    return this.helper.execute({ tradePath: this.tradePath, slippage, signer });
+  execute(): Promise<EVMTx> {
+    return this._execute();
+  }
+
+  protected async _execute() {
+    const receipt = await this.creditFacade.multicall(this.tradePath.calls);
+
+    return new TXSwap({
+      txHash: receipt.hash,
+      protocol: this.helper.contractAddress,
+      operation: OPERATION_NAMES[this.operationName],
+      amountFrom: this.sourceAmount,
+      amountTo: this.expectedAmount,
+      tokenFrom: this.tokenFrom,
+      tokenTo: this.tokenTo,
+      creditManager: this.helper.creditManager,
+      timestamp: 0,
+    });
   }
 
   toString(): string {
@@ -108,7 +122,7 @@ export class Trade implements BaseTradeInterface {
     const decimalsTo = decimals[symbolTo];
 
     return `${this.operationName} ${formatBN(
-      this.tradePath.amount,
+      this.sourceAmount,
       decimalsFrom,
     )} ${symbolFrom} ⇒ ${formatBN(
       this.expectedAmount,
@@ -125,5 +139,23 @@ export class Trade implements BaseTradeInterface {
     return this.expectedAmount
       .mul(PERCENTAGE_FACTOR + slippage)
       .div(PERCENTAGE_FACTOR);
+  }
+
+  static getOperationName(
+    tokenInAddress: string,
+    tokenOutAddress: string,
+  ): TradeOperations {
+    const tokenInSymbol = tokenSymbolByAddress[tokenInAddress];
+    const tokenOutSymbol = tokenSymbolByAddress[tokenOutAddress];
+
+    const tokenInIsLp = isLPToken(tokenInSymbol);
+    const tokenOutIsLp = isLPToken(tokenOutSymbol);
+
+    if (!tokenInSymbol) throw new Error(`Unknown token: ${tokenInAddress}`);
+    if (!tokenOutSymbol) throw new Error(`Unknown token: ${tokenOutAddress}`);
+    if (tokenInIsLp && !tokenOutIsLp) return "farmWithdraw";
+    if (!tokenInIsLp && tokenOutIsLp) return "farmDeposit";
+    if (!tokenInIsLp && !tokenOutIsLp) return "swap";
+    return "unknownOperation";
   }
 }
