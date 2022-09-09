@@ -6,14 +6,8 @@ import { EVMTx } from "./eventOrTx";
 import { TradePath } from "./trade";
 import { TXSwap } from "./transactions";
 
-export enum AdapterType {
-  Swap = 1,
-  LP = 2,
-}
-
 interface BaseAdapterProps {
   name: string;
-  type: AdapterType;
   adapterInterface: AdapterInterface;
   contractAddress: string;
   adapterAddress: string;
@@ -28,7 +22,6 @@ interface ExecuteProps {
 
 export class BaseAdapter {
   readonly name: string;
-  readonly type: AdapterType;
   readonly adapterInterface: AdapterInterface;
   readonly contractAddress: string;
   readonly adapterAddress: string;
@@ -36,7 +29,6 @@ export class BaseAdapter {
 
   constructor(props: BaseAdapterProps) {
     this.name = props.name;
-    this.type = props.type;
     this.adapterInterface = props.adapterInterface;
     this.adapterAddress = props.adapterAddress;
     this.contractAddress = props.contractAddress;
@@ -46,17 +38,5 @@ export class BaseAdapter {
   async execute(props: ExecuteProps): Promise<EVMTx> {
     console.debug(props);
     return {} as TXSwap;
-  }
-
-  static connect(tradePath: TradePath) {
-    console.debug(tradePath);
-    return new BaseAdapter({
-      name: "",
-      type: AdapterType.Swap,
-      adapterInterface: AdapterInterface.NO_SWAP,
-      adapterAddress: "",
-      contractAddress: "",
-      contractSymbol: "CONVEX_3CRV_POOL",
-    });
   }
 }

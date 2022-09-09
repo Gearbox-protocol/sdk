@@ -3,13 +3,14 @@ import { BigNumber, Signer } from "ethers";
 import { AdapterInterface } from "../contracts/adapters";
 import { TxParser } from "../parsers/txParser";
 import { SwapType } from "../pathfinder/tradeTypes";
-import { TokenData } from "../tokens/tokenData";
+import { decimals } from "../tokens/decimals";
+import { tokenSymbolByAddress } from "../tokens/token";
 import {
   PathFinderResultStruct,
   PathFinderResultStructOutput,
 } from "../types/contracts/pathfinder/interfaces/IPathFinder";
 import { formatBN } from "../utils/formatter";
-import { AdapterType, BaseAdapter } from "./adapter";
+import { BaseAdapter } from "./adapter";
 import { PERCENTAGE_FACTOR } from "./constants";
 import { EVMTx } from "./eventOrTx";
 
@@ -62,6 +63,8 @@ export class Trade implements BaseTradeInterface {
   static connect({ tradePath, adapter }: ConnectTradeProps) {
     const calls = TxParser.parseMultiCall(tradePath.calls);
 
+    console.log("TRADE CALLS", calls);
+
     return new Trade({
       tradePath,
       adapter,
@@ -95,19 +98,22 @@ export class Trade implements BaseTradeInterface {
     return this.helper.execute({ tradePath: this.tradePath, slippage, signer });
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    let result =
-      this.helper.type === AdapterType.Swap
-        ? `Swap `
-        : `${this.operationName || "Farm"} `;
-    const fromToken = tokenData[this.tokenFrom];
-    const toToken = tokenData[this.tokenTo];
-    result += `${formatBN(this.tradePath.amount, fromToken.decimals)} ${
-      fromToken.symbol
-    } ⇒ ${formatBN(this.expectedAmount, toToken.decimals)} ${
-      toToken.symbol
-    } on ${this.helper.name}`;
-    return result;
+  toString(): string {
+    const symbolFrom = tokenSymbolByAddress[this.tokenFrom.toLowerCase()];
+    const symbolTo = tokenSymbolByAddress[this.tokenTo.toLowerCase()];
+    if (!symbolFrom) throw new Error(`Unknown token: ${this.tokenFrom}`);
+    if (!symbolTo) throw new Error(`Unknown token: ${this.tokenTo}`);
+
+    const decimalsFrom = decimals[symbolFrom];
+    const decimalsTo = decimals[symbolTo];
+
+    return `${this.operationName} ${formatBN(
+      this.tradePath.amount,
+      decimalsFrom,
+    )} ${symbolFrom} ⇒ ${formatBN(
+      this.expectedAmount,
+      decimalsTo,
+    )} ${symbolTo} on ${this.helper.name}`;
   }
 
   getFromAmount(slippage: number) {
