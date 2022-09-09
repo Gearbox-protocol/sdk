@@ -23,7 +23,6 @@ export type PriceFeedData =
   | {
       type: OracleType.YEARN_TOKEN_ORACLE;
       token: SupportedToken;
-      address: Record<NetworkType, string>;
     }
   | {
       type: OracleType.CURVE_LP_TOKEN_ORACLE;

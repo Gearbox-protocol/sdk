@@ -400,56 +400,32 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedETH: {
       type: OracleType.YEARN_TOKEN_ORACLE,
       token: "DAI",
-      address: {
-        Mainnet: "",
-        Goerli: "TODO: DEPLOY ME",
-      },
     },
     priceFeedUSD: {
       type: OracleType.YEARN_TOKEN_ORACLE,
       token: "DAI",
-      address: {
-        Mainnet: "",
-        Goerli: "TODO: DEPLOY ME",
-      },
     },
   },
   yvUSDC: {
     priceFeedETH: {
       type: OracleType.YEARN_TOKEN_ORACLE,
       token: "USDC",
-      address: {
-        Mainnet: "",
-        Goerli: "TODO: DEPLOY ME",
-      },
     },
     priceFeedUSD: {
       type: OracleType.YEARN_TOKEN_ORACLE,
       token: "USDC",
-      address: {
-        Mainnet: "",
-        Goerli: "TODO: DEPLOY ME",
-      },
     },
   },
   yvWETH: {
     priceFeedUSD: {
       type: OracleType.YEARN_TOKEN_ORACLE,
       token: "WETH",
-      address: {
-        Mainnet: "",
-        Goerli: "TODO: DEPLOY ME",
-      },
     },
   },
   yvWBTC: {
     priceFeedUSD: {
       type: OracleType.YEARN_TOKEN_ORACLE,
       token: "WBTC",
-      address: {
-        Mainnet: "",
-        Goerli: "TODO: DEPLOY ME",
-      },
     },
   },
 

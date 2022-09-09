@@ -2,7 +2,7 @@ import { pack } from "@ethersproject/solidity";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 
-import { DUMB_ADDRESS, WAD } from "../core/constants";
+import { DUMB_ADDRESS, RAY, WAD } from "../core/constants";
 import { tokenDataByNetwork } from "../tokens/token";
 import { IUniswapV3Adapter__factory } from "../types";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
@@ -50,6 +50,24 @@ describe("UniswapV3AdapterParser test", () => {
     );
 
     parsed = parser.parse(
+      ifc.encodeFunctionData("exactAllInputSingle", [
+        {
+          tokenIn: tokenDataByNetwork.Goerli["1INCH"],
+          tokenOut: tokenDataByNetwork.Goerli["3Crv"],
+          fee: 3000,
+          deadline: 12300,
+          rateMinRAY: RAY.mul(1200),
+          sqrtPriceLimitX96: 0,
+        },
+      ]),
+    );
+
+    expect(parsed).to.be.eq(
+      "UniswapV3Adapter[UNISWAP_V3_ROUTER].exactAllInputSingle(rate: 1.20K,  path: 1INCH ==(fee: 3000)==> 3Crv)",
+      "Incorrect parse swapExactTokensForTokens",
+    );
+
+    parsed = parser.parse(
       ifc.encodeFunctionData("exactInput", [
         {
           path: pathToUniV3Path([
@@ -67,6 +85,25 @@ describe("UniswapV3AdapterParser test", () => {
 
     expect(parsed).to.be.eq(
       "UniswapV3Adapter[UNISWAP_V3_ROUTER].exactInput(amountIn: 12.39K [12399000000000000000000], amountOutMinimum: 122.00 [122000000],  path: AAVE ==(fee: 3000)==> LINK ==(fee: 3000)==> USDC",
+      "Incorrect parse swapExactTokensForTokens",
+    );
+
+    parsed = parser.parse(
+      ifc.encodeFunctionData("exactAllInput", [
+        {
+          path: pathToUniV3Path([
+            tokenDataByNetwork.Mainnet.AAVE,
+            tokenDataByNetwork.Mainnet.LINK,
+            tokenDataByNetwork.Mainnet.USDC,
+          ]),
+          rateMinRAY: RAY.mul(1200),
+          deadline: 1232131,
+        },
+      ]),
+    );
+
+    expect(parsed).to.be.eq(
+      "UniswapV3Adapter[UNISWAP_V3_ROUTER].exactAllInput(rate: 1.20K,  path: AAVE ==(fee: 3000)==> LINK ==(fee: 3000)==> USDC",
       "Incorrect parse swapExactTokensForTokens",
     );
 

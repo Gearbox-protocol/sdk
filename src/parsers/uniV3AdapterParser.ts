@@ -1,5 +1,6 @@
 import { SupportedContract } from "../contracts/contracts";
 import { IUniswapV3Adapter__factory } from "../types";
+import { formatBN } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -24,6 +25,18 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
 
         return `${functionName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
       }
+      case "exactAllInputSingle": {
+        const {
+          params: { tokenIn, tokenOut, fee, rateMinRAY },
+        } = this.decodeFunctionData(functionFragment, calldata);
+        const tokenInSym = this.tokenSymbol(tokenIn);
+        const tokenOutSym = this.tokenSymbol(tokenOut);
+
+        return `${functionName}(rate: ${formatBN(
+          rateMinRAY,
+          27,
+        )},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
+      }
       case "exactInput": {
         const {
           params: { amountIn, amountOutMinimum, path },
@@ -41,6 +54,18 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         );
 
         return `${functionName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${pathStr}`;
+      }
+      case "exactAllInput": {
+        const {
+          params: { rateMinRAY, path },
+        } = this.decodeFunctionData(functionFragment, calldata);
+
+        const pathStr = this.trackInputPath(path);
+
+        return `${functionName}(rate: ${formatBN(
+          rateMinRAY,
+          27,
+        )},  path: ${pathStr}`;
       }
       case "exactOutput": {
         const {
