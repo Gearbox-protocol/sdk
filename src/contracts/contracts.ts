@@ -454,3 +454,6 @@ export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
   }),
   {},
 );
+
+export const isSupportedContract = (t: unknown): t is SupportedContract =>
+  typeof t === "string" && !!contractParams[t as SupportedContract];

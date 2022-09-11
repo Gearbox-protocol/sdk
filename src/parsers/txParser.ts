@@ -8,6 +8,7 @@ import {
 import { NetworkType } from "../core/constants";
 import { SupportedToken } from "../tokens/token";
 import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { AbstractParser } from "./abstractParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 import { CreditFacadeParser } from "./creditFacadeParser";
@@ -23,13 +24,22 @@ export interface AdapterForParser {
   contract: string;
 }
 
+interface ParseData {
+  contract: string;
+  adapterName: string;
+}
+
 export class TxParser {
-  protected static parsers: Record<string, IParser> = {};
+  protected static parsers: Record<string, IParser & AbstractParser> = {};
 
   public static parse(address: string, calldata: string): string {
-    const parser = this.parsers[address.toLowerCase()];
-    if (!parser) throw new Error(`Can find parser for ${address}`);
+    const parser = this.getParser(address);
     return parser.parse(calldata);
+  }
+
+  public static getParseData(address: string): ParseData {
+    const parser = this.getParser(address);
+    return { contract: parser.contract, adapterName: parser.adapterName };
   }
 
   public static parseMultiCall(calls: Array<MultiCallStruct>): Array<string> {
@@ -64,6 +74,12 @@ export class TxParser {
     this.parsers[creditFacade.toLowerCase()] = new CreditFacadeParser(
       underlying,
     );
+  }
+
+  public static getParser(address: string) {
+    const parser = this.parsers[address.toLowerCase()];
+    if (!parser) throw new Error(`Can find parser for ${address}`);
+    return parser;
   }
 
   protected static addParser(
