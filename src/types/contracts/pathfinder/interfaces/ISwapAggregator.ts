@@ -105,6 +105,7 @@ export type StrategyPathTaskStruct = {
   connectors: string[];
   adapters: string[];
   slippagePerStep: BigNumberish;
+  force: boolean;
   targetType: BigNumberish;
   foundAdapters: TokenAdaptersStruct[];
   gasPriceTargetRAY: BigNumberish;
@@ -121,6 +122,7 @@ export type StrategyPathTaskStructOutput = [
   string[],
   string[],
   BigNumber,
+  boolean,
   number,
   TokenAdaptersStructOutput[],
   BigNumber,
@@ -135,6 +137,7 @@ export type StrategyPathTaskStructOutput = [
   connectors: string[];
   adapters: string[];
   slippagePerStep: BigNumber;
+  force: boolean;
   targetType: number;
   foundAdapters: TokenAdaptersStructOutput[];
   gasPriceTargetRAY: BigNumber;
@@ -147,14 +150,14 @@ export type StrategyPathTaskStructOutput = [
 export interface ISwapAggregatorInterface extends utils.Interface {
   functions: {
     "findAllSwaps((uint8,address,address,address,address[],uint256,uint256,bool),address[])": FunctionFragment;
-    "findBestAllInputSwap(address,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "findBestAllInputSwapOrRevert(address,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "findBestSwap(address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "findBestSwapOrRevert(address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "findBestAllInputSwap(address,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "findBestAllInputSwapOrRevert(address,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "findBestSwap(address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "findBestSwapOrRevert(address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "findBestSwapQuote((uint8,address,address,address,address[],uint256,uint256,bool),address[])": FunctionFragment;
     "getBestDirectPairSwap((uint8,address,address,address,address[],uint256,uint256,bool),address[],uint256)": FunctionFragment;
     "getComponentId()": FunctionFragment;
-    "swapAllNormalTokens((address,(address,uint256)[],address,address[],address[],uint256,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]),address)": FunctionFragment;
+    "swapAllNormalTokens((address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]),address)": FunctionFragment;
     "version()": FunctionFragment;
   };
 

@@ -25,7 +25,9 @@
     "test": "npx mocha --require ts-node/register src/**/*.spec.ts"
   },
   "dependencies": {
+    "@types/deep-eql": "^4.0.0",
     "decimal.js-light": "^2.5.1",
+    "deep-eql": "^4.1.0",
     "moment": "^2.29.4"
   },
   "devDependencies": {

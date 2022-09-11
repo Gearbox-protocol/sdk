@@ -46,7 +46,7 @@ export class CreditManagerData {
 
   public readonly availableLiquidity: BigNumber;
 
-  public readonly allowedTokens: Array<string>;
+  public readonly collateralTokens: Array<string>;
 
   public readonly adapters: Record<string, string>;
 
@@ -96,7 +96,7 @@ export class CreditManagerData {
     ).toNumber();
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
 
-    this.allowedTokens = (payload.collateralTokens || []).map(t =>
+    this.collateralTokens = (payload.collateralTokens || []).map(t =>
       t.toLowerCase(),
     );
     this.adapters = (payload.adapters || []).reduce<Record<string, string>>(

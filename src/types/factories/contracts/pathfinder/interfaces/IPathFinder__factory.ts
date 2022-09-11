@@ -239,6 +239,11 @@ const _abi = [
         name: "iterations",
         type: "uint256",
       },
+      {
+        internalType: "bool",
+        name: "force",
+        type: "bool",
+      },
     ],
     name: "findBestClosePath",
     outputs: [
@@ -275,6 +280,11 @@ const _abi = [
         internalType: "struct PathFinderResult",
         name: "result",
         type: "tuple",
+      },
+      {
+        internalType: "uint256",
+        name: "gasPriceTargetRAY",
+        type: "uint256",
       },
     ],
     stateMutability: "nonpayable",

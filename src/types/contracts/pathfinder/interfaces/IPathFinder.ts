@@ -99,7 +99,7 @@ export interface IPathFinderInterface extends utils.Interface {
   functions: {
     "componentAddressById(uint8)": FunctionFragment;
     "findAllSwaps((uint8,address,address,address,address[],uint256,uint256,bool))": FunctionFragment;
-    "findBestClosePath(address,address[],uint256,(address,uint8,uint8)[],uint256)": FunctionFragment;
+    "findBestClosePath(address,address[],uint256,(address,uint8,uint8)[],uint256,bool)": FunctionFragment;
     "findOneTokenPath(address,uint256,address,address,address[],uint256)": FunctionFragment;
     "findOpenStrategyPath(address,(address,uint256)[],address,address[],uint256)": FunctionFragment;
     "getGasPriceTokenOutRAY(address)": FunctionFragment;
@@ -131,7 +131,14 @@ export interface IPathFinderInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "findBestClosePath",
-    values: [string, string[], BigNumberish, PathOptionStruct[], BigNumberish]
+    values: [
+      string,
+      string[],
+      BigNumberish,
+      PathOptionStruct[],
+      BigNumberish,
+      boolean
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "findOneTokenPath",
@@ -287,6 +294,7 @@ export interface IPathFinder extends BaseContract {
       slippage: BigNumberish,
       pathOptions: PathOptionStruct[],
       iterations: BigNumberish,
+      force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -340,6 +348,7 @@ export interface IPathFinder extends BaseContract {
     slippage: BigNumberish,
     pathOptions: PathOptionStruct[],
     iterations: BigNumberish,
+    force: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -393,8 +402,14 @@ export interface IPathFinder extends BaseContract {
       slippage: BigNumberish,
       pathOptions: PathOptionStruct[],
       iterations: BigNumberish,
+      force: boolean,
       overrides?: CallOverrides
-    ): Promise<PathFinderResultStructOutput>;
+    ): Promise<
+      [PathFinderResultStructOutput, BigNumber] & {
+        result: PathFinderResultStructOutput;
+        gasPriceTargetRAY: BigNumber;
+      }
+    >;
 
     findOneTokenPath(
       tokenIn: string,
@@ -485,6 +500,7 @@ export interface IPathFinder extends BaseContract {
       slippage: BigNumberish,
       pathOptions: PathOptionStruct[],
       iterations: BigNumberish,
+      force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -539,6 +555,7 @@ export interface IPathFinder extends BaseContract {
       slippage: BigNumberish,
       pathOptions: PathOptionStruct[],
       iterations: BigNumberish,
+      force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

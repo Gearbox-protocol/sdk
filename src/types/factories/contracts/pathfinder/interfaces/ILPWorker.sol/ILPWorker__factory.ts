@@ -75,6 +75,11 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "bool",
+            name: "force",
+            type: "bool",
+          },
+          {
             internalType: "enum TokenType",
             name: "targetType",
             type: "uint8",
@@ -194,6 +199,11 @@ const _abi = [
             internalType: "uint256",
             name: "slippagePerStep",
             type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "force",
+            type: "bool",
           },
           {
             internalType: "enum TokenType",

@@ -44,7 +44,6 @@ export * from "./strategies/lido";
 export * from "./strategies/uniswapV2";
 export * from "./strategies/uniswapV3";
 export * from "./strategies/yearn";
-export * from "./tokens/connectors";
 export * from "./tokens/convex";
 export * from "./tokens/curveLP";
 export * from "./tokens/decimals";

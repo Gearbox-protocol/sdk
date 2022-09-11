@@ -43,11 +43,13 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     "name()": FunctionFragment;
     "setLimit(uint256)": FunctionFragment;
     "sharesOf(address)": FunctionFragment;
+    "stETH()": FunctionFragment;
     "submit(uint256)": FunctionFragment;
     "submitAll()": FunctionFragment;
     "symbol()": FunctionFragment;
     "targetContract()": FunctionFragment;
     "totalSupply()": FunctionFragment;
+    "weth()": FunctionFragment;
   };
 
   getFunction(
@@ -67,11 +69,13 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
       | "name"
       | "setLimit"
       | "sharesOf"
+      | "stETH"
       | "submit"
       | "submitAll"
       | "symbol"
       | "targetContract"
       | "totalSupply"
+      | "weth"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -119,6 +123,7 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "sharesOf", values: [string]): string;
+  encodeFunctionData(functionFragment: "stETH", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "submit",
     values: [BigNumberish]
@@ -133,6 +138,7 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     functionFragment: "totalSupply",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "weth", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterType",
@@ -173,6 +179,7 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setLimit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sharesOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "stETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "submit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "submitAll", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
@@ -184,6 +191,7 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     functionFragment: "totalSupply",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
 
   events: {
     "NewLimit(uint256)": EventFragment;
@@ -272,6 +280,8 @@ export interface ILidoV1Adapter extends BaseContract {
 
     sharesOf(_account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    stETH(overrides?: CallOverrides): Promise<[string]>;
+
     submit(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -286,6 +296,8 @@ export interface ILidoV1Adapter extends BaseContract {
     targetContract(overrides?: CallOverrides): Promise<[string]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    weth(overrides?: CallOverrides): Promise<[string]>;
   };
 
   _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
@@ -331,6 +343,8 @@ export interface ILidoV1Adapter extends BaseContract {
 
   sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+  stETH(overrides?: CallOverrides): Promise<string>;
+
   submit(
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -345,6 +359,8 @@ export interface ILidoV1Adapter extends BaseContract {
   targetContract(overrides?: CallOverrides): Promise<string>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  weth(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
@@ -387,6 +403,8 @@ export interface ILidoV1Adapter extends BaseContract {
 
     sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    stETH(overrides?: CallOverrides): Promise<string>;
+
     submit(amount: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     submitAll(overrides?: CallOverrides): Promise<BigNumber>;
@@ -396,6 +414,8 @@ export interface ILidoV1Adapter extends BaseContract {
     targetContract(overrides?: CallOverrides): Promise<string>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    weth(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -447,6 +467,8 @@ export interface ILidoV1Adapter extends BaseContract {
 
     sharesOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    stETH(overrides?: CallOverrides): Promise<BigNumber>;
+
     submit(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -461,6 +483,8 @@ export interface ILidoV1Adapter extends BaseContract {
     targetContract(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    weth(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -519,6 +543,8 @@ export interface ILidoV1Adapter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    stETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     submit(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -533,5 +559,7 @@ export interface ILidoV1Adapter extends BaseContract {
     targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

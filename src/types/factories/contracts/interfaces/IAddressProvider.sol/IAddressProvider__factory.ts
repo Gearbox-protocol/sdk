@@ -96,6 +96,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getLeveragedActions",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getPriceOracle",
     outputs: [
       {
