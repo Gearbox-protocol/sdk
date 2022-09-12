@@ -7,15 +7,14 @@ import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
 import { ICreditFacade } from "../types";
 import { formatBN } from "../utils/formatter";
 import { BaseAdapter } from "./adapter";
-import { PERCENTAGE_FACTOR } from "./constants";
+import { PERCENTAGE_FACTOR, WAD } from "./constants";
 import { EVMTx } from "./eventOrTx";
 import { TXSwap } from "./transactions";
 
-export interface BaseTradeInterface {
+interface BaseTradeInterface {
   swapType: SwapOperation;
   sourceAmount: BigNumber;
   expectedAmount: BigNumber;
-  rate: BigNumber;
   tokenFrom: string;
   tokenTo: string;
   operationName: TradeOperations;
@@ -61,7 +60,7 @@ export class Trade implements BaseTradeInterface {
     this.swapType = props.swapType;
     this.sourceAmount = props.sourceAmount;
     this.expectedAmount = props.expectedAmount;
-    this.rate = props.rate;
+    this.rate = WAD.mul(props.expectedAmount).div(props.sourceAmount);
     this.tokenFrom = props.tokenFrom;
     this.tokenTo = props.tokenTo;
     this.operationName = props.operationName;
