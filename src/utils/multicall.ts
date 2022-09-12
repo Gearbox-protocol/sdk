@@ -17,7 +17,7 @@ export interface MCall<T extends ethers.utils.Interface> {
 
 export async function multicall<R extends Array<any>>(
   calls: Array<MCall<any>>,
-  p: ethers.providers.Provider,
+  p: Signer | ethers.providers.Provider,
 ): Promise<R> {
   const multiCallContract = Multicall2__factory.connect(MULTICALL_ADDRESS, p);
 
