@@ -171,7 +171,11 @@ export class PathFinder {
 
     const bestResult = results.reduce<CloseResult>(
       (best, [pathFinderResult, gasPriceRAY]) =>
-        PathFinder.compare(best, pathFinderResult, gasPriceRAY),
+        PathFinder.compare(
+          best,
+          { amount: pathFinderResult, gasUsage: gasPriceRAY },
+          gasPriceRAY,
+        ),
       {
         amount: BigNumber.from(0),
         gasUsage: 0,
