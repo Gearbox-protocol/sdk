@@ -348,6 +348,11 @@ const _abi = [
             type: "address",
           },
           {
+            internalType: "address",
+            name: "pool",
+            type: "address",
+          },
+          {
             internalType: "bool",
             name: "isWETH",
             type: "bool",
@@ -492,6 +497,11 @@ const _abi = [
           {
             internalType: "address",
             name: "underlying",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "pool",
             type: "address",
           },
           {

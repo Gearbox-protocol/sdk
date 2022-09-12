@@ -32,6 +32,8 @@ export class CreditManagerData {
 
   public readonly underlyingToken: string;
 
+  public readonly pool: string;
+
   public readonly isWETH: boolean;
 
   public readonly canBorrow: boolean;
@@ -76,30 +78,30 @@ export class CreditManagerData {
     this.id = payload.addr.toLowerCase();
     this.address = payload.addr.toLowerCase();
 
-    this.underlyingToken = (payload.underlying || "").toLowerCase();
+    this.underlyingToken = payload.underlying.toLowerCase();
+    this.pool = payload.pool.toLowerCase();
 
-    this.isWETH = payload.isWETH || false;
-    this.canBorrow = payload.canBorrow || false;
+    this.isWETH = payload.isWETH;
+    this.canBorrow = payload.canBorrow;
 
     this.borrowRate =
-      BigNumber.from(payload.borrowRate || 0)
+      BigNumber.from(payload.borrowRate)
         .mul(BigNumber.from(payload.feeInterest).add(PERCENTAGE_FACTOR))
         .mul(PERCENTAGE_DECIMALS)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
 
-    this.minAmount = BigNumber.from(payload.minAmount || 0);
-    this.maxAmount = BigNumber.from(payload.maxAmount || 0);
+    this.minAmount = BigNumber.from(payload.minAmount);
+    this.maxAmount = BigNumber.from(payload.maxAmount);
 
     this.maxLeverageFactor = BigNumber.from(
-      payload.maxLeverageFactor || 0,
+      payload.maxLeverageFactor,
     ).toNumber();
-    this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
+    this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
 
-    this.collateralTokens = (payload.collateralTokens || []).map(t =>
-      t.toLowerCase(),
-    );
-    this.adapters = (payload.adapters || []).reduce<Record<string, string>>(
+    this.collateralTokens = payload.collateralTokens.map(t => t.toLowerCase());
+
+    this.adapters = payload.adapters.reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({
         ...acc,
         [allowedContract.toLowerCase()]: adapter.toLowerCase(),
@@ -107,7 +109,7 @@ export class CreditManagerData {
       {},
     );
 
-    this.liquidationThresholds = (payload.liquidationThresholds || []).reduce<
+    this.liquidationThresholds = payload.liquidationThresholds.reduce<
       Record<string, BigNumber>
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];

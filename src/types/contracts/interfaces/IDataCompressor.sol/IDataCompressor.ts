@@ -111,6 +111,7 @@ export type ContractAdapterStructOutput = [string, string] & {
 export type CreditManagerDataStruct = {
   addr: string;
   underlying: string;
+  pool: string;
   isWETH: boolean;
   canBorrow: boolean;
   borrowRate: BigNumberish;
@@ -138,6 +139,7 @@ export type CreditManagerDataStruct = {
 export type CreditManagerDataStructOutput = [
   string,
   string,
+  string,
   boolean,
   boolean,
   BigNumber,
@@ -163,6 +165,7 @@ export type CreditManagerDataStructOutput = [
 ] & {
   addr: string;
   underlying: string;
+  pool: string;
   isWETH: boolean;
   canBorrow: boolean;
   borrowRate: BigNumber;
