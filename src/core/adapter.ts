@@ -1,8 +1,5 @@
-import { Signer } from "ethers";
-
 import { AdapterInterface } from "../contracts/adapters";
 import { SupportedContract } from "../contracts/contracts";
-import { PathFinderResult } from "../pathfinder/core";
 
 interface BaseAdapterProps {
   name: string;
@@ -11,12 +8,6 @@ interface BaseAdapterProps {
   adapterAddress: string;
   contractSymbol: SupportedContract;
   creditManager: string;
-}
-
-interface ExecuteProps {
-  tradePath: PathFinderResult;
-  slippage: number;
-  signer: Signer;
 }
 
 export class BaseAdapter {
