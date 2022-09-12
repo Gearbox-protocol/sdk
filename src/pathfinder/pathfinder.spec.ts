@@ -8,11 +8,13 @@ describe("PathFinder test", () => {
     const r1: CloseResult = {
       amount: 2000,
       gasUsage: 1000,
+      calls: [],
     };
 
     const r2: CloseResult = {
       amount: 3000,
       gasUsage: 2000,
+      calls: [],
     };
 
     let result = PathFinder.compare(r1, r2, RAY);

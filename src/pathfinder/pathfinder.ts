@@ -9,6 +9,8 @@ import { IPathFinder, IPathFinder__factory } from "../types";
 import { BalanceStruct } from "../types/contracts/pathfinder/interfaces/IPathFinder";
 import { SwapTaskStruct } from "../types/contracts/pathfinder/interfaces/ISwapper";
 import {
+  MultiCall,
+  PathFinderCloseResult,
   PathFinderOpenStrategyResult,
   PathFinderResult,
   SwapOperation,
@@ -20,6 +22,7 @@ const GAS_PER_BLOCK = 30e6;
 
 export interface CloseResult {
   amount: BigNumberish;
+  calls: Array<MultiCall>;
   gasUsage: BigNumberish;
 }
 
@@ -68,7 +71,6 @@ export class PathFinder {
     const results = await this.pathFinder.callStatic.findAllSwaps(swapTask);
     return results.map(r => ({
       amount: BigNumber.from(r.amount),
-      gasUsage: r.gasUsage.toNumber(),
       calls: r.calls,
     }));
   }
@@ -100,6 +102,18 @@ export class PathFinder {
       calls: result.calls,
     };
   }
+
+  /**
+   * @dev Finds the best path for opening credit account and converting all NORMAL tokens and LP token in the way to TARGET
+   * @param cm CreditManagerData which represents credit manager you want to use to open credit account
+   * @param expectedBalances Expected balances which would be on account accounting also debt. For example,
+   *    if you open an USDC credit account, borrow 50_000 USDC and provide 10 WETH and 10_USDC as collateral
+   *    from your own funds, expectedBalances should be: { "USDC": 60_000 * (10**6), "<address of WETH>": WAD.mul(10) }
+   *
+   * @param target Address of symbol of desired token
+   * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   * @returns PathFinderOpenStrategyResult which
+   */
 
   async findOpenStrategyPath(
     cm: CreditManagerData,
@@ -146,10 +160,19 @@ export class PathFinder {
     };
   }
 
+  /**
+   * @dev Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
+   *   Can bu used for closing credit account and for liquidations as well.
+   * @param creditAccount CreditAccountData object used for close path computation
+   * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   * @return The best option in PathFinderCloseResult format, which
+   *          - underlyingBalance - total balance of underlying token
+   *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
+   */
   async findBestClosePath(
     creditAccount: CreditAccountData,
     slippage: number,
-  ): Promise<BigNumber> {
+  ): Promise<PathFinderCloseResult> {
     const loopsPerTx = GAS_PER_BLOCK / MAX_GAS_PER_ROUTE;
     const pathOptions = PathOptionFactory.generatePathOptions(
       creditAccount.allBalances,
@@ -175,10 +198,16 @@ export class PathFinder {
       {
         amount: BigNumber.from(0),
         gasUsage: 0,
+        calls: [],
       },
     );
 
-    return BigNumber.from(bestResult.amount);
+    return {
+      underlyingBalance: BigNumber.from(bestResult.amount).add(
+        creditAccount.allBalances[creditAccount.underlyingToken.toLowerCase()],
+      ),
+      calls: bestResult.calls,
+    };
   }
 
   static compare(
