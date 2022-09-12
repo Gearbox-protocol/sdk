@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, Signer } from "ethers";
 
 import { MULTICALL_ADDRESS } from "../config";
 import { Multicall2, Multicall2__factory } from "../types";
@@ -45,7 +45,7 @@ export class MultiCallContract<T extends ethers.utils.Interface> {
   constructor(
     address: string,
     intrerface: T,
-    provider: ethers.providers.Provider,
+    provider: ethers.providers.Provider | Signer,
   ) {
     this._address = address;
     this._interface = intrerface;
