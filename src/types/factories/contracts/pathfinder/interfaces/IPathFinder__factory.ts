@@ -281,6 +281,11 @@ const _abi = [
         name: "result",
         type: "tuple",
       },
+      {
+        internalType: "uint256",
+        name: "gasPriceTargetRAY",
+        type: "uint256",
+      },
     ],
     stateMutability: "nonpayable",
     type: "function",

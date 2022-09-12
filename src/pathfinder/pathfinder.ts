@@ -193,7 +193,8 @@ export class PathFinder {
     const results = await Promise.all(requests);
 
     const bestResult = results.reduce<CloseResult>(
-      (best, current) => PathFinder.compare(best, current, current.gasUsage),
+      (best, [pathFinderResult, gasPriceRAY]) =>
+        PathFinder.compare(best, pathFinderResult, gasPriceRAY),
       {
         amount: BigNumber.from(0),
         gasUsage: 0,

@@ -404,7 +404,12 @@ export interface IPathFinder extends BaseContract {
       iterations: BigNumberish,
       force: boolean,
       overrides?: CallOverrides
-    ): Promise<PathFinderResultStructOutput>;
+    ): Promise<
+      [PathFinderResultStructOutput, BigNumber] & {
+        result: PathFinderResultStructOutput;
+        gasPriceTargetRAY: BigNumber;
+      }
+    >;
 
     findOneTokenPath(
       tokenIn: string,
