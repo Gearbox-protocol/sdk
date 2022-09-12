@@ -2,8 +2,8 @@ import { Signer } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
 import { SupportedContract } from "../contracts/contracts";
+import { PathFinderResult } from "../pathfinder/core";
 import { EVMTx } from "./eventOrTx";
-import { TradePath } from "./trade";
 import { TXSwap } from "./transactions";
 
 interface BaseAdapterProps {
@@ -16,7 +16,7 @@ interface BaseAdapterProps {
 }
 
 interface ExecuteProps {
-  tradePath: TradePath;
+  tradePath: PathFinderResult;
   slippage: number;
   signer: Signer;
 }
