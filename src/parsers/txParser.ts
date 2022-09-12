@@ -54,7 +54,7 @@ export class TxParser {
       TxParser.addParser(
         a.adapter,
         contract,
-        contractParams[contract]?.type,
+        contractParams[contract].type,
         false,
       );
     }
