@@ -1,6 +1,7 @@
 import { BigNumber, ethers, Signer } from "ethers";
 
 import { TxParser } from "../parsers/txParser";
+import { MultiCall } from "../pathfinder/core";
 import {
   CreditManagerDataPayload,
   CreditManagerStatPayload,
@@ -23,7 +24,6 @@ import {
   UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
 } from "./constants";
 import { OpenAccountError } from "./errors";
-import { MultiCall } from "./multicall";
 
 export class CreditManagerData {
   public readonly id: string;
