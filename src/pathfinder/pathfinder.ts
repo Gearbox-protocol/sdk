@@ -173,7 +173,7 @@ export class PathFinder {
     creditAccount: CreditAccountData,
     slippage: number,
   ): Promise<PathFinderCloseResult> {
-    const loopsPerTx = GAS_PER_BLOCK / MAX_GAS_PER_ROUTE;
+    const loopsPerTx = Math.floor(GAS_PER_BLOCK / MAX_GAS_PER_ROUTE);
     const pathOptions = PathOptionFactory.generatePathOptions(
       creditAccount.allBalances,
       loopsPerTx,
