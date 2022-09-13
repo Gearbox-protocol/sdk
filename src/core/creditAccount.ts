@@ -122,6 +122,14 @@ export class CreditAccountData {
   get id(): string {
     return this.creditManager;
   }
+
+  protected hash(): string {
+    return CreditAccountData.hash(this.creditManager, this.borrower);
+  }
+
+  protected static hash(creditManager: string, borrower: string): string {
+    return `${creditManager.toLowerCase()}:${borrower.toLowerCase()}`;
+  }
 }
 
 export function sortBalances(
