@@ -1,30 +1,20 @@
 import { BigNumber } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
-import { SwapType } from "../pathfinder/tradeTypes";
+import { PathFinderResult, SwapOperation } from "../pathfinder/core";
 import { decimals } from "../tokens/decimals";
 import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
 import { ICreditFacade } from "../types";
-import {
-  PathFinderResultStruct,
-  PathFinderResultStructOutput,
-} from "../types/contracts/pathfinder/interfaces/IPathFinder";
 import { formatBN } from "../utils/formatter";
 import { BaseAdapter } from "./adapter";
-import { PERCENTAGE_FACTOR } from "./constants";
+import { PERCENTAGE_FACTOR, WAD } from "./constants";
 import { EVMTx } from "./eventOrTx";
 import { TXSwap } from "./transactions";
 
-export type TradePath = Pick<
-  PathFinderResultStructOutput,
-  keyof PathFinderResultStruct
->;
-
-export interface BaseTradeInterface {
-  swapType: SwapType;
+interface BaseTradeInterface {
+  swapType: SwapOperation;
   sourceAmount: BigNumber;
   expectedAmount: BigNumber;
-  rate: BigNumber;
   tokenFrom: string;
   tokenTo: string;
   operationName: TradeOperations;
@@ -32,7 +22,7 @@ export interface BaseTradeInterface {
 
 export interface TradeProps extends BaseTradeInterface {
   adapter: BaseAdapter;
-  tradePath: TradePath;
+  tradePath: PathFinderResult;
   creditFacade: ICreditFacade;
 }
 
@@ -51,10 +41,10 @@ const OPERATION_NAMES: Record<TradeOperations, string> = {
 
 export class Trade implements BaseTradeInterface {
   protected helper: BaseAdapter;
-  protected tradePath: TradePath;
+  protected tradePath: PathFinderResult;
   protected creditFacade: ICreditFacade;
 
-  readonly swapType: SwapType;
+  readonly swapType: SwapOperation;
   readonly sourceAmount: BigNumber;
   readonly expectedAmount: BigNumber;
   readonly rate: BigNumber;
@@ -70,7 +60,7 @@ export class Trade implements BaseTradeInterface {
     this.swapType = props.swapType;
     this.sourceAmount = props.sourceAmount;
     this.expectedAmount = props.expectedAmount;
-    this.rate = props.rate;
+    this.rate = WAD.mul(props.expectedAmount).div(props.sourceAmount);
     this.tokenFrom = props.tokenFrom;
     this.tokenTo = props.tokenTo;
     this.operationName = props.operationName;

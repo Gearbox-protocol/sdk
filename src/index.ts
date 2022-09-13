@@ -36,6 +36,8 @@ export { AdapterInterface } from "./contracts/adapters";
 export { getContractName } from "./contracts/contractsRegister";
 export * from "./core/history";
 export * from "./parsers/txParser";
+export * from "./pathfinder/core";
+export * from "./pathfinder/pathfinder";
 export * from "./pathfinder/tradeTypes";
 export * from "./strategies/convex";
 export * from "./strategies/creditFacade";

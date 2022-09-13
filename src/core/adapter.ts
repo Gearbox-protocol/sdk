@@ -1,10 +1,5 @@
-import { Signer } from "ethers";
-
 import { AdapterInterface } from "../contracts/adapters";
 import { SupportedContract } from "../contracts/contracts";
-import { EVMTx } from "./eventOrTx";
-import { TradePath } from "./trade";
-import { TXSwap } from "./transactions";
 
 interface BaseAdapterProps {
   name: string;
@@ -13,12 +8,6 @@ interface BaseAdapterProps {
   adapterAddress: string;
   contractSymbol: SupportedContract;
   creditManager: string;
-}
-
-interface ExecuteProps {
-  tradePath: TradePath;
-  slippage: number;
-  signer: Signer;
 }
 
 export class BaseAdapter {
@@ -36,10 +25,5 @@ export class BaseAdapter {
     this.contractAddress = props.contractAddress;
     this.contractSymbol = props.contractSymbol;
     this.creditManager = props.creditManager;
-  }
-
-  async execute(props: ExecuteProps): Promise<EVMTx> {
-    console.debug(props);
-    return {} as TXSwap;
   }
 }

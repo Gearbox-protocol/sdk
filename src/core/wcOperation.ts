@@ -21,7 +21,7 @@ export interface TxInfo {
   functionFragment: FunctionFragment;
 }
 
-export class SwapOperation {
+export class WcSwapOperation {
   public readonly id: number;
 
   public operation?: string;
@@ -65,8 +65,8 @@ export class SwapOperation {
     amountFrom: BigNumber;
     amountTo: BigNumber;
     raw: RawTransaction;
-  }): SwapOperation {
-    const newOperation = new SwapOperation(params.raw, "swap");
+  }): WcSwapOperation {
+    const newOperation = new WcSwapOperation(params.raw, "swap");
     newOperation.operation = params.operation;
     newOperation.from = params.from;
     newOperation.to = params.to;
@@ -91,8 +91,8 @@ export class SwapOperation {
     farm: string;
     type: LpOperationType;
     raw: RawTransaction;
-  }): SwapOperation {
-    const newOperation = new SwapOperation(params.raw, "lp");
+  }): WcSwapOperation {
+    const newOperation = new WcSwapOperation(params.raw, "lp");
     newOperation.operation = params.operation;
     newOperation.from = params.from;
     newOperation.amountFrom = params.amountFrom;
@@ -108,16 +108,16 @@ export class SwapOperation {
     return newOperation;
   }
 
-  static NewUnsupportedOperation(raw: RawTransaction): SwapOperation {
-    return new SwapOperation(raw, "unsupported");
+  static NewUnsupportedOperation(raw: RawTransaction): WcSwapOperation {
+    return new WcSwapOperation(raw, "unsupported");
   }
 
   static NewApproveOperation(
     creditManager: string,
     raw: RawTransaction,
     token: string,
-  ): SwapOperation {
-    const operation = new SwapOperation(raw, "approve");
+  ): WcSwapOperation {
+    const operation = new WcSwapOperation(raw, "approve");
     operation.to = token;
     operation.calldata = raw?.params[0]?.data;
     const tokenI = IERC20__factory.createInterface();
@@ -145,7 +145,7 @@ export class SwapOperation {
       return operation;
     } catch (e) {
       console.error(e);
-      return SwapOperation.NewUnsupportedOperation(raw);
+      return WcSwapOperation.NewUnsupportedOperation(raw);
     }
   }
 }
