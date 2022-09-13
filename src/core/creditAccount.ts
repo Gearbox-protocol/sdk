@@ -123,11 +123,11 @@ export class CreditAccountData {
     return this.creditManager;
   }
 
-  protected hash(): string {
+  hash(): string {
     return CreditAccountData.hash(this.creditManager, this.borrower);
   }
 
-  protected static hash(creditManager: string, borrower: string): string {
+  static hash(creditManager: string, borrower: string): string {
     return `${creditManager.toLowerCase()}:${borrower.toLowerCase()}`;
   }
 }
