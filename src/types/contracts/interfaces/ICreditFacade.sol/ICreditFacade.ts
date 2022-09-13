@@ -287,7 +287,7 @@ export type AddCollateralEvent = TypedEvent<
 export type AddCollateralEventFilter = TypedEventFilter<AddCollateralEvent>;
 
 export interface CloseCreditAccountEventObject {
-  owner: string;
+  borrower: string;
   to: string;
 }
 export type CloseCreditAccountEvent = TypedEvent<
@@ -323,7 +323,7 @@ export type IncreaseBorrowedAmountEventFilter =
   TypedEventFilter<IncreaseBorrowedAmountEvent>;
 
 export interface LiquidateCreditAccountEventObject {
-  owner: string;
+  borrower: string;
   liquidator: string;
   to: string;
   remainingFunds: BigNumber;
@@ -337,7 +337,7 @@ export type LiquidateCreditAccountEventFilter =
   TypedEventFilter<LiquidateCreditAccountEvent>;
 
 export interface LiquidateExpiredCreditAccountEventObject {
-  owner: string;
+  borrower: string;
   liquidator: string;
   to: string;
   remainingFunds: BigNumber;
@@ -385,7 +385,7 @@ export type OpenCreditAccountEventFilter =
   TypedEventFilter<OpenCreditAccountEvent>;
 
 export interface TokenDisabledEventObject {
-  creditAccount: string;
+  borrower: string;
   token: string;
 }
 export type TokenDisabledEvent = TypedEvent<
@@ -396,7 +396,7 @@ export type TokenDisabledEvent = TypedEvent<
 export type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
 
 export interface TokenEnabledEventObject {
-  creditAccount: string;
+  borrower: string;
   token: string;
 }
 export type TokenEnabledEvent = TypedEvent<
@@ -878,11 +878,11 @@ export interface ICreditFacade extends BaseContract {
     ): AddCollateralEventFilter;
 
     "CloseCreditAccount(address,address)"(
-      owner?: string | null,
+      borrower?: string | null,
       to?: string | null
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
-      owner?: string | null,
+      borrower?: string | null,
       to?: string | null
     ): CloseCreditAccountEventFilter;
 
@@ -905,26 +905,26 @@ export interface ICreditFacade extends BaseContract {
     ): IncreaseBorrowedAmountEventFilter;
 
     "LiquidateCreditAccount(address,address,address,uint256)"(
-      owner?: string | null,
+      borrower?: string | null,
       liquidator?: string | null,
       to?: string | null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
-      owner?: string | null,
+      borrower?: string | null,
       liquidator?: string | null,
       to?: string | null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
     "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
-      owner?: string | null,
+      borrower?: string | null,
       liquidator?: string | null,
       to?: string | null,
       remainingFunds?: null
     ): LiquidateExpiredCreditAccountEventFilter;
     LiquidateExpiredCreditAccount(
-      owner?: string | null,
+      borrower?: string | null,
       liquidator?: string | null,
       to?: string | null,
       remainingFunds?: null
@@ -952,16 +952,16 @@ export interface ICreditFacade extends BaseContract {
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
-      creditAccount?: null,
+      borrower?: null,
       token?: null
     ): TokenDisabledEventFilter;
-    TokenDisabled(creditAccount?: null, token?: null): TokenDisabledEventFilter;
+    TokenDisabled(borrower?: null, token?: null): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
-      creditAccount?: null,
+      borrower?: null,
       token?: null
     ): TokenEnabledEventFilter;
-    TokenEnabled(creditAccount?: null, token?: null): TokenEnabledEventFilter;
+    TokenEnabled(borrower?: null, token?: null): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,

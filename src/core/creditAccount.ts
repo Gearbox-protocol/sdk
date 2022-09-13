@@ -17,50 +17,46 @@ import {
   WAD,
   WAD_DECIMALS_POW,
 } from "./constants";
+import { CreditManagerData } from "./creditManager";
+import { PriceOracleData } from "./priceOracle";
 
 export class CreditAccountData {
-  public readonly id: string;
-
   public readonly addr: string;
-
   public readonly borrower: string;
-
   public readonly inUse: boolean;
-
   public readonly creditManager: string;
-
   public readonly underlyingToken: string;
 
+  public readonly since: number;
+  public readonly cumulativeIndexAtOpen: BigNumber;
+  public readonly borrowedAmount: BigNumber;
+
   public borrowedAmountPlusInterest: BigNumber;
-
   public totalValue: BigNumber;
-
   public healthFactor: number;
-
   public borrowRate: number;
-
-  public readonly allowedTokens: Array<string> = [];
-
+  public readonly collateralTokens: Array<string> = [];
   public readonly allTokens: Array<string> = [];
-
   public balances: Record<string, BigNumber> = {};
-
   public allBalances: Record<string, BigNumber> = {};
-
   public isDeleting: boolean;
-
   public readonly version: number = 1;
 
   constructor(payload: CreditAccountDataPayload) {
-    this.id = payload.creditManager.toLowerCase();
     this.addr = payload.addr.toLowerCase();
     this.borrower = payload.borrower.toLowerCase();
     this.inUse = payload.inUse;
     this.creditManager = payload.creditManager.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
+
+    this.since = BigNumber.from(payload.since).toNumber();
+    this.cumulativeIndexAtOpen = BigNumber.from(payload.cumulativeIndexAtOpen);
+
+    this.borrowedAmount = BigNumber.from(payload.borrowedAmount);
     this.borrowedAmountPlusInterest = BigNumber.from(
       payload.borrowedAmountPlusInterest,
     );
+
     this.totalValue = BigNumber.from(payload.totalValue);
     this.healthFactor =
       BigNumber.from(payload.healthFactor).toNumber() / PERCENTAGE_FACTOR;
@@ -75,7 +71,7 @@ export class CreditAccountData {
       const tokenLC = b.token.toLowerCase();
       if (b.isAllowed) {
         this.balances[tokenLC] = BigNumber.from(b.balance);
-        this.allowedTokens.push(tokenLC);
+        this.collateralTokens.push(tokenLC);
       }
 
       this.allBalances[tokenLC] = BigNumber.from(b.balance);
@@ -93,6 +89,38 @@ export class CreditAccountData {
     return sortBalances(this.balances, prices, tokens).map(
       ([token, balance]) => ({ token, balance }),
     );
+  }
+
+  calcBorrowAmountPlusInterestRate(
+    currentCumulativeIndex: BigNumber,
+  ): BigNumber {
+    return this.borrowedAmount
+      .mul(currentCumulativeIndex)
+      .div(this.cumulativeIndexAtOpen);
+  }
+
+  updateHealthFactor(
+    creditManager: CreditManagerData,
+    currentCumulativeIndex: BigNumber,
+    priceOracle: PriceOracleData,
+  ) {
+    const twvUSDValue = this.collateralTokens
+      .map(token =>
+        priceOracle
+          .convertToUSD(this.balances[token], token)
+          .mul(creditManager.liquidationThresholds[token]),
+      )
+      .reduce((a, b) => a.add(b));
+
+    this.healthFactor =
+      priceOracle
+        .convertFromUSD(twvUSDValue, this.underlyingToken)
+        .div(this.calcBorrowAmountPlusInterestRate(currentCumulativeIndex))
+        .toNumber() / PERCENTAGE_FACTOR;
+  }
+
+  get id(): string {
+    return this.creditManager;
   }
 }
 

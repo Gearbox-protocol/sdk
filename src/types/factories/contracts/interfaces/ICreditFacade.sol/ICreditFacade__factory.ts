@@ -197,7 +197,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "owner",
+        name: "borrower",
         type: "address",
       },
       {
@@ -254,7 +254,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "owner",
+        name: "borrower",
         type: "address",
       },
       {
@@ -285,7 +285,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "owner",
+        name: "borrower",
         type: "address",
       },
       {
@@ -366,7 +366,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "creditAccount",
+        name: "borrower",
         type: "address",
       },
       {
@@ -385,7 +385,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "creditAccount",
+        name: "borrower",
         type: "address",
       },
       {
