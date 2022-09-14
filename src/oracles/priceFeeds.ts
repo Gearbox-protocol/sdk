@@ -1,6 +1,8 @@
 import { SupportedToken } from "../tokens/token";
 import { OracleType, TokenPriceFeedData } from "./oracles";
 
+export const GAS_PRICE_FEED = "0x169e633a2d1e6c10dd91238ba11c4a708dfef37c";
+
 export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
   "1INCH": {
     priceFeedETH: {

@@ -153,6 +153,98 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "mint",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum Tokens",
+        name: "t",
+        type: "uint8",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "mint",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "mintWithTotalSupply",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum Tokens",
+        name: "t",
+        type: "uint8",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "mintWithTotalSupply",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "enum Tokens",
         name: "t",
         type: "uint8",
@@ -164,6 +256,19 @@ const _abi = [
         internalType: "string",
         name: "",
         type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "tokenCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -182,6 +287,25 @@ const _abi = [
       {
         internalType: "enum Tokens",
         name: "t",
+        type: "uint8",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum Tokens",
+        name: "t",
+        type: "uint8",
+      },
+    ],
+    name: "tokenTypes",
+    outputs: [
+      {
+        internalType: "enum TokenType",
+        name: "",
         type: "uint8",
       },
     ],
