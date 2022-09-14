@@ -40,6 +40,7 @@ export class CreditAccountData {
   public balances: Record<string, BigNumber> = {};
   public allBalances: Record<string, BigNumber> = {};
   public isDeleting: boolean;
+  public enabledTokenMask: BigNumber;
   public readonly version: number = 1;
 
   constructor(payload: CreditAccountDataPayload) {
@@ -78,6 +79,7 @@ export class CreditAccountData {
       this.allTokens.push(tokenLC);
     });
 
+    this.enabledTokenMask = BigNumber.from(payload.enabledTokenMask);
     this.isDeleting = false;
     this.version = BigNumber.from(payload.version || 1).toNumber();
   }
@@ -105,6 +107,10 @@ export class CreditAccountData {
     priceOracle: PriceOracleData,
   ) {
     const twvUSDValue = this.collateralTokens
+      .filter(
+        (_, num) =>
+          !BigNumber.from(2).pow(num).and(this.enabledTokenMask).isZero(),
+      )
       .map(token =>
         priceOracle
           .convertToUSD(this.balances[token], token)
@@ -112,11 +118,10 @@ export class CreditAccountData {
       )
       .reduce((a, b) => a.add(b));
 
-    this.healthFactor =
-      priceOracle
-        .convertFromUSD(twvUSDValue, this.underlyingToken)
-        .div(this.calcBorrowAmountPlusInterestRate(currentCumulativeIndex))
-        .toNumber() / PERCENTAGE_FACTOR;
+    this.healthFactor = priceOracle
+      .convertFromUSD(twvUSDValue, this.underlyingToken)
+      .div(this.calcBorrowAmountPlusInterestRate(currentCumulativeIndex))
+      .toNumber();
   }
 
   get id(): string {
