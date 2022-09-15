@@ -4,7 +4,11 @@ import { BigNumber } from "ethers";
 import { decimals } from "../tokens/decimals";
 import { tokenDataByNetwork } from "../tokens/token";
 import { toBN, toSignificant } from "../utils/formatter";
-import { LEVERAGE_DECIMALS, WAD_DECIMALS_POW } from "./constants";
+import {
+  LEVERAGE_DECIMALS,
+  PRICE_DECIMALS_POW,
+  WAD_DECIMALS_POW,
+} from "./constants";
 import { Strategy, StrategyPayload } from "./strategy";
 
 const lidoPayload: StrategyPayload = {
@@ -38,17 +42,24 @@ const pools = {
 } as const;
 
 const prices = {
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]:
-    BigNumber.from("0x2877fe0cf0"),
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("0x05f4faef"),
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]:
-    BigNumber.from("0x27abe44400"),
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: toBN(
+    "1738.11830000",
+    PRICE_DECIMALS_POW,
+  ),
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: toBN(
+    "0.99941103",
+    PRICE_DECIMALS_POW,
+  ),
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: toBN(
+    "1703.87588096",
+    PRICE_DECIMALS_POW,
+  ),
 };
 
 const liquidationThresholds = {
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("0x2454"),
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: BigNumber.from("0x2134"),
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: BigNumber.from("0x2328"),
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("9300"),
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: BigNumber.from("8500"),
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: BigNumber.from("9000"),
 };
 
 describe("Strategy test", () => {

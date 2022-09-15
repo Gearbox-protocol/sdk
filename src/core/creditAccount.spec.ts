@@ -6,6 +6,7 @@ import { decimals } from "../tokens/decimals";
 import { tokenDataByNetwork } from "../tokens/token";
 import { toBN } from "../utils/formatter";
 import { Asset } from "./assets";
+import { PRICE_DECIMALS_POW } from "./constants";
 import { calcOverallAPY } from "./creditAccount";
 
 interface CATestInfo {
@@ -17,11 +18,18 @@ interface CATestInfo {
 }
 
 const prices = {
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]:
-    BigNumber.from("0x2877fe0cf0"),
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("0x05f4faef"),
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]:
-    BigNumber.from("0x27abe44400"),
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: toBN(
+    "1738.11830000",
+    PRICE_DECIMALS_POW,
+  ),
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: toBN(
+    "0.99941103",
+    PRICE_DECIMALS_POW,
+  ),
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: toBN(
+    "1703.87588096",
+    PRICE_DECIMALS_POW,
+  ),
 };
 
 const lpAPY = { STETH: 38434 } as LpTokensAPY;
@@ -46,7 +54,7 @@ const caWithoutLP: CATestInfo = {
 const caWithLP: CATestInfo = {
   assets: [
     {
-      balance: BigNumber.from("0x068155a43676dffffd"),
+      balance: toBN("119.999999999999999997", decimals.STETH),
       token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
     },
     {
@@ -54,8 +62,8 @@ const caWithLP: CATestInfo = {
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
     },
   ],
-  totalValue: BigNumber.from("0x066086a9453cca857d"),
-  debt: BigNumber.from("0x04e1003b28d9280000"),
+  totalValue: toBN("117.635897231615362429", decimals.WETH),
+  debt: toBN("90.000000000000000000", decimals.WETH),
   borrowRate: 5736,
   underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
 };

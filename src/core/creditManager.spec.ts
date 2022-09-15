@@ -6,6 +6,7 @@ import { tokenDataByNetwork } from "../tokens/token";
 import { toBN } from "../utils/formatter";
 import { calcTotalPrice, convertByPrice } from "../utils/price";
 import { Asset, subAssets, sumAssets } from "./assets";
+import { PRICE_DECIMALS_POW } from "./constants";
 import { calcHealthFactor, calcMaxIncreaseBorrow } from "./creditManager";
 
 interface CATestInfo {
@@ -17,14 +18,23 @@ interface CATestInfo {
 }
 
 const liquidationThresholds = {
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("0x2454"),
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: BigNumber.from("0x2134"),
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("9300"),
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: BigNumber.from("8500"),
 };
 
 const prices = {
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]:
-    BigNumber.from("0x2877fe0cf0"),
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("0x05f4faef"),
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: toBN(
+    "1738.11830000",
+    PRICE_DECIMALS_POW,
+  ),
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: toBN(
+    "0.99941103",
+    PRICE_DECIMALS_POW,
+  ),
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: toBN(
+    "1703.87588096",
+    PRICE_DECIMALS_POW,
+  ),
 };
 
 const defaultCA: CATestInfo = {
