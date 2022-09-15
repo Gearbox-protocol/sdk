@@ -26,8 +26,6 @@ import {
 import { OpenAccountError } from "./errors";
 
 export class CreditManagerData {
-  public readonly id: string;
-
   public readonly address: string;
 
   public readonly underlyingToken: string;
@@ -76,9 +74,7 @@ export class CreditManagerData {
   public readonly isPaused: boolean = false;
 
   constructor(payload: CreditManagerDataPayload) {
-    this.id = payload.addr.toLowerCase();
     this.address = payload.addr.toLowerCase();
-
     this.underlyingToken = payload.underlying.toLowerCase();
     this.pool = payload.pool.toLowerCase();
 
@@ -86,19 +82,19 @@ export class CreditManagerData {
     this.canBorrow = payload.canBorrow;
 
     this.borrowRate =
-      BigNumber.from(payload.borrowRate)
-        .mul(BigNumber.from(payload.feeInterest).add(PERCENTAGE_FACTOR))
+      payload.borrowRate
+        .mul(payload.feeInterest + PERCENTAGE_FACTOR)
         .mul(PERCENTAGE_DECIMALS)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
 
-    this.minAmount = BigNumber.from(payload.minAmount);
-    this.maxAmount = BigNumber.from(payload.maxAmount);
+    this.minAmount = payload.minAmount;
+    this.maxAmount = payload.maxAmount;
 
     this.maxLeverageFactor = BigNumber.from(
       payload.maxLeverageFactor,
     ).toNumber();
-    this.availableLiquidity = BigNumber.from(payload.availableLiquidity);
+    this.availableLiquidity = payload.availableLiquidity;
 
     this.collateralTokens = payload.collateralTokens.map(t => t.toLowerCase());
 
@@ -115,30 +111,24 @@ export class CreditManagerData {
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
 
-      if (address) acc[address.toLowerCase()] = BigNumber.from(threshold);
+      if (address) acc[address.toLowerCase()] = threshold;
 
       return acc;
     }, {});
 
-    this.version = BigNumber.from(payload.version || 1).toNumber();
-    this.creditFacade = (payload.creditFacade || "").toLowerCase();
-    this.creditConfigurator = (payload.creditConfigurator || "").toLowerCase();
-    this.isDegenMode = payload.isDegenMode || false;
-    this.degenNFT = (payload.degenNFT || "").toLowerCase();
-    this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden || false;
-    this.forbiddenTokenMask = BigNumber.from(payload.forbiddenTokenMask || 0);
+    this.version = payload.version;
+    this.creditFacade = payload.creditFacade.toLowerCase();
+    this.creditConfigurator = payload.creditConfigurator.toLowerCase();
+    this.isDegenMode = payload.isDegenMode;
+    this.degenNFT = payload.degenNFT.toLowerCase();
+    this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden;
+    this.forbiddenTokenMask = payload.forbiddenTokenMask;
 
-    this.feeInterest = BigNumber.from(payload.feeInterest).toNumber();
-    this.feeLiquidation = BigNumber.from(payload.feeLiquidation).toNumber();
-    this.liquidationDiscount = BigNumber.from(
-      payload.feeLiquidation,
-    ).toNumber();
-    this.feeLiquidationExpired = BigNumber.from(
-      payload.feeLiquidationExpired,
-    ).toNumber();
-    this.liquidationDiscountExpired = BigNumber.from(
-      payload.feeLiquidationExpired,
-    ).toNumber();
+    this.feeInterest = payload.feeInterest;
+    this.feeLiquidation = payload.feeLiquidation;
+    this.liquidationDiscount = payload.feeLiquidation;
+    this.feeLiquidationExpired = payload.feeLiquidationExpired;
+    this.liquidationDiscountExpired = payload.feeLiquidationExpired;
 
     if (this.creditFacade !== "") {
       TxParser.addCreditFacade(
@@ -253,6 +243,10 @@ export class CreditManagerData {
       );
 
     return true;
+  }
+
+  get id(): string {
+    return this.address;
   }
 }
 

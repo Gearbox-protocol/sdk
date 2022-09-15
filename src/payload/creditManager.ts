@@ -1,13 +1,13 @@
 import { BigNumberish } from "ethers";
 
-import { CreditManagerDataStruct } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
+import { CreditManagerDataStructOutput } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 
 export interface AdapterPayload {
   allowedContract: string;
   adapter: string;
 }
 
-export type CreditManagerDataPayload = CreditManagerDataStruct;
+export type CreditManagerDataPayload = CreditManagerDataStructOutput;
 
 export interface CreditManagerStatPayload extends CreditManagerDataPayload {
   allowedContracts?: Array<string>;
@@ -22,9 +22,4 @@ export interface CreditManagerStatPayload extends CreditManagerDataPayload {
   totalRepaid?: BigNumberish;
   totalProfit?: BigNumberish;
   totalLosses?: BigNumberish;
-  feeInterest: BigNumberish;
-  feeLiquidation: BigNumberish;
-  liquidationDiscount: BigNumberish;
-  feeLiquidationExpired: BigNumberish;
-  liquidationDiscountExpired: BigNumberish;
 }

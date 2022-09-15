@@ -1,10 +1,7 @@
 import { BigNumber } from "ethers";
 
 import { LpTokensAPY } from "../apy";
-import {
-  CreditAccountDataExtendedPayload,
-  CreditAccountDataPayload,
-} from "../payload/creditAccount";
+import { CreditAccountDataPayload } from "../payload/creditAccount";
 import { TokenData } from "../tokens/tokenData";
 import { toBN, toSignificant } from "../utils/formatter";
 import { calcTotalPrice, convertByPrice } from "../utils/price";
@@ -43,6 +40,11 @@ export class CreditAccountData {
   public enabledTokenMask: BigNumber;
   public readonly version: number = 1;
 
+  /// V1 Artifacts
+  public readonly repayAmount: BigNumber;
+  public readonly liquidationAmount: BigNumber;
+  public readonly canBeClosed: boolean;
+
   constructor(payload: CreditAccountDataPayload) {
     this.addr = payload.addr.toLowerCase();
     this.borrower = payload.borrower.toLowerCase();
@@ -51,37 +53,38 @@ export class CreditAccountData {
     this.underlyingToken = payload.underlying.toLowerCase();
 
     this.since = BigNumber.from(payload.since).toNumber();
-    this.cumulativeIndexAtOpen = BigNumber.from(payload.cumulativeIndexAtOpen);
+    this.cumulativeIndexAtOpen = payload.cumulativeIndexAtOpen;
 
-    this.borrowedAmount = BigNumber.from(payload.borrowedAmount);
-    this.borrowedAmountPlusInterest = BigNumber.from(
-      payload.borrowedAmountPlusInterest,
-    );
+    this.borrowedAmount = payload.borrowedAmount;
+    this.borrowedAmountPlusInterest = payload.borrowedAmountPlusInterest;
 
-    this.totalValue = BigNumber.from(payload.totalValue);
-    this.healthFactor =
-      BigNumber.from(payload.healthFactor).toNumber() / PERCENTAGE_FACTOR;
+    this.totalValue = payload.totalValue;
+    this.healthFactor = payload.healthFactor.toNumber() / PERCENTAGE_FACTOR;
     this.borrowRate =
-      BigNumber.from(payload.borrowRate)
+      payload.borrowRate
         .mul(PERCENTAGE_FACTOR)
         .mul(PERCENTAGE_DECIMALS)
         .div(RAY)
         .toNumber() / PERCENTAGE_FACTOR;
 
-    (payload.balances || []).forEach(b => {
+    payload.balances.forEach(b => {
       const tokenLC = b.token.toLowerCase();
       if (b.isAllowed) {
-        this.balances[tokenLC] = BigNumber.from(b.balance);
+        this.balances[tokenLC] = b.balance;
         this.collateralTokens.push(tokenLC);
       }
 
-      this.allBalances[tokenLC] = BigNumber.from(b.balance);
+      this.allBalances[tokenLC] = b.balance;
       this.allTokens.push(tokenLC);
     });
 
-    this.enabledTokenMask = BigNumber.from(payload.enabledTokenMask);
+    this.enabledTokenMask = payload.enabledTokenMask;
     this.isDeleting = false;
-    this.version = BigNumber.from(payload.version || 1).toNumber();
+    this.version = payload.version;
+
+    this.repayAmount = payload.repayAmount;
+    this.liquidationAmount = payload.liquidationAmount;
+    this.canBeClosed = payload.canBeClosed;
   }
 
   balancesSorted(
@@ -178,30 +181,6 @@ export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
 
 export function amountAbcComparator(t1: BigNumber, t2: BigNumber) {
   return t1?.gt(t2) ? -1 : 1;
-}
-
-export class CreditAccountDataExtended extends CreditAccountData {
-  public readonly repayAmount: BigNumber;
-
-  public readonly liquidationAmount: BigNumber;
-
-  public readonly borrowedAmount: BigNumber;
-
-  public readonly canBeClosed: boolean;
-
-  public readonly cumulativeIndexAtOpen: BigNumber;
-
-  public readonly since: number;
-
-  constructor(payload: CreditAccountDataExtendedPayload) {
-    super(payload);
-    this.borrowedAmount = BigNumber.from(payload.borrowedAmount);
-    this.cumulativeIndexAtOpen = BigNumber.from(payload.cumulativeIndexAtOpen);
-    this.repayAmount = BigNumber.from(payload.repayAmount);
-    this.liquidationAmount = BigNumber.from(payload.liquidationAmount);
-    this.canBeClosed = payload.canBeClosed || false;
-    this.since = BigNumber.from(payload.since).toNumber();
-  }
 }
 
 export interface CalcOverallAPYProps {
