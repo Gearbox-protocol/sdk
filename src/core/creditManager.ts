@@ -300,8 +300,6 @@ export function calcMaxIncreaseBorrow(
   borrowAmountPlusInterest: BigNumber,
   maxLeverageFactor: number,
 ): BigNumber {
-  const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
-
   const minHealthFactor =
     maxLeverageFactor > 0
       ? Math.floor(
@@ -312,7 +310,7 @@ export function calcMaxIncreaseBorrow(
       : 10000;
 
   const result = borrowAmountPlusInterest
-    .mul(healthFactorPercentage - minHealthFactor)
+    .mul(healthFactor - minHealthFactor)
     .div(minHealthFactor - UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD);
   return result.isNegative() ? BigNumber.from(0) : result;
 }
@@ -342,7 +340,7 @@ export function calcHealthFactor({
       const price = prices[tokenAddress.toLowerCase()] || BigNumber.from(0);
 
       const money = calcTotalPrice(price, amount, tokenDecimals);
-      const ltMoney = money.mul(lt).div(PERCENTAGE_FACTOR);
+      const ltMoney = money.mul(lt);
 
       return acc.add(ltMoney);
     },
@@ -362,8 +360,8 @@ export function calcHealthFactor({
   );
 
   const hfInPercent = borrowedMoney.gt(0)
-    ? assetLTMoney.mul(PERCENTAGE_FACTOR).div(borrowedMoney)
+    ? assetLTMoney.div(borrowedMoney)
     : BigNumber.from(0);
 
-  return hfInPercent.toNumber() / PERCENTAGE_FACTOR;
+  return hfInPercent.toNumber();
 }

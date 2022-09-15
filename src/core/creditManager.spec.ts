@@ -36,7 +36,7 @@ const prices = {
   [collateralToken]: BigNumber.from("0x2877fe0cf0"),
 };
 
-const currentHF = 1.0244;
+const currentHF = 10244;
 
 describe("CreditManager calcHealthFactor test", () => {
   it("health factor calculation is calculated correctly", () => {
@@ -65,7 +65,7 @@ describe("CreditManager calcHealthFactor test", () => {
       borrowed,
     });
 
-    expect(result).to.be.eq(1.1188);
+    expect(result).to.be.eq(11188);
   });
   it("health factor after decrease debt is calculated  correctly", () => {
     const amountDecrease = toBN("10000", underlyingDecimals);
@@ -83,7 +83,7 @@ describe("CreditManager calcHealthFactor test", () => {
       borrowed: borrowed.sub(amountDecrease),
     });
 
-    expect(result).to.be.eq(1.0308);
+    expect(result).to.be.eq(10308);
   });
   it("health factor after increase debt is calculated  correctly", () => {
     const amountIncrease = toBN("20000", underlyingDecimals);
@@ -101,7 +101,7 @@ describe("CreditManager calcHealthFactor test", () => {
       borrowed: borrowed.add(amountIncrease),
     });
 
-    expect(result).to.be.eq(1.0137);
+    expect(result).to.be.eq(10137);
   });
   it("health factor after swap is calculated  correctly", () => {
     const swapAsset: Asset = {
@@ -132,7 +132,7 @@ describe("CreditManager calcHealthFactor test", () => {
       borrowed: borrowed,
     });
 
-    expect(result).to.be.eq(0.9444);
+    expect(result).to.be.eq(9444);
   });
 });
 
@@ -149,7 +149,7 @@ describe("CreditManager calcMaxIncreaseBorrow test", () => {
     );
   });
   it("health factor calculation is calculated correctly (low hf, high debt)", () => {
-    const loweHf = 1.0244;
+    const loweHf = 10244;
 
     const result = calcMaxIncreaseBorrow(
       loweHf,
