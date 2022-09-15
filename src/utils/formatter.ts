@@ -151,8 +151,8 @@ export function formatDate(date: Date): string {
   return [year, month, day].join("-");
 }
 
-export function formatPercentage(healthFactor: number): string {
-  return (healthFactor / PERCENTAGE_FACTOR).toFixed(2);
+export function formatPercentage(healthFactor: number, decimals = 2): string {
+  return (healthFactor / PERCENTAGE_FACTOR).toFixed(decimals);
 }
 
 export function formatLeverage(leverage: number, decimals = 2) {
