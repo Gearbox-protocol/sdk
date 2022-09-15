@@ -124,6 +124,7 @@ export type CreditManagerDataStruct = {
   liquidationThresholds: BigNumberish[];
   version: BigNumberish;
   creditFacade: string;
+  creditConfigurator: string;
   isDegenMode: boolean;
   degenNFT: string;
   isIncreaseDebtForbidden: boolean;
@@ -152,6 +153,7 @@ export type CreditManagerDataStructOutput = [
   BigNumber[],
   number,
   string,
+  string,
   boolean,
   string,
   boolean,
@@ -178,6 +180,7 @@ export type CreditManagerDataStructOutput = [
   liquidationThresholds: BigNumber[];
   version: number;
   creditFacade: string;
+  creditConfigurator: string;
   isDegenMode: boolean;
   degenNFT: string;
   isIncreaseDebtForbidden: boolean;

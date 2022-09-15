@@ -23,14 +23,21 @@ import type {
 export interface ISupportedContractsInterface extends utils.Interface {
   functions: {
     "addressOf(uint8)": FunctionFragment;
+    "contractCount()": FunctionFragment;
     "nameOf(uint8)": FunctionFragment;
   };
 
-  getFunction(nameOrSignatureOrTopic: "addressOf" | "nameOf"): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic: "addressOf" | "contractCount" | "nameOf"
+  ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addressOf",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "contractCount",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "nameOf",
@@ -38,6 +45,10 @@ export interface ISupportedContractsInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "addressOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "contractCount",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "nameOf", data: BytesLike): Result;
 
   events: {};
@@ -72,15 +83,21 @@ export interface ISupportedContracts extends BaseContract {
   functions: {
     addressOf(c: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
+    contractCount(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     nameOf(c: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
   addressOf(c: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+  contractCount(overrides?: CallOverrides): Promise<BigNumber>;
+
   nameOf(c: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     addressOf(c: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    contractCount(overrides?: CallOverrides): Promise<BigNumber>;
 
     nameOf(c: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
@@ -90,6 +107,8 @@ export interface ISupportedContracts extends BaseContract {
   estimateGas: {
     addressOf(c: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
+    contractCount(overrides?: CallOverrides): Promise<BigNumber>;
+
     nameOf(c: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -98,6 +117,8 @@ export interface ISupportedContracts extends BaseContract {
       c: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    contractCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nameOf(
       c: BigNumberish,

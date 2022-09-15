@@ -30,8 +30,14 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
     "approve(address,address,address)": FunctionFragment;
     "approveMany(uint8[],address,uint8)": FunctionFragment;
     "balanceOf(uint8,address)": FunctionFragment;
+    "mint(address,address,uint256)": FunctionFragment;
+    "mint(uint8,address,uint256)": FunctionFragment;
+    "mintWithTotalSupply(address,address,uint256)": FunctionFragment;
+    "mintWithTotalSupply(uint8,address,uint256)": FunctionFragment;
     "symbols(uint8)": FunctionFragment;
+    "tokenCount()": FunctionFragment;
     "tokenIndexes(address)": FunctionFragment;
+    "tokenTypes(uint8)": FunctionFragment;
     "topUpWETH(address,uint256)": FunctionFragment;
   };
 
@@ -43,8 +49,14 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
       | "approve(address,address,address)"
       | "approveMany"
       | "balanceOf"
+      | "mint(address,address,uint256)"
+      | "mint(uint8,address,uint256)"
+      | "mintWithTotalSupply(address,address,uint256)"
+      | "mintWithTotalSupply(uint8,address,uint256)"
       | "symbols"
+      | "tokenCount"
       | "tokenIndexes"
+      | "tokenTypes"
       | "topUpWETH"
   ): FunctionFragment;
 
@@ -73,12 +85,36 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "mint(address,address,uint256)",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mint(uint8,address,uint256)",
+    values: [BigNumberish, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintWithTotalSupply(address,address,uint256)",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintWithTotalSupply(uint8,address,uint256)",
+    values: [BigNumberish, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "symbols",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "tokenCount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "tokenIndexes",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "tokenTypes",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "topUpWETH",
@@ -103,11 +139,29 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "mint(address,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mint(uint8,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintWithTotalSupply(address,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintWithTotalSupply(uint8,address,uint256)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "symbols", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokenCount", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenIndexes",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "tokenTypes", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "topUpWETH", data: BytesLike): Result;
 
   events: {};
@@ -177,12 +231,44 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
+    "mint(address,address,uint256)"(
+      token: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "mint(uint8,address,uint256)"(
+      t: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "mintWithTotalSupply(address,address,uint256)"(
+      token: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "mintWithTotalSupply(uint8,address,uint256)"(
+      t: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     symbols(t: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
+    tokenCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     tokenIndexes(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[number] & { t: number }>;
+
+    tokenTypes(t: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
 
     topUpWETH(
       onBehalfOf: string,
@@ -228,9 +314,41 @@ export interface ITokenTestSuite extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  "mint(address,address,uint256)"(
+    token: string,
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "mint(uint8,address,uint256)"(
+    t: BigNumberish,
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "mintWithTotalSupply(address,address,uint256)"(
+    token: string,
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "mintWithTotalSupply(uint8,address,uint256)"(
+    t: BigNumberish,
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   symbols(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+  tokenCount(overrides?: CallOverrides): Promise<BigNumber>;
+
   tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<number>;
+
+  tokenTypes(t: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
   topUpWETH(
     onBehalfOf: string,
@@ -276,9 +394,41 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    "mint(address,address,uint256)"(
+      token: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "mint(uint8,address,uint256)"(
+      t: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "mintWithTotalSupply(address,address,uint256)"(
+      token: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "mintWithTotalSupply(uint8,address,uint256)"(
+      t: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     symbols(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+    tokenCount(overrides?: CallOverrides): Promise<BigNumber>;
+
     tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<number>;
+
+    tokenTypes(t: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
     topUpWETH(
       onBehalfOf: string,
@@ -327,9 +477,41 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    "mint(address,address,uint256)"(
+      token: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "mint(uint8,address,uint256)"(
+      t: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "mintWithTotalSupply(address,address,uint256)"(
+      token: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "mintWithTotalSupply(uint8,address,uint256)"(
+      t: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     symbols(t: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
+    tokenCount(overrides?: CallOverrides): Promise<BigNumber>;
+
     tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenTypes(t: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     topUpWETH(
       onBehalfOf: string,
@@ -379,13 +561,48 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    "mint(address,address,uint256)"(
+      token: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "mint(uint8,address,uint256)"(
+      t: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "mintWithTotalSupply(address,address,uint256)"(
+      token: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "mintWithTotalSupply(uint8,address,uint256)"(
+      t: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     symbols(
       t: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    tokenCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     tokenIndexes(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    tokenTypes(
+      t: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

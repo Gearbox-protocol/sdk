@@ -425,6 +425,11 @@ const _abi = [
             type: "address",
           },
           {
+            internalType: "address",
+            name: "creditConfigurator",
+            type: "address",
+          },
+          {
             internalType: "bool",
             name: "isDegenMode",
             type: "bool",
@@ -574,6 +579,11 @@ const _abi = [
           {
             internalType: "address",
             name: "creditFacade",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "creditConfigurator",
             type: "address",
           },
           {

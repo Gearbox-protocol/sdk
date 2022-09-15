@@ -57,6 +57,7 @@ export class CreditManagerData {
   public readonly version: number;
 
   public readonly creditFacade: string; // V2 only: address of creditFacade
+  public readonly creditConfigurator: string; // V2 only: address of creditFacade
 
   public readonly isDegenMode: boolean; // V2 only: true if contract is in Degen mode
 
@@ -121,6 +122,7 @@ export class CreditManagerData {
 
     this.version = BigNumber.from(payload.version || 1).toNumber();
     this.creditFacade = (payload.creditFacade || "").toLowerCase();
+    this.creditConfigurator = (payload.creditConfigurator || "").toLowerCase();
     this.isDegenMode = payload.isDegenMode || false;
     this.degenNFT = (payload.degenNFT || "").toLowerCase();
     this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden || false;

@@ -24,11 +24,18 @@ export interface ITokenInterface extends utils.Interface {
   functions: {
     "addressOf(uint8)": FunctionFragment;
     "symbols(uint8)": FunctionFragment;
+    "tokenCount()": FunctionFragment;
     "tokenIndexes(address)": FunctionFragment;
+    "tokenTypes(uint8)": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "addressOf" | "symbols" | "tokenIndexes"
+    nameOrSignatureOrTopic:
+      | "addressOf"
+      | "symbols"
+      | "tokenCount"
+      | "tokenIndexes"
+      | "tokenTypes"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -40,16 +47,26 @@ export interface ITokenInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "tokenCount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "tokenIndexes",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "tokenTypes",
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "addressOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbols", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokenCount", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenIndexes",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "tokenTypes", data: BytesLike): Result;
 
   events: {};
 }
@@ -85,24 +102,36 @@ export interface IToken extends BaseContract {
 
     symbols(t: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
+    tokenCount(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     tokenIndexes(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[number] & { t: number }>;
+
+    tokenTypes(t: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
   };
 
   addressOf(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   symbols(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+  tokenCount(overrides?: CallOverrides): Promise<BigNumber>;
+
   tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<number>;
+
+  tokenTypes(t: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
   callStatic: {
     addressOf(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     symbols(t: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+    tokenCount(overrides?: CallOverrides): Promise<BigNumber>;
+
     tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<number>;
+
+    tokenTypes(t: BigNumberish, overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {};
@@ -112,7 +141,11 @@ export interface IToken extends BaseContract {
 
     symbols(t: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
+    tokenCount(overrides?: CallOverrides): Promise<BigNumber>;
+
     tokenIndexes(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenTypes(t: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -126,8 +159,15 @@ export interface IToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    tokenCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     tokenIndexes(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    tokenTypes(
+      t: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
