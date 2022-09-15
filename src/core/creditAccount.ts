@@ -59,7 +59,7 @@ export class CreditAccountData {
     this.borrowedAmountPlusInterest = payload.borrowedAmountPlusInterest;
 
     this.totalValue = payload.totalValue;
-    this.healthFactor = payload.healthFactor.toNumber() / PERCENTAGE_FACTOR;
+    this.healthFactor = payload.healthFactor.toNumber();
     this.borrowRate =
       payload.borrowRate
         .mul(PERCENTAGE_FACTOR)
