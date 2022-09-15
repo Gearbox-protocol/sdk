@@ -1,4 +1,4 @@
-import { ethers, Signer } from "ethers";
+import { CallOverrides, ethers, Signer } from "ethers";
 
 import { MULTICALL_ADDRESS } from "../config";
 import { Multicall2, Multicall2__factory } from "../types";
@@ -18,6 +18,7 @@ export interface MCall<T extends ethers.utils.Interface> {
 export async function multicall<R extends Array<any>>(
   calls: Array<MCall<any>>,
   p: Signer | ethers.providers.Provider,
+  overrides?: CallOverrides,
 ): Promise<R> {
   const multiCallContract = Multicall2__factory.connect(MULTICALL_ADDRESS, p);
 
@@ -26,6 +27,7 @@ export async function multicall<R extends Array<any>>(
       target: c.address,
       callData: c.interface.encodeFunctionData(c.method as string, c.params),
     })),
+    overrides || {},
   );
 
   return returnData
@@ -53,7 +55,10 @@ export class MultiCallContract<T extends ethers.utils.Interface> {
     this._multiCall = Multicall2__factory.connect(MULTICALL_ADDRESS, provider);
   }
 
-  async call<R extends Array<any>>(data: Array<CallData<T>>): Promise<R> {
+  async call<R extends Array<any>>(
+    data: Array<CallData<T>>,
+    overrides?: CallOverrides,
+  ): Promise<R> {
     const { returnData } = await this._multiCall.callStatic.aggregate(
       data.map(c => ({
         target: this._address,
@@ -62,6 +67,7 @@ export class MultiCallContract<T extends ethers.utils.Interface> {
           c.params,
         ),
       })),
+      overrides || {},
     );
 
     return returnData
