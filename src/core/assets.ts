@@ -1,6 +1,5 @@
 import { BigNumber } from "ethers";
 
-import { TokensWithAPY } from "../apy";
 import { TokenData } from "../tokens/tokenData";
 import { nonNegativeBn } from "../utils/math";
 import { sortBalances } from "./creditAccount";
@@ -8,11 +7,6 @@ import { sortBalances } from "./creditAccount";
 export interface Asset {
   token: string;
   balance: BigNumber;
-}
-
-export interface LpAsset extends Asset {
-  symbol: TokensWithAPY;
-  name: string;
 }
 
 interface NextAssetProps<T extends Asset> {
