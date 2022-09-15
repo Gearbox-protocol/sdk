@@ -1,7 +1,8 @@
 import { BigNumber } from "ethers";
 
 import { TokensWithAPY } from "../apy";
-import { TokenData } from "../tokens/tokenData";
+import { decimals } from "../tokens/decimals";
+import { tokenSymbolByAddress } from "../tokens/token";
 import { calcTotalPrice } from "../utils/price";
 import { Asset } from "./assets";
 import {
@@ -35,14 +36,13 @@ type PoolList = Record<string, PoolStats>;
 interface LiquidationPriceProps {
   assets: Array<Asset>;
   prices: Record<string, BigNumber>;
-  tokensList: Record<string, TokenData>;
   liquidationThresholds: Record<string, BigNumber>;
 
   borrowed: BigNumber;
-  underlyingToken: TokenData;
+  underlyingToken: string;
 
   lpAmount: BigNumber;
-  lpToken: TokenData;
+  lpToken: string;
 }
 
 export class Strategy {
@@ -64,11 +64,15 @@ export class Strategy {
     this.apy = payload.apy;
 
     this.name = payload.name;
-    this.lpToken = payload.lpToken;
-    this.pools = payload.pools;
-    this.unleveragableCollateral = payload.unleveragableCollateral;
-    this.leveragableCollateral = payload.leveragableCollateral;
-    this.baseAssets = payload.baseAssets;
+    this.lpToken = payload.lpToken.toLowerCase();
+    this.pools = payload.pools.map(addr => addr.toLowerCase());
+    this.unleveragableCollateral = payload.unleveragableCollateral.map(addr =>
+      addr.toLowerCase(),
+    );
+    this.leveragableCollateral = payload.leveragableCollateral.map(addr =>
+      addr.toLowerCase(),
+    );
+    this.baseAssets = payload.baseAssets.map(addr => addr.toLowerCase());
   }
 
   static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
@@ -105,7 +109,6 @@ export class Strategy {
   liquidationPrice({
     assets,
     prices,
-    tokensList,
     liquidationThresholds,
 
     borrowed,
@@ -116,11 +119,14 @@ export class Strategy {
   }: LiquidationPriceProps) {
     const collateralLTMoney = assets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
-        const lt = liquidationThresholds[tokenAddress] || BigNumber.from(0);
-        const price = prices[tokenAddress] || BigNumber.from(0);
-        const token = tokensList[tokenAddress];
+        const tokenAddressLC = tokenAddress.toLowerCase();
+        const tokenSymbol = tokenSymbolByAddress[tokenAddressLC];
 
-        const money = calcTotalPrice(price, amount, token?.decimals);
+        const lt = liquidationThresholds[tokenAddressLC] || BigNumber.from(0);
+        const price = prices[tokenAddressLC] || BigNumber.from(0);
+        const tokenDecimals = decimals[tokenSymbol];
+
+        const money = calcTotalPrice(price, amount, tokenDecimals);
         const ltMoney = money.mul(lt).div(PERCENTAGE_FACTOR);
 
         return acc.add(ltMoney);
@@ -128,16 +134,24 @@ export class Strategy {
       BigNumber.from(0),
     );
 
-    const underlyingPrice =
-      prices[underlyingToken?.address || ""] || PRICE_DECIMALS;
+    const underlyingTokenAddressLC = underlyingToken.toLowerCase();
+    const underlyingTokenSymbol =
+      tokenSymbolByAddress[underlyingTokenAddressLC];
+    const underlyingTokenDecimals = decimals[underlyingTokenSymbol];
+
+    const underlyingPrice = prices[underlyingTokenAddressLC] || PRICE_DECIMALS;
     const borrowedMoney = calcTotalPrice(
       underlyingPrice,
       borrowed,
-      underlyingToken?.decimals,
+      underlyingTokenDecimals,
     );
 
-    const lpPrice = prices[lpToken?.address || ""] || PRICE_DECIMALS;
-    const lpMoney = calcTotalPrice(lpPrice, lpAmount, lpToken?.decimals);
+    const lpTokenAddressLC = lpToken.toLowerCase();
+    const lpTokenSymbol = tokenSymbolByAddress[lpTokenAddressLC];
+    const lpTokenDecimals = decimals[lpTokenSymbol];
+
+    const lpPrice = prices[lpTokenAddressLC] || PRICE_DECIMALS;
+    const lpMoney = calcTotalPrice(lpPrice, lpAmount, lpTokenDecimals);
 
     if (lpMoney.gt(0)) {
       const lqPrice = borrowedMoney
@@ -159,14 +173,12 @@ export class Strategy {
   }
 
   protected inBaseAssets(depositCollateral: string) {
-    return this.baseAssets.some(
-      c => c.toLowerCase() === depositCollateral.toLowerCase(),
-    );
+    return this.baseAssets.some(c => c === depositCollateral.toLowerCase());
   }
 
   protected inLeveragableAssets(depositCollateral: string) {
     return this.leveragableCollateral.some(
-      c => c.toLowerCase() === depositCollateral.toLowerCase(),
+      c => c === depositCollateral.toLowerCase(),
     );
   }
 }
@@ -186,8 +198,9 @@ function minBorrowApy(poolApy: PoolList) {
 type PartialCM = Pick<CreditManagerData, "liquidationThresholds" | "address">;
 
 function maxLeverageThreshold(lpToken: string, cms: Array<PartialCM>) {
+  const lpTokenLC = lpToken.toLowerCase();
   const ltByCM: Array<[string, BigNumber]> = cms.map(cm => {
-    const lt = cm.liquidationThresholds[lpToken] || BigNumber.from(0);
+    const lt = cm.liquidationThresholds[lpTokenLC] || BigNumber.from(0);
     return [cm.address, lt];
   });
 

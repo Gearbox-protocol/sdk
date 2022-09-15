@@ -24,7 +24,7 @@ const prices = {
     BigNumber.from("0x27abe44400"),
 };
 
-const lpAPY = { STETH: 3.84345 } as LpTokensAPY;
+const lpAPY = { STETH: 3.8434 } as LpTokensAPY;
 
 const caWithoutLP: CATestInfo = {
   assets: [
@@ -87,7 +87,7 @@ describe("CreditAccount calcOverallAPY test", () => {
       prices,
     });
 
-    expect(result).to.be.eq(14.4922);
+    expect(result).to.be.eq(14.4919);
   });
   it("overall APY is undefined when !lpAPY", () => {
     const result = calcOverallAPY({
