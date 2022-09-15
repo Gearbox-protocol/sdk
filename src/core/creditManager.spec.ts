@@ -160,7 +160,7 @@ describe("CreditManager calcHealthFactor test", () => {
 describe("CreditManager calcMaxIncreaseBorrow test", () => {
   it("health max increase borrow is zero if hf < 1", () => {
     const result = calcMaxIncreaseBorrow(
-      999,
+      9999,
       BigNumber.from("156522834253690396032546"),
       0,
     );

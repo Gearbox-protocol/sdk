@@ -238,13 +238,13 @@ export function calcOverallAPY({
       const price = prices[tokenAddressLC] || BigNumber.from(0);
       const tokenDecimals = decimals[symbol];
 
-      const apyBN = toBN(
-        (apy / PERCENTAGE_DECIMALS).toString(),
-        WAD_DECIMALS_POW,
-      );
+      const apyBN = BigNumber.from(apy);
 
       const money = calcTotalPrice(price, amount, tokenDecimals);
-      const apyMoney = money.mul(apyBN).div(WAD);
+      const apyMoney = money
+        .mul(apyBN)
+        .div(PERCENTAGE_FACTOR)
+        .div(PERCENTAGE_DECIMALS);
 
       return acc.add(apyMoney);
     },

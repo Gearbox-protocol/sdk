@@ -12,7 +12,7 @@ const lidoPayload: StrategyPayload = {
   lpToken: tokenDataByNetwork.Mainnet.STETH,
   apyTokenSymbol: "STETH",
 
-  apy: 3.84345,
+  apy: 38434,
 
   pools: [tokenDataByNetwork.Mainnet.WETH],
 
@@ -55,7 +55,7 @@ describe("Strategy test", () => {
   it("maxAPY calculation is correct", () => {
     const result = lidoStrategy.maxAPY(10 * LEVERAGE_DECIMALS, pools);
 
-    expect(result).to.be.eq(33.2721);
+    expect(result).to.be.eq(332716);
   });
   it("overallAPY calculation is correct", () => {
     const result = lidoStrategy.overallAPY(
@@ -65,7 +65,7 @@ describe("Strategy test", () => {
       pools["0x2"].borrowRate,
     );
 
-    expect(result).to.be.eq(33.2721);
+    expect(result).to.be.eq(332716);
   });
   it("liquidationPrice calculation is correct", () => {
     const result = lidoStrategy.liquidationPrice({

@@ -24,7 +24,7 @@ const prices = {
     BigNumber.from("0x27abe44400"),
 };
 
-const lpAPY = { STETH: 3.8434 } as LpTokensAPY;
+const lpAPY = { STETH: 38434 } as LpTokensAPY;
 
 const caWithoutLP: CATestInfo = {
   assets: [
