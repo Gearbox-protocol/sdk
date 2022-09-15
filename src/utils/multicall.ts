@@ -27,7 +27,7 @@ export async function multicall<R extends Array<any>>(
       target: c.address,
       callData: c.interface.encodeFunctionData(c.method as string, c.params),
     })),
-    overrides,
+    overrides || {},
   );
 
   return returnData
@@ -67,7 +67,7 @@ export class MultiCallContract<T extends ethers.utils.Interface> {
           c.params,
         ),
       })),
-      overrides,
+      overrides || {},
     );
 
     return returnData
