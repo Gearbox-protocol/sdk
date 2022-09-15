@@ -8,7 +8,7 @@ import {
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
 import { TokenData } from "../tokens/tokenData";
-import { toBN, toSignificant } from "../utils/formatter";
+import { toSignificant } from "../utils/formatter";
 import { calcTotalPrice, convertByPrice } from "../utils/price";
 import { Asset } from "./assets";
 import {
@@ -62,12 +62,11 @@ export class CreditAccountData {
 
     this.totalValue = BigNumber.from(payload.totalValue);
     this.healthFactor = BigNumber.from(payload.healthFactor).toNumber();
-    this.borrowRate =
-      BigNumber.from(payload.borrowRate)
-        .mul(PERCENTAGE_FACTOR)
-        .mul(PERCENTAGE_DECIMALS)
-        .div(RAY)
-        .toNumber() / PERCENTAGE_FACTOR;
+    this.borrowRate = BigNumber.from(payload.borrowRate)
+      .mul(PERCENTAGE_FACTOR)
+      .mul(PERCENTAGE_DECIMALS)
+      .div(RAY)
+      .toNumber();
 
     (payload.balances || []).forEach(b => {
       const tokenLC = b.token.toLowerCase();
@@ -238,13 +237,8 @@ export function calcOverallAPY({
       const price = prices[tokenAddressLC] || BigNumber.from(0);
       const tokenDecimals = decimals[symbol];
 
-      const apyBN = BigNumber.from(apy);
-
       const money = calcTotalPrice(price, amount, tokenDecimals);
-      const apyMoney = money
-        .mul(apyBN)
-        .div(PERCENTAGE_FACTOR)
-        .div(PERCENTAGE_DECIMALS);
+      const apyMoney = money.mul(BigNumber.from(apy));
 
       return acc.add(apyMoney);
     },
@@ -261,19 +255,15 @@ export function calcOverallAPY({
     decimals: underlyingTokenDecimals,
   });
 
-  const borrowAPY = toBN(
-    (borrowRate / PERCENTAGE_DECIMALS).toString(),
-    WAD_DECIMALS_POW,
-  );
-  const debtAPY = debt.mul(borrowAPY).div(WAD);
+  const debtAPY = debt.mul(BigNumber.from(borrowRate));
 
   const yourAssets = totalValue.sub(debt);
 
   const apyInPercent = assetAPYAmountInUnderlying
     .sub(debtAPY)
-    .mul(PERCENTAGE_DECIMALS)
     .mul(WAD)
-    .div(yourAssets);
+    .div(yourAssets)
+    .div(PERCENTAGE_FACTOR);
 
   return Number(toSignificant(apyInPercent, WAD_DECIMALS_POW));
 }

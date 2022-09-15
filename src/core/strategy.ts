@@ -184,11 +184,7 @@ export class Strategy {
 }
 
 function roi(apy: number, farmLev: number, debtLev: number, borrowAPY: number) {
-  return (
-    (((apy * farmLev) / PERCENTAGE_FACTOR - borrowAPY * debtLev) /
-      LEVERAGE_DECIMALS) *
-    PERCENTAGE_FACTOR
-  );
+  return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
 }
 
 function minBorrowApy(poolApy: PoolList) {

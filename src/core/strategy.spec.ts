@@ -30,10 +30,10 @@ const lidoStrategy = new Strategy(lidoPayload);
 
 const pools = {
   "0x1": {
-    borrowRate: 0.7712,
+    borrowRate: 7712,
   },
   "0x2": {
-    borrowRate: 0.5736,
+    borrowRate: 5736,
   },
 } as const;
 

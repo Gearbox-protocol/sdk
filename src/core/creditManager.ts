@@ -85,12 +85,11 @@ export class CreditManagerData {
     this.isWETH = payload.isWETH;
     this.canBorrow = payload.canBorrow;
 
-    this.borrowRate =
-      BigNumber.from(payload.borrowRate)
-        .mul(BigNumber.from(payload.feeInterest).add(PERCENTAGE_FACTOR))
-        .mul(PERCENTAGE_DECIMALS)
-        .div(RAY)
-        .toNumber() / PERCENTAGE_FACTOR;
+    this.borrowRate = BigNumber.from(payload.borrowRate)
+      .mul(BigNumber.from(payload.feeInterest).add(PERCENTAGE_FACTOR))
+      .mul(PERCENTAGE_DECIMALS)
+      .div(RAY)
+      .toNumber();
 
     this.minAmount = BigNumber.from(payload.minAmount);
     this.maxAmount = BigNumber.from(payload.maxAmount);

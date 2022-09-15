@@ -39,7 +39,7 @@ const caWithoutLP: CATestInfo = {
   ],
   totalValue: toBN("60860", decimals.DAI),
   debt: toBN("54780", decimals.DAI),
-  borrowRate: 0.7712,
+  borrowRate: 7712,
   underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
 };
 
@@ -56,7 +56,7 @@ const caWithLP: CATestInfo = {
   ],
   totalValue: BigNumber.from("0x066086a9453cca857d"),
   debt: BigNumber.from("0x04e1003b28d9280000"),
-  borrowRate: 0.5736,
+  borrowRate: 5736,
   underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
 };
 
