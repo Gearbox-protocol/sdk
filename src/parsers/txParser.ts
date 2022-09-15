@@ -51,7 +51,7 @@ export class TxParser {
   public static addAdapters(adapters: Array<AdapterForParser>) {
     for (let a of adapters) {
       const contract = contractsByAddress[a.contract.toLowerCase()];
-      if (contract) {
+      if (contract && contractParams[contract]) {
         TxParser.addParser(
           a.adapter,
           contract,
@@ -59,7 +59,7 @@ export class TxParser {
           false,
         );
       } else {
-        console.error(`Unknown address: ${a.contract}`);
+        console.error(`Unknown address: ${contract} at ${a.contract}`);
       }
     }
   }
