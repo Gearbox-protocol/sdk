@@ -59,8 +59,7 @@ export class CreditAccountData {
     );
 
     this.totalValue = BigNumber.from(payload.totalValue);
-    this.healthFactor =
-      BigNumber.from(payload.healthFactor).toNumber() / PERCENTAGE_FACTOR;
+    this.healthFactor = BigNumber.from(payload.healthFactor).toNumber();
     this.borrowRate =
       BigNumber.from(payload.borrowRate)
         .mul(PERCENTAGE_FACTOR)
