@@ -6,8 +6,8 @@ import {
   CreditManagerDataPayload,
   CreditManagerStatPayload,
 } from "../payload/creditManager";
+import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
-import { TokenData } from "../tokens/tokenData";
 import {
   ICreditFacade__factory,
   ICreditManager,
@@ -81,12 +81,11 @@ export class CreditManagerData {
     this.isWETH = payload.isWETH;
     this.canBorrow = payload.canBorrow;
 
-    this.borrowRate =
-      payload.borrowRate
-        .mul(payload.feeInterest + PERCENTAGE_FACTOR)
-        .mul(PERCENTAGE_DECIMALS)
-        .div(RAY)
-        .toNumber() / PERCENTAGE_FACTOR;
+    this.borrowRate = payload.borrowRate
+      .mul(payload.feeInterest + PERCENTAGE_FACTOR)
+      .mul(PERCENTAGE_DECIMALS)
+      .div(RAY)
+      .toNumber();
 
     this.minAmount = payload.minAmount;
     this.maxAmount = payload.maxAmount;
@@ -294,8 +293,6 @@ export function calcMaxIncreaseBorrow(
   borrowAmountPlusInterest: BigNumber,
   maxLeverageFactor: number,
 ): BigNumber {
-  const healthFactorPercentage = Math.floor(healthFactor * PERCENTAGE_FACTOR);
-
   const minHealthFactor =
     maxLeverageFactor > 0
       ? Math.floor(
@@ -306,7 +303,7 @@ export function calcMaxIncreaseBorrow(
       : 10000;
 
   const result = borrowAmountPlusInterest
-    .mul(healthFactorPercentage - minHealthFactor)
+    .mul(healthFactor - minHealthFactor)
     .div(minHealthFactor - UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD);
   return result.isNegative() ? BigNumber.from(0) : result;
 }
@@ -314,46 +311,50 @@ export function calcMaxIncreaseBorrow(
 export interface CalcHealthFactorProps {
   assets: Array<Asset>;
   prices: Record<string, BigNumber>;
-  tokensList: Record<string, TokenData>;
   liquidationThresholds: Record<string, BigNumber>;
-  underlyingToken: TokenData | undefined;
+  underlyingToken: string;
   borrowed: BigNumber;
 }
 
 export function calcHealthFactor({
   assets,
   prices,
-  tokensList,
   liquidationThresholds,
   underlyingToken,
   borrowed,
 }: CalcHealthFactorProps): number {
   const assetLTMoney = assets.reduce(
     (acc, { token: tokenAddress, balance: amount }) => {
-      const lt = liquidationThresholds[tokenAddress] || BigNumber.from(0);
-      const price = prices[tokenAddress] || BigNumber.from(0);
-      const token = tokensList[tokenAddress];
+      const tokenSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
+      const tokenDecimals: number | undefined = decimals[tokenSymbol];
 
-      const money = calcTotalPrice(price, amount, token?.decimals);
-      const ltMoney = money.mul(lt).div(PERCENTAGE_FACTOR);
+      const lt =
+        liquidationThresholds[tokenAddress.toLowerCase()] || BigNumber.from(0);
+      const price = prices[tokenAddress.toLowerCase()] || BigNumber.from(0);
+
+      const money = calcTotalPrice(price, amount, tokenDecimals);
+      const ltMoney = money.mul(lt);
 
       return acc.add(ltMoney);
     },
     BigNumber.from(0),
   );
 
+  const underlyingSymbol = tokenSymbolByAddress[underlyingToken.toLowerCase()];
+  const underlyingDecimals: number | undefined = decimals[underlyingSymbol];
+
   const underlyingPrice =
-    prices[underlyingToken?.address || ""] || PRICE_DECIMALS;
+    prices[underlyingToken.toLowerCase()] || PRICE_DECIMALS;
 
   const borrowedMoney = calcTotalPrice(
     underlyingPrice,
     borrowed,
-    underlyingToken?.decimals,
+    underlyingDecimals,
   );
 
   const hfInPercent = borrowedMoney.gt(0)
-    ? assetLTMoney.mul(PERCENTAGE_FACTOR).div(borrowedMoney)
+    ? assetLTMoney.div(borrowedMoney)
     : BigNumber.from(0);
 
-  return hfInPercent.toNumber() / PERCENTAGE_FACTOR;
+  return hfInPercent.toNumber();
 }
