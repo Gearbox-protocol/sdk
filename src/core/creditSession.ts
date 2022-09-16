@@ -2,7 +2,6 @@ import { BigNumber } from "ethers";
 import moment from "moment";
 
 import { CreditSessionPayload } from "../payload/creditSession";
-import { PERCENTAGE_FACTOR } from "./constants";
 import { CreditOperation } from "./creditOperation";
 
 export type CreditSessionStatus = "active" | "closed" | "repaid" | "liquidated";
@@ -68,8 +67,7 @@ export class CreditSession {
     this.profit = BigNumber.from(payload.profit || 0);
     this.profitPercentage = payload.profitPercentage || 0;
     this.totalValue = BigNumber.from(payload.totalValue || 0);
-    this.healthFactor =
-      BigNumber.from(payload.healthFactor || 0).toNumber() / PERCENTAGE_FACTOR;
+    this.healthFactor = BigNumber.from(payload.healthFactor || 0).toNumber();
     this.score = payload.score;
     this.operations = (payload.operations || []).map(op => {
       const formattedOp = {
