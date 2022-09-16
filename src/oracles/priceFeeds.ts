@@ -167,23 +167,6 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
-  SUSHI: {
-    priceFeedETH: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
-        Mainnet: "0xe572CeF69f43c2E488b33924AF04BDacE19079cf",
-        Goerli: "0xcCAddBB8C5670fBc379b0AA902F8393a449e3Be6",
-      },
-    },
-    priceFeedUSD: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
-        Mainnet: "0xCc70F09A6CC17553b2E31954cD36E4A2d89501f7",
-        Goerli: "0xD49468DFB9512a657D1B308d04B7e31DdC483960",
-      },
-    },
-  },
-
   UNI: {
     priceFeedETH: {
       type: OracleType.CHAINLINK_ORACLE,
@@ -297,19 +280,6 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
-  FTM: {
-    priceFeedETH: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
-        Mainnet: "0x2de7e4a9488488e0058b95854cc2f7955b35dc9b",
-        Goerli: "0x852C111881f35bbE46B08C3143Aba02f44B6CBFf",
-      },
-    },
-    priceFeedUSD: {
-      type: OracleType.ZERO_ORACLE,
-    },
-  },
-
   CVX: {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
@@ -372,27 +342,6 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     // ADD ETH-> DAI Oracle!
   },
   LQTY: {
-    priceFeedUSD: {
-      type: OracleType.ZERO_ORACLE,
-    },
-  },
-  SPELL: {
-    priceFeedUSD: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
-        Mainnet: "0x8c110B94C5f1d347fAcF5E1E938AB2db60E3c9a8",
-        Goerli: "0x7F2414A025EA6BbF06e422bC9E78Acd66c94873a",
-      },
-    },
-  },
-  LUNA: {
-    priceFeedETH: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
-        Mainnet: "0x91e9331556ed76c9393055719986409e11b56f73",
-        Goerli: "0xeFDAcd1F7390a16647d945e56c0ab4EB9bF22fBe",
-      },
-    },
     priceFeedUSD: {
       type: OracleType.ZERO_ORACLE,
     },

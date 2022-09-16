@@ -11,7 +11,6 @@ export type NormalToken =
   | "FEI"
   | "LINK"
   | "SNX"
-  | "SUSHI"
   | "UNI"
   | "USDT"
   | "USDC"
@@ -22,16 +21,13 @@ export type NormalToken =
 
   // NEW TOKENS
   | "STETH"
-  | "FTM"
   | "CVX"
   | "FRAX"
   | "FXS"
   | "LDO"
-  | "SPELL"
   | "LUSD"
   | "sUSD"
   | "GUSD"
-  | "LUNA"
   | "LQTY";
 
 export type NormalTokenData = {
@@ -260,20 +256,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.UniswapV2Swap,
         contract: "UNISWAP_V2_ROUTER",
       },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER",
-      },
-    ],
-  },
-
-  SUSHI: {
-    name: "SUSHI",
-    decimals: 18,
-
-    symbol: "SUSHI",
-    type: TokenType.NORMAL_TOKEN,
-    swapActions: [
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER",
@@ -517,28 +499,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     ],
   },
 
-  FTM: {
-    name: "FTM",
-    decimals: 18,
-
-    symbol: "FTM",
-    type: TokenType.NORMAL_TOKEN,
-    swapActions: [
-      {
-        type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER",
-      },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER",
-      },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER",
-      },
-    ],
-  },
-
   CVX: {
     name: "CVX",
     decimals: 18,
@@ -622,28 +582,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     decimals: 18,
 
     symbol: "LDO",
-    type: TokenType.NORMAL_TOKEN,
-    swapActions: [
-      {
-        type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER",
-      },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER",
-      },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER",
-      },
-    ],
-  },
-
-  SPELL: {
-    name: "SPELL",
-    decimals: 18,
-
-    symbol: "SPELL",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
       {
@@ -759,28 +697,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_GUSD_POOL",
         tokenOut: "gusd3CRV",
-      },
-    ],
-  },
-
-  LUNA: {
-    name: "LUNA",
-    decimals: 18,
-
-    symbol: "LUNA",
-    type: TokenType.NORMAL_TOKEN,
-    swapActions: [
-      {
-        type: TradeType.UniswapV3Swap,
-        contract: "UNISWAP_V3_ROUTER",
-      },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "UNISWAP_V2_ROUTER",
-      },
-      {
-        type: TradeType.UniswapV2Swap,
-        contract: "SUSHISWAP_ROUTER",
       },
     ],
   },
