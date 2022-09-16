@@ -1,6 +1,5 @@
 import { BigNumber } from "ethers";
 
-import { TokensWithAPY } from "../apy";
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
 import { calcTotalPrice } from "../utils/price";
@@ -15,7 +14,6 @@ import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {
   apy?: number;
-  apyTokenSymbol: TokensWithAPY;
 
   name: string;
   lpToken: string;
