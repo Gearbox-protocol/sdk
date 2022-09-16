@@ -229,12 +229,12 @@ export const tokenDataByNetwork: Record<
     stkcvxLUSD3CRV: "0xe63607F72fb7C48aaAed779fC9858F815adABD1c",
 
     // GEARBOX
-    dDAI: "TODO: DEPLOY ME", // DieselToken.sol
-    dUSDC: "TODO: DEPLOY ME", // DieselToken.sol
-    dWBTC: "TODO: DEPLOY ME", // DieselToken.sol
-    dWETH: "TODO: DEPLOY ME", // DieselToken.sol
+    dDAI: "0xa30f3227D2E2611e2ba12910F107B60292724Dad", // DieselToken.sol
+    dUSDC: "0x17136D2e501b4ab9FD3425596858929DD30E907A", // DieselToken.sol
+    dWBTC: "0x7d323D4ce297F55794E00c0ceb9009352DEE8a30", // DieselToken.sol
+    dWETH: "0xF60CE04C5AFA060D21da4C11Aeb73a9222331094", // DieselToken.sol
 
-    GEAR: "TODO: DEPLOY ME",
+    GEAR: "0xb372a201D235b21eDCb4649f5A8A39773F20f8AE",
   },
 };
 
