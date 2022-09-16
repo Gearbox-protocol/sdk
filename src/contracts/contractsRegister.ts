@@ -33,6 +33,11 @@ export const deployedContracts: Record<string, string> = {
   // [YEARN_USDC_VAULT_KOVAN_MOCK]: "Yearn USDC",
   // [SUSHISWAP_KOVAN]: "Sushiswap"
 
+  // GOERLI
+  "0xcea193825bdc40aea09c736ae51da005c0ee503b": "DAI",
+  "0xa74d35673cdc28bd9e7bb315c82431068f1d17d1": "USDC",
+  "0xf52ed6fa2e18abc08428d33672696a1cbf26e4c8": "WETH",
+
   "0x94cd5F09727ae04d7D6fd36A9c9DD96D0d54646B": "DAI",
   "0x53B4a7389EA369a9299DfF524f916EC3cB77ffF4": "USDC",
   "0xE6631f7b18744651A385a02ea2C89634d20D7819": "WETH",
