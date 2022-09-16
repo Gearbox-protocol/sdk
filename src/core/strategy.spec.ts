@@ -14,7 +14,6 @@ import { Strategy, StrategyPayload } from "./strategy";
 const lidoPayload: StrategyPayload = {
   name: "Lido",
   lpToken: tokenDataByNetwork.Mainnet.STETH,
-  apyTokenSymbol: "STETH",
 
   apy: 38434,
 
