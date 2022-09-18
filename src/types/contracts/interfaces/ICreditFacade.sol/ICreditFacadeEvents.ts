@@ -320,16 +320,22 @@ export interface ICreditFacadeEvents extends BaseContract {
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
-      borrower?: null,
-      token?: null
+      borrower?: string | null,
+      token?: string | null
     ): TokenDisabledEventFilter;
-    TokenDisabled(borrower?: null, token?: null): TokenDisabledEventFilter;
+    TokenDisabled(
+      borrower?: string | null,
+      token?: string | null
+    ): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
-      borrower?: null,
-      token?: null
+      borrower?: string | null,
+      token?: string | null
     ): TokenEnabledEventFilter;
-    TokenEnabled(borrower?: null, token?: null): TokenEnabledEventFilter;
+    TokenEnabled(
+      borrower?: string | null,
+      token?: string | null
+    ): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,

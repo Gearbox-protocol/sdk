@@ -58,6 +58,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
     "params()": FunctionFragment;
     "transferAccountOwnership(address)": FunctionFragment;
     "transfersAllowed(address,address)": FunctionFragment;
+    "underlying()": FunctionFragment;
     "version()": FunctionFragment;
   };
 
@@ -85,6 +86,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
       | "params"
       | "transferAccountOwnership"
       | "transfersAllowed"
+      | "underlying"
       | "version"
   ): FunctionFragment;
 
@@ -164,6 +166,10 @@ export interface ICreditFacadeInterface extends utils.Interface {
     functionFragment: "transfersAllowed",
     values: [string, string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "underlying",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
@@ -239,6 +245,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
     functionFragment: "transfersAllowed",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
@@ -593,6 +600,8 @@ export interface ICreditFacade extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    underlying(overrides?: CallOverrides): Promise<[string]>;
+
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
@@ -729,6 +738,8 @@ export interface ICreditFacade extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  underlying(overrides?: CallOverrides): Promise<string>;
+
   version(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
@@ -862,6 +873,8 @@ export interface ICreditFacade extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    underlying(overrides?: CallOverrides): Promise<string>;
+
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -952,16 +965,22 @@ export interface ICreditFacade extends BaseContract {
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
-      borrower?: null,
-      token?: null
+      borrower?: string | null,
+      token?: string | null
     ): TokenDisabledEventFilter;
-    TokenDisabled(borrower?: null, token?: null): TokenDisabledEventFilter;
+    TokenDisabled(
+      borrower?: string | null,
+      token?: string | null
+    ): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
-      borrower?: null,
-      token?: null
+      borrower?: string | null,
+      token?: string | null
     ): TokenEnabledEventFilter;
-    TokenEnabled(borrower?: null, token?: null): TokenEnabledEventFilter;
+    TokenEnabled(
+      borrower?: string | null,
+      token?: string | null
+    ): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
@@ -1106,6 +1125,8 @@ export interface ICreditFacade extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    underlying(overrides?: CallOverrides): Promise<BigNumber>;
+
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -1230,6 +1251,8 @@ export interface ICreditFacade extends BaseContract {
       to: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

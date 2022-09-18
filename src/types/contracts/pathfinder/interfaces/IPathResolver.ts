@@ -60,7 +60,6 @@ export type StrategyPathTaskStruct = {
   foundAdapters: TokenAdaptersStruct[];
   gasPriceTargetRAY: BigNumberish;
   gasUsage: BigNumberish;
-  slippageMultiplier: BigNumberish;
   initTargetBalance: BigNumberish;
   calls: MultiCallStruct[];
 };
@@ -78,7 +77,6 @@ export type StrategyPathTaskStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
-  BigNumber,
   MultiCallStructOutput[]
 ] & {
   creditAccount: string;
@@ -92,15 +90,14 @@ export type StrategyPathTaskStructOutput = [
   foundAdapters: TokenAdaptersStructOutput[];
   gasPriceTargetRAY: BigNumber;
   gasUsage: BigNumber;
-  slippageMultiplier: BigNumber;
   initTargetBalance: BigNumber;
   calls: MultiCallStructOutput[];
 };
 
 export interface IPathResolverInterface extends utils.Interface {
   functions: {
-    "findOneTokenPath(uint8,address,uint256,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "findOpenStrategyPath((address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "findOneTokenPath(uint8,address,uint256,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "findOpenStrategyPath((address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "getComponentId()": FunctionFragment;
     "version()": FunctionFragment;
   };

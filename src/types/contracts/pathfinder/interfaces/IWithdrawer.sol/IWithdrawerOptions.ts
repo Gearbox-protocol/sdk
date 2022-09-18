@@ -58,7 +58,6 @@ export type StrategyPathTaskStruct = {
   foundAdapters: TokenAdaptersStruct[];
   gasPriceTargetRAY: BigNumberish;
   gasUsage: BigNumberish;
-  slippageMultiplier: BigNumberish;
   initTargetBalance: BigNumberish;
   calls: MultiCallStruct[];
 };
@@ -76,7 +75,6 @@ export type StrategyPathTaskStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
-  BigNumber,
   MultiCallStructOutput[]
 ] & {
   creditAccount: string;
@@ -90,7 +88,6 @@ export type StrategyPathTaskStructOutput = [
   foundAdapters: TokenAdaptersStructOutput[];
   gasPriceTargetRAY: BigNumber;
   gasUsage: BigNumber;
-  slippageMultiplier: BigNumber;
   initTargetBalance: BigNumber;
   calls: MultiCallStructOutput[];
 };
@@ -110,11 +107,11 @@ export type PathOptionStructOutput = [string, number, number] & {
 export interface IWithdrawerOptionsInterface extends utils.Interface {
   functions: {
     "getComponentId()": FunctionFragment;
-    "getUnderlyings(uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "getUnderlyings(uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "version()": FunctionFragment;
-    "withdraw(address,uint256,uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "withdrawAll(address,uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "withdrawAllTokens((address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]),(address,uint8,uint8)[])": FunctionFragment;
+    "withdraw(address,uint256,uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "withdrawAll(address,uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "withdrawAllTokens((address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]),(address,uint8,uint8)[])": FunctionFragment;
   };
 
   getFunction(

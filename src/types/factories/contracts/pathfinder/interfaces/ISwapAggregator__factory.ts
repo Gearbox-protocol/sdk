@@ -210,11 +210,6 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippageMultiplier",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
             name: "initTargetBalance",
             type: "uint256",
           },
@@ -332,11 +327,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -466,11 +456,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -596,11 +581,6 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippageMultiplier",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
             name: "initTargetBalance",
             type: "uint256",
           },
@@ -731,11 +711,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -861,11 +836,6 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippageMultiplier",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
             name: "initTargetBalance",
             type: "uint256",
           },
@@ -1000,11 +970,6 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippageMultiplier",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
             name: "initTargetBalance",
             type: "uint256",
           },
@@ -1122,11 +1087,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "slippageMultiplier",
             type: "uint256",
           },
           {
@@ -1468,11 +1428,6 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippageMultiplier",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
             name: "initTargetBalance",
             type: "uint256",
           },
@@ -1590,11 +1545,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "gasUsage",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "slippageMultiplier",
             type: "uint256",
           },
           {

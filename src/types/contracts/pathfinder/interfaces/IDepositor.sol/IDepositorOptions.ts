@@ -58,7 +58,6 @@ export type StrategyPathTaskStruct = {
   foundAdapters: TokenAdaptersStruct[];
   gasPriceTargetRAY: BigNumberish;
   gasUsage: BigNumberish;
-  slippageMultiplier: BigNumberish;
   initTargetBalance: BigNumberish;
   calls: MultiCallStruct[];
 };
@@ -76,7 +75,6 @@ export type StrategyPathTaskStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
-  BigNumber,
   MultiCallStructOutput[]
 ] & {
   creditAccount: string;
@@ -90,18 +88,17 @@ export type StrategyPathTaskStructOutput = [
   foundAdapters: TokenAdaptersStructOutput[];
   gasPriceTargetRAY: BigNumber;
   gasUsage: BigNumber;
-  slippageMultiplier: BigNumber;
   initTargetBalance: BigNumber;
   calls: MultiCallStructOutput[];
 };
 
 export interface IDepositorOptionsInterface extends utils.Interface {
   functions: {
-    "deposit(uint8,address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "depositAll(uint8,address,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
-    "depositAllTokens(address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "deposit(uint8,address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "depositAll(uint8,address,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "depositAllTokens(address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "getComponentId()": FunctionFragment;
-    "getUnderlyings(uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
+    "getUnderlyings(uint8,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "version()": FunctionFragment;
   };
 
