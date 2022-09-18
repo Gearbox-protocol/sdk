@@ -62,3 +62,5 @@ export * from "./utils/multicall";
 export * from "./utils/price";
 export { callRepeater } from "./utils/repeater";
 export * from "./utils/types";
+export * from "./watchers/creditAccountWatcher";
+export * from "./watchers/creditManagerWatcher";
