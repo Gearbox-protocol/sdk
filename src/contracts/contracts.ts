@@ -131,14 +131,14 @@ export const contractsByNetwork: Record<
     YEARN_CURVE_STETH_VAULT: tokenDataByNetwork.Goerli.yvCurve_stETH,
 
     // CONVEX
-    CONVEX_BOOSTER: "0x2FA9deaC520801354de0c9d05f3693BB5b3bc266",
-    CONVEX_3CRV_POOL: "0xDd0e23aDcd118a9Dd2F22A6c4384A87880869F0f",
-    CONVEX_STECRV_POOL: "0x9b1172E8DBa26EE9159755Fb484788d9F4b5492C",
-    CONVEX_SUSD_POOL: "0xCAe4dB8C2E58A2c7848f40988A759B43951AfE2B",
-    CONVEX_FRAX3CRV_POOL: "0x7B6A58f62D76930D0E715dfbA23FCBc274a7e51E",
-    CONVEX_LUSD3CRV_POOL: "0x1dCdE1F2aAEF48CC88B224860c99052f83646fa3",
-    CONVEX_GUSD_POOL: "0xbee8ABfc2563C82FCB5523Ad580D0F4718DA7807",
-    CONVEX_CLAIM_ZAP: "0x2D30e1E9cE34907D7c13cCD18898cA606e2Ff141",
+    CONVEX_BOOSTER: "0xbd1D47bbF57F49D9a72ca7f879A096d3abDF4c40",
+    CONVEX_3CRV_POOL: "0xfB9b98558c3d6851291Fbf74fa7F022a787cD795",
+    CONVEX_STECRV_POOL: "0xd9de8eA4289e7a4458Bebad8c31bb7576f1C2B72",
+    CONVEX_SUSD_POOL: "0x85825316be95FBb3F6B5a2Dd9f1eb9577803e441",
+    CONVEX_FRAX3CRV_POOL: "0x08513eA45fdd7A9cFC33702f722090a182e4a101",
+    CONVEX_LUSD3CRV_POOL: "0x8550134faa6Cb42a7668f3D9098EBa59FA959b40",
+    CONVEX_GUSD_POOL: "0xa8eD353f56BB2e1063B8a011F0491a1703998De4",
+    CONVEX_CLAIM_ZAP: "0x74C7Bb6493C5EcfDb49E3ED5Ee4B60012b724b4b",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x1dad4166D00046acf643ce19ab94b644C3B07c9D",
@@ -385,7 +385,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "SNX",
         poolAddress: {
           Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
-          Goerli: "0xdf4f9d2995870Fef8993305573E3F64354be0daD", // CONVEX_SUSD_POOL_EXTRA_SNX
+          Goerli: "0x536389C5E416C116c42eC014D17D8639b0C1e80b", // CONVEX_SUSD_POOL_EXTRA_SNX
         },
       },
     ],
@@ -400,7 +400,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LDO",
         poolAddress: {
           Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
-          Goerli: "0x0c3cA5C399A951e43FEcde4B1301fb50c5DC13ef", // CONVEX_STECRV_POOL_EXTRA_LDO
+          Goerli: "0x47E04e2d75D0dED9eA4B93B1b78ef9e91DB0586a", // CONVEX_STECRV_POOL_EXTRA_LDO
         },
       },
     ],
@@ -415,7 +415,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "FXS",
         poolAddress: {
           Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
-          Goerli: "0xA7e78d9886f0460B07FF3dEf34Deb83a67431f63", // CONVEX_FRAX3CRV_POOL_EXTRA_FXS
+          Goerli: "0xB976E4ADd7A3Af394A812a3eA1906fF8f46d22Fa", // CONVEX_FRAX3CRV_POOL_EXTRA_FXS
         },
       },
     ],
@@ -430,7 +430,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LQTY",
         poolAddress: {
           Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
-          Goerli: "0x7679e60cBb6a1007A8f322E64cD716647C03cE32", // CONVEX_LUSD3CRV_POOL_EXTRA_LQTY
+          Goerli: "0x1F138cAA8973FfDf57Dd692DF93836AF69Dc60da", // CONVEX_LUSD3CRV_POOL_EXTRA_LQTY
         },
       },
     ],
