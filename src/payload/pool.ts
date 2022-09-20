@@ -1,3 +1,4 @@
 import { PoolDataStruct } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
+import { ExcludeArray } from "../utils/types";
 
-export type PoolDataPayload = PoolDataStruct;
+export type PoolDataPayload = ExcludeArray<PoolDataStruct>;

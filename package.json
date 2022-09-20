@@ -15,7 +15,6 @@
     "dev": "tsc -w",
     "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc && yarn publish",
     "copyTypes": "node ./scripts/copyTypes.js",
-    "prepush": "yarn lint --max-warnings=0",
     "prepare": "husky install",
     "prettier": "prettier --write .",
     "prettier:ci": "npx prettier --check .",
