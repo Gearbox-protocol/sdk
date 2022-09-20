@@ -94,8 +94,6 @@ export class Trade implements BaseTradeInterface {
     call: PathFinderResult["calls"][0],
     signer: Signer,
   ) {
-    console.log(TxParser.parseMultiCall(this.tradePath.calls));
-
     const receipt = await signer.sendTransaction({
       to: call.target,
       data: call.callData,
