@@ -114,7 +114,7 @@ const CVX_MAX_SUPPLY = WAD.mul(100000000);
 const CVX_REDUCTION_PER_CLIFF = BigNumber.from(100000);
 const CVX_TOTAL_CLIFFS = WAD.mul(1000);
 
-function getCVXMintAmount(crvAmount: BigNumber, cvxSupply: BigNumber) {
+export function getCVXMintAmount(crvAmount: BigNumber, cvxSupply: BigNumber) {
   const currentCliff = cvxSupply.div(CVX_REDUCTION_PER_CLIFF);
 
   if (currentCliff.lt(CVX_TOTAL_CLIFFS)) {
