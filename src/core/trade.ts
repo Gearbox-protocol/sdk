@@ -1,7 +1,6 @@
 import { BigNumber, Signer } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
-import { TxParser } from "../parsers/txParser";
 import { PathFinderResult, SwapOperation } from "../pathfinder/core";
 import { decimals } from "../tokens/decimals";
 import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
@@ -94,8 +93,6 @@ export class Trade implements BaseTradeInterface {
     call: PathFinderResult["calls"][0],
     signer: Signer,
   ) {
-    console.log(TxParser.parseMultiCall(this.tradePath.calls));
-
     const receipt = await signer.sendTransaction({
       to: call.target,
       data: call.callData,
