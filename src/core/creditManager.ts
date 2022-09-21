@@ -27,43 +27,26 @@ import { OpenAccountError } from "./errors";
 
 export class CreditManagerData {
   public readonly address: string;
-
   public readonly underlyingToken: string;
-
   public readonly pool: string;
-
   public readonly isWETH: boolean;
-
   public readonly canBorrow: boolean;
-
   public readonly borrowRate: number;
-
   public readonly minAmount: BigNumber;
-
   public readonly maxAmount: BigNumber;
-
   public readonly maxLeverageFactor: number; // for V1 only
-
   public readonly availableLiquidity: BigNumber;
-
   public readonly collateralTokens: Array<string>;
-
   public readonly adapters: Record<string, string>;
-
   public readonly liquidationThresholds: Record<string, BigNumber>;
-
   public readonly version: number;
-
   public readonly creditFacade: string; // V2 only: address of creditFacade
   public readonly creditConfigurator: string; // V2 only: address of creditFacade
-
   public readonly isDegenMode: boolean; // V2 only: true if contract is in Degen mode
-
   public readonly degenNFT: string; // V2 only: degenNFT, address(0) if not in degen mode
-
   public readonly isIncreaseDebtForbidden: boolean; // V2 only: true if increasing debt is forbidden
-
   public readonly forbiddenTokenMask: BigNumber; // V2 only: mask which forbids some particular tokens
+  public readonly maxEnabledTokensLength: number;
 
   public readonly feeInterest: number;
   public readonly feeLiquidation: number;
@@ -80,6 +63,8 @@ export class CreditManagerData {
 
     this.isWETH = payload.isWETH;
     this.canBorrow = payload.canBorrow;
+
+    this.maxEnabledTokensLength = payload.maxEnabledTokensLength;
 
     this.borrowRate = payload.borrowRate
       .mul(payload.feeInterest + PERCENTAGE_FACTOR)

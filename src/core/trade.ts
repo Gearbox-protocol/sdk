@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, Signer } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
 import { PathFinderResult, SwapOperation } from "../pathfinder/core";
@@ -82,12 +82,37 @@ export class Trade implements BaseTradeInterface {
     return this.helper.adapterAddress;
   }
 
-  execute(): Promise<EVMTx> {
-    return this._execute();
+  execute(signer: Signer): Promise<EVMTx> {
+    if (this.tradePath.calls.length < 1) throw new Error("No path to execute");
+    return this.tradePath.calls.length === 1
+      ? this._executeOnSigner(this.tradePath.calls[0], signer)
+      : this._executeOnCreditFacade(this.tradePath.calls);
   }
 
-  protected async _execute() {
-    const receipt = await this.creditFacade.multicall(this.tradePath.calls);
+  protected async _executeOnSigner(
+    call: PathFinderResult["calls"][0],
+    signer: Signer,
+  ) {
+    const receipt = await signer.sendTransaction({
+      to: call.target,
+      data: call.callData,
+    });
+
+    return new TXSwap({
+      txHash: receipt.hash,
+      protocol: this.helper.contractAddress,
+      operation: OPERATION_NAMES[this.operationName],
+      amountFrom: this.sourceAmount,
+      amountTo: this.expectedAmount,
+      tokenFrom: this.tokenFrom,
+      tokenTo: this.tokenTo,
+      creditManager: this.helper.creditManager,
+      timestamp: 0,
+    });
+  }
+
+  protected async _executeOnCreditFacade(calls: PathFinderResult["calls"]) {
+    const receipt = await this.creditFacade.multicall(calls);
 
     return new TXSwap({
       txHash: receipt.hash,
