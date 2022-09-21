@@ -1,7 +1,6 @@
 import { BigNumber, Signer } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
-import { TxParser } from "../parsers/txParser";
 import { PathFinderResult, SwapOperation } from "../pathfinder/core";
 import { decimals } from "../tokens/decimals";
 import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
