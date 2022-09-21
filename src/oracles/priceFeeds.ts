@@ -280,6 +280,13 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  wstETH: {
+    priceFeedUSD: {
+      type: OracleType.WSTETH_ORACLE,
+      token: "STETH",
+    },
+  },
+
   CVX: {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,

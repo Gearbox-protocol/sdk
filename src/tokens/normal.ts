@@ -21,6 +21,7 @@ export type NormalToken =
 
   // NEW TOKENS
   | "STETH"
+  | "wstETH"
   | "CVX"
   | "FRAX"
   | "FXS"
@@ -495,6 +496,33 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveDepositLP,
         contract: "CURVE_STETH_GATEWAY",
         tokenOut: "steCRV",
+      },
+    ],
+  },
+
+  wstETH: {
+    name: "wstETH",
+    decimals: 18,
+
+    symbol: "wstETH",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_STETH_GATEWAY",
+        tokenOut: ["WETH"],
       },
     ],
   },

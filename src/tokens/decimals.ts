@@ -17,6 +17,7 @@ export const decimals: Record<SupportedToken, number> = {
   WETH: 18,
   YFI: 18,
   STETH: 18,
+  wstETH: 18,
   CVX: 18,
   FRAX: 18,
   FXS: 18,

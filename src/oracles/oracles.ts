@@ -13,6 +13,7 @@ export enum OracleType {
   YEARN_CURVE_LP_TOKEN_ORACLE,
   ZERO_ORACLE,
   LIKE_CURVE_LP_TOKEN_ORACLE,
+  WSTETH_ORACLE,
 }
 
 export type PriceFeedData =
@@ -38,6 +39,10 @@ export type PriceFeedData =
   | {
       type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE;
       curveSymbol: SupportedToken;
+    }
+  | {
+      type: OracleType.WSTETH_ORACLE;
+      token: SupportedToken;
     };
 
 export interface TokenPriceFeedData {
