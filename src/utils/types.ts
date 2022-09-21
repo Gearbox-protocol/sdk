@@ -12,6 +12,6 @@ type NonArrayKeys<T> = T extends `${number}` | number | ArrayMethodKeys
   ? never
   : T;
 
-export type ExcludeArray<T> = {
+export type ExcludeArrayProps<T> = {
   [K in keyof T as NonArrayKeys<K>]: T[K];
 };

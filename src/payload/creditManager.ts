@@ -1,7 +1,7 @@
 import { BigNumberish } from "ethers";
 
 import { CreditManagerDataStructOutput } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
-import { ExcludeArray } from "../utils/types";
+import { ExcludeArrayProps } from "../utils/types";
 
 export interface AdapterPayload {
   allowedContract: string;
@@ -9,7 +9,7 @@ export interface AdapterPayload {
 }
 
 export type CreditManagerDataPayload =
-  ExcludeArray<CreditManagerDataStructOutput>;
+  ExcludeArrayProps<CreditManagerDataStructOutput>;
 
 export interface CreditManagerStatPayload extends CreditManagerDataPayload {
   allowedContracts?: Array<string>;
