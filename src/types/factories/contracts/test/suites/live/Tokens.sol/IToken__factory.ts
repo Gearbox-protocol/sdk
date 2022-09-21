@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IToken,
   ITokenInterface,
-} from "../../../../../../contracts/test/suites/mainnet/Tokens.sol/IToken";
+} from "../../../../../../contracts/test/suites/live/Tokens.sol/IToken";
 
 const _abi = [
   {

@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   ITokenTestSuite,
   ITokenTestSuiteInterface,
-} from "../../../../../contracts/test/suites/mainnet/ITokenTestSuite";
+} from "../../../../../contracts/test/suites/live/ITokenTestSuite";
 
 const _abi = [
   {

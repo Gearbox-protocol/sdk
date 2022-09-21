@@ -3,4 +3,6 @@
 /* eslint-disable */
 import type * as istEthSol from "./IstETH.sol";
 export type { istEthSol };
+import type * as iwstEthSol from "./IwstETH.sol";
+export type { iwstEthSol };
 export type { ILidoOracle } from "./ILidoOracle";

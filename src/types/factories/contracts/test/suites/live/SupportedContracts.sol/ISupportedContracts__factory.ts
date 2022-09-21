@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   ISupportedContracts,
   ISupportedContractsInterface,
-} from "../../../../../../contracts/test/suites/mainnet/SupportedContracts.sol/ISupportedContracts";
+} from "../../../../../../contracts/test/suites/live/SupportedContracts.sol/ISupportedContracts";
 
 const _abi = [
   {
@@ -37,6 +37,25 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "contractIndex",
+    outputs: [
+      {
+        internalType: "enum Contracts",
+        name: "",
+        type: "uint8",
       },
     ],
     stateMutability: "view",

@@ -28,6 +28,7 @@ export interface IACLInterface extends utils.Interface {
     "isConfigurator(address)": FunctionFragment;
     "isPausableAdmin(address)": FunctionFragment;
     "isUnpausableAdmin(address)": FunctionFragment;
+    "owner()": FunctionFragment;
     "version()": FunctionFragment;
   };
 
@@ -36,6 +37,7 @@ export interface IACLInterface extends utils.Interface {
       | "isConfigurator"
       | "isPausableAdmin"
       | "isUnpausableAdmin"
+      | "owner"
       | "version"
   ): FunctionFragment;
 
@@ -51,6 +53,7 @@ export interface IACLInterface extends utils.Interface {
     functionFragment: "isUnpausableAdmin",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
@@ -65,6 +68,7 @@ export interface IACLInterface extends utils.Interface {
     functionFragment: "isUnpausableAdmin",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
@@ -166,6 +170,8 @@ export interface IACL extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
@@ -174,6 +180,8 @@ export interface IACL extends BaseContract {
   isPausableAdmin(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
   isUnpausableAdmin(addr: string, overrides?: CallOverrides): Promise<boolean>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -189,6 +197,8 @@ export interface IACL extends BaseContract {
       addr: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -237,6 +247,8 @@ export interface IACL extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -255,6 +267,8 @@ export interface IACL extends BaseContract {
       addr: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

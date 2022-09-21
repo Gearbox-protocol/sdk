@@ -3,3 +3,4 @@
 /* eslint-disable */
 import type * as iLidoV1AdapterSol from "./ILidoV1Adapter.sol";
 export type { iLidoV1AdapterSol };
+export type { IwstETHV1Adapter } from "./IwstETHV1Adapter";
