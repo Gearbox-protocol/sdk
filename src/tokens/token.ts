@@ -257,3 +257,12 @@ export function getDecimals(token: SupportedToken | string): number {
   }
   return dec;
 }
+
+export function extractTokenData(
+  tokenAddress: string,
+): [SupportedToken | undefined, number | undefined] {
+  const underlyingSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
+  const underlyingDecimals = decimals[underlyingSymbol || ""];
+
+  return [underlyingSymbol, underlyingDecimals];
+}

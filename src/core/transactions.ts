@@ -2,8 +2,7 @@ import { BigNumber } from "ethers";
 
 import { contractParams, SupportedContract } from "../contracts/contracts";
 import { getContractName } from "../contracts/contractsRegister";
-import { decimals } from "../tokens/decimals";
-import { SupportedToken, tokenSymbolByAddress } from "../tokens/token";
+import { extractTokenData } from "../tokens/token";
 import { formatBN } from "../utils/formatter";
 import { LEVERAGE_DECIMALS } from "./constants";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
@@ -538,13 +537,4 @@ export class TxApprove extends EVMTx {
       content: JSON.stringify(this),
     };
   }
-}
-
-function extractTokenData(
-  tokenAddress: string,
-): [SupportedToken | undefined, number | undefined] {
-  const underlyingSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
-  const underlyingDecimals = decimals[underlyingSymbol || ""];
-
-  return [underlyingSymbol, underlyingDecimals];
 }
