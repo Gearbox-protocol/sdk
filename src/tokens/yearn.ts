@@ -46,7 +46,6 @@ export const yearnTokens: Record<
   // YEARN TOKENS
   yvDAI: {
     name: "Yearn yvDAI",
-    decimals: 18,
     symbol: "yvDAI",
     type: TokenType.YEARN_ON_NORMAL_TOKEN,
     underlying: "DAI",
@@ -62,7 +61,6 @@ export const yearnTokens: Record<
 
   yvUSDC: {
     name: "Yearn yvUSDC",
-    decimals: 6,
     symbol: "yvUSDC",
     type: TokenType.YEARN_ON_NORMAL_TOKEN,
     underlying: "USDC",
@@ -78,7 +76,6 @@ export const yearnTokens: Record<
 
   yvWETH: {
     name: "Yearn yvWETH",
-    decimals: 18,
     symbol: "yvWETH",
     type: TokenType.YEARN_ON_NORMAL_TOKEN,
     underlying: "WETH",
@@ -94,7 +91,6 @@ export const yearnTokens: Record<
 
   yvWBTC: {
     name: "Yearn yvWBTC",
-    decimals: 8,
     symbol: "yvWBTC",
     type: TokenType.YEARN_ON_NORMAL_TOKEN,
     underlying: "WBTC",
@@ -111,7 +107,6 @@ export const yearnTokens: Record<
   // YEARN- CURVE TOKENS
   yvCurve_stETH: {
     name: "Yearn yvCurve-stETH",
-    decimals: 18,
     symbol: "yvCurve_stETH",
     type: TokenType.YEARN_ON_CURVE_TOKEN,
     underlying: "steCRV",
@@ -127,7 +122,6 @@ export const yearnTokens: Record<
 
   yvCurve_FRAX: {
     name: "Yearn yvCurve-FRAX",
-    decimals: 18,
     symbol: "yvCurve_FRAX",
     type: TokenType.YEARN_ON_CURVE_TOKEN,
     underlying: "FRAX3CRV",

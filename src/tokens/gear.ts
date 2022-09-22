@@ -23,35 +23,30 @@ export const gearTokens: Record<
   // GEARBOX
   dDAI: {
     name: "dDAI",
-    decimals: 18,
     symbol: "dDAI",
     type: TokenType.DIESEL_LP_TOKEN,
   },
 
   dUSDC: {
     name: "dUSDC",
-    decimals: 6,
     symbol: "dUSDC",
     type: TokenType.DIESEL_LP_TOKEN,
   },
 
   dWBTC: {
     name: "dWBTC",
-    decimals: 8,
     symbol: "dWBTC",
     type: TokenType.DIESEL_LP_TOKEN,
   },
 
   dWETH: {
     name: "dWETH",
-    decimals: 18,
     symbol: "dWETH",
     type: TokenType.DIESEL_LP_TOKEN,
   },
 
   GEAR: {
     name: "GEAR",
-    decimals: 18,
     symbol: "GEAR",
     type: TokenType.GEAR_TOKEN,
   },
