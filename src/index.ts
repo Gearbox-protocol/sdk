@@ -11,6 +11,7 @@ export * from "./core/eventOrTx";
 export * from "./core/events";
 export * from "./core/operations";
 export * from "./core/pool";
+export * from "./core/rewardClaimer";
 export * from "./core/strategy";
 export * from "./core/tokenDistributor";
 export * from "./core/trade";
