@@ -84,9 +84,9 @@ export class RewardConvex {
       .map(([contract]) => contract as SupportedContract);
 
     return Object.entries(cm.adapters)
-      .map(([adapter, contact]) => ({
+      .map(([contract, adapter]) => ({
         adapter,
-        contract: contractsByAddress[contact.toLowerCase()],
+        contract: contractsByAddress[contract.toLowerCase()],
       }))
       .filter(a => convexPools.includes(a.contract));
   }

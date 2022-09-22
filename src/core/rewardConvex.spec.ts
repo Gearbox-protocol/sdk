@@ -28,10 +28,10 @@ describe("RewardConvex test", () => {
   it("findAdapters find convex adapters correctly", () => {
     const cm = {
       adapters: {
-        [ADAPTER_CONVEX_3CRV_POOL]: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
-        [ADAPTER_CURVE_FRAX_POOL]: contractsByNetwork.Mainnet.CURVE_FRAX_POOL,
-        [ADAPTER_CONVEX_FRAX3CRV_POOL]:
-          contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+        [contractsByNetwork.Mainnet.CONVEX_3CRV_POOL]: ADAPTER_CONVEX_3CRV_POOL,
+        [contractsByNetwork.Mainnet.CURVE_FRAX_POOL]: ADAPTER_CURVE_FRAX_POOL,
+        [contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL]:
+          ADAPTER_CONVEX_FRAX3CRV_POOL,
       },
     } as unknown as CreditManagerData;
 
@@ -54,10 +54,10 @@ describe("RewardConvex test", () => {
   it("prepareMultiCalls prepares multicall data correctly", () => {
     const cm = {
       adapters: {
-        [ADAPTER_CONVEX_3CRV_POOL]: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
-        [ADAPTER_CURVE_FRAX_POOL]: contractsByNetwork.Mainnet.CURVE_FRAX_POOL,
-        [ADAPTER_CONVEX_FRAX3CRV_POOL]:
-          contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+        [contractsByNetwork.Mainnet.CONVEX_3CRV_POOL]: ADAPTER_CONVEX_3CRV_POOL,
+        [contractsByNetwork.Mainnet.CURVE_FRAX_POOL]: ADAPTER_CURVE_FRAX_POOL,
+        [contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL]:
+          ADAPTER_CONVEX_FRAX3CRV_POOL,
       },
     } as unknown as CreditManagerData;
 
