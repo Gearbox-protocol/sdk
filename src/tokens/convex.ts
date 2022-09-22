@@ -45,7 +45,6 @@ export type ConvexPhantomTokenData = {
 const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
   cvx3Crv: {
     name: "Convex cvx3Crv",
-    decimals: 18,
 
     symbol: "cvx3Crv",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -69,7 +68,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
 
   cvxsteCRV: {
     name: "Convex cvxsteCRV",
-    decimals: 18,
 
     symbol: "cvxsteCRV",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -93,7 +91,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
 
   cvxFRAX3CRV: {
     name: "Convex cvxFRAX3CRV-f",
-    decimals: 18,
 
     symbol: "cvxFRAX3CRV",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -117,7 +114,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
 
   cvxLUSD3CRV: {
     name: "Convex cvxLUSD3CRV-f",
-    decimals: 18,
 
     symbol: "cvxLUSD3CRV",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -141,7 +137,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
 
   cvxcrvPlain3andSUSD: {
     name: "Convex cvxcrvPlain3andSUSD",
-    decimals: 18,
 
     symbol: "cvxcrvPlain3andSUSD",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -165,7 +160,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
 
   cvxgusd3CRV: {
     name: "Convex cvxgusd3CRV",
-    decimals: 18,
 
     symbol: "cvxgusd3CRV",
     type: TokenType.CONVEX_LP_TOKEN,
@@ -194,7 +188,6 @@ const convexStakedPhantomTokens: Record<
 > = {
   stkcvx3Crv: {
     name: "Convex stkcvx3Crv",
-    decimals: 18,
 
     symbol: "stkcvx3Crv",
     type: TokenType.CONVEX_STAKED_TOKEN,
@@ -218,7 +211,6 @@ const convexStakedPhantomTokens: Record<
 
   stkcvxsteCRV: {
     name: "Convex stkcvxsteCRV",
-    decimals: 18,
 
     symbol: "stkcvxsteCRV",
     type: TokenType.CONVEX_STAKED_TOKEN,
@@ -242,7 +234,6 @@ const convexStakedPhantomTokens: Record<
 
   stkcvxFRAX3CRV: {
     name: "Convex stkcvxFRAX3CRV-f",
-    decimals: 18,
 
     symbol: "stkcvxFRAX3CRV",
     type: TokenType.CONVEX_STAKED_TOKEN,
@@ -266,7 +257,6 @@ const convexStakedPhantomTokens: Record<
 
   stkcvxLUSD3CRV: {
     name: "Convex stkcvxLUSD3CRV-f",
-    decimals: 18,
 
     symbol: "stkcvxLUSD3CRV",
     type: TokenType.CONVEX_STAKED_TOKEN,
@@ -290,7 +280,6 @@ const convexStakedPhantomTokens: Record<
 
   stkcvxcrvPlain3andSUSD: {
     name: "Convex stkcvxcrvPlain3andSUSD",
-    decimals: 18,
 
     symbol: "stkcvxcrvPlain3andSUSD",
     type: TokenType.CONVEX_STAKED_TOKEN,
@@ -314,7 +303,6 @@ const convexStakedPhantomTokens: Record<
 
   stkcvxgusd3CRV: {
     name: "Convex stkcvxgusd3CRV",
-    decimals: 18,
 
     symbol: "stkcvxgusd3CRV",
     type: TokenType.CONVEX_STAKED_TOKEN,

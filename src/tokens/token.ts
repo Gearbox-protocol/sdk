@@ -50,7 +50,6 @@ export type SupportedToken =
 export interface TokenBase {
   name: string;
   symbol: string;
-  decimals: number;
 }
 
 export type LPTokenDataI =

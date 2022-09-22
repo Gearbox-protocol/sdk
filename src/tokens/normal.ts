@@ -41,7 +41,6 @@ export type NormalTokenData = {
 export const normalTokens: Record<NormalToken, NormalTokenData> = {
   "1INCH": {
     name: "1INCH",
-    decimals: 18,
 
     symbol: "1INCH",
     type: TokenType.NORMAL_TOKEN,
@@ -63,7 +62,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   AAVE: {
     name: "AAVE",
-    decimals: 18,
 
     symbol: "AAVE",
     type: TokenType.NORMAL_TOKEN,
@@ -85,7 +83,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   COMP: {
     name: "COMP",
-    decimals: 18,
 
     symbol: "COMP",
     type: TokenType.NORMAL_TOKEN,
@@ -107,7 +104,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   CRV: {
     name: "CRV",
-    decimals: 18,
 
     symbol: "CRV",
     type: TokenType.NORMAL_TOKEN,
@@ -129,7 +125,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   DAI: {
     name: "DAI",
-    decimals: 18,
 
     symbol: "DAI",
     type: TokenType.NORMAL_TOKEN,
@@ -178,7 +173,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   DPI: {
     name: "DPI",
-    decimals: 18,
 
     symbol: "DPI",
     type: TokenType.NORMAL_TOKEN,
@@ -200,7 +194,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   FEI: {
     name: "FEI",
-    decimals: 18,
 
     symbol: "FEI",
     type: TokenType.NORMAL_TOKEN,
@@ -222,7 +215,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   LINK: {
     name: "LINK",
-    decimals: 18,
 
     symbol: "LINK",
     type: TokenType.NORMAL_TOKEN,
@@ -244,7 +236,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   SNX: {
     name: "SNX",
-    decimals: 18,
 
     symbol: "SNX",
     type: TokenType.NORMAL_TOKEN,
@@ -266,7 +257,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   UNI: {
     name: "UNI",
-    decimals: 18,
 
     symbol: "UNI",
     type: TokenType.NORMAL_TOKEN,
@@ -284,7 +274,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   USDC: {
     name: "USDC",
-    decimals: 6,
 
     symbol: "USDC",
     type: TokenType.NORMAL_TOKEN,
@@ -333,7 +322,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   USDT: {
     name: "USDT",
-    decimals: 6,
 
     symbol: "USDT",
     type: TokenType.NORMAL_TOKEN,
@@ -377,7 +365,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   WBTC: {
     name: "WBTC",
-    decimals: 8,
 
     symbol: "WBTC",
     type: TokenType.NORMAL_TOKEN,
@@ -406,7 +393,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   WETH: {
     name: "WETH",
-    decimals: 18,
 
     symbol: "WETH",
     type: TokenType.NORMAL_TOKEN,
@@ -445,7 +431,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   YFI: {
     name: "YFI",
-    decimals: 18,
 
     symbol: "YFI",
     type: TokenType.NORMAL_TOKEN,
@@ -468,7 +453,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   /// UPDATE
   STETH: {
     name: "stETH",
-    decimals: 18,
 
     symbol: "STETH",
     type: TokenType.NORMAL_TOKEN,
@@ -502,7 +486,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   wstETH: {
     name: "wstETH",
-    decimals: 18,
 
     symbol: "wstETH",
     type: TokenType.NORMAL_TOKEN,
@@ -529,7 +512,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   CVX: {
     name: "CVX",
-    decimals: 18,
 
     symbol: "CVX",
     type: TokenType.NORMAL_TOKEN,
@@ -551,7 +533,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   FRAX: {
     name: "FRAX",
-    decimals: 18,
 
     symbol: "FRAX",
     type: TokenType.NORMAL_TOKEN,
@@ -585,7 +566,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   FXS: {
     name: "FXS",
-    decimals: 18,
 
     symbol: "FXS",
     type: TokenType.NORMAL_TOKEN,
@@ -607,7 +587,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   LDO: {
     name: "LDO",
-    decimals: 18,
 
     symbol: "LDO",
     type: TokenType.NORMAL_TOKEN,
@@ -629,7 +608,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   LUSD: {
     name: "LUSD",
-    decimals: 18,
 
     symbol: "LUSD",
     type: TokenType.NORMAL_TOKEN,
@@ -663,7 +641,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   sUSD: {
     name: "sUSD",
-    decimals: 18,
 
     symbol: "sUSD",
     type: TokenType.NORMAL_TOKEN,
@@ -697,7 +674,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   GUSD: {
     name: "GUSD",
-    decimals: 18,
 
     symbol: "GUSD",
     type: TokenType.NORMAL_TOKEN,
@@ -731,7 +707,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
 
   LQTY: {
     name: "LQTY",
-    decimals: 18,
 
     symbol: "LQTY",
     type: TokenType.NORMAL_TOKEN,
