@@ -1,10 +1,10 @@
 import { BigNumber, Signer } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
-import { PathFinderResult, SwapOperation } from "../pathfinder/core";
+import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
 import { decimals } from "../tokens/decimals";
 import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
-import { ICreditFacade } from "../types";
+import { ICreditFacade, ICreditFacade__factory } from "../types";
 import { formatBN } from "../utils/formatter";
 import { BaseAdapter } from "./adapter";
 import { PERCENTAGE_FACTOR, WAD } from "./constants";
@@ -82,37 +82,12 @@ export class Trade implements BaseTradeInterface {
     return this.helper.adapterAddress;
   }
 
-  execute(signer: Signer): Promise<EVMTx> {
-    if (this.tradePath.calls.length < 1) throw new Error("No path to execute");
-    return this.tradePath.calls.length === 1
-      ? this._executeOnSigner(this.tradePath.calls[0], signer)
-      : this._executeOnCreditFacade(this.tradePath.calls);
-  }
-
-  protected async _executeOnSigner(
-    call: PathFinderResult["calls"][0],
-    signer: Signer,
-  ) {
-    const receipt = await signer.sendTransaction({
-      to: call.target,
-      data: call.callData,
-    });
-
-    return new TXSwap({
-      txHash: receipt.hash,
-      protocol: this.helper.contractAddress,
-      operation: OPERATION_NAMES[this.operationName],
-      amountFrom: this.sourceAmount,
-      amountTo: this.expectedAmount,
-      tokenFrom: this.tokenFrom,
-      tokenTo: this.tokenTo,
-      creditManager: this.helper.creditManager,
-      timestamp: 0,
-    });
-  }
-
-  protected async _executeOnCreditFacade(calls: PathFinderResult["calls"]) {
-    const receipt = await this.creditFacade.multicall(calls);
+  async execute(signer: Signer): Promise<EVMTx> {
+    const receipt = await Trade.executeMulticallPath(
+      this.creditFacade,
+      signer,
+      this.tradePath.calls,
+    );
 
     return new TXSwap({
       txHash: receipt.hash,
@@ -172,5 +147,36 @@ export class Trade implements BaseTradeInterface {
     if (!tokenInIsLp && tokenOutIsLp) return "farmDeposit";
     if (!tokenInIsLp && !tokenOutIsLp) return "swap";
     return "unknownOperation";
+  }
+
+  static async executeMulticallPath(
+    creditFacade: string | ICreditFacade,
+    signer: Signer,
+    calls: Array<MultiCall>,
+  ) {
+    if (calls.length < 1) throw new Error("No path to execute");
+    if (calls.length === 1) {
+      return this.executeOnSigner(calls[0], signer);
+    }
+    const safeCreditFacade =
+      typeof creditFacade === "string"
+        ? ICreditFacade__factory.connect(creditFacade, signer)
+        : creditFacade;
+
+    return this.executeOnCreditFacade(calls, safeCreditFacade);
+  }
+
+  static async executeOnSigner(call: MultiCall, signer: Signer) {
+    return signer.sendTransaction({
+      to: call.target,
+      data: call.callData,
+    });
+  }
+
+  static async executeOnCreditFacade(
+    calls: Array<MultiCall>,
+    creditFacade: ICreditFacade,
+  ) {
+    return creditFacade.multicall(calls);
   }
 }

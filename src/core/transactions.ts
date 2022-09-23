@@ -1,7 +1,8 @@
 import { BigNumber } from "ethers";
 
+import { contractParams, SupportedContract } from "../contracts/contracts";
 import { getContractName } from "../contracts/contractsRegister";
-import { TokenData } from "../tokens/tokenData";
+import { extractTokenData } from "../tokens/token";
 import { formatBN } from "../utils/formatter";
 import { LEVERAGE_DECIMALS } from "./constants";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
@@ -17,7 +18,8 @@ export interface TxSerialized {
     | "TxRepayAccount"
     | "TxCloseAccount"
     | "TxApprove"
-    | "TxOpenMultitokenAccount";
+    | "TxOpenMultitokenAccount"
+    | "TxClaimReward";
   content: string;
 }
 
@@ -50,6 +52,8 @@ export class TxSerializer {
           return new TxApprove(params);
         case "TxOpenMultitokenAccount":
           return new TxOpenMultitokenAccount(params);
+        case "TxClaimReward":
+          return new TxClaimReward(params);
         default:
           throw new Error("Unknown transaction for parsing");
       }
@@ -82,12 +86,15 @@ export class TxAddLiquidity extends EVMTx {
     this.pool = opts.pool;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken.toLowerCase()];
+  toString(): string {
+    const [underlyingSymbol, underlyingDecimals] = extractTokenData(
+      this.underlyingToken,
+    );
+
     return `${getContractName(this.pool)}: Deposit ${formatBN(
       this.amount,
-      token?.decimals || 18,
-    )} ${token?.symbol || ""}`;
+      underlyingDecimals || 18,
+    )} ${underlyingSymbol}`;
   }
 
   serialize(): TxSerialized {
@@ -123,12 +130,13 @@ export class TxRemoveLiquidity extends EVMTx {
     this.pool = opts.pool;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const dtoken = tokenData[this.dieselToken.toLowerCase()];
+  toString(): string {
+    const [dSymbol, dDecimals] = extractTokenData(this.dieselToken);
+
     return `${getContractName(this.pool)}: Withdraw ${formatBN(
       this.amount,
-      dtoken?.decimals || 18,
-    )} ${dtoken?.symbol || ""}`;
+      dDecimals || 18,
+    )} ${dSymbol}`;
   }
 
   serialize(): TxSerialized {
@@ -180,22 +188,22 @@ export class TXSwap extends EVMTx {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const tokenFrom = tokenData[this.tokenFrom.toLowerCase()];
-
+  toString(): string {
     let toPart = "";
     if (this.tokenTo && this.amountTo) {
-      const tokenTo = tokenData[this.tokenTo.toLowerCase()];
-      toPart = ` ⇒  ${formatBN(this.amountTo, tokenTo?.decimals || 18)} ${
-        tokenTo?.symbol || ""
-      }`;
+      const [toSymbol, toDecimals] = extractTokenData(this.tokenTo);
+
+      toPart = ` ⇒  ${formatBN(this.amountTo, toDecimals || 18)} ${toSymbol}`;
     }
+
+    const [fromSymbol, fromDecimals] = extractTokenData(this.tokenFrom);
 
     return `Credit account ${getContractName(this.creditManager)}: ${
       this.operation
-    } ${formatBN(this.amountFrom, tokenFrom?.decimals || 18)} ${
-      tokenFrom?.symbol || ""
-    } ${toPart} on ${getContractName(this.protocol)}`;
+    } ${formatBN(
+      this.amountFrom,
+      fromDecimals || 18,
+    )} ${fromSymbol} ${toPart} on ${getContractName(this.protocol)}`;
   }
 
   serialize(): TxSerialized {
@@ -231,13 +239,15 @@ export class TxAddCollateral extends EVMTx {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const addedToken = tokenData[this.addedToken.toLowerCase()];
+  toString(): string {
+    const [addedSymbol, addedDecimals] = extractTokenData(this.addedToken);
+
     return `Credit account ${getContractName(
       this.creditManager,
-    )}: Added ${formatBN(this.amount, addedToken.decimals)} ${
-      addedToken.symbol
-    } as collateral`;
+    )}: Added ${formatBN(
+      this.amount,
+      addedDecimals || 18,
+    )} ${addedSymbol} as collateral`;
   }
 
   serialize(): TxSerialized {
@@ -273,14 +283,15 @@ export class TxIncreaseBorrowAmount extends EVMTx {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken.toLowerCase()];
+  toString(): string {
+    const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
+
     return `Credit account ${getContractName(
       this.creditManager,
     )}: Borrowed amount was increased for ${formatBN(
       this.amount,
-      token?.decimals || 18,
-    )} ${token?.symbol}`;
+      tokenDecimals || 18,
+    )} ${tokenSymbol}`;
   }
 
   serialize(): TxSerialized {
@@ -320,19 +331,21 @@ export class TxOpenAccount extends EVMTx {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken.toLowerCase()];
+  toString(): string {
+    const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
+
     return `Credit account ${getContractName(
       this.creditManager,
-    )}: opening ${formatBN(this.amount, token?.decimals || 18)} ${
-      token?.symbol
-    } x ${this.leverage.toFixed(2)} ⇒ 
+    )}: opening ${formatBN(
+      this.amount,
+      tokenDecimals || 18,
+    )} ${tokenSymbol} x ${this.leverage.toFixed(2)} ⇒ 
     ${formatBN(
       this.amount
         .mul(Math.floor(this.leverage * LEVERAGE_DECIMALS))
         .div(LEVERAGE_DECIMALS),
-      token?.decimals || 18,
-    )} ${token?.symbol}`;
+      tokenDecimals || 18,
+    )} ${tokenSymbol}`;
   }
 
   serialize(): TxSerialized {
@@ -372,29 +385,63 @@ export class TxOpenMultitokenAccount extends EVMTx {
     this.assets = opts.assets;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const underlyingToken = tokenData[this.underlyingToken.toLowerCase()];
-
+  toString(): string {
     const assetSymbols = this.assets.reduce<Array<string>>(
       (acc, assetAddress) => {
-        const token = tokenData[assetAddress.toLowerCase()];
-        if (token) acc.push(token.symbol);
+        const [tokenSymbol] = extractTokenData(assetAddress);
+        if (tokenSymbol) acc.push(tokenSymbol);
         return acc;
       },
       [],
     );
 
+    const [symbol, underlyingDecimals] = extractTokenData(this.underlyingToken);
+
     return `Credit account ${getContractName(
       this.creditManager,
     )}: opening. Borrowed amount: ${formatBN(
       this.borrowedAmount,
-      underlyingToken?.decimals || 18,
-    )} ${underlyingToken?.symbol}; assets: ${assetSymbols.join(", ")}`;
+      underlyingDecimals || 18,
+    )} ${symbol}; assets: ${assetSymbols.join(", ")}`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxOpenMultitokenAccount",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxClaimRewardProps extends EVMTxProps {
+  contracts: Array<SupportedContract>;
+}
+
+export class TxClaimReward extends EVMTx {
+  public readonly contracts: Array<SupportedContract>;
+
+  constructor(opts: TxClaimRewardProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+    this.contracts = opts.contracts;
+  }
+
+  toString(): string {
+    const contractNames = this.contracts.map(contract => {
+      const contractInfo = contractParams[contract];
+      return contractInfo.name;
+    });
+
+    return `Pools reward claimed: ${contractNames.join(", ")}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxClaimReward",
       content: JSON.stringify(this),
     };
   }
@@ -479,9 +526,9 @@ export class TxApprove extends EVMTx {
     this.token = opts.token;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.token.toLowerCase()];
-    return `Approve ${token?.symbol}`;
+  toString(): string {
+    const [symbol] = extractTokenData(this.token);
+    return `Approve ${symbol}`;
   }
 
   serialize(): TxSerialized {
