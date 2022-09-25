@@ -223,7 +223,7 @@ export type LidoParams = {
 
 export type LidoWsthETHParams = {
   protocol: Protocols.Lido;
-  type: AdapterInterface.LIDO_WSTETH;
+  type: AdapterInterface.LIDO_WSTETH_V1;
 } & BaseContractParams;
 
 export type UniversalParams = {
@@ -459,7 +459,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   LIDO_WSTETH: {
     name: "Lido wstETH",
     protocol: Protocols.Lido,
-    type: AdapterInterface.LIDO_WSTETH,
+    type: AdapterInterface.LIDO_WSTETH_V1,
   },
 
   UNIVERSAL_ADAPTER: {
