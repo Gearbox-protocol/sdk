@@ -54,6 +54,7 @@ export type SupportedContract =
   | ConvexPoolContract
   | "CONVEX_CLAIM_ZAP"
   | "LIDO_STETH_GATEWAY"
+  | "LIDO_WSTETH"
   | "UNIVERSAL_ADAPTER";
 
 export const contractsByNetwork: Record<
@@ -94,6 +95,7 @@ export const contractsByNetwork: Record<
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x55045Eaae19d92680E02231e4Ce7bBEB4814ca64",
+    LIDO_WSTETH: tokenDataByNetwork.Mainnet.wstETH,
 
     // GEARBOX
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
@@ -142,6 +144,7 @@ export const contractsByNetwork: Record<
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x1dad4166D00046acf643ce19ab94b644C3B07c9D",
+    LIDO_WSTETH: tokenDataByNetwork.Goerli.wstETH,
 
     // GEARBOX
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
@@ -218,6 +221,11 @@ export type LidoParams = {
   lpToken: "steCRV";
 } & BaseContractParams;
 
+export type LidoWsthETHParams = {
+  protocol: Protocols.Lido;
+  type: AdapterInterface.LIDO_WSTETH;
+} & BaseContractParams;
+
 export type UniversalParams = {
   protocol: Protocols.Gearbox;
   type: AdapterInterface.UNIVERSAL;
@@ -232,6 +240,7 @@ export type ContractParams =
   | ConvexParams
   | ConvexPoolParams
   | LidoParams
+  | LidoWsthETHParams
   | UniversalParams;
 
 export const contractParams: Record<SupportedContract, ContractParams> = {
@@ -445,6 +454,12 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
       Goerli: "0x2840CeAeeA3d0Af1beDBeB64539406793180709E", // LIDO_ORACLE
     },
     lpToken: "steCRV",
+  },
+
+  LIDO_WSTETH: {
+    name: "Lido wstETH",
+    protocol: Protocols.Lido,
+    type: AdapterInterface.LIDO_WSTETH,
   },
 
   UNIVERSAL_ADAPTER: {
