@@ -1,6 +1,12 @@
+import { NetworkType } from "../core/constants";
 import { shortAddress } from "../utils/formatter";
 import { keyToLowercase } from "../utils/mappers";
 import { contractParams, contractsByAddress } from "./contracts";
+
+export const stEthPoolWrapper: Record<NetworkType, string> = {
+  Mainnet: "Deploy me",
+  Goerli: "0x7D625991f71d473E3EA1DC819Ce583cD36D00C88",
+};
 
 export const deployedContracts: Record<string, string> = {
   // MAINNET
