@@ -90,6 +90,8 @@ export type { IwstETH } from "./contracts/integrations/lido/IwstETH.sol/IwstETH"
 export { IwstETH__factory } from "./factories/contracts/integrations/lido/IwstETH.sol/IwstETH__factory";
 export type { IwstETHGetters } from "./contracts/integrations/lido/IwstETH.sol/IwstETHGetters";
 export { IwstETHGetters__factory } from "./factories/contracts/integrations/lido/IwstETH.sol/IwstETHGetters__factory";
+export type { IwstETHGateWay } from "./contracts/integrations/lido/IwstETHGateway.sol/IwstETHGateWay";
+export { IwstETHGateWay__factory } from "./factories/contracts/integrations/lido/IwstETHGateway.sol/IwstETHGateWay__factory";
 export type { IQuoter } from "./contracts/integrations/uniswap/IQuoter";
 export { IQuoter__factory } from "./factories/contracts/integrations/uniswap/IQuoter__factory";
 export type { IUniswapV2Router01 } from "./contracts/integrations/uniswap/IUniswapV2Router01";
@@ -266,6 +268,8 @@ export type { IWithdrawer } from "./contracts/pathfinder/interfaces/IWithdrawer.
 export { IWithdrawer__factory } from "./factories/contracts/pathfinder/interfaces/IWithdrawer.sol/IWithdrawer__factory";
 export type { IWithdrawerOptions } from "./contracts/pathfinder/interfaces/IWithdrawer.sol/IWithdrawerOptions";
 export { IWithdrawerOptions__factory } from "./factories/contracts/pathfinder/interfaces/IWithdrawer.sol/IWithdrawerOptions__factory";
+export type { IWrapper } from "./contracts/pathfinder/interfaces/IWrapper";
+export { IWrapper__factory } from "./factories/contracts/pathfinder/interfaces/IWrapper__factory";
 export type { ILidoMockEvents } from "./contracts/test/mocks/integrations/LidoMock.sol/ILidoMockEvents";
 export { ILidoMockEvents__factory } from "./factories/contracts/test/mocks/integrations/LidoMock.sol/ILidoMockEvents__factory";
 export type { ILockedCvx } from "./contracts/test/sigp/interfaces/ILockedCvx";

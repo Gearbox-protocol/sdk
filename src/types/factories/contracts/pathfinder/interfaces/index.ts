@@ -11,3 +11,4 @@ export { IPathFinderComponent__factory } from "./IPathFinderComponent__factory";
 export { IPathResolver__factory } from "./IPathResolver__factory";
 export { ISwapAggregator__factory } from "./ISwapAggregator__factory";
 export { ISwapper__factory } from "./ISwapper__factory";
+export { IWrapper__factory } from "./IWrapper__factory";

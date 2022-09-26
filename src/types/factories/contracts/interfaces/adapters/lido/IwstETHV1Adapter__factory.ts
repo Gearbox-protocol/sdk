@@ -182,6 +182,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "stETH",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "stEthPerToken",
     outputs: [
       {

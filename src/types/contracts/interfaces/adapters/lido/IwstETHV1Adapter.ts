@@ -34,6 +34,7 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
     "getStETHByWstETH(uint256)": FunctionFragment;
     "getWstETHByStETH(uint256)": FunctionFragment;
     "name()": FunctionFragment;
+    "stETH()": FunctionFragment;
     "stEthPerToken()": FunctionFragment;
     "symbol()": FunctionFragment;
     "targetContract()": FunctionFragment;
@@ -57,6 +58,7 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
       | "getStETHByWstETH"
       | "getWstETHByStETH"
       | "name"
+      | "stETH"
       | "stEthPerToken"
       | "symbol"
       | "targetContract"
@@ -99,6 +101,7 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(functionFragment: "stETH", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stEthPerToken",
     values?: undefined
@@ -152,6 +155,7 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "stETH", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "stEthPerToken",
     data: BytesLike
@@ -237,6 +241,8 @@ export interface IwstETHV1Adapter extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
+    stETH(overrides?: CallOverrides): Promise<[string]>;
+
     stEthPerToken(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
@@ -295,6 +301,8 @@ export interface IwstETHV1Adapter extends BaseContract {
   ): Promise<BigNumber>;
 
   name(overrides?: CallOverrides): Promise<string>;
+
+  stETH(overrides?: CallOverrides): Promise<string>;
 
   stEthPerToken(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -355,6 +363,8 @@ export interface IwstETHV1Adapter extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<string>;
 
+    stETH(overrides?: CallOverrides): Promise<string>;
+
     stEthPerToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
@@ -412,6 +422,8 @@ export interface IwstETHV1Adapter extends BaseContract {
     ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
+
+    stETH(overrides?: CallOverrides): Promise<BigNumber>;
 
     stEthPerToken(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -479,6 +491,8 @@ export interface IwstETHV1Adapter extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    stETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     stEthPerToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

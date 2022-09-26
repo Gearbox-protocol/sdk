@@ -14,3 +14,4 @@ export type { IPathFinderComponent } from "./IPathFinderComponent";
 export type { IPathResolver } from "./IPathResolver";
 export type { ISwapAggregator } from "./ISwapAggregator";
 export type { ISwapper } from "./ISwapper";
+export type { IWrapper } from "./IWrapper";
