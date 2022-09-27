@@ -34,7 +34,7 @@ export * from "./utils/validate";
 // Tokens
 export * from "./apy";
 export { AdapterInterface } from "./contracts/adapters";
-export { getContractName } from "./contracts/contractsRegister";
+export * from "./contracts/contractsRegister";
 export * from "./core/history";
 export * from "./parsers/txParser";
 export * from "./pathfinder/core";
