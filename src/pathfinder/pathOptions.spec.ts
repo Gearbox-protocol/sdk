@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { BigNumberish } from "ethers";
 
+import { CurveLPToken } from "../tokens/curveLP";
 import { tokenDataByNetwork } from "../tokens/token";
 import { PathOptionFactory, PathOptionSerie } from "./pathOptions";
 
@@ -98,5 +99,85 @@ describe("PathOptionFactory test", () => {
       expected[0].option = i;
       expect(expected).to.be.eql(result[i]);
     }
+  });
+
+  it(" getCurvePools works correctly", () => {
+    let balances: Record<string, BigNumberish> = {
+      [tokenDataByNetwork.Mainnet["1INCH"]]: 100,
+      [tokenDataByNetwork.Mainnet["3Crv"]]: 200,
+      [tokenDataByNetwork.Mainnet.USDC]: 200,
+      [tokenDataByNetwork.Mainnet.FRAX3CRV]: 200,
+      [tokenDataByNetwork.Mainnet.LUSD3CRV]: 200,
+    };
+
+    let expectedCurvePools: Array<CurveLPToken> = [
+      "3Crv",
+      "FRAX3CRV",
+      "LUSD3CRV",
+    ];
+
+    expect(PathOptionFactory.getCurvePools(balances)).to.be.eql(
+      expectedCurvePools,
+    );
+
+    balances = {
+      [tokenDataByNetwork.Mainnet["1INCH"]]: 100,
+      [tokenDataByNetwork.Mainnet["3Crv"]]: 200,
+      [tokenDataByNetwork.Mainnet.USDC]: 200,
+      [tokenDataByNetwork.Mainnet.yvCurve_FRAX]: 200,
+      [tokenDataByNetwork.Mainnet.yvCurve_stETH]: 200,
+    };
+
+    expectedCurvePools = ["3Crv", "FRAX3CRV", "steCRV"];
+
+    expect(PathOptionFactory.getCurvePools(balances)).to.be.eql(
+      expectedCurvePools,
+    );
+
+    balances = {
+      [tokenDataByNetwork.Mainnet["1INCH"]]: 100,
+      [tokenDataByNetwork.Mainnet.USDC]: 200,
+      [tokenDataByNetwork.Mainnet.cvx3Crv]: 200,
+      [tokenDataByNetwork.Mainnet.cvxFRAX3CRV]: 200,
+    };
+
+    expectedCurvePools = ["3Crv", "FRAX3CRV"];
+
+    expect(PathOptionFactory.getCurvePools(balances)).to.be.eql(
+      expectedCurvePools,
+    );
+
+    balances = {
+      [tokenDataByNetwork.Mainnet.wstETH]: 100,
+      [tokenDataByNetwork.Mainnet.USDC]: 200,
+      [tokenDataByNetwork.Mainnet.stkcvx3Crv]: 200,
+      [tokenDataByNetwork.Mainnet.stkcvxFRAX3CRV]: 200,
+    };
+
+    expectedCurvePools = ["3Crv", "FRAX3CRV"];
+
+    expect(PathOptionFactory.getCurvePools(balances)).to.be.eql(
+      expectedCurvePools,
+    );
+
+    balances = {
+      [tokenDataByNetwork.Mainnet["3Crv"]]: 100,
+      [tokenDataByNetwork.Mainnet.USDC]: 200,
+      [tokenDataByNetwork.Mainnet.stkcvx3Crv]: 200,
+      [tokenDataByNetwork.Mainnet.cvx3Crv]: 200,
+      [tokenDataByNetwork.Mainnet.yvCurve_stETH]: 200,
+    };
+
+    expectedCurvePools = ["3Crv", "steCRV"];
+
+    expect(PathOptionFactory.getCurvePools(balances)).to.be.eql(
+      expectedCurvePools,
+    );
+  });
+
+  it("detectNetwork works correctly", () => {
+    expect(
+      PathOptionFactory.detectNetwork(tokenDataByNetwork.Mainnet["1INCH"]),
+    ).to.be.eq("Mainnet");
   });
 });

@@ -188,7 +188,6 @@ const convexStakedPhantomTokens: Record<
 > = {
   stkcvx3Crv: {
     name: "Convex stkcvx3Crv",
-
     symbol: "stkcvx3Crv",
     type: TokenType.CONVEX_STAKED_TOKEN,
     pool: "CONVEX_3CRV_POOL",
