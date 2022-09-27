@@ -106,29 +106,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "enum Tokens[]",
-        name: "tokensToApprove",
-        type: "uint8[]",
-      },
-      {
-        internalType: "address",
-        name: "holder",
-        type: "address",
-      },
-      {
-        internalType: "enum Contracts",
-        name: "targetContract",
-        type: "uint8",
-      },
-    ],
-    name: "approveMany",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "enum Tokens",
         name: "t",
         type: "uint8",
@@ -192,52 +169,6 @@ const _abi = [
       },
     ],
     name: "mint",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "mintWithTotalSupply",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "enum Tokens",
-        name: "t",
-        type: "uint8",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "mintWithTotalSupply",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

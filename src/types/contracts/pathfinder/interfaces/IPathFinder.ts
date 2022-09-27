@@ -192,15 +192,11 @@ export interface IPathFinderInterface extends utils.Interface {
 
   events: {
     "PathFinderComponentUpdate(uint8,address)": EventFragment;
-    "ResolverComponentUpdateFailed(address)": EventFragment;
     "ResolverUpdate(uint8,uint8,uint8)": EventFragment;
     "TokenTypeUpdate(address,uint8)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "PathFinderComponentUpdate"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "ResolverComponentUpdateFailed"
-  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ResolverUpdate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenTypeUpdate"): EventFragment;
 }
@@ -216,17 +212,6 @@ export type PathFinderComponentUpdateEvent = TypedEvent<
 
 export type PathFinderComponentUpdateEventFilter =
   TypedEventFilter<PathFinderComponentUpdateEvent>;
-
-export interface ResolverComponentUpdateFailedEventObject {
-  arg0: string;
-}
-export type ResolverComponentUpdateFailedEvent = TypedEvent<
-  [string],
-  ResolverComponentUpdateFailedEventObject
->;
-
-export type ResolverComponentUpdateFailedEventFilter =
-  TypedEventFilter<ResolverComponentUpdateFailedEvent>;
 
 export interface ResolverUpdateEventObject {
   arg0: number;
@@ -454,13 +439,6 @@ export interface IPathFinder extends BaseContract {
       arg0?: BigNumberish | null,
       arg1?: string | null
     ): PathFinderComponentUpdateEventFilter;
-
-    "ResolverComponentUpdateFailed(address)"(
-      arg0?: null
-    ): ResolverComponentUpdateFailedEventFilter;
-    ResolverComponentUpdateFailed(
-      arg0?: null
-    ): ResolverComponentUpdateFailedEventFilter;
 
     "ResolverUpdate(uint8,uint8,uint8)"(
       arg0?: BigNumberish | null,

@@ -28,12 +28,9 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
     "approve(uint8,address,address,uint256)": FunctionFragment;
     "approve(uint8,address,address)": FunctionFragment;
     "approve(address,address,address)": FunctionFragment;
-    "approveMany(uint8[],address,uint8)": FunctionFragment;
     "balanceOf(uint8,address)": FunctionFragment;
     "mint(address,address,uint256)": FunctionFragment;
     "mint(uint8,address,uint256)": FunctionFragment;
-    "mintWithTotalSupply(address,address,uint256)": FunctionFragment;
-    "mintWithTotalSupply(uint8,address,uint256)": FunctionFragment;
     "symbols(uint8)": FunctionFragment;
     "tokenCount()": FunctionFragment;
     "tokenIndexes(address)": FunctionFragment;
@@ -47,12 +44,9 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
       | "approve(uint8,address,address,uint256)"
       | "approve(uint8,address,address)"
       | "approve(address,address,address)"
-      | "approveMany"
       | "balanceOf"
       | "mint(address,address,uint256)"
       | "mint(uint8,address,uint256)"
-      | "mintWithTotalSupply(address,address,uint256)"
-      | "mintWithTotalSupply(uint8,address,uint256)"
       | "symbols"
       | "tokenCount"
       | "tokenIndexes"
@@ -77,10 +71,6 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
     values: [string, string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "approveMany",
-    values: [BigNumberish[], string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "balanceOf",
     values: [BigNumberish, string]
   ): string;
@@ -90,14 +80,6 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mint(uint8,address,uint256)",
-    values: [BigNumberish, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "mintWithTotalSupply(address,address,uint256)",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "mintWithTotalSupply(uint8,address,uint256)",
     values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -134,10 +116,6 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
     functionFragment: "approve(address,address,address)",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "approveMany",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "mint(address,address,uint256)",
@@ -145,14 +123,6 @@ export interface ITokenTestSuiteInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "mint(uint8,address,uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "mintWithTotalSupply(address,address,uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "mintWithTotalSupply(uint8,address,uint256)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "symbols", data: BytesLike): Result;
@@ -218,13 +188,6 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    approveMany(
-      tokensToApprove: BigNumberish[],
-      holder: string,
-      targetContract: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     balanceOf(
       t: BigNumberish,
       holder: string,
@@ -239,20 +202,6 @@ export interface ITokenTestSuite extends BaseContract {
     ): Promise<ContractTransaction>;
 
     "mint(uint8,address,uint256)"(
-      t: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "mintWithTotalSupply(address,address,uint256)"(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "mintWithTotalSupply(uint8,address,uint256)"(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
@@ -301,13 +250,6 @@ export interface ITokenTestSuite extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  approveMany(
-    tokensToApprove: BigNumberish[],
-    holder: string,
-    targetContract: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   balanceOf(
     t: BigNumberish,
     holder: string,
@@ -322,20 +264,6 @@ export interface ITokenTestSuite extends BaseContract {
   ): Promise<ContractTransaction>;
 
   "mint(uint8,address,uint256)"(
-    t: BigNumberish,
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "mintWithTotalSupply(address,address,uint256)"(
-    token: string,
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "mintWithTotalSupply(uint8,address,uint256)"(
     t: BigNumberish,
     to: string,
     amount: BigNumberish,
@@ -381,13 +309,6 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    approveMany(
-      tokensToApprove: BigNumberish[],
-      holder: string,
-      targetContract: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     balanceOf(
       t: BigNumberish,
       holder: string,
@@ -402,20 +323,6 @@ export interface ITokenTestSuite extends BaseContract {
     ): Promise<void>;
 
     "mint(uint8,address,uint256)"(
-      t: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "mintWithTotalSupply(address,address,uint256)"(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "mintWithTotalSupply(uint8,address,uint256)"(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
@@ -464,13 +371,6 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    approveMany(
-      tokensToApprove: BigNumberish[],
-      holder: string,
-      targetContract: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     balanceOf(
       t: BigNumberish,
       holder: string,
@@ -485,20 +385,6 @@ export interface ITokenTestSuite extends BaseContract {
     ): Promise<BigNumber>;
 
     "mint(uint8,address,uint256)"(
-      t: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "mintWithTotalSupply(address,address,uint256)"(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "mintWithTotalSupply(uint8,address,uint256)"(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,
@@ -548,13 +434,6 @@ export interface ITokenTestSuite extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    approveMany(
-      tokensToApprove: BigNumberish[],
-      holder: string,
-      targetContract: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     balanceOf(
       t: BigNumberish,
       holder: string,
@@ -569,20 +448,6 @@ export interface ITokenTestSuite extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     "mint(uint8,address,uint256)"(
-      t: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "mintWithTotalSupply(address,address,uint256)"(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "mintWithTotalSupply(uint8,address,uint256)"(
       t: BigNumberish,
       to: string,
       amount: BigNumberish,

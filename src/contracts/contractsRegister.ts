@@ -29,6 +29,7 @@ export const deployedContracts: Record<string, string> = {
   "0xF0A7BE2EB39bBbd55fc5597F93E01f62A790e587": "USDC",
   "0x560F2aa70003af4A69Bc79bB3c40955d396305aE": "WETH",
   "0x9f07160C42d5d8325E3Aa50e0075Ef3A8E4DcA9B": "WBTC",
+  "0xd720fe603eb3d954a8586433e78f02e248eae4c0": "wstETH",
 };
 
 const contractNames = Object.entries(contractsByAddress).reduce<
