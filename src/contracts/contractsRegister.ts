@@ -23,6 +23,7 @@ export const deployedContracts: Record<string, string> = {
   "0x2B16eA2D7a1b13d115d05B03Fd0E5984eFA0F18D": "DAI",
   "0x19e8293f46caE0770d608a3078EFb59f0B0166aa": "USDC",
   "0x9149A40293d0bc17f07DaFC7F6282b267D3C68C8": "WETH",
+  "0x70ba4442e9c76269f9f2c31c8884fc7880f40d4a": "wstETH",
 
   // GOERLI pools
   "0xEA7D5CaE79Cdf2E07E0aa7edfB1AF7A429Cb7513": "DAI",
