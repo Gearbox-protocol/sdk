@@ -24,6 +24,7 @@ const NAME_DICTIONARY: Record<CurveLPToken, string> = {
   LUSD3CRV: "lusd",
   crvPlain3andSUSD: "susdv2",
   steCRV: "steth",
+  crvFRAX: "fraxusdc", // TODO: CHECK!
 };
 
 const RESPONSE_DECIMALS = 100;
@@ -56,6 +57,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
   } catch (e) {
     return {
       "3Crv": ZERO,
+      crvFRAX: ZERO,
       FRAX3CRV: ZERO,
       gusd3CRV: ZERO,
       LUSD3CRV: ZERO,

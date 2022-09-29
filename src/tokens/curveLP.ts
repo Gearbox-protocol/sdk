@@ -12,7 +12,8 @@ export type CurveLPToken =
   | "FRAX3CRV"
   | "LUSD3CRV"
   | "crvPlain3andSUSD"
-  | "gusd3CRV";
+  | "gusd3CRV"
+  | "crvFRAX";
 
 export type CurveLPTokenData = {
   symbol: CurveLPToken;
@@ -50,6 +51,30 @@ export const curveTokens: Record<
     symbol: "3Crv",
     type: TokenType.CURVE_LP_TOKEN,
     pool: "CURVE_3CRV_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_3CRV_POOL",
+        tokenOut: ["DAI", "USDC", "USDT"],
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvx3Crv",
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvx3Crv",
+      },
+    ],
+  },
+
+  crvFRAX: {
+    name: "Curve.fi FRAX/USDC",
+    symbol: "3Crv",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_FRAX_USDC_POOL",
     lpActions: [
       {
         type: TradeType.CurveWithdrawLP,

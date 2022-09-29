@@ -22,6 +22,7 @@ export type UniswapV2Contract = "UNISWAP_V2_ROUTER" | "SUSHISWAP_ROUTER";
 
 export type CurvePoolContract =
   | "CURVE_3CRV_POOL"
+  | "CURVE_FRAX_USDC_POOL"
   | "CURVE_STETH_GATEWAY"
   | "CURVE_FRAX_POOL"
   | "CURVE_LUSD_POOL"
@@ -68,6 +69,7 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3CRV_POOL: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", // SEPARATE TOKEN
+    CURVE_FRAX_USDC_POOL: "0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC",
     CURVE_STETH_GATEWAY: "0x0c304D4cff4C562BcF09e198a30611a853d1Cad8", // SEPARATE TOKEN
     CURVE_FRAX_POOL: tokenDataByNetwork.Mainnet.FRAX3CRV,
     CURVE_LUSD_POOL: tokenDataByNetwork.Mainnet.LUSD3CRV,
@@ -117,6 +119,7 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3CRV_POOL: "0x6491f8A62678c90C84b237791d9D7cF21b4D1418",
+    CURVE_FRAX_USDC_POOL: "DEPLOY_ME",
     CURVE_STETH_GATEWAY: "0xcD4b22ed0E2aD95d648C6E4c45B38f83D0Cbb654",
     CURVE_FRAX_POOL: tokenDataByNetwork.Goerli.FRAX3CRV,
     CURVE_LUSD_POOL: tokenDataByNetwork.Goerli.LUSD3CRV,
@@ -268,6 +271,13 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "3Crv",
     tokens: ["DAI", "USDC", "USDT"],
+  },
+  CURVE_FRAX_USDC_POOL: {
+    name: "Curve 3Pool",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_3ASSETS,
+    lpToken: "crvFRAX",
+    tokens: ["FRAX", "USDC"],
   },
   CURVE_STETH_GATEWAY: {
     name: "Curve stETH",
