@@ -17,6 +17,7 @@ import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
+import { WstETHAdapterParser } from "./wstETHAdapterParser";
 import { YearnV2AdapterParser } from "./yearnV2AdapterParser";
 
 export interface AdapterForParser {
@@ -142,6 +143,12 @@ export class TxParser {
         break;
       case "LIDO_V1":
         TxParser.parsers[addressLC] = new LidoAdapterParser(
+          contract,
+          isContract,
+        );
+        break;
+      case "LIDO_WSTETH_V1":
+        TxParser.parsers[addressLC] = new WstETHAdapterParser(
           contract,
           isContract,
         );
