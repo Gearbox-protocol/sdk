@@ -40,6 +40,7 @@ export type YearnVaultContract =
 
 export type ConvexPoolContract =
   | "CONVEX_3CRV_POOL"
+  | "CONVEX_FRAX_USDC_POOL"
   | "CONVEX_GUSD_POOL"
   | "CONVEX_SUSD_POOL"
   | "CONVEX_STECRV_POOL"
@@ -88,6 +89,7 @@ export const contractsByNetwork: Record<
     // CONVEX
     CONVEX_BOOSTER: "0xF403C135812408BFbE8713b5A23a04b3D48AAE31",
     CONVEX_3CRV_POOL: "0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8",
+    CONVEX_FRAX_USDC_POOL: "0x7e880867363A7e321f5d260Cade2B0Bb2F717B02",
     CONVEX_GUSD_POOL: "0x7A7bBf95C44b144979360C3300B54A7D34b44985",
     CONVEX_SUSD_POOL: "0x22eE18aca7F3Ee920D01F25dA85840D12d98E8Ca",
     CONVEX_STECRV_POOL: "0x0A760466E1B4621579a82a39CB56Dda2F4E70f03",
@@ -138,6 +140,7 @@ export const contractsByNetwork: Record<
     // CONVEX
     CONVEX_BOOSTER: "0xbd1D47bbF57F49D9a72ca7f879A096d3abDF4c40",
     CONVEX_3CRV_POOL: "0xfB9b98558c3d6851291Fbf74fa7F022a787cD795",
+    CONVEX_FRAX_USDC_POOL: "DEPOLOY ME",
     CONVEX_STECRV_POOL: "0xd9de8eA4289e7a4458Bebad8c31bb7576f1C2B72",
     CONVEX_SUSD_POOL: "0x85825316be95FBb3F6B5a2Dd9f1eb9577803e441",
     CONVEX_FRAX3CRV_POOL: "0x08513eA45fdd7A9cFC33702f722090a182e4a101",
@@ -264,7 +267,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Sushiswap,
     type: AdapterInterface.UNISWAP_V2_ROUTER,
   },
-
   CURVE_3CRV_POOL: {
     name: "Curve 3Pool",
     protocol: Protocols.Curve,
@@ -273,9 +275,9 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     tokens: ["DAI", "USDC", "USDT"],
   },
   CURVE_FRAX_USDC_POOL: {
-    name: "Curve 3Pool",
+    name: "Curve crvFRAX",
     protocol: Protocols.Curve,
-    type: AdapterInterface.CURVE_V1_3ASSETS,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvFRAX",
     tokens: ["FRAX", "USDC"],
   },
@@ -385,6 +387,13 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvx3Crv",
+    extraRewards: [],
+  },
+  CONVEX_FRAX_USDC_POOL: {
+    name: "Convex crvFRAX",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvFRAX",
     extraRewards: [],
   },
   CONVEX_GUSD_POOL: {

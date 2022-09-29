@@ -2,13 +2,13 @@ import type {
   ConvexPoolContract,
   SupportedContract,
 } from "../contracts/contracts";
-import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
 import type { CurveLPToken } from "./curveLP";
 import type { SupportedToken, TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
 export type ConvexLPToken =
   | "cvx3Crv"
+  | "cvxcrvFRAX"
   | "cvxsteCRV"
   | "cvxFRAX3CRV"
   | "cvxLUSD3CRV"
@@ -17,6 +17,7 @@ export type ConvexLPToken =
 
 export type ConvexStakedPhantomToken =
   | "stkcvx3Crv"
+  | "stkcvxcrvFRAX"
   | "stkcvxsteCRV"
   | "stkcvxFRAX3CRV"
   | "stkcvxLUSD3CRV"
@@ -27,7 +28,6 @@ type BaseConvexToken = {
   pool: ConvexPoolContract;
   pid: number;
   underlying: CurveLPToken;
-  lpActions: Array<TradeAction>;
 } & TokenBase;
 
 export type ConvexLPTokenData = {
@@ -52,18 +52,17 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
     pid: 9,
     underlying: "3Crv",
     stakedToken: "stkcvx3Crv",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdrawLP,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "3Crv",
-      },
-      {
-        type: TradeType.ConvexStake,
-        contract: "CONVEX_3CRV_POOL",
-        tokenOut: "stkcvx3Crv",
-      },
-    ],
+  },
+
+  cvxcrvFRAX: {
+    name: "Convex cvxcrvFRAX",
+
+    symbol: "cvxcrvFRAX",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_FRAX_USDC_POOL",
+    pid: 100,
+    underlying: "crvFRAX",
+    stakedToken: "stkcvx3Crv",
   },
 
   cvxsteCRV: {
@@ -75,18 +74,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
     pid: 25,
     underlying: "steCRV",
     stakedToken: "stkcvxsteCRV",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdrawLP,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "steCRV",
-      },
-      {
-        type: TradeType.ConvexStake,
-        contract: "CONVEX_STECRV_POOL",
-        tokenOut: "stkcvxsteCRV",
-      },
-    ],
   },
 
   cvxFRAX3CRV: {
@@ -98,18 +85,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
     pid: 32,
     underlying: "FRAX3CRV",
     stakedToken: "stkcvxFRAX3CRV",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdrawLP,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "FRAX3CRV",
-      },
-      {
-        type: TradeType.ConvexStake,
-        contract: "CONVEX_FRAX3CRV_POOL",
-        tokenOut: "stkcvxFRAX3CRV",
-      },
-    ],
   },
 
   cvxLUSD3CRV: {
@@ -121,18 +96,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
     pid: 33,
     underlying: "LUSD3CRV",
     stakedToken: "stkcvxLUSD3CRV",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdrawLP,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "LUSD3CRV",
-      },
-      {
-        type: TradeType.ConvexStake,
-        contract: "CONVEX_LUSD3CRV_POOL",
-        tokenOut: "stkcvxLUSD3CRV",
-      },
-    ],
   },
 
   cvxcrvPlain3andSUSD: {
@@ -144,18 +107,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
     pid: 4,
     underlying: "crvPlain3andSUSD",
     stakedToken: "stkcvxcrvPlain3andSUSD",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdrawLP,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "crvPlain3andSUSD",
-      },
-      {
-        type: TradeType.ConvexStake,
-        contract: "CONVEX_SUSD_POOL",
-        tokenOut: "stkcvxcrvPlain3andSUSD",
-      },
-    ],
   },
 
   cvxgusd3CRV: {
@@ -167,18 +118,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
     pid: 10,
     underlying: "gusd3CRV",
     stakedToken: "stkcvxgusd3CRV",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdrawLP,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "gusd3CRV",
-      },
-      {
-        type: TradeType.ConvexStake,
-        contract: "CONVEX_GUSD_POOL",
-        tokenOut: "stkcvxgusd3CRV",
-      },
-    ],
   },
 };
 
@@ -194,18 +133,17 @@ const convexStakedPhantomTokens: Record<
     pid: 9,
     underlying: "3Crv",
     lpToken: "cvx3Crv",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdraw,
-        contract: "CONVEX_3CRV_POOL",
-        tokenOut: "cvx3Crv",
-      },
-      {
-        type: TradeType.ConvexWithdrawAndUnwrap,
-        contract: "CONVEX_3CRV_POOL",
-        tokenOut: "3Crv",
-      },
-    ],
+  },
+
+  stkcvxcrvFRAX: {
+    name: "Convex stkcvxcrvFRAX",
+
+    symbol: "stkcvxcrvFRAX",
+    type: TokenType.CONVEX_STAKED_TOKEN,
+    pool: "CONVEX_FRAX_USDC_POOL",
+    pid: 100,
+    underlying: "crvFRAX",
+    lpToken: "cvxcrvFRAX",
   },
 
   stkcvxsteCRV: {
@@ -217,18 +155,6 @@ const convexStakedPhantomTokens: Record<
     pid: 25,
     underlying: "steCRV",
     lpToken: "cvxsteCRV",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdraw,
-        contract: "CONVEX_STECRV_POOL",
-        tokenOut: "cvxsteCRV",
-      },
-      {
-        type: TradeType.ConvexWithdrawAndUnwrap,
-        contract: "CONVEX_STECRV_POOL",
-        tokenOut: "steCRV",
-      },
-    ],
   },
 
   stkcvxFRAX3CRV: {
@@ -240,18 +166,6 @@ const convexStakedPhantomTokens: Record<
     pid: 32,
     underlying: "FRAX3CRV",
     lpToken: "cvxFRAX3CRV",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdraw,
-        contract: "CONVEX_FRAX3CRV_POOL",
-        tokenOut: "cvxFRAX3CRV",
-      },
-      {
-        type: TradeType.ConvexWithdrawAndUnwrap,
-        contract: "CONVEX_FRAX3CRV_POOL",
-        tokenOut: "FRAX3CRV",
-      },
-    ],
   },
 
   stkcvxLUSD3CRV: {
@@ -263,18 +177,6 @@ const convexStakedPhantomTokens: Record<
     pid: 33,
     underlying: "LUSD3CRV",
     lpToken: "cvxLUSD3CRV",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdraw,
-        contract: "CONVEX_LUSD3CRV_POOL",
-        tokenOut: "cvxLUSD3CRV",
-      },
-      {
-        type: TradeType.ConvexWithdrawAndUnwrap,
-        contract: "CONVEX_LUSD3CRV_POOL",
-        tokenOut: "LUSD3CRV",
-      },
-    ],
   },
 
   stkcvxcrvPlain3andSUSD: {
@@ -286,18 +188,6 @@ const convexStakedPhantomTokens: Record<
     pid: 4,
     underlying: "crvPlain3andSUSD",
     lpToken: "cvxcrvPlain3andSUSD",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdraw,
-        contract: "CONVEX_SUSD_POOL",
-        tokenOut: "cvxcrvPlain3andSUSD",
-      },
-      {
-        type: TradeType.ConvexWithdrawAndUnwrap,
-        contract: "CONVEX_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD",
-      },
-    ],
   },
 
   stkcvxgusd3CRV: {
@@ -309,18 +199,6 @@ const convexStakedPhantomTokens: Record<
     pid: 10,
     underlying: "gusd3CRV",
     lpToken: "cvxgusd3CRV",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdraw,
-        contract: "CONVEX_GUSD_POOL",
-        tokenOut: "cvxgusd3CRV",
-      },
-      {
-        type: TradeType.ConvexWithdrawAndUnwrap,
-        contract: "CONVEX_GUSD_POOL",
-        tokenOut: "gusd3CRV",
-      },
-    ],
   },
 };
 
