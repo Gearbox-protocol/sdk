@@ -396,6 +396,13 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  crvFRAX: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_LP_TOKEN_ORACLE,
+      assets: ["FRAX", "USDC"],
+    },
+  },
+
   steCRV: {
     priceFeedUSD: {
       type: OracleType.CURVE_LP_TOKEN_ORACLE,
