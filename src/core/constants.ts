@@ -36,8 +36,8 @@ export const SECONDS_PER_YEAR = 365 * 24 * 3600;
 
 export const PERCENTAGE_DECIMALS = 100;
 export const PERCENTAGE_FACTOR = 1e4;
-export const LIQUIDATION_DISCOUNTED_SUM = 9500;
-export const UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD = 9300;
+// export const LIQUIDATION_DISCOUNTED_SUM = 9600;
+// export const UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD = 9400;
 
 export const timeRanges: Record<string, number> = {
   // "1H": 3600,
