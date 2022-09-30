@@ -9,6 +9,7 @@ import { toSignificant } from "../utils/formatter";
 import { calcTotalPrice, convertByPrice } from "../utils/price";
 import { Asset } from "./assets";
 import {
+  LEVERAGE_DECIMALS,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
@@ -126,6 +127,22 @@ export class CreditAccountData {
       .convertFromUSD(twvUSDValue, this.underlyingToken)
       .div(this.calcBorrowAmountPlusInterestRate(currentCumulativeIndex))
       .toNumber();
+  }
+
+  calcMaxIncreaseBorrow(cm: CreditManagerData): BigNumber {
+    const underlyingTokenLT = cm.liquidationDiscount - cm.feeLiquidation;
+    const minHealthFactor =
+      cm.maxLeverageFactor > 0
+        ? Math.floor(
+            (underlyingTokenLT * (cm.maxLeverageFactor + LEVERAGE_DECIMALS)) /
+              cm.maxLeverageFactor,
+          )
+        : PERCENTAGE_FACTOR;
+
+    const result = this.borrowedAmountPlusInterest
+      .mul(this.healthFactor - minHealthFactor)
+      .div(minHealthFactor - underlyingTokenLT);
+    return result.isNegative() ? BigNumber.from(0) : result;
   }
 
   get id(): string {

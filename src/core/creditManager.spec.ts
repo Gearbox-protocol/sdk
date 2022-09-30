@@ -7,7 +7,7 @@ import { toBN } from "../utils/formatter";
 import { calcTotalPrice, convertByPrice } from "../utils/price";
 import { Asset, subAssets, sumAssets } from "./assets";
 import { PRICE_DECIMALS_POW } from "./constants";
-import { calcHealthFactor, calcMaxIncreaseBorrow } from "./creditManager";
+import { calcHealthFactor } from "./creditManager";
 
 interface CATestInfo {
   assets: Array<Asset>;
@@ -167,37 +167,37 @@ describe("CreditManager calcHealthFactor test", () => {
   });
 });
 
-describe("CreditManager calcMaxIncreaseBorrow test", () => {
-  it("health max increase borrow is zero if hf < 1", () => {
-    const result = calcMaxIncreaseBorrow(
-      9999,
-      BigNumber.from("156522834253690396032546"),
-      0,
-    );
-    expect(result.toString()).to.be.eq(BigNumber.from(0).toString());
-  });
-  it("health max increase borrow is calculated correctly", () => {
-    const result = calcMaxIncreaseBorrow(
-      defaultCA.healthFactor,
-      BigNumber.from("156522834253690396032546"),
-      0,
-    );
+// describe("CreditManager calcMaxIncreaseBorrow test", () => {
+//   it("health max increase borrow is zero if hf < 1", () => {
+//     const result = calcMaxIncreaseBorrow(
+//       9999,
+//       BigNumber.from("156522834253690396032546"),
+//       0,
+//     );
+//     expect(result.toString()).to.be.eq(BigNumber.from(0).toString());
+//   });
+//   it("health max increase borrow is calculated correctly", () => {
+//     const result = calcMaxIncreaseBorrow(
+//       defaultCA.healthFactor,
+//       BigNumber.from("156522834253690396032546"),
+//       0,
+//     );
 
-    expect(result.toString()).to.be.eq(
-      BigNumber.from("54559387939857795188487").toString(),
-    );
-  });
-  it("health max increase borrow is calculated correctly (low hf, high debt)", () => {
-    const loweHf = 10244;
+//     expect(result.toString()).to.be.eq(
+//       BigNumber.from("54559387939857795188487").toString(),
+//     );
+//   });
+// it("health max increase borrow is calculated correctly (low hf, high debt)", () => {
+//   const loweHf = 10244;
 
-    const result = calcMaxIncreaseBorrow(
-      loweHf,
-      BigNumber.from("54782991988791638611392"),
-      0,
-    );
+//   const result = calcMaxIncreaseBorrow(
+//     loweHf,
+//     BigNumber.from("54782991988791638611392"),
+//     0,
+//   );
 
-    expect(result.toString()).to.be.eq(
-      BigNumber.from("19095785778950228315970").toString(),
-    );
-  });
-});
+//   expect(result.toString()).to.be.eq(
+//     BigNumber.from("19095785778950228315970").toString(),
+//   );
+// });
+// });

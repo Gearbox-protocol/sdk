@@ -21,7 +21,6 @@ import {
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   RAY,
-  UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD,
 } from "./constants";
 import { OpenAccountError } from "./errors";
 
@@ -271,26 +270,6 @@ export class CreditManagerStat extends CreditManagerData {
     this.totalProfit = BigNumber.from(payload.totalProfit || 0);
     this.totalLosses = BigNumber.from(payload.totalLosses || 0);
   }
-}
-
-export function calcMaxIncreaseBorrow(
-  healthFactor: number,
-  borrowAmountPlusInterest: BigNumber,
-  maxLeverageFactor: number,
-): BigNumber {
-  const minHealthFactor =
-    maxLeverageFactor > 0
-      ? Math.floor(
-          (UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD *
-            (maxLeverageFactor + LEVERAGE_DECIMALS)) /
-            maxLeverageFactor,
-        )
-      : 10000;
-
-  const result = borrowAmountPlusInterest
-    .mul(healthFactor - minHealthFactor)
-    .div(minHealthFactor - UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD);
-  return result.isNegative() ? BigNumber.from(0) : result;
 }
 
 export interface CalcHealthFactorProps {
