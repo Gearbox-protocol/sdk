@@ -70,7 +70,7 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3CRV_POOL: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", // SEPARATE TOKEN
-    CURVE_FRAX_USDC_POOL: "0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC",
+    CURVE_FRAX_USDC_POOL: "0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2",
     CURVE_STETH_GATEWAY: "0x0c304D4cff4C562BcF09e198a30611a853d1Cad8", // SEPARATE TOKEN
     CURVE_FRAX_POOL: tokenDataByNetwork.Mainnet.FRAX3CRV,
     CURVE_LUSD_POOL: tokenDataByNetwork.Mainnet.LUSD3CRV,
@@ -121,7 +121,7 @@ export const contractsByNetwork: Record<
 
     // CURVE
     CURVE_3CRV_POOL: "0x6491f8A62678c90C84b237791d9D7cF21b4D1418",
-    CURVE_FRAX_USDC_POOL: "0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2",
+    CURVE_FRAX_USDC_POOL: "DEPLOY ME",
     CURVE_STETH_GATEWAY: "0xcD4b22ed0E2aD95d648C6E4c45B38f83D0Cbb654",
     CURVE_FRAX_POOL: tokenDataByNetwork.Goerli.FRAX3CRV,
     CURVE_LUSD_POOL: tokenDataByNetwork.Goerli.LUSD3CRV,
@@ -140,7 +140,7 @@ export const contractsByNetwork: Record<
     // CONVEX
     CONVEX_BOOSTER: "0xbd1D47bbF57F49D9a72ca7f879A096d3abDF4c40",
     CONVEX_3CRV_POOL: "0xfB9b98558c3d6851291Fbf74fa7F022a787cD795",
-    CONVEX_FRAX_USDC_POOL: "DEPOLOY ME",
+    CONVEX_FRAX_USDC_POOL: "DEPLOY ME",
     CONVEX_STECRV_POOL: "0xd9de8eA4289e7a4458Bebad8c31bb7576f1C2B72",
     CONVEX_SUSD_POOL: "0x85825316be95FBb3F6B5a2Dd9f1eb9577803e441",
     CONVEX_FRAX3CRV_POOL: "0x08513eA45fdd7A9cFC33702f722090a182e4a101",
@@ -390,7 +390,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     extraRewards: [],
   },
   CONVEX_FRAX_USDC_POOL: {
-    name: "Convex crvFRAX",
+    name: "Convex FRAXUSDC",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxcrvFRAX",
