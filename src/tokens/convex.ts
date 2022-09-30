@@ -65,29 +65,6 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
     stakedToken: "stkcvx3Crv",
   },
 
-  cvxcrvFRAX: {
-    name: "Convex cvxcrvFRAX",
-
-    symbol: "cvxcrvFRAX",
-    type: TokenType.CONVEX_LP_TOKEN,
-    pool: "CONVEX_FRAX_USDC_POOL",
-    pid: 100,
-    underlying: "crvFRAX",
-    stakedToken: "stkcvxcrvFRAX",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdrawLP,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "crvFRAX",
-      },
-      {
-        type: TradeType.ConvexStake,
-        contract: "CONVEX_3CRV_POOL",
-        tokenOut: "stkcvxcrvFRAX",
-      },
-    ],
-  },
-
   cvxsteCRV: {
     name: "Convex cvxsteCRV",
 
@@ -167,28 +144,6 @@ const convexStakedPhantomTokens: Record<
     pid: 100,
     underlying: "crvFRAX",
     lpToken: "cvxcrvFRAX",
-  },
-
-  stkcvxcrvFRAX: {
-    name: "Convex stkcvxcrvFRAX",
-    symbol: "stkcvxcrvFRAX",
-    type: TokenType.CONVEX_STAKED_TOKEN,
-    pool: "CONVEX_FRAX_USDC_POOL",
-    pid: 100,
-    underlying: "crvFRAX",
-    lpToken: "cvxcrvFRAX",
-    lpActions: [
-      {
-        type: TradeType.ConvexWithdraw,
-        contract: "CONVEX_FRAX_USDC_POOL",
-        tokenOut: "cvxcrvFRAX",
-      },
-      {
-        type: TradeType.ConvexWithdrawAndUnwrap,
-        contract: "CONVEX_FRAX_USDC_POOL",
-        tokenOut: "crvFRAX",
-      },
-    ],
   },
 
   stkcvxsteCRV: {
