@@ -267,7 +267,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Sushiswap,
     type: AdapterInterface.UNISWAP_V2_ROUTER,
   },
-
   CURVE_3CRV_POOL: {
     name: "Curve 3Pool",
     protocol: Protocols.Curve,
@@ -276,9 +275,9 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     tokens: ["DAI", "USDC", "USDT"],
   },
   CURVE_FRAX_USDC_POOL: {
-    name: "Curve 3Pool",
+    name: "Curve crvFRAX",
     protocol: Protocols.Curve,
-    type: AdapterInterface.CURVE_V1_3ASSETS,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvFRAX",
     tokens: ["FRAX", "USDC"],
   },

@@ -79,17 +79,17 @@ export const curveTokens: Record<
       {
         type: TradeType.CurveWithdrawLP,
         contract: "CURVE_3CRV_POOL",
-        tokenOut: ["DAI", "USDC", "USDT"],
+        tokenOut: ["FRAX", "USDC"],
       },
       {
         type: TradeType.ConvexDepositLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "cvx3Crv",
+        tokenOut: "cvxcrvFRAX",
       },
       {
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "stkcvx3Crv",
+        tokenOut: "stkcvxcrvFRAX",
       },
     ],
   },
