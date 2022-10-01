@@ -72,7 +72,7 @@ export const curveTokens: Record<
 
   crvFRAX: {
     name: "Curve.fi FRAX/USDC",
-    symbol: "3Crv",
+    symbol: "crvFRAX",
     type: TokenType.CURVE_LP_TOKEN,
     pool: "CURVE_FRAX_USDC_POOL",
     lpActions: [
