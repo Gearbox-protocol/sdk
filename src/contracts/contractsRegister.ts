@@ -5,7 +5,7 @@ import { contractParams, contractsByAddress } from "./contracts";
 
 export const stEthPoolWrapper: Record<NetworkType, string> = {
   Mainnet: "Deploy me",
-  Goerli: "0x7D625991f71d473E3EA1DC819Ce583cD36D00C88",
+  Goerli: "0x3fe62a62C022A069952069b32C9d56718D30B7ec",
 };
 
 export const deployedContracts: Record<string, string> = {
@@ -26,11 +26,11 @@ export const deployedContracts: Record<string, string> = {
   "0x70ba4442e9c76269f9f2c31c8884fc7880f40d4a": "wstETH",
 
   // GOERLI pools
-  "0xEA7D5CaE79Cdf2E07E0aa7edfB1AF7A429Cb7513": "DAI",
-  "0xF0A7BE2EB39bBbd55fc5597F93E01f62A790e587": "USDC",
-  "0x560F2aa70003af4A69Bc79bB3c40955d396305aE": "WETH",
-  "0x9f07160C42d5d8325E3Aa50e0075Ef3A8E4DcA9B": "WBTC",
-  "0xd720fe603eb3d954a8586433e78f02e248eae4c0": "wstETH",
+  "0xfb422E503f8b768184ABA5e73587543d1C871A23": "DAI",
+  "0x7c14C88f672d5513C8fa640fA48815f40c781a60": "USDC",
+  "0x13376d637dEd73a0df20D192F691a88c8aF7DD0A": "WETH",
+  "0x3F926a46893AF659C2768f118D5F189190bAA15C": "WBTC",
+  "0xBDF0395fa6f134B8DE35Ef30c61B2B9711CBD67A": "wstETH",
 };
 
 const contractNames = Object.entries(contractsByAddress).reduce<
