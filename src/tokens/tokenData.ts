@@ -48,11 +48,6 @@ export interface TokenAllowance {
   allowance: BigNumber;
 }
 
-export const WETHToken: Record<NetworkType, string> = {
-  Mainnet: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-  Goerli: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
-};
-
 export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Mainnet: [
     "WETH",
@@ -73,10 +68,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
 
 export function getConnectors(networkType: NetworkType) {
   return connectors[networkType].map(e => {
-    const result =
-      e === "WETH"
-        ? WETHToken[networkType]
-        : tokenDataByNetwork[networkType][e];
+    const result = tokenDataByNetwork[networkType][e];
 
     if (!result) {
       throw new Error(`connector token ${e} not found`);
