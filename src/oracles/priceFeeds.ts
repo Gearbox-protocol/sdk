@@ -584,6 +584,17 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  dwstETH: {
+    priceFeedETH: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: { Mainnet: "", Goerli: "" },
+    },
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: { Mainnet: "", Goerli: "" },
+    },
+  },
+
   GEAR: {
     priceFeedETH: {
       type: OracleType.CHAINLINK_ORACLE,

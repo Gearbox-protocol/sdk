@@ -57,5 +57,6 @@ export const decimals: Record<SupportedToken, number> = {
   dUSDC: 6,
   dWBTC: 8,
   dWETH: 18,
+  dwstETH: 18,
   GEAR: 18,
 };
