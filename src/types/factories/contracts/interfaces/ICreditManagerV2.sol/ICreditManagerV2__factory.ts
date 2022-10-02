@@ -314,6 +314,30 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "state",
+        type: "bool",
+      },
+    ],
+    name: "checkEmergencyPausable",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "borrower",
         type: "address",
       },

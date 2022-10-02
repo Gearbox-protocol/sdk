@@ -129,19 +129,23 @@ export class CreditAccountData {
       .toNumber();
   }
 
-  calcMaxIncreaseBorrow(cm: CreditManagerData): BigNumber {
-    const underlyingTokenLT = cm.liquidationDiscount - cm.feeLiquidation;
+  static calcMaxIncreaseBorrow(
+    healthFactor: number,
+    borrowAmountPlusInterest: BigNumber,
+    maxLeverageFactor: number,
+    underlyingLT: number,
+  ): BigNumber {
     const minHealthFactor =
-      cm.maxLeverageFactor > 0
+      maxLeverageFactor > 0
         ? Math.floor(
-            (underlyingTokenLT * (cm.maxLeverageFactor + LEVERAGE_DECIMALS)) /
-              cm.maxLeverageFactor,
+            (underlyingLT * (maxLeverageFactor + LEVERAGE_DECIMALS)) /
+              maxLeverageFactor,
           )
         : PERCENTAGE_FACTOR;
 
-    const result = this.borrowedAmountPlusInterest
-      .mul(this.healthFactor - minHealthFactor)
-      .div(minHealthFactor - underlyingTokenLT);
+    const result = borrowAmountPlusInterest
+      .mul(healthFactor - minHealthFactor)
+      .div(minHealthFactor - underlyingLT);
     return result.isNegative() ? BigNumber.from(0) : result;
   }
 

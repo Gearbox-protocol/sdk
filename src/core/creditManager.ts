@@ -109,9 +109,9 @@ export class CreditManagerData {
 
     this.feeInterest = payload.feeInterest;
     this.feeLiquidation = payload.feeLiquidation;
-    this.liquidationDiscount = payload.feeLiquidation;
+    this.liquidationDiscount = payload.liquidationDiscount;
     this.feeLiquidationExpired = payload.feeLiquidationExpired;
-    this.liquidationDiscountExpired = payload.feeLiquidationExpired;
+    this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
 
     if (this.creditFacade !== "") {
       TxParser.addCreditFacade(

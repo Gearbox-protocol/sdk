@@ -36,6 +36,7 @@ export interface ICreditManagerV2Interface extends utils.Interface {
     "canLiquidateWhilePaused(address)": FunctionFragment;
     "checkAndEnableToken(address,address)": FunctionFragment;
     "checkAndOptimizeEnabledTokens(address)": FunctionFragment;
+    "checkEmergencyPausable(address,bool)": FunctionFragment;
     "closeCreditAccount(address,uint8,uint256,address,address,uint256,bool)": FunctionFragment;
     "collateralTokens(uint256)": FunctionFragment;
     "collateralTokensByMask(uint256)": FunctionFragment;
@@ -78,6 +79,7 @@ export interface ICreditManagerV2Interface extends utils.Interface {
       | "canLiquidateWhilePaused"
       | "checkAndEnableToken"
       | "checkAndOptimizeEnabledTokens"
+      | "checkEmergencyPausable"
       | "closeCreditAccount"
       | "collateralTokens"
       | "collateralTokensByMask"
@@ -141,6 +143,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "checkAndOptimizeEnabledTokens",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "checkEmergencyPausable",
+    values: [string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "closeCreditAccount",
@@ -292,6 +298,10 @@ export interface ICreditManagerV2Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "checkAndOptimizeEnabledTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "checkEmergencyPausable",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -520,6 +530,12 @@ export interface ICreditManagerV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    checkEmergencyPausable(
+      caller: string,
+      state: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     closeCreditAccount(
       borrower: string,
       closureActionType: BigNumberish,
@@ -726,6 +742,12 @@ export interface ICreditManagerV2 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  checkEmergencyPausable(
+    caller: string,
+    state: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   closeCreditAccount(
     borrower: string,
     closureActionType: BigNumberish,
@@ -925,6 +947,12 @@ export interface ICreditManagerV2 extends BaseContract {
       creditAccount: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    checkEmergencyPausable(
+      caller: string,
+      state: boolean,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     closeCreditAccount(
       borrower: string,
@@ -1135,6 +1163,12 @@ export interface ICreditManagerV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    checkEmergencyPausable(
+      caller: string,
+      state: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     closeCreditAccount(
       borrower: string,
       closureActionType: BigNumberish,
@@ -1309,6 +1343,12 @@ export interface ICreditManagerV2 extends BaseContract {
 
     checkAndOptimizeEnabledTokens(
       creditAccount: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    checkEmergencyPausable(
+      caller: string,
+      state: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
