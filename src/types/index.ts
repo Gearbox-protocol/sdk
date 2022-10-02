@@ -194,6 +194,8 @@ export type { IDataCompressor } from "./contracts/interfaces/IDataCompressor.sol
 export { IDataCompressor__factory } from "./factories/contracts/interfaces/IDataCompressor.sol/IDataCompressor__factory";
 export type { IDataCompressorExceptions } from "./contracts/interfaces/IDataCompressor.sol/IDataCompressorExceptions";
 export { IDataCompressorExceptions__factory } from "./factories/contracts/interfaces/IDataCompressor.sol/IDataCompressorExceptions__factory";
+export type { IDegenDistributor } from "./contracts/interfaces/IDegenDistributor";
+export { IDegenDistributor__factory } from "./factories/contracts/interfaces/IDegenDistributor__factory";
 export type { IDegenNFT } from "./contracts/interfaces/IDegenNFT.sol/IDegenNFT";
 export { IDegenNFT__factory } from "./factories/contracts/interfaces/IDegenNFT.sol/IDegenNFT__factory";
 export type { IDegenNFTExceptions } from "./contracts/interfaces/IDegenNFT.sol/IDegenNFTExceptions";

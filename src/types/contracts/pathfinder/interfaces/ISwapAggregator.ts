@@ -22,63 +22,6 @@ import type {
   OnEvent,
 } from "../../../common";
 
-export type SwapTaskStruct = {
-  swapOperation: BigNumberish;
-  creditAccount: string;
-  tokenIn: string;
-  tokenOut: string;
-  connectors: string[];
-  amount: BigNumberish;
-  slippage: BigNumberish;
-  externalSlippage: boolean;
-};
-
-export type SwapTaskStructOutput = [
-  number,
-  string,
-  string,
-  string,
-  string[],
-  BigNumber,
-  BigNumber,
-  boolean
-] & {
-  swapOperation: number;
-  creditAccount: string;
-  tokenIn: string;
-  tokenOut: string;
-  connectors: string[];
-  amount: BigNumber;
-  slippage: BigNumber;
-  externalSlippage: boolean;
-};
-
-export type MultiCallStruct = { target: string; callData: BytesLike };
-
-export type MultiCallStructOutput = [string, string] & {
-  target: string;
-  callData: string;
-};
-
-export type SwapQuoteStruct = {
-  multiCall: MultiCallStruct;
-  amount: BigNumberish;
-  found: boolean;
-  gasUsage: BigNumberish;
-};
-
-export type SwapQuoteStructOutput = [
-  MultiCallStructOutput,
-  BigNumber,
-  boolean,
-  BigNumber
-] & {
-  multiCall: MultiCallStructOutput;
-  amount: BigNumber;
-  found: boolean;
-  gasUsage: BigNumber;
-};
-
 export type BalanceStruct = { token: string; balance: BigNumberish };
 
 export type BalanceStructOutput = [string, BigNumber] & {
@@ -96,6 +39,13 @@ export type TokenAdaptersStructOutput = [string, string, string] & {
   token: string;
   depositAdapter: string;
   withdrawAdapter: string;
+};
+
+export type MultiCallStruct = { target: string; callData: BytesLike };
+
+export type MultiCallStructOutput = [string, string] & {
+  target: string;
+  callData: string;
 };
 
 export type StrategyPathTaskStruct = {
@@ -144,9 +94,59 @@ export type StrategyPathTaskStructOutput = [
   calls: MultiCallStructOutput[];
 };
 
+export type SwapTaskStruct = {
+  swapOperation: BigNumberish;
+  creditAccount: string;
+  tokenIn: string;
+  tokenOut: string;
+  connectors: string[];
+  amount: BigNumberish;
+  slippage: BigNumberish;
+  externalSlippage: boolean;
+};
+
+export type SwapTaskStructOutput = [
+  number,
+  string,
+  string,
+  string,
+  string[],
+  BigNumber,
+  BigNumber,
+  boolean
+] & {
+  swapOperation: number;
+  creditAccount: string;
+  tokenIn: string;
+  tokenOut: string;
+  connectors: string[];
+  amount: BigNumber;
+  slippage: BigNumber;
+  externalSlippage: boolean;
+};
+
+export type SwapQuoteStruct = {
+  multiCall: MultiCallStruct;
+  amount: BigNumberish;
+  found: boolean;
+  gasUsage: BigNumberish;
+};
+
+export type SwapQuoteStructOutput = [
+  MultiCallStructOutput,
+  BigNumber,
+  boolean,
+  BigNumber
+] & {
+  multiCall: MultiCallStructOutput;
+  amount: BigNumber;
+  found: boolean;
+  gasUsage: BigNumber;
+};
+
 export interface ISwapAggregatorInterface extends utils.Interface {
   functions: {
-    "findAllSwaps((uint8,address,address,address,address[],uint256,uint256,bool),address[])": FunctionFragment;
+    "findAllSwaps(address,uint256,bool,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "findBestAllInputSwap(address,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "findBestAllInputSwapOrRevert(address,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
     "findBestSwap(address,uint256,address,(address,(address,uint256)[],address,address[],address[],uint256,bool,uint8,(address,address,address)[],uint256,uint256,uint256,(address,bytes)[]))": FunctionFragment;
@@ -174,7 +174,7 @@ export interface ISwapAggregatorInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "findAllSwaps",
-    values: [SwapTaskStruct, string[]]
+    values: [string, BigNumberish, boolean, StrategyPathTaskStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "findBestAllInputSwap",
@@ -279,8 +279,10 @@ export interface ISwapAggregator extends BaseContract {
 
   functions: {
     findAllSwaps(
-      swapTask: SwapTaskStruct,
-      adapters: string[],
+      tokenIn: string,
+      amountIn: BigNumberish,
+      isAll: boolean,
+      task: StrategyPathTaskStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -339,8 +341,10 @@ export interface ISwapAggregator extends BaseContract {
   };
 
   findAllSwaps(
-    swapTask: SwapTaskStruct,
-    adapters: string[],
+    tokenIn: string,
+    amountIn: BigNumberish,
+    isAll: boolean,
+    task: StrategyPathTaskStruct,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -399,10 +403,12 @@ export interface ISwapAggregator extends BaseContract {
 
   callStatic: {
     findAllSwaps(
-      swapTask: SwapTaskStruct,
-      adapters: string[],
+      tokenIn: string,
+      amountIn: BigNumberish,
+      isAll: boolean,
+      task: StrategyPathTaskStruct,
       overrides?: CallOverrides
-    ): Promise<SwapQuoteStructOutput[]>;
+    ): Promise<StrategyPathTaskStructOutput[]>;
 
     findBestAllInputSwap(
       tokenIn: string,
@@ -470,8 +476,10 @@ export interface ISwapAggregator extends BaseContract {
 
   estimateGas: {
     findAllSwaps(
-      swapTask: SwapTaskStruct,
-      adapters: string[],
+      tokenIn: string,
+      amountIn: BigNumberish,
+      isAll: boolean,
+      task: StrategyPathTaskStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -531,8 +539,10 @@ export interface ISwapAggregator extends BaseContract {
 
   populateTransaction: {
     findAllSwaps(
-      swapTask: SwapTaskStruct,
-      adapters: string[],
+      tokenIn: string,
+      amountIn: BigNumberish,
+      isAll: boolean,
+      task: StrategyPathTaskStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
