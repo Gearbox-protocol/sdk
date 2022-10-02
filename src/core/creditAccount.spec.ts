@@ -155,7 +155,7 @@ describe("CreditAccount calcOverallAPY test", () => {
   });
 });
 
-describe("CreditManager calcMaxIncreaseBorrow test", () => {
+describe("CreditAccount calcMaxIncreaseBorrow test", () => {
   it("health max increase borrow is zero if hf < 1", () => {
     const result = CreditAccountData.calcMaxIncreaseBorrow(
       9999,
