@@ -18,6 +18,7 @@ export * as iPriceOracleSol from "./IPriceOracle.sol";
 export * as v1 from "./V1";
 export * as adapters from "./adapters";
 export * as external from "./external";
+export { IDegenDistributor__factory } from "./IDegenDistributor__factory";
 export { IGearToken__factory } from "./IGearToken__factory";
 export { IInterestRateModel__factory } from "./IInterestRateModel__factory";
 export { IMerkleDistributor__factory } from "./IMerkleDistributor__factory";

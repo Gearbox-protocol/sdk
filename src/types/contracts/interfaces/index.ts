@@ -35,6 +35,7 @@ import type * as adapters from "./adapters";
 export type { adapters };
 import type * as external from "./external";
 export type { external };
+export type { IDegenDistributor } from "./IDegenDistributor";
 export type { IGearToken } from "./IGearToken";
 export type { IInterestRateModel } from "./IInterestRateModel";
 export type { IMerkleDistributor } from "./IMerkleDistributor";
