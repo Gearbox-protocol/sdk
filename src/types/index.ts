@@ -198,6 +198,8 @@ export type { IDegenDistributor } from "./contracts/interfaces/IDegenDistributor
 export { IDegenDistributor__factory } from "./factories/contracts/interfaces/IDegenDistributor__factory";
 export type { IDegenNFT } from "./contracts/interfaces/IDegenNFT.sol/IDegenNFT";
 export { IDegenNFT__factory } from "./factories/contracts/interfaces/IDegenNFT.sol/IDegenNFT__factory";
+export type { IDegenNFTEvents } from "./contracts/interfaces/IDegenNFT.sol/IDegenNFTEvents";
+export { IDegenNFTEvents__factory } from "./factories/contracts/interfaces/IDegenNFT.sol/IDegenNFTEvents__factory";
 export type { IDegenNFTExceptions } from "./contracts/interfaces/IDegenNFT.sol/IDegenNFTExceptions";
 export { IDegenNFTExceptions__factory } from "./factories/contracts/interfaces/IDegenNFT.sol/IDegenNFTExceptions__factory";
 export type { IDieselToken } from "./contracts/interfaces/IDieselToken.sol/IDieselToken";

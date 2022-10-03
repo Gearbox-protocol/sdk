@@ -31,6 +31,45 @@ const _abi = [
     type: "error",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "NewCreditFacadeAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "NewCreditFacadeRemoved",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "NewMinterSet",
+    type: "event",
+  },
+  {
     inputs: [],
     name: "baseURI",
     outputs: [

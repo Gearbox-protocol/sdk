@@ -13,7 +13,11 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -68,8 +72,45 @@ export interface IDegenNFTInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "NewCreditFacadeAdded(address)": EventFragment;
+    "NewCreditFacadeRemoved(address)": EventFragment;
+    "NewMinterSet(address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "NewCreditFacadeAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewCreditFacadeRemoved"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewMinterSet"): EventFragment;
 }
+
+export interface NewCreditFacadeAddedEventObject {
+  arg0: string;
+}
+export type NewCreditFacadeAddedEvent = TypedEvent<
+  [string],
+  NewCreditFacadeAddedEventObject
+>;
+
+export type NewCreditFacadeAddedEventFilter =
+  TypedEventFilter<NewCreditFacadeAddedEvent>;
+
+export interface NewCreditFacadeRemovedEventObject {
+  arg0: string;
+}
+export type NewCreditFacadeRemovedEvent = TypedEvent<
+  [string],
+  NewCreditFacadeRemovedEventObject
+>;
+
+export type NewCreditFacadeRemovedEventFilter =
+  TypedEventFilter<NewCreditFacadeRemovedEvent>;
+
+export interface NewMinterSetEventObject {
+  arg0: string;
+}
+export type NewMinterSetEvent = TypedEvent<[string], NewMinterSetEventObject>;
+
+export type NewMinterSetEventFilter = TypedEventFilter<NewMinterSetEvent>;
 
 export interface IDegenNFT extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -161,7 +202,22 @@ export interface IDegenNFT extends BaseContract {
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
-  filters: {};
+  filters: {
+    "NewCreditFacadeAdded(address)"(
+      arg0?: string | null
+    ): NewCreditFacadeAddedEventFilter;
+    NewCreditFacadeAdded(arg0?: string | null): NewCreditFacadeAddedEventFilter;
+
+    "NewCreditFacadeRemoved(address)"(
+      arg0?: string | null
+    ): NewCreditFacadeRemovedEventFilter;
+    NewCreditFacadeRemoved(
+      arg0?: string | null
+    ): NewCreditFacadeRemovedEventFilter;
+
+    "NewMinterSet(address)"(arg0?: string | null): NewMinterSetEventFilter;
+    NewMinterSet(arg0?: string | null): NewMinterSetEventFilter;
+  };
 
   estimateGas: {
     baseURI(overrides?: CallOverrides): Promise<BigNumber>;

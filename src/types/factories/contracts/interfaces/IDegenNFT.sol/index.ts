@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export { IDegenNFT__factory } from "./IDegenNFT__factory";
+export { IDegenNFTEvents__factory } from "./IDegenNFTEvents__factory";
 export { IDegenNFTExceptions__factory } from "./IDegenNFTExceptions__factory";

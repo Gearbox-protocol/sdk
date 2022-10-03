@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { IDegenNFT } from "./IDegenNFT";
+export type { IDegenNFTEvents } from "./IDegenNFTEvents";
 export type { IDegenNFTExceptions } from "./IDegenNFTExceptions";
