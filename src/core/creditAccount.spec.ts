@@ -7,7 +7,7 @@ import { tokenDataByNetwork } from "../tokens/token";
 import { toBN } from "../utils/formatter";
 import { Asset } from "./assets";
 import { PRICE_DECIMALS_POW } from "./constants";
-import { calcOverallAPY } from "./creditAccount";
+import { calcOverallAPY, CreditAccountData } from "./creditAccount";
 
 interface CATestInfo {
   assets: Array<Asset>;
@@ -152,5 +152,43 @@ describe("CreditAccount calcOverallAPY test", () => {
     });
 
     expect(result).to.be.eq(undefined);
+  });
+});
+
+describe("CreditAccount calcMaxIncreaseBorrow test", () => {
+  it("health max increase borrow is zero if hf < 1", () => {
+    const result = CreditAccountData.calcMaxIncreaseBorrow(
+      9999,
+      BigNumber.from("156522834253690396032546"),
+      0,
+      9300,
+    );
+    expect(result.toString()).to.be.eq(BigNumber.from(0).toString());
+  });
+  it("health max increase borrow is calculated correctly", () => {
+    const result = CreditAccountData.calcMaxIncreaseBorrow(
+      10244,
+      BigNumber.from("156522834253690396032546"),
+      0,
+      9300,
+    );
+
+    expect(result.toString()).to.be.eq(
+      BigNumber.from("54559387939857795188487").toString(),
+    );
+  });
+  it("health max increase borrow is calculated correctly (low hf, high debt)", () => {
+    const loweHf = 10244;
+
+    const result = CreditAccountData.calcMaxIncreaseBorrow(
+      loweHf,
+      BigNumber.from("54782991988791638611392"),
+      0,
+      9300,
+    );
+
+    expect(result.toString()).to.be.eq(
+      BigNumber.from("19095785778950228315970").toString(),
+    );
   });
 });

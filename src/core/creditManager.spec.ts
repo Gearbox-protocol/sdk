@@ -166,38 +166,3 @@ describe("CreditManager calcHealthFactor test", () => {
     expect(result).to.be.eq(9444);
   });
 });
-
-// describe("CreditManager calcMaxIncreaseBorrow test", () => {
-//   it("health max increase borrow is zero if hf < 1", () => {
-//     const result = calcMaxIncreaseBorrow(
-//       9999,
-//       BigNumber.from("156522834253690396032546"),
-//       0,
-//     );
-//     expect(result.toString()).to.be.eq(BigNumber.from(0).toString());
-//   });
-//   it("health max increase borrow is calculated correctly", () => {
-//     const result = calcMaxIncreaseBorrow(
-//       defaultCA.healthFactor,
-//       BigNumber.from("156522834253690396032546"),
-//       0,
-//     );
-
-//     expect(result.toString()).to.be.eq(
-//       BigNumber.from("54559387939857795188487").toString(),
-//     );
-//   });
-// it("health max increase borrow is calculated correctly (low hf, high debt)", () => {
-//   const loweHf = 10244;
-
-//   const result = calcMaxIncreaseBorrow(
-//     loweHf,
-//     BigNumber.from("54782991988791638611392"),
-//     0,
-//   );
-
-//   expect(result.toString()).to.be.eq(
-//     BigNumber.from("19095785778950228315970").toString(),
-//   );
-// });
-// });
