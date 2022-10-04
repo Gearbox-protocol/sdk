@@ -69,10 +69,21 @@ export class PathFinder {
     };
 
     const results = await this.pathFinder.callStatic.findAllSwaps(swapTask);
-    return results.map(r => ({
-      amount: BigNumber.from(r.amount),
-      calls: r.calls,
-    }));
+
+    const unique: Record<string, PathFinderResult> = {};
+
+    results.forEach(r => {
+      const key = `${r.amount.toHexString()}${r.calls
+        .map(c => `${c.target.toLowerCase()}${c.callData}`)
+        .join("-")}`;
+
+      unique[key] = {
+        amount: BigNumber.from(r.amount),
+        calls: r.calls,
+      };
+    });
+
+    return Object.values(unique);
   }
 
   async findOneTokenPath(
@@ -85,9 +96,9 @@ export class PathFinder {
     const tokenInAddr =
       tokenDataByNetwork[this.network][tokenIn as SupportedToken] || tokenIn;
 
-    if (creditAccount.balances[tokenInAddr.toLowerCase()].lt(amount)) {
-      throw new Error(`Not enough balance for token ${tokenIn}`);
-    }
+    // if (creditAccount.balances[tokenInAddr.toLowerCase()].lt(amount)) {
+    //   throw new Error(`Not enough balance for token ${tokenIn}`);
+    // }
     const result = await this.pathFinder.callStatic.findOneTokenPath(
       tokenInAddr,
       amount,
