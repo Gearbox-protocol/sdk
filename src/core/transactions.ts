@@ -55,7 +55,7 @@ export class TxSerializer {
         case "TxClaimReward":
           return new TxClaimReward(params);
         default:
-          throw new Error("Unknown transaction for parsing");
+          throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
     });
   }

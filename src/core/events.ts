@@ -113,7 +113,7 @@ export class EventParser {
         return new EventTransferOwnership(params);
 
       default:
-        throw new Error("Unknown transaction for parsing");
+        throw new Error(`Unknown transaction for parsing ${data.type}`);
     }
   }
 
