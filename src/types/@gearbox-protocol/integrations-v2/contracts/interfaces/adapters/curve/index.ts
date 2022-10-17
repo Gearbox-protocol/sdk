@@ -3,3 +3,6 @@
 /* eslint-disable */
 import type * as iCurveV1AdapterSol from "./ICurveV1Adapter.sol";
 export type { iCurveV1AdapterSol };
+export type { ICurveV1_2AssetsAdapter } from "./ICurveV1_2AssetsAdapter";
+export type { ICurveV1_3AssetsAdapter } from "./ICurveV1_3AssetsAdapter";
+export type { ICurveV1_4AssetsAdapter } from "./ICurveV1_4AssetsAdapter";

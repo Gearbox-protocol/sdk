@@ -5,3 +5,6 @@ import type * as istEthSol from "./IstETH.sol";
 export type { istEthSol };
 import type * as iwstEthSol from "./IwstETH.sol";
 export type { iwstEthSol };
+import type * as iwstEthGatewaySol from "./IwstETHGateway.sol";
+export type { iwstEthGatewaySol };
+export type { ILidoOracle } from "./ILidoOracle";
