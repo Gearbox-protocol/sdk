@@ -2,7 +2,6 @@ import { BigNumber } from "ethers";
 
 import { getContractName } from "../contracts/contractsRegister";
 import { extractTokenData } from "../tokens/token";
-import { TokenData } from "../tokens/tokenData";
 import { formatBN, formatDateTime } from "../utils/formatter";
 import { LEVERAGE_DECIMALS, PERCENTAGE_DECIMALS } from "./constants";
 import { EVMEvent, EVMEventProps, EVMTx } from "./eventOrTx";
@@ -188,9 +187,8 @@ export class EventAddLiquidity extends EVMEvent {
     this.pool = opts.pool;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } =
-      tokenData[this.underlyingToken.toLowerCase()] || {};
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
     return `Pool ${getContractName(this.pool)}: Deposit ${formatBN(
       this.amount,
@@ -223,9 +221,8 @@ export class EventRemoveLiquidity extends EVMEvent {
     this.pool = opts.pool;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } =
-      tokenData[this.dieselToken.toLowerCase()] || {};
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.dieselToken);
 
     return `Pool ${getContractName(this.pool)}: withdraw ${formatBN(
       this.amount,
@@ -260,9 +257,8 @@ export class EventOpenCreditAccount extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } =
-      tokenData[this.underlyingToken.toLowerCase()] || {};
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
     return `Credit account ${getContractName(
       this.creditManager,
@@ -299,9 +295,8 @@ export class EventCloseCreditAccount extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } =
-      tokenData[this.underlyingToken.toLowerCase()] || {};
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
     return `Credit account ${getContractName(
       this.creditManager,
@@ -332,9 +327,8 @@ export class EventLiquidateCreditAccount extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } =
-      tokenData[this.underlyingToken.toLowerCase()] || {};
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
     return `Credit account ${getContractName(
       this.creditManager,
@@ -387,9 +381,8 @@ export class EventAddCollateral extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } =
-      tokenData[this.addedToken.toLowerCase()] || {};
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.addedToken);
 
     return `Credit account ${getContractName(
       this.creditManager,
@@ -417,9 +410,8 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
     this.creditManager = opts.creditManager;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } =
-      tokenData[this.underlyingToken.toLowerCase()] || {};
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
     return `Credit account ${getContractName(
       this.creditManager,
@@ -505,22 +497,23 @@ export class EventCMNewParameters extends EVMEvent {
     this.prevLiquidationDiscount = opts.prevLiquidationDiscount;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.underlyingToken.toLowerCase()];
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
+
     let msg = `Credit manager ${getContractName(this.creditManager)} updated: `;
 
     if (this.minAmount !== this.prevMinAmount) {
       msg += `min amount: ${formatBN(
         this.prevMinAmount,
-        token.decimals,
-      )} => ${formatBN(this.minAmount, token.decimals)} ${token.symbol}, `;
+        decimals,
+      )} => ${formatBN(this.minAmount, decimals)} ${symbol}, `;
     }
 
     if (this.maxAmount !== this.prevMaxAmount) {
       msg += `max amount: ${formatBN(
         this.prevMaxAmount,
-        token.decimals,
-      )} => ${formatBN(this.maxAmount, token.decimals)} ${token.symbol}, `;
+        decimals,
+      )} => ${formatBN(this.maxAmount, decimals)} ${symbol}, `;
     }
 
     if (this.maxLeverage !== this.prevMaxLeverage) {
@@ -586,26 +579,23 @@ export class EventTokenAllowed extends EVMEvent {
     this.status = opts.status;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.token.toLowerCase()];
+  toString(): string {
+    const [symbol] = extractTokenData(this.token);
+
     const msg = `Credit manager ${getContractName(
       this.creditManager,
     )} updated `;
     switch (this.status) {
       case "NewToken":
-        return `${msg}: New token allowed: ${
-          token.symbol
-        }, liquidation threshold: ${
+        return `${msg}: New token allowed: ${symbol}, liquidation threshold: ${
           this.liquidityThreshold / PERCENTAGE_DECIMALS
         }%`;
       case "Allowed":
-        return `${msg}: ${
-          token.symbol
-        } is allowed now, liquidation threshold: ${
+        return `${msg}: ${symbol} is allowed now, liquidation threshold: ${
           this.liquidityThreshold / PERCENTAGE_DECIMALS
         }%`;
       case "LTUpdated":
-        return `${msg}: ${token.symbol} liquidation threshold: ${
+        return `${msg}: ${symbol} liquidation threshold: ${
           (this.prevLiquidationThreshold || 0) / PERCENTAGE_DECIMALS
         } => ${this.liquidityThreshold / PERCENTAGE_DECIMALS}%`;
       default:
@@ -633,11 +623,11 @@ export class EventTokenForbidden extends EVMEvent {
     this.token = opts.token;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.token.toLowerCase()];
-    return `Credit manager ${getContractName(this.creditManager)} updated ${
-      token.symbol
-    } forbidden`;
+  toString(): string {
+    const [symbol] = extractTokenData(this.token);
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )} updated ${symbol} forbidden`;
   }
 }
 
@@ -937,9 +927,8 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
     this.prevLimit = BigNumber.from(opts.oldLimit);
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { decimals = 18, symbol } =
-      tokenData[this.underlyingToken.toLowerCase()] || {};
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
     return this.prevLimit.isZero()
       ? `Pool ${getContractName(
@@ -1018,8 +1007,8 @@ export class EventNewPriceFeed extends EVMEvent {
     this.priceFeed = opts.priceFeed;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const { symbol } = tokenData[this.token.toLowerCase()] || {};
+  toString(): string {
+    const [symbol] = extractTokenData(this.token);
 
     return `PriceOracle: oracle for ${symbol} was updated to ${getContractName(
       this.priceFeed,
@@ -1215,26 +1204,23 @@ export class EventTokenAllowedV2 extends EVMEvent {
     this.status = opts.status;
   }
 
-  toString(tokenData: Record<string, TokenData>): string {
-    const token = tokenData[this.token.toLowerCase()];
+  toString(): string {
+    const [symbol] = extractTokenData(this.token);
+
     const msg = `Credit manager ${getContractName(
       this.creditManager,
     )} updated `;
     switch (this.status) {
       case "NewToken":
-        return `${msg}: New token allowed: ${
-          token.symbol
-        }, liquidation threshold: ${
+        return `${msg}: New token allowed: ${symbol}, liquidation threshold: ${
           this.liquidityThreshold / PERCENTAGE_DECIMALS
         }%`;
       case "Allowed":
-        return `${msg}: ${
-          token.symbol
-        } is allowed now, liquidation threshold: ${
+        return `${msg}: ${symbol} is allowed now, liquidation threshold: ${
           this.liquidityThreshold / PERCENTAGE_DECIMALS
         }%`;
       case "LTUpdated":
-        return `${msg}: ${token.symbol} liquidation threshold: ${
+        return `${msg}: ${symbol} liquidation threshold: ${
           (this.prevLiquidationThreshold || 0) / PERCENTAGE_DECIMALS
         } => ${this.liquidityThreshold / PERCENTAGE_DECIMALS}%`;
       default:
