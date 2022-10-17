@@ -1,8 +1,9 @@
 import { BigNumber } from "ethers";
 
 import { getContractName } from "../contracts/contractsRegister";
+import { extractTokenData } from "../tokens/token";
 import { TokenData } from "../tokens/tokenData";
-import { formatBN } from "../utils/formatter";
+import { formatBN, formatDateTime } from "../utils/formatter";
 import { LEVERAGE_DECIMALS, PERCENTAGE_DECIMALS } from "./constants";
 import { EVMEvent, EVMEventProps, EVMTx } from "./eventOrTx";
 
@@ -1137,5 +1138,488 @@ export class EventTransferOwnership extends EVMEvent {
 
   toString(): string {
     return `ACL: configurator was changed to ${this.newOwner}`;
+  }
+}
+// ICreditConfigurator
+
+export interface TokenAllowedV2Props extends EVMEventProps {
+  creditManager: string;
+  token: string;
+  liquidityThreshold: number;
+  prevLiquidationThreshold?: number;
+  status: TokenAllowanceType;
+}
+
+export class EventTokenAllowedV2 extends EVMEvent {
+  public readonly creditManager: string;
+
+  public readonly token: string;
+
+  public readonly liquidityThreshold: number;
+
+  public readonly prevLiquidationThreshold?: number;
+
+  public readonly status: TokenAllowanceType;
+
+  constructor(opts: TokenAllowedV2Props) {
+    super(opts);
+    this.creditManager = opts.creditManager;
+    this.token = opts.token;
+    this.liquidityThreshold = opts.liquidityThreshold;
+    this.prevLiquidationThreshold = opts.prevLiquidationThreshold;
+    this.status = opts.status;
+  }
+
+  toString(tokenData: Record<string, TokenData>): string {
+    const token = tokenData[this.token.toLowerCase()];
+    const msg = `Credit manager ${getContractName(
+      this.creditManager,
+    )} updated `;
+    switch (this.status) {
+      case "NewToken":
+        return `${msg}: New token allowed: ${
+          token.symbol
+        }, liquidation threshold: ${
+          this.liquidityThreshold / PERCENTAGE_DECIMALS
+        }%`;
+      case "Allowed":
+        return `${msg}: ${
+          token.symbol
+        } is allowed now, liquidation threshold: ${
+          this.liquidityThreshold / PERCENTAGE_DECIMALS
+        }%`;
+      case "LTUpdated":
+        return `${msg}: ${token.symbol} liquidation threshold: ${
+          (this.prevLiquidationThreshold || 0) / PERCENTAGE_DECIMALS
+        } => ${this.liquidityThreshold / PERCENTAGE_DECIMALS}%`;
+      default:
+        return "Error: TokenAllowedV2Props";
+    }
+  }
+}
+
+export interface LimitsUpdatedEventProps extends EVMEventProps {
+  minBorrowedAmount: string;
+  maxBorrowedAmount: string;
+
+  prevMinBorrowedAmount: string;
+  prevMaxBorrowedAmount: string;
+
+  underlyingToken: string;
+  creditManager: string;
+}
+
+export class EventLimitsUpdated extends EVMEvent {
+  public readonly minBorrowedAmount: BigNumber;
+  public readonly maxBorrowedAmount: BigNumber;
+
+  public readonly prevMinBorrowedAmount: BigNumber;
+  public readonly prevMaxBorrowedAmount: BigNumber;
+
+  public readonly underlyingToken: string;
+  public readonly creditManager: string;
+
+  constructor(opts: LimitsUpdatedEventProps) {
+    super(opts);
+    this.minBorrowedAmount = BigNumber.from(opts.minBorrowedAmount);
+    this.maxBorrowedAmount = BigNumber.from(opts.maxBorrowedAmount);
+
+    this.prevMinBorrowedAmount = BigNumber.from(opts.prevMinBorrowedAmount);
+    this.prevMaxBorrowedAmount = BigNumber.from(opts.prevMaxBorrowedAmount);
+
+    this.underlyingToken = opts.underlyingToken;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
+    let msg = `Credit manager ${getContractName(this.creditManager)} updated: `;
+
+    if (this.minBorrowedAmount !== this.prevMinBorrowedAmount) {
+      msg += `min amount: ${formatBN(
+        this.prevMinBorrowedAmount,
+        decimals,
+      )} => ${formatBN(this.minBorrowedAmount, decimals)} ${symbol}, `;
+    }
+
+    if (this.maxBorrowedAmount !== this.prevMaxBorrowedAmount) {
+      msg += `max amount: ${formatBN(
+        this.prevMaxBorrowedAmount,
+        decimals,
+      )} => ${formatBN(this.maxBorrowedAmount, decimals)} ${symbol}, `;
+    }
+
+    return msg.slice(0, msg.length - 2);
+  }
+}
+
+export interface FeesUpdatedEventProps extends EVMEventProps {
+  feeInterest: number;
+  feeLiquidation: number;
+  liquidationPremium: number;
+  feeLiquidationExpired: number;
+  liquidationPremiumExpired: number;
+
+  prevFeeInterest: number;
+  prevFeeLiquidation: number;
+  prevLiquidationPremium: number;
+  prevFeeLiquidationExpired: number;
+  prevLiquidationPremiumExpired: number;
+
+  creditManager: string;
+}
+
+export class EventFeesUpdated extends EVMEvent {
+  public readonly feeInterest: number;
+  public readonly feeLiquidation: number;
+  public readonly liquidationPremium: number;
+  public readonly feeLiquidationExpired: number;
+  public readonly liquidationPremiumExpired: number;
+
+  public readonly prevFeeInterest: number;
+  public readonly prevFeeLiquidation: number;
+  public readonly prevLiquidationPremium: number;
+  public readonly prevFeeLiquidationExpired: number;
+  public readonly prevLiquidationPremiumExpired: number;
+
+  public readonly creditManager: string;
+
+  constructor(opts: FeesUpdatedEventProps) {
+    super(opts);
+    this.feeInterest = opts.feeInterest;
+    this.feeLiquidation = opts.feeLiquidation;
+    this.liquidationPremium = opts.liquidationPremium;
+    this.feeLiquidationExpired = opts.feeLiquidationExpired;
+    this.liquidationPremiumExpired = opts.liquidationPremiumExpired;
+
+    this.prevFeeInterest = opts.prevFeeInterest;
+    this.prevFeeLiquidation = opts.prevFeeLiquidation;
+    this.prevLiquidationPremium = opts.prevLiquidationPremium;
+    this.prevFeeLiquidationExpired = opts.prevFeeLiquidationExpired;
+    this.prevLiquidationPremiumExpired = opts.prevLiquidationPremiumExpired;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    let msg = `Credit manager ${getContractName(this.creditManager)} updated: `;
+
+    if (this.feeInterest !== this.prevFeeInterest) {
+      msg += `interest fee: ${this.prevFeeInterest / PERCENTAGE_DECIMALS}% => ${
+        this.feeInterest / PERCENTAGE_DECIMALS
+      }%, `;
+    }
+
+    if (this.feeLiquidation !== this.prevFeeLiquidation) {
+      msg += `liquidation fee: ${
+        this.prevFeeLiquidation / PERCENTAGE_DECIMALS
+      }% => ${this.feeLiquidation / PERCENTAGE_DECIMALS}%, `;
+    }
+
+    if (this.liquidationPremium !== this.prevLiquidationPremium) {
+      msg += `liquidation premium: ${
+        this.prevLiquidationPremium / PERCENTAGE_DECIMALS
+      }% => ${this.liquidationPremium / PERCENTAGE_DECIMALS}%, `;
+    }
+
+    if (this.feeLiquidationExpired !== this.prevFeeLiquidationExpired) {
+      msg += `liquidation expired: ${formatDateTime(
+        this.prevFeeLiquidationExpired,
+      )} => ${formatDateTime(this.feeLiquidationExpired)}, `;
+    }
+
+    if (this.liquidationPremiumExpired !== this.prevLiquidationPremiumExpired) {
+      msg += `liquidation premium expired: ${formatDateTime(
+        this.prevLiquidationPremiumExpired,
+      )} => ${formatDateTime(this.liquidationPremiumExpired)}, `;
+    }
+
+    return msg.slice(0, msg.length - 2);
+  }
+}
+
+export interface CreditFacadeUpgradedEventProps extends EVMEventProps {
+  newCreditFacade: string;
+  prevCreditFacade: string;
+
+  creditManager: string;
+}
+
+export class EventCreditFacadeUpgraded extends EVMEvent {
+  public readonly newCreditFacade: string;
+  public readonly prevCreditFacade: string;
+
+  public readonly creditManager: string;
+
+  constructor(opts: CreditFacadeUpgradedEventProps) {
+    super(opts);
+    this.newCreditFacade = opts.newCreditFacade;
+    this.prevCreditFacade = opts.prevCreditFacade;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )} updated: Credit Facade ${this.prevCreditFacade} => ${
+      this.newCreditFacade
+    }`;
+  }
+}
+
+// ICreditManagerV2
+
+export interface NewConfiguratorEventProps extends EVMEventProps {
+  newConfigurator: string;
+  prevConfigurator: string;
+
+  creditManager: string;
+}
+
+export class EventNewConfigurator extends EVMEvent {
+  public readonly newConfigurator: string;
+  public readonly prevConfigurator: string;
+
+  public readonly creditManager: string;
+
+  constructor(opts: NewConfiguratorEventProps) {
+    super(opts);
+    this.newConfigurator = opts.newConfigurator;
+    this.prevConfigurator = opts.prevConfigurator;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )} updated: Credit Configurator ${this.prevConfigurator} => ${
+      this.newConfigurator
+    }`;
+  }
+}
+
+/// //////// !& LTUpdated
+
+export interface IncreaseDebtForbiddenModeChangedEventProps
+  extends EVMEventProps {
+  forbidden: boolean;
+
+  creditManager: string;
+}
+
+export class EventIncreaseDebtForbiddenModeChanged extends EVMEvent {
+  public readonly forbidden: boolean;
+
+  public readonly creditManager: string;
+
+  constructor(opts: IncreaseDebtForbiddenModeChangedEventProps) {
+    super(opts);
+    this.forbidden = opts.forbidden;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )} updated: Increase Debt ${this.forbidden ? "forbidden" : "allowed"}`;
+  }
+}
+
+export interface ExpirationDateUpdatedEventProps extends EVMEventProps {
+  date: number;
+  prevDate: number;
+
+  creditManager: string;
+}
+
+export class EventExpirationDateUpdated extends EVMEvent {
+  public readonly date: number;
+  public readonly prevDate: number;
+
+  public readonly creditManager: string;
+
+  constructor(opts: ExpirationDateUpdatedEventProps) {
+    super(opts);
+    this.date = opts.date;
+    this.prevDate = opts.prevDate;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )}: Expiration Date Updated ${formatDateTime(
+      this.prevDate,
+    )} => ${formatDateTime(this.date)}`;
+  }
+}
+
+export interface MaxEnabledTokensUpdatedEventProps extends EVMEventProps {
+  tokensEnabled: number;
+  prevTokensEnabled: number;
+
+  creditManager: string;
+}
+
+export class EventMaxEnabledTokensUpdated extends EVMEvent {
+  public readonly tokensEnabled: number;
+  public readonly prevTokensEnabled: number;
+
+  public readonly creditManager: string;
+
+  constructor(opts: MaxEnabledTokensUpdatedEventProps) {
+    super(opts);
+    this.tokensEnabled = opts.tokensEnabled;
+    this.prevTokensEnabled = opts.prevTokensEnabled;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )}: Enabled Tokens Updated ${this.tokensEnabled} => ${
+      this.prevTokensEnabled
+    }`;
+  }
+}
+
+export interface LimitPerBlockUpdatedEventProps extends EVMEventProps {
+  limit: string;
+  prevLimit: string;
+
+  token: string;
+  creditManager: string;
+}
+
+export class EventLimitPerBlockUpdated extends EVMEvent {
+  public readonly limit: BigNumber;
+  public readonly prevLimit: BigNumber;
+
+  public readonly token: string;
+  public readonly creditManager: string;
+
+  constructor(opts: LimitPerBlockUpdatedEventProps) {
+    super(opts);
+    this.limit = BigNumber.from(opts.limit);
+    this.prevLimit = BigNumber.from(opts.prevLimit);
+
+    this.token = opts.token;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.token);
+
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )}: Limit Per Block Updated ${formatBN(
+      this.prevLimit,
+      decimals,
+    )} => ${formatBN(this.limit, decimals)} ${symbol}`;
+  }
+}
+
+export interface AddedToUpgradeableEventProps extends EVMEventProps {
+  added: string;
+
+  creditManager: string;
+}
+
+export class EventAddedToUpgradeable extends EVMEvent {
+  public readonly added: string;
+
+  public readonly creditManager: string;
+
+  constructor(opts: AddedToUpgradeableEventProps) {
+    super(opts);
+    this.added = opts.added;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )}: Added To Upgradeable ${this.added}`;
+  }
+}
+
+export interface RemovedFromUpgradeableEventProps extends EVMEventProps {
+  removed: string;
+
+  creditManager: string;
+}
+
+export class EventRemovedFromUpgradeable extends EVMEvent {
+  public readonly removed: string;
+
+  public readonly creditManager: string;
+
+  constructor(opts: RemovedFromUpgradeableEventProps) {
+    super(opts);
+    this.removed = opts.removed;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )}: Removed From Upgradeable ${this.removed}`;
+  }
+}
+
+export interface EmergencyLiquidatorAddedEventProps extends EVMEventProps {
+  added: string;
+
+  creditManager: string;
+}
+
+export class EventEmergencyLiquidatorAdded extends EVMEvent {
+  public readonly added: string;
+
+  public readonly creditManager: string;
+
+  constructor(opts: EmergencyLiquidatorAddedEventProps) {
+    super(opts);
+    this.added = opts.added;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )}: Emergency Liquidator Added ${this.added}`;
+  }
+}
+
+export interface EmergencyLiquidatorRemovedEventProps extends EVMEventProps {
+  removed: string;
+
+  creditManager: string;
+}
+
+export class EventEmergencyLiquidatorRemoved extends EVMEvent {
+  public readonly removed: string;
+
+  public readonly creditManager: string;
+
+  constructor(opts: EmergencyLiquidatorRemovedEventProps) {
+    super(opts);
+    this.removed = opts.removed;
+
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )}: Emergency Liquidator Removed ${this.removed}`;
   }
 }
