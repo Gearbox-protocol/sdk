@@ -137,11 +137,7 @@ export class EventAddLiquidity extends EVMEvent {
   public readonly pool: string;
 
   constructor(opts: EventAddLiquidityProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.pool = opts.pool;
@@ -175,11 +171,7 @@ export class EventRemoveLiquidity extends EVMEvent {
   public readonly pool: string;
 
   constructor(opts: RemoveLiquidityProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.dieselToken = opts.dieselToken;
@@ -216,11 +208,7 @@ export class EventOpenCreditAccount extends EVMEvent {
   public readonly creditManager: string;
 
   constructor(opts: OpenCreditAccountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.leverage = opts.leverage;
@@ -260,11 +248,7 @@ export class EventCloseCreditAccount extends EVMEvent {
   public readonly creditManager: string;
 
   constructor(opts: CloseCreditAccountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
@@ -297,11 +281,7 @@ export class EventLiquidateCreditAccount extends EVMEvent {
   public readonly creditManager: string;
 
   constructor(opts: LiquidateCreditAccountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
@@ -331,11 +311,7 @@ export class EventRepayCreditAccount extends EVMEvent {
   public readonly creditManager: string;
 
   constructor(opts: RepayCreditAccountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
   }
@@ -359,11 +335,7 @@ export class EventAddCollateral extends EVMEvent {
   public readonly creditManager: string;
 
   constructor(opts: AddCollateralProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = BigNumber.from(opts.amount);
 
     this.addedToken = opts.addedToken;
@@ -394,11 +366,7 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
   public readonly creditManager: string;
 
   constructor(opts: IncreaseBorrowAmountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
@@ -474,11 +442,7 @@ export class EventCMNewParameters extends EVMEvent {
   public readonly prevLiquidationDiscount: number;
 
   constructor(opts: CMNewParametersProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
     this.underlyingToken = opts.underlyingToken;
     this.minAmount = BigNumber.from(opts.minAmount);
@@ -569,11 +533,7 @@ export class EventTokenAllowed extends EVMEvent {
   public readonly status: TokenAllowanceType;
 
   constructor(opts: TokenAllowedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
     this.token = opts.token;
     this.liquidityThreshold = opts.liquidityThreshold;
@@ -623,11 +583,7 @@ export class EventTokenForbidden extends EVMEvent {
   public readonly token: string;
 
   constructor(opts: TokenForbiddenProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
     this.token = opts.token;
   }
@@ -663,11 +619,7 @@ export class EventContractAllowed extends EVMEvent {
   public readonly status: EventContractAllowedStatus;
 
   constructor(opts: ContractAllowedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
     this.protocol = opts.protocol;
     this.adapter = opts.adapter;
@@ -707,11 +659,7 @@ export class EventContractForbidden extends EVMEvent {
   public readonly protocol: string;
 
   constructor(opts: ContractForbiddenProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
     this.protocol = opts.protocol;
   }
@@ -747,11 +695,7 @@ export class EventNewFastCheckParameters extends EVMEvent {
   public readonly prevFastCheckDelay?: number;
 
   constructor(opts: NewFastCheckParametersProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
     this.chiThreshold = opts.chiThreshold;
     this.fastCheckDelay = opts.fastCheckDelay;
@@ -787,11 +731,7 @@ export class EventPriceOracleUpdated extends EVMEvent {
   public readonly priceOracle: string;
 
   constructor(opts: PriceOracleUpdatedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
     this.priceOracle = opts.priceOracle;
   }
@@ -824,11 +764,7 @@ export class EventTransferPluginAllowed extends EVMEvent {
   public readonly state: boolean;
 
   constructor(opts: TransferPluginAllowedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
     this.plugin = opts.priceOracle;
     this.state = opts.state;
@@ -857,11 +793,7 @@ export class EventNewInterestRateModel extends EVMEvent {
   public readonly newInterestRateModel: string;
 
   constructor(opts: NewInterestRateModelProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.pool = opts.pool;
     this.newInterestRateModel = opts.newInterestRateModel;
   }
@@ -890,11 +822,7 @@ export class EventNewCreditManagerConnected extends EVMEvent {
   public readonly creditManager: string;
 
   constructor(opts: NewCreditManagerConnectedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.pool = opts.pool;
     this.creditManager = opts.creditManager;
   }
@@ -923,11 +851,7 @@ export class EventBorrowForbidden extends EVMEvent {
   public readonly creditManager: string;
 
   constructor(opts: BorrowForbiddenProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.pool = opts.pool;
     this.creditManager = opts.creditManager;
   }
@@ -961,11 +885,7 @@ export class EventNewExpectedLiquidityLimit extends EVMEvent {
   public readonly prevLimit: BigNumber;
 
   constructor(opts: NewExpectedLiquidityLimitProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
     this.newLimit = BigNumber.from(opts.newLimit);
@@ -1014,11 +934,7 @@ export class EventNewWithdrawFee extends EVMEvent {
   public readonly prevFee: number;
 
   constructor(opts: NewWithdrawFeeProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.pool = opts.pool;
     this.underlyingToken = opts.underlyingToken;
     this.newFee = Number(opts.newFee);
@@ -1052,11 +968,7 @@ export class EventNewPriceFeed extends EVMEvent {
   public readonly priceFeed: string;
 
   constructor(opts: NewPriceFeedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.token = opts.token;
     this.priceFeed = opts.priceFeed;
   }
@@ -1084,11 +996,7 @@ export class EventTakeForever extends EVMEvent {
   public readonly to: string;
 
   constructor(opts: TakeForeverProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditAccount = opts.creditAccount;
     this.to = opts.to;
   }
@@ -1108,11 +1016,7 @@ export class EventPaused extends EVMEvent {
   public readonly contract: string;
 
   constructor(opts: PausedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.contract = opts.contract;
   }
 
@@ -1129,11 +1033,7 @@ export class EventUnPaused extends EVMEvent {
   public readonly contract: string;
 
   constructor(opts: UnPausedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.contract = opts.contract;
   }
 
@@ -1153,11 +1053,7 @@ export class EventPausableAdminAdded extends EVMEvent {
   public readonly admin: string;
 
   constructor(opts: PausableAdminAddedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.admin = opts.admin;
   }
 
@@ -1177,11 +1073,7 @@ export class EventPausableAdminRemoved extends EVMEvent {
   public readonly admin: string;
 
   constructor(opts: PausableAdminRemovedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.admin = opts.admin;
   }
 
@@ -1201,11 +1093,7 @@ export class EventUnPausableAdminAdded extends EVMEvent {
   public readonly admin: string;
 
   constructor(opts: UnPausableAdminAddedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.admin = opts.admin;
   }
 
@@ -1225,11 +1113,7 @@ export class EventUnPausableAdminRemoved extends EVMEvent {
   public readonly admin: string;
 
   constructor(opts: UnPausableAdminRemovedProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.admin = opts.admin;
   }
 
@@ -1247,11 +1131,7 @@ export class EventTransferOwnership extends EVMEvent {
   public readonly newOwner: string;
 
   constructor(opts: TransferOwnershipProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.newOwner = opts.admin;
   }
 
