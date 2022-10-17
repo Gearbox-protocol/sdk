@@ -12,7 +12,7 @@ import { CurveLPTokenData } from "../tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "../tokens/token";
 import { TokenType } from "../tokens/tokenType";
 import { IYVault__factory } from "../types";
-import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import { CurveStrategies } from "./curve";
 import { UniswapV2Multicaller } from "./uniswapV2";
 

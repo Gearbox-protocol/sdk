@@ -1,7 +1,7 @@
 import { BigNumberish } from "ethers";
 
 import { IUniswapV2Adapter__factory } from "../types";
-import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 
 export class UniswapV2Calls {
   public static swapExactTokensForTokens(

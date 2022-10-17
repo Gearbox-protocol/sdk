@@ -2,7 +2,7 @@ import { BigNumberish } from "ethers";
 
 import { SupportedToken } from "../tokens/token";
 import { ICreditFacadeExtended__factory } from "../types";
-import { BalanceStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacadeExtended";
+import { BalanceStruct } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/ICreditFacade.sol/ICreditFacadeExtended";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

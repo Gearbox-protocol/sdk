@@ -7,7 +7,7 @@ import {
 } from "../contracts/contracts";
 import { NetworkType } from "../core/constants";
 import { SupportedToken } from "../tokens/token";
-import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import { AbstractParser } from "./abstractParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";

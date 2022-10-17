@@ -15,7 +15,7 @@ import {
   ICurvePool4Assets__factory,
   ICurveV1Adapter__factory,
 } from "../types";
-import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import { UniswapV2Multicaller } from "./uniswapV2";
 
 export class CurveCalls {
