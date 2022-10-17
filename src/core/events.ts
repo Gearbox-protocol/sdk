@@ -38,7 +38,21 @@ export interface EventSerialized {
     | "EventPausableAdminRemoved"
     | "EventUnpausableAdminAdded"
     | "EventUnpausableAdminRemoved"
-    | "EventOwnershipTransferred";
+    | "EventOwnershipTransferred"
+    | "EventTokenAllowedV2"
+    | "EventLimitsUpdated"
+    | "EventFeesUpdated"
+    | "EventCreditFacadeUpgraded"
+    | "EventNewConfigurator"
+    | "EventIncreaseDebtForbiddenModeChanged"
+    | "EventExpirationDateUpdated"
+    | "EventMaxEnabledTokensUpdated"
+    | "EventLimitPerBlockUpdated"
+    | "EventAddedToUpgradeable"
+    | "EventRemovedFromUpgradeable"
+    | "EventEmergencyLiquidatorAdded"
+    | "EventEmergencyLiquidatorRemoved"
+    | "EventLTUpdated";
 
   content: any;
 }
@@ -112,6 +126,36 @@ export class EventParser {
         return new EventUnPausableAdminRemoved(params);
       case "EventOwnershipTransferred":
         return new EventTransferOwnership(params);
+
+      case "EventTokenAllowedV2":
+        return new EventTokenAllowedV2(params);
+      case "EventLimitsUpdated":
+        return new EventLimitsUpdated(params);
+      case "EventFeesUpdated":
+        return new EventFeesUpdated(params);
+      case "EventCreditFacadeUpgraded":
+        return new EventCreditFacadeUpgraded(params);
+      case "EventNewConfigurator":
+        return new EventNewConfigurator(params);
+      case "EventLTUpdated":
+        return new EventLTUpdated(params);
+
+      case "EventIncreaseDebtForbiddenModeChanged":
+        return new EventIncreaseDebtForbiddenModeChanged(params);
+      case "EventExpirationDateUpdated":
+        return new EventExpirationDateUpdated(params);
+      case "EventMaxEnabledTokensUpdated":
+        return new EventMaxEnabledTokensUpdated(params);
+      case "EventLimitPerBlockUpdated":
+        return new EventLimitPerBlockUpdated(params);
+      case "EventAddedToUpgradeable":
+        return new EventAddedToUpgradeable(params);
+      case "EventRemovedFromUpgradeable":
+        return new EventRemovedFromUpgradeable(params);
+      case "EventEmergencyLiquidatorAdded":
+        return new EventEmergencyLiquidatorAdded(params);
+      case "EventEmergencyLiquidatorRemoved":
+        return new EventEmergencyLiquidatorRemoved(params);
 
       default:
         throw new Error(`Unknown transaction for parsing ${data.type}`);
@@ -1140,6 +1184,7 @@ export class EventTransferOwnership extends EVMEvent {
     return `ACL: configurator was changed to ${this.newOwner}`;
   }
 }
+
 // ICreditConfigurator
 
 export interface TokenAllowedV2Props extends EVMEventProps {
@@ -1400,7 +1445,33 @@ export class EventNewConfigurator extends EVMEvent {
   }
 }
 
-/// //////// !& LTUpdated
+export interface LTUpdatedEventProps extends EVMEventProps {
+  lt: number;
+  prevLt: number;
+
+  creditManager: string;
+}
+
+export class EventLTUpdated extends EVMEvent {
+  public readonly creditManager: string;
+  public readonly lt: number;
+  public readonly prevLt: number;
+
+  constructor(opts: LTUpdatedEventProps) {
+    super(opts);
+    this.creditManager = opts.creditManager;
+    this.lt = opts.lt;
+    this.prevLt = opts.prevLt;
+  }
+
+  toString(): string {
+    return `Credit manager ${getContractName(
+      this.creditManager,
+    )} updated: liquidation fee: ${this.prevLt / PERCENTAGE_DECIMALS}% => ${
+      this.lt / PERCENTAGE_DECIMALS
+    }%`;
+  }
+}
 
 export interface IncreaseDebtForbiddenModeChangedEventProps
   extends EVMEventProps {
