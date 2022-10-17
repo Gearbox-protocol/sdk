@@ -9,8 +9,8 @@ import {
   IDataCompressor__factory,
   IERC20__factory,
 } from "../types";
+import { IDataCompressorInterface } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { TypedEvent } from "../types/common";
-import { IDataCompressorInterface } from "../types/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { CallData, MultiCallContract } from "../utils/multicall";
 
 interface CMEvent {

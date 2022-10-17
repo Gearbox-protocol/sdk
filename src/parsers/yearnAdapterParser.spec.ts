@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { DUMB_ADDRESS, WAD } from "../core/constants";
-import { IYearnV2Adapter__factory } from "../types/factories/contracts/interfaces/adapters/yearn";
+import { IYearnV2Adapter__factory } from "../types";
 import { YearnV2AdapterParser } from "./yearnV2AdapterParser";
 
 describe("YearnV2AdapterParser test", () => {

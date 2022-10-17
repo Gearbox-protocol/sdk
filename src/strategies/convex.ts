@@ -16,7 +16,7 @@ import {
   IClaimZap__factory,
   IConvexV1BaseRewardPoolAdapter__factory,
 } from "../types";
-import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import { CurveStrategies } from "./curve";
 import { UniswapV2Multicaller } from "./uniswapV2";
 

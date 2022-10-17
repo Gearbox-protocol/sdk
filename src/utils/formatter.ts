@@ -1,5 +1,6 @@
 import { Decimal } from "decimal.js-light";
 import { BigNumber, BigNumberish } from "ethers";
+import { unix } from "moment";
 
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, RAY } from "../core/constants";
 
@@ -157,4 +158,8 @@ export function formatPercentage(healthFactor: number, decimals = 2): string {
 
 export function formatLeverage(leverage: number, decimals = 2) {
   return (leverage / LEVERAGE_DECIMALS).toFixed(decimals);
+}
+
+export function formatDateTime(timestamp: number) {
+  return `${unix(timestamp).format("Do MMM YYYY HH:mm")} UTC`;
 }

@@ -13,8 +13,8 @@ import {
   IConvexToken__factory,
   IConvexV1BaseRewardPoolAdapter__factory,
 } from "../types";
-import { IConvexTokenInterface } from "../types/contracts/integrations/convex/IConvexToken";
-import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/contracts/interfaces/adapters/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
+import { IConvexTokenInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/integrations/convex/IConvexToken";
+import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
 import { MCall, multicall } from "../utils/multicall";
 import { NetworkType } from "./constants";
 import { CreditAccountData } from "./creditAccount";

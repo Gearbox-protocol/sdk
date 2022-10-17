@@ -66,6 +66,8 @@ export type { IDataCompressor } from "./@gearbox-protocol/core-v2/contracts/inte
 export { IDataCompressor__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor__factory";
 export type { IDataCompressorExceptions } from "./@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressorExceptions";
 export { IDataCompressorExceptions__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressorExceptions__factory";
+export type { IDegenDistributor } from "./@gearbox-protocol/core-v2/contracts/interfaces/IDegenDistributor";
+export { IDegenDistributor__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IDegenDistributor__factory";
 export type { IDegenNFT } from "./@gearbox-protocol/core-v2/contracts/interfaces/IDegenNFT.sol/IDegenNFT";
 export { IDegenNFT__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IDegenNFT.sol/IDegenNFT__factory";
 export type { IDegenNFTEvents } from "./@gearbox-protocol/core-v2/contracts/interfaces/IDegenNFT.sol/IDegenNFTEvents";
@@ -164,6 +166,8 @@ export type { ICurvePool } from "./@gearbox-protocol/integrations-v2/contracts/i
 export { ICurvePool__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/integrations/curve/ICurvePool__factory";
 export type { ICurveRegistry } from "./@gearbox-protocol/integrations-v2/contracts/integrations/curve/ICurveRegistry";
 export { ICurveRegistry__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/integrations/curve/ICurveRegistry__factory";
+export type { ILidoOracle } from "./@gearbox-protocol/integrations-v2/contracts/integrations/lido/ILidoOracle";
+export { ILidoOracle__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/integrations/lido/ILidoOracle__factory";
 export type { IstETH } from "./@gearbox-protocol/integrations-v2/contracts/integrations/lido/IstETH.sol/IstETH";
 export { IstETH__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/integrations/lido/IstETH.sol/IstETH__factory";
 export type { IstETHGetters } from "./@gearbox-protocol/integrations-v2/contracts/integrations/lido/IstETH.sol/IstETHGetters";
@@ -172,6 +176,8 @@ export type { IwstETH } from "./@gearbox-protocol/integrations-v2/contracts/inte
 export { IwstETH__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/integrations/lido/IwstETH.sol/IwstETH__factory";
 export type { IwstETHGetters } from "./@gearbox-protocol/integrations-v2/contracts/integrations/lido/IwstETH.sol/IwstETHGetters";
 export { IwstETHGetters__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/integrations/lido/IwstETH.sol/IwstETHGetters__factory";
+export type { IwstETHGateWay } from "./@gearbox-protocol/integrations-v2/contracts/integrations/lido/IwstETHGateway.sol/IwstETHGateWay";
+export { IwstETHGateWay__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/integrations/lido/IwstETHGateway.sol/IwstETHGateWay__factory";
 export type { IQuoter } from "./@gearbox-protocol/integrations-v2/contracts/integrations/uniswap/IQuoter";
 export { IQuoter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/integrations/uniswap/IQuoter__factory";
 export type { IUniswapV2Router01 } from "./@gearbox-protocol/integrations-v2/contracts/integrations/uniswap/IUniswapV2Router01";
@@ -188,6 +194,12 @@ export type { IConvexV1BaseRewardPoolAdapterErrors } from "./@gearbox-protocol/i
 export { IConvexV1BaseRewardPoolAdapterErrors__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapterErrors__factory";
 export type { IConvexV1BoosterAdapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/convex/IConvexV1BoosterAdapter";
 export { IConvexV1BoosterAdapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/convex/IConvexV1BoosterAdapter__factory";
+export type { ICurveV1_2AssetsAdapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1_2AssetsAdapter";
+export { ICurveV1_2AssetsAdapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1_2AssetsAdapter__factory";
+export type { ICurveV1_3AssetsAdapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1_3AssetsAdapter";
+export { ICurveV1_3AssetsAdapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1_3AssetsAdapter__factory";
+export type { ICurveV1_4AssetsAdapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1_4AssetsAdapter";
+export { ICurveV1_4AssetsAdapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1_4AssetsAdapter__factory";
 export type { ICurveV1Adapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1Adapter.sol/ICurveV1Adapter";
 export { ICurveV1Adapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1Adapter.sol/ICurveV1Adapter__factory";
 export type { ICurveV1AdapterExceptions } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/curve/ICurveV1Adapter.sol/ICurveV1AdapterExceptions";
@@ -250,3 +262,5 @@ export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
 export type { AggregatorV3Interface } from "./@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface";
 export { AggregatorV3Interface__factory } from "./factories/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface__factory";
+export type { Multicall2 } from "./@gearbox-protocol/core-v2/contracts/support/MultiCall.sol/Multicall2";
+export { Multicall2__factory } from "./factories/@gearbox-protocol/core-v2/contracts/support/MultiCall.sol/Multicall2__factory";

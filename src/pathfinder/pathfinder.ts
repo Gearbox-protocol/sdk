@@ -5,9 +5,12 @@ import { NetworkType, RAY } from "../core/constants";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
-import { IPathFinder, IPathFinder__factory } from "../types";
-import { BalanceStruct } from "../types/contracts/pathfinder/interfaces/IPathFinder";
-import { SwapTaskStruct } from "../types/contracts/pathfinder/interfaces/ISwapper";
+import { IRouter__factory } from "../types";
+import { BalanceStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
+import {
+  IRouter,
+  SwapTaskStruct,
+} from "../types/@gearbox-protocol/router/contracts/interfaces/IRouter";
 import {
   MultiCall,
   PathFinderCloseResult,
@@ -27,7 +30,7 @@ export interface CloseResult {
 }
 
 export class PathFinder {
-  pathFinder: IPathFinder;
+  pathFinder: IRouter;
   network: NetworkType;
 
   public static connectors: Array<SupportedToken> = ["USDC", "WETH", "DAI"];
@@ -39,7 +42,7 @@ export class PathFinder {
     network: NetworkType = "Mainnet",
     connectors?: Array<SupportedToken>,
   ) {
-    this.pathFinder = IPathFinder__factory.connect(address, provider);
+    this.pathFinder = IRouter__factory.connect(address, provider);
     this.network = network;
     this._connectors = (connectors || PathFinder.connectors).map(
       c => tokenDataByNetwork[this.network][c as SupportedToken],

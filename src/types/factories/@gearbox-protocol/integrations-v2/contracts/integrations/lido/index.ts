@@ -3,3 +3,5 @@
 /* eslint-disable */
 export * as istEthSol from "./IstETH.sol";
 export * as iwstEthSol from "./IwstETH.sol";
+export * as iwstEthGatewaySol from "./IwstETHGateway.sol";
+export { ILidoOracle__factory } from "./ILidoOracle__factory";

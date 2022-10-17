@@ -5,7 +5,7 @@ import { ADDRESS_0X0, NetworkType } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
 import { tokenDataByNetwork } from "../tokens/token";
 import { ILidoV1Adapter__factory } from "../types";
-import { MultiCallStruct } from "../types/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import { UniswapV2Multicaller } from "./uniswapV2";
 
 export class LidoCalls {

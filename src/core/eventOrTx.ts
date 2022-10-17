@@ -53,11 +53,15 @@ export abstract class EventOrTx implements Display {
   public abstract toString(tokenData: Record<string, TokenData>): string;
 }
 
-export type EVMEventProps = Omit<EventOrTxProps, "txStatus">;
+export type EVMEventProps = Omit<EventOrTxProps, "txStatus"> & {
+  logId?: number;
+};
 
 export abstract class EVMEvent extends EventOrTx {
+  logId?: number;
   constructor(opts: EVMEventProps) {
     super({ ...opts, txStatus: "success" });
+    this.logId = opts.logId;
   }
 }
 
