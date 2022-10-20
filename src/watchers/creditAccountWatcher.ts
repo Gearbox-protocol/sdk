@@ -32,6 +32,11 @@ interface CreditManagerUpdateInt {
   deleted: Set<string>;
 }
 
+interface BatchCreditAccountLoadOptions {
+  atBlock?: number;
+  chunkSize?: number;
+}
+
 export class CreditAccountWatcher {
   static IERC20 = IERC20__factory.createInterface();
 
@@ -120,15 +125,23 @@ export class CreditAccountWatcher {
     accs: Array<CreditAccountHash>,
     dataCompressor: string,
     signer: Signer | providers.Provider,
-    atBlock?: number,
+    options?: BatchCreditAccountLoadOptions | number,
   ): Promise<Array<CreditAccountData>> {
+    let chunkSize = 1000;
+    let atBlock: number | undefined;
+    if (typeof options === "object") {
+      atBlock = options.atBlock;
+      chunkSize = options.chunkSize ?? 1000;
+    } else {
+      atBlock = options;
+    }
+
     const dcmc = new MultiCallContract(
       dataCompressor,
       IDataCompressor__factory.createInterface(),
       signer,
     );
 
-    const chunkSize = 1000;
     const calls: Array<Array<CallData<IDataCompressorInterface>>> = [];
 
     for (let i = 0; i < accs.length; i++) {
