@@ -64,7 +64,7 @@ export class PoolRewards {
     );
   }
 
-  async computeAllRewards(
+  static async computeAllRewards(
     dieselToken: string,
     provider: providers.Provider,
     networkType: NetworkType,
