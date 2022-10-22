@@ -40,6 +40,8 @@ export * from "./parsers/txParser";
 export * from "./pathfinder/core";
 export * from "./pathfinder/pathfinder";
 export * from "./pathfinder/tradeTypes";
+export * from "./rewards/airdrops";
+export * from "./rewards/poolRewards";
 export * from "./strategies/convex";
 export * from "./strategies/creditFacade";
 export * from "./strategies/curve";
