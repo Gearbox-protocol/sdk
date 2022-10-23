@@ -4,6 +4,7 @@
 export * as iaclSol from "./IACL.sol";
 export * as iAccountFactorySol from "./IAccountFactory.sol";
 export * as iAddressProviderSol from "./IAddressProvider.sol";
+export * as iAirdropDistributorSol from "./IAirdropDistributor.sol";
 export * as iContractsRegisterSol from "./IContractsRegister.sol";
 export * as iCreditAccountSol from "./ICreditAccount.sol";
 export * as iCreditConfiguratorSol from "./ICreditConfigurator.sol";

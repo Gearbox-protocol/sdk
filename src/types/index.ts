@@ -34,6 +34,10 @@ export type { IAddressProvider } from "./@gearbox-protocol/core-v2/contracts/int
 export { IAddressProvider__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IAddressProvider.sol/IAddressProvider__factory";
 export type { IAddressProviderEvents } from "./@gearbox-protocol/core-v2/contracts/interfaces/IAddressProvider.sol/IAddressProviderEvents";
 export { IAddressProviderEvents__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IAddressProvider.sol/IAddressProviderEvents__factory";
+export type { IAirdropDistributor } from "./@gearbox-protocol/core-v2/contracts/interfaces/IAirdropDistributor.sol/IAirdropDistributor";
+export { IAirdropDistributor__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IAirdropDistributor.sol/IAirdropDistributor__factory";
+export type { IAirdropDistributorEvents } from "./@gearbox-protocol/core-v2/contracts/interfaces/IAirdropDistributor.sol/IAirdropDistributorEvents";
+export { IAirdropDistributorEvents__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IAirdropDistributor.sol/IAirdropDistributorEvents__factory";
 export type { IContractsRegister } from "./@gearbox-protocol/core-v2/contracts/interfaces/IContractsRegister.sol/IContractsRegister";
 export { IContractsRegister__factory } from "./factories/@gearbox-protocol/core-v2/contracts/interfaces/IContractsRegister.sol/IContractsRegister__factory";
 export type { IContractsRegisterEvents } from "./@gearbox-protocol/core-v2/contracts/interfaces/IContractsRegister.sol/IContractsRegisterEvents";

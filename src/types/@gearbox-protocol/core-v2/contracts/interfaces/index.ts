@@ -7,6 +7,8 @@ import type * as iAccountFactorySol from "./IAccountFactory.sol";
 export type { iAccountFactorySol };
 import type * as iAddressProviderSol from "./IAddressProvider.sol";
 export type { iAddressProviderSol };
+import type * as iAirdropDistributorSol from "./IAirdropDistributor.sol";
+export type { iAirdropDistributorSol };
 import type * as iContractsRegisterSol from "./IContractsRegister.sol";
 export type { iContractsRegisterSol };
 import type * as iCreditAccountSol from "./ICreditAccount.sol";
