@@ -142,12 +142,14 @@ export class PoolRewards {
     for (let i = 0; i < keys.length; i++) {
       const curBlock = keys[i];
       const nextBlock = i === keys.length - 1 ? toBlock : keys[i + 1];
-      total = total.add(
-        balancesArr[i]
-          .mul(nextBlock - curBlock)
-          .mul(rewardsArr[i])
-          .div(totalSupplyArr[i]),
-      );
+      if (!totalSupplyArr[i].isZero()) {
+        total = total.add(
+          balancesArr[i]
+            .mul(nextBlock - curBlock)
+            .mul(rewardsArr[i])
+            .div(totalSupplyArr[i]),
+        );
+      }
     }
 
     return total;
