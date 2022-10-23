@@ -83,32 +83,31 @@ export class PoolRewards {
     let totalSupply = BigNumber.from(0);
     let balances: Record<string, BigNumber> = {};
 
-    query.forEach(e => {
-      const from = e.args.from.toLowerCase();
-      if (from === ADDRESS_0X0) {
-        totalSupply = totalSupply.add(e.args.value);
-        totalSupplyRange.addValue(e.blockNumber, totalSupply);
-      } else {
-        if (!balances[from]) {
-          console.log("FROM", from);
+    query
+      .filter(e => !e.args.value.isZero())
+      .forEach(e => {
+        const from = e.args.from.toLowerCase();
+        if (from === ADDRESS_0X0) {
+          totalSupply = totalSupply.add(e.args.value);
+          totalSupplyRange.addValue(e.blockNumber, totalSupply);
+        } else {
+          balances[from] = balances[from].sub(e.args.value);
+          balancesRange[from].addValue(e.blockNumber, balances[from]);
         }
-        balances[from] = balances[from].sub(e.args.value);
-        balancesRange[from].addValue(e.blockNumber, balances[from]);
-      }
 
-      const to = e.args.to.toLowerCase();
-      if (to === ADDRESS_0X0) {
-        totalSupply = totalSupply.sub(e.args.value);
-        totalSupplyRange.addValue(e.blockNumber, totalSupply);
-      } else {
-        if (!balances[to]) {
-          balances[to] = BigNumber.from(0);
-          balancesRange[to] = new RangedValue();
+        const to = e.args.to.toLowerCase();
+        if (to === ADDRESS_0X0) {
+          totalSupply = totalSupply.sub(e.args.value);
+          totalSupplyRange.addValue(e.blockNumber, totalSupply);
+        } else {
+          if (!balances[to]) {
+            balances[to] = BigNumber.from(0);
+            balancesRange[to] = new RangedValue();
+          }
+          balances[to] = balances[to].add(e.args.value);
+          balancesRange[to].addValue(e.blockNumber, balances[to]);
         }
-        balances[to] = balances[to].add(e.args.value);
-        balancesRange[to].addValue(e.blockNumber, balances[to]);
-      }
-    });
+      });
 
     return Object.keys(balances).map(address => ({
       address,
