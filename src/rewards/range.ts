@@ -49,7 +49,13 @@ export class RangedValue {
 
   protected getMapValue(index: number) {
     const value = this.data.get(index);
-    if (!value) throw new Error(`Can get value for ${index}`);
+    if (!value) {
+      if (this.data.size > 0) {
+        throw new Error(`Can get value for ${index}`);
+      } else {
+        return this.initialValue;
+      }
+    }
     return value;
   }
 
