@@ -89,6 +89,9 @@ export class PoolRewards {
         totalSupply = totalSupply.add(e.args.value);
         totalSupplyRange.addValue(e.blockNumber, totalSupply);
       } else {
+        if (!balances[from]) {
+          console.log("FROM", from);
+        }
         balances[from] = balances[from].sub(e.args.value);
         balancesRange[from].addValue(e.blockNumber, balances[from]);
       }
