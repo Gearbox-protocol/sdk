@@ -46,23 +46,23 @@ poolRewardsPerBlock.Goerli.dwstETH.addValue(
 );
 
 poolRewardsPerBlock.Mainnet.dDAI.addValue(
-  7694030,
+  15820000,
   BigNumber.from(10).pow(18).mul(2283).div(100),
 );
 poolRewardsPerBlock.Mainnet.dUSDC.addValue(
-  7694030,
+  15820000,
   BigNumber.from(10).pow(6).mul(2283).div(100),
 );
 poolRewardsPerBlock.Mainnet.dWETH.addValue(
-  7694030,
+  15820000,
   BigNumber.from(10).pow(18).mul(3196).div(100),
 );
 poolRewardsPerBlock.Mainnet.dWBTC.addValue(
-  7694030,
+  15820000,
   BigNumber.from(10).pow(8).mul(913).div(100),
 );
 poolRewardsPerBlock.Mainnet.dwstETH.addValue(
-  7694030,
+  15820000,
   BigNumber.from(10).pow(18).mul(1636).div(100),
 );
 
