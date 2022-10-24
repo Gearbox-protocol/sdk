@@ -4,7 +4,7 @@ import { keyToLowercase } from "../utils/mappers";
 import { contractParams, contractsByAddress } from "./contracts";
 
 export const stEthPoolWrapper: Record<NetworkType, string> = {
-  Mainnet: "Deploy me",
+  Mainnet: "0x5a97e3E43dCBFe620ccF7865739075f92E93F5E4",
   Goerli: "0x3fe62a62C022A069952069b32C9d56718D30B7ec",
 };
 
@@ -18,6 +18,7 @@ export const deployedContracts: Record<string, string> = {
   "0x968f9a68a98819E2e6Bb910466e191A7b6cf02F0": "WETH",
   "0xB2A015c71c17bCAC6af36645DEad8c572bA08A08": "WBTC",
   "0xC38478B0A4bAFE964C3526EEFF534d70E1E09017": "WBTC",
+  "0xB8cf3Ed326bB0E51454361Fb37E9E8df6DC5C286": "wstETH",
 
   // GOERLI
   "0xf7ba434952acaa2e12035a2c3643ca327914a470": "DAI",
