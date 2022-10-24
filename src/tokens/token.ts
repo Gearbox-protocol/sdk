@@ -229,11 +229,11 @@ export const tokenDataByNetwork: Record<
     stkcvxLUSD3CRV: "0x84c04976BA15AE880B8D6daC9CE1075D0eFD0d4D",
 
     // GEARBOX
-    dDAI: "0x1726d8a1d3193d7c5a301bb64b025cbd91ba791c", // DieselToken.sol
-    dUSDC: "0x5bbdbda8ce49b152ae48fb37f2397a5ebf35d59c", // DieselToken.sol
-    dWBTC: "0xd7f208de8d5b5301e7018dcc6d312a4305382330", // DieselToken.sol
-    dWETH: "0xfb906e19e71ed61bcb5ea0e11d77941a058eafbd", // DieselToken.sol
-    dwstETH: "0xab20d04af0f79ab21cc66431f6bac03b74003d4d",
+    dDAI: "0x1726d8a1d3193D7C5A301Bb64b025cBD91BA791c", // DieselToken.sol
+    dUSDC: "0x5bBDBDa8cE49B152ae48FB37F2397A5EBF35d59C", // DieselToken.sol
+    dWBTC: "0xd7f208de8d5b5301e7018dcc6D312A4305382330", // DieselToken.sol
+    dWETH: "0xfb906E19E71ED61bcb5eA0E11d77941A058eafBD", // DieselToken.sol
+    dwstETH: "0xAB20D04aF0f79aB21cC66431F6BAc03b74003d4d",
 
     GEAR: "0x52555B61b8c1243C63682F75eB28214d7A62F221",
   },
