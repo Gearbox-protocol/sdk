@@ -40,7 +40,7 @@ poolRewardsPerBlock.Goerli.dDAI.addValue(
 );
 poolRewardsPerBlock.Goerli.dUSDC.addValue(
   GOERLI_BLOCK,
-  BigNumber.from(10).pow(6).mul(GEAR_PER_BLOCK.dUSDC).div(100),
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dUSDC).div(100),
 );
 poolRewardsPerBlock.Goerli.dWETH.addValue(
   GOERLI_BLOCK,
@@ -48,7 +48,7 @@ poolRewardsPerBlock.Goerli.dWETH.addValue(
 );
 poolRewardsPerBlock.Goerli.dWBTC.addValue(
   GOERLI_BLOCK,
-  BigNumber.from(10).pow(8).mul(GEAR_PER_BLOCK.dWBTC).div(100),
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dWBTC).div(100),
 );
 poolRewardsPerBlock.Goerli.dwstETH.addValue(
   GOERLI_BLOCK,
@@ -63,7 +63,7 @@ poolRewardsPerBlock.Mainnet.dDAI.addValue(
 );
 poolRewardsPerBlock.Mainnet.dUSDC.addValue(
   MAINNET_BLOCK,
-  BigNumber.from(10).pow(6).mul(GEAR_PER_BLOCK.dUSDC).div(100),
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dUSDC).div(100),
 );
 poolRewardsPerBlock.Mainnet.dWETH.addValue(
   MAINNET_BLOCK,
@@ -71,7 +71,7 @@ poolRewardsPerBlock.Mainnet.dWETH.addValue(
 );
 poolRewardsPerBlock.Mainnet.dWBTC.addValue(
   MAINNET_BLOCK,
-  BigNumber.from(10).pow(8).mul(GEAR_PER_BLOCK.dWBTC).div(100),
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dWBTC).div(100),
 );
 poolRewardsPerBlock.Mainnet.dwstETH.addValue(
   MAINNET_BLOCK,
