@@ -20,10 +20,16 @@ const _abi = [
         type: "address",
       },
       {
-        indexed: true,
+        indexed: false,
         internalType: "uint256",
         name: "amount",
         type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "bool",
+        name: "historic",
+        type: "bool",
       },
     ],
     name: "Claimed",
@@ -91,11 +97,6 @@ const _abi = [
         type: "uint256",
       },
       {
-        internalType: "uint256",
-        name: "claimedAmount",
-        type: "uint256",
-      },
-      {
         internalType: "bytes32[]",
         name: "merkleProof",
         type: "bytes32[]",
@@ -160,7 +161,7 @@ export class IAirdropDistributor__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IAirdropDistributor {
     return new Contract(address, _abi, signerOrProvider) as IAirdropDistributor;
   }

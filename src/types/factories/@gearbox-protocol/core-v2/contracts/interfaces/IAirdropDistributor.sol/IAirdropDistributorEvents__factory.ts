@@ -20,10 +20,16 @@ const _abi = [
         type: "address",
       },
       {
-        indexed: true,
+        indexed: false,
         internalType: "uint256",
         name: "amount",
         type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "bool",
+        name: "historic",
+        type: "bool",
       },
     ],
     name: "Claimed",
@@ -82,12 +88,12 @@ export class IAirdropDistributorEvents__factory {
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    signerOrProvider: Signer | Provider,
   ): IAirdropDistributorEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
+      signerOrProvider,
     ) as IAirdropDistributorEvents;
   }
 }
