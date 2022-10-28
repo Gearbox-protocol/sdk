@@ -16,13 +16,14 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
+  PromiseOrValue,
 } from "../../../../../common";
 
 export interface IAirdropDistributorEventsInterface extends utils.Interface {
   functions: {};
 
   events: {
-    "Claimed(address,uint256)": EventFragment;
+    "Claimed(address,uint256,bool)": EventFragment;
     "RootUpdated(bytes32,bytes32)": EventFragment;
     "TokenAllocated(address,uint8,uint256)": EventFragment;
   };
@@ -35,8 +36,12 @@ export interface IAirdropDistributorEventsInterface extends utils.Interface {
 export interface ClaimedEventObject {
   account: string;
   amount: BigNumber;
+  historic: boolean;
 }
-export type ClaimedEvent = TypedEvent<[string, BigNumber], ClaimedEventObject>;
+export type ClaimedEvent = TypedEvent<
+  [string, BigNumber, boolean],
+  ClaimedEventObject
+>;
 
 export type ClaimedEventFilter = TypedEventFilter<ClaimedEvent>;
 
@@ -73,15 +78,15 @@ export interface IAirdropDistributorEvents extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -94,33 +99,35 @@ export interface IAirdropDistributorEvents extends BaseContract {
   callStatic: {};
 
   filters: {
-    "Claimed(address,uint256)"(
-      account?: string | null,
-      amount?: BigNumberish | null
+    "Claimed(address,uint256,bool)"(
+      account?: PromiseOrValue<string> | null,
+      amount?: null,
+      historic?: PromiseOrValue<boolean> | null,
     ): ClaimedEventFilter;
     Claimed(
-      account?: string | null,
-      amount?: BigNumberish | null
+      account?: PromiseOrValue<string> | null,
+      amount?: null,
+      historic?: PromiseOrValue<boolean> | null,
     ): ClaimedEventFilter;
 
     "RootUpdated(bytes32,bytes32)"(
       oldRoot?: null,
-      newRoot?: BytesLike | null
+      newRoot?: PromiseOrValue<BytesLike> | null,
     ): RootUpdatedEventFilter;
     RootUpdated(
       oldRoot?: null,
-      newRoot?: BytesLike | null
+      newRoot?: PromiseOrValue<BytesLike> | null,
     ): RootUpdatedEventFilter;
 
     "TokenAllocated(address,uint8,uint256)"(
-      account?: string | null,
-      campaignId?: BigNumberish | null,
-      amount?: null
+      account?: PromiseOrValue<string> | null,
+      campaignId?: PromiseOrValue<BigNumberish> | null,
+      amount?: null,
     ): TokenAllocatedEventFilter;
     TokenAllocated(
-      account?: string | null,
-      campaignId?: BigNumberish | null,
-      amount?: null
+      account?: PromiseOrValue<string> | null,
+      campaignId?: PromiseOrValue<BigNumberish> | null,
+      amount?: null,
     ): TokenAllocatedEventFilter;
   };
 

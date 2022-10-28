@@ -24,25 +24,58 @@ export const poolRewardsPerBlock: Record<
   },
 };
 
+export const GEAR_PER_BLOCK: Record<DieselTokenTypes, number> = {
+  dDAI: 2283,
+  dUSDC: 2283,
+  dWETH: 3196,
+  dWBTC: 913,
+  dwstETH: 1636,
+};
+
+export const GOERLI_BLOCK = 7694030;
+
 poolRewardsPerBlock.Goerli.dDAI.addValue(
-  7694030,
-  BigNumber.from(10).pow(18).mul(2283).div(100),
+  GOERLI_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dDAI).div(100),
 );
 poolRewardsPerBlock.Goerli.dUSDC.addValue(
-  7694030,
-  BigNumber.from(10).pow(6).mul(2283).div(100),
+  GOERLI_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dUSDC).div(100),
 );
 poolRewardsPerBlock.Goerli.dWETH.addValue(
-  7694030,
-  BigNumber.from(10).pow(18).mul(3196).div(100),
+  GOERLI_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dWETH).div(100),
 );
 poolRewardsPerBlock.Goerli.dWBTC.addValue(
-  7694030,
-  BigNumber.from(10).pow(8).mul(913).div(100),
+  GOERLI_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dWBTC).div(100),
 );
 poolRewardsPerBlock.Goerli.dwstETH.addValue(
-  7694030,
-  BigNumber.from(10).pow(18).mul(1636).div(100),
+  GOERLI_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dwstETH).div(100),
+);
+
+export const MAINNET_BLOCK = 15820000;
+
+poolRewardsPerBlock.Mainnet.dDAI.addValue(
+  MAINNET_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dDAI).div(100),
+);
+poolRewardsPerBlock.Mainnet.dUSDC.addValue(
+  MAINNET_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dUSDC).div(100),
+);
+poolRewardsPerBlock.Mainnet.dWETH.addValue(
+  MAINNET_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dWETH).div(100),
+);
+poolRewardsPerBlock.Mainnet.dWBTC.addValue(
+  MAINNET_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dWBTC).div(100),
+);
+poolRewardsPerBlock.Mainnet.dwstETH.addValue(
+  MAINNET_BLOCK,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK.dwstETH).div(100),
 );
 
 // poolRewardsPerBlock.Goerli.dDAI.addValue(90000, BigNumber.from(0));

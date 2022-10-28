@@ -24,28 +24,37 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
+  PromiseOrValue,
 } from "../../../../../common";
 
 export interface IAirdropDistributorInterface extends utils.Interface {
   functions: {
-    "claim(uint256,address,uint256,uint256,bytes32[])": FunctionFragment;
+    "claim(uint256,address,uint256,bytes32[])": FunctionFragment;
     "claimed(address)": FunctionFragment;
     "merkleRoot()": FunctionFragment;
     "token()": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "claim" | "claimed" | "merkleRoot" | "token"
+    nameOrSignatureOrTopic: "claim" | "claimed" | "merkleRoot" | "token",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "claim",
-    values: [BigNumberish, string, BigNumberish, BigNumberish, BytesLike[]]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>[],
+    ],
   ): string;
-  encodeFunctionData(functionFragment: "claimed", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "claimed",
+    values: [PromiseOrValue<string>],
+  ): string;
   encodeFunctionData(
     functionFragment: "merkleRoot",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
 
@@ -55,7 +64,7 @@ export interface IAirdropDistributorInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
 
   events: {
-    "Claimed(address,uint256)": EventFragment;
+    "Claimed(address,uint256,bool)": EventFragment;
     "RootUpdated(bytes32,bytes32)": EventFragment;
     "TokenAllocated(address,uint8,uint256)": EventFragment;
   };
@@ -68,8 +77,12 @@ export interface IAirdropDistributorInterface extends utils.Interface {
 export interface ClaimedEventObject {
   account: string;
   amount: BigNumber;
+  historic: boolean;
 }
-export type ClaimedEvent = TypedEvent<[string, BigNumber], ClaimedEventObject>;
+export type ClaimedEvent = TypedEvent<
+  [string, BigNumber, boolean],
+  ClaimedEventObject
+>;
 
 export type ClaimedEventFilter = TypedEventFilter<ClaimedEvent>;
 
@@ -106,15 +119,15 @@ export interface IAirdropDistributor extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -124,15 +137,17 @@ export interface IAirdropDistributor extends BaseContract {
 
   functions: {
     claim(
-      index: BigNumberish,
-      account: string,
-      totalAmount: BigNumberish,
-      claimedAmount: BigNumberish,
-      merkleProof: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      index: PromiseOrValue<BigNumberish>,
+      account: PromiseOrValue<string>,
+      totalAmount: PromiseOrValue<BigNumberish>,
+      merkleProof: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    claimed(user: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    claimed(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<[BigNumber]>;
 
     merkleRoot(overrides?: CallOverrides): Promise<[string]>;
 
@@ -140,15 +155,17 @@ export interface IAirdropDistributor extends BaseContract {
   };
 
   claim(
-    index: BigNumberish,
-    account: string,
-    totalAmount: BigNumberish,
-    claimedAmount: BigNumberish,
-    merkleProof: BytesLike[],
-    overrides?: Overrides & { from?: string | Promise<string> }
+    index: PromiseOrValue<BigNumberish>,
+    account: PromiseOrValue<string>,
+    totalAmount: PromiseOrValue<BigNumberish>,
+    merkleProof: PromiseOrValue<BytesLike>[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  claimed(user: string, overrides?: CallOverrides): Promise<BigNumber>;
+  claimed(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides,
+  ): Promise<BigNumber>;
 
   merkleRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -156,15 +173,17 @@ export interface IAirdropDistributor extends BaseContract {
 
   callStatic: {
     claim(
-      index: BigNumberish,
-      account: string,
-      totalAmount: BigNumberish,
-      claimedAmount: BigNumberish,
-      merkleProof: BytesLike[],
-      overrides?: CallOverrides
+      index: PromiseOrValue<BigNumberish>,
+      account: PromiseOrValue<string>,
+      totalAmount: PromiseOrValue<BigNumberish>,
+      merkleProof: PromiseOrValue<BytesLike>[],
+      overrides?: CallOverrides,
     ): Promise<void>;
 
-    claimed(user: string, overrides?: CallOverrides): Promise<BigNumber>;
+    claimed(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
 
     merkleRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -172,47 +191,51 @@ export interface IAirdropDistributor extends BaseContract {
   };
 
   filters: {
-    "Claimed(address,uint256)"(
-      account?: string | null,
-      amount?: BigNumberish | null
+    "Claimed(address,uint256,bool)"(
+      account?: PromiseOrValue<string> | null,
+      amount?: null,
+      historic?: PromiseOrValue<boolean> | null,
     ): ClaimedEventFilter;
     Claimed(
-      account?: string | null,
-      amount?: BigNumberish | null
+      account?: PromiseOrValue<string> | null,
+      amount?: null,
+      historic?: PromiseOrValue<boolean> | null,
     ): ClaimedEventFilter;
 
     "RootUpdated(bytes32,bytes32)"(
       oldRoot?: null,
-      newRoot?: BytesLike | null
+      newRoot?: PromiseOrValue<BytesLike> | null,
     ): RootUpdatedEventFilter;
     RootUpdated(
       oldRoot?: null,
-      newRoot?: BytesLike | null
+      newRoot?: PromiseOrValue<BytesLike> | null,
     ): RootUpdatedEventFilter;
 
     "TokenAllocated(address,uint8,uint256)"(
-      account?: string | null,
-      campaignId?: BigNumberish | null,
-      amount?: null
+      account?: PromiseOrValue<string> | null,
+      campaignId?: PromiseOrValue<BigNumberish> | null,
+      amount?: null,
     ): TokenAllocatedEventFilter;
     TokenAllocated(
-      account?: string | null,
-      campaignId?: BigNumberish | null,
-      amount?: null
+      account?: PromiseOrValue<string> | null,
+      campaignId?: PromiseOrValue<BigNumberish> | null,
+      amount?: null,
     ): TokenAllocatedEventFilter;
   };
 
   estimateGas: {
     claim(
-      index: BigNumberish,
-      account: string,
-      totalAmount: BigNumberish,
-      claimedAmount: BigNumberish,
-      merkleProof: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      index: PromiseOrValue<BigNumberish>,
+      account: PromiseOrValue<string>,
+      totalAmount: PromiseOrValue<BigNumberish>,
+      merkleProof: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    claimed(user: string, overrides?: CallOverrides): Promise<BigNumber>;
+    claimed(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
 
     merkleRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -221,17 +244,16 @@ export interface IAirdropDistributor extends BaseContract {
 
   populateTransaction: {
     claim(
-      index: BigNumberish,
-      account: string,
-      totalAmount: BigNumberish,
-      claimedAmount: BigNumberish,
-      merkleProof: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      index: PromiseOrValue<BigNumberish>,
+      account: PromiseOrValue<string>,
+      totalAmount: PromiseOrValue<BigNumberish>,
+      merkleProof: PromiseOrValue<BytesLike>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     claimed(
-      user: string,
-      overrides?: CallOverrides
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     merkleRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
