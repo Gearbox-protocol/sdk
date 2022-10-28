@@ -20,8 +20,8 @@ import {
 } from "./core";
 import { PathOptionFactory } from "./pathOptions";
 
-const MAX_GAS_PER_ROUTE = 14e6;
-const GAS_PER_BLOCK = 30e6;
+const MAX_GAS_PER_ROUTE = 200e6;
+const GAS_PER_BLOCK = 400e6;
 
 export interface CloseResult {
   amount: BigNumberish;
@@ -71,7 +71,9 @@ export class PathFinder {
       externalSlippage: false,
     };
 
-    const results = await this.pathFinder.callStatic.findAllSwaps(swapTask);
+    const results = await this.pathFinder.callStatic.findAllSwaps(swapTask, {
+      gasLimit: GAS_PER_BLOCK,
+    });
 
     const unique: Record<string, PathFinderResult> = {};
 
@@ -109,6 +111,9 @@ export class PathFinder {
       creditAccount.addr,
       this._connectors,
       slippage,
+      {
+        gasLimit: GAS_PER_BLOCK,
+      },
     );
 
     return {
@@ -158,6 +163,9 @@ export class PathFinder {
       targetAddr,
       this._connectors,
       slippage,
+      {
+        gasLimit: GAS_PER_BLOCK,
+      },
     );
 
     const balancesAfter = result[0].reduce<Record<string, BigNumber>>(
@@ -201,6 +209,9 @@ export class PathFinder {
         po,
         loopsPerTx,
         false,
+        {
+          gasLimit: GAS_PER_BLOCK,
+        },
       ),
     );
 
