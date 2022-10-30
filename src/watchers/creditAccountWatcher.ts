@@ -98,17 +98,29 @@ export class CreditAccountWatcher {
         liquidateEvents,
         liquidateExpiredEvents,
         transferEvents,
-      ] = await Promise.all([
-        cf.queryFilter(cf.filters.OpenCreditAccount(), undefined, toBlock),
-        cf.queryFilter(cf.filters.CloseCreditAccount(), undefined, toBlock),
-        cf.queryFilter(cf.filters.LiquidateCreditAccount(), undefined, toBlock),
-        cf.queryFilter(
+      ] = [
+        await cf.queryFilter(
+          cf.filters.OpenCreditAccount(),
+          undefined,
+          toBlock,
+        ),
+        await cf.queryFilter(
+          cf.filters.CloseCreditAccount(),
+          undefined,
+          toBlock,
+        ),
+        await cf.queryFilter(
+          cf.filters.LiquidateCreditAccount(),
+          undefined,
+          toBlock,
+        ),
+        await cf.queryFilter(
           cf.filters.LiquidateExpiredCreditAccount(),
           undefined,
           toBlock,
         ),
-        cf.queryFilter(cf.filters.TransferAccount(), undefined, toBlock),
-      ]);
+        await cf.queryFilter(cf.filters.TransferAccount(), undefined, toBlock),
+      ];
 
       openEvents.forEach(e => {
         addToEvents(e, e.args.onBehalfOf, "add");
