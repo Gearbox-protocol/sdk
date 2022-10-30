@@ -53,7 +53,7 @@ export class CreditAccountWatcher {
    */
   static async getOpenAccounts(
     creditManager: CreditManagerData,
-    provider: providers.Provider | Signer,
+    provider: providers.Provider,
     toBlock?: number,
   ): Promise<Array<CreditAccountHash>> {
     if (creditManager.version !== 2) throw new Error("Works for V2 only");
