@@ -3,7 +3,6 @@ import { BigNumber } from "ethers";
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
 import { calcTotalPrice } from "../utils/price";
-import { Asset } from "./assets";
 import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
