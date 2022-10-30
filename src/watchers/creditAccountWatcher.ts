@@ -182,9 +182,12 @@ export class CreditAccountWatcher {
       });
     }
 
-    const data: Array<Array<CreditAccountDataPayload>> = await Promise.all(
-      calls.map(c => dcmc.call(c, { blockTag: atBlock, gasLimit: 200e6 })),
-    );
+    const data: Array<Array<CreditAccountDataPayload>> = [];
+
+    for (let c of calls) {
+      const result = await dcmc.call(c, { blockTag: atBlock, gasLimit: 300e6 });
+      data.push(result);
+    }
 
     return data.flat().map(c => new CreditAccountData(c));
   }
