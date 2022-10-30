@@ -4,6 +4,7 @@ import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { CreditAccountDataPayload } from "../payload/creditAccount";
 import {
+  ICreditConfigurator__factory,
   ICreditFacade__factory,
   ICreditManagerV2__factory,
   IDataCompressor__factory,
@@ -73,11 +74,31 @@ export class CreditAccountWatcher {
 
     const accounts: Set<string> = new Set<string>();
 
-    const { creditFacade } = creditManager;
-    const cf = ICreditFacade__factory.connect(creditFacade, provider);
+    const { creditConfigurator } = creditManager;
 
-    const [openEvents, closeEvents, liquidateEvents, liquidateExpiredEvents] =
-      await Promise.all([
+    const cc = ICreditConfigurator__factory.connect(
+      creditConfigurator,
+      provider,
+    );
+
+    const cfUpgraded = (
+      await cc.queryFilter(
+        cc.filters.CreditFacadeUpgraded(),
+        undefined,
+        toBlock,
+      )
+    ).map(e => e.args.newCreditFacade);
+
+    for (const creditFacade of cfUpgraded) {
+      const cf = ICreditFacade__factory.connect(creditFacade, provider);
+
+      const [
+        openEvents,
+        closeEvents,
+        liquidateEvents,
+        liquidateExpiredEvents,
+        transferEvents,
+      ] = await Promise.all([
         cf.queryFilter(cf.filters.OpenCreditAccount(), undefined, toBlock),
         cf.queryFilter(cf.filters.CloseCreditAccount(), undefined, toBlock),
         cf.queryFilter(cf.filters.LiquidateCreditAccount(), undefined, toBlock),
@@ -86,23 +107,30 @@ export class CreditAccountWatcher {
           undefined,
           toBlock,
         ),
+        cf.queryFilter(cf.filters.TransferAccount(), undefined, toBlock),
       ]);
 
-    openEvents.forEach(e => {
-      addToEvents(e, e.args.onBehalfOf, "add");
-    });
+      openEvents.forEach(e => {
+        addToEvents(e, e.args.onBehalfOf, "add");
+      });
 
-    closeEvents.forEach(e => {
-      addToEvents(e, e.args.borrower, "delete");
-    });
+      closeEvents.forEach(e => {
+        addToEvents(e, e.args.borrower, "delete");
+      });
 
-    liquidateEvents.forEach(e => {
-      addToEvents(e, e.args.borrower, "delete");
-    });
+      liquidateEvents.forEach(e => {
+        addToEvents(e, e.args.borrower, "delete");
+      });
 
-    liquidateExpiredEvents.forEach(e => {
-      addToEvents(e, e.args.borrower, "delete");
-    });
+      liquidateExpiredEvents.forEach(e => {
+        addToEvents(e, e.args.borrower, "delete");
+      });
+
+      transferEvents.forEach(e => {
+        addToEvents(e, e.args.oldOwner, "delete");
+        addToEvents(e, e.args.newOwner, "add");
+      });
+    }
 
     eventsByDate
       .sort((a, b) => {
