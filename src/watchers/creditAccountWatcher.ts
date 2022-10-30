@@ -183,7 +183,7 @@ export class CreditAccountWatcher {
     }
 
     const data: Array<Array<CreditAccountDataPayload>> = await Promise.all(
-      calls.map(c => dcmc.call(c, { blockTag: atBlock })),
+      calls.map(c => dcmc.call(c, { blockTag: atBlock, gasLimit: 200e6 })),
     );
 
     return data.flat().map(c => new CreditAccountData(c));
