@@ -3,7 +3,6 @@ import { BigNumber } from "ethers";
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
 import { calcTotalPrice } from "../utils/price";
-import { Asset } from "./assets";
 import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -32,7 +31,6 @@ interface PoolStats {
 type PoolList = Record<string, PoolStats>;
 
 interface LiquidationPriceProps {
-  assets: Array<Asset>;
   prices: Record<string, BigNumber>;
   liquidationThresholds: Record<string, BigNumber>;
 
@@ -105,7 +103,6 @@ export class Strategy {
 
   // eslint-disable-next-line class-methods-use-this
   liquidationPrice({
-    assets,
     prices,
     liquidationThresholds,
 
@@ -115,23 +112,6 @@ export class Strategy {
     lpAmount,
     lpToken,
   }: LiquidationPriceProps) {
-    const collateralLTMoney = assets.reduce(
-      (acc, { token: tokenAddress, balance: amount }) => {
-        const tokenAddressLC = tokenAddress.toLowerCase();
-        const tokenSymbol = tokenSymbolByAddress[tokenAddressLC];
-
-        const lt = liquidationThresholds[tokenAddressLC] || BigNumber.from(0);
-        const price = prices[tokenAddressLC] || BigNumber.from(0);
-        const tokenDecimals = decimals[tokenSymbol];
-
-        const money = calcTotalPrice(price, amount, tokenDecimals);
-        const ltMoney = money.mul(lt).div(PERCENTAGE_FACTOR);
-
-        return acc.add(ltMoney);
-      },
-      BigNumber.from(0),
-    );
-
     const underlyingTokenAddressLC = underlyingToken.toLowerCase();
     const underlyingTokenSymbol =
       tokenSymbolByAddress[underlyingTokenAddressLC];
@@ -147,16 +127,14 @@ export class Strategy {
     const lpTokenAddressLC = lpToken.toLowerCase();
     const lpTokenSymbol = tokenSymbolByAddress[lpTokenAddressLC];
     const lpTokenDecimals = decimals[lpTokenSymbol];
+    const lpLT = liquidationThresholds[lpTokenAddressLC] || BigNumber.from(0);
 
     const lpPrice = prices[lpTokenAddressLC] || PRICE_DECIMALS;
     const lpMoney = calcTotalPrice(lpPrice, lpAmount, lpTokenDecimals);
+    const lpLTMoney = lpMoney.mul(lpLT).div(PERCENTAGE_FACTOR);
 
-    if (lpMoney.gt(0)) {
-      const lqPrice = borrowedMoney
-        .sub(collateralLTMoney)
-        .mul(WAD)
-        .div(lpMoney);
-
+    if (lpLTMoney.gt(0)) {
+      const lqPrice = borrowedMoney.mul(WAD).div(lpLTMoney);
       return lqPrice.gte(0) ? lqPrice : BigNumber.from(0);
     }
 

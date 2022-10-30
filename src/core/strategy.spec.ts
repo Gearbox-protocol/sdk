@@ -79,25 +79,19 @@ describe("Strategy test", () => {
   });
   it("liquidationPrice calculation is correct", () => {
     const result = lidoStrategy.liquidationPrice({
-      assets: [
-        {
-          balance: toBN("30", decimals.WETH),
-          token: tokenDataByNetwork.Mainnet.WETH,
-        },
-      ],
       liquidationThresholds,
       prices,
-      borrowed: toBN("90", decimals.WETH),
+      borrowed: toBN("350", decimals.WETH),
       underlyingToken: tokenDataByNetwork.Mainnet.WETH,
-      lpAmount: toBN("119.40", decimals.STETH),
+      lpAmount: toBN("400", decimals.STETH),
       lpToken: tokenDataByNetwork.Mainnet.STETH,
     });
 
     expect(Number(toSignificant(result, WAD_DECIMALS_POW)).toFixed(3)).to.be.eq(
-      "0.551",
+      "0.992",
     );
   });
-  it("liquidationPrice maxLeverage is correct", () => {
+  it("maxLeverage is correct", () => {
     const result = Strategy.maxLeverage(tokenDataByNetwork.Mainnet.STETH, [
       { address: "0x1", liquidationThresholds },
     ]);
