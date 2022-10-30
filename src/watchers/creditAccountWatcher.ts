@@ -92,55 +92,43 @@ export class CreditAccountWatcher {
     for (const creditFacade of cfUpgraded) {
       const cf = ICreditFacade__factory.connect(creditFacade, provider);
 
-      const [
-        openEvents,
-        closeEvents,
-        liquidateEvents,
-        liquidateExpiredEvents,
-        transferEvents,
-      ] = [
-        await cf.queryFilter(
-          cf.filters.OpenCreditAccount(),
-          undefined,
-          toBlock,
+      const topics = {
+        OpenCreditAccount: cf.interface.getEventTopic("OpenCreditAccount"),
+        CloseCreditAccount: cf.interface.getEventTopic("CloseCreditAccount"),
+        LiquidateCreditAccount: cf.interface.getEventTopic(
+          "LiquidateCreditAccount",
         ),
-        await cf.queryFilter(
-          cf.filters.CloseCreditAccount(),
-          undefined,
-          toBlock,
+        LiquidateExpiredCreditAccount: cf.interface.getEventTopic(
+          "LiquidateExpiredCreditAccount",
         ),
-        await cf.queryFilter(
-          cf.filters.LiquidateCreditAccount(),
-          undefined,
-          toBlock,
-        ),
-        await cf.queryFilter(
-          cf.filters.LiquidateExpiredCreditAccount(),
-          undefined,
-          toBlock,
-        ),
-        await cf.queryFilter(cf.filters.TransferAccount(), undefined, toBlock),
-      ];
+        TransferAccount: cf.interface.getEventTopic("TransferAccount"),
+      };
 
-      openEvents.forEach(e => {
-        addToEvents(e, e.args.onBehalfOf, "add");
-      });
+      const logs = await cf.queryFilter(
+        {
+          address: cf.address,
+          topics: [Object.values(topics)],
+        },
+        undefined,
+        toBlock,
+      );
 
-      closeEvents.forEach(e => {
-        addToEvents(e, e.args.borrower, "delete");
-      });
-
-      liquidateEvents.forEach(e => {
-        addToEvents(e, e.args.borrower, "delete");
-      });
-
-      liquidateExpiredEvents.forEach(e => {
-        addToEvents(e, e.args.borrower, "delete");
-      });
-
-      transferEvents.forEach(e => {
-        addToEvents(e, e.args.oldOwner, "delete");
-        addToEvents(e, e.args.newOwner, "add");
+      logs.forEach(log => {
+        const e = cf.interface.parseLog(log);
+        switch (log.topics[0]) {
+          case topics.OpenCreditAccount:
+            addToEvents(log, e.args.onBehalfOf, "add");
+            break;
+          case topics.CloseCreditAccount:
+          case topics.LiquidateCreditAccount:
+          case topics.LiquidateExpiredCreditAccount:
+            addToEvents(log, e.args.borrower, "delete");
+            break;
+          case topics.TransferAccount:
+            addToEvents(log, e.args.oldOwner, "delete");
+            addToEvents(log, log.args.newOwner, "add");
+            break;
+        }
       });
     }
 
