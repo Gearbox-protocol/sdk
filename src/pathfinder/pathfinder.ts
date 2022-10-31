@@ -9,6 +9,7 @@ import { IRouter__factory } from "../types";
 import { BalanceStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import {
   IRouter,
+  RouterResultStructOutput,
   SwapTaskStruct,
 } from "../types/@gearbox-protocol/router/contracts/interfaces/IRouter";
 import {
@@ -194,6 +195,7 @@ export class PathFinder {
   async findBestClosePath(
     creditAccount: CreditAccountData,
     slippage: number,
+    noConcurency = false,
   ): Promise<PathFinderCloseResult> {
     const loopsPerTx = Math.floor(GAS_PER_BLOCK / MAX_GAS_PER_ROUTE);
     const pathOptions = PathOptionFactory.generatePathOptions(
@@ -201,21 +203,44 @@ export class PathFinder {
       loopsPerTx,
     );
 
-    const requests = pathOptions.map(po =>
-      this.pathFinder.callStatic.findBestClosePath(
-        creditAccount.addr,
-        this._connectors,
-        slippage,
-        po,
-        loopsPerTx,
-        false,
-        {
-          gasLimit: GAS_PER_BLOCK,
-        },
-      ),
-    );
-
-    const results = await Promise.all(requests);
+    let results: Array<
+      [RouterResultStructOutput, BigNumber] & {
+        result: RouterResultStructOutput;
+        gasPriceTargetRAY: BigNumber;
+      }
+    > = [];
+    if (noConcurency) {
+      for (const po of pathOptions) {
+        results.push(
+          await this.pathFinder.callStatic.findBestClosePath(
+            creditAccount.addr,
+            this._connectors,
+            slippage,
+            po,
+            loopsPerTx,
+            false,
+            {
+              gasLimit: GAS_PER_BLOCK,
+            },
+          ),
+        );
+      }
+    } else {
+      const requests = pathOptions.map(po =>
+        this.pathFinder.callStatic.findBestClosePath(
+          creditAccount.addr,
+          this._connectors,
+          slippage,
+          po,
+          loopsPerTx,
+          false,
+          {
+            gasLimit: GAS_PER_BLOCK,
+          },
+        ),
+      );
+      results = await Promise.all(requests);
+    }
 
     const bestResult = results.reduce<CloseResult>(
       (best, [pathFinderResult, gasPriceRAY]) =>
