@@ -41,6 +41,7 @@ export * from "./pathfinder/core";
 export * from "./pathfinder/pathfinder";
 export * from "./pathfinder/tradeTypes";
 export * from "./rewards/airdrops";
+export * from "./rewards/caRewardParams";
 export * from "./rewards/poolRewards";
 export * from "./strategies/convex";
 export * from "./strategies/creditFacade";
