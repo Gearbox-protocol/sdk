@@ -28,24 +28,14 @@ interface PoolResponse {
   data: { poolData: Array<CurvePoolData> };
 }
 
-const NAME_DICTIONARY: Record<CurveLPToken, string> = {
-  "3Crv": "3pool",
-  FRAX3CRV: "frax",
-  gusd3CRV: "gusd",
-  LUSD3CRV: "lusd",
-  crvPlain3andSUSD: "susdv2",
-  steCRV: "steth",
-  crvFRAX: "fraxusdc",
-};
-
 const POOL_DICTIONARY: Record<CurveLPToken, string> = {
-  "3Crv": "0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7",
-  FRAX3CRV: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-  gusd3CRV: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
-  LUSD3CRV: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA",
-  crvPlain3andSUSD: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD",
-  steCRV: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-  crvFRAX: "0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2",
+  "3Crv": "0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7", // "0",
+  FRAX3CRV: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B", // "factory-v2-13",
+  gusd3CRV: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", // "19",
+  LUSD3CRV: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA", // "factory-v2-16",
+  crvPlain3andSUSD: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // "15",
+  steCRV: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022", // "14",
+  crvFRAX: "0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2", // "44",
 };
 
 const RESPONSE_DECIMALS = 100;
@@ -92,14 +82,14 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
           return acc;
         }
 
-        const { baseApy = 0 } = apys[pool.id] || {};
-        if (baseApy === 0)
+        const { baseApy } = apys[pool.id] || {};
+        if (baseApy === undefined)
           console.warn(
-            `Zero base apy for: ${curveSymbol}, ${pool.id}, ${poolAddress}`,
+            `No base apy for: ${curveSymbol}, ${pool.id}, ${poolAddress}`,
           );
 
         acc[curveSymbol] = toBN(
-          (baseApy / RESPONSE_DECIMALS).toString(),
+          ((baseApy || 0) / RESPONSE_DECIMALS).toString(),
           WAD_DECIMALS_POW,
         );
         return acc;
