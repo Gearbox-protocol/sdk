@@ -6,7 +6,7 @@ import {
   contractsByNetwork,
   ConvexPoolParams,
 } from "../contracts/contracts";
-import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/adapters/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
+import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
 import { MCall } from "../utils/multicall";
 import {
   DUMB_ADDRESS,
