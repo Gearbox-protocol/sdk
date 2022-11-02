@@ -4,3 +4,4 @@
 export * as chainlink from "./@chainlink";
 export * as gearboxProtocol from "./@gearbox-protocol";
 export * as openzeppelin from "./@openzeppelin";
+export * as contracts from "./contracts";

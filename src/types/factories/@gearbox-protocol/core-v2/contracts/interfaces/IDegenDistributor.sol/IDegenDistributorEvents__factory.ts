@@ -5,9 +5,9 @@
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
 import type {
-  IAirdropDistributorEvents,
-  IAirdropDistributorEventsInterface,
-} from "../../../../../../@gearbox-protocol/core-v2/contracts/interfaces/IAirdropDistributor.sol/IAirdropDistributorEvents";
+  IDegenDistributorEvents,
+  IDegenDistributorEventsInterface,
+} from "../../../../../../@gearbox-protocol/core-v2/contracts/interfaces/IDegenDistributor.sol/IDegenDistributorEvents";
 
 const _abi = [
   {
@@ -24,12 +24,6 @@ const _abi = [
         internalType: "uint256",
         name: "amount",
         type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "bool",
-        name: "historic",
-        type: "bool",
       },
     ],
     name: "Claimed",
@@ -54,46 +48,21 @@ const _abi = [
     name: "RootUpdated",
     type: "event",
   },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint8",
-        name: "campaignId",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "TokenAllocated",
-    type: "event",
-  },
 ];
 
-export class IAirdropDistributorEvents__factory {
+export class IDegenDistributorEvents__factory {
   static readonly abi = _abi;
-  static createInterface(): IAirdropDistributorEventsInterface {
-    return new utils.Interface(_abi) as IAirdropDistributorEventsInterface;
+  static createInterface(): IDegenDistributorEventsInterface {
+    return new utils.Interface(_abi) as IDegenDistributorEventsInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IAirdropDistributorEvents {
+  ): IDegenDistributorEvents {
     return new Contract(
       address,
       _abi,
       signerOrProvider
-    ) as IAirdropDistributorEvents;
+    ) as IDegenDistributorEvents;
   }
 }

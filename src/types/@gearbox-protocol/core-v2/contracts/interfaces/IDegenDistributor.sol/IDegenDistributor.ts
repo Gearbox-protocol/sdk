@@ -26,16 +26,16 @@ import type {
   OnEvent,
 } from "../../../../../common";
 
-export interface IAirdropDistributorInterface extends utils.Interface {
+export interface IDegenDistributorInterface extends utils.Interface {
   functions: {
     "claim(uint256,address,uint256,bytes32[])": FunctionFragment;
     "claimed(address)": FunctionFragment;
+    "degenNFT()": FunctionFragment;
     "merkleRoot()": FunctionFragment;
-    "token()": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "claim" | "claimed" | "merkleRoot" | "token"
+    nameOrSignatureOrTopic: "claim" | "claimed" | "degenNFT" | "merkleRoot"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -43,37 +43,31 @@ export interface IAirdropDistributorInterface extends utils.Interface {
     values: [BigNumberish, string, BigNumberish, BytesLike[]]
   ): string;
   encodeFunctionData(functionFragment: "claimed", values: [string]): string;
+  encodeFunctionData(functionFragment: "degenNFT", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "merkleRoot",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "token", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claimed", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "degenNFT", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "merkleRoot", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
 
   events: {
-    "Claimed(address,uint256,bool)": EventFragment;
+    "Claimed(address,uint256)": EventFragment;
     "RootUpdated(bytes32,bytes32)": EventFragment;
-    "TokenAllocated(address,uint8,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Claimed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RootUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenAllocated"): EventFragment;
 }
 
 export interface ClaimedEventObject {
   account: string;
   amount: BigNumber;
-  historic: boolean;
 }
-export type ClaimedEvent = TypedEvent<
-  [string, BigNumber, boolean],
-  ClaimedEventObject
->;
+export type ClaimedEvent = TypedEvent<[string, BigNumber], ClaimedEventObject>;
 
 export type ClaimedEventFilter = TypedEventFilter<ClaimedEvent>;
 
@@ -88,24 +82,12 @@ export type RootUpdatedEvent = TypedEvent<
 
 export type RootUpdatedEventFilter = TypedEventFilter<RootUpdatedEvent>;
 
-export interface TokenAllocatedEventObject {
-  account: string;
-  campaignId: number;
-  amount: BigNumber;
-}
-export type TokenAllocatedEvent = TypedEvent<
-  [string, number, BigNumber],
-  TokenAllocatedEventObject
->;
-
-export type TokenAllocatedEventFilter = TypedEventFilter<TokenAllocatedEvent>;
-
-export interface IAirdropDistributor extends BaseContract {
+export interface IDegenDistributor extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IAirdropDistributorInterface;
+  interface: IDegenDistributorInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -137,9 +119,9 @@ export interface IAirdropDistributor extends BaseContract {
 
     claimed(user: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    merkleRoot(overrides?: CallOverrides): Promise<[string]>;
+    degenNFT(overrides?: CallOverrides): Promise<[string]>;
 
-    token(overrides?: CallOverrides): Promise<[string]>;
+    merkleRoot(overrides?: CallOverrides): Promise<[string]>;
   };
 
   claim(
@@ -152,9 +134,9 @@ export interface IAirdropDistributor extends BaseContract {
 
   claimed(user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  merkleRoot(overrides?: CallOverrides): Promise<string>;
+  degenNFT(overrides?: CallOverrides): Promise<string>;
 
-  token(overrides?: CallOverrides): Promise<string>;
+  merkleRoot(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     claim(
@@ -167,22 +149,17 @@ export interface IAirdropDistributor extends BaseContract {
 
     claimed(user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    merkleRoot(overrides?: CallOverrides): Promise<string>;
+    degenNFT(overrides?: CallOverrides): Promise<string>;
 
-    token(overrides?: CallOverrides): Promise<string>;
+    merkleRoot(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
-    "Claimed(address,uint256,bool)"(
+    "Claimed(address,uint256)"(
       account?: string | null,
-      amount?: null,
-      historic?: boolean | null
+      amount?: null
     ): ClaimedEventFilter;
-    Claimed(
-      account?: string | null,
-      amount?: null,
-      historic?: boolean | null
-    ): ClaimedEventFilter;
+    Claimed(account?: string | null, amount?: null): ClaimedEventFilter;
 
     "RootUpdated(bytes32,bytes32)"(
       oldRoot?: null,
@@ -192,17 +169,6 @@ export interface IAirdropDistributor extends BaseContract {
       oldRoot?: null,
       newRoot?: BytesLike | null
     ): RootUpdatedEventFilter;
-
-    "TokenAllocated(address,uint8,uint256)"(
-      account?: string | null,
-      campaignId?: BigNumberish | null,
-      amount?: null
-    ): TokenAllocatedEventFilter;
-    TokenAllocated(
-      account?: string | null,
-      campaignId?: BigNumberish | null,
-      amount?: null
-    ): TokenAllocatedEventFilter;
   };
 
   estimateGas: {
@@ -216,9 +182,9 @@ export interface IAirdropDistributor extends BaseContract {
 
     claimed(user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    merkleRoot(overrides?: CallOverrides): Promise<BigNumber>;
+    degenNFT(overrides?: CallOverrides): Promise<BigNumber>;
 
-    token(overrides?: CallOverrides): Promise<BigNumber>;
+    merkleRoot(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -235,8 +201,8 @@ export interface IAirdropDistributor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    merkleRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    degenNFT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    merkleRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

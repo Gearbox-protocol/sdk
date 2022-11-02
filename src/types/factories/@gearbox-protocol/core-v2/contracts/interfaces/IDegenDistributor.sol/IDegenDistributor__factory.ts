@@ -5,9 +5,9 @@
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
 import type {
-  IAirdropDistributor,
-  IAirdropDistributorInterface,
-} from "../../../../../../@gearbox-protocol/core-v2/contracts/interfaces/IAirdropDistributor.sol/IAirdropDistributor";
+  IDegenDistributor,
+  IDegenDistributorInterface,
+} from "../../../../../../@gearbox-protocol/core-v2/contracts/interfaces/IDegenDistributor.sol/IDegenDistributor";
 
 const _abi = [
   {
@@ -24,12 +24,6 @@ const _abi = [
         internalType: "uint256",
         name: "amount",
         type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "bool",
-        name: "historic",
-        type: "bool",
       },
     ],
     name: "Claimed",
@@ -52,31 +46,6 @@ const _abi = [
       },
     ],
     name: "RootUpdated",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint8",
-        name: "campaignId",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "TokenAllocated",
     type: "event",
   },
   {
@@ -128,6 +97,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "degenNFT",
+    outputs: [
+      {
+        internalType: "contract IDegenNFT",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "merkleRoot",
     outputs: [
       {
@@ -139,30 +121,17 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-  {
-    inputs: [],
-    name: "token",
-    outputs: [
-      {
-        internalType: "contract IERC20",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
 ];
 
-export class IAirdropDistributor__factory {
+export class IDegenDistributor__factory {
   static readonly abi = _abi;
-  static createInterface(): IAirdropDistributorInterface {
-    return new utils.Interface(_abi) as IAirdropDistributorInterface;
+  static createInterface(): IDegenDistributorInterface {
+    return new utils.Interface(_abi) as IDegenDistributorInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IAirdropDistributor {
-    return new Contract(address, _abi, signerOrProvider) as IAirdropDistributor;
+  ): IDegenDistributor {
+    return new Contract(address, _abi, signerOrProvider) as IDegenDistributor;
   }
 }

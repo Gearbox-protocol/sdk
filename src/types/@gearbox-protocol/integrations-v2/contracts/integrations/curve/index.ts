@@ -8,4 +8,5 @@ export type { iCurvePool3Sol };
 import type * as iCurvePool4Sol from "./ICurvePool_4.sol";
 export type { iCurvePool4Sol };
 export type { ICurvePool } from "./ICurvePool";
+export type { ICurvePoolStETH } from "./ICurvePoolStETH";
 export type { ICurveRegistry } from "./ICurveRegistry";
