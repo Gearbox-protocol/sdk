@@ -28,8 +28,6 @@ interface PoolStats {
   borrowRate: number;
 }
 
-type PoolList = Record<string, PoolStats>;
-
 interface LiquidationPriceProps {
   prices: Record<string, BigNumber>;
   liquidationThresholds: Record<string, BigNumber>;
@@ -79,14 +77,13 @@ export class Strategy {
     return maxLeverage.sub(LEVERAGE_DECIMALS).toNumber();
   }
 
-  maxAPY(maxLeverage: number, poolApy: PoolList) {
-    const minApy = minBorrowApy(poolApy);
+  maxAPY(baseAPY: number, maxLeverage: number, borrowAPY: number) {
+    console.log();
 
-    return roi(
-      this.apy || 0,
-      maxLeverage,
-      maxLeverage - LEVERAGE_DECIMALS,
-      minApy,
+    return (
+      ((baseAPY - borrowAPY) * (maxLeverage - LEVERAGE_DECIMALS)) /
+        LEVERAGE_DECIMALS +
+      baseAPY
     );
   }
 
@@ -161,14 +158,6 @@ export class Strategy {
 
 function roi(apy: number, farmLev: number, debtLev: number, borrowAPY: number) {
   return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
-}
-
-function minBorrowApy(poolApy: PoolList) {
-  const apys = Object.values(poolApy).sort(
-    (a, b) => a.borrowRate - b.borrowRate,
-  );
-
-  return apys.length > 0 ? apys[0].borrowRate : 0;
 }
 
 type PartialCM = Pick<CreditManagerData, "liquidationThresholds" | "address">;
