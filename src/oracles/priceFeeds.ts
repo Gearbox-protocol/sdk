@@ -267,7 +267,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedETH: {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
-        Mainnet: "0xcfe54b5cd566ab89272946f602d76ea879cab4a8",
+        Mainnet: "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
         Goerli: "0x0C539D95F202eF8b3981521782ABd3a12c5C4F95",
       },
     },
