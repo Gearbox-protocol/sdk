@@ -17,18 +17,23 @@ interface Response {
   apys: Record<string, CurveAPYData>;
 }
 
-const NAME_DICTIONARY: Record<CurveLPToken, string> = {
-  "3Crv": "3pool",
-  FRAX3CRV: "frax",
-  gusd3CRV: "gusd",
-  LUSD3CRV: "lusd",
-  crvPlain3andSUSD: "susdv2",
-  steCRV: "steth",
-  crvFRAX: "fraxusdc", // TODO: CHECK!
+const POOL_DICTIONARY: Record<CurveLPToken, string> = {
+  "3Crv": "0", // 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
+  FRAX3CRV: "34", // 0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B
+  gusd3CRV: "19", // 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956
+  LUSD3CRV: "33", // 0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA
+  crvPlain3andSUSD: "15", // 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD
+  steCRV: "14", // 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022
+  crvFRAX: "44", // 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2
 };
 
 const RESPONSE_DECIMALS = 100;
 const ZERO = BigNumber.from(0);
+
+// const MAIN = "https://api.curve.fi/api/getPools/ethereum/main";
+// const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
+// const FACTORY = "https://api.curve.fi/api/getPools/ethereum/factory";
+// const FACTORY_CRYPTO = "https://api.curve.fi/api/getPools/ethereum/factory-crypto";
 
 // https://www.convexfinance.com/api/curve-apys
 // http://localhost:8000/api/curve-apys
@@ -41,11 +46,14 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
     const { data } = await axios.get<Response>(URL);
     const { apys } = data || {};
 
-    const curveAPY = objectEntries(NAME_DICTIONARY).reduce<CurveAPYResult>(
-      (acc, [curveSymbol, apiEntry]) => {
-        const { baseApy = 0 } = apys[apiEntry] || {};
+    const curveAPY = objectEntries(POOL_DICTIONARY).reduce<CurveAPYResult>(
+      (acc, [curveSymbol, poolId]) => {
+        const { baseApy } = apys[poolId] || {};
+        if (baseApy === undefined)
+          console.warn(`No base apy for: ${curveSymbol}, ${poolId}`);
+
         acc[curveSymbol] = toBN(
-          (baseApy / RESPONSE_DECIMALS).toString(),
+          ((baseApy || 0) / RESPONSE_DECIMALS).toString(),
           WAD_DECIMALS_POW,
         );
         return acc;
@@ -55,6 +63,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
 
     return curveAPY;
   } catch (e) {
+    console.error(e);
     return {
       "3Crv": ZERO,
       crvFRAX: ZERO,
