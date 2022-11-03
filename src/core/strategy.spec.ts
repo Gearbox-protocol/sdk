@@ -33,7 +33,7 @@ const lidoStrategy = new Strategy(lidoPayload);
 
 const pools = {
   "0x1": {
-    borrowRate: 7712,
+    borrowRate: 27543,
   },
   "0x2": {
     borrowRate: 5736,
@@ -63,9 +63,13 @@ const liquidationThresholds = {
 
 describe("Strategy test", () => {
   it("maxAPY calculation is correct", () => {
-    const result = lidoStrategy.maxAPY(10 * LEVERAGE_DECIMALS, pools);
+    const result = lidoStrategy.maxAPY(
+      53203,
+      10 * LEVERAGE_DECIMALS,
+      pools["0x1"].borrowRate,
+    );
 
-    expect(result).to.be.eq(332716);
+    expect(result).to.be.eq(284143);
   });
   it("overallAPY calculation is correct", () => {
     const result = lidoStrategy.overallAPY(

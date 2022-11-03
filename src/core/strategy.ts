@@ -24,10 +24,6 @@ export interface StrategyPayload {
   baseAssets: Array<string>;
 }
 
-interface PoolStats {
-  borrowRate: number;
-}
-
 interface LiquidationPriceProps {
   prices: Record<string, BigNumber>;
   liquidationThresholds: Record<string, BigNumber>;
@@ -78,8 +74,6 @@ export class Strategy {
   }
 
   maxAPY(baseAPY: number, maxLeverage: number, borrowAPY: number) {
-    console.log();
-
     return (
       ((baseAPY - borrowAPY) * (maxLeverage - LEVERAGE_DECIMALS)) /
         LEVERAGE_DECIMALS +
