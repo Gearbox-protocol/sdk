@@ -19,7 +19,8 @@ export interface TxSerialized {
     | "TxCloseAccount"
     | "TxApprove"
     | "TxOpenMultitokenAccount"
-    | "TxClaimReward";
+    | "TxClaimReward"
+    | "TxClaimNFT";
   content: string;
 }
 
@@ -54,6 +55,8 @@ export class TxSerializer {
           return new TxOpenMultitokenAccount(params);
         case "TxClaimReward":
           return new TxClaimReward(params);
+        case "TxClaimNFT":
+          return new TxClaimNFT(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -442,6 +445,30 @@ export class TxClaimReward extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxClaimReward",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+type TxClaimNFTProps = EVMTxProps;
+
+export class TxClaimNFT extends EVMTx {
+  constructor(opts: TxClaimNFTProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+  }
+
+  toString(): string {
+    return `NFT claimed`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxClaimNFT",
       content: JSON.stringify(this),
     };
   }
