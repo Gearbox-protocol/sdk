@@ -28,7 +28,7 @@ export class CreditRewards {
     );
 
     const rewardToAddress = rewards.filter(
-      r => r.address.toLowerCase() === address.toLowerCase(),
+      r => r.address === address.toLowerCase(),
     );
 
     return rewards.length === 0 ? BigNumber.from(0) : rewardToAddress[0].amount;
@@ -133,7 +133,7 @@ export class CreditRewards {
     });
 
     return Object.keys(borrowed).map(address => ({
-      address,
+      address: address.toLowerCase(),
       amount: CreditRewards.computeRewardInt(
         toBlockQuery,
         borrowedRange[address],
