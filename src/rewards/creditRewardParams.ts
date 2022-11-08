@@ -32,11 +32,11 @@ export const creditRewardsPerBlock: Record<CreditManagersV2, RangedValue> = {
 };
 
 export const GEAR_PER_BLOCK: Record<DieselTokenTypes, number> = {
-  dDAI: 2283,
-  dUSDC: 2283,
-  dWETH: 3196,
-  dWBTC: 913,
-  dwstETH: 1636,
+  dDAI: 166,
+  dUSDC: 166,
+  dWETH: 230,
+  dWBTC: 66,
+  dwstETH: 118,
 };
 
 export const GOERLI_BLOCK = 7694030;
