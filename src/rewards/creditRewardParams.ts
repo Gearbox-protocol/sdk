@@ -35,8 +35,8 @@ export const GEAR_PER_BLOCK: Record<DieselTokenTypes, number> = {
   dDAI: 166,
   dUSDC: 166,
   dWETH: 230,
-  dWBTC: 118,
-  dwstETH: 66,
+  dWBTC: 66,
+  dwstETH: 118,
 };
 
 export const GOERLI_BLOCK = 7694030;
