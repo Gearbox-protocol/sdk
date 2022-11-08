@@ -12,12 +12,8 @@ import {
   TransferAccountEvent,
 } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
 import { creditRewardsPerBlock } from "./creditRewardParams";
+import { Reward } from "./poolRewards";
 import { RangedValue } from "./range";
-
-export interface Reward {
-  address: string;
-  amount: BigNumber;
-}
 
 export class CreditRewards {
   static async computeReward(
