@@ -47,7 +47,7 @@ export class CreditRewards {
     );
 
     const borrowedRange: Record<string, RangedValue> = {};
-    const totalSupplyRange = new RangedValue();
+    const totalBorrowedRange = new RangedValue();
     const rewardPerBlock = CreditRewards.getRewardsRange(
       creditManagerData.address,
     );
@@ -69,6 +69,8 @@ export class CreditRewards {
             event as unknown as OpenCreditAccountEvent
           ).args;
           totalBorrowed = totalBorrowed.add(borrowAmount);
+          totalBorrowedRange.addValue(e.blockNumber, totalBorrowed);
+
           borrowed[onBehalfOf] = borrowAmount;
 
           if (!borrowedRange[onBehalfOf]) {
@@ -84,6 +86,8 @@ export class CreditRewards {
           const { borrower } = (event as unknown as CloseCreditAccountEvent)
             .args;
           totalBorrowed = totalBorrowed.sub(borrowed[borrower]);
+          totalBorrowedRange.addValue(e.blockNumber, totalBorrowed);
+
           borrowed[borrower] = BigNumber.from(0);
           borrowedRange[borrower].addValue(e.blockNumber, BigNumber.from(0));
           break;
@@ -93,6 +97,8 @@ export class CreditRewards {
             event as unknown as IncreaseBorrowedAmountEvent
           ).args;
           totalBorrowed = totalBorrowed.add(amount);
+          totalBorrowedRange.addValue(e.blockNumber, totalBorrowed);
+
           borrowed[borrower] = borrowed[borrower].add(amount);
           borrowedRange[borrower].addValue(e.blockNumber, borrowed[borrower]);
           break;
@@ -102,6 +108,8 @@ export class CreditRewards {
             event as unknown as IncreaseBorrowedAmountEvent
           ).args;
           totalBorrowed = totalBorrowed.sub(amount);
+          totalBorrowedRange.addValue(e.blockNumber, totalBorrowed);
+
           borrowed[borrower] = borrowed[borrower].sub(amount);
           borrowedRange[borrower].addValue(e.blockNumber, borrowed[borrower]);
           break;
@@ -129,7 +137,7 @@ export class CreditRewards {
       amount: CreditRewards.computeRewardInt(
         toBlockQuery,
         borrowedRange[address],
-        totalSupplyRange,
+        totalBorrowedRange,
         rewardPerBlock,
       ),
     }));
