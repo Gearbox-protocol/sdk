@@ -9,35 +9,35 @@ export const stEthPoolWrapper: Record<NetworkType, string> = {
 };
 
 export const CREDIT_MANAGER_DAI_V2_MAINNET =
-  "0x672461bfc20dd783444a830ad4c38b345ab6e2f7";
+  "0x672461bfc20dd783444a830ad4c38b345ab6e2f7".toLowerCase();
 
 export const CREDIT_MANAGER_USDC_V2_MAINNET =
-  "0x95357303f995e184A7998dA6C6eA35cC728A1900";
+  "0x95357303f995e184A7998dA6C6eA35cC728A1900".toLowerCase();
 
 export const CREDIT_MANAGER_WETH_V2_MAINNET =
-  "0x5887ad4cb2352e7f01527035faa3ae0ef2ce2b9b";
+  "0x5887ad4cb2352e7f01527035faa3ae0ef2ce2b9b".toLowerCase();
 
 export const CREDIT_MANAGER_WSTETH_V2_MAINNET =
-  "0xe0bce4460795281d39c91da9b0275bca968293de";
+  "0xe0bce4460795281d39c91da9b0275bca968293de".toLowerCase();
 
 export const CREDIT_MANAGER_WBTC_V2_MAINNET =
-  "0xc62bf8a7889adf1c5dc4665486c7683ae6e74e0f";
+  "0xc62bf8a7889adf1c5dc4665486c7683ae6e74e0f".toLowerCase();
 
 // GOERLI
 export const CREDIT_MANAGER_DAI_V2_GOERLI =
-  "0xf7ba434952acaa2e12035a2c3643ca327914a470";
+  "0xf7ba434952acaa2e12035a2c3643ca327914a470".toLowerCase();
 
 export const CREDIT_MANAGER_USDC_V2_GOERLI =
-  "0x2144a7785baecbab32295188285717cad6c1a11c";
+  "0x2144a7785baecbab32295188285717cad6c1a11c".toLowerCase();
 
 export const CREDIT_MANAGER_WETH_V2_GOERLI =
-  "0x2ad4a2f1bdd815e285a22cdcc072fbb43818b09b";
+  "0x2ad4a2f1bdd815e285a22cdcc072fbb43818b09b".toLowerCase();
 
 export const CREDIT_MANAGER_WSTETH_V2_GOERLI =
-  "0x40d542a5c15b2c0c65af047984c285c2c30847af";
+  "0x40d542a5c15b2c0c65af047984c285c2c30847af".toLowerCase();
 
 export const CREDIT_MANAGER_WBTC_V2_GOERLI =
-  "0x6546dd4e8d507e3e45bb924818c0bad2a3aa2c5f";
+  "0x6546dd4e8d507e3e45bb924818c0bad2a3aa2c5f".toLowerCase();
 
 export type CreditManagersV2 =
   | typeof CREDIT_MANAGER_DAI_V2_MAINNET

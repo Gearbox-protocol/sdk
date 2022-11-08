@@ -1,6 +1,5 @@
 import { BigNumber, providers } from "ethers";
 
-import { CreditManagersV2 } from "../contracts/contractsRegister";
 import { CreditManagerData } from "../core/creditManager";
 import { ICreditFacade__factory } from "../types";
 import {
@@ -210,8 +209,7 @@ export class CreditRewards {
   }
 
   protected static getRewardsRange(creditManager: string): RangedValue {
-    const rewardPerBlock =
-      creditRewardsPerBlock[creditManager as CreditManagersV2];
+    const rewardPerBlock = creditRewardsPerBlock[creditManager];
 
     if (!rewardPerBlock)
       throw new Error(`Unknown credit manager token ${creditManager}`);
