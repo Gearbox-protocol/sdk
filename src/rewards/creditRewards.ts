@@ -49,7 +49,7 @@ export class CreditRewards {
     const borrowedRange: Record<string, RangedValue> = {};
     const totalSupplyRange = new RangedValue();
     const rewardPerBlock = CreditRewards.getRewardsRange(
-      creditManagerData.creditFacade,
+      creditManagerData.address,
     );
 
     const borrowed: Record<string, BigNumber> = {};
@@ -62,10 +62,12 @@ export class CreditRewards {
     ).interface;
 
     query.forEach(e => {
+      const event = cfi.parseLog(e);
       switch (e.topics[0]) {
         case cfi.getEventTopic("OpenCreditAccount"): {
-          const { onBehalfOf, borrowAmount } = (e as OpenCreditAccountEvent)
-            .args;
+          const { onBehalfOf, borrowAmount } = (
+            event as unknown as OpenCreditAccountEvent
+          ).args;
           totalBorrowed = totalBorrowed.add(borrowAmount);
           borrowed[onBehalfOf] = borrowAmount;
 
@@ -79,28 +81,35 @@ export class CreditRewards {
         case cfi.getEventTopic("LiquidateCreditAccount"):
         case cfi.getEventTopic("LiquidateExpiredCreditAccount"): {
           // We need { borrower} only so, we can use any event to get it from args
-          const { borrower } = (e as CloseCreditAccountEvent).args;
+          const { borrower } = (event as unknown as CloseCreditAccountEvent)
+            .args;
           totalBorrowed = totalBorrowed.sub(borrowed[borrower]);
           borrowed[borrower] = BigNumber.from(0);
           borrowedRange[borrower].addValue(e.blockNumber, BigNumber.from(0));
           break;
         }
         case cfi.getEventTopic("IncreaseBorrowedAmount"): {
-          const { borrower, amount } = (e as IncreaseBorrowedAmountEvent).args;
+          const { borrower, amount } = (
+            event as unknown as IncreaseBorrowedAmountEvent
+          ).args;
           totalBorrowed = totalBorrowed.add(amount);
           borrowed[borrower] = borrowed[borrower].add(amount);
           borrowedRange[borrower].addValue(e.blockNumber, borrowed[borrower]);
           break;
         }
         case cfi.getEventTopic("DecreaseBorrowedAmount"): {
-          const { borrower, amount } = (e as IncreaseBorrowedAmountEvent).args;
+          const { borrower, amount } = (
+            event as unknown as IncreaseBorrowedAmountEvent
+          ).args;
           totalBorrowed = totalBorrowed.sub(amount);
           borrowed[borrower] = borrowed[borrower].sub(amount);
           borrowedRange[borrower].addValue(e.blockNumber, borrowed[borrower]);
           break;
         }
         case cfi.getEventTopic("TransferAccount"): {
-          const { newOwner, oldOwner } = (e as TransferAccountEvent).args;
+          const { newOwner, oldOwner } = (
+            event as unknown as TransferAccountEvent
+          ).args;
           borrowed[newOwner] = borrowed[oldOwner];
 
           if (!borrowed[newOwner]) {
