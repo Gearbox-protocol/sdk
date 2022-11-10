@@ -1,88 +1,160 @@
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 
-import { PoolRewards } from "./poolRewards";
+import { DUMB_ADDRESS, DUMB_ADDRESS2, DUMB_ADDRESS3 } from "../core/constants";
+import { TypedEvent } from "../types/common";
+import { CreditRewards } from "./creditRewards";
+import {
+  closeCreditAccountEvent,
+  decreaseBorrowedAmountEvent,
+  increaseBorrowedAmountEvent,
+  liquidateCreditAccountEvent,
+  openCreditAccountEvent,
+  transferAccountEvent,
+} from "./creditRewardsHelper.spec";
 import { RangedValue } from "./range";
 
 describe("CreditRewards test", () => {
-  it("computeReward works correctly", () => {
-    const balances = new RangedValue();
+  it("one acccount only", () => {
+    const cfacade = DUMB_ADDRESS;
+    const user = DUMB_ADDRESS2.toLowerCase();
+    const events = [
+      openCreditAccountEvent(cfacade, 1000, user, BigNumber.from(100)),
+    ] as Array<TypedEvent>;
 
-    balances.addValue(1000, BigNumber.from(100));
-    balances.addValue(2000, BigNumber.from(200));
-    balances.addValue(3000, BigNumber.from(0));
+    const rewardPerBlock = new RangedValue();
+    rewardPerBlock.addValue(1000, BigNumber.from(1000));
+    const r = CreditRewards.parseEvents(events, rewardPerBlock, 2000);
 
-    const totalSupply = new RangedValue();
-    totalSupply.addValue(500, BigNumber.from(100));
-    totalSupply.addValue(1000, BigNumber.from(200));
-    totalSupply.addValue(1500, BigNumber.from(250));
-    totalSupply.addValue(2000, BigNumber.from(400));
-    totalSupply.addValue(3000, BigNumber.from(100));
-
-    const rewards = new RangedValue();
-    rewards.addValue(500, BigNumber.from(20));
-
-    // Block: ----- 500 ------ 1000 ----- 1500 ----- 2000 ------ 2500 ----- 3000
-    //
-    // Balances:     0          100 ----------------  200 ------------------ 0
-    // Total supply  100        200   --    250       400                    100
-    // Rewards:      20
-    //                           10 ------  8         10 -------------------- 0
-    // Total: 10 * 500 + 8*500 + 10 * 1000 = 19000
-
-    const result = PoolRewards.computeRewardInt(
-      4000,
-      balances,
-      totalSupply,
-      rewards,
-    );
-
-    expect(result.toNumber()).to.be.eq(19000);
+    expect(r).to.be.eql([
+      {
+        address: user,
+        amount: BigNumber.from(1000).mul(1000),
+      },
+    ]);
   });
 
-  it("sum of rewards is equal to total distributed", () => {
-    const balances0 = new RangedValue();
-    const balances1 = new RangedValue();
+  it("one acccoun only with closure", () => {
+    const cfacade = DUMB_ADDRESS;
+    const user = DUMB_ADDRESS2.toLowerCase();
+    const events = [
+      openCreditAccountEvent(cfacade, 1000, user, BigNumber.from(100)),
+      closeCreditAccountEvent(cfacade, 1500, user),
+    ] as Array<TypedEvent>;
 
-    balances0.addValue(1000, BigNumber.from(100));
-    balances0.addValue(2000, BigNumber.from(200));
-    balances0.addValue(3000, BigNumber.from(0));
+    const rewardPerBlock = new RangedValue();
+    rewardPerBlock.addValue(1000, BigNumber.from(1000));
+    const r = CreditRewards.parseEvents(events, rewardPerBlock, 2000);
 
-    balances1.addValue(500, BigNumber.from(100));
-    balances1.addValue(1500, BigNumber.from(300));
-    balances1.addValue(2500, BigNumber.from(200));
-    balances1.addValue(3000, BigNumber.from(100));
+    expect(r).to.be.eql([
+      {
+        address: user,
+        amount: BigNumber.from(1000).mul(500),
+      },
+    ]);
+  });
 
-    const totalSupply = new RangedValue();
-    totalSupply.addValue(500, BigNumber.from(100));
-    totalSupply.addValue(1000, BigNumber.from(200));
-    totalSupply.addValue(1500, BigNumber.from(400));
-    totalSupply.addValue(2000, BigNumber.from(500));
-    totalSupply.addValue(2500, BigNumber.from(400));
-    totalSupply.addValue(3000, BigNumber.from(100));
+  it("two accounts with one liquidation", () => {
+    const cfacade = DUMB_ADDRESS;
+    const user = DUMB_ADDRESS2.toLowerCase();
+    const user2 = DUMB_ADDRESS3.toLowerCase();
+    const events = [
+      openCreditAccountEvent(cfacade, 1000, user, BigNumber.from(100)),
+      liquidateCreditAccountEvent(cfacade, 1500, user),
+      openCreditAccountEvent(cfacade, 1500, user2, BigNumber.from(200)),
+    ] as Array<TypedEvent>;
 
-    const rewards = new RangedValue();
-    rewards.addValue(500, BigNumber.from(20));
-    rewards.addValue(1500, BigNumber.from(10));
-    rewards.addValue(2000, BigNumber.from(0));
-    rewards.addValue(2500, BigNumber.from(5));
+    const rewardPerBlock = new RangedValue();
+    rewardPerBlock.addValue(1000, BigNumber.from(1000));
+    const r = CreditRewards.parseEvents(events, rewardPerBlock, 2000);
 
-    const result0 = PoolRewards.computeRewardInt(
-      3000,
-      balances0,
-      totalSupply,
-      rewards,
-    );
+    expect(r).to.be.eql([
+      {
+        address: user,
+        amount: BigNumber.from(1000).mul(500),
+      },
+      {
+        address: user2,
+        amount: BigNumber.from(1000).mul(500),
+      },
+    ]);
+  });
 
-    const result1 = PoolRewards.computeRewardInt(
-      3000,
-      balances1,
-      totalSupply,
-      rewards,
-    );
+  it("two accounts with increase borrowed amount", () => {
+    const cfacade = DUMB_ADDRESS;
+    const user = DUMB_ADDRESS2.toLowerCase();
+    const user2 = DUMB_ADDRESS3.toLowerCase();
+    const events = [
+      openCreditAccountEvent(cfacade, 1000, user, BigNumber.from(100)),
+      openCreditAccountEvent(cfacade, 1000, user2, BigNumber.from(100)),
+      increaseBorrowedAmountEvent(cfacade, 1500, user2, BigNumber.from(200)),
+    ] as Array<TypedEvent>;
 
-    expect(result0.toNumber() + result1.toNumber()).to.be.eq(
-      20 * 1000 + 10 * 500 + 5 * 500,
-    );
+    const rewardPerBlock = new RangedValue();
+    rewardPerBlock.addValue(1000, BigNumber.from(1000));
+    const r = CreditRewards.parseEvents(events, rewardPerBlock, 2000);
+
+    expect(r).to.be.eql([
+      {
+        address: user,
+        amount: BigNumber.from(500).mul(500).add(BigNumber.from(250).mul(500)),
+      },
+      {
+        address: user2,
+        amount: BigNumber.from(500).mul(500).add(BigNumber.from(750).mul(500)),
+      },
+    ]);
+  });
+
+  it("two accounts with decrease borrowed amount", () => {
+    const cfacade = DUMB_ADDRESS;
+    const user = DUMB_ADDRESS2.toLowerCase();
+    const user2 = DUMB_ADDRESS3.toLowerCase();
+    const events = [
+      openCreditAccountEvent(cfacade, 1000, user, BigNumber.from(200)),
+      openCreditAccountEvent(cfacade, 1000, user2, BigNumber.from(200)),
+      decreaseBorrowedAmountEvent(cfacade, 1500, user, BigNumber.from(100)),
+      increaseBorrowedAmountEvent(cfacade, 1500, user2, BigNumber.from(100)),
+    ] as Array<TypedEvent>;
+
+    const rewardPerBlock = new RangedValue();
+    rewardPerBlock.addValue(1000, BigNumber.from(1000));
+    const r = CreditRewards.parseEvents(events, rewardPerBlock, 2000);
+
+    expect(r).to.be.eql([
+      {
+        address: user,
+        amount: BigNumber.from(500).mul(500).add(BigNumber.from(250).mul(500)),
+      },
+      {
+        address: user2,
+        amount: BigNumber.from(500).mul(500).add(BigNumber.from(750).mul(500)),
+      },
+    ]);
+  });
+
+  it("transfer works correctly ", () => {
+    const cfacade = DUMB_ADDRESS;
+    const user = DUMB_ADDRESS2.toLowerCase();
+    const user2 = DUMB_ADDRESS3.toLowerCase();
+    const events = [
+      openCreditAccountEvent(cfacade, 1000, user, BigNumber.from(200)),
+      transferAccountEvent(cfacade, 1500, user, user2),
+    ] as Array<TypedEvent>;
+
+    const rewardPerBlock = new RangedValue();
+    rewardPerBlock.addValue(1000, BigNumber.from(1000));
+    const r = CreditRewards.parseEvents(events, rewardPerBlock, 2000);
+
+    expect(r).to.be.eql([
+      {
+        address: user,
+        amount: BigNumber.from(500).mul(1000),
+      },
+      {
+        address: user2,
+        amount: BigNumber.from(500).mul(1000),
+      },
+    ]);
   });
 });

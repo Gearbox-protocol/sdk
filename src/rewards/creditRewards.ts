@@ -4,12 +4,11 @@ import { CreditManagerData } from "../core/creditManager";
 import { ICreditFacade__factory } from "../types";
 import {
   CloseCreditAccountEvent,
-  DecreaseBorrowedAmountEvent,
   IncreaseBorrowedAmountEvent,
-  LiquidateCreditAccountEvent,
   OpenCreditAccountEvent,
   TransferAccountEvent,
 } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/ICreditFacade.sol/ICreditFacade";
+import { TypedEvent } from "../types/common";
 import { creditRewardsPerBlock } from "./creditRewardParams";
 import { Reward } from "./poolRewards";
 import { RangedValue } from "./range";
@@ -46,22 +45,28 @@ export class CreditRewards {
       toBlockQuery,
     );
 
-    const borrowedRange: Record<string, RangedValue> = {};
-    const totalBorrowedRange = new RangedValue();
     const rewardPerBlock = CreditRewards.getRewardsRange(
       creditManagerData.address,
     );
+
+    return CreditRewards.parseEvents(query, rewardPerBlock, toBlockQuery);
+  }
+
+  static parseEvents(
+    events: Array<TypedEvent>,
+    rewardPerBlock: RangedValue,
+    toBlock: number,
+  ): Array<Reward> {
+    const borrowedRange: Record<string, RangedValue> = {};
+    const totalBorrowedRange = new RangedValue();
 
     const borrowed: Record<string, BigNumber> = {};
 
     let totalBorrowed = BigNumber.from(0);
 
-    const cfi = ICreditFacade__factory.connect(
-      creditManagerData.creditFacade,
-      provider,
-    ).interface;
+    const cfi = ICreditFacade__factory.createInterface();
 
-    query.forEach(e => {
+    events.forEach(e => {
       const event = cfi.parseLog(e);
       switch (e.topics[0]) {
         case cfi.getEventTopic("OpenCreditAccount"): {
@@ -120,7 +125,7 @@ export class CreditRewards {
           ).args;
           borrowed[newOwner] = borrowed[oldOwner];
 
-          if (!borrowed[newOwner]) {
+          if (!borrowedRange[newOwner]) {
             borrowedRange[newOwner] = new RangedValue();
           }
 
@@ -135,7 +140,7 @@ export class CreditRewards {
     return Object.keys(borrowed).map(address => ({
       address: address.toLowerCase(),
       amount: CreditRewards.computeRewardInt(
-        toBlockQuery,
+        toBlock,
         borrowedRange[address],
         totalBorrowedRange,
         rewardPerBlock,
@@ -184,16 +189,7 @@ export class CreditRewards {
     creditFacade: string,
     provider: providers.Provider,
     toBlock: number,
-  ): Promise<
-    Array<
-      | OpenCreditAccountEvent
-      | CloseCreditAccountEvent
-      | LiquidateCreditAccountEvent
-      | IncreaseBorrowedAmountEvent
-      | DecreaseBorrowedAmountEvent
-      | TransferAccountEvent
-    >
-  > {
+  ): Promise<Array<TypedEvent>> {
     const cf = ICreditFacade__factory.connect(creditFacade, provider);
     const topics = {
       OpenCreditAccount: cf.interface.getEventTopic("OpenCreditAccount"),
