@@ -1,7 +1,10 @@
 import { BigNumber, providers } from "ethers";
 
-import { CreditManagerData } from "../core/creditManager";
-import { ICreditFacade__factory } from "../types";
+import {
+  ICreditConfigurator__factory,
+  ICreditFacade__factory,
+  ICreditManagerV2__factory,
+} from "../types";
 import {
   CloseCreditAccountEvent,
   IncreaseBorrowedAmountEvent,
@@ -15,13 +18,13 @@ import { RangedValue } from "./range";
 
 export class CreditRewards {
   static async computeReward(
-    creditManagerData: CreditManagerData,
+    creditManager: string,
     address: string,
     provider: providers.Provider,
     toBlock?: number,
   ): Promise<BigNumber> {
     const rewards = await CreditRewards.computeAllRewards(
-      creditManagerData,
+      creditManager,
       provider,
       toBlock,
     );
@@ -34,22 +37,38 @@ export class CreditRewards {
   }
 
   static async computeAllRewards(
-    creditManagerData: CreditManagerData,
+    creditManager: string,
     provider: providers.Provider,
     toBlock?: number,
   ): Promise<Array<Reward>> {
     const toBlockQuery = toBlock || (await provider.getBlockNumber());
-    const query = await CreditRewards.query(
-      creditManagerData.creditFacade,
+
+    const cm = ICreditManagerV2__factory.connect(creditManager, provider);
+    const cc = ICreditConfigurator__factory.connect(
+      await cm.creditConfigurator(),
       provider,
-      toBlockQuery,
     );
+
+    const creditFacadesEvents = await cc.queryFilter(
+      cc.filters.CreditFacadeUpgraded(),
+    );
+
+    const events: Array<TypedEvent> = [];
+
+    for (const cfe of creditFacadesEvents) {
+      const query = await CreditRewards.query(
+        cfe.args.newCreditFacade,
+        provider,
+        toBlockQuery,
+      );
+      events.push(...query);
+    }
 
     const rewardPerBlock = CreditRewards.getRewardsRange(
-      creditManagerData.address,
+      creditManager.toLowerCase(),
     );
 
-    return CreditRewards.parseEvents(query, rewardPerBlock, toBlockQuery);
+    return CreditRewards.parseEvents(events, rewardPerBlock, toBlockQuery);
   }
 
   static parseEvents(
