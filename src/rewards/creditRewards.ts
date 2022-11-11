@@ -30,7 +30,9 @@ export class CreditRewards {
       r => r.address === address.toLowerCase(),
     );
 
-    return rewards.length === 0 ? BigNumber.from(0) : rewardToAddress[0].amount;
+    return rewardToAddress.length === 0
+      ? BigNumber.from(0)
+      : rewardToAddress[0].amount;
   }
 
   static async computeAllRewards(
@@ -94,6 +96,9 @@ export class CreditRewards {
           totalBorrowedRange.addValue(e.blockNumber, totalBorrowed);
 
           borrowed[borrower] = BigNumber.from(0);
+          if (!borrowedRange[borrower]) {
+            borrowedRange[borrower] = new RangedValue();
+          }
           borrowedRange[borrower].addValue(e.blockNumber, BigNumber.from(0));
           break;
         }
@@ -104,7 +109,13 @@ export class CreditRewards {
           totalBorrowed = totalBorrowed.add(amount);
           totalBorrowedRange.addValue(e.blockNumber, totalBorrowed);
 
+          if (!borrowed[borrower]) {
+            borrowed[borrower] = BigNumber.from(0);
+          }
           borrowed[borrower] = borrowed[borrower].add(amount);
+          if (!borrowedRange[borrower]) {
+            borrowedRange[borrower] = new RangedValue();
+          }
           borrowedRange[borrower].addValue(e.blockNumber, borrowed[borrower]);
           break;
         }
@@ -115,7 +126,13 @@ export class CreditRewards {
           totalBorrowed = totalBorrowed.sub(amount);
           totalBorrowedRange.addValue(e.blockNumber, totalBorrowed);
 
+          if (!borrowed[borrower]) {
+            borrowed[borrower] = BigNumber.from(0);
+          }
           borrowed[borrower] = borrowed[borrower].sub(amount);
+          if (!borrowedRange[borrower]) {
+            borrowedRange[borrower] = new RangedValue();
+          }
           borrowedRange[borrower].addValue(e.blockNumber, borrowed[borrower]);
           break;
         }
@@ -130,7 +147,13 @@ export class CreditRewards {
           }
 
           borrowed[oldOwner] = BigNumber.from(0);
+          if (!borrowedRange[newOwner]) {
+            borrowedRange[newOwner] = new RangedValue();
+          }
           borrowedRange[newOwner].addValue(e.blockNumber, borrowed[newOwner]);
+          if (!borrowedRange[oldOwner]) {
+            borrowedRange[oldOwner] = new RangedValue();
+          }
           borrowedRange[oldOwner].addValue(e.blockNumber, BigNumber.from(0));
           break;
         }
