@@ -92,6 +92,9 @@ export class CreditRewards {
           // We need { borrower} only so, we can use any event to get it from args
           const { borrower } = (event as unknown as CloseCreditAccountEvent)
             .args;
+          if (!borrowed[borrower]) {
+            borrowed[borrower] = BigNumber.from(0);
+          }
           totalBorrowed = totalBorrowed.sub(borrowed[borrower]);
           totalBorrowedRange.addValue(e.blockNumber, totalBorrowed);
 
@@ -140,11 +143,10 @@ export class CreditRewards {
           const { newOwner, oldOwner } = (
             event as unknown as TransferAccountEvent
           ).args;
-          borrowed[newOwner] = borrowed[oldOwner];
-
-          if (!borrowedRange[newOwner]) {
-            borrowedRange[newOwner] = new RangedValue();
+          if (!borrowed[oldOwner]) {
+            borrowed[oldOwner] = BigNumber.from(0);
           }
+          borrowed[newOwner] = borrowed[oldOwner];
 
           borrowed[oldOwner] = BigNumber.from(0);
           if (!borrowedRange[newOwner]) {
