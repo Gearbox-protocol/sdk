@@ -33,7 +33,9 @@ export class CreditRewards {
       r => r.address === address.toLowerCase(),
     );
 
-    return rewards.length === 0 ? BigNumber.from(0) : rewardToAddress[0].amount;
+    return rewardToAddress.length === 0
+      ? BigNumber.from(0)
+      : rewardToAddress[0].amount;
   }
 
   static async computeAllRewards(
