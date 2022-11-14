@@ -88,7 +88,7 @@ poolRewardsPerBlock.Mainnet.dwstETH.addValue(
 
 // poolRewardsPerBlock.Goerli.dDAI.addValue(90000, BigNumber.from(0));
 
-export const MAINNET_BLOCK_GIP30 = 15970000
+export const MAINNET_BLOCK_GIP30 = 15977000;
 
 poolRewardsPerBlock.Mainnet.dDAI.addValue(
   MAINNET_BLOCK_GIP30,
