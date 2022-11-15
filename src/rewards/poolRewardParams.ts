@@ -32,6 +32,14 @@ export const GEAR_PER_BLOCK: Record<DieselTokenTypes, number> = {
   dwstETH: 1636,
 };
 
+export const GEAR_PER_BLOCK_GIP30: Record<DieselTokenTypes, number> = {
+  dDAI: 2283,
+  dUSDC: 3101,
+  dWETH: 4014,
+  dWBTC: 457,
+  dwstETH: 0,
+};
+
 export const GOERLI_BLOCK = 7694030;
 
 poolRewardsPerBlock.Goerli.dDAI.addValue(
@@ -79,3 +87,26 @@ poolRewardsPerBlock.Mainnet.dwstETH.addValue(
 );
 
 // poolRewardsPerBlock.Goerli.dDAI.addValue(90000, BigNumber.from(0));
+
+export const MAINNET_BLOCK_GIP30 = 15977000;
+
+poolRewardsPerBlock.Mainnet.dDAI.addValue(
+  MAINNET_BLOCK_GIP30,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK_GIP30.dDAI).div(100),
+);
+poolRewardsPerBlock.Mainnet.dUSDC.addValue(
+  MAINNET_BLOCK_GIP30,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK_GIP30.dUSDC).div(100),
+);
+poolRewardsPerBlock.Mainnet.dWETH.addValue(
+  MAINNET_BLOCK_GIP30,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK_GIP30.dWETH).div(100),
+);
+poolRewardsPerBlock.Mainnet.dWBTC.addValue(
+  MAINNET_BLOCK_GIP30,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK_GIP30.dWBTC).div(100),
+);
+poolRewardsPerBlock.Mainnet.dwstETH.addValue(
+  MAINNET_BLOCK_GIP30,
+  BigNumber.from(10).pow(18).mul(GEAR_PER_BLOCK_GIP30.dwstETH).div(100),
+);
