@@ -78,11 +78,25 @@ export class CreditRewards {
     rewardPerBlock: RangedValue,
     toBlock: number,
   ): Array<Reward> {
+    const { borrowedRange, totalBorrowedRange, borrowed } =
+      CreditRewards.parseCMEvents(events);
+
+    return Object.keys(borrowed).map(address => ({
+      address: address.toLowerCase(),
+      amount: CreditRewards.computeRewardInt(
+        toBlock,
+        borrowedRange[address],
+        totalBorrowedRange,
+        rewardPerBlock,
+      ),
+    }));
+  }
+
+  static parseCMEvents(events: Array<TypedEvent>) {
     const borrowedRange: Record<string, RangedValue> = {};
     const totalBorrowedRange = new RangedValue();
 
     const borrowed: Record<string, BigNumber> = {};
-
     let totalBorrowed = BigNumber.from(0);
 
     const cfi = ICreditFacade__factory.createInterface();
@@ -158,15 +172,43 @@ export class CreditRewards {
       }
     });
 
-    return Object.keys(borrowed).map(address => ({
-      address: address.toLowerCase(),
-      amount: CreditRewards.computeRewardInt(
-        toBlock,
-        borrowedRange[address],
-        totalBorrowedRange,
-        rewardPerBlock,
-      ),
-    }));
+    return {
+      borrowedRange,
+      totalBorrowedRange,
+      borrowed,
+      totalBorrowed,
+    };
+  }
+
+  static async computeCMStats(
+    creditManager: string,
+    provider: providers.Provider,
+    toBlock?: number,
+  ) {
+    const toBlockQuery = toBlock || (await provider.getBlockNumber());
+
+    const cm = ICreditManagerV2__factory.connect(creditManager, provider);
+    const cc = ICreditConfigurator__factory.connect(
+      await cm.creditConfigurator(),
+      provider,
+    );
+
+    const creditFacadesEvents = await cc.queryFilter(
+      cc.filters.CreditFacadeUpgraded(),
+    );
+
+    const events: Array<TypedEvent> = [];
+
+    for (const cfe of creditFacadesEvents) {
+      const query = await CreditRewards.query(
+        cfe.args.newCreditFacade,
+        provider,
+        toBlockQuery,
+      );
+      events.push(...query);
+    }
+
+    return CreditRewards.parseCMEvents(events);
   }
 
   static computeRewardInt(
