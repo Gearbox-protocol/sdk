@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 import { NetworkType } from "../core/constants";
 import { SupportedToken } from "../tokens/token";
 
@@ -14,6 +16,8 @@ export enum OracleType {
   ZERO_ORACLE,
   LIKE_CURVE_LP_TOKEN_ORACLE,
   WSTETH_ORACLE,
+  BOUNDED_ORACLE,
+  COMPOSITE_ORACLE,
 }
 
 export type PriceFeedData =
@@ -43,6 +47,16 @@ export type PriceFeedData =
   | {
       type: OracleType.WSTETH_ORACLE;
       token: SupportedToken;
+    }
+  | {
+      type: OracleType.BOUNDED_ORACLE;
+      targetPriceFeed: Record<NetworkType, string>;
+      upperBound: BigNumber;
+    }
+  | {
+      type: OracleType.COMPOSITE_ORACLE;
+      ethPriceFeed: Record<NetworkType, string>;
+      usdPriceFeed: Record<NetworkType, string>;
     };
 
 export interface TokenPriceFeedData {

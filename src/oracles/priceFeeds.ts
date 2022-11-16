@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 import { SupportedToken } from "../tokens/token";
 import { OracleType, TokenPriceFeedData } from "./oracles";
 
@@ -268,14 +270,18 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
         Mainnet: "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
-        Goerli: "0x0C539D95F202eF8b3981521782ABd3a12c5C4F95",
+        Goerli: "",
       },
     },
     priceFeedUSD: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
+      type: OracleType.COMPOSITE_ORACLE,
+      usdPriceFeed: {
         Mainnet: "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8",
         Goerli: "0xf4f054C2E3269730c781dc7e1Fe2a3ca745784bd",
+      },
+      ethPriceFeed: {
+        Mainnet: "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
+        Goerli: "",
       },
     },
   },
@@ -308,11 +314,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
   },
   LUSD: {
     priceFeedUSD: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
+      type: OracleType.BOUNDED_ORACLE,
+      targetPriceFeed: {
         Mainnet: "0x3D7aE7E594f2f2091Ad8798313450130d0Aba3a0",
         Goerli: "0xd6852347062aB885B6Fb9F7220BedCc5A39CE862",
       },
+      upperBound: BigNumber.from(1e8).mul(11).div(10),
     },
   },
   sUSD: {
