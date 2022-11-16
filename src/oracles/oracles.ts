@@ -56,7 +56,6 @@ export type PriceFeedData =
   | {
       type: OracleType.COMPOSITE_ORACLE;
       ethPriceFeed: Record<NetworkType, string>;
-      usdPriceFeed: Record<NetworkType, string>;
     };
 
 export interface TokenPriceFeedData {

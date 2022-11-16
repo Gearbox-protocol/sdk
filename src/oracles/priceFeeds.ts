@@ -275,10 +275,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
     priceFeedUSD: {
       type: OracleType.COMPOSITE_ORACLE,
-      usdPriceFeed: {
-        Mainnet: "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8",
-        Goerli: "0xf4f054C2E3269730c781dc7e1Fe2a3ca745784bd",
-      },
+
       ethPriceFeed: {
         Mainnet: "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
         Goerli: "0x94bE0b4383b9a309018C815E9e5411935414a0f3",
