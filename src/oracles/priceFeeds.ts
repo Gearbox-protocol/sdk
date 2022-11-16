@@ -270,7 +270,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       type: OracleType.CHAINLINK_ORACLE,
       address: {
         Mainnet: "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
-        Goerli: "",
+        Goerli: "0x94bE0b4383b9a309018C815E9e5411935414a0f3",
       },
     },
     priceFeedUSD: {
@@ -281,7 +281,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       },
       ethPriceFeed: {
         Mainnet: "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
-        Goerli: "",
+        Goerli: "0x94bE0b4383b9a309018C815E9e5411935414a0f3",
       },
     },
   },
