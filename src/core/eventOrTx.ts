@@ -50,7 +50,7 @@ export abstract class EventOrTx implements Display {
     return this.block > item.block ? -1 : 1;
   }
 
-  public abstract toString(tokenData: Record<string, TokenData>): string;
+  public abstract toString(): string;
 }
 
 export type EVMEventProps = Omit<EventOrTxProps, "txStatus"> & {
