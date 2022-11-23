@@ -20,7 +20,7 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../../common";
+} from "../../../common";
 
 export declare namespace Multicall2 {
   export type CallStruct = { target: string; callData: BytesLike };

@@ -3,3 +3,4 @@
 /* eslint-disable */
 export * as integrations from "./integrations";
 export * as interfaces from "./interfaces";
+export * as test from "./test";
