@@ -20,7 +20,8 @@ export interface TxSerialized {
     | "TxApprove"
     | "TxOpenMultitokenAccount"
     | "TxClaimReward"
-    | "TxClaimNFT";
+    | "TxClaimNFT"
+    | "TxClaimGearRewards";
   content: string;
 }
 
@@ -57,6 +58,8 @@ export class TxSerializer {
           return new TxClaimReward(params);
         case "TxClaimNFT":
           return new TxClaimNFT(params);
+        case "TxClaimGearRewards":
+          return new TxClaimGearRewards(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -469,6 +472,44 @@ export class TxClaimNFT extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxClaimNFT",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+type TxClaimGearRewardsProps = EVMTxProps & {
+  token: string;
+  amount: BigNumber;
+};
+
+export class TxClaimGearRewards extends EVMTx {
+  token: string;
+  amount: BigNumber;
+
+  constructor(opts: TxClaimGearRewardsProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+
+    this.amount = opts.amount;
+    this.token = opts.token;
+  }
+
+  toString(): string {
+    const [symbol, decimals] = extractTokenData(this.token);
+
+    return `GEAR Rewards claimed: ${formatBN(
+      this.amount,
+      decimals || 18,
+    )} ${symbol} `;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxClaimGearRewards",
       content: JSON.stringify(this),
     };
   }
