@@ -73,7 +73,7 @@ export function formatBN(
 
 export function formatBn4dig(num: BigNumber, precision = 2): string {
   if (precision > 6) {
-    throw new Error("Incorrect precision");
+    throw new Error("Precision is too high, try <= 6");
   }
 
   let numStr = num.toString();
