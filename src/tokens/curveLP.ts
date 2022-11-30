@@ -209,7 +209,7 @@ export const curveTokens: Record<
   ...curveMetaTokens,
 };
 
-export const isCurveToken = (t: unknown): t is CurveLPToken =>
+export const isCurveLPToken = (t: unknown): t is CurveLPToken =>
   typeof t === "string" && !!curveTokens[t as CurveLPToken];
 
 export const isCurveMetaToken = (t: unknown): t is CurveMetaTokens =>
