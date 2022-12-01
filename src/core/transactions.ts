@@ -21,7 +21,8 @@ export interface TxSerialized {
     | "TxOpenMultitokenAccount"
     | "TxClaimReward"
     | "TxClaimNFT"
-    | "TxClaimGearRewards";
+    | "TxClaimGearRewards"
+    | "TxEnableTokens";
   content: string;
 }
 
@@ -60,6 +61,9 @@ export class TxSerializer {
           return new TxClaimNFT(params);
         case "TxClaimGearRewards":
           return new TxClaimGearRewards(params);
+
+        case "TxEnableTokens":
+          return new TxEnableTokens(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -67,11 +71,11 @@ export class TxSerializer {
   }
 }
 
-interface AddLiquidityProps extends EVMTxProps {
+type AddLiquidityProps = EVMTxProps & {
   amount: BigNumber;
   underlyingToken: string;
   pool: string;
-}
+};
 
 export class TxAddLiquidity extends EVMTx {
   public readonly amount: BigNumber;
@@ -111,11 +115,11 @@ export class TxAddLiquidity extends EVMTx {
   }
 }
 
-interface RemoveLiquidityProps extends EVMTxProps {
+type RemoveLiquidityProps = EVMTxProps & {
   amount: BigNumber;
   dieselToken: string;
   pool: string;
-}
+};
 
 export class TxRemoveLiquidity extends EVMTx {
   public readonly amount: BigNumber;
@@ -153,7 +157,7 @@ export class TxRemoveLiquidity extends EVMTx {
   }
 }
 
-interface SwapProps extends EVMTxProps {
+type SwapProps = EVMTxProps & {
   protocol: string;
   operation: string;
   amountFrom: BigNumber;
@@ -161,7 +165,7 @@ interface SwapProps extends EVMTxProps {
   tokenFrom: string;
   tokenTo?: string;
   creditManager: string;
-}
+};
 
 export class TXSwap extends EVMTx {
   public readonly protocol: string;
@@ -220,11 +224,11 @@ export class TXSwap extends EVMTx {
   }
 }
 
-interface AddCollateralProps extends EVMTxProps {
+type AddCollateralProps = EVMTxProps & {
   amount: BigNumber;
   addedToken: string;
   creditManager: string;
-}
+};
 
 export class TxAddCollateral extends EVMTx {
   public readonly amount: BigNumber;
@@ -264,11 +268,11 @@ export class TxAddCollateral extends EVMTx {
   }
 }
 
-interface IncreaseBorrowAmountProps extends EVMTxProps {
+type IncreaseBorrowAmountProps = EVMTxProps & {
   amount: BigNumber;
   underlyingToken: string;
   creditManager: string;
-}
+};
 
 export class TxIncreaseBorrowAmount extends EVMTx {
   public readonly amount: BigNumber;
@@ -308,12 +312,12 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   }
 }
 
-interface OpenAccountProps extends EVMTxProps {
+type OpenAccountProps = EVMTxProps & {
   amount: BigNumber;
   underlyingToken: string;
   leverage: number;
   creditManager: string;
-}
+};
 
 export class TxOpenAccount extends EVMTx {
   public readonly amount: BigNumber;
@@ -362,12 +366,12 @@ export class TxOpenAccount extends EVMTx {
   }
 }
 
-interface TxOpenMultitokenAccountProps extends EVMTxProps {
+type TxOpenMultitokenAccountProps = EVMTxProps & {
   borrowedAmount: BigNumber;
   creditManager: string;
   underlyingToken: string;
   assets: Array<string>;
-}
+};
 
 export class TxOpenMultitokenAccount extends EVMTx {
   public readonly borrowedAmount: BigNumber;
@@ -419,9 +423,9 @@ export class TxOpenMultitokenAccount extends EVMTx {
   }
 }
 
-interface TxClaimRewardProps extends EVMTxProps {
+type TxClaimRewardProps = EVMTxProps & {
   contracts: Array<SupportedContract>;
-}
+};
 
 export class TxClaimReward extends EVMTx {
   public readonly contracts: Array<SupportedContract>;
@@ -515,9 +519,9 @@ export class TxClaimGearRewards extends EVMTx {
   }
 }
 
-interface RepayAccountProps extends EVMTxProps {
+type RepayAccountProps = EVMTxProps & {
   creditManager: string;
-}
+};
 
 export class TxRepayAccount extends EVMTx {
   public readonly creditManager: string;
@@ -546,9 +550,9 @@ export class TxRepayAccount extends EVMTx {
   }
 }
 
-interface CloseAccountProps extends EVMTxProps {
+type CloseAccountProps = EVMTxProps & {
   creditManager: string;
-}
+};
 
 export class TxCloseAccount extends EVMTx {
   public readonly creditManager: string;
@@ -577,9 +581,9 @@ export class TxCloseAccount extends EVMTx {
   }
 }
 
-interface ApproveProps extends EVMTxProps {
+type ApproveProps = EVMTxProps & {
   token: string;
-}
+};
 
 export class TxApprove extends EVMTx {
   public readonly token: string;
@@ -602,6 +606,60 @@ export class TxApprove extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxApprove",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+type TxEnableTokensProps = EVMTxProps & {
+  enabledTokens: Array<string>;
+  disabledTokens: Array<string>;
+  creditManager: string;
+};
+
+export class TxEnableTokens extends EVMTx {
+  public readonly enabledTokens: Array<string>;
+  public readonly disabledTokens: Array<string>;
+  public readonly creditManager: string;
+
+  constructor(opts: TxEnableTokensProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+    this.enabledTokens = opts.enabledTokens;
+    this.disabledTokens = opts.disabledTokens;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    const enabledSymbols = this.enabledTokens.map(address => {
+      const [tokenSymbol] = extractTokenData(address);
+      return tokenSymbol;
+    });
+
+    const disabledSymbols = this.disabledTokens.map(address => {
+      const [tokenSymbol] = extractTokenData(address);
+      return tokenSymbol;
+    });
+
+    const currentSentences = [
+      enabledSymbols.length > 0 ? `enabled: ${enabledSymbols.join(", ")}` : "",
+      disabledSymbols.length > 0
+        ? `disabled: ${disabledSymbols.join(", ")}`
+        : "",
+    ].filter(s => !!s);
+
+    return `Credit account ${getContractName(
+      this.creditManager,
+    )}: ${currentSentences.join("; ")}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxEnableTokens",
       content: JSON.stringify(this),
     };
   }
