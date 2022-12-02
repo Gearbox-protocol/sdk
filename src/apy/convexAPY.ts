@@ -38,6 +38,71 @@ export interface GetConvexAPYBaseProps {
   curveAPY: CurveAPYResult;
 }
 
+export interface GetConvexAPYBulkProps extends GetConvexAPYBaseProps {
+  pools: Array<ConvexPoolContract>;
+}
+
+export async function getConvexAPYBulk({
+  pools,
+  provider,
+  networkType,
+  getTokenPrice,
+  curveAPY,
+}: GetConvexAPYBulkProps) {
+  const poolsInfo = pools.map(pool => getPoolInfo({ networkType, pool }));
+
+  const calls = poolsInfo.map(
+    ([, basePoolAddress, swapPoolAddress, , extraPoolAddresses, tokenList]) =>
+      getPoolDataCalls({
+        basePoolAddress,
+        swapPoolAddress,
+        cvxAddress: tokenList.CVX,
+        extraPoolAddresses,
+      }),
+  );
+
+  const response = await multicall<Array<BigNumber>>(calls.flat(1), provider);
+
+  const [parsedResponse] = calls.reduce<[Array<Array<BigNumber>>, number]>(
+    ([acc, start], call) => {
+      const end = start + call.length;
+
+      const currentResponse = response.slice(start, end);
+      acc.push(currentResponse);
+
+      return [acc, end];
+    },
+    [[], 0],
+  );
+
+  const apyList = parsedResponse.map(
+    ([basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra], i) => {
+      const [poolParams, , , underlying, extraPoolAddresses, tokenList] =
+        poolsInfo[i];
+
+      const apy = calculateConvexAPY({
+        basePoolRate,
+        basePoolSupply,
+        vPrice,
+        cvxSupply,
+        extra,
+
+        extraPoolAddresses,
+        poolParams,
+        underlying,
+
+        getTokenPrice,
+        curveAPY,
+        tokenList,
+      });
+
+      return apy;
+    },
+  );
+
+  return apyList;
+}
+
 export interface GetConvexAPYProps extends GetConvexAPYBaseProps {
   pool: ConvexPoolContract;
 }
@@ -222,7 +287,7 @@ export interface CalculateConvexAPYProps {
   tokenList: Record<SupportedToken, string>;
 }
 
-export async function calculateConvexAPY({
+function calculateConvexAPY({
   basePoolRate,
   basePoolSupply,
   vPrice,
