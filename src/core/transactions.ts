@@ -21,7 +21,8 @@ export interface TxSerialized {
     | "TxOpenMultitokenAccount"
     | "TxClaimReward"
     | "TxClaimNFT"
-    | "TxClaimGearRewards";
+    | "TxClaimGearRewards"
+    | "TxEnableTokens";
   content: string;
 }
 
@@ -60,6 +61,9 @@ export class TxSerializer {
           return new TxClaimNFT(params);
         case "TxClaimGearRewards":
           return new TxClaimGearRewards(params);
+
+        case "TxEnableTokens":
+          return new TxEnableTokens(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -477,10 +481,10 @@ export class TxClaimNFT extends EVMTx {
   }
 }
 
-type TxClaimGearRewardsProps = EVMTxProps & {
+interface TxClaimGearRewardsProps extends EVMTxProps {
   token: string;
   amount: BigNumber;
-};
+}
 
 export class TxClaimGearRewards extends EVMTx {
   token: string;
@@ -602,6 +606,60 @@ export class TxApprove extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxApprove",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxEnableTokensProps extends EVMTxProps {
+  enabledTokens: Array<string>;
+  disabledTokens: Array<string>;
+  creditManager: string;
+}
+
+export class TxEnableTokens extends EVMTx {
+  public readonly enabledTokens: Array<string>;
+  public readonly disabledTokens: Array<string>;
+  public readonly creditManager: string;
+
+  constructor(opts: TxEnableTokensProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+    this.enabledTokens = opts.enabledTokens;
+    this.disabledTokens = opts.disabledTokens;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    const enabledSymbols = this.enabledTokens.map(address => {
+      const [tokenSymbol] = extractTokenData(address);
+      return tokenSymbol;
+    });
+
+    const disabledSymbols = this.disabledTokens.map(address => {
+      const [tokenSymbol] = extractTokenData(address);
+      return tokenSymbol;
+    });
+
+    const currentSentences = [
+      enabledSymbols.length > 0 ? `enabled: ${enabledSymbols.join(", ")}` : "",
+      disabledSymbols.length > 0
+        ? `disabled: ${disabledSymbols.join(", ")}`
+        : "",
+    ].filter(s => !!s);
+
+    return `Credit account ${getContractName(
+      this.creditManager,
+    )}: ${currentSentences.join("; ")}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxEnableTokens",
       content: JSON.stringify(this),
     };
   }
