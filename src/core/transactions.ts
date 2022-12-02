@@ -71,11 +71,11 @@ export class TxSerializer {
   }
 }
 
-type AddLiquidityProps = EVMTxProps & {
+interface AddLiquidityProps extends EVMTxProps {
   amount: BigNumber;
   underlyingToken: string;
   pool: string;
-};
+}
 
 export class TxAddLiquidity extends EVMTx {
   public readonly amount: BigNumber;
@@ -115,11 +115,11 @@ export class TxAddLiquidity extends EVMTx {
   }
 }
 
-type RemoveLiquidityProps = EVMTxProps & {
+interface RemoveLiquidityProps extends EVMTxProps {
   amount: BigNumber;
   dieselToken: string;
   pool: string;
-};
+}
 
 export class TxRemoveLiquidity extends EVMTx {
   public readonly amount: BigNumber;
@@ -157,7 +157,7 @@ export class TxRemoveLiquidity extends EVMTx {
   }
 }
 
-type SwapProps = EVMTxProps & {
+interface SwapProps extends EVMTxProps {
   protocol: string;
   operation: string;
   amountFrom: BigNumber;
@@ -165,7 +165,7 @@ type SwapProps = EVMTxProps & {
   tokenFrom: string;
   tokenTo?: string;
   creditManager: string;
-};
+}
 
 export class TXSwap extends EVMTx {
   public readonly protocol: string;
@@ -224,11 +224,11 @@ export class TXSwap extends EVMTx {
   }
 }
 
-type AddCollateralProps = EVMTxProps & {
+interface AddCollateralProps extends EVMTxProps {
   amount: BigNumber;
   addedToken: string;
   creditManager: string;
-};
+}
 
 export class TxAddCollateral extends EVMTx {
   public readonly amount: BigNumber;
@@ -268,11 +268,11 @@ export class TxAddCollateral extends EVMTx {
   }
 }
 
-type IncreaseBorrowAmountProps = EVMTxProps & {
+interface IncreaseBorrowAmountProps extends EVMTxProps {
   amount: BigNumber;
   underlyingToken: string;
   creditManager: string;
-};
+}
 
 export class TxIncreaseBorrowAmount extends EVMTx {
   public readonly amount: BigNumber;
@@ -312,12 +312,12 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   }
 }
 
-type OpenAccountProps = EVMTxProps & {
+interface OpenAccountProps extends EVMTxProps {
   amount: BigNumber;
   underlyingToken: string;
   leverage: number;
   creditManager: string;
-};
+}
 
 export class TxOpenAccount extends EVMTx {
   public readonly amount: BigNumber;
@@ -366,12 +366,12 @@ export class TxOpenAccount extends EVMTx {
   }
 }
 
-type TxOpenMultitokenAccountProps = EVMTxProps & {
+interface TxOpenMultitokenAccountProps extends EVMTxProps {
   borrowedAmount: BigNumber;
   creditManager: string;
   underlyingToken: string;
   assets: Array<string>;
-};
+}
 
 export class TxOpenMultitokenAccount extends EVMTx {
   public readonly borrowedAmount: BigNumber;
@@ -423,9 +423,9 @@ export class TxOpenMultitokenAccount extends EVMTx {
   }
 }
 
-type TxClaimRewardProps = EVMTxProps & {
+interface TxClaimRewardProps extends EVMTxProps {
   contracts: Array<SupportedContract>;
-};
+}
 
 export class TxClaimReward extends EVMTx {
   public readonly contracts: Array<SupportedContract>;
@@ -481,10 +481,10 @@ export class TxClaimNFT extends EVMTx {
   }
 }
 
-type TxClaimGearRewardsProps = EVMTxProps & {
+interface TxClaimGearRewardsProps extends EVMTxProps {
   token: string;
   amount: BigNumber;
-};
+}
 
 export class TxClaimGearRewards extends EVMTx {
   token: string;
@@ -519,9 +519,9 @@ export class TxClaimGearRewards extends EVMTx {
   }
 }
 
-type RepayAccountProps = EVMTxProps & {
+interface RepayAccountProps extends EVMTxProps {
   creditManager: string;
-};
+}
 
 export class TxRepayAccount extends EVMTx {
   public readonly creditManager: string;
@@ -550,9 +550,9 @@ export class TxRepayAccount extends EVMTx {
   }
 }
 
-type CloseAccountProps = EVMTxProps & {
+interface CloseAccountProps extends EVMTxProps {
   creditManager: string;
-};
+}
 
 export class TxCloseAccount extends EVMTx {
   public readonly creditManager: string;
@@ -581,9 +581,9 @@ export class TxCloseAccount extends EVMTx {
   }
 }
 
-type ApproveProps = EVMTxProps & {
+interface ApproveProps extends EVMTxProps {
   token: string;
-};
+}
 
 export class TxApprove extends EVMTx {
   public readonly token: string;
@@ -611,11 +611,11 @@ export class TxApprove extends EVMTx {
   }
 }
 
-type TxEnableTokensProps = EVMTxProps & {
+interface TxEnableTokensProps extends EVMTxProps {
   enabledTokens: Array<string>;
   disabledTokens: Array<string>;
   creditManager: string;
-};
+}
 
 export class TxEnableTokens extends EVMTx {
   public readonly enabledTokens: Array<string>;
