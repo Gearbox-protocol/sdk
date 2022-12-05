@@ -12,7 +12,10 @@ import {
   SECONDS_PER_YEAR,
   WAD,
 } from "../core/constants";
-import { ConvexPhantomTokenData } from "../tokens/convex";
+import {
+  ConvexPhantomTokenData,
+  ConvexStakedPhantomToken,
+} from "../tokens/convex";
 import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
 import {
   SupportedToken,
@@ -31,10 +34,15 @@ import { MCall, multicall } from "../utils/multicall";
 import { AwaitedRes } from "../utils/types";
 import { CurveAPYResult } from "./curveAPY";
 
+type GetTokenPriceCallback = (
+  tokenAddress: string,
+  currency?: string,
+) => BigNumber;
+
 export interface GetConvexAPYBaseProps {
   provider: providers.Provider;
   networkType: NetworkType;
-  getTokenPrice: (tokenAddress: string) => BigNumber;
+  getTokenPrice: GetTokenPriceCallback;
   curveAPY: CurveAPYResult;
 }
 
@@ -282,10 +290,15 @@ export interface CalculateConvexAPYProps {
   poolParams: ConvexPoolParams;
   underlying: CurveLPToken;
 
-  getTokenPrice: (tokenAddress: string) => BigNumber;
+  getTokenPrice: GetTokenPriceCallback;
   curveAPY: CurveAPYResult;
   tokenList: Record<SupportedToken, string>;
 }
+
+const CURRENCY_LIST: Partial<Record<ConvexStakedPhantomToken, SupportedToken>> =
+  {
+    stkcvxsteCRV: "WETH",
+  };
 
 function calculateConvexAPY({
   basePoolRate,
@@ -302,8 +315,11 @@ function calculateConvexAPY({
   curveAPY,
   tokenList,
 }: CalculateConvexAPYProps) {
-  const cvxPrice = getTokenPrice(tokenList.CVX);
-  const crvPrice = getTokenPrice(tokenList.CRV);
+  const currencySymbol = CURRENCY_LIST[poolParams.stakedToken];
+  const currency = currencySymbol && tokenList[currencySymbol || ""];
+
+  const cvxPrice = getTokenPrice(tokenList.CVX, currency);
+  const crvPrice = getTokenPrice(tokenList.CRV, currency);
 
   const crvPerSecond = basePoolRate;
   const virtualSupply = basePoolSupply.mul(vPrice).div(WAD);
@@ -322,7 +338,7 @@ function calculateConvexAPY({
     const perUnderlying = extraPoolRate.mul(WAD).div(virtualSupply);
     const perYear = perUnderlying.mul(SECONDS_PER_YEAR);
 
-    const extraPrice = getTokenPrice(tokenList[extraRewardSymbol]);
+    const extraPrice = getTokenPrice(tokenList[extraRewardSymbol], currency);
 
     const extraAPY = perYear.mul(extraPrice).div(PRICE_DECIMALS);
 
