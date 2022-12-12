@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 import { tokenDataByNetwork } from "../tokens/token";
 import { IERC20__factory } from "../types";
 import { ADDRESS_0X0 } from "./constants";
@@ -40,8 +42,6 @@ export const getNetworkType = (
 export const isSupportedNetwork = (
   chainId: number | undefined,
 ): chainId is number => chainId !== undefined && !!SUPPORTED_CHAINS[chainId];
-
-import { ethers } from "ethers";
 
 export async function detectNetwork(
   provider: ethers.providers.Provider,
