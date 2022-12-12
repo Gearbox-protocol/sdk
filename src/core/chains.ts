@@ -6,22 +6,30 @@ import { ADDRESS_0X0 } from "./constants";
 
 export const MAINNET_NETWORK = 1;
 export const GOERLI_NETWORK = 5;
+export const OPTIMISM_NETWORK = 10;
+export const POLYGON_NETWORK = 137;
 export const LOCAL_NETWORK = 1337;
 export const HARDHAT_NETWORK = 31337;
+export const ARBITRUM_NETWORK = 42161;
 
 export const CHAINS = {
   Mainnet: MAINNET_NETWORK,
   Goerli: GOERLI_NETWORK,
   Local: LOCAL_NETWORK,
   Hardhat: HARDHAT_NETWORK,
+  Optimism: OPTIMISM_NETWORK,
+  Polygon: POLYGON_NETWORK,
+  Arbiturum: ARBITRUM_NETWORK,
 } as const;
 
-export type NetworkType = "Mainnet" | "Goerli";
+export type NetworkType = "Mainnet" | "Goerli"; // | "Optimism" | "Polygon";
 
 const SUPPORTED_CHAINS: Record<number, NetworkType> = {
   [CHAINS.Mainnet]: "Mainnet",
   [CHAINS.Goerli]: "Goerli",
   [CHAINS.Local]: "Mainnet",
+  // [CHAINS.Optimism]: "Optimism",
+  // [CHAINS.Polygon]: "Polygon",
 };
 
 export const getNetworkType = (
