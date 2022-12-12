@@ -1,4 +1,4 @@
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import { shortAddress } from "../utils/formatter";
 import { keyToLowercase } from "../utils/mappers";
 import { contractParams, contractsByAddress } from "./contracts";

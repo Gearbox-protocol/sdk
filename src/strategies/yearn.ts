@@ -6,7 +6,8 @@ import {
   YearnParams,
   YearnVaultContract,
 } from "../contracts/contracts";
-import { ADDRESS_0X0, NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
+import { ADDRESS_0X0 } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
 import { CurveLPTokenData } from "../tokens/curveLP";
 import { supportedTokens, tokenDataByNetwork } from "../tokens/token";

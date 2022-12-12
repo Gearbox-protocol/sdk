@@ -1,4 +1,4 @@
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import {
   filterEmptyKeys,
   keyToLowercase,

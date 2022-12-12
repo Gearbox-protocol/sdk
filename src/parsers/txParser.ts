@@ -5,7 +5,7 @@ import {
   contractsByNetwork,
   SupportedContract,
 } from "../contracts/contracts";
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import { SupportedToken } from "../tokens/token";
 import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import { AbstractParser } from "./abstractParser";

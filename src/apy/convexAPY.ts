@@ -6,12 +6,8 @@ import {
   ConvexPoolContract,
   ConvexPoolParams,
 } from "../contracts/contracts";
-import {
-  NetworkType,
-  PRICE_DECIMALS,
-  SECONDS_PER_YEAR,
-  WAD,
-} from "../core/constants";
+import { NetworkType } from "../core/chains";
+import { PRICE_DECIMALS, SECONDS_PER_YEAR, WAD } from "../core/constants";
 import {
   ConvexPhantomTokenData,
   ConvexStakedPhantomToken,

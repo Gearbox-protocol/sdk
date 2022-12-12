@@ -1,7 +1,8 @@
 import { providers } from "ethers";
 
 import { contractParams, LidoParams } from "../contracts/contracts";
-import { NetworkType, SECONDS_PER_YEAR, WAD } from "../core/constants";
+import { NetworkType } from "../core/chains";
+import { SECONDS_PER_YEAR, WAD } from "../core/constants";
 import { tokenDataByNetwork } from "../tokens/token";
 import {
   ILidoOracle,
