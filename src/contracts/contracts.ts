@@ -3,7 +3,7 @@
  * Gearbox. Generalized leverage protocol, which allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
  * (c) Gearbox.fi, 2021
  */
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";

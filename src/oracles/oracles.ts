@@ -1,6 +1,6 @@
 import { BigNumber } from "ethers";
 
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import { SupportedToken } from "../tokens/token";
 
 export interface PriceFeed {

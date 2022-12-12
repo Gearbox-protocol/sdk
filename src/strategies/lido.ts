@@ -1,7 +1,8 @@
 import { BigNumberish } from "ethers";
 
 import { contractsByNetwork } from "../contracts/contracts";
-import { ADDRESS_0X0, NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
+import { ADDRESS_0X0 } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
 import { tokenDataByNetwork } from "../tokens/token";
 import { ILidoV1Adapter__factory } from "../types";

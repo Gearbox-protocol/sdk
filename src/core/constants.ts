@@ -4,25 +4,6 @@ export const MAX_INT = BigNumber.from(
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 );
 
-export const MAINNET_NETWORK = 1;
-export const GOERLI_NETWORK = 5;
-export const LOCAL_NETWORK = 1337;
-export const HARDHAT_NETWORK = 31337;
-
-export type NetworkType = "Mainnet" | "Goerli";
-
-export const getNetworkType = (chainId: number): NetworkType => {
-  switch (chainId) {
-    case MAINNET_NETWORK:
-    case LOCAL_NETWORK:
-      return "Mainnet";
-    case GOERLI_NETWORK:
-      return "Goerli";
-    default:
-      throw new Error("unknown network");
-  }
-};
-
 export const RAY_DECIMALS_POW = 27;
 export const RAY = BigNumber.from(10).pow(RAY_DECIMALS_POW);
 export const halfRAY = RAY.div(2);

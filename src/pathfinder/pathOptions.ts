@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish } from "ethers";
 
 import { contractParams, CurveParams } from "../contracts/contracts";
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import { ConvexLPToken, convexTokens } from "../tokens/convex";
 import { CurveLPToken, curveTokens } from "../tokens/curveLP";
 import { tokenDataByNetwork, tokenSymbolByAddress } from "../tokens/token";

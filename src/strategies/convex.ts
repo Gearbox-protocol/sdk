@@ -6,7 +6,7 @@ import {
   ConvexPoolContract,
   ConvexPoolParams,
 } from "../contracts/contracts";
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import { CreditManagerData } from "../core/creditManager";
 import { ConvexPhantomTokenData } from "../tokens/convex";
 import { CurveLPTokenData } from "../tokens/curveLP";

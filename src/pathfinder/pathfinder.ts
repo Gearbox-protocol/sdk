@@ -1,7 +1,8 @@
 import { Provider } from "@ethersproject/abstract-provider";
 import { BigNumber, BigNumberish, Signer } from "ethers";
 
-import { NetworkType, RAY } from "../core/constants";
+import { NetworkType } from "../core/chains";
+import { RAY } from "../core/constants";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
