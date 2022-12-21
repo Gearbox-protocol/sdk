@@ -51,6 +51,7 @@ export type SupportedContract =
   | UniswapV2Contract
   | "UNISWAP_V3_ROUTER"
   | CurvePoolContract
+  | "CURVE_GEAR_POOL"
   | YearnVaultContract
   | "CONVEX_BOOSTER"
   | ConvexPoolContract
@@ -77,6 +78,8 @@ export const contractsByNetwork: Record<
     CURVE_SUSD_POOL: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // SEPARATE TOKEN
     CURVE_SUSD_DEPOSIT: "0xFCBa3E75865d2d561BE8D220616520c171F12851",
     CURVE_GUSD_POOL: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", // SEPARATE TOKEN
+
+    CURVE_GEAR_POOL: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Mainnet.yvDAI,
@@ -128,6 +131,8 @@ export const contractsByNetwork: Record<
     CURVE_SUSD_POOL: "0x2A1b874C86734feA5be050d32fAb02FCF9eB1Bc2",
     CURVE_SUSD_DEPOSIT: "0x9782f1fF1AEFb387F01cae72F668F13E8061d9Dd",
     CURVE_GUSD_POOL: "0x8C954d89C2fB2c96F0195738b8c5538B34D5344E",
+
+    CURVE_GEAR_POOL: "deploy me",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Goerli.yvDAI,
@@ -195,6 +200,14 @@ export type CurveSteCRVPoolParams = {
   lpToken: "steCRV";
 } & BaseContractParams;
 
+export type CurveGEARPoolParams = {
+  protocol: Protocols.Curve;
+  type: AdapterInterface.CURVE_V1_2ASSETS;
+  pool: Record<NetworkType, string>;
+  tokens: ["GEAR", "WETH"];
+  lpToken: "GEAR";
+} & BaseContractParams;
+
 export type YearnParams = {
   protocol: Protocols.Yearn;
   type: AdapterInterface.YEARN_V2;
@@ -242,6 +255,7 @@ export type ContractParams =
   | UniswapV3Params
   | CurveParams
   | CurveSteCRVPoolParams
+  | CurveGEARPoolParams
   | YearnParams
   | ConvexParams
   | ConvexPoolParams
@@ -291,6 +305,17 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     },
     tokens: ["WETH", "STETH"],
     lpToken: "steCRV",
+  },
+  CURVE_GEAR_POOL: {
+    name: "Curve GEAR",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    pool: {
+      Mainnet: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
+      Goerli: "implement me",
+    },
+    tokens: ["GEAR", "WETH"],
+    lpToken: "GEAR",
   },
   CURVE_FRAX_POOL: {
     name: "Curve FRAX",
