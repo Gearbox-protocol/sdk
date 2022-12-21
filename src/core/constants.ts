@@ -14,6 +14,7 @@ export const PRICE_DECIMALS_POW = 8;
 export const PRICE_DECIMALS = BigNumber.from(10).pow(PRICE_DECIMALS_POW);
 
 export const SECONDS_PER_YEAR = 365 * 24 * 3600;
+export const MS_PER_YEAR = SECONDS_PER_YEAR * 1000;
 
 export const PERCENTAGE_DECIMALS = 100;
 export const PERCENTAGE_FACTOR = 1e4;

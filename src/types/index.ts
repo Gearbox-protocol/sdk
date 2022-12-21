@@ -284,6 +284,8 @@ export type { ITokenDistributorEvents } from "./contracts/ITokenDistributor.sol/
 export { ITokenDistributorEvents__factory } from "./factories/contracts/ITokenDistributor.sol/ITokenDistributorEvents__factory";
 export type { ITokenDistributorExceptions } from "./contracts/ITokenDistributor.sol/ITokenDistributorExceptions";
 export { ITokenDistributorExceptions__factory } from "./factories/contracts/ITokenDistributor.sol/ITokenDistributorExceptions__factory";
+export type { IOffchainOracle } from "./contracts/support/IOffchainOracle";
+export { IOffchainOracle__factory } from "./factories/contracts/support/IOffchainOracle__factory";
 export type { AggregatorV3Interface } from "./@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface";
 export { AggregatorV3Interface__factory } from "./factories/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface__factory";
 export type { Multicall2 } from "./contracts/MultiCall.sol/Multicall2";
