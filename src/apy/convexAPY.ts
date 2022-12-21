@@ -1,4 +1,4 @@
-import { BigNumber, providers } from "ethers";
+import { BigNumber } from "ethers";
 
 import {
   contractParams,
