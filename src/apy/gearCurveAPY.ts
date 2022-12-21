@@ -8,6 +8,7 @@ import {
 import { NetworkType } from "../core/chains";
 import { MS_PER_YEAR, WAD } from "../core/constants";
 import { ICurvePool, ICurvePool__factory } from "../types";
+import { toBN } from "../utils/formatter";
 import { MCall } from "../utils/multicall";
 
 export interface GetGEARCurveAPYProps {
@@ -66,11 +67,10 @@ type CurveV1AdapterStETHInterface = ICurvePool["interface"];
 
 const POOL_START = 1671264000 * 1000;
 
-const lmRewardsPerMonth = BigNumber.from(1);
-const ciderFees = BigNumber.from(1);
-const rewardsAmountPerMonth = BigNumber.from(lmRewardsPerMonth).add(
-  BigNumber.from(ciderFees).div(4),
-);
+const lmRewardsPerMonth = toBN("3330000", 18);
+const ciderFees = toBN("15000000", 18);
+
+const rewardsAmountPerMonth = lmRewardsPerMonth.add(ciderFees.div(4));
 
 function calculateGearCurveAPY(response: Array<BigNumber>) {
   const [vPrice, gearBalance] = response;
@@ -81,6 +81,7 @@ function calculateGearCurveAPY(response: Array<BigNumber>) {
     .div(Date.now() - POOL_START);
 
   const cideredAPYPlusLM = rewardsAmountPerMonth
+    .mul(WAD)
     .mul(12)
     .div(gearBalance.mul(2));
 
