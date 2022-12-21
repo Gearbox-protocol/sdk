@@ -6,7 +6,7 @@ import {
   CurveGEARPoolParams,
 } from "../contracts/contracts";
 import { NetworkType } from "../core/chains";
-import { WAD } from "../core/constants";
+import { MS_PER_YEAR, WAD } from "../core/constants";
 import { ICurvePool, ICurvePool__factory } from "../types";
 import { MCall, multicall } from "../utils/multicall";
 
@@ -62,9 +62,7 @@ function getPoolDataCalls({ poolAddress, poolParams }: GetPoolInfoReturns) {
   return calls;
 }
 
-const ONE_DAY = 1000 * 60 * 60 * 24;
-
-const POOL_START = 1671235200 * 1000;
+const POOL_START = 1671264000 * 1000;
 
 const lmRewardsPerMonth = BigNumber.from(1);
 const ciderFees = BigNumber.from(1);
@@ -72,15 +70,13 @@ const rewardsAmountPerMonth = BigNumber.from(lmRewardsPerMonth).add(
   BigNumber.from(ciderFees).div(4),
 );
 
-function dateDiff(start: number, end: number) {
-  return Math.round(Math.abs(end - start) / ONE_DAY);
-}
-
 function calculateGearCurveAPY(response: Array<BigNumber>) {
   const [vPrice, gearBalance] = response;
-  const days = dateDiff(Date.now(), POOL_START);
 
-  const tradingAPY = vPrice.sub(WAD).mul(365).div(days);
+  const tradingAPY = vPrice
+    .sub(WAD)
+    .mul(MS_PER_YEAR)
+    .div(Date.now() - POOL_START);
 
   const cideredAPYPlusLM = rewardsAmountPerMonth
     .mul(12)
