@@ -1,5 +1,3 @@
-import { providers } from "ethers";
-
 import { contractParams, LidoParams } from "../contracts/contracts";
 import { NetworkType } from "../core/chains";
 import { SECONDS_PER_YEAR, WAD } from "../core/constants";
@@ -10,39 +8,27 @@ import {
   IstETH,
   IstETH__factory,
 } from "../types";
-import { MCall, multicall } from "../utils/multicall";
+import { MCall } from "../utils/multicall";
 
 type ILidoOracleInterface = ILidoOracle["interface"];
 
 type IstETHInterface = IstETH["interface"];
 
-const lidoOracles = (contractParams.LIDO_STETH_GATEWAY as LidoParams).oracle;
+export type LidoDataCallResponse = [
+  Awaited<ReturnType<ILidoOracle["getLastCompletedReportDelta"]>>,
+  Awaited<ReturnType<IstETH["getFee"]>>,
+];
 
-const lidoStEth: Record<NetworkType, string> = {
-  Mainnet: tokenDataByNetwork.Mainnet.STETH,
-  Goerli: tokenDataByNetwork.Goerli.STETH,
-};
+export interface GetLidoAPYProps {
+  generated: GetLidoAPYCallsReturns;
+  response: LidoDataCallResponse;
+}
 
-export async function getLidoAPY(
-  provider: providers.Provider,
-  networkType: NetworkType,
-) {
-  if (!lidoOracles[networkType]) {
-    throw new Error(
-      `No Lido APR oracle found on current network: ${networkType}`,
-    );
-  }
-  if (!lidoStEth[networkType]) {
-    throw new Error(`No Lido stETH found on current network: ${networkType}`);
-  }
-
-  const [{ postTotalPooledEther, preTotalPooledEther, timeElapsed }, fee] =
-    await geLidoData(
-      lidoOracles[networkType],
-      lidoStEth[networkType],
-      provider,
-      networkType,
-    );
+export function getLidoAPY({ response }: GetLidoAPYProps) {
+  const [
+    { postTotalPooledEther, preTotalPooledEther, timeElapsed },
+    fee = Math.floor(LIDO_FEE_DECIMALS / 10),
+  ] = response;
 
   const lidoAPRRay = postTotalPooledEther
     .sub(preTotalPooledEther)
@@ -55,12 +41,53 @@ export async function getLidoAPY(
 
 export const LIDO_FEE_DECIMALS = 10000;
 
-async function geLidoData(
-  lidoOracleAddress: string,
-  stETHAddress: string,
-  provider: providers.Provider,
-  network: NetworkType,
-) {
+export interface GetLidoAPYCallsProps {
+  networkType: NetworkType;
+}
+
+type GetLidoAPYCallsReturns = ReturnType<typeof getLidoAPYCalls>;
+
+export function getLidoAPYCalls({ networkType }: GetLidoAPYCallsProps) {
+  const poolInfo = getLidoInfo(networkType);
+  const calls = getLidoDataCalls({ ...poolInfo, network: networkType });
+
+  return { poolInfo, calls };
+}
+
+const lidoOracles = (contractParams.LIDO_STETH_GATEWAY as LidoParams).oracle;
+
+const lidoStEth: Record<NetworkType, string> = {
+  Mainnet: tokenDataByNetwork.Mainnet.STETH,
+  Goerli: tokenDataByNetwork.Goerli.STETH,
+};
+
+type GetPoolInfoReturns = ReturnType<typeof getLidoInfo>;
+
+function getLidoInfo(networkType: NetworkType) {
+  if (!lidoOracles[networkType]) {
+    throw new Error(
+      `No Lido APR oracle found on current network: ${networkType}`,
+    );
+  }
+  if (!lidoStEth[networkType]) {
+    throw new Error(`No Lido stETH found on current network: ${networkType}`);
+  }
+
+  const lidoOracleAddress = lidoOracles[networkType];
+  const stETHAddress = lidoStEth[networkType];
+
+  return { lidoOracleAddress, stETHAddress };
+}
+
+interface GetLidoDataCallsProps extends GetPoolInfoReturns {
+  network: NetworkType;
+}
+
+function getLidoDataCalls({
+  lidoOracleAddress,
+  stETHAddress,
+  network,
+}: GetLidoDataCallsProps) {
   const calls: [MCall<ILidoOracleInterface>, ...Array<MCall<IstETHInterface>>] =
     [
       {
@@ -77,12 +104,5 @@ async function geLidoData(
       method: "getFee()",
     });
 
-  const [stats, fee = Math.floor(LIDO_FEE_DECIMALS / 10)] = await multicall<
-    [
-      Awaited<ReturnType<ILidoOracle["getLastCompletedReportDelta"]>>,
-      Awaited<ReturnType<IstETH["getFee"]>>,
-    ]
-  >(calls, provider);
-
-  return [stats, fee] as const;
+  return calls;
 }

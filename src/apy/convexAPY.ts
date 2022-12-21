@@ -26,7 +26,7 @@ import {
   ICurvePool,
   ICurvePool__factory,
 } from "../types";
-import { MCall, multicall } from "../utils/multicall";
+import { MCall } from "../utils/multicall";
 import { CurveAPYResult } from "./curveAPY";
 
 type GetTokenPriceCallback = (
@@ -34,37 +34,20 @@ type GetTokenPriceCallback = (
   currency?: string,
 ) => BigNumber;
 
-export interface GetConvexAPYBaseProps {
-  provider: providers.Provider;
-  networkType: NetworkType;
+export interface GetConvexAPYBulkProps {
   getTokenPrice: GetTokenPriceCallback;
   curveAPY: CurveAPYResult;
+  generated: GetConvexAPYBulkCallsReturns;
+  response: Array<BigNumber>;
 }
 
-export interface GetConvexAPYBulkProps extends GetConvexAPYBaseProps {
-  pools: Array<ConvexPoolContract>;
-}
-
-export async function getConvexAPYBulk({
-  pools,
-  provider,
-  networkType,
+export function getConvexAPYBulk({
+  generated,
+  response,
   getTokenPrice,
   curveAPY,
 }: GetConvexAPYBulkProps) {
-  const poolsInfo = pools.map(pool => getPoolInfo({ networkType, pool }));
-
-  const calls = poolsInfo.map(
-    ([, basePoolAddress, swapPoolAddress, , extraPoolAddresses, tokenList]) =>
-      getPoolDataCalls({
-        basePoolAddress,
-        swapPoolAddress,
-        cvxAddress: tokenList.CVX,
-        extraPoolAddresses,
-      }),
-  );
-
-  const response = await multicall<Array<BigNumber>>(calls.flat(1), provider);
+  const { poolsInfo, calls } = generated;
 
   const [parsedResponse] = calls.reduce<[Array<Array<BigNumber>>, number]>(
     ([acc, start], call) => {
@@ -139,6 +122,32 @@ function getPoolInfo({ pool, networkType }: GetPoolInfoProps) {
     extraPoolAddresses,
     tokenList,
   ] as const;
+}
+
+type GetConvexAPYBulkCallsReturns = ReturnType<typeof getConvexAPYBulkCalls>;
+
+export interface GetConvexAPYBulkCallsProps {
+  pools: Array<ConvexPoolContract>;
+  networkType: NetworkType;
+}
+
+export function getConvexAPYBulkCalls({
+  pools,
+  networkType,
+}: GetConvexAPYBulkCallsProps) {
+  const poolsInfo = pools.map(pool => getPoolInfo({ networkType, pool }));
+
+  const calls = poolsInfo.map(
+    ([, basePoolAddress, swapPoolAddress, , extraPoolAddresses, tokenList]) =>
+      getPoolDataCalls({
+        basePoolAddress,
+        swapPoolAddress,
+        cvxAddress: tokenList.CVX,
+        extraPoolAddresses,
+      }),
+  );
+
+  return { poolsInfo, calls };
 }
 
 type IBaseRewardPoolInterface = IBaseRewardPool["interface"];

@@ -1,4 +1,4 @@
-import { BigNumber, providers } from "ethers";
+import { BigNumber } from "ethers";
 
 import {
   contractParams,
@@ -8,38 +8,27 @@ import {
 import { NetworkType } from "../core/chains";
 import { MS_PER_YEAR, WAD } from "../core/constants";
 import { ICurvePool, ICurvePool__factory } from "../types";
-import { MCall, multicall } from "../utils/multicall";
+import { MCall } from "../utils/multicall";
 
-interface GetGEARCurveAPYBaseProps {
+export interface GetGEARCurveAPYProps {
+  response: Array<BigNumber>;
+}
+
+export function getGEARCurveAPY({ response }: GetGEARCurveAPYProps) {
+  return calculateGearCurveAPY(response);
+}
+
+export interface GetGEARCurveAPYCallsProps {
   pool: "CURVE_GEAR_POOL";
   networkType: NetworkType;
 }
 
-export interface GetGEARCurveAPYProps extends GetGEARCurveAPYBaseProps {
-  provider: providers.Provider;
-}
-
-export async function getGEARCurveAPY(props: GetGEARCurveAPYProps) {
+export function getGEARCurveAPYCalls(props: GetGEARCurveAPYCallsProps) {
   const poolInfo = getPoolInfo(props);
   const calls = getPoolDataCalls(poolInfo);
 
-  const response = await multicall<Array<BigNumber>>(calls, props.provider);
-
-  return calculateGearCurveAPY(response);
+  return { poolInfo, calls };
 }
-
-type GetPoolInfoReturns = ReturnType<typeof getPoolInfo>;
-
-function getPoolInfo({ pool, networkType }: GetGEARCurveAPYBaseProps) {
-  const contractsList = contractsByNetwork[networkType];
-
-  const poolParams = contractParams[pool] as CurveGEARPoolParams;
-  const poolAddress = contractsList[pool];
-
-  return { poolParams, poolAddress };
-}
-
-type CurveV1AdapterStETHInterface = ICurvePool["interface"];
 
 function getPoolDataCalls({ poolAddress, poolParams }: GetPoolInfoReturns) {
   const calls: [
@@ -61,6 +50,19 @@ function getPoolDataCalls({ poolAddress, poolParams }: GetPoolInfoReturns) {
 
   return calls;
 }
+
+type GetPoolInfoReturns = ReturnType<typeof getPoolInfo>;
+
+function getPoolInfo({ pool, networkType }: GetGEARCurveAPYCallsProps) {
+  const contractsList = contractsByNetwork[networkType];
+
+  const poolParams = contractParams[pool] as CurveGEARPoolParams;
+  const poolAddress = contractsList[pool];
+
+  return { poolParams, poolAddress };
+}
+
+type CurveV1AdapterStETHInterface = ICurvePool["interface"];
 
 const POOL_START = 1671264000 * 1000;
 
