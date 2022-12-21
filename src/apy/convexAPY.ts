@@ -27,7 +27,6 @@ import {
   ICurvePool__factory,
 } from "../types";
 import { MCall, multicall } from "../utils/multicall";
-import { AwaitedRes } from "../utils/types";
 import { CurveAPYResult } from "./curveAPY";
 
 type GetTokenPriceCallback = (
@@ -105,63 +104,6 @@ export async function getConvexAPYBulk({
   );
 
   return apyList;
-}
-
-export interface GetConvexAPYProps extends GetConvexAPYBaseProps {
-  pool: ConvexPoolContract;
-}
-
-type GetPoolDataReturnType = [
-  AwaitedRes<IBaseRewardPool["rewardRate"]>,
-  AwaitedRes<IBaseRewardPool["totalSupply"]>,
-  AwaitedRes<ICurvePool["get_virtual_price"]>,
-  AwaitedRes<IConvexToken["totalSupply"]>,
-  ...Array<AwaitedRes<IBaseRewardPool["rewardRate"]>>,
-];
-
-export async function getConvexAPY({
-  pool,
-  provider,
-  networkType,
-  getTokenPrice,
-  curveAPY,
-}: GetConvexAPYProps) {
-  const [
-    poolParams,
-    basePoolAddress,
-    swapPoolAddress,
-    underlying,
-    extraPoolAddresses,
-    tokenList,
-  ] = getPoolInfo({ networkType, pool });
-
-  const calls = getPoolDataCalls({
-    basePoolAddress,
-    swapPoolAddress,
-    cvxAddress: tokenList.CVX,
-    extraPoolAddresses,
-  });
-
-  const [basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra] =
-    await multicall<GetPoolDataReturnType>(calls, provider);
-
-  const apy = calculateConvexAPY({
-    basePoolRate,
-    basePoolSupply,
-    vPrice,
-    cvxSupply,
-    extra,
-
-    extraPoolAddresses,
-    poolParams,
-    underlying,
-
-    getTokenPrice,
-    curveAPY,
-    tokenList,
-  });
-
-  return apy;
 }
 
 interface GetPoolInfoProps {
