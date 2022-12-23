@@ -1,5 +1,4 @@
 import { NetworkType } from "../core/chains";
-import { shortAddress } from "../utils/formatter";
 import { keyToLowercase } from "../utils/mappers";
 import { contractParams, contractsByAddress } from "./contracts";
 
@@ -102,5 +101,5 @@ const contractsFullList = {
 };
 
 export function getContractName(address: string): string {
-  return contractsFullList[address.toLowerCase()] || shortAddress(address);
+  return contractsFullList[address.toLowerCase()] || address;
 }
