@@ -102,5 +102,5 @@ const contractsFullList = {
 };
 
 export function getContractName(address: string): string {
-  return contractsFullList[address.toLowerCase()] || shortAddress(address);
+  return contractsFullList[address.toLowerCase()] || address;
 }
