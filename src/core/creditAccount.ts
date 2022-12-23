@@ -30,6 +30,7 @@ export class CreditAccountData {
   public readonly since: number;
   public readonly cumulativeIndexAtOpen: BigNumber;
   public readonly borrowedAmount: BigNumber;
+  public readonly borrowedAmountPlusInterestAndFees: BigNumber;
 
   public borrowedAmountPlusInterest: BigNumber;
   public totalValue: BigNumber;
@@ -60,6 +61,8 @@ export class CreditAccountData {
 
     this.borrowedAmount = payload.borrowedAmount;
     this.borrowedAmountPlusInterest = payload.borrowedAmountPlusInterest;
+    this.borrowedAmountPlusInterestAndFees =
+      payload.borrowedAmountPlusInterestAndFees;
 
     this.totalValue = payload.totalValue;
     this.healthFactor = payload.healthFactor.toNumber();
