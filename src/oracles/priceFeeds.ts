@@ -229,8 +229,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       },
     },
     priceFeedUSD: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
+      type: OracleType.COMPOSITE_ORACLE,
+      targetToBasePriceFeed: {
+        Mainnet: "0xfdfd9c85ad200c506cf9e21f1fd8dd01932fbb23",
+        Goerli: "",
+      },
+      baseToUsdPriceFeed: {
         Mainnet: "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
         Goerli: "0x048F634279BE1CC4De3F17fD4c31101bAD0826c8",
       },
@@ -276,9 +280,13 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.COMPOSITE_ORACLE,
 
-      ethPriceFeed: {
+      targetToBasePriceFeed: {
         Mainnet: "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
         Goerli: "0x78622A939324C5dC1B646D113358f54f0BA4353B",
+      },
+      baseToUsdPriceFeed: {
+        Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+        Goerli: "0x491741d9F426130d1bC27Aee82f8b4Bd4E6E5f5D",
       },
     },
   },
