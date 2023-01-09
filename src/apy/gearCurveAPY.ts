@@ -1,89 +1,55 @@
+import axios from "axios";
 import { BigNumber } from "ethers";
 
-import {
-  contractParams,
-  contractsByNetwork,
-  CurveGEARPoolParams,
-} from "../contracts/contracts";
-import { NetworkType } from "../core/chains";
-import { MS_PER_YEAR, WAD } from "../core/constants";
-import { ICurvePool, ICurvePool__factory } from "../types";
+import { WAD_DECIMALS_POW } from "../core/constants";
 import { toBN } from "../utils/formatter";
-import { MCall } from "../utils/multicall";
+import {
+  CRV_APY_RESPONSE_DECIMALS,
+  CURVE_APY_URL,
+  CurveAPYDataResponse,
+} from "./curveAPY";
 
-export interface GetGEARCurveAPYProps {
-  response: Array<BigNumber>;
+const POOL_DICTIONARY = {
+  GEAR: "factory-crypto-192", // 0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2
+} as const;
+
+interface GEARCurveAPY {
+  base: BigNumber;
+  crv: BigNumber;
+  gear: BigNumber;
 }
 
-export function getGEARCurveAPY({ response }: GetGEARCurveAPYProps) {
-  return calculateGearCurveAPY(response);
+export async function getGEARCurveAPY(): Promise<GEARCurveAPY> {
+  const { data } = await axios.get<CurveAPYDataResponse>(CURVE_APY_URL);
+  const { apys } = data || {};
+
+  const { baseApy, crvApy } = apys[POOL_DICTIONARY.GEAR] || {};
+  if (baseApy === undefined)
+    console.warn(`No base apy for: GEAR, ${POOL_DICTIONARY.GEAR}`);
+
+  const base = toBN(
+    ((baseApy || 0) / CRV_APY_RESPONSE_DECIMALS).toString(),
+    WAD_DECIMALS_POW,
+  );
+
+  const crv = toBN(
+    ((crvApy || 0) / CRV_APY_RESPONSE_DECIMALS).toString(),
+    WAD_DECIMALS_POW,
+  );
+
+  const gear = BigNumber.from(0);
+
+  return { base, crv, gear };
 }
 
-export interface GetGEARCurveAPYCallsProps {
-  pool: "CURVE_GEAR_POOL";
-  networkType: NetworkType;
-}
+// 1, 2
+// https://www.convexfinance.com/api/curve-apys
+// factory-crypto-192
+// baseApy: 4.086688393333504
+// crvApy: 1.1328144118563017
 
-export function getGEARCurveAPYCalls(props: GetGEARCurveAPYCallsProps) {
-  const poolInfo = getPoolInfo(props);
-  const calls = getPoolDataCalls(poolInfo);
-
-  return { poolInfo, calls };
-}
-
-function getPoolDataCalls({ poolAddress, poolParams }: GetPoolInfoReturns) {
-  const calls: [
-    MCall<CurveV1AdapterStETHInterface>,
-    MCall<CurveV1AdapterStETHInterface>,
-  ] = [
-    {
-      address: poolAddress,
-      interface: ICurvePool__factory.createInterface(),
-      method: "get_virtual_price()",
-    },
-    {
-      address: poolAddress,
-      interface: ICurvePool__factory.createInterface(),
-      method: "balances(uint256)",
-      params: [poolParams.tokens.findIndex(t => t === "GEAR")],
-    },
-  ];
-
-  return calls;
-}
-
-type GetPoolInfoReturns = ReturnType<typeof getPoolInfo>;
-
-function getPoolInfo({ pool, networkType }: GetGEARCurveAPYCallsProps) {
-  const contractsList = contractsByNetwork[networkType];
-
-  const poolParams = contractParams[pool] as CurveGEARPoolParams;
-  const poolAddress = contractsList[pool];
-
-  return { poolParams, poolAddress };
-}
-
-type CurveV1AdapterStETHInterface = ICurvePool["interface"];
-
-const POOL_START = 1671264000 * 1000;
-
-const lmRewardsPerMonth = toBN("3330000", 18);
-const ciderFees = toBN("15000000", 18);
-
-const rewardsAmountPerMonth = lmRewardsPerMonth.add(ciderFees.div(4));
-
-function calculateGearCurveAPY(response: Array<BigNumber>) {
-  const [vPrice, gearBalance] = response;
-
-  const tradingAPY = vPrice
-    .sub(WAD)
-    .mul(MS_PER_YEAR)
-    .div(Date.now() - POOL_START);
-
-  const cideredAPYPlusLM = rewardsAmountPerMonth
-    .mul(WAD)
-    .mul(12)
-    .div(gearBalance.mul(2));
-
-  return { tradingAPY, cideredAPYPlusLM };
-}
+// https://api.curve.fi/api/getSubgraphData/ethereum  "address":"0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2" -> "latestDailyApy":4.086688393333504
+// https://api.curve.fi/api/getPools/ethereum/factory-crypto factory-192 -> gaugeCrvApy
+// 0: 0.45111598101215616
+// 1: 1.1277899525303905
+// https://api.curve.fi/api/getAllGauges GEAR+ETH (0x0E9B…F1C2)
