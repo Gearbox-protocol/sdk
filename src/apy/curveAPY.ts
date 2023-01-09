@@ -13,11 +13,13 @@ interface CurveAPYData {
   crvPrice: number;
 }
 
-interface Response {
+export interface CurveAPYDataResponse {
   apys: Record<string, CurveAPYData>;
 }
 
-const POOL_DICTIONARY: Record<CurveLPToken, string> = {
+type CurveAPYTokens = CurveLPToken;
+
+const POOL_DICTIONARY: Record<CurveAPYTokens, string> = {
   "3Crv": "0", // 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
   FRAX3CRV: "34", // 0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B
   gusd3CRV: "19", // 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956
@@ -27,7 +29,7 @@ const POOL_DICTIONARY: Record<CurveLPToken, string> = {
   crvFRAX: "44", // 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2
 };
 
-const RESPONSE_DECIMALS = 100;
+export const CRV_APY_RESPONSE_DECIMALS = 100;
 const ZERO = BigNumber.from(0);
 
 // const MAIN = "https://api.curve.fi/api/getPools/ethereum/main";
@@ -37,13 +39,13 @@ const ZERO = BigNumber.from(0);
 
 // https://www.convexfinance.com/api/curve-apys
 // http://localhost:8000/api/curve-apys
-const URL = "https://www.convexfinance.com/api/curve-apys";
+export const CURVE_APY_URL = "https://www.convexfinance.com/api/curve-apys";
 
-export type CurveAPYResult = Record<CurveLPToken, BigNumber>;
+export type CurveAPYResult = Record<CurveAPYTokens, BigNumber>;
 
 export async function getCurveAPY(): Promise<CurveAPYResult> {
   try {
-    const { data } = await axios.get<Response>(URL);
+    const { data } = await axios.get<CurveAPYDataResponse>(CURVE_APY_URL);
     const { apys } = data || {};
 
     const curveAPY = objectEntries(POOL_DICTIONARY).reduce<CurveAPYResult>(
@@ -53,7 +55,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
           console.warn(`No base apy for: ${curveSymbol}, ${poolId}`);
 
         acc[curveSymbol] = toBN(
-          ((baseApy || 0) / RESPONSE_DECIMALS).toString(),
+          ((baseApy || 0) / CRV_APY_RESPONSE_DECIMALS).toString(),
           WAD_DECIMALS_POW,
         );
         return acc;
