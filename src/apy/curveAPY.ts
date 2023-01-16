@@ -30,7 +30,11 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
 };
 
 const CRV_APY_RESPONSE_DECIMALS = 100;
-const ZERO = BigNumber.from(0);
+const ZERO: CurveAPY = {
+  base: BigNumber.from(0),
+  crv: BigNumber.from(0),
+  gauge: [],
+};
 
 // const MAIN = "https://api.curve.fi/api/getPools/ethereum/main";
 // const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
@@ -39,9 +43,14 @@ const CURVE_FACTORY_CRYPTO_URL =
   "https://api.curve.fi/api/getPools/ethereum/factory-crypto";
 const CURVE_APY_URL = "https://www.convexfinance.com/api/curve-apys";
 
-export type CurveAPYResult = Record<CurveAPYTokens, BigNumber>;
+interface CurveAPY {
+  base: BigNumber;
+  crv: BigNumber;
+  gauge: Array<[string, BigNumber]>;
+}
+export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
 
-export async function getCurveAPY(): Promise<[CurveAPYResult, GEARCurveAPY]> {
+export async function getCurveAPY(): Promise<[CurveAPYResult, CurveAPY]> {
   try {
     const [{ data: apyData }, { data: poolDataResp }] = await Promise.all([
       axios.get<CurveAPYDataResponse>(CURVE_APY_URL),
@@ -49,14 +58,33 @@ export async function getCurveAPY(): Promise<[CurveAPYResult, GEARCurveAPY]> {
     ]);
 
     const { apys } = apyData || {};
+    const { poolData = [] } = poolDataResp?.data || {};
+    const poolDataByID = Object.fromEntries(
+      poolData.map(p => [p.id, p] as const),
+    );
 
     const curveAPY = objectEntries(APY_DICTIONARY).reduce<CurveAPYResult>(
       (acc, [curveSymbol, poolId]) => {
-        const { baseApy } = apys[poolId] || {};
+        const { baseApy, crvApy } = apys[poolId] || {};
         if (baseApy === undefined)
           console.warn(`No base apy for: ${curveSymbol}, ${poolId}`);
 
-        acc[curveSymbol] = curveAPYToBn(baseApy || 0);
+        const pool = poolDataByID[poolId];
+        const { gaugeRewards = [] } = pool || {};
+        if (pool === undefined)
+          console.warn(`No pool data for: ${curveSymbol}, ${poolId}`);
+        const extraRewards = gaugeRewards.map(
+          ({ apy = 0, symbol }): [string, BigNumber] => [
+            symbol.toLowerCase(),
+            curveAPYToBn(apy),
+          ],
+        );
+
+        acc[curveSymbol] = {
+          base: curveAPYToBn(baseApy || 0),
+          crv: curveAPYToBn(crvApy || 0),
+          gauge: extraRewards,
+        };
 
         return acc;
       },
@@ -78,7 +106,7 @@ export async function getCurveAPY(): Promise<[CurveAPYResult, GEARCurveAPY]> {
         crvPlain3andSUSD: ZERO,
         steCRV: ZERO,
       },
-      { base: ZERO, crv: ZERO, gear: ZERO },
+      ZERO,
     ];
   }
 }
@@ -145,28 +173,23 @@ const POOL_DICTIONARY = {
   GEAR: "factory-crypto-192", // 0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2
 } as const;
 
-interface GEARCurveAPY {
-  base: BigNumber;
-  crv: BigNumber;
-  gear: BigNumber;
-}
-
 async function getGEARCurveAPY(
   apys: Record<string, CurveAPYData>,
   poolDataResp: CurvePoolDataResponse,
-): Promise<GEARCurveAPY> {
+): Promise<CurveAPY> {
   const { poolData = [] } = poolDataResp?.data || {};
 
   const gearPool = poolData.find(p => p.id === POOL_DICTIONARY.GEAR);
   if (gearPool === undefined) console.warn("No GEAR pool found");
 
   const { gaugeRewards = [] } = gearPool || {};
-  console.log("GEAR POOL", gaugeRewards);
 
-  const gearGauge = gaugeRewards.find(g => g.symbol.toLowerCase() === "gear");
-  if (gearGauge === undefined) console.warn("No GEAR gauge found");
-
-  const { apy: gearApy = 0 } = gearGauge || {};
+  const extraRewards = gaugeRewards.map(
+    ({ apy = 0, symbol }): [string, BigNumber] => [
+      symbol.toLowerCase(),
+      curveAPYToBn(apy),
+    ],
+  );
 
   const { baseApy, crvApy } = apys[POOL_DICTIONARY.GEAR] || {};
   if (baseApy === undefined)
@@ -174,7 +197,6 @@ async function getGEARCurveAPY(
 
   const base = curveAPYToBn(baseApy || 0);
   const crv = curveAPYToBn(crvApy || 0);
-  const gear = curveAPYToBn(gearApy || 0);
 
-  return { base, crv, gear };
+  return { base, crv, gauge: extraRewards };
 }

@@ -297,7 +297,7 @@ function calculateConvexAPY({
     BigNumber.from(0),
   );
 
-  const baseApyWAD = curveAPY[underlying];
+  const baseApyWAD = curveAPY[underlying].base;
 
   return baseApyWAD.add(crvAPY).add(cvxAPY).add(extraAPYTotal);
 }
