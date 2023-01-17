@@ -6,7 +6,7 @@ import {
   SupportedContract,
 } from "../contracts/contracts";
 import { NetworkType } from "../core/chains";
-import { SupportedToken } from "../tokens/token";
+import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
 import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import { AbstractParser } from "./abstractParser";
 import { AddressProviderParser } from "./addressProviderParser";
@@ -15,6 +15,7 @@ import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 import { CreditFacadeParser } from "./creditFacadeParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
 import { DataCompressorParser } from "./dataCompressorParser";
+import { ERC20Parser } from "./ERC20Parser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { MulticallParser } from "./multicallParser";
@@ -96,6 +97,11 @@ export class TxParser {
     );
   }
 
+  public static addERC20(network: NetworkType) {
+    Object.values(tokenDataByNetwork[network]).forEach(t => {
+      this.parsers[t.toLowerCase()] = new ERC20Parser(t);
+    });
+  }
   public static addPriceOracle(address: string) {
     this.parsers[address.toLowerCase()] = new PriceOracleParser();
   }

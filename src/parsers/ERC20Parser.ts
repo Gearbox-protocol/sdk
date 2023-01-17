@@ -1,24 +1,28 @@
 import { tokenSymbolByAddress } from "../tokens/token";
-import { IPriceOracleV2__factory } from "../types";
+import { IERC20__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
-export class PriceOracleParser extends AbstractParser implements IParser {
-  constructor() {
-    super("PriceOracle");
-    this.ifc = IPriceOracleV2__factory.createInterface();
+export class ERC20Parser extends AbstractParser implements IParser {
+  constructor(address: string) {
+    super(
+      tokenSymbolByAddress[address.toLowerCase()] ||
+        `unknown token: ${address}`,
+    );
+    this.adapterName = "ERC20 token";
+    this.ifc = IERC20__factory.createInterface();
   }
   parse(calldata: string): string {
     const { functionFragment, functionName } = this.parseSelector(calldata);
 
     switch (functionFragment.name) {
-      case "getPrice": {
-        const [token] = this.decodeFunctionData(functionFragment, calldata);
+      case "totalSupply": {
+        return `${functionName}`;
+      }
+      case "balanceOf": {
+        const [address] = this.decodeFunctionData(functionFragment, calldata);
 
-        return `${functionName}(${
-          tokenSymbolByAddress[token?.toLowerCase() || ""] ||
-          `unknown token: ${token}`
-        })`;
+        return `${functionName}(${address})`;
       }
 
       default:
