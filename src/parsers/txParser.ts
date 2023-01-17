@@ -55,14 +55,12 @@ export class TxParser {
   }
 
   public static parseMultiCall(calls: Array<MultiCallStruct>): Array<string> {
-    return calls.map(call =>
-      TxParser.parse(call.target, call.callData.toString()),
-    );
+    return calls.map(call => this.parse(call.target, call.callData.toString()));
   }
 
   public static parseToObjectMultiCall(calls: Array<MultiCallStruct>) {
     return calls.map(call =>
-      TxParser.parseToObject(call.target, call.callData.toString()),
+      this.parseToObject(call.target, call.callData.toString()),
     );
   }
 
@@ -70,7 +68,7 @@ export class TxParser {
     for (let a of adapters) {
       const contract = contractsByAddress[a.contract.toLowerCase()];
       if (contract && contractParams[contract]) {
-        TxParser.addParser(
+        this.chooseContractParser(
           a.adapter,
           contract,
           contractParams[contract].type,
@@ -85,7 +83,7 @@ export class TxParser {
   public static addContracts(network: NetworkType) {
     for (let c of Object.keys(contractParams) as Array<SupportedContract>) {
       const address = contractsByNetwork[network][c];
-      TxParser.addParser(address, c, contractParams[c].type, true);
+      this.chooseContractParser(address, c, contractParams[c].type, true);
     }
   }
 
@@ -93,30 +91,28 @@ export class TxParser {
     creditFacade: string,
     underlying: SupportedToken,
   ) {
-    this.parsers[creditFacade.toLowerCase()] = new CreditFacadeParser(
-      underlying,
-    );
+    this._addParser(creditFacade, new CreditFacadeParser(underlying));
   }
 
   public static addERC20(network: NetworkType) {
     Object.values(tokenDataByNetwork[network]).forEach(t => {
-      this.parsers[t.toLowerCase()] = new ERC20Parser(t);
+      this._addParser(t, new ERC20Parser(t));
     });
   }
   public static addOffchainOracleParser(address: string) {
-    this.parsers[address.toLowerCase()] = new OffchainOracleParserParser();
+    this._addParser(address, new OffchainOracleParserParser());
   }
   public static addPriceOracle(address: string) {
-    this.parsers[address.toLowerCase()] = new PriceOracleParser();
+    this._addParser(address, new PriceOracleParser());
   }
   public static addDataCompressor(address: string) {
-    this.parsers[address.toLowerCase()] = new DataCompressorParser();
+    this._addParser(address, new DataCompressorParser());
   }
   public static addAddressProvider(address: string) {
-    this.parsers[address.toLowerCase()] = new AddressProviderParser();
+    this._addParser(address, new AddressProviderParser());
   }
   public static addMulticall(address: string) {
-    this.parsers[address.toLowerCase()] = new MulticallParser();
+    this._addParser(address, new MulticallParser());
   }
 
   public static getParser(address: string) {
@@ -125,7 +121,7 @@ export class TxParser {
     return parser;
   }
 
-  protected static addParser(
+  protected static chooseContractParser(
     address: string,
     contract: SupportedContract,
     adapterType: number,
@@ -134,16 +130,16 @@ export class TxParser {
     const addressLC = address.toLowerCase();
     switch (AdapterInterface[adapterType]) {
       case "UNISWAP_V2_ROUTER":
-        TxParser.parsers[addressLC] = new UniswapV2AdapterParser(
-          contract,
-          isContract,
+        this._addParser(
+          addressLC,
+          new UniswapV2AdapterParser(contract, isContract),
         );
         break;
 
       case "UNISWAP_V3_ROUTER":
-        TxParser.parsers[addressLC] = new UniswapV3AdapterParser(
-          contract,
-          isContract,
+        this._addParser(
+          addressLC,
+          new UniswapV3AdapterParser(contract, isContract),
         );
         break;
       case "CURVE_V1_EXCHANGE_ONLY":
@@ -152,45 +148,49 @@ export class TxParser {
       case "CURVE_V1_4ASSETS":
       case "CURVE_V1_STECRV_POOL":
       case "CURVE_V1_WRAPPER":
-        TxParser.parsers[addressLC] = new CurveAdapterParser(
-          contract,
-          isContract,
+        this._addParser(
+          addressLC,
+          new CurveAdapterParser(contract, isContract),
         );
         break;
       case "YEARN_V2":
-        TxParser.parsers[addressLC] = new YearnV2AdapterParser(
-          contract,
-          isContract,
+        this._addParser(
+          addressLC,
+          new YearnV2AdapterParser(contract, isContract),
         );
         break;
 
       case "CONVEX_V1_BASE_REWARD_POOL":
-        TxParser.parsers[addressLC] = new ConvexBaseRewardPoolAdapterParser(
-          contract,
-          isContract,
+        this._addParser(
+          addressLC,
+          new ConvexBaseRewardPoolAdapterParser(contract, isContract),
         );
         break;
 
       case "CONVEX_V1_BOOSTER":
-        TxParser.parsers[addressLC] = new ConvexBoosterAdapterParser(
-          contract,
-          isContract,
+        this._addParser(
+          addressLC,
+          new ConvexBoosterAdapterParser(contract, isContract),
         );
         break;
       case "CONVEX_V1_CLAIM_ZAP":
         break;
       case "LIDO_V1":
-        TxParser.parsers[addressLC] = new LidoAdapterParser(
-          contract,
-          isContract,
-        );
+        this._addParser(addressLC, new LidoAdapterParser(contract, isContract));
         break;
       case "LIDO_WSTETH_V1":
-        TxParser.parsers[addressLC] = new WstETHAdapterParser(
-          contract,
-          isContract,
+        this._addParser(
+          addressLC,
+          new WstETHAdapterParser(contract, isContract),
         );
         break;
     }
+  }
+
+  protected static _addParser(
+    address: string,
+    parser: IParser & AbstractParser,
+  ) {
+    this.parsers[address.toLowerCase()] = parser;
   }
 }
