@@ -19,6 +19,7 @@ import { ERC20Parser } from "./ERC20Parser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { MulticallParser } from "./multicallParser";
+import { OffchainOracleParserParser } from "./offchainOracleParser";
 import { PriceOracleParser } from "./priceOracleParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
@@ -101,6 +102,9 @@ export class TxParser {
     Object.values(tokenDataByNetwork[network]).forEach(t => {
       this.parsers[t.toLowerCase()] = new ERC20Parser(t);
     });
+  }
+  public static addOffchainOracleParser(address: string) {
+    this.parsers[address.toLowerCase()] = new OffchainOracleParserParser();
   }
   public static addPriceOracle(address: string) {
     this.parsers[address.toLowerCase()] = new PriceOracleParser();

@@ -1,4 +1,3 @@
-import { tokenSymbolByAddress } from "../tokens/token";
 import { IPriceOracleV2__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
@@ -15,10 +14,7 @@ export class PriceOracleParser extends AbstractParser implements IParser {
       case "getPrice": {
         const [token] = this.decodeFunctionData(functionFragment, calldata);
 
-        return `${functionName}(${
-          tokenSymbolByAddress[token?.toLowerCase() || ""] ||
-          `unknown token: ${token}`
-        })`;
+        return `${functionName}(${this.tokenSymbol(token)})`;
       }
 
       default:

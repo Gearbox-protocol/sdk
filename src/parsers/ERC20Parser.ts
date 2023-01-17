@@ -6,7 +6,7 @@ import { IParser } from "./iParser";
 export class ERC20Parser extends AbstractParser implements IParser {
   constructor(address: string) {
     super(
-      tokenSymbolByAddress[address.toLowerCase()] ||
+      tokenSymbolByAddress[address?.toLowerCase() || ""] ||
         `unknown token: ${address}`,
     );
     this.adapterName = "ERC20 token";
