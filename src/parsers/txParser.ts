@@ -14,10 +14,11 @@ import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapter
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 import { CreditFacadeParser } from "./creditFacadeParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
-import { DataCompressorParser } from "./dataCompressor";
+import { DataCompressorParser } from "./dataCompressorParser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { MulticallParser } from "./multicallParser";
+import { PriceOracleParser } from "./priceOracleParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
 import { WstETHAdapterParser } from "./wstETHAdapterParser";
@@ -95,6 +96,9 @@ export class TxParser {
     );
   }
 
+  public static addPriceOracle(address: string) {
+    this.parsers[address.toLowerCase()] = new PriceOracleParser();
+  }
   public static addDataCompressor(address: string) {
     this.parsers[address.toLowerCase()] = new DataCompressorParser();
   }
