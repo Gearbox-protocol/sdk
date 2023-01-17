@@ -15,6 +15,7 @@ import { CreditFacadeParser } from "./creditFacadeParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
+import { MulticallParser } from "./multicallParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
 import { WstETHAdapterParser } from "./wstETHAdapterParser";
@@ -38,6 +39,11 @@ export class TxParser {
     return parser.parse(calldata);
   }
 
+  public static parseToObject(address: string, calldata: string) {
+    const parser = this.getParser(address);
+    return parser.parseToObject?.(address, calldata);
+  }
+
   public static getParseData(address: string): ParseData {
     const parser = this.getParser(address);
     return { contract: parser.contract, adapterName: parser.adapterName };
@@ -46,6 +52,12 @@ export class TxParser {
   public static parseMultiCall(calls: Array<MultiCallStruct>): Array<string> {
     return calls.map(call =>
       TxParser.parse(call.target, call.callData.toString()),
+    );
+  }
+
+  public static parseToObjectMultiCall(calls: Array<MultiCallStruct>) {
+    return calls.map(call =>
+      TxParser.parseToObject(call.target, call.callData.toString()),
     );
   }
 
@@ -79,6 +91,10 @@ export class TxParser {
     this.parsers[creditFacade.toLowerCase()] = new CreditFacadeParser(
       underlying,
     );
+  }
+
+  public static addMulticall(multicallAddress: string) {
+    this.parsers[multicallAddress.toLowerCase()] = new MulticallParser();
   }
 
   public static getParser(address: string) {
