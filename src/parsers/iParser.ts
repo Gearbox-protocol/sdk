@@ -1,4 +1,4 @@
-import { FunctionFragment, Result } from "ethers/lib/utils";
+import { FunctionFragment } from "ethers/lib/utils";
 
 export interface IParser {
   parse: (calldata: string) => string;
@@ -8,6 +8,6 @@ export interface IParser {
   ) => {
     address: string;
     functionFragment: FunctionFragment;
-    args: Result;
+    args: any;
   };
 }

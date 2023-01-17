@@ -9,6 +9,7 @@ import { NetworkType } from "../core/chains";
 import { SupportedToken } from "../tokens/token";
 import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import { AbstractParser } from "./abstractParser";
+import { AddressProviderParser } from "./addressProviderParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 import { CreditFacadeParser } from "./creditFacadeParser";
@@ -93,8 +94,11 @@ export class TxParser {
     );
   }
 
-  public static addMulticall(multicallAddress: string) {
-    this.parsers[multicallAddress.toLowerCase()] = new MulticallParser();
+  public static addAddressProvider(address: string) {
+    this.parsers[address.toLowerCase()] = new AddressProviderParser();
+  }
+  public static addMulticall(address: string) {
+    this.parsers[address.toLowerCase()] = new MulticallParser();
   }
 
   public static getParser(address: string) {
