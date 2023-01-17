@@ -47,4 +47,16 @@ export class AbstractParser {
       amount,
     ).toString()}]`;
   }
+
+  parseToObject(address: string, calldata: string) {
+    const { functionFragment } = this.parseSelector(calldata);
+
+    const args = this.decodeFunctionData(functionFragment, calldata);
+
+    return {
+      address,
+      functionFragment,
+      args,
+    };
+  }
 }

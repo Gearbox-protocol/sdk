@@ -24,15 +24,4 @@ export class MulticallParser extends AbstractParser implements IParser {
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
     }
   }
-  parseToObject(address: string, calldata: string) {
-    const { functionFragment } = this.parseSelector(calldata);
-
-    const args = this.decodeFunctionData(functionFragment, calldata);
-
-    return {
-      address,
-      functionFragment,
-      args,
-    };
-  }
 }
