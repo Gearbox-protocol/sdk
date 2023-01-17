@@ -24,6 +24,7 @@ export class AddressProviderParser extends AbstractParser implements IParser {
   }
   parseToObject(address: string, calldata: string) {
     const { functionFragment } = this.parseSelector(calldata);
+
     const args = this.decodeFunctionData(functionFragment, calldata);
 
     return {

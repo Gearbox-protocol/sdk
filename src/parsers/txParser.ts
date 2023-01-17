@@ -14,6 +14,7 @@ import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapter
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 import { CreditFacadeParser } from "./creditFacadeParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
+import { DataCompressorParser } from "./dataCompressor";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { MulticallParser } from "./multicallParser";
@@ -94,6 +95,9 @@ export class TxParser {
     );
   }
 
+  public static addDataCompressor(address: string) {
+    this.parsers[address.toLowerCase()] = new DataCompressorParser();
+  }
   public static addAddressProvider(address: string) {
     this.parsers[address.toLowerCase()] = new AddressProviderParser();
   }
