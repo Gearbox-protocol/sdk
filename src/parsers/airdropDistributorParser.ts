@@ -1,22 +1,20 @@
-import { IAddressProvider__factory } from "../types";
+import { IAirdropDistributor__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
-export class AddressProviderParser extends AbstractParser implements IParser {
+export class AirdropDistributorParser
+  extends AbstractParser
+  implements IParser
+{
   constructor() {
-    super("AddressProvider");
-    this.ifc = IAddressProvider__factory.createInterface();
+    super("AirdropDistributor");
+    this.ifc = IAirdropDistributor__factory.createInterface();
   }
   parse(calldata: string): string {
     const { functionFragment, functionName } = this.parseSelector(calldata);
 
     switch (functionFragment.name) {
-      case "getWethToken":
-      case "getGearToken":
-      case "getLeveragedActions":
-      case "getDataCompressor":
-      case "getWETHGateway":
-      case "getPriceOracle": {
+      case "merkleRoot": {
         return `${functionName}`;
       }
 

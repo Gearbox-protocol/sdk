@@ -113,6 +113,7 @@ export class CreditManagerData {
     this.feeLiquidationExpired = payload.feeLiquidationExpired;
     this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
 
+    TxParser.addCreditManager(this.address, this.version);
     if (this.creditFacade !== "") {
       TxParser.addCreditFacade(
         this.creditFacade,

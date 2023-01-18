@@ -13,10 +13,12 @@ import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/int
 import { objectEntries } from "../utils/mappers";
 import { AbstractParser } from "./abstractParser";
 import { AddressProviderParser } from "./addressProviderParser";
+import { AirdropDistributorParser } from "./airdropDistributorParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 import { ConvexRewardPoolParser } from "./convextRewardPoolParser";
 import { CreditFacadeParser } from "./creditFacadeParser";
+import { CreditManagerParser } from "./creditManagerParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
 import { DataCompressorParser } from "./dataCompressorParser";
 import { ERC20Parser } from "./ERC20Parser";
@@ -140,6 +142,12 @@ export class TxParser {
   }
   public static addMulticall(address: string) {
     this._addParser(address, new MulticallParser());
+  }
+  public static addAirdropDistributor(address: string) {
+    this._addParser(address, new AirdropDistributorParser());
+  }
+  public static addCreditManager(address: string, version: number) {
+    this._addParser(address, new CreditManagerParser(version));
   }
 
   public static getParser(address: string) {
