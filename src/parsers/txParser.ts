@@ -3,21 +3,26 @@ import {
   contractParams,
   contractsByAddress,
   contractsByNetwork,
+  ConvexPoolParams,
+  LidoParams,
   SupportedContract,
 } from "../contracts/contracts";
 import { NetworkType } from "../core/chains";
 import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
 import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
+import { objectEntries } from "../utils/mappers";
 import { AbstractParser } from "./abstractParser";
 import { AddressProviderParser } from "./addressProviderParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
+import { ConvexRewardPoolParser } from "./convextRewardPoolParser";
 import { CreditFacadeParser } from "./creditFacadeParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
 import { DataCompressorParser } from "./dataCompressorParser";
 import { ERC20Parser } from "./ERC20Parser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
+import { LidoOracleParser } from "./lidoOracleParser";
 import { MulticallParser } from "./multicallParser";
 import { OffchainOracleParserParser } from "./offchainOracleParser";
 import { PriceOracleParser } from "./priceOracleParser";
@@ -81,10 +86,27 @@ export class TxParser {
   }
 
   public static addContracts(network: NetworkType) {
-    for (let c of Object.keys(contractParams) as Array<SupportedContract>) {
-      const address = contractsByNetwork[network][c];
-      this.chooseContractParser(address, c, contractParams[c].type, true);
-    }
+    objectEntries(contractParams).forEach(([contract, contractData]) => {
+      const address = contractsByNetwork[network][contract];
+
+      this.chooseContractParser(address, contract, contractData.type, true);
+
+      if (contractData.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL) {
+        (contractData as ConvexPoolParams).extraRewards.forEach(r => {
+          const extraAddress = r.poolAddress[network];
+
+          this._addParser(
+            extraAddress,
+            new ConvexRewardPoolParser(r.rewardToken),
+          );
+        });
+      }
+
+      if (contractData.type === AdapterInterface.LIDO_V1) {
+        const extraAddress = (contractData as LidoParams).oracle[network];
+        this._addParser(extraAddress, new LidoOracleParser());
+      }
+    });
   }
 
   public static addCreditFacade(
@@ -95,7 +117,7 @@ export class TxParser {
   }
 
   public static addERC20(network: NetworkType) {
-    Object.values(tokenDataByNetwork[network]).forEach(t => {
+    objectEntries(tokenDataByNetwork[network]).forEach(([, t]) => {
       this._addParser(t, new ERC20Parser(t));
     });
   }
