@@ -153,6 +153,22 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
         )}], max_burn_amount: ${this.formatBN(maxBurnAmount, this.lpToken)})`;
       }
 
+      case "totalSupply": {
+        return `${functionName}`;
+      }
+
+      case "balances": {
+        const [i] = this.decodeFunctionData(functionFragment, calldata);
+        return `${functionName}(${this.getTokenByIndex(i)})`;
+      }
+      case "balanceOf": {
+        const [address] = this.decodeFunctionData(functionFragment, calldata);
+        return `${functionName}(${address})`;
+      }
+      case "get_virtual_price": {
+        return `${functionName}`;
+      }
+
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
     }

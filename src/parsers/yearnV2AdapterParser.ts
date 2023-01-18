@@ -36,6 +36,14 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
         return `${functionName}(${amountStr}${addressStr}${maxLossStr})`;
       }
 
+      case "pricePerShare": {
+        return `${functionName}`;
+      }
+      case "balanceOf": {
+        const [address] = this.decodeFunctionData(functionFragment, calldata);
+        return `${functionName}(${address})`;
+      }
+
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
     }
