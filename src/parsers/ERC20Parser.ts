@@ -18,8 +18,18 @@ export class ERC20Parser extends AbstractParser implements IParser {
       }
       case "balanceOf": {
         const [address] = this.decodeFunctionData(functionFragment, calldata);
-
         return `${functionName}(${address})`;
+      }
+      case "allowance": {
+        const [account, to] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(account: ${account}, to: ${to})`;
+      }
+      case "approve": {
+        const [spender] = this.decodeFunctionData(functionFragment, calldata);
+        return `${functionName}(${spender})`;
       }
 
       default:

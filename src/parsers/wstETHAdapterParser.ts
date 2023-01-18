@@ -33,6 +33,14 @@ export class WstETHAdapterParser extends AbstractParser implements IParser {
         return `${functionName}(${address})`;
       }
 
+      case "allowance": {
+        const [account, to] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(account: ${account}, to: ${to})`;
+      }
+
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
     }
