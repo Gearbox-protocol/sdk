@@ -1,21 +1,23 @@
 import { SupportedToken } from "../tokens/token";
-import { IERC20__factory } from "../types";
+import { IstETH__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
-export class ERC20Parser extends AbstractParser implements IParser {
+export class LidoSTETHParser extends AbstractParser implements IParser {
   constructor(symbol: SupportedToken) {
     super(symbol);
-    this.adapterName = "Token";
-    this.ifc = IERC20__factory.createInterface();
+    this.ifc = IstETH__factory.createInterface();
+    this.adapterName = "TokenLido";
   }
   parse(calldata: string): string {
     const { functionFragment, functionName } = this.parseSelector(calldata);
 
     switch (functionFragment.name) {
+      case "getFee":
       case "totalSupply": {
         return `${functionName}`;
       }
+
       case "balanceOf": {
         const [address] = this.decodeFunctionData(functionFragment, calldata);
 

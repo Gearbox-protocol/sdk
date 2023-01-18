@@ -23,6 +23,7 @@ import { ERC20Parser } from "./ERC20Parser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { LidoOracleParser } from "./lidoOracleParser";
+import { LidoSTETHParser } from "./lidoSTETHParser";
 import { MulticallParser } from "./multicallParser";
 import { OffchainOracleParserParser } from "./offchainOracleParser";
 import { PriceOracleParser } from "./priceOracleParser";
@@ -116,9 +117,13 @@ export class TxParser {
     this._addParser(creditFacade, new CreditFacadeParser(underlying));
   }
 
-  public static addERC20(network: NetworkType) {
-    objectEntries(tokenDataByNetwork[network]).forEach(([, t]) => {
-      this._addParser(t, new ERC20Parser(t));
+  public static addTokens(network: NetworkType) {
+    objectEntries(tokenDataByNetwork[network]).forEach(([s, t]) => {
+      if (s === "STETH") {
+        this._addParser(t, new LidoSTETHParser(s));
+      } else {
+        this._addParser(t, new ERC20Parser(s));
+      }
     });
   }
   public static addOffchainOracleParser(address: string) {
