@@ -124,7 +124,18 @@ export class TxParser {
       if (s === "STETH") {
         this._addParser(t, new LidoSTETHParser(s));
       } else {
-        this._addParser(t, new ERC20Parser(s));
+        const contract = contractsByAddress[t.toLowerCase()];
+
+        if (contract) {
+          this.chooseContractParser(
+            t,
+            contract,
+            contractParams[contract].type,
+            true,
+          );
+        } else {
+          this._addParser(t, new ERC20Parser(s));
+        }
       }
     });
   }
