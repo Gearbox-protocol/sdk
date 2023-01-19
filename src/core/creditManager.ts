@@ -16,6 +16,7 @@ import {
 import { calcTotalPrice } from "../utils/price";
 import { Asset } from "./assets";
 import {
+  ADDRESS_0X0,
   LEVERAGE_DECIMALS,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -113,7 +114,8 @@ export class CreditManagerData {
     this.feeLiquidationExpired = payload.feeLiquidationExpired;
     this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
 
-    if (this.creditFacade !== "") {
+    TxParser.addCreditManager(this.address, this.version);
+    if (this.creditFacade !== "" && this.creditFacade !== ADDRESS_0X0) {
       TxParser.addCreditFacade(
         this.creditFacade,
         tokenSymbolByAddress[this.underlyingToken],

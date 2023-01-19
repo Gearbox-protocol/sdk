@@ -45,6 +45,11 @@ export class ConvexBaseRewardPoolAdapterParser
         return `${functionName}(claim: ${claim})`;
       }
 
+      case "rewardRate":
+        return `${functionName}`;
+      case "totalSupply":
+        return `${functionName}`;
+
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
     }
