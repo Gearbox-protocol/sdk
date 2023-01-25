@@ -12,7 +12,7 @@ export class LidoOracleParser extends AbstractParser implements IParser {
 
     switch (functionFragment.name) {
       case "getLastCompletedReportDelta":
-        return `${functionName}`;
+        return `${functionName}()`;
 
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;

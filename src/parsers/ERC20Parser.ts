@@ -14,7 +14,7 @@ export class ERC20Parser extends AbstractParser implements IParser {
 
     switch (functionFragment.name) {
       case "totalSupply": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
       case "balanceOf": {
         const [address] = this.decodeFunctionData(functionFragment, calldata);

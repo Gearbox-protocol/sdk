@@ -15,7 +15,7 @@ export class CreditManagerParser extends AbstractParser implements IParser {
 
     switch (functionFragment.name) {
       case "creditConfigurator": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
 
       default:

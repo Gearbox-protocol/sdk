@@ -15,7 +15,7 @@ export class AirdropDistributorParser
 
     switch (functionFragment.name) {
       case "merkleRoot": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
 
       default:

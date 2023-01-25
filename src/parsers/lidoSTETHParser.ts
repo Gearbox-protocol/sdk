@@ -5,17 +5,17 @@ import { IParser } from "./iParser";
 
 export class LidoSTETHParser extends AbstractParser implements IParser {
   constructor(symbol: SupportedToken) {
-    super(symbol);
+    super(`LIDO_${symbol}`);
     this.ifc = IstETH__factory.createInterface();
-    this.adapterName = "TokenLido";
   }
+
   parse(calldata: string): string {
     const { functionFragment, functionName } = this.parseSelector(calldata);
 
     switch (functionFragment.name) {
       case "getFee":
       case "totalSupply": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
 
       case "balanceOf": {

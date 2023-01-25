@@ -54,7 +54,7 @@ export class TxParser {
 
   public static parseToObject(address: string, calldata: string) {
     const parser = TxParser.getParser(address);
-    return parser.parseToObject?.(address, calldata);
+    return parser.parseToObject(address, calldata);
   }
 
   public static getParseData(address: string): ParseData {

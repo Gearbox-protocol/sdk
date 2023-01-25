@@ -13,7 +13,7 @@ export class ConvexRewardPoolParser extends AbstractParser implements IParser {
 
     switch (functionFragment.name) {
       case "rewardRate":
-        return `${functionName}`;
+        return `${functionName}()`;
 
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
