@@ -36,6 +36,13 @@ export class AbstractParser {
     return this.ifc.decodeFunctionData(functionFragment, data);
   }
 
+  encodeFunctionResult(
+    functionFragment: FunctionFragment | string,
+    data: Array<any>,
+  ) {
+    return this.ifc.encodeFunctionResult(functionFragment, data);
+  }
+
   tokenSymbol(address: string): SupportedToken {
     const symbol = tokenSymbolByAddress[address.toLowerCase()];
     if (!symbol) throw new Error(`Unknown token: ${address}`);

@@ -17,7 +17,7 @@ export class MulticallParser extends AbstractParser implements IParser {
         return `${functionName}: ${calls}`;
       }
       case "getBlockNumber": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
       case "getEthBalance": {
         const [account] = this.decodeFunctionData(functionFragment, calldata);

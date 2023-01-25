@@ -17,7 +17,7 @@ export class AddressProviderParser extends AbstractParser implements IParser {
       case "getDataCompressor":
       case "getWETHGateway":
       case "getPriceOracle": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
 
       default:

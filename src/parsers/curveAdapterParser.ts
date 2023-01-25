@@ -154,7 +154,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       }
 
       case "totalSupply": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
 
       case "balances": {
@@ -166,7 +166,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
         return `${functionName}(${address})`;
       }
       case "get_virtual_price": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
 
       case "allowance": {

@@ -13,7 +13,7 @@ export class DataCompressorParser extends AbstractParser implements IParser {
     switch (functionFragment.name) {
       case "getPoolsList":
       case "getCreditManagersList": {
-        return `${functionName}`;
+        return `${functionName}()`;
       }
 
       default:
