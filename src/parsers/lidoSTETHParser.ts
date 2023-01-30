@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 import { SupportedToken } from "../tokens/token";
 import { IstETH__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
@@ -30,6 +32,15 @@ export class LidoSTETHParser extends AbstractParser implements IParser {
           calldata,
         );
         return `${functionName}(account: ${account}, to: ${to})`;
+      }
+      case "approve": {
+        const [spender, amount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(${spender}, [${BigNumber.from(
+          amount,
+        ).toString()}])`;
       }
 
       default:

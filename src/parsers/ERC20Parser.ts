@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers/lib/ethers";
+
 import { SupportedToken } from "../tokens/token";
 import { IERC20__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
@@ -27,9 +29,15 @@ export class ERC20Parser extends AbstractParser implements IParser {
         );
         return `${functionName}(account: ${account}, to: ${to})`;
       }
+
       case "approve": {
-        const [spender] = this.decodeFunctionData(functionFragment, calldata);
-        return `${functionName}(${spender})`;
+        const [spender, amount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(${spender}, [${BigNumber.from(
+          amount,
+        ).toString()}])`;
       }
 
       default:
