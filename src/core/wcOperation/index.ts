@@ -2,8 +2,8 @@ import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { BigNumber, BytesLike } from "ethers";
 import { FunctionFragment } from "ethers/lib/utils";
 
-import { ICreditFacade__factory, ICreditManager__factory } from "../types";
-import { CreditManagerData } from "./creditManager";
+import { ICreditFacade__factory, ICreditManager__factory } from "../../types";
+import { CreditManagerData } from "../creditManager";
 
 export type TxType = "unsupported" | "swap" | "approve" | "lp";
 export type LpOperationType = "withdraw" | "deposit";
