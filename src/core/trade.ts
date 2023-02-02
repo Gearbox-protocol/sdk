@@ -7,7 +7,7 @@ import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
 import { ICreditFacade, ICreditFacade__factory } from "../types";
 import { formatBN } from "../utils/formatter";
 import { BaseAdapter } from "./adapter";
-import { PERCENTAGE_FACTOR, WAD } from "./constants";
+import { WAD } from "./constants";
 import { EVMTx } from "./eventOrTx";
 import { TXSwap } from "./transactions";
 
@@ -23,7 +23,7 @@ interface BaseTradeInterface {
 export interface TradeProps extends BaseTradeInterface {
   adapter: BaseAdapter;
   tradePath: PathFinderResult;
-  creditFacade: ICreditFacade | string;
+  creditFacade: string;
 }
 
 export type TradeOperations =
@@ -42,7 +42,7 @@ const OPERATION_NAMES: Record<TradeOperations, string> = {
 export class Trade implements BaseTradeInterface {
   protected helper: BaseAdapter;
   protected tradePath: PathFinderResult;
-  protected creditFacade: ICreditFacade | string;
+  protected creditFacade: string;
 
   readonly swapType: SwapOperation;
   readonly sourceAmount: BigNumber;
@@ -120,17 +120,6 @@ export class Trade implements BaseTradeInterface {
     )} ${symbolTo} on ${this.helper.name}`;
   }
 
-  getFromAmount(slippage: number) {
-    return this.expectedAmount
-      .mul(PERCENTAGE_FACTOR)
-      .div(PERCENTAGE_FACTOR + slippage);
-  }
-  getToAmount(slippage: number) {
-    return this.expectedAmount
-      .mul(PERCENTAGE_FACTOR + slippage)
-      .div(PERCENTAGE_FACTOR);
-  }
-
   static getOperationName(
     tokenInAddress: string,
     tokenOutAddress: string,
@@ -166,14 +155,14 @@ export class Trade implements BaseTradeInterface {
     return this.executeOnCreditFacade(calls, safeCreditFacade);
   }
 
-  static async executeOnSigner(call: MultiCall, signer: Signer) {
+  private static async executeOnSigner(call: MultiCall, signer: Signer) {
     return signer.sendTransaction({
       to: call.target,
       data: call.callData,
     });
   }
 
-  static async executeOnCreditFacade(
+  private static async executeOnCreditFacade(
     calls: Array<MultiCall>,
     creditFacade: ICreditFacade,
   ) {
