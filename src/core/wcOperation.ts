@@ -2,10 +2,18 @@ import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { BigNumber, BytesLike } from "ethers";
 import { FunctionFragment } from "ethers/lib/utils";
 
-import { ICreditManager__factory, IERC20__factory } from "../types";
+import { ICreditFacade__factory, ICreditManager__factory } from "../types";
+import { CreditManagerData } from "./creditManager";
 
 export type TxType = "unsupported" | "swap" | "approve" | "lp";
 export type LpOperationType = "withdraw" | "deposit";
+
+interface ApproveOperationProps {
+  to: string;
+  args: [string, BigNumber];
+  raw: RawTransaction;
+  creditManager: CreditManagerData;
+}
 
 export interface RawTransaction {
   id: number;
@@ -21,40 +29,28 @@ export interface TxInfo {
   functionFragment: FunctionFragment;
 }
 
-export class WcSwapOperation {
+export class WcOperation {
   public readonly id: number;
-
+  public kind: TxType;
+  public raw: RawTransaction;
   public operation?: string;
 
   public from?: string;
-
   public to?: string;
 
   public amountFrom?: BigNumber;
-
   public amountTo?: BigNumber;
 
   public tx?: TransactionRequest;
-
-  public raw: RawTransaction;
-
-  public kind: TxType;
-
   protected calldata?: BytesLike;
 
-  public isPending: boolean;
-
   public farm?: string;
-
   public lpOperationType?: LpOperationType;
-
-  static tokens: Record<string, boolean> = {};
 
   constructor(raw: RawTransaction, kind: TxType) {
     this.id = raw.id;
     this.raw = raw;
     this.kind = kind;
-    this.isPending = false;
   }
 
   static NewSwapOperation(params: {
@@ -65,8 +61,8 @@ export class WcSwapOperation {
     amountFrom: BigNumber;
     amountTo: BigNumber;
     raw: RawTransaction;
-  }): WcSwapOperation {
-    const newOperation = new WcSwapOperation(params.raw, "swap");
+  }): WcOperation {
+    const newOperation = new WcOperation(params.raw, "swap");
     newOperation.operation = params.operation;
     newOperation.from = params.from;
     newOperation.to = params.to;
@@ -91,8 +87,8 @@ export class WcSwapOperation {
     farm: string;
     type: LpOperationType;
     raw: RawTransaction;
-  }): WcSwapOperation {
-    const newOperation = new WcSwapOperation(params.raw, "lp");
+  }): WcOperation {
+    const newOperation = new WcOperation(params.raw, "lp");
     newOperation.operation = params.operation;
     newOperation.from = params.from;
     newOperation.amountFrom = params.amountFrom;
@@ -108,44 +104,47 @@ export class WcSwapOperation {
     return newOperation;
   }
 
-  static NewUnsupportedOperation(raw: RawTransaction): WcSwapOperation {
-    return new WcSwapOperation(raw, "unsupported");
+  static NewUnsupportedOperation(raw: RawTransaction): WcOperation {
+    return new WcOperation(raw, "unsupported");
   }
 
-  static NewApproveOperation(
-    creditManager: string,
-    raw: RawTransaction,
-    token: string,
-  ): WcSwapOperation {
-    const operation = new WcSwapOperation(raw, "approve");
-    operation.to = token;
-    operation.calldata = raw?.params[0]?.data;
-    const tokenI = IERC20__factory.createInterface();
-
+  static NewApproveOperation({
+    to: token,
+    args,
+    raw,
+    creditManager,
+  }: ApproveOperationProps): WcOperation {
     try {
-      const [spender] = tokenI.decodeFunctionData(
-        "approve",
-        raw?.params[0]?.data || "",
-      );
+      const [spender, amount] = args;
 
       const cmi = ICreditManager__factory.createInterface();
+      const cfi = ICreditFacade__factory.createInterface();
 
-      operation.from = spender;
-      // @ts-ignore
-      operation.calldata = cmi.encodeFunctionData("approve", [
-        spender,
-        operation.to,
-      ]);
+      const target =
+        creditManager.version === 1
+          ? creditManager.address
+          : creditManager.creditFacade;
 
-      operation.tx = {
-        to: creditManager,
-        data: operation.calldata,
+      const calldata =
+        creditManager.version === 1
+          ? cmi.encodeFunctionData("approve", [spender, token])
+          : cfi.encodeFunctionData("approve", [spender, token, amount]);
+
+      const tx: TransactionRequest = {
+        to: target,
+        data: calldata,
       };
+
+      const operation = new WcOperation(raw, "approve");
+      operation.to = target;
+      operation.calldata = calldata;
+      operation.from = spender;
+      operation.tx = tx;
 
       return operation;
     } catch (e) {
       console.error(e);
-      return WcSwapOperation.NewUnsupportedOperation(raw);
+      return WcOperation.NewUnsupportedOperation(raw);
     }
   }
 }
