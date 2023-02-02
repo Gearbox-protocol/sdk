@@ -20,7 +20,7 @@ export class AbstractParser {
     this.adapterName = "Contract";
   }
 
-  parseSelector(calldata: string): ParseSelectorResult {
+  parseSelector(calldata: BytesLike): ParseSelectorResult {
     const functionFragment = this.ifc.getFunction(
       utils.hexDataSlice(calldata, 0, 4) as any,
     );

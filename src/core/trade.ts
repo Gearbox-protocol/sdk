@@ -23,7 +23,7 @@ interface BaseTradeInterface {
 export interface TradeProps extends BaseTradeInterface {
   adapter: BaseAdapter;
   tradePath: PathFinderResult;
-  creditFacade: ICreditFacade;
+  creditFacade: ICreditFacade | string;
 }
 
 export type TradeOperations =
@@ -42,7 +42,7 @@ const OPERATION_NAMES: Record<TradeOperations, string> = {
 export class Trade implements BaseTradeInterface {
   protected helper: BaseAdapter;
   protected tradePath: PathFinderResult;
-  protected creditFacade: ICreditFacade;
+  protected creditFacade: ICreditFacade | string;
 
   readonly swapType: SwapOperation;
   readonly sourceAmount: BigNumber;
