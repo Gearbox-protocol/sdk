@@ -1,5 +1,3 @@
-import { BigNumberish } from "ethers";
-
 import { CreditManagerDataStructOutput } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { ExcludeArrayProps } from "../utils/types";
 
@@ -11,17 +9,46 @@ export interface AdapterPayload {
 export type CreditManagerDataPayload =
   ExcludeArrayProps<CreditManagerDataStructOutput>;
 
-export interface CreditManagerStatPayload extends CreditManagerDataPayload {
-  allowedContracts?: Array<string>;
-  uniqueUsers: number;
-  openedAccountsCount?: number;
-  totalOpenedAccounts?: number;
-  totalClosedAccounts?: number;
-  totalRepaidAccounts?: number;
-  totalLiquidatedAccounts?: number;
-  totalBorrowed?: BigNumberish;
-  cumulativeBorrowed?: BigNumberish;
-  totalRepaid?: BigNumberish;
-  totalProfit?: BigNumberish;
-  totalLosses?: BigNumberish;
+export interface ChartsCreditManagerPayload {
+  addr: string;
+
+  availableLiquidity: string;
+  borrowRate: string;
+  isWeth: boolean;
+  maxAmount: string;
+  maxLeverageFactor: number;
+  minAmount: string;
+  openedAccountsCount: number;
+  totalBorrowed: string;
+  totalClosedAccounts: number;
+  totalLiquidatedAccounts: number;
+  totalLosses: string;
+  totalOpenedAccounts: number;
+  totalProfit: string;
+  totalRepaid: string;
+  totalRepaidAccounts: number;
+  poolAddress: string;
+
+  // v1 props
+  underlyingToken: string;
+
+  // charts props
+  availableLiquidityInUSD: number;
+  totalBorrowedInUSD: number;
+  totalLossesInUSD: number;
+  totalProfitInUSD: number;
+  totalRepaidInUSD: number;
+
+  openedAccountsCountChange: number;
+  totalOpenedAccountsChange: number;
+  totalClosedAccountsChange: number;
+  totalLiquidatedAccountsChange: number;
+
+  feeInterest: number;
+  feeLiquidation: number;
+  feeLiquidationExpired: number;
+  liquidationPremium: number;
+  liquidationPremiumExpired: number;
+
+  version: number;
 }

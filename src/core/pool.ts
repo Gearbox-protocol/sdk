@@ -1,46 +1,30 @@
 import { BigNumber, Signer } from "ethers";
 
-import { PoolDataPayload } from "../payload/pool";
+import { ChartsPoolDataPayload, PoolDataPayload } from "../payload/pool";
 import { IPoolService, IPoolService__factory } from "../types";
 import { rayToNumber } from "../utils/formatter";
-import { PERCENTAGE_DECIMALS } from "./constants";
+import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "./constants";
 
 export class PoolData {
   public readonly id: string;
-
   public readonly address: string;
-
   public readonly underlyingToken: string;
-
   public readonly dieselToken: string;
-
   public readonly isWETH: boolean;
 
   // Information
   public readonly expectedLiquidity: BigNumber;
-
   public readonly expectedLiquidityLimit: BigNumber;
-
   public readonly availableLiquidity: BigNumber;
-
   public readonly totalBorrowed: BigNumber;
-
   public readonly depositAPY: number;
-
   public readonly borrowAPY: number;
-
   public readonly borrowAPYRay: BigNumber;
-
   public readonly dieselRate: number;
-
   public readonly dieselRateRay: BigNumber;
-
   public readonly withdrawFee: number;
-
   public readonly timestampLU: BigNumber;
-
   public readonly cumulativeIndex_RAY: BigNumber;
-
   public readonly isPaused: boolean = false;
 
   constructor(payload: PoolDataPayload) {
@@ -73,7 +57,54 @@ export class PoolData {
   }
 }
 
-export interface PoolsStat {
-  tvl: number;
-  totalBorrowed: number;
+export class ChartsPoolData extends PoolData {
+  public readonly expectedLiquidityInUSD: number;
+  public readonly expectedLiquidityLimitInUSD: number;
+  public readonly availableLiquidityInUSD: number;
+  public readonly caLockedValueInUSD: number;
+  public readonly totalBorrowedInUSD: number;
+  public readonly uniqueLPs: number;
+  public readonly depositAPY7D: number;
+  public readonly depositAPY30D: number;
+  public readonly lmAPY: number;
+
+  constructor({
+    expectedLiquidityInUSD,
+    expectedLiquidityLimitInUSD,
+    availableLiquidityInUSD,
+    totalBorrowedInUSD,
+    caLockedValueInUSD,
+    uniqueLPs,
+    dieselAPY7D = 0,
+    dieselAPY30D = 0,
+    lmAPY,
+    ...restPayload
+  }: ChartsPoolDataPayload) {
+    const {
+      underlying = restPayload.underlyingToken,
+      linearCumulativeIndex = 0,
+      cumulativeIndex_RAY: cumulativeIndexRAY = 0,
+      timestampLU = 0,
+      version = 1,
+      ...v1Props
+    } = restPayload;
+    super({
+      ...v1Props,
+      underlying,
+      linearCumulativeIndex,
+      cumulativeIndex_RAY: cumulativeIndexRAY,
+      timestampLU,
+      version,
+    });
+
+    this.expectedLiquidityInUSD = expectedLiquidityInUSD;
+    this.expectedLiquidityLimitInUSD = expectedLiquidityLimitInUSD;
+    this.availableLiquidityInUSD = availableLiquidityInUSD;
+    this.totalBorrowedInUSD = totalBorrowedInUSD;
+    this.uniqueLPs = uniqueLPs;
+    this.depositAPY7D = dieselAPY7D / PERCENTAGE_DECIMALS;
+    this.depositAPY30D = dieselAPY30D / PERCENTAGE_DECIMALS;
+    this.caLockedValueInUSD = caLockedValueInUSD;
+    this.lmAPY = lmAPY / PERCENTAGE_FACTOR;
+  }
 }

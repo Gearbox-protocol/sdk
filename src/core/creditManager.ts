@@ -3,8 +3,8 @@ import { BigNumber, ethers, Signer } from "ethers";
 import { TxParser } from "../parsers/txParser";
 import { MultiCall } from "../pathfinder/core";
 import {
+  ChartsCreditManagerPayload,
   CreditManagerDataPayload,
-  CreditManagerStatPayload,
 } from "../payload/creditManager";
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
@@ -235,42 +235,82 @@ export class CreditManagerData {
   }
 }
 
-export class CreditManagerStat extends CreditManagerData {
+export class ChartsCreditManagerData extends CreditManagerData {
   public readonly uniqueUsers: number;
-
   public readonly openedAccountsCount: number;
-
   public readonly totalOpenedAccounts: number;
-
   public readonly totalClosedAccounts: number;
-
   public readonly totalRepaidAccounts: number;
-
   public readonly totalLiquidatedAccounts: number;
-
   public readonly totalBorrowed: BigNumber;
-
   public readonly cumulativeBorrowed: BigNumber;
-
   public readonly totalRepaid: BigNumber;
-
   public readonly totalProfit: BigNumber;
-
   public readonly totalLosses: BigNumber;
 
-  constructor(payload: CreditManagerStatPayload) {
-    super(payload);
-    this.uniqueUsers = payload.uniqueUsers;
+  public readonly totalBorrowedInUSD: number;
+  public readonly totalLossesInUSD: number;
+  public readonly totalProfitInUSD: number;
+  public readonly totalRepaidInUSD: number;
+  public readonly availableLiquidityInUSD: number;
+  public readonly openedAccountsCountChange: number;
+  public readonly totalOpenedAccountsChange: number;
+  public readonly totalClosedAccountsChange: number;
+  public readonly totalLiquidatedAccountsChange: number;
+
+  constructor(payload: ChartsCreditManagerPayload) {
+    super({
+      canBorrow: true,
+      adapters: [],
+      liquidationThresholds: [],
+      collateralTokens: [],
+      creditFacade: "",
+      creditConfigurator: "",
+      isDegenMode: false,
+      degenNFT: "",
+      isIncreaseDebtForbidden: false,
+      forbiddenTokenMask: BigNumber.from(0),
+      maxEnabledTokensLength: 12,
+      feeInterest: payload.feeInterest,
+      feeLiquidation: payload.feeLiquidation,
+      liquidationDiscount: 0,
+      feeLiquidationExpired: payload.feeLiquidationExpired,
+      liquidationDiscountExpired: 0,
+
+      pool: payload.poolAddress,
+      version: payload.version,
+      addr: payload.addr,
+      isWETH: payload.isWeth,
+      availableLiquidity: BigNumber.from(payload.availableLiquidity || 0),
+      borrowRate: BigNumber.from(payload.borrowRate || 0),
+      maxAmount: BigNumber.from(payload.maxAmount || 0),
+      minAmount: BigNumber.from(payload.minAmount || 0),
+      maxLeverageFactor: BigNumber.from(payload.maxLeverageFactor || 0),
+      underlying: payload.underlyingToken,
+    });
+    this.uniqueUsers = 0;
     this.openedAccountsCount = payload.openedAccountsCount || 0;
     this.totalOpenedAccounts = payload.totalOpenedAccounts || 0;
     this.totalClosedAccounts = payload.totalClosedAccounts || 0;
     this.totalRepaidAccounts = payload.totalRepaidAccounts || 0;
     this.totalLiquidatedAccounts = payload.totalLiquidatedAccounts || 0;
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
-    this.cumulativeBorrowed = BigNumber.from(payload.cumulativeBorrowed || 0);
+    this.cumulativeBorrowed = BigNumber.from(0);
     this.totalRepaid = BigNumber.from(payload.totalRepaid || 0);
     this.totalProfit = BigNumber.from(payload.totalProfit || 0);
     this.totalLosses = BigNumber.from(payload.totalLosses || 0);
+
+    this.totalBorrowedInUSD = payload.totalBorrowedInUSD || 0;
+    this.totalLossesInUSD = payload.totalLossesInUSD || 0;
+    this.totalProfitInUSD = payload.totalProfitInUSD || 0;
+    this.totalRepaidInUSD = payload.totalRepaidInUSD || 0;
+    this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
+
+    this.openedAccountsCountChange = payload.openedAccountsCountChange || 0;
+    this.totalOpenedAccountsChange = payload.totalOpenedAccountsChange || 0;
+    this.totalClosedAccountsChange = payload.totalClosedAccountsChange || 0;
+    this.totalLiquidatedAccountsChange =
+      payload.totalLiquidatedAccountsChange || 0;
   }
 }
 
