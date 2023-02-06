@@ -235,42 +235,127 @@ export class CreditManagerData {
   }
 }
 
-export class CreditManagerStat extends CreditManagerData {
+export interface ChartsCreditManagerPayload {
+  addr: string;
+
+  availableLiquidity: string;
+  borrowRate: string;
+  isWeth: boolean;
+  maxAmount: string;
+  maxLeverageFactor: number;
+  minAmount: string;
+  openedAccountsCount: number;
+  totalBorrowed: string;
+  totalClosedAccounts: number;
+  totalLiquidatedAccounts: number;
+  totalLosses: string;
+  totalOpenedAccounts: number;
+  totalProfit: string;
+  totalRepaid: string;
+  totalRepaidAccounts: number;
+  poolAddress: string;
+  lmAPY: number;
+
+  // v1 props
+  underlyingToken: string;
+
+  // charts props
+  availableLiquidityInUSD: number;
+  totalBorrowedInUSD: number;
+  totalLossesInUSD: number;
+  totalProfitInUSD: number;
+  totalRepaidInUSD: number;
+
+  openedAccountsCountChange: number;
+  totalOpenedAccountsChange: number;
+  totalClosedAccountsChange: number;
+  totalLiquidatedAccountsChange: number;
+
+  feeInterest: number;
+  feeLiquidation: number;
+  feeLiquidationExpired: number;
+  liquidationPremium: number;
+  liquidationPremiumExpired: number;
+
+  version: number;
+}
+
+export class ChartsCreditManagerData extends CreditManagerData {
   public readonly uniqueUsers: number;
-
   public readonly openedAccountsCount: number;
-
   public readonly totalOpenedAccounts: number;
-
   public readonly totalClosedAccounts: number;
-
   public readonly totalRepaidAccounts: number;
-
   public readonly totalLiquidatedAccounts: number;
-
   public readonly totalBorrowed: BigNumber;
-
   public readonly cumulativeBorrowed: BigNumber;
-
   public readonly totalRepaid: BigNumber;
-
   public readonly totalProfit: BigNumber;
-
   public readonly totalLosses: BigNumber;
 
-  constructor(payload: CreditManagerStatPayload) {
-    super(payload);
-    this.uniqueUsers = payload.uniqueUsers;
+  public readonly totalBorrowedInUSD: number;
+  public readonly totalLossesInUSD: number;
+  public readonly totalProfitInUSD: number;
+  public readonly totalRepaidInUSD: number;
+  public readonly availableLiquidityInUSD: number;
+  public readonly openedAccountsCountChange: number;
+  public readonly totalOpenedAccountsChange: number;
+  public readonly totalClosedAccountsChange: number;
+  public readonly totalLiquidatedAccountsChange: number;
+
+  constructor(payload: ChartsCreditManagerPayload) {
+    super({
+      canBorrow: true,
+      adapters: [],
+      liquidationThresholds: [],
+      collateralTokens: [],
+      creditFacade: "",
+      creditConfigurator: "",
+      isDegenMode: false,
+      degenNFT: "",
+      isIncreaseDebtForbidden: false,
+      forbiddenTokenMask: BigNumber.from(0),
+      maxEnabledTokensLength: 12,
+      feeInterest: payload.feeInterest,
+      feeLiquidation: payload.feeLiquidation,
+      liquidationDiscount: 0,
+      feeLiquidationExpired: payload.feeLiquidationExpired,
+      liquidationDiscountExpired: 0,
+
+      pool: payload.poolAddress,
+      version: payload.version,
+      addr: payload.addr,
+      isWETH: payload.isWeth,
+      availableLiquidity: BigNumber.from(payload.availableLiquidity || 0),
+      borrowRate: BigNumber.from(payload.borrowRate || 0),
+      maxAmount: BigNumber.from(payload.maxAmount || 0),
+      minAmount: BigNumber.from(payload.minAmount || 0),
+      maxLeverageFactor: BigNumber.from(payload.maxLeverageFactor || 0),
+      underlying: payload.underlyingToken,
+    });
+    this.uniqueUsers = 0;
     this.openedAccountsCount = payload.openedAccountsCount || 0;
     this.totalOpenedAccounts = payload.totalOpenedAccounts || 0;
     this.totalClosedAccounts = payload.totalClosedAccounts || 0;
     this.totalRepaidAccounts = payload.totalRepaidAccounts || 0;
     this.totalLiquidatedAccounts = payload.totalLiquidatedAccounts || 0;
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
-    this.cumulativeBorrowed = BigNumber.from(payload.cumulativeBorrowed || 0);
+    this.cumulativeBorrowed = BigNumber.from(0);
     this.totalRepaid = BigNumber.from(payload.totalRepaid || 0);
     this.totalProfit = BigNumber.from(payload.totalProfit || 0);
     this.totalLosses = BigNumber.from(payload.totalLosses || 0);
+
+    this.totalBorrowedInUSD = payload.totalBorrowedInUSD || 0;
+    this.totalLossesInUSD = payload.totalLossesInUSD || 0;
+    this.totalProfitInUSD = payload.totalProfitInUSD || 0;
+    this.totalRepaidInUSD = payload.totalRepaidInUSD || 0;
+    this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
+
+    this.openedAccountsCountChange = payload.openedAccountsCountChange || 0;
+    this.totalOpenedAccountsChange = payload.totalOpenedAccountsChange || 0;
+    this.totalClosedAccountsChange = payload.totalClosedAccountsChange || 0;
+    this.totalLiquidatedAccountsChange =
+      payload.totalLiquidatedAccountsChange || 0;
   }
 }
 
