@@ -3,8 +3,8 @@ import { BigNumber, ethers, Signer } from "ethers";
 import { TxParser } from "../parsers/txParser";
 import { MultiCall } from "../pathfinder/core";
 import {
+  ChartsCreditManagerPayload,
   CreditManagerDataPayload,
-  CreditManagerStatPayload,
 } from "../payload/creditManager";
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
@@ -233,51 +233,6 @@ export class CreditManagerData {
   get id(): string {
     return this.address;
   }
-}
-
-export interface ChartsCreditManagerPayload {
-  addr: string;
-
-  availableLiquidity: string;
-  borrowRate: string;
-  isWeth: boolean;
-  maxAmount: string;
-  maxLeverageFactor: number;
-  minAmount: string;
-  openedAccountsCount: number;
-  totalBorrowed: string;
-  totalClosedAccounts: number;
-  totalLiquidatedAccounts: number;
-  totalLosses: string;
-  totalOpenedAccounts: number;
-  totalProfit: string;
-  totalRepaid: string;
-  totalRepaidAccounts: number;
-  poolAddress: string;
-  lmAPY: number;
-
-  // v1 props
-  underlyingToken: string;
-
-  // charts props
-  availableLiquidityInUSD: number;
-  totalBorrowedInUSD: number;
-  totalLossesInUSD: number;
-  totalProfitInUSD: number;
-  totalRepaidInUSD: number;
-
-  openedAccountsCountChange: number;
-  totalOpenedAccountsChange: number;
-  totalClosedAccountsChange: number;
-  totalLiquidatedAccountsChange: number;
-
-  feeInterest: number;
-  feeLiquidation: number;
-  feeLiquidationExpired: number;
-  liquidationPremium: number;
-  liquidationPremiumExpired: number;
-
-  version: number;
 }
 
 export class ChartsCreditManagerData extends CreditManagerData {
