@@ -42,6 +42,8 @@ export class CreditAccountWatcher {
   static IERC20 = IERC20__factory.createInterface();
 
   static creditManagerInterface = ICreditManagerV2__factory.createInterface();
+  static creditConfiguratorInterface =
+    ICreditConfigurator__factory.createInterface();
   static creditFacadeInterface = ICreditFacade__factory.createInterface();
 
   /**
@@ -74,20 +76,29 @@ export class CreditAccountWatcher {
 
     const accounts: Set<string> = new Set<string>();
 
-    const { creditConfigurator } = creditManager;
-
-    const cc = ICreditConfigurator__factory.connect(
-      creditConfigurator,
+    const cm = ICreditManagerV2__factory.connect(
+      creditManager.address,
       provider,
     );
+    // get all historical creditConfigurators for this cm
+    const ccAddrs = (
+      await cm.queryFilter(cm.filters.NewConfigurator(), undefined, toBlock)
+    ).map(e => e.args.newConfigurator);
 
+    // get all historical creditFacades for this cm
     const cfUpgraded = (
-      await cc.queryFilter(
-        cc.filters.CreditFacadeUpgraded(),
-        undefined,
-        toBlock,
+      await Promise.all(
+        ccAddrs.map(async (ccAddr): Promise<string[]> => {
+          const cc = ICreditConfigurator__factory.connect(ccAddr, provider);
+          const cfUpgradedEvents = await cc.queryFilter(
+            cc.filters.CreditFacadeUpgraded(),
+            undefined,
+            toBlock,
+          );
+          return cfUpgradedEvents.map(e => e.args.newCreditFacade);
+        }),
       )
-    ).map(e => e.args.newCreditFacade);
+    ).flat();
 
     for (const creditFacade of cfUpgraded) {
       const cf = ICreditFacade__factory.connect(creditFacade, provider);
@@ -203,23 +214,19 @@ export class CreditAccountWatcher {
     logs: Array<providers.Log>,
     creditManagers: Array<CreditManagerData>,
   ): CreditManagerUpdate {
-    const cms = creditManagers.map(c => c.address);
-    const cfs = creditManagers.map(c => c.creditFacade);
+    const cms = creditManagers.map(c => c.address.toLowerCase());
+    const cfToCm: Record<string, string> = {};
+    const ccToCm: Record<string, string> = {};
 
-    const cfToCm = creditManagers.reduce<Record<string, string>>(
-      (acc, item) => {
-        acc[item.creditFacade] = item.address;
-        return acc;
-      },
-      {},
-    );
-
+    // maps credit manager addr to credit configurator addresses
     const trackers: Record<string, CreditManagerUpdateInt> = {};
-    cms.forEach(cm => {
-      trackers[cm] = {
+    creditManagers.forEach(cm => {
+      trackers[cm.address.toLowerCase()] = {
         updated: new Set<string>(),
         deleted: new Set<string>(),
       };
+      ccToCm[cm.creditConfigurator.toLowerCase()] = cm.address.toLowerCase();
+      cfToCm[cm.creditFacade.toLowerCase()] = cm.address.toLowerCase();
     });
 
     for (let log of logs) {
@@ -234,11 +241,21 @@ export class CreditAccountWatcher {
           if (!borrower) throw new Error(`Cant parser event ${log}`);
 
           /// Excludes credit facade which represents borrower in multicall
-          if (!cfs.includes(borrower.toLowerCase())) {
+          if (!(borrower.toLowerCase() in cfToCm)) {
             trackers[logAddr].updated.add(borrower);
           }
+        } else if (name === "NewConfigurator") {
+          const newConfigurator = args.newConfigurator.toLowerCase();
+          ccToCm[newConfigurator] = logAddr;
         }
-      } else if (cfs.includes(logAddr)) {
+      } else if (logAddr in ccToCm) {
+        const { name, args } =
+          CreditAccountWatcher.creditConfiguratorInterface.parseLog(log);
+        if (name === "CreditFacadeUpgraded") {
+          const newCreditFacade = args.newCreditFacade.toLowerCase();
+          cfToCm[newCreditFacade] = ccToCm[logAddr];
+        }
+      } else if (logAddr in cfToCm) {
         const { name, args } =
           CreditAccountWatcher.creditFacadeInterface.parseLog(log);
 
