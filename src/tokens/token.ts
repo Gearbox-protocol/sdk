@@ -155,6 +155,7 @@ export const tokenDataByNetwork: Record<
     dWBTC: "0xe753260F1955e8678DCeA8887759e07aa57E8c54",
     dWETH: "0xF21fc650C1B34eb0FDE786D52d23dA99Db3D6278",
     dwstETH: "0x2158034dB06f06dcB9A786D2F1F8c38781bA779d",
+    dFRAX: "0x8a1112afef7f4fc7c066a77aabbc01b3fff31d47",
 
     GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D",
   },
@@ -234,6 +235,7 @@ export const tokenDataByNetwork: Record<
     dWBTC: "0xd7f208de8d5b5301e7018dcc6D312A4305382330", // DieselToken.sol
     dWETH: "0xfb906E19E71ED61bcb5eA0E11d77941A058eafBD", // DieselToken.sol
     dwstETH: "0xAB20D04aF0f79aB21cC66431F6BAc03b74003d4d",
+    dFRAX: "deploy me",
 
     GEAR: "0x3321F5dA65165042903eDe71617F912942f4E70F",
   },

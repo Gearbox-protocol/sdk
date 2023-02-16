@@ -2,7 +2,13 @@ import type { TradeAction } from "../pathfinder/tradeTypes";
 import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
-export type DieselTokenTypes = "dDAI" | "dUSDC" | "dWBTC" | "dWETH" | "dwstETH";
+export type DieselTokenTypes =
+  | "dDAI"
+  | "dUSDC"
+  | "dWBTC"
+  | "dWETH"
+  | "dwstETH"
+  | "dFRAX";
 export type GearboxToken = "GEAR";
 
 export type DieselTokenData = {
@@ -48,6 +54,12 @@ export const gearTokens: Record<
   dwstETH: {
     name: "dwstETH",
     symbol: "dwstETH",
+    type: TokenType.DIESEL_LP_TOKEN,
+  },
+
+  dFRAX: {
+    name: "dFRAX",
+    symbol: "dFRAX",
     type: TokenType.DIESEL_LP_TOKEN,
   },
 
