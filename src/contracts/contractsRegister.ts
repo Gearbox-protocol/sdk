@@ -22,6 +22,9 @@ export const CREDIT_MANAGER_WSTETH_V2_MAINNET =
 export const CREDIT_MANAGER_WBTC_V2_MAINNET =
   "0xc62bf8a7889adf1c5dc4665486c7683ae6e74e0f".toLowerCase();
 
+export const CREDIT_MANAGER_FRAX_V2_MAINNET =
+  "0xa3e1e0d58fe8dd8c9dd48204699a1178f1b274d8".toLowerCase();
+
 // GOERLI
 export const CREDIT_MANAGER_DAI_V2_GOERLI =
   "0xf7ba434952acaa2e12035a2c3643ca327914a470".toLowerCase();
@@ -48,7 +51,8 @@ export type CreditManagersV2 =
   | typeof CREDIT_MANAGER_USDC_V2_GOERLI
   | typeof CREDIT_MANAGER_WETH_V2_GOERLI
   | typeof CREDIT_MANAGER_WSTETH_V2_GOERLI
-  | typeof CREDIT_MANAGER_WBTC_V2_GOERLI;
+  | typeof CREDIT_MANAGER_WBTC_V2_GOERLI
+  | typeof CREDIT_MANAGER_FRAX_V2_MAINNET;
 
 export const deployedContracts: Record<string, string> = {
   // MAINNET
@@ -56,6 +60,7 @@ export const deployedContracts: Record<string, string> = {
   "0x2664cc24CBAd28749B3Dd6fC97A6B402484De527": "USDC",
   "0x968f9a68a98819E2e6Bb910466e191A7b6cf02F0": "WETH",
   "0xC38478B0A4bAFE964C3526EEFF534d70E1E09017": "WBTC",
+  "0x79012c8d491dcf3a30db20d1f449b14caf01da6c": "FRAX",
 
   // MAINNET POOLS
   "0x24946bCbBd028D5ABb62ad9B635EB1b1a67AF668": "DAI",
@@ -70,6 +75,7 @@ export const deployedContracts: Record<string, string> = {
   [CREDIT_MANAGER_WETH_V2_MAINNET]: "WETH",
   [CREDIT_MANAGER_WSTETH_V2_MAINNET]: "wstETH",
   [CREDIT_MANAGER_WBTC_V2_MAINNET]: "WBTC",
+  [CREDIT_MANAGER_FRAX_V2_MAINNET]: "FRAX",
 
   // GOERLI CM
   [CREDIT_MANAGER_DAI_V2_GOERLI]: "DAI",
