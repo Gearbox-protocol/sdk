@@ -1,5 +1,4 @@
-import { Provider } from "@ethersproject/abstract-provider";
-import { BigNumber, BigNumberish, Signer } from "ethers";
+import { BigNumber, BigNumberish, providers, Signer } from "ethers";
 
 import { NetworkType } from "../core/chains";
 import { RAY } from "../core/constants";
@@ -40,7 +39,7 @@ export class PathFinder {
 
   constructor(
     address: string,
-    provider: Signer | Provider,
+    provider: Signer | providers.Provider,
     network: NetworkType = "Mainnet",
     connectors?: Array<SupportedToken>,
   ) {
