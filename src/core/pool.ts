@@ -60,25 +60,22 @@ export class PoolData {
     return IPoolService__factory.connect(this.address, signer);
   }
 
-  async calculateBorrowRate({
+  static async calculateBorrowRate({
     modelAddress,
     provider,
-    expectedLiquidityChange = BigNumber.from(0),
-    availableLiquidityChange = BigNumber.from(0),
+    expectedLiquidity,
+    availableLiquidity,
   }: calculateBorrowRateProps) {
     const model = IInterestRateModel__factory.connect(modelAddress, provider);
-    return model.calcBorrowRate(
-      this.expectedLiquidity.add(expectedLiquidityChange),
-      this.availableLiquidity.add(availableLiquidityChange),
-    );
+    return model.calcBorrowRate(expectedLiquidity, availableLiquidity);
   }
 }
 
 interface calculateBorrowRateProps {
   modelAddress: string;
   provider: providers.Provider;
-  expectedLiquidityChange?: BigNumber;
-  availableLiquidityChange?: BigNumber;
+  expectedLiquidity: BigNumber;
+  availableLiquidity: BigNumber;
 }
 
 export class ChartsPoolData extends PoolData {
