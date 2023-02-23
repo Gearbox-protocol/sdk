@@ -282,6 +282,12 @@ export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
 export type { IGas } from "./contracts/IGas";
 export { IGas__factory } from "./factories/contracts/IGas__factory";
+export type { ITokenDistributor } from "./contracts/ITokenDistributor.sol/ITokenDistributor";
+export { ITokenDistributor__factory } from "./factories/contracts/ITokenDistributor.sol/ITokenDistributor__factory";
+export type { ITokenDistributorEvents } from "./contracts/ITokenDistributor.sol/ITokenDistributorEvents";
+export { ITokenDistributorEvents__factory } from "./factories/contracts/ITokenDistributor.sol/ITokenDistributorEvents__factory";
+export type { ITokenDistributorExceptions } from "./contracts/ITokenDistributor.sol/ITokenDistributorExceptions";
+export { ITokenDistributorExceptions__factory } from "./factories/contracts/ITokenDistributor.sol/ITokenDistributorExceptions__factory";
 export type { IGnosisSafeSignatureValidator } from "./contracts/IGnosisSafeSignatureValidator";
 export { IGnosisSafeSignatureValidator__factory } from "./factories/contracts/IGnosisSafeSignatureValidator__factory";
 export type { IOffchainOracle } from "./contracts/support/IOffchainOracle";
