@@ -2,7 +2,6 @@ import { BigNumber, providers, Signer } from "ethers";
 
 import { ChartsPoolDataPayload, PoolDataPayload } from "../payload/pool";
 import {
-  IInterestRateModel,
   IInterestRateModel__factory,
   IPoolService,
   IPoolService__factory,
