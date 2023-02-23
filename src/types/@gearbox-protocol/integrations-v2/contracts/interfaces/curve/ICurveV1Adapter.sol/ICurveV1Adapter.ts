@@ -42,7 +42,6 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
     "calc_withdraw_one_coin(uint256,int128)": FunctionFragment;
     "coins(int128)": FunctionFragment;
     "coins(uint256)": FunctionFragment;
-    "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "decimals()": FunctionFragment;
     "exchange(int128,int128,uint256,uint256)": FunctionFragment;
@@ -99,7 +98,6 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
       | "calc_withdraw_one_coin"
       | "coins(int128)"
       | "coins(uint256)"
-      | "creditFacade"
       | "creditManager"
       | "decimals"
       | "exchange"
@@ -192,10 +190,6 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "coins(uint256)",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "creditFacade",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
@@ -347,10 +341,6 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "coins(uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "creditFacade",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -547,8 +537,6 @@ export interface ICurveV1Adapter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     decimals(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -733,8 +721,6 @@ export interface ICurveV1Adapter extends BaseContract {
   ): Promise<string>;
 
   "coins(uint256)"(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  creditFacade(overrides?: CallOverrides): Promise<string>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -923,8 +909,6 @@ export interface ICurveV1Adapter extends BaseContract {
       i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    creditFacade(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -1116,8 +1100,6 @@ export interface ICurveV1Adapter extends BaseContract {
       i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1316,8 +1298,6 @@ export interface ICurveV1Adapter extends BaseContract {
       i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

@@ -174,7 +174,6 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
   functions: {
     "_gearboxAdapterType()": FunctionFragment;
     "_gearboxAdapterVersion()": FunctionFragment;
-    "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "exactAllInput((bytes,uint256,uint256))": FunctionFragment;
     "exactAllInputSingle((address,address,uint24,uint256,uint256,uint160))": FunctionFragment;
@@ -189,7 +188,6 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
-      | "creditFacade"
       | "creditManager"
       | "exactAllInput"
       | "exactAllInputSingle"
@@ -206,10 +204,6 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "creditFacade",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -251,10 +245,6 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "creditFacade",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -321,8 +311,6 @@ export interface IUniswapV3Adapter extends BaseContract {
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
 
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     exactAllInput(
@@ -362,8 +350,6 @@ export interface IUniswapV3Adapter extends BaseContract {
 
   _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
 
-  creditFacade(overrides?: CallOverrides): Promise<string>;
-
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   exactAllInput(
@@ -402,8 +388,6 @@ export interface IUniswapV3Adapter extends BaseContract {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    creditFacade(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -446,8 +430,6 @@ export interface IUniswapV3Adapter extends BaseContract {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -492,8 +474,6 @@ export interface IUniswapV3Adapter extends BaseContract {
     _gearboxAdapterVersion(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

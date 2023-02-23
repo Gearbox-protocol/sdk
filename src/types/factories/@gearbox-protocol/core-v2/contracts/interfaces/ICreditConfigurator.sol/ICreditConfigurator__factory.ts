@@ -59,6 +59,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "address",
+        name: "adapter",
+        type: "address",
+      },
+    ],
+    name: "AdapterForbidden",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: false,
         internalType: "address",
         name: "",
@@ -456,6 +469,19 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "adapter",
+        type: "address",
+      },
+    ],
+    name: "forbidAdapter",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

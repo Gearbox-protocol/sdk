@@ -33,7 +33,6 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "decimals()": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
@@ -60,7 +59,6 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
       | "allowance"
       | "approve"
       | "balanceOf"
-      | "creditFacade"
       | "creditManager"
       | "decimals"
       | "deposit(uint256,address)"
@@ -97,10 +95,6 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "creditFacade",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
     values?: undefined
@@ -166,10 +160,6 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "creditFacade",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
     data: BytesLike
@@ -296,8 +286,6 @@ export interface IYearnV2Adapter extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     decimals(overrides?: CallOverrides): Promise<[number]>;
@@ -383,8 +371,6 @@ export interface IYearnV2Adapter extends BaseContract {
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  creditFacade(overrides?: CallOverrides): Promise<string>;
-
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   decimals(overrides?: CallOverrides): Promise<number>;
@@ -469,8 +455,6 @@ export interface IYearnV2Adapter extends BaseContract {
     ): Promise<boolean>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -578,8 +562,6 @@ export interface IYearnV2Adapter extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
-
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
@@ -672,8 +654,6 @@ export interface IYearnV2Adapter extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

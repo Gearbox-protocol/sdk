@@ -23,7 +23,6 @@ export interface IAdapterInterface extends utils.Interface {
   functions: {
     "_gearboxAdapterType()": FunctionFragment;
     "_gearboxAdapterVersion()": FunctionFragment;
-    "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "targetContract()": FunctionFragment;
   };
@@ -32,7 +31,6 @@ export interface IAdapterInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
-      | "creditFacade"
       | "creditManager"
       | "targetContract"
   ): FunctionFragment;
@@ -43,10 +41,6 @@ export interface IAdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "creditFacade",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -64,10 +58,6 @@ export interface IAdapterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "creditFacade",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -113,8 +103,6 @@ export interface IAdapter extends BaseContract {
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
 
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     targetContract(overrides?: CallOverrides): Promise<[string]>;
@@ -124,8 +112,6 @@ export interface IAdapter extends BaseContract {
 
   _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
 
-  creditFacade(overrides?: CallOverrides): Promise<string>;
-
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   targetContract(overrides?: CallOverrides): Promise<string>;
@@ -134,8 +120,6 @@ export interface IAdapter extends BaseContract {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    creditFacade(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -148,8 +132,6 @@ export interface IAdapter extends BaseContract {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -164,8 +146,6 @@ export interface IAdapter extends BaseContract {
     _gearboxAdapterVersion(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
