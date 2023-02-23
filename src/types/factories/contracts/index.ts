@@ -2,5 +2,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as iTokenDistributorSol from "./ITokenDistributor.sol";
-export * as multiCallSol from "./MultiCall.sol";
+export * as support from "./support";
 export { IGas__factory } from "./IGas__factory";
+export { IGnosisSafeSignatureValidator__factory } from "./IGnosisSafeSignatureValidator__factory";

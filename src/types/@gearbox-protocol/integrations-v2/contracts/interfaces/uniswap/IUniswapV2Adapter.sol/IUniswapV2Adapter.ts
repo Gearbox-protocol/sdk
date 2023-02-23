@@ -21,7 +21,7 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../../../../../common";
+} from "../../../../../../common";
 
 export interface IUniswapV2AdapterInterface extends utils.Interface {
   functions: {
@@ -30,7 +30,6 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
     "_gearboxAdapterVersion()": FunctionFragment;
     "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)": FunctionFragment;
     "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
-    "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "factory()": FunctionFragment;
     "getAmountIn(uint256,uint256,uint256)": FunctionFragment;
@@ -64,7 +63,6 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
       | "_gearboxAdapterVersion"
       | "addLiquidity"
       | "addLiquidityETH"
-      | "creditFacade"
       | "creditManager"
       | "factory"
       | "getAmountIn"
@@ -123,10 +121,6 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
       string,
       BigNumberish
     ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "creditFacade",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
@@ -296,10 +290,6 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "creditFacade",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "creditManager",
     data: BytesLike
   ): Result;
@@ -447,8 +437,6 @@ export interface IUniswapV2Adapter extends BaseContract {
       deadline: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
@@ -676,8 +664,6 @@ export interface IUniswapV2Adapter extends BaseContract {
     deadline: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  creditFacade(overrides?: CallOverrides): Promise<string>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -918,8 +904,6 @@ export interface IUniswapV2Adapter extends BaseContract {
       }
     >;
 
-    creditFacade(overrides?: CallOverrides): Promise<string>;
-
     creditManager(overrides?: CallOverrides): Promise<string>;
 
     factory(overrides?: CallOverrides): Promise<string>;
@@ -1158,8 +1142,6 @@ export interface IUniswapV2Adapter extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
-
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     factory(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1391,8 +1373,6 @@ export interface IUniswapV2Adapter extends BaseContract {
       deadline: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

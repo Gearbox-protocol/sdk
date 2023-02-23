@@ -7,9 +7,14 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IUniswapV2Adapter,
   IUniswapV2AdapterInterface,
-} from "../../../../../../@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV2Adapter";
+} from "../../../../../../../@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV2Adapter.sol/IUniswapV2Adapter";
 
 const _abi = [
+  {
+    inputs: [],
+    name: "InvalidPathException",
+    type: "error",
+  },
   {
     inputs: [
       {
@@ -176,19 +181,6 @@ const _abi = [
       },
     ],
     stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "creditFacade",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
   {
