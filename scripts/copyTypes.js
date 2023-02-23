@@ -17,6 +17,7 @@ async function main() {
     "**/interfaces/**/+([a-zA-Z0-9_]).json",
     // temporary exceptions
     "**/Multicall2.json",
+    "**/PoolService.json",
   ]);
 
   rimraf(dst);

@@ -300,3 +300,5 @@ export type { AggregatorV3Interface } from "./@chainlink/contracts/src/v0.8/inte
 export { AggregatorV3Interface__factory } from "./factories/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface__factory";
 export type { Multicall2 } from "./contracts/support/MultiCall.sol/Multicall2";
 export { Multicall2__factory } from "./factories/contracts/support/MultiCall.sol/Multicall2__factory";
+export type { PoolService } from "./@gearbox-protocol/core-v2/contracts/pool/PoolService";
+export { PoolService__factory } from "./factories/@gearbox-protocol/core-v2/contracts/pool/PoolService__factory";
