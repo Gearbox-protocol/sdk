@@ -1,7 +1,12 @@
-import { BigNumber, Signer } from "ethers";
+import { BigNumber, providers, Signer } from "ethers";
 
 import { ChartsPoolDataPayload, PoolDataPayload } from "../payload/pool";
-import { IPoolService, IPoolService__factory } from "../types";
+import {
+  IInterestRateModel,
+  IInterestRateModel__factory,
+  IPoolService,
+  IPoolService__factory,
+} from "../types";
 import { rayToNumber } from "../utils/formatter";
 import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "./constants";
 
@@ -55,6 +60,26 @@ export class PoolData {
   getContractETH(signer: Signer): IPoolService {
     return IPoolService__factory.connect(this.address, signer);
   }
+
+  async calculateBorrowRate({
+    modelAddress,
+    provider,
+    expectedLiquidityChange = BigNumber.from(0),
+    availableLiquidityChange = BigNumber.from(0),
+  }: calculateBorrowRateProps) {
+    const model = IInterestRateModel__factory.connect(modelAddress, provider);
+    return model.calcBorrowRate(
+      this.expectedLiquidity.add(expectedLiquidityChange),
+      this.availableLiquidity.add(availableLiquidityChange),
+    );
+  }
+}
+
+interface calculateBorrowRateProps {
+  modelAddress: string;
+  provider: providers.Provider;
+  expectedLiquidityChange?: BigNumber;
+  availableLiquidityChange?: BigNumber;
 }
 
 export class ChartsPoolData extends PoolData {
