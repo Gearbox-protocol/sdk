@@ -3,6 +3,7 @@
 /* eslint-disable */
 import type * as iTokenDistributorSol from "./ITokenDistributor.sol";
 export type { iTokenDistributorSol };
-import type * as multiCallSol from "./MultiCall.sol";
-export type { multiCallSol };
+import type * as support from "./support";
+export type { support };
 export type { IGas } from "./IGas";
+export type { IGnosisSafeSignatureValidator } from "./IGnosisSafeSignatureValidator";

@@ -32,7 +32,6 @@ export interface IUniversalAdapterInterface extends utils.Interface {
   functions: {
     "_gearboxAdapterType()": FunctionFragment;
     "_gearboxAdapterVersion()": FunctionFragment;
-    "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "revokeAdapterAllowances((address,address)[])": FunctionFragment;
     "revokeAdapterAllowances((address,address)[],address)": FunctionFragment;
@@ -43,7 +42,6 @@ export interface IUniversalAdapterInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
-      | "creditFacade"
       | "creditManager"
       | "revokeAdapterAllowances((address,address)[])"
       | "revokeAdapterAllowances((address,address)[],address)"
@@ -56,10 +54,6 @@ export interface IUniversalAdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "_gearboxAdapterVersion",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "creditFacade",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -85,10 +79,6 @@ export interface IUniversalAdapterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "_gearboxAdapterVersion",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "creditFacade",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -142,8 +132,6 @@ export interface IUniversalAdapter extends BaseContract {
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
 
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     "revokeAdapterAllowances((address,address)[])"(
@@ -164,8 +152,6 @@ export interface IUniversalAdapter extends BaseContract {
 
   _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
 
-  creditFacade(overrides?: CallOverrides): Promise<string>;
-
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   "revokeAdapterAllowances((address,address)[])"(
@@ -185,8 +171,6 @@ export interface IUniversalAdapter extends BaseContract {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    creditFacade(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -210,8 +194,6 @@ export interface IUniversalAdapter extends BaseContract {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
 
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -237,8 +219,6 @@ export interface IUniversalAdapter extends BaseContract {
     _gearboxAdapterVersion(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

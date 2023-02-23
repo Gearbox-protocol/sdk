@@ -388,19 +388,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "creditFacade",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "creditManager",
     outputs: [
       {

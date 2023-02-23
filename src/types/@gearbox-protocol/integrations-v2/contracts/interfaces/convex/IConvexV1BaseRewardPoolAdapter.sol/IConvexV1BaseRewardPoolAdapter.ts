@@ -28,7 +28,6 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     "_gearboxAdapterType()": FunctionFragment;
     "_gearboxAdapterVersion()": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "currentRewards()": FunctionFragment;
     "curveLPtoken()": FunctionFragment;
@@ -75,7 +74,6 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
       | "balanceOf"
-      | "creditFacade"
       | "creditManager"
       | "currentRewards"
       | "curveLPtoken"
@@ -126,10 +124,6 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "creditFacade",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
     values?: undefined
@@ -272,10 +266,6 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "creditFacade",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
     data: BytesLike
@@ -433,8 +423,6 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     currentRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -554,8 +542,6 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
   _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  creditFacade(overrides?: CallOverrides): Promise<string>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -677,8 +663,6 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    creditFacade(overrides?: CallOverrides): Promise<string>;
-
     creditManager(overrides?: CallOverrides): Promise<string>;
 
     currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
@@ -788,8 +772,6 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
     _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -921,8 +903,6 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

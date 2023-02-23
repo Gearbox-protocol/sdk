@@ -107,8 +107,6 @@ describe("RewardConvex test", () => {
       "Mainnet",
     );
 
-    console.log(result);
-
     expect(result).to.be.eql({ calls, distribution });
   });
 

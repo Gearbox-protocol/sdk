@@ -28,7 +28,6 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
     "_gearboxAdapterVersion()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "decimals()": FunctionFragment;
     "getStETHByWstETH(uint256)": FunctionFragment;
@@ -52,7 +51,6 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
       | "_gearboxAdapterVersion"
       | "allowance"
       | "balanceOf"
-      | "creditFacade"
       | "creditManager"
       | "decimals"
       | "getStETHByWstETH"
@@ -83,10 +81,6 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "creditFacade",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
     values?: undefined
@@ -137,10 +131,6 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "creditFacade",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
     data: BytesLike
@@ -223,8 +213,6 @@ export interface IwstETHV1Adapter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     decimals(overrides?: CallOverrides): Promise<[number]>;
@@ -283,8 +271,6 @@ export interface IwstETHV1Adapter extends BaseContract {
   ): Promise<BigNumber>;
 
   balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  creditFacade(overrides?: CallOverrides): Promise<string>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
@@ -345,8 +331,6 @@ export interface IwstETHV1Adapter extends BaseContract {
 
     balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    creditFacade(overrides?: CallOverrides): Promise<string>;
-
     creditManager(overrides?: CallOverrides): Promise<string>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
@@ -404,8 +388,6 @@ export interface IwstETHV1Adapter extends BaseContract {
     ): Promise<BigNumber>;
 
     balanceOf(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -473,8 +455,6 @@ export interface IwstETHV1Adapter extends BaseContract {
       _account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

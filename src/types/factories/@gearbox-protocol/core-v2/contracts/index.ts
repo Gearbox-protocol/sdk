@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as interfaces from "./interfaces";
+export * as pool from "./pool";
 export * as test from "./test";

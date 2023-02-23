@@ -12,7 +12,7 @@ import type {
 const _abi = [
   {
     inputs: [],
-    name: "IncorrectPathLengthException",
+    name: "InvalidPathException",
     type: "error",
   },
 ];
