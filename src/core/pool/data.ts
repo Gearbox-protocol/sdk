@@ -1,13 +1,13 @@
 import { BigNumber, providers, Signer } from "ethers";
 
-import { ChartsPoolDataPayload, PoolDataPayload } from "../payload/pool";
+import { ChartsPoolDataPayload, PoolDataPayload } from "../../payload/pool";
 import {
   IInterestRateModel__factory,
   IPoolService,
   IPoolService__factory,
-} from "../types";
-import { rayToNumber } from "../utils/formatter";
-import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "./constants";
+} from "../../types";
+import { rayToNumber } from "../../utils/formatter";
+import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "../constants";
 
 export class PoolData {
   public readonly id: string;
