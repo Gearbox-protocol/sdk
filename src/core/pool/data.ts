@@ -88,6 +88,7 @@ export class ChartsPoolData extends PoolData {
   public readonly depositAPY7D: number;
   public readonly depositAPY30D: number;
   public readonly lmAPY: number;
+  public readonly utilization: number;
 
   constructor({
     expectedLiquidityInUSD,
@@ -127,5 +128,10 @@ export class ChartsPoolData extends PoolData {
     this.depositAPY30D = dieselAPY30D / PERCENTAGE_DECIMALS;
     this.caLockedValueInUSD = caLockedValueInUSD;
     this.lmAPY = lmAPY / PERCENTAGE_FACTOR;
+    this.utilization =
+      BigNumber.from(v1Props.totalBorrowed)
+        .mul(PERCENTAGE_FACTOR)
+        .div(BigNumber.from(v1Props.expectedLiquidity))
+        .toNumber() / PERCENTAGE_DECIMALS;
   }
 }
