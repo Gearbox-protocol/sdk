@@ -1,13 +1,13 @@
 import { BigNumber, providers, Signer } from "ethers";
 
-import { ChartsPoolDataPayload, PoolDataPayload } from "../payload/pool";
+import { ChartsPoolDataPayload, PoolDataPayload } from "../../payload/pool";
 import {
   IInterestRateModel__factory,
   IPoolService,
   IPoolService__factory,
-} from "../types";
-import { rayToNumber } from "../utils/formatter";
-import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "./constants";
+} from "../../types";
+import { rayToNumber } from "../../utils/formatter";
+import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "../constants";
 
 export class PoolData {
   public readonly id: string;
@@ -88,6 +88,7 @@ export class ChartsPoolData extends PoolData {
   public readonly depositAPY7D: number;
   public readonly depositAPY30D: number;
   public readonly lmAPY: number;
+  public readonly utilization: number;
 
   constructor({
     expectedLiquidityInUSD,
@@ -127,5 +128,10 @@ export class ChartsPoolData extends PoolData {
     this.depositAPY30D = dieselAPY30D / PERCENTAGE_DECIMALS;
     this.caLockedValueInUSD = caLockedValueInUSD;
     this.lmAPY = lmAPY / PERCENTAGE_FACTOR;
+    this.utilization =
+      BigNumber.from(v1Props.totalBorrowed)
+        .mul(PERCENTAGE_FACTOR)
+        .div(BigNumber.from(v1Props.expectedLiquidity))
+        .toNumber() / PERCENTAGE_DECIMALS;
   }
 }
