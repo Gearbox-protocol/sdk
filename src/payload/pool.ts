@@ -18,28 +18,27 @@ export interface ChartsPoolDataPayload {
   earned7DInUSD: number;
 
   availableLiquidity: string;
-  availableLiquidityChange: number;
+  availableLiquidityOld: string;
+  availableLiquidity10kBasis: number;
   availableLiquidityInUSD: number;
 
   expectedLiqWeekAgo: number;
   expectedLiquidity: string;
-  expectedLiquidityChange: number;
+  expectedLiquidityOld: string;
+  expectedLiquidity10kBasis: number;
   expectedLiquidityInUSD: number;
   expectedLiquidityLimit: string;
   expectedLiquidityLimitInUSD: number;
 
   caLockedValue: number;
-  caLockedValueChange: number;
-  CALockedValueUSD: number;
+  caLockedValueOld: number;
+  caLockedValue10kBasis: number;
+  caLockedValueUSD: number;
 
   totalBorrowed: string;
-  totalBorrowedChange: number;
+  totalBorrowedOld: string;
+  totalBorrowed10kBasis: number;
   totalBorrowedInUSD: number;
-
-  oldAvailableLiquidity: string;
-  oldCALockedValue: number;
-  oldExpectedLiquidity: string;
-  oldTotalBorrowed: string;
 
   withdrawFee: number;
 
@@ -49,12 +48,13 @@ export interface ChartsPoolDataPayload {
   removedLiquidity: number;
 
   dieselAPY1D: number;
-  dieselAPY1DChange: number;
+  dieselAPY1D10kBasis: number;
   dieselAPY7D: number;
   dieselAPY30D: number;
-  oldUniqueLPs: number;
+
+  uniqueLPsOld: number;
   uniqueLPs: number;
-  uniqueLPsChange: number;
+  uniqueLPs10kBasis: number;
 }
 
 export interface ChartsAggregatedStats {

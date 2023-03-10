@@ -164,24 +164,24 @@ export class ChartsPoolData {
 
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
     this.oldAvailableLiquidity = BigNumber.from(
-      payload.oldAvailableLiquidity || 0,
+      payload.availableLiquidityOld || 0,
     );
     this.availableLiquidityChange =
-      (payload.availableLiquidityChange || 0) * PERCENTAGE_DECIMALS;
+      (payload.availableLiquidity10kBasis || 0) * PERCENTAGE_DECIMALS;
     this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
 
     this.caLockedValue = payload.caLockedValue || 0;
-    this.oldCALockedValue = payload.oldCALockedValue || 0;
+    this.oldCALockedValue = payload.caLockedValueOld || 0;
     this.caLockedValueChange =
-      (payload.caLockedValueChange || 0) * PERCENTAGE_DECIMALS;
-    this.caLockedValueInUSD = payload.CALockedValueUSD || 0;
+      (payload.caLockedValue10kBasis || 0) * PERCENTAGE_DECIMALS;
+    this.caLockedValueInUSD = payload.caLockedValueUSD || 0;
 
     this.expectedLiquidity = BigNumber.from(payload.expectedLiquidity || 0);
     this.oldExpectedLiquidity = BigNumber.from(
-      payload.oldExpectedLiquidity || 0,
+      payload.expectedLiquidityOld || 0,
     );
     this.expectedLiquidityChange =
-      (payload.expectedLiquidityChange || 0) * PERCENTAGE_DECIMALS;
+      (payload.expectedLiquidity10kBasis || 0) * PERCENTAGE_DECIMALS;
     this.expectedLiquidityInUSD = payload.expectedLiquidityInUSD || 0;
     this.expectedLiqWeekAgo = payload.expectedLiqWeekAgo || 0;
 
@@ -191,9 +191,9 @@ export class ChartsPoolData {
     this.expectedLiquidityLimitInUSD = payload.expectedLiquidityLimitInUSD || 0;
 
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
-    this.oldTotalBorrowed = BigNumber.from(payload.oldTotalBorrowed || 0);
+    this.oldTotalBorrowed = BigNumber.from(payload.totalBorrowedOld || 0);
     this.totalBorrowedChange =
-      (payload.totalBorrowedChange || 0) * PERCENTAGE_DECIMALS;
+      (payload.totalBorrowed10kBasis || 0) * PERCENTAGE_DECIMALS;
     this.totalBorrowedInUSD = payload.totalBorrowedInUSD || 0;
 
     this.withdrawFee = payload.withdrawFee || 0;
@@ -205,12 +205,13 @@ export class ChartsPoolData {
 
     this.depositAPY1D = (payload.dieselAPY1D || 0) / PERCENTAGE_DECIMALS;
     this.depositAPY1DChange =
-      (payload.dieselAPY1DChange || 0) * PERCENTAGE_DECIMALS;
+      (payload.dieselAPY1D10kBasis || 0) * PERCENTAGE_DECIMALS;
     this.depositAPY7D = (payload.dieselAPY7D || 0) / PERCENTAGE_DECIMALS;
     this.depositAPY30D = (payload.dieselAPY30D || 0) / PERCENTAGE_DECIMALS;
 
     this.uniqueLPs = payload.uniqueLPs || 0;
-    this.oldUniqueLPs = payload.oldUniqueLPs || 0;
-    this.uniqueLPsChange = (payload.uniqueLPsChange || 0) * PERCENTAGE_DECIMALS;
+    this.oldUniqueLPs = payload.uniqueLPsOld || 0;
+    this.uniqueLPsChange =
+      (payload.uniqueLPs10kBasis || 0) * PERCENTAGE_DECIMALS;
   }
 }
