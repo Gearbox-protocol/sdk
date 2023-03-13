@@ -121,6 +121,11 @@ export class ChartsPoolData {
   readonly totalBorrowedChange: number;
   readonly totalBorrowedInUSD: number;
 
+  readonly debtWithInterest: BigNumber;
+  readonly debtWithInterestChange: number;
+  readonly debtWithInterestInUSD: number;
+  readonly debtWithInterestOld: BigNumber;
+
   readonly oldAvailableLiquidity: BigNumber;
   readonly oldCALockedValue: number;
   readonly oldExpectedLiquidity: BigNumber;
@@ -195,6 +200,12 @@ export class ChartsPoolData {
     this.totalBorrowedChange =
       (payload.totalBorrowed10kBasis || 0) * PERCENTAGE_DECIMALS;
     this.totalBorrowedInUSD = payload.totalBorrowedInUSD || 0;
+
+    this.debtWithInterest = BigNumber.from(payload.debtWithInterest || 0);
+    this.debtWithInterestOld = BigNumber.from(payload.debtWithInterestOld || 0);
+    this.debtWithInterestChange =
+      (payload.debtWithInterest10kBasis || 0) * PERCENTAGE_DECIMALS;
+    this.debtWithInterestInUSD = payload.debtWithInterestInUSD || 0;
 
     this.withdrawFee = payload.withdrawFee || 0;
 

@@ -40,6 +40,11 @@ export interface ChartsPoolDataPayload {
   totalBorrowed10kBasis: number;
   totalBorrowedInUSD: number;
 
+  debtWithInterest: string;
+  debtWithInterest10kBasis: number;
+  debtWithInterestInUSD: number;
+  debtWithInterestOld: string;
+
   withdrawFee: number;
 
   addLiqCount: number;
@@ -59,16 +64,19 @@ export interface ChartsPoolDataPayload {
 
 export interface ChartsAggregatedStats {
   caLockedValue: number;
-  caLockedValueChange: number;
+  caLockedValue10kBasis: number;
 
   expectedLiquidity: number;
-  expectedLiquidityChange: number;
+  expectedLiquidity10kBasis: number;
 
   totalBorrowed: number;
-  totalBorrowedChange: number;
+  totalBorrowed10kBasis: number;
 
   totalValue: number;
-  totalValueChange: number;
+  totalValue10kBasis: number;
+
+  debtWithInterest: number;
+  debtWithInterest10kBasis: number;
 
   earned7D: number;
   uniqueLPs: number;
