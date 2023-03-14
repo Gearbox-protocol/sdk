@@ -5,7 +5,7 @@ import { decimals } from "../tokens/decimals";
 import { tokenDataByNetwork } from "../tokens/token";
 import { toBN } from "../utils/formatter";
 import { calcTotalPrice, convertByPrice } from "../utils/price";
-import { Asset, subAssets, sumAssets } from "./assets";
+import { Asset, AssetUtils } from "./assets";
 import { PRICE_DECIMALS_POW } from "./constants";
 import { calcHealthFactor } from "./creditManager";
 
@@ -83,7 +83,7 @@ describe("CreditManager calcHealthFactor test", () => {
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
     };
 
-    const afterAdd = sumAssets(defaultCA.assets, [collateral]);
+    const afterAdd = AssetUtils.sumAssets(defaultCA.assets, [collateral]);
     const result = calcHealthFactor({
       assets: afterAdd,
       prices,
@@ -101,7 +101,9 @@ describe("CreditManager calcHealthFactor test", () => {
       token: defaultCA.underlyingToken,
     };
 
-    const afterDecrease = subAssets(defaultCA.assets, [debtDecrease]);
+    const afterDecrease = AssetUtils.subAssets(defaultCA.assets, [
+      debtDecrease,
+    ]);
     const result = calcHealthFactor({
       assets: afterDecrease,
       prices,
@@ -119,7 +121,9 @@ describe("CreditManager calcHealthFactor test", () => {
       token: defaultCA.underlyingToken,
     };
 
-    const afterIncrease = sumAssets(defaultCA.assets, [debtIncrease]);
+    const afterIncrease = AssetUtils.sumAssets(defaultCA.assets, [
+      debtIncrease,
+    ]);
     const result = calcHealthFactor({
       assets: afterIncrease,
       prices,
@@ -152,8 +156,8 @@ describe("CreditManager calcHealthFactor test", () => {
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
     };
 
-    const afterSub = subAssets(defaultCA.assets, [swapAsset]);
-    const afterSwap = sumAssets(afterSub, [getAsset]);
+    const afterSub = AssetUtils.subAssets(defaultCA.assets, [swapAsset]);
+    const afterSwap = AssetUtils.sumAssets(afterSub, [getAsset]);
 
     const result = calcHealthFactor({
       assets: afterSwap,

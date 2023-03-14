@@ -6,7 +6,7 @@ import {
   IPoolService,
   IPoolService__factory,
 } from "../../types";
-import { formatBN, rayToNumber } from "../../utils/formatter";
+import { rayToNumber } from "../../utils/formatter";
 import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "../constants";
 
 export class PoolData {

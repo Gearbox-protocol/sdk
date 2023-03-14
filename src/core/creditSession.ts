@@ -4,52 +4,42 @@ import moment from "moment";
 import { CreditSessionPayload } from "../payload/creditSession";
 import { CreditOperation } from "./creditOperation";
 
-export type CreditSessionStatus = "active" | "closed" | "repaid" | "liquidated";
+export type CreditSessionStatus =
+  | "active"
+  | "closed"
+  | "repaid"
+  | "liquidated"
+  | "liquidateExpired"
+  | "liquidatePaused";
 
 const statusEnum: Array<CreditSessionStatus> = [
   "active",
   "closed",
   "repaid",
   "liquidated",
+  "liquidateExpired",
+  "liquidatePaused",
 ];
 
 export class CreditSession {
   public readonly id: string;
-
   public readonly status: CreditSessionStatus;
-
   public readonly name: string;
-
   public readonly background: string;
-
   public readonly borrower: string;
-
   public readonly creditManager: string;
-
   public readonly account: string;
-
   public readonly since: number;
-
   public readonly sinceDate: string;
-
   public readonly closedAt: number;
-
   public readonly closedAtDate: string;
-
   public readonly initialAmount: BigNumber;
-
   public readonly borrowedAmount: BigNumber;
-
   public readonly totalValue: BigNumber;
-
   public readonly healthFactor: number;
-
   public readonly profit: BigNumber;
-
   public readonly profitPercentage: number;
-
   public readonly score: number;
-
   public readonly operations: Array<CreditOperation>;
 
   constructor(payload: CreditSessionPayload) {
