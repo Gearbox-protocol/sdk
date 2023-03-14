@@ -1,7 +1,10 @@
 import { BigNumber } from "ethers";
 import moment from "moment";
 
-import { CreditSessionPayload } from "../payload/creditSession";
+import {
+  CreditSessionFilteredPayload,
+  CreditSessionPayload,
+} from "../payload/creditSession";
 import { CreditOperation } from "./creditOperation";
 
 export type CreditSessionStatus =
@@ -74,3 +77,81 @@ export class CreditSession {
     );
   }
 }
+
+export class CreditSessionFiltered {
+  readonly id: string;
+  readonly borrower: string;
+  readonly account: string;
+  readonly creditManager: string;
+  readonly underlyingToken: string;
+
+  readonly status: CreditSessionStatus;
+  readonly since: number;
+  readonly sinceDate: string;
+  readonly closedAt: number;
+  readonly closedAtDate: string;
+
+  readonly healthFactor: number;
+  readonly leverage: number;
+
+  readonly debt: number;
+  readonly debtUSD: number;
+  readonly totalValue: number;
+  readonly totalValueUSD: number;
+
+  readonly profitInUSD: number;
+  readonly profitInUnderlying: number;
+
+  readonly tfIndex: number;
+
+  readonly balances: Record<string, BigNumber>;
+
+  constructor(payload: CreditSessionFilteredPayload) {
+    this.id = payload.id || "";
+    this.borrower = payload.borrower || "";
+    this.account = payload.account || "";
+    this.creditManager = payload.creditManager || "";
+    this.underlyingToken = payload.underlyingToken || "";
+
+    this.status = statusEnum[payload.status || 0];
+    this.since = payload.since || 0;
+    this.closedAt = payload.closedAt || 0;
+    this.sinceDate = moment((payload.since || 0) * 1000).format("Do MMM YYYY");
+    this.closedAtDate = moment((payload.closedAt || 0) * 1000).format(
+      "Do MMM YYYY",
+    );
+
+    this.healthFactor = BigNumber.from(payload.healthFactor || 0).toNumber();
+    this.leverage = payload.leverage || 0;
+
+    this.debt = payload.debt || 0;
+    this.debtUSD = payload.debtUSD || 0;
+    this.totalValue = payload.totalValue || 0;
+    this.totalValueUSD = payload.totalValueUSD || 0;
+
+    this.profitInUSD = payload.pnlUSD || 0;
+    this.profitInUnderlying = payload.pnl || 0;
+
+    this.tfIndex = payload.tfIndex || 0;
+
+    this.balances = Object.entries(payload.balances).reduce<
+      Record<string, BigNumber>
+    >(
+      (acc, [token, balance]) => ({
+        ...acc,
+        [token]: BigNumber.from(balance.BI),
+      }),
+      {},
+    );
+  }
+}
+
+export type CreditSessionSortFields =
+  | "type"
+  | "tvl"
+  | "hf"
+  | "debt"
+  | "pnl"
+  | "leverage"
+  | "tfIndex";
+export type CreditSessionSortType = "asc" | "desc";
