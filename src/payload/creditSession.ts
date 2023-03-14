@@ -1,7 +1,5 @@
 import { BigNumberish } from "ethers";
 
-import { CreditOperation } from "../core/creditOperation";
-
 export interface CreditSessionBalance {
   BI: string;
   F: number;
@@ -11,23 +9,41 @@ export interface CreditSessionBalance {
 export interface CreditSessionPayload {
   id: string;
   status: number;
-  name: string;
-  background: string;
   borrower: string;
-  creditManager: string;
   account: string;
+  creditManager: string;
+
+  healthFactor: BigNumberish;
+  initialAmount: BigNumberish;
+  borrowedAmount: BigNumberish;
+  totalValue: BigNumberish;
+
   since: number;
   sinceTimestamp: number;
   closedAt: number;
   closedAtTimestamp: number;
-  initialAmount: BigNumberish;
-  borrowedAmount: BigNumberish;
-  totalValue?: BigNumberish;
-  healthFactor?: BigNumberish;
-  profit: BigNumberish;
-  profitPercentage: number;
-  score: number;
-  operations: Array<CreditOperation>;
+
+  collateralInUSD: number;
+  collateralInUnderlying: number;
+  spotDebt: BigNumberish;
+  spotTotalValue: BigNumberish;
+  spotUserFunds: BigNumberish;
+  profitInUSD: number;
+  profitInUnderlying: number;
+
+  apy: number;
+  roi: number;
+
+  currentBlock: number;
+  currentTimestamp: number;
+
+  cvxUnclaimedRewards: Array<{
+    bi: BigNumberish;
+    f: number;
+    pool: string;
+    symbol: string;
+  }>;
+  balances: Record<string, CreditSessionBalance>;
 }
 
 export interface CreditSessionFilteredPayload {
@@ -42,12 +58,12 @@ export interface CreditSessionFilteredPayload {
   status: number;
   closedAt: number;
   since: number;
-  healthFactor: string;
+  healthFactor: BigNumberish;
   leverage: number;
 
-  debt: number;
+  debt: BigNumberish;
   debtUSD: number;
-  totalValue: number;
+  totalValue: BigNumberish;
   totalValueUSD: number;
 
   pnl: number;

@@ -5,7 +5,7 @@ import {
   CreditSessionFilteredPayload,
   CreditSessionPayload,
 } from "../payload/creditSession";
-import { CreditOperation } from "./creditOperation";
+import { PERCENTAGE_DECIMALS } from "./constants";
 
 export type CreditSessionStatus =
   | "active"
@@ -25,55 +25,94 @@ const statusEnum: Array<CreditSessionStatus> = [
 ];
 
 export class CreditSession {
-  public readonly id: string;
-  public readonly status: CreditSessionStatus;
-  public readonly name: string;
-  public readonly background: string;
-  public readonly borrower: string;
-  public readonly creditManager: string;
-  public readonly account: string;
-  public readonly since: number;
-  public readonly sinceDate: string;
-  public readonly closedAt: number;
-  public readonly closedAtDate: string;
-  public readonly initialAmount: BigNumber;
-  public readonly borrowedAmount: BigNumber;
-  public readonly totalValue: BigNumber;
-  public readonly healthFactor: number;
-  public readonly profit: BigNumber;
-  public readonly profitPercentage: number;
-  public readonly score: number;
-  public readonly operations: Array<CreditOperation>;
+  readonly id: string;
+  readonly status: CreditSessionStatus;
+  readonly borrower: string;
+  readonly creditManager: string;
+  readonly account: string;
+
+  readonly since: number;
+  readonly sinceDate: string;
+  readonly closedAt: number;
+  readonly closedAtDate: string;
+
+  readonly initialAmount: BigNumber;
+  readonly borrowedAmount: BigNumber;
+  readonly totalValue: BigNumber;
+  readonly healthFactor: number;
+
+  readonly profitInUSD: number;
+  readonly profitInUnderlying: number;
+  readonly collateralInUSD: number;
+  readonly collateralInUnderlying: number;
+  readonly roi: number;
+  readonly apy: number;
+  readonly currentBlock: number;
+  readonly currentTimestamp: number;
+
+  // sinceTimestamp: number;
+  // closedAtTimestamp: number;
+
+  readonly spotDebt: BigNumber;
+  readonly spotTotalValue: BigNumber;
+  readonly spotUserFunds: BigNumber;
+
+  readonly cvxUnclaimedRewards: Record<string, BigNumber>;
+  readonly balances: Record<string, BigNumber>;
 
   constructor(payload: CreditSessionPayload) {
-    this.id = payload.id;
-    this.status = statusEnum[payload.status];
-    this.name = payload.name;
-    this.background = payload.background;
-    this.borrower = payload.borrower;
-    this.creditManager = payload.creditManager;
-    this.account = payload.account;
-    this.since = payload.since;
-    this.closedAt = payload.closedAt;
+    this.id = payload.id || "";
+    this.status = statusEnum[payload.status || 0];
+    this.borrower = payload.borrower || "";
+    this.creditManager = payload.creditManager || "";
+    this.account = payload.account || "";
+
     this.initialAmount = BigNumber.from(payload.initialAmount || 0);
     this.borrowedAmount = BigNumber.from(payload.borrowedAmount || 0);
-    this.profit = BigNumber.from(payload.profit || 0);
-    this.profitPercentage = payload.profitPercentage || 0;
     this.totalValue = BigNumber.from(payload.totalValue || 0);
     this.healthFactor = BigNumber.from(payload.healthFactor || 0).toNumber();
-    this.score = payload.score;
-    this.operations = (payload.operations || []).map(op => {
-      const formattedOp = {
-        ...op,
-        date: moment(op.timestamp * 1000).format("Do MMM YYYY"),
-      };
-      return formattedOp;
-    });
-    this.sinceDate = moment(payload.sinceTimestamp * 1000).format(
+
+    this.since = payload.since || 0;
+    this.closedAt = payload.closedAt || 0;
+    this.sinceDate = moment((payload.sinceTimestamp || 0) * 1000).format(
       "Do MMM YYYY",
     );
-    this.closedAtDate = moment(payload.closedAtTimestamp * 1000).format(
+    this.closedAtDate = moment((payload.closedAtTimestamp || 0) * 1000).format(
       "Do MMM YYYY",
+    );
+
+    this.profitInUSD = payload.profitInUSD || 0;
+    this.profitInUnderlying = payload.profitInUnderlying || 0;
+    this.collateralInUSD = payload.collateralInUSD || 0;
+    this.collateralInUnderlying = payload.collateralInUnderlying || 0;
+
+    this.roi = (payload.roi || 0) / PERCENTAGE_DECIMALS;
+    this.apy = (payload.apy || 0) / PERCENTAGE_DECIMALS;
+
+    this.currentBlock = payload.currentBlock || 0;
+    this.currentTimestamp = payload.currentTimestamp || 0;
+
+    this.spotDebt = BigNumber.from(payload.spotDebt || 0);
+    this.spotTotalValue = BigNumber.from(payload.spotTotalValue || 0);
+    this.spotUserFunds = BigNumber.from(payload.spotUserFunds || 0);
+
+    this.cvxUnclaimedRewards = Object.entries(
+      payload.cvxUnclaimedRewards,
+    ).reduce<Record<string, BigNumber>>(
+      (acc, [token, balance]) => ({
+        ...acc,
+        [token]: BigNumber.from(balance.bi),
+      }),
+      {},
+    );
+    this.balances = Object.entries(payload.balances).reduce<
+      Record<string, BigNumber>
+    >(
+      (acc, [token, balance]) => ({
+        ...acc,
+        [token]: BigNumber.from(balance.BI),
+      }),
+      {},
     );
   }
 }
@@ -94,9 +133,9 @@ export class CreditSessionFiltered {
   readonly healthFactor: number;
   readonly leverage: number;
 
-  readonly debt: number;
+  readonly debt: BigNumber;
   readonly debtUSD: number;
-  readonly totalValue: number;
+  readonly totalValue: BigNumber;
   readonly totalValueUSD: number;
 
   readonly profitInUSD: number;
@@ -124,9 +163,9 @@ export class CreditSessionFiltered {
     this.healthFactor = BigNumber.from(payload.healthFactor || 0).toNumber();
     this.leverage = payload.leverage || 0;
 
-    this.debt = payload.debt || 0;
+    this.debt = BigNumber.from(payload.debt || 0);
     this.debtUSD = payload.debtUSD || 0;
-    this.totalValue = payload.totalValue || 0;
+    this.totalValue = BigNumber.from(payload.totalValue || 0);
     this.totalValueUSD = payload.totalValueUSD || 0;
 
     this.profitInUSD = payload.pnlUSD || 0;

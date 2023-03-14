@@ -1,3 +1,5 @@
+import { BigNumberish } from "ethers";
+
 import { PoolDataStruct } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { ExcludeArrayProps } from "../utils/types";
 
@@ -9,25 +11,25 @@ export interface ChartsPoolDataPayload {
   underlyingToken: string;
   isWETH: boolean;
 
-  borrowAPY_RAY: string;
-  depositAPY_RAY: string;
-  dieselRate_RAY: string;
+  borrowAPY_RAY: BigNumberish;
+  depositAPY_RAY: BigNumberish;
+  dieselRate_RAY: BigNumberish;
   lmAPY: number;
 
   earned7D: number;
   earned7DInUSD: number;
 
-  availableLiquidity: string;
-  availableLiquidityOld: string;
+  availableLiquidity: BigNumberish;
+  availableLiquidityOld: BigNumberish;
   availableLiquidity10kBasis: number;
   availableLiquidityInUSD: number;
 
   expectedLiqWeekAgo: number;
-  expectedLiquidity: string;
-  expectedLiquidityOld: string;
+  expectedLiquidity: BigNumberish;
+  expectedLiquidityOld: BigNumberish;
   expectedLiquidity10kBasis: number;
   expectedLiquidityInUSD: number;
-  expectedLiquidityLimit: string;
+  expectedLiquidityLimit: BigNumberish;
   expectedLiquidityLimitInUSD: number;
 
   caLockedValue: number;
@@ -35,15 +37,15 @@ export interface ChartsPoolDataPayload {
   caLockedValue10kBasis: number;
   caLockedValueUSD: number;
 
-  totalBorrowed: string;
-  totalBorrowedOld: string;
+  totalBorrowed: BigNumberish;
+  totalBorrowedOld: BigNumberish;
   totalBorrowed10kBasis: number;
   totalBorrowedInUSD: number;
 
-  debtWithInterest: string;
+  debtWithInterest: BigNumberish;
   debtWithInterest10kBasis: number;
   debtWithInterestInUSD: number;
-  debtWithInterestOld: string;
+  debtWithInterestOld: BigNumberish;
 
   withdrawFee: number;
 
