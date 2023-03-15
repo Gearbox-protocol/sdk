@@ -7,49 +7,81 @@ export type PoolDataPayload = ExcludeArrayProps<PoolDataStruct>;
 
 export interface ChartsPoolDataPayload {
   addr: string;
-  underlyingToken: string;
   dieselToken: string;
+  underlyingToken: string;
   isWETH: boolean;
-  expectedLiquidity: string;
-  expectedLiquidityLimit: string;
-  availableLiquidity: string;
-  totalBorrowed: string;
-  depositAPY_RAY: string;
-  borrowAPY_RAY: string;
-  dieselRate_RAY: string;
-  withdrawFee: number;
 
+  borrowAPY_RAY: BigNumberish;
+  depositAPY_RAY: BigNumberish;
+  dieselRate_RAY: BigNumberish;
   lmAPY: number;
 
-  // v2 props
-  underlying: string;
-  linearCumulativeIndex: BigNumberish;
-  cumulativeIndex_RAY: BigNumberish;
-  timestampLU: BigNumberish;
-  version: number;
+  earned7D: number;
+  earned7DInUSD: number;
 
-  expectedLiquidityInUSD: number;
-  expectedLiquidityLimitInUSD: number;
+  availableLiquidity: BigNumberish;
+  availableLiquidityOld: BigNumberish;
+  availableLiquidity10kBasis: number;
   availableLiquidityInUSD: number;
+
+  expectedLiqWeekAgo: number;
+  expectedLiquidity: BigNumberish;
+  expectedLiquidityOld: BigNumberish;
+  expectedLiquidity10kBasis: number;
+  expectedLiquidityInUSD: number;
+  expectedLiquidityLimit: BigNumberish;
+  expectedLiquidityLimitInUSD: number;
+
+  caLockedValue: number;
+  caLockedValueOld: number;
+  caLockedValue10kBasis: number;
+  caLockedValueUSD: number;
+
+  totalBorrowed: BigNumberish;
+  totalBorrowedOld: BigNumberish;
+  totalBorrowed10kBasis: number;
   totalBorrowedInUSD: number;
-  uniqueLPs: number;
-  dieselAPY7D?: number;
-  dieselAPY30D?: number;
+
+  debtWithInterest: BigNumberish;
+  debtWithInterest10kBasis: number;
+  debtWithInterestInUSD: number;
+  debtWithInterestOld: BigNumberish;
+
+  withdrawFee: number;
 
   addLiqCount: number;
   addedLiquidity: number;
-  caLockedValue: number;
-  caLockedValueInUSD: number;
-  earned7D: number;
-  earned7DInUSD: number;
-  expectedLiqWeekAgo: number;
   removeLiqCount: number;
   removedLiquidity: number;
+
+  dieselAPY1D: number;
+  dieselAPY1D10kBasis: number;
+  dieselAPY7D: number;
+  dieselAPY30D: number;
+
+  uniqueLPsOld: number;
+  uniqueLPs: number;
+  uniqueLPs10kBasis: number;
 }
 
 export interface ChartsAggregatedStats {
-  uniqueLPs: number;
+  caLockedValue: number;
+  caLockedValue10kBasis: number;
+
+  expectedLiquidity: number;
+  expectedLiquidity10kBasis: number;
+
+  totalBorrowed: number;
+  totalBorrowed10kBasis: number;
+
+  totalValue: number;
+  totalValue10kBasis: number;
+
+  debtWithInterest: number;
+  debtWithInterest10kBasis: number;
+
   earned7D: number;
+  uniqueLPs: number;
 }
 
 export interface ChartsAggregatedPoolPayload extends ChartsAggregatedStats {
