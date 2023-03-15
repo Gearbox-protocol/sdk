@@ -3,7 +3,9 @@ import { BigNumberish } from "ethers";
 export interface CreditSessionBalance {
   BI: string;
   F: number;
-  linked: boolean;
+  ind: number;
+  isAllowed: boolean;
+  isEnabled: boolean;
 }
 
 export interface CreditSessionPayload {

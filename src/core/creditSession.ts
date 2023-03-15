@@ -5,6 +5,8 @@ import {
   CreditSessionFilteredPayload,
   CreditSessionPayload,
 } from "../payload/creditSession";
+import { swapKeyValue } from "../utils/mappers";
+import { AssetWithView } from "./assets";
 import { PERCENTAGE_DECIMALS } from "./constants";
 
 export type CreditSessionStatus =
@@ -15,14 +17,19 @@ export type CreditSessionStatus =
   | "liquidateExpired"
   | "liquidatePaused";
 
-const statusEnum: Array<CreditSessionStatus> = [
-  "active",
-  "closed",
-  "repaid",
-  "liquidated",
-  "liquidateExpired",
-  "liquidatePaused",
-];
+export const CREDIT_SESSION_STATUS_BY_ID: Record<number, CreditSessionStatus> =
+  {
+    0: "active",
+    1: "closed",
+    2: "repaid",
+    3: "liquidated",
+    4: "liquidateExpired",
+    5: "liquidatePaused",
+  };
+
+export const CREDIT_SESSION_ID_BY_STATUS = swapKeyValue(
+  CREDIT_SESSION_STATUS_BY_ID,
+);
 
 export class CreditSession {
   readonly id: string;
@@ -61,11 +68,11 @@ export class CreditSession {
   readonly balances: Record<string, BigNumber>;
 
   constructor(payload: CreditSessionPayload) {
-    this.id = payload.id || "";
-    this.status = statusEnum[payload.status || 0];
-    this.borrower = payload.borrower || "";
-    this.creditManager = payload.creditManager || "";
-    this.account = payload.account || "";
+    this.id = (payload.id || "").toLowerCase();
+    this.status = CREDIT_SESSION_STATUS_BY_ID[payload.status || 0];
+    this.borrower = (payload.borrower || "").toLowerCase();
+    this.creditManager = (payload.creditManager || "").toLowerCase();
+    this.account = (payload.account || "").toLowerCase();
 
     this.initialAmount = BigNumber.from(payload.initialAmount || 0);
     this.borrowedAmount = BigNumber.from(payload.borrowedAmount || 0);
@@ -101,7 +108,7 @@ export class CreditSession {
     ).reduce<Record<string, BigNumber>>(
       (acc, [token, balance]) => ({
         ...acc,
-        [token]: BigNumber.from(balance.bi),
+        [token.toLowerCase()]: BigNumber.from(balance.bi),
       }),
       {},
     );
@@ -110,7 +117,7 @@ export class CreditSession {
     >(
       (acc, [token, balance]) => ({
         ...acc,
-        [token]: BigNumber.from(balance.BI),
+        [token.toLowerCase()]: BigNumber.from(balance.BI),
       }),
       {},
     );
@@ -143,16 +150,16 @@ export class CreditSessionFiltered {
 
   readonly tfIndex: number;
 
-  readonly balances: Record<string, BigNumber>;
+  readonly balances: Array<AssetWithView>;
 
   constructor(payload: CreditSessionFilteredPayload) {
-    this.id = payload.id || "";
-    this.borrower = payload.borrower || "";
-    this.account = payload.account || "";
-    this.creditManager = payload.creditManager || "";
-    this.underlyingToken = payload.underlyingToken || "";
+    this.id = (payload.id || "").toLowerCase();
+    this.borrower = (payload.borrower || "").toLowerCase();
+    this.account = (payload.account || "").toLowerCase();
+    this.creditManager = (payload.creditManager || "").toLowerCase();
+    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
 
-    this.status = statusEnum[payload.status || 0];
+    this.status = CREDIT_SESSION_STATUS_BY_ID[payload.status || 0];
     this.since = payload.since || 0;
     this.closedAt = payload.closedAt || 0;
     this.sinceDate = moment((payload.since || 0) * 1000).format("Do MMM YYYY");
@@ -171,16 +178,14 @@ export class CreditSessionFiltered {
     this.profitInUSD = payload.pnlUSD || 0;
     this.profitInUnderlying = payload.pnl || 0;
 
-    this.tfIndex = payload.tfIndex || 0;
+    this.tfIndex = (payload.tfIndex || 0) * PERCENTAGE_DECIMALS;
 
-    this.balances = Object.entries(payload.balances).reduce<
-      Record<string, BigNumber>
-    >(
-      (acc, [token, balance]) => ({
-        ...acc,
-        [token]: BigNumber.from(balance.BI),
+    this.balances = Object.entries(payload.balances).map(
+      ([token, balance]) => ({
+        token: token.toLowerCase(),
+        balance: BigNumber.from(balance.BI),
+        balanceView: balance.F.toString(),
       }),
-      {},
     );
   }
 }
