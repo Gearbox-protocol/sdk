@@ -8,6 +8,13 @@ export interface CreditSessionBalance {
   isEnabled: boolean;
 }
 
+interface CreditSessionReward {
+  bi: BigNumberish;
+  f: number;
+  pool: string;
+  symbol: string;
+}
+
 export interface CreditSessionPayload {
   id: string;
   status: number;
@@ -39,12 +46,7 @@ export interface CreditSessionPayload {
   currentBlock: number;
   currentTimestamp: number;
 
-  cvxUnclaimedRewards: Array<{
-    bi: BigNumberish;
-    f: number;
-    pool: string;
-    symbol: string;
-  }>;
+  cvxUnclaimedRewards: Array<CreditSessionReward>;
   balances: Record<string, CreditSessionBalance>;
 }
 
@@ -72,4 +74,22 @@ export interface CreditSessionFilteredPayload {
   pnlUSD: number;
 
   tfIndex: number;
+}
+
+export interface CreditSessionsAggregatedStats {
+  healthFactor: BigNumberish;
+  healthFactorOld: BigNumberish;
+  healthFactor10kBasis: number;
+
+  leverage: number;
+  leverageOld: number;
+  leverage10kBasis: number;
+
+  activeAccounts: number;
+  activeAccountsOld: number;
+  activeAccounts10kBasis: number;
+
+  openedAccounts: number;
+  openedAccountsOld: number;
+  openedAccounts10kBasis: number;
 }
