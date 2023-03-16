@@ -76,7 +76,7 @@ export interface CreditSessionFilteredPayload {
   tfIndex: number;
 }
 
-export interface CreditSessionsAggregatedStats {
+export interface CreditSessionsAggregatedStatsPayload {
   healthFactor: BigNumberish;
   healthFactorOld: BigNumberish;
   healthFactor10kBasis: number;
