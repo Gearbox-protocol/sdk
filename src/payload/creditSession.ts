@@ -1,6 +1,6 @@
 import { BigNumberish } from "ethers";
 
-export interface CreditSessionBalance {
+export interface CreditSessionBalancePayload {
   BI: string;
   F: number;
   ind: number;
