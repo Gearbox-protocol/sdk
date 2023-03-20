@@ -60,11 +60,11 @@ export interface CreditSessionPayload {
   currentTimestamp: number;
 
   cvxUnclaimedRewards: Record<string, CreditSessionReward>;
-  balances: Record<string, CreditSessionBalance>;
+  balances: Record<string, CreditSessionBalancePayload>;
 }
 
 export interface CreditSessionFilteredPayload {
-  balances: Record<string, CreditSessionBalance>;
+  balances: Record<string, CreditSessionBalancePayload>;
 
   id: string;
   borrower: string;
