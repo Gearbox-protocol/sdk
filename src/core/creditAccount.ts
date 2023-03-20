@@ -189,11 +189,7 @@ export function sortBalances(
         : amountAbcComparator(amount1, amount2);
     }
 
-    if (totalPrice1.gt(totalPrice2)) {
-      return -1;
-    }
-
-    return 1;
+    return amountAbcComparator(totalPrice1, totalPrice2);
   });
 }
 
@@ -205,7 +201,7 @@ export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
 }
 
 export function amountAbcComparator(t1: BigNumber, t2: BigNumber) {
-  return t1?.gt(t2) ? -1 : 1;
+  return t1.gt(t2) ? -1 : 1;
 }
 
 export interface CalcOverallAPYProps {

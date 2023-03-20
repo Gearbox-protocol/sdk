@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 import moment from "moment";
 
 import {
@@ -31,6 +31,11 @@ export const CREDIT_SESSION_ID_BY_STATUS = swapKeyValue(
   CREDIT_SESSION_STATUS_BY_ID,
 );
 
+export interface CreditSessionBalance {
+  balance: BigNumber;
+  token: string;
+}
+
 export class CreditSession {
   readonly id: string;
   readonly status: CreditSessionStatus;
@@ -60,12 +65,20 @@ export class CreditSession {
   // sinceTimestamp: number;
   // closedAtTimestamp: number;
 
+  readonly borrowAPY_RAY: BigNumberish;
+  readonly borrowAPY7D: number;
+  readonly totalValueUSD: number;
+  readonly debt: BigNumberish;
+  readonly debtUSD: number;
+  readonly leverage: number;
+  readonly tfIndex: number;
+
   readonly spotDebt: BigNumber;
   readonly spotTotalValue: BigNumber;
   readonly spotUserFunds: BigNumber;
 
-  readonly cvxUnclaimedRewards: Record<string, BigNumber>;
-  readonly balances: Record<string, BigNumber>;
+  readonly cvxUnclaimedRewards: Record<string, CreditSessionBalance>;
+  readonly balances: Record<string, CreditSessionBalance>;
 
   constructor(payload: CreditSessionPayload) {
     this.id = (payload.id || "").toLowerCase();
@@ -93,6 +106,14 @@ export class CreditSession {
     this.collateralInUSD = payload.collateralInUSD || 0;
     this.collateralInUnderlying = payload.collateralInUnderlying || 0;
 
+    this.borrowAPY_RAY = BigNumber.from(payload.borrowAPY_RAY || 0);
+    this.borrowAPY7D = (payload.borrowAPY7D || 0) * PERCENTAGE_DECIMALS;
+    this.totalValueUSD = payload.totalValueUSD || 0;
+    this.debt = BigNumber.from(payload.debt || 0);
+    this.debtUSD = payload.debtUSD || 0;
+    this.leverage = payload.leverage || 0;
+    this.tfIndex = (payload.tfIndex || 0) * PERCENTAGE_DECIMALS;
+
     this.roi = (payload.roi || 0) / PERCENTAGE_DECIMALS;
     this.apy = (payload.apy || 0) / PERCENTAGE_DECIMALS;
 
@@ -104,23 +125,31 @@ export class CreditSession {
     this.spotUserFunds = BigNumber.from(payload.spotUserFunds || 0);
 
     this.cvxUnclaimedRewards = Object.entries(
-      payload.cvxUnclaimedRewards,
-    ).reduce<Record<string, BigNumber>>(
-      (acc, [token, balance]) => ({
+      payload.cvxUnclaimedRewards || {},
+    ).reduce<Record<string, CreditSessionBalance>>((acc, [token, balance]) => {
+      const tokenLC = token.toLowerCase();
+
+      return {
         ...acc,
-        [token.toLowerCase()]: BigNumber.from(balance.bi),
-      }),
-      {},
-    );
-    this.balances = Object.entries(payload.balances).reduce<
-      Record<string, BigNumber>
-    >(
-      (acc, [token, balance]) => ({
+        [tokenLC]: {
+          balance: BigNumber.from(balance.bi),
+          token: tokenLC,
+        },
+      };
+    }, {});
+    this.balances = Object.entries(payload.balances || {}).reduce<
+      Record<string, CreditSessionBalance>
+    >((acc, [token, balance]) => {
+      const tokenLC = token.toLowerCase();
+
+      return {
         ...acc,
-        [token.toLowerCase()]: BigNumber.from(balance.BI),
-      }),
-      {},
-    );
+        [tokenLC]: {
+          balance: BigNumber.from(balance.BI),
+          token: tokenLC,
+        },
+      };
+    }, {});
   }
 }
 
@@ -180,7 +209,7 @@ export class CreditSessionFiltered {
 
     this.tfIndex = (payload.tfIndex || 0) * PERCENTAGE_DECIMALS;
 
-    this.balances = Object.entries(payload.balances).map(
+    this.balances = Object.entries(payload.balances || {}).map(
       ([token, balance]) => ({
         token: token.toLowerCase(),
         balance: BigNumber.from(balance.BI),

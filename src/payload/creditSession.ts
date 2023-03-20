@@ -1,6 +1,6 @@
 import { BigNumberish } from "ethers";
 
-export interface CreditSessionBalance {
+export interface CreditSessionBalancePayload {
   BI: string;
   F: number;
   ind: number;
@@ -22,21 +22,34 @@ export interface CreditSessionPayload {
   account: string;
   creditManager: string;
 
+  borrowAPY_RAY: BigNumberish;
+  borrowAPY7D: number;
+
   healthFactor: BigNumberish;
+  leverage: number;
+  tfIndex: number;
+
   initialAmount: BigNumberish;
+  collateralInUSD: number;
+  collateralInUnderlying: number;
+  spotUserFunds: BigNumberish;
+
+  debt: BigNumberish;
+  debtUSD: number;
+
   borrowedAmount: BigNumberish;
+  // probably is spot borrowedAmount
+  spotDebt: BigNumberish;
+
   totalValue: BigNumberish;
+  totalValueUSD: number;
+  spotTotalValue: BigNumberish;
 
   since: number;
   sinceTimestamp: number;
   closedAt: number;
   closedAtTimestamp: number;
 
-  collateralInUSD: number;
-  collateralInUnderlying: number;
-  spotDebt: BigNumberish;
-  spotTotalValue: BigNumberish;
-  spotUserFunds: BigNumberish;
   profitInUSD: number;
   profitInUnderlying: number;
 
@@ -46,12 +59,12 @@ export interface CreditSessionPayload {
   currentBlock: number;
   currentTimestamp: number;
 
-  cvxUnclaimedRewards: Array<CreditSessionReward>;
-  balances: Record<string, CreditSessionBalance>;
+  cvxUnclaimedRewards: Record<string, CreditSessionReward>;
+  balances: Record<string, CreditSessionBalancePayload>;
 }
 
 export interface CreditSessionFilteredPayload {
-  balances: Record<string, CreditSessionBalance>;
+  balances: Record<string, CreditSessionBalancePayload>;
 
   id: string;
   borrower: string;
