@@ -66,3 +66,6 @@ export { callRepeater } from "./utils/repeater";
 export * from "./utils/types";
 export * from "./watchers/creditAccountWatcher";
 export * from "./watchers/creditManagerWatcher";
+
+// risk framework
+export * from "./risks";
