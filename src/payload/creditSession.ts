@@ -106,3 +106,10 @@ export interface CreditSessionsAggregatedStatsPayload {
   openedAccountsOld: number;
   openedAccounts10kBasis: number;
 }
+
+export interface UserCreditSessionsAggregatedStatsPayload {
+  exporttotalValue7DInUSD: number;
+  totalValue10kBasis: number;
+  totalValueInUSD: number;
+  accounts: Array<CreditSessionPayload>;
+}
