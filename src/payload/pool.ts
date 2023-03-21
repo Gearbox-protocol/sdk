@@ -87,3 +87,35 @@ export interface ChartsAggregatedStats {
 export interface ChartsAggregatedPoolPayload extends ChartsAggregatedStats {
   pools: Array<ChartsPoolDataPayload>;
 }
+
+export interface UserPoolPayload {
+  pool: string;
+  dieselSym: string;
+
+  liqValue: BigNumberish;
+  liqValueInUSD: number;
+
+  dieselBalance: number;
+  dieselBalanceBI: BigNumberish;
+
+  lmRewards: BigNumberish;
+  lmRewardsInUSD: number;
+
+  liqPnlInNativeToken: number;
+  liqPnlInUSD: number;
+
+  addedLiq: number;
+  addLiqCount: number;
+
+  removeLiqCount: number;
+  removedLiq: number;
+}
+
+export interface UserPoolAggregatedStatsPayload {
+  totalLMRewards: number;
+  totalLiqInUSD: number;
+  totalLiqt7DInUSD: number;
+  totalLiqt10kBasis: number;
+  user: string;
+  pools: Array<UserPoolPayload>;
+}

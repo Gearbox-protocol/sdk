@@ -1,6 +1,10 @@
 import { BigNumber, providers, Signer } from "ethers";
 
-import { ChartsPoolDataPayload, PoolDataPayload } from "../../payload/pool";
+import {
+  ChartsPoolDataPayload,
+  PoolDataPayload,
+  UserPoolPayload,
+} from "../../payload/pool";
 import {
   IInterestRateModel__factory,
   IPoolService,
@@ -224,5 +228,55 @@ export class ChartsPoolData {
     this.oldUniqueLPs = payload.uniqueLPsOld || 0;
     this.uniqueLPsChange =
       (payload.uniqueLPs10kBasis || 0) * PERCENTAGE_DECIMALS;
+  }
+}
+
+export class UserPoolData {
+  readonly id: string;
+  readonly address: string;
+
+  readonly underlyingToken: string;
+
+  readonly providedLiquidity: BigNumber;
+  readonly providedLiquidityInUSD: number;
+
+  readonly dieselBalance: BigNumber;
+  readonly dieselBalanceInUSD: number;
+
+  readonly lmRewards: BigNumber;
+  readonly lmRewardsInUSD: number;
+
+  readonly pnlInNativeToken: number;
+  readonly pnlInUSD: number;
+
+  readonly addedLiq: number;
+  readonly addLiqCount: number;
+
+  readonly removeLiqCount: number;
+  readonly removedLiq: number;
+
+  constructor(payload: UserPoolPayload) {
+    this.id = payload.pool || "";
+    this.address = payload.pool || "";
+
+    this.underlyingToken = payload.dieselSym || "";
+
+    this.providedLiquidity = BigNumber.from(payload.liqValue || 0);
+    this.providedLiquidityInUSD = payload.liqValueInUSD;
+
+    this.dieselBalance = BigNumber.from(payload.dieselBalanceBI || 0);
+    this.dieselBalanceInUSD = payload.dieselBalance;
+
+    this.lmRewards = BigNumber.from(payload.lmRewards || 0);
+    this.lmRewardsInUSD = payload.lmRewardsInUSD;
+
+    this.pnlInNativeToken = payload.liqPnlInNativeToken;
+    this.pnlInUSD = payload.liqPnlInUSD;
+
+    this.addedLiq = payload.addedLiq;
+    this.addLiqCount = payload.addLiqCount;
+
+    this.removeLiqCount = payload.removeLiqCount;
+    this.removedLiq = payload.removedLiq;
   }
 }
