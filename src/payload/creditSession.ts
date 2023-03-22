@@ -21,6 +21,7 @@ export interface CreditSessionPayload {
   borrower: string;
   account: string;
   creditManager: string;
+  underlyingToken: string;
 
   borrowAPY_RAY: BigNumberish;
   borrowAPY7D: number;
@@ -108,7 +109,7 @@ export interface CreditSessionsAggregatedStatsPayload {
 }
 
 export interface UserCreditSessionsAggregatedStatsPayload {
-  exporttotalValue7DInUSD: number;
+  totalValue7DInUSD: number;
   totalValue10kBasis: number;
   totalValueInUSD: number;
   accounts: Array<CreditSessionPayload>;

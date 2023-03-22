@@ -91,6 +91,8 @@ export interface ChartsAggregatedPoolPayload extends ChartsAggregatedStats {
 export interface UserPoolPayload {
   pool: string;
   dieselSym: string;
+  dieselToken: string;
+  underlyingToken: string;
 
   liqValue: BigNumberish;
   liqValueInUSD: number;
@@ -109,6 +111,9 @@ export interface UserPoolPayload {
 
   removeLiqCount: number;
   removedLiq: number;
+
+  depositAPY_RAY: BigNumberish;
+  lmAPY: number;
 }
 
 export interface UserPoolAggregatedStatsPayload {

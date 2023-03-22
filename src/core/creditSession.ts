@@ -37,6 +37,7 @@ export class CreditSession {
   readonly borrower: string;
   readonly creditManager: string;
   readonly account: string;
+  readonly underlyingToken: string;
 
   readonly since: number;
   readonly sinceDate: string;
@@ -81,6 +82,7 @@ export class CreditSession {
     this.borrower = (payload.borrower || "").toLowerCase();
     this.creditManager = (payload.creditManager || "").toLowerCase();
     this.account = (payload.account || "").toLowerCase();
+    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
 
     this.initialAmount = BigNumber.from(payload.initialAmount || 0);
     this.borrowedAmount = BigNumber.from(payload.borrowedAmount || 0);

@@ -147,11 +147,11 @@ export class ChartsPoolData {
   readonly uniqueLPsChange: number;
 
   constructor(payload: ChartsPoolDataPayload) {
-    this.id = payload.addr.toLowerCase();
-    this.address = payload.addr.toLowerCase();
-    this.underlyingToken = payload.underlyingToken.toLowerCase();
-    this.dieselToken = payload.dieselToken.toLowerCase();
-    this.isWETH = payload.isWETH;
+    this.id = (payload.addr || "").toLowerCase();
+    this.address = (payload.addr || "").toLowerCase();
+    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.dieselToken = (payload.dieselToken || "").toLowerCase();
+    this.isWETH = payload.isWETH || false;
 
     this.earned7D = payload.earned7D || 0;
     this.earned7DInUSD = payload.earned7DInUSD || 0;
@@ -234,8 +234,12 @@ export class ChartsPoolData {
 export class UserPoolData {
   readonly id: string;
   readonly address: string;
-
+  readonly dieselToken: string;
   readonly underlyingToken: string;
+
+  readonly depositAPY: number;
+  readonly depositAPYRay: BigNumber;
+  readonly lmAPY: number;
 
   readonly providedLiquidity: BigNumber;
   readonly providedLiquidityInUSD: number;
@@ -256,10 +260,15 @@ export class UserPoolData {
   readonly removedLiq: number;
 
   constructor(payload: UserPoolPayload) {
-    this.id = payload.pool || "";
+    this.id = (payload.pool || "").toLowerCase();
     this.address = payload.pool || "";
+    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.dieselToken = (payload.dieselToken || "").toLowerCase();
 
-    this.underlyingToken = payload.dieselSym || "";
+    this.depositAPY =
+      rayToNumber(payload.depositAPY_RAY || 0) * PERCENTAGE_DECIMALS;
+    this.depositAPYRay = BigNumber.from(payload.depositAPY_RAY || 0);
+    this.lmAPY = (payload.lmAPY || 0) / PERCENTAGE_FACTOR;
 
     this.providedLiquidity = BigNumber.from(payload.liqValue || 0);
     this.providedLiquidityInUSD = payload.liqValueInUSD;
