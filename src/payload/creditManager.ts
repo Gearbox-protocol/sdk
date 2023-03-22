@@ -1,3 +1,5 @@
+import { BigNumberish } from "ethers";
+
 import { CreditManagerDataStructOutput } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { ExcludeArrayProps } from "../utils/types";
 
@@ -12,20 +14,20 @@ export type CreditManagerDataPayload =
 export interface ChartsCreditManagerPayload {
   addr: string;
 
-  availableLiquidity: string;
-  borrowRate: string;
+  availableLiquidity: BigNumberish;
+  borrowRate: BigNumberish;
   isWeth: boolean;
-  maxAmount: string;
+  maxAmount: BigNumberish;
   maxLeverageFactor: number;
-  minAmount: string;
+  minAmount: BigNumberish;
   openedAccountsCount: number;
-  totalBorrowed: string;
+  totalBorrowed: BigNumberish;
   totalClosedAccounts: number;
   totalLiquidatedAccounts: number;
-  totalLosses: string;
+  totalLosses: BigNumberish;
   totalOpenedAccounts: number;
-  totalProfit: string;
-  totalRepaid: string;
+  totalProfit: BigNumberish;
+  totalRepaid: stBigNumberishring;
   totalRepaidAccounts: number;
   poolAddress: string;
 
