@@ -137,10 +137,10 @@ export class ChartsPoolData {
 
   readonly withdrawFee: number;
 
-  readonly depositAPY1D: number;
-  readonly depositAPY1DChange: number;
-  readonly depositAPY7D: number;
-  readonly depositAPY30D: number;
+  readonly depositAPY1DAverage: number;
+  readonly depositAPY1DAverageChange: number;
+  readonly depositAPY7DAverage: number;
+  readonly depositAPY30DAverage: number;
 
   readonly oldUniqueLPs: number;
   readonly uniqueLPs: number;
@@ -218,11 +218,14 @@ export class ChartsPoolData {
     this.removeLiqCount = payload.removeLiqCount || 0;
     this.removedLiquidity = payload.removedLiquidity || 0;
 
-    this.depositAPY1D = (payload.dieselAPY1D || 0) / PERCENTAGE_DECIMALS;
-    this.depositAPY1DChange =
-      (payload.dieselAPY1D10kBasis || 0) * PERCENTAGE_DECIMALS;
-    this.depositAPY7D = (payload.dieselAPY7D || 0) / PERCENTAGE_DECIMALS;
-    this.depositAPY30D = (payload.dieselAPY30D || 0) / PERCENTAGE_DECIMALS;
+    this.depositAPY1DAverage =
+      (payload.depositAPY1DAverage || 0) / PERCENTAGE_DECIMALS;
+    this.depositAPY1DAverageChange =
+      (payload.depositAPY1DAverage10kBasis || 0) * PERCENTAGE_DECIMALS;
+    this.depositAPY7DAverage =
+      (payload.depositAPY7DAverage || 0) / PERCENTAGE_DECIMALS;
+    this.depositAPY30DAverage =
+      (payload.depositAPY30DAverage || 0) / PERCENTAGE_DECIMALS;
 
     this.uniqueLPs = payload.uniqueLPs || 0;
     this.oldUniqueLPs = payload.uniqueLPsOld || 0;

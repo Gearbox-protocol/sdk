@@ -54,10 +54,10 @@ export interface ChartsPoolDataPayload {
   removeLiqCount: number;
   removedLiquidity: number;
 
-  dieselAPY1D: number;
-  dieselAPY1D10kBasis: number;
-  dieselAPY7D: number;
-  dieselAPY30D: number;
+  depositAPY1DAverage: number;
+  depositAPY1DAverage10kBasis: number;
+  depositAPY7DAverage: number;
+  depositAPY30DAverage: number;
 
   uniqueLPsOld: number;
   uniqueLPs: number;

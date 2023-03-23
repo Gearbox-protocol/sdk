@@ -27,7 +27,7 @@ export interface ChartsCreditManagerPayload {
   totalLosses: BigNumberish;
   totalOpenedAccounts: number;
   totalProfit: BigNumberish;
-  totalRepaid: stBigNumberishring;
+  totalRepaid: BigNumberish;
   totalRepaidAccounts: number;
   poolAddress: string;
 
@@ -53,4 +53,9 @@ export interface ChartsCreditManagerPayload {
   liquidationPremiumExpired: number;
 
   version: number;
+
+  borrowRateOld: number;
+  totalBorrowedBIOld: number;
+  totalLossesOld: BigNumberish;
+  totalProfitOld: BigNumberish;
 }

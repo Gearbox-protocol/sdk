@@ -62,7 +62,7 @@ export class CreditSession {
   // closedAtTimestamp: number;
 
   readonly borrowAPY_RAY: BigNumber;
-  readonly borrowAPY7D: number;
+  readonly borrowAPY7DAverage: number;
   readonly totalValueUSD: number;
   readonly debt: BigNumber;
   readonly debtUSD: number;
@@ -104,7 +104,8 @@ export class CreditSession {
     this.collateralInUnderlying = payload.collateralInUnderlying || 0;
 
     this.borrowAPY_RAY = BigNumber.from(payload.borrowAPY_RAY || 0);
-    this.borrowAPY7D = (payload.borrowAPY7D || 0) * PERCENTAGE_DECIMALS;
+    this.borrowAPY7DAverage =
+      (payload.borrowAPY7DAverage || 0) * PERCENTAGE_DECIMALS;
     this.totalValueUSD = payload.totalValueUSD || 0;
     this.debt = BigNumber.from(payload.debt || 0);
     this.debtUSD = payload.debtUSD || 0;

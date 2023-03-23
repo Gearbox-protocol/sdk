@@ -24,7 +24,7 @@ export interface CreditSessionPayload {
   underlyingToken: string;
 
   borrowAPY_RAY: BigNumberish;
-  borrowAPY7D: number;
+  borrowAPY7DAverage: number;
 
   healthFactor: BigNumberish;
   leverage: number;

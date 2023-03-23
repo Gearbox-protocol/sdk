@@ -241,7 +241,10 @@ export class ChartsCreditManagerData {
   readonly underlyingToken: string;
   readonly pool: string;
   readonly isWETH: boolean;
+
   readonly borrowRate: number;
+  readonly borrowRateOld: number;
+
   readonly minAmount: BigNumber;
   readonly maxAmount: BigNumber;
   readonly maxLeverageFactor: number; // for V1 only
@@ -252,18 +255,22 @@ export class ChartsCreditManagerData {
   readonly feeLiquidation: number;
   readonly feeLiquidationExpired: number;
 
-  readonly isPaused: boolean = false;
-
   readonly openedAccountsCount: number;
   readonly totalOpenedAccounts: number;
   readonly totalClosedAccounts: number;
   readonly totalRepaidAccounts: number;
   readonly totalLiquidatedAccounts: number;
+
   readonly totalBorrowed: BigNumber;
+  readonly totalBorrowedOld: number;
+
   readonly cumulativeBorrowed: BigNumber;
   readonly totalRepaid: BigNumber;
+
   readonly totalProfit: BigNumber;
+  readonly totalProfitOld: BigNumber;
   readonly totalLosses: BigNumber;
+  readonly totalLossesOld: BigNumber;
 
   readonly totalBorrowedInUSD: number;
   readonly totalLossesInUSD: number;
@@ -291,6 +298,12 @@ export class ChartsCreditManagerData {
     this.feeLiquidationExpired = payload.feeLiquidationExpired;
 
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
+
+    this.borrowRateOld = payload.borrowRateOld || 0;
+    this.totalBorrowedOld = payload.totalBorrowedBIOld || 0;
+    this.totalLossesOld = BigNumber.from(payload.totalLossesOld || 0);
+    this.totalProfitOld = BigNumber.from(payload.totalProfitOld || 0);
+
     this.borrowRate = BigNumber.from(payload.borrowRate || 0)
       .mul(payload.feeInterest + PERCENTAGE_FACTOR)
       .mul(PERCENTAGE_DECIMALS)
