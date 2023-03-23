@@ -244,6 +244,7 @@ export class ChartsCreditManagerData {
 
   readonly borrowRate: number;
   readonly borrowRateOld: number;
+  readonly borrowRateChange: number;
 
   readonly minAmount: BigNumber;
   readonly maxAmount: BigNumber;
@@ -262,13 +263,14 @@ export class ChartsCreditManagerData {
   readonly totalLiquidatedAccounts: number;
 
   readonly totalBorrowed: BigNumber;
-  readonly totalBorrowedOld: number;
+  readonly totalBorrowedOld: BigNumber;
+  readonly totalBorrowedChange: number;
 
-  readonly cumulativeBorrowed: BigNumber;
   readonly totalRepaid: BigNumber;
 
   readonly totalProfit: BigNumber;
   readonly totalProfitOld: BigNumber;
+  readonly pnlChange: number;
   readonly totalLosses: BigNumber;
   readonly totalLossesOld: BigNumber;
 
@@ -290,49 +292,63 @@ export class ChartsCreditManagerData {
     this.version = payload.version || 2;
     this.isWETH = payload.isWeth || false;
 
-    this.minAmount = BigNumber.from(payload.minAmount || 0);
-    this.maxAmount = BigNumber.from(payload.maxAmount || 0);
-
-    this.feeInterest = payload.feeInterest;
-    this.feeLiquidation = payload.feeLiquidation;
-    this.feeLiquidationExpired = payload.feeLiquidationExpired;
-
-    this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
-
-    this.borrowRateOld = payload.borrowRateOld || 0;
-    this.totalBorrowedOld = payload.totalBorrowedBIOld || 0;
-    this.totalLossesOld = BigNumber.from(payload.totalLossesOld || 0);
-    this.totalProfitOld = BigNumber.from(payload.totalProfitOld || 0);
-
     this.borrowRate = BigNumber.from(payload.borrowRate || 0)
       .mul(payload.feeInterest + PERCENTAGE_FACTOR)
       .mul(PERCENTAGE_DECIMALS)
       .div(RAY)
       .toNumber();
+    this.borrowRateOld = BigNumber.from(payload.borrowRateOld || 0)
+      .mul(payload.feeInterest + PERCENTAGE_FACTOR)
+      .mul(PERCENTAGE_DECIMALS)
+      .div(RAY)
+      .toNumber();
+    this.borrowRateChange =
+      (payload.borrowRate10kBasis || 0) * PERCENTAGE_DECIMALS;
+
     this.maxLeverageFactor = BigNumber.from(
       payload.maxLeverageFactor || 0,
     ).toNumber();
 
-    this.openedAccountsCount = payload.openedAccountsCount || 0;
-    this.totalOpenedAccounts = payload.totalOpenedAccounts || 0;
-    this.totalClosedAccounts = payload.totalClosedAccounts || 0;
-    this.totalRepaidAccounts = payload.totalRepaidAccounts || 0;
-    this.totalLiquidatedAccounts = payload.totalLiquidatedAccounts || 0;
-    this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
-    this.cumulativeBorrowed = BigNumber.from(0);
-    this.totalRepaid = BigNumber.from(payload.totalRepaid || 0);
-    this.totalProfit = BigNumber.from(payload.totalProfit || 0);
-    this.totalLosses = BigNumber.from(payload.totalLosses || 0);
+    this.feeInterest = payload.feeInterest;
+    this.feeLiquidation = payload.feeLiquidation;
+    this.feeLiquidationExpired = payload.feeLiquidationExpired;
 
-    this.totalBorrowedInUSD = payload.totalBorrowedInUSD || 0;
-    this.totalLossesInUSD = payload.totalLossesInUSD || 0;
-    this.totalProfitInUSD = payload.totalProfitInUSD || 0;
-    this.totalRepaidInUSD = payload.totalRepaidInUSD || 0;
+    this.minAmount = BigNumber.from(payload.minAmount || 0);
+    this.maxAmount = BigNumber.from(payload.maxAmount || 0);
+
+    this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
     this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
 
+    this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
+    this.totalBorrowedOld = BigNumber.from(payload.totalBorrowedBIOld || 0);
+    this.totalBorrowedInUSD = payload.totalBorrowedInUSD || 0;
+    this.totalBorrowedChange =
+      (payload.totalBorrowedBI10kBasis || 0) * PERCENTAGE_DECIMALS;
+
+    this.totalLosses = BigNumber.from(payload.totalLosses || 0);
+    this.totalLossesOld = BigNumber.from(payload.totalLossesOld || 0);
+    this.totalLossesInUSD = payload.totalLossesInUSD || 0;
+
+    this.totalRepaid = BigNumber.from(payload.totalRepaid || 0);
+    this.totalRepaidInUSD = payload.totalRepaidInUSD || 0;
+
+    this.totalProfit = BigNumber.from(payload.totalProfit || 0);
+    this.totalProfitOld = BigNumber.from(payload.totalProfitOld || 0);
+    this.totalProfitInUSD = payload.totalProfitInUSD || 0;
+    this.pnlChange = (payload.pnl10kBasis || 0) * PERCENTAGE_DECIMALS;
+
+    this.openedAccountsCount = payload.openedAccountsCount || 0;
     this.openedAccountsCountChange = payload.openedAccountsCountChange || 0;
+
+    this.totalOpenedAccounts = payload.totalOpenedAccounts || 0;
     this.totalOpenedAccountsChange = payload.totalOpenedAccountsChange || 0;
+
+    this.totalClosedAccounts = payload.totalClosedAccounts || 0;
     this.totalClosedAccountsChange = payload.totalClosedAccountsChange || 0;
+
+    this.totalRepaidAccounts = payload.totalRepaidAccounts || 0;
+
+    this.totalLiquidatedAccounts = payload.totalLiquidatedAccounts || 0;
     this.totalLiquidatedAccountsChange =
       payload.totalLiquidatedAccountsChange || 0;
   }
