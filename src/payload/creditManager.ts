@@ -65,4 +65,5 @@ export interface ChartsCreditManagerPayload {
   totalClosedAccountsChange: number;
 
   totalRepaidAccounts: number;
+  liquidityThresholds: Record<string, number>;
 }

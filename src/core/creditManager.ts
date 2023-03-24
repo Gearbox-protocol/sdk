@@ -284,6 +284,8 @@ export class ChartsCreditManagerData {
   readonly totalClosedAccountsChange: number;
   readonly totalLiquidatedAccountsChange: number;
 
+  readonly liquidationThresholds: Record<string, number>;
+
   constructor(payload: ChartsCreditManagerPayload) {
     this.id = (payload.addr || "").toLowerCase();
     this.address = (payload.addr || "").toLowerCase();
@@ -318,6 +320,8 @@ export class ChartsCreditManagerData {
 
     this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
     this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
+
+    this.liquidationThresholds = payload.liquidityThresholds;
 
     this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
     this.totalBorrowedOld = BigNumber.from(payload.totalBorrowedBIOld || 0);
