@@ -54,10 +54,10 @@ export interface ChartsPoolDataPayload {
   removeLiqCount: number;
   removedLiquidity: number;
 
-  dieselAPY1D: number;
-  dieselAPY1D10kBasis: number;
-  dieselAPY7D: number;
-  dieselAPY30D: number;
+  depositAPY1DAverage: number;
+  depositAPY1DAverage10kBasis: number;
+  depositAPY7DAverage: number;
+  depositAPY30DAverage: number;
 
   uniqueLPsOld: number;
   uniqueLPs: number;
@@ -86,4 +86,41 @@ export interface ChartsAggregatedStats {
 
 export interface ChartsAggregatedPoolPayload extends ChartsAggregatedStats {
   pools: Array<ChartsPoolDataPayload>;
+}
+
+export interface UserPoolPayload {
+  pool: string;
+  dieselSym: string;
+  dieselToken: string;
+  underlyingToken: string;
+
+  liqValue: BigNumberish;
+  liqValueInUSD: number;
+
+  dieselBalance: number;
+  dieselBalanceBI: BigNumberish;
+
+  lmRewards: BigNumberish;
+  lmRewardsInUSD: number;
+
+  liqPnlInNativeToken: number;
+  liqPnlInUSD: number;
+
+  addedLiq: number;
+  addLiqCount: number;
+
+  removeLiqCount: number;
+  removedLiq: number;
+
+  depositAPY_RAY: BigNumberish;
+  lmAPY: number;
+}
+
+export interface UserPoolAggregatedStatsPayload {
+  totalLMRewards: number;
+  totalLiqInUSD: number;
+  totalLiqt7DInUSD: number;
+  totalLiqt10kBasis: number;
+  user: string;
+  pools: Array<UserPoolPayload>;
 }

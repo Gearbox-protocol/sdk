@@ -1,6 +1,10 @@
 import { BigNumber, providers, Signer } from "ethers";
 
-import { ChartsPoolDataPayload, PoolDataPayload } from "../../payload/pool";
+import {
+  ChartsPoolDataPayload,
+  PoolDataPayload,
+  UserPoolPayload,
+} from "../../payload/pool";
 import {
   IInterestRateModel__factory,
   IPoolService,
@@ -133,21 +137,21 @@ export class ChartsPoolData {
 
   readonly withdrawFee: number;
 
-  readonly depositAPY1D: number;
-  readonly depositAPY1DChange: number;
-  readonly depositAPY7D: number;
-  readonly depositAPY30D: number;
+  readonly depositAPY1DAverage: number;
+  readonly depositAPY1DAverageChange: number;
+  readonly depositAPY7DAverage: number;
+  readonly depositAPY30DAverage: number;
 
   readonly oldUniqueLPs: number;
   readonly uniqueLPs: number;
   readonly uniqueLPsChange: number;
 
   constructor(payload: ChartsPoolDataPayload) {
-    this.id = payload.addr.toLowerCase();
-    this.address = payload.addr.toLowerCase();
-    this.underlyingToken = payload.underlyingToken.toLowerCase();
-    this.dieselToken = payload.dieselToken.toLowerCase();
-    this.isWETH = payload.isWETH;
+    this.id = (payload.addr || "").toLowerCase();
+    this.address = (payload.addr || "").toLowerCase();
+    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.dieselToken = (payload.dieselToken || "").toLowerCase();
+    this.isWETH = payload.isWETH || false;
 
     this.earned7D = payload.earned7D || 0;
     this.earned7DInUSD = payload.earned7DInUSD || 0;
@@ -214,15 +218,77 @@ export class ChartsPoolData {
     this.removeLiqCount = payload.removeLiqCount || 0;
     this.removedLiquidity = payload.removedLiquidity || 0;
 
-    this.depositAPY1D = (payload.dieselAPY1D || 0) / PERCENTAGE_DECIMALS;
-    this.depositAPY1DChange =
-      (payload.dieselAPY1D10kBasis || 0) * PERCENTAGE_DECIMALS;
-    this.depositAPY7D = (payload.dieselAPY7D || 0) / PERCENTAGE_DECIMALS;
-    this.depositAPY30D = (payload.dieselAPY30D || 0) / PERCENTAGE_DECIMALS;
+    this.depositAPY1DAverage =
+      (payload.depositAPY1DAverage || 0) / PERCENTAGE_DECIMALS;
+    this.depositAPY1DAverageChange =
+      (payload.depositAPY1DAverage10kBasis || 0) * PERCENTAGE_DECIMALS;
+    this.depositAPY7DAverage =
+      (payload.depositAPY7DAverage || 0) / PERCENTAGE_DECIMALS;
+    this.depositAPY30DAverage =
+      (payload.depositAPY30DAverage || 0) / PERCENTAGE_DECIMALS;
 
     this.uniqueLPs = payload.uniqueLPs || 0;
     this.oldUniqueLPs = payload.uniqueLPsOld || 0;
     this.uniqueLPsChange =
       (payload.uniqueLPs10kBasis || 0) * PERCENTAGE_DECIMALS;
+  }
+}
+
+export class UserPoolData {
+  readonly id: string;
+  readonly address: string;
+  readonly dieselToken: string;
+  readonly underlyingToken: string;
+
+  readonly depositAPY: number;
+  readonly depositAPYRay: BigNumber;
+  readonly lmAPY: number;
+
+  readonly providedLiquidity: BigNumber;
+  readonly providedLiquidityInUSD: number;
+
+  readonly dieselBalance: BigNumber;
+  readonly dieselBalanceInUSD: number;
+
+  readonly lmRewards: BigNumber;
+  readonly lmRewardsInUSD: number;
+
+  readonly pnlInNativeToken: number;
+  readonly pnlInUSD: number;
+
+  readonly addedLiq: number;
+  readonly addLiqCount: number;
+
+  readonly removeLiqCount: number;
+  readonly removedLiq: number;
+
+  constructor(payload: UserPoolPayload) {
+    this.id = (payload.pool || "").toLowerCase();
+    this.address = payload.pool || "";
+    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.dieselToken = (payload.dieselToken || "").toLowerCase();
+
+    this.depositAPY =
+      rayToNumber(payload.depositAPY_RAY || 0) * PERCENTAGE_DECIMALS;
+    this.depositAPYRay = BigNumber.from(payload.depositAPY_RAY || 0);
+    this.lmAPY = (payload.lmAPY || 0) / PERCENTAGE_FACTOR;
+
+    this.providedLiquidity = BigNumber.from(payload.liqValue || 0);
+    this.providedLiquidityInUSD = payload.liqValueInUSD;
+
+    this.dieselBalance = BigNumber.from(payload.dieselBalanceBI || 0);
+    this.dieselBalanceInUSD = payload.dieselBalance;
+
+    this.lmRewards = BigNumber.from(payload.lmRewards || 0);
+    this.lmRewardsInUSD = payload.lmRewardsInUSD;
+
+    this.pnlInNativeToken = payload.liqPnlInNativeToken;
+    this.pnlInUSD = payload.liqPnlInUSD;
+
+    this.addedLiq = payload.addedLiq;
+    this.addLiqCount = payload.addLiqCount;
+
+    this.removeLiqCount = payload.removeLiqCount;
+    this.removedLiq = payload.removedLiq;
   }
 }

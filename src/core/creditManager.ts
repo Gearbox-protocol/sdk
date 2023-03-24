@@ -26,35 +26,35 @@ import {
 import { OpenAccountError } from "./errors";
 
 export class CreditManagerData {
-  public readonly address: string;
-  public readonly underlyingToken: string;
-  public readonly pool: string;
-  public readonly isWETH: boolean;
-  public readonly canBorrow: boolean;
-  public readonly borrowRate: number;
-  public readonly minAmount: BigNumber;
-  public readonly maxAmount: BigNumber;
-  public readonly maxLeverageFactor: number; // for V1 only
-  public readonly availableLiquidity: BigNumber;
-  public readonly collateralTokens: Array<string>;
-  public readonly adapters: Record<string, string>;
-  public readonly liquidationThresholds: Record<string, BigNumber>;
-  public readonly version: number;
-  public readonly creditFacade: string; // V2 only: address of creditFacade
-  public readonly creditConfigurator: string; // V2 only: address of creditFacade
-  public readonly isDegenMode: boolean; // V2 only: true if contract is in Degen mode
-  public readonly degenNFT: string; // V2 only: degenNFT, address(0) if not in degen mode
-  public readonly isIncreaseDebtForbidden: boolean; // V2 only: true if increasing debt is forbidden
-  public readonly forbiddenTokenMask: BigNumber; // V2 only: mask which forbids some particular tokens
-  public readonly maxEnabledTokensLength: number;
+  readonly address: string;
+  readonly underlyingToken: string;
+  readonly pool: string;
+  readonly isWETH: boolean;
+  readonly canBorrow: boolean;
+  readonly borrowRate: number;
+  readonly minAmount: BigNumber;
+  readonly maxAmount: BigNumber;
+  readonly maxLeverageFactor: number; // for V1 only
+  readonly availableLiquidity: BigNumber;
+  readonly collateralTokens: Array<string>;
+  readonly adapters: Record<string, string>;
+  readonly liquidationThresholds: Record<string, BigNumber>;
+  readonly version: number;
+  readonly creditFacade: string; // V2 only: address of creditFacade
+  readonly creditConfigurator: string; // V2 only: address of creditFacade
+  readonly isDegenMode: boolean; // V2 only: true if contract is in Degen mode
+  readonly degenNFT: string; // V2 only: degenNFT, address(0) if not in degen mode
+  readonly isIncreaseDebtForbidden: boolean; // V2 only: true if increasing debt is forbidden
+  readonly forbiddenTokenMask: BigNumber; // V2 only: mask which forbids some particular tokens
+  readonly maxEnabledTokensLength: number;
 
-  public readonly feeInterest: number;
-  public readonly feeLiquidation: number;
-  public readonly liquidationDiscount: number;
-  public readonly feeLiquidationExpired: number;
-  public readonly liquidationDiscountExpired: number;
+  readonly feeInterest: number;
+  readonly feeLiquidation: number;
+  readonly liquidationDiscount: number;
+  readonly feeLiquidationExpired: number;
+  readonly liquidationDiscountExpired: number;
 
-  public readonly isPaused: boolean = false;
+  readonly isPaused: boolean = false;
 
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase();
@@ -235,80 +235,124 @@ export class CreditManagerData {
   }
 }
 
-export class ChartsCreditManagerData extends CreditManagerData {
-  public readonly uniqueUsers: number;
-  public readonly openedAccountsCount: number;
-  public readonly totalOpenedAccounts: number;
-  public readonly totalClosedAccounts: number;
-  public readonly totalRepaidAccounts: number;
-  public readonly totalLiquidatedAccounts: number;
-  public readonly totalBorrowed: BigNumber;
-  public readonly cumulativeBorrowed: BigNumber;
-  public readonly totalRepaid: BigNumber;
-  public readonly totalProfit: BigNumber;
-  public readonly totalLosses: BigNumber;
+export class ChartsCreditManagerData {
+  readonly id: string;
+  readonly address: string;
+  readonly underlyingToken: string;
+  readonly pool: string;
+  readonly isWETH: boolean;
 
-  public readonly totalBorrowedInUSD: number;
-  public readonly totalLossesInUSD: number;
-  public readonly totalProfitInUSD: number;
-  public readonly totalRepaidInUSD: number;
-  public readonly availableLiquidityInUSD: number;
-  public readonly openedAccountsCountChange: number;
-  public readonly totalOpenedAccountsChange: number;
-  public readonly totalClosedAccountsChange: number;
-  public readonly totalLiquidatedAccountsChange: number;
+  readonly borrowRate: number;
+  readonly borrowRateOld: number;
+  readonly borrowRateChange: number;
+
+  readonly minAmount: BigNumber;
+  readonly maxAmount: BigNumber;
+  readonly maxLeverageFactor: number; // for V1 only
+  readonly availableLiquidity: BigNumber;
+  readonly version: number;
+
+  readonly feeInterest: number;
+  readonly feeLiquidation: number;
+  readonly feeLiquidationExpired: number;
+
+  readonly openedAccountsCount: number;
+  readonly totalOpenedAccounts: number;
+  readonly totalClosedAccounts: number;
+  readonly totalRepaidAccounts: number;
+  readonly totalLiquidatedAccounts: number;
+
+  readonly totalBorrowed: BigNumber;
+  readonly totalBorrowedOld: BigNumber;
+  readonly totalBorrowedChange: number;
+
+  readonly totalRepaid: BigNumber;
+
+  readonly totalProfit: BigNumber;
+  readonly totalProfitOld: BigNumber;
+  readonly pnlChange: number;
+  readonly totalLosses: BigNumber;
+  readonly totalLossesOld: BigNumber;
+
+  readonly totalBorrowedInUSD: number;
+  readonly totalLossesInUSD: number;
+  readonly totalProfitInUSD: number;
+  readonly totalRepaidInUSD: number;
+  readonly availableLiquidityInUSD: number;
+  readonly openedAccountsCountChange: number;
+  readonly totalOpenedAccountsChange: number;
+  readonly totalClosedAccountsChange: number;
+  readonly totalLiquidatedAccountsChange: number;
+
+  readonly liquidationThresholds: Record<string, number>;
 
   constructor(payload: ChartsCreditManagerPayload) {
-    super({
-      canBorrow: true,
-      adapters: [],
-      liquidationThresholds: [],
-      collateralTokens: [],
-      creditFacade: "",
-      creditConfigurator: "",
-      isDegenMode: false,
-      degenNFT: "",
-      isIncreaseDebtForbidden: false,
-      forbiddenTokenMask: BigNumber.from(0),
-      maxEnabledTokensLength: 12,
-      feeInterest: payload.feeInterest,
-      feeLiquidation: payload.feeLiquidation,
-      liquidationDiscount: 0,
-      feeLiquidationExpired: payload.feeLiquidationExpired,
-      liquidationDiscountExpired: 0,
+    this.id = (payload.addr || "").toLowerCase();
+    this.address = (payload.addr || "").toLowerCase();
+    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.pool = (payload.poolAddress || "").toLowerCase();
+    this.version = payload.version || 2;
+    this.isWETH = payload.isWeth || false;
 
-      pool: payload.poolAddress,
-      version: payload.version,
-      addr: payload.addr,
-      isWETH: payload.isWeth,
-      availableLiquidity: BigNumber.from(payload.availableLiquidity || 0),
-      borrowRate: BigNumber.from(payload.borrowRate || 0),
-      maxAmount: BigNumber.from(payload.maxAmount || 0),
-      minAmount: BigNumber.from(payload.minAmount || 0),
-      maxLeverageFactor: BigNumber.from(payload.maxLeverageFactor || 0),
-      underlying: payload.underlyingToken,
-    });
-    this.uniqueUsers = 0;
-    this.openedAccountsCount = payload.openedAccountsCount || 0;
-    this.totalOpenedAccounts = payload.totalOpenedAccounts || 0;
-    this.totalClosedAccounts = payload.totalClosedAccounts || 0;
-    this.totalRepaidAccounts = payload.totalRepaidAccounts || 0;
-    this.totalLiquidatedAccounts = payload.totalLiquidatedAccounts || 0;
-    this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
-    this.cumulativeBorrowed = BigNumber.from(0);
-    this.totalRepaid = BigNumber.from(payload.totalRepaid || 0);
-    this.totalProfit = BigNumber.from(payload.totalProfit || 0);
-    this.totalLosses = BigNumber.from(payload.totalLosses || 0);
+    this.borrowRate = BigNumber.from(payload.borrowRate || 0)
+      .mul(payload.feeInterest + PERCENTAGE_FACTOR)
+      .mul(PERCENTAGE_DECIMALS)
+      .div(RAY)
+      .toNumber();
+    this.borrowRateOld = BigNumber.from(payload.borrowRateOld || 0)
+      .mul(payload.feeInterest + PERCENTAGE_FACTOR)
+      .mul(PERCENTAGE_DECIMALS)
+      .div(RAY)
+      .toNumber();
+    this.borrowRateChange =
+      (payload.borrowRate10kBasis || 0) * PERCENTAGE_DECIMALS;
 
-    this.totalBorrowedInUSD = payload.totalBorrowedInUSD || 0;
-    this.totalLossesInUSD = payload.totalLossesInUSD || 0;
-    this.totalProfitInUSD = payload.totalProfitInUSD || 0;
-    this.totalRepaidInUSD = payload.totalRepaidInUSD || 0;
+    this.maxLeverageFactor = BigNumber.from(
+      payload.maxLeverageFactor || 0,
+    ).toNumber();
+
+    this.feeInterest = payload.feeInterest;
+    this.feeLiquidation = payload.feeLiquidation;
+    this.feeLiquidationExpired = payload.feeLiquidationExpired;
+
+    this.minAmount = BigNumber.from(payload.minAmount || 0);
+    this.maxAmount = BigNumber.from(payload.maxAmount || 0);
+
+    this.availableLiquidity = BigNumber.from(payload.availableLiquidity || 0);
     this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
 
+    this.liquidationThresholds = payload.liquidityThresholds;
+
+    this.totalBorrowed = BigNumber.from(payload.totalBorrowed || 0);
+    this.totalBorrowedOld = BigNumber.from(payload.totalBorrowedBIOld || 0);
+    this.totalBorrowedInUSD = payload.totalBorrowedInUSD || 0;
+    this.totalBorrowedChange =
+      (payload.totalBorrowedBI10kBasis || 0) * PERCENTAGE_DECIMALS;
+
+    this.totalLosses = BigNumber.from(payload.totalLosses || 0);
+    this.totalLossesOld = BigNumber.from(payload.totalLossesOld || 0);
+    this.totalLossesInUSD = payload.totalLossesInUSD || 0;
+
+    this.totalRepaid = BigNumber.from(payload.totalRepaid || 0);
+    this.totalRepaidInUSD = payload.totalRepaidInUSD || 0;
+
+    this.totalProfit = BigNumber.from(payload.totalProfit || 0);
+    this.totalProfitOld = BigNumber.from(payload.totalProfitOld || 0);
+    this.totalProfitInUSD = payload.totalProfitInUSD || 0;
+    this.pnlChange = (payload.pnl10kBasis || 0) * PERCENTAGE_DECIMALS;
+
+    this.openedAccountsCount = payload.openedAccountsCount || 0;
     this.openedAccountsCountChange = payload.openedAccountsCountChange || 0;
+
+    this.totalOpenedAccounts = payload.totalOpenedAccounts || 0;
     this.totalOpenedAccountsChange = payload.totalOpenedAccountsChange || 0;
+
+    this.totalClosedAccounts = payload.totalClosedAccounts || 0;
     this.totalClosedAccountsChange = payload.totalClosedAccountsChange || 0;
+
+    this.totalRepaidAccounts = payload.totalRepaidAccounts || 0;
+
+    this.totalLiquidatedAccounts = payload.totalLiquidatedAccounts || 0;
     this.totalLiquidatedAccountsChange =
       payload.totalLiquidatedAccountsChange || 0;
   }

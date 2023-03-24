@@ -1,3 +1,5 @@
+import { BigNumberish } from "ethers";
+
 import { CreditManagerDataStructOutput } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { ExcludeArrayProps } from "../utils/types";
 
@@ -11,38 +13,14 @@ export type CreditManagerDataPayload =
 
 export interface ChartsCreditManagerPayload {
   addr: string;
-
-  availableLiquidity: string;
-  borrowRate: string;
+  underlyingToken: string;
   isWeth: boolean;
-  maxAmount: string;
-  maxLeverageFactor: number;
-  minAmount: string;
-  openedAccountsCount: number;
-  totalBorrowed: string;
-  totalClosedAccounts: number;
-  totalLiquidatedAccounts: number;
-  totalLosses: string;
-  totalOpenedAccounts: number;
-  totalProfit: string;
-  totalRepaid: string;
-  totalRepaidAccounts: number;
   poolAddress: string;
 
-  // v1 props
-  underlyingToken: string;
-
-  // charts props
-  availableLiquidityInUSD: number;
-  totalBorrowedInUSD: number;
-  totalLossesInUSD: number;
-  totalProfitInUSD: number;
-  totalRepaidInUSD: number;
-
-  openedAccountsCountChange: number;
-  totalOpenedAccountsChange: number;
-  totalClosedAccountsChange: number;
-  totalLiquidatedAccountsChange: number;
+  maxAmount: BigNumberish;
+  minAmount: BigNumberish;
+  maxLeverageFactor: number;
+  version: number;
 
   feeInterest: number;
   feeLiquidation: number;
@@ -50,5 +28,42 @@ export interface ChartsCreditManagerPayload {
   liquidationPremium: number;
   liquidationPremiumExpired: number;
 
-  version: number;
+  borrowRate: BigNumberish;
+  borrowRateOld: BigNumberish;
+  borrowRate10kBasis: number;
+
+  availableLiquidity: BigNumberish;
+  availableLiquidityInUSD: number;
+
+  totalBorrowed: BigNumberish;
+  totalBorrowedInUSD: number;
+  totalBorrowedBIOld: BigNumberish;
+  totalBorrowedBI10kBasis: number;
+
+  totalProfit: BigNumberish;
+  totalProfitInUSD: number;
+  totalProfitOld: BigNumberish;
+  pnl10kBasis: number;
+
+  totalRepaid: BigNumberish;
+  totalRepaidInUSD: number;
+
+  totalLosses: BigNumberish;
+  totalLossesOld: BigNumberish;
+  totalLossesInUSD: number;
+
+  totalOpenedAccounts: number;
+  totalOpenedAccountsChange: number;
+
+  openedAccountsCount: number;
+  openedAccountsCountChange: number;
+
+  totalLiquidatedAccounts: number;
+  totalLiquidatedAccountsChange: number;
+
+  totalClosedAccounts: number;
+  totalClosedAccountsChange: number;
+
+  totalRepaidAccounts: number;
+  liquidityThresholds: Record<string, number>;
 }

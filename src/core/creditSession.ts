@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumber } from "ethers";
 import moment from "moment";
 
 import {
@@ -31,17 +31,13 @@ export const CREDIT_SESSION_ID_BY_STATUS = swapKeyValue(
   CREDIT_SESSION_STATUS_BY_ID,
 );
 
-export interface CreditSessionBalance {
-  balance: BigNumber;
-  token: string;
-}
-
 export class CreditSession {
   readonly id: string;
   readonly status: CreditSessionStatus;
   readonly borrower: string;
   readonly creditManager: string;
   readonly account: string;
+  readonly underlyingToken: string;
 
   readonly since: number;
   readonly sinceDate: string;
@@ -65,10 +61,10 @@ export class CreditSession {
   // sinceTimestamp: number;
   // closedAtTimestamp: number;
 
-  readonly borrowAPY_RAY: BigNumberish;
-  readonly borrowAPY7D: number;
+  readonly borrowAPY_RAY: BigNumber;
+  readonly borrowAPY7DAverage: number;
   readonly totalValueUSD: number;
-  readonly debt: BigNumberish;
+  readonly debt: BigNumber;
   readonly debtUSD: number;
   readonly leverage: number;
   readonly tfIndex: number;
@@ -77,8 +73,8 @@ export class CreditSession {
   readonly spotTotalValue: BigNumber;
   readonly spotUserFunds: BigNumber;
 
-  readonly cvxUnclaimedRewards: Record<string, CreditSessionBalance>;
-  readonly balances: Record<string, CreditSessionBalance>;
+  readonly cvxUnclaimedRewards: Array<AssetWithView>;
+  readonly balances: Array<AssetWithView>;
 
   constructor(payload: CreditSessionPayload) {
     this.id = (payload.id || "").toLowerCase();
@@ -86,6 +82,7 @@ export class CreditSession {
     this.borrower = (payload.borrower || "").toLowerCase();
     this.creditManager = (payload.creditManager || "").toLowerCase();
     this.account = (payload.account || "").toLowerCase();
+    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
 
     this.initialAmount = BigNumber.from(payload.initialAmount || 0);
     this.borrowedAmount = BigNumber.from(payload.borrowedAmount || 0);
@@ -107,7 +104,8 @@ export class CreditSession {
     this.collateralInUnderlying = payload.collateralInUnderlying || 0;
 
     this.borrowAPY_RAY = BigNumber.from(payload.borrowAPY_RAY || 0);
-    this.borrowAPY7D = (payload.borrowAPY7D || 0) * PERCENTAGE_DECIMALS;
+    this.borrowAPY7DAverage =
+      (payload.borrowAPY7DAverage || 0) * PERCENTAGE_DECIMALS;
     this.totalValueUSD = payload.totalValueUSD || 0;
     this.debt = BigNumber.from(payload.debt || 0);
     this.debtUSD = payload.debtUSD || 0;
@@ -126,30 +124,23 @@ export class CreditSession {
 
     this.cvxUnclaimedRewards = Object.entries(
       payload.cvxUnclaimedRewards || {},
-    ).reduce<Record<string, CreditSessionBalance>>((acc, [token, balance]) => {
-      const tokenLC = token.toLowerCase();
-
+    ).map(([token, balance]): AssetWithView => {
       return {
-        ...acc,
-        [tokenLC]: {
-          balance: BigNumber.from(balance.bi),
-          token: tokenLC,
-        },
+        token: token.toLowerCase(),
+        balance: BigNumber.from(balance.bi),
+        balanceView: balance.f.toString(),
       };
-    }, {});
-    this.balances = Object.entries(payload.balances || {}).reduce<
-      Record<string, CreditSessionBalance>
-    >((acc, [token, balance]) => {
-      const tokenLC = token.toLowerCase();
+    });
 
-      return {
-        ...acc,
-        [tokenLC]: {
+    this.balances = Object.entries(payload.balances || {}).map(
+      ([token, balance]): AssetWithView => {
+        return {
+          token: token.toLowerCase(),
           balance: BigNumber.from(balance.BI),
-          token: tokenLC,
-        },
-      };
-    }, {});
+          balanceView: balance.F.toString(),
+        };
+      },
+    );
   }
 }
 
