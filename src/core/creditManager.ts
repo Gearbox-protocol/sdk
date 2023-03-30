@@ -311,9 +311,9 @@ export class ChartsCreditManagerData {
       payload.maxLeverageFactor || 0,
     ).toNumber();
 
-    this.feeInterest = payload.feeInterest;
-    this.feeLiquidation = payload.feeLiquidation;
-    this.feeLiquidationExpired = payload.feeLiquidationExpired;
+    this.feeInterest = payload.feeInterest || 0;
+    this.feeLiquidation = payload.feeLiquidation || 0;
+    this.feeLiquidationExpired = payload.feeLiquidationExpired || 0;
 
     this.minAmount = BigNumber.from(payload.minAmount || 0);
     this.maxAmount = BigNumber.from(payload.maxAmount || 0);
@@ -322,7 +322,7 @@ export class ChartsCreditManagerData {
     this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
 
     this.liquidationThresholds = Object.fromEntries(
-      Object.entries(payload.liquidityThresholds).map(([t, tr]) => [
+      Object.entries(payload.liquidityThresholds || {}).map(([t, tr]) => [
         t.toLowerCase(),
         BigNumber.from(tr),
       ]),
