@@ -62,16 +62,31 @@ export function getConvexAPYBulk({
   );
 
   const apyList = parsedResponse.map(
-    ([basePoolRate, basePoolSupply, vPrice, cvxSupply, ...extra], i) => {
+    (
+      [
+        baseRewardsFinish,
+        basePoolRate,
+        basePoolSupply,
+        vPrice,
+        cvxSupply,
+        ...rest
+      ],
+      i,
+    ) => {
       const [poolParams, , , underlying, extraPoolAddresses, tokenList] =
         poolsInfo[i];
 
+      const extra = rest.slice(0, extraPoolAddresses.length);
+      const extraRewardsFinish = rest.slice(extraPoolAddresses.length);
+
       const apy = calculateConvexAPY({
+        baseRewardsFinish,
         basePoolRate,
         basePoolSupply,
         vPrice,
         cvxSupply,
         extra,
+        extraRewardsFinish,
 
         extraPoolAddresses,
         poolParams,
@@ -170,10 +185,16 @@ function getPoolDataCalls({
   const calls: [
     MCall<IBaseRewardPoolInterface>,
     MCall<IBaseRewardPoolInterface>,
+    MCall<IBaseRewardPoolInterface>,
     MCall<CurveV1AdapterStETHInterface>,
     MCall<IConvexTokenInterface>,
     ...Array<MCall<IBaseRewardPoolInterface>>,
   ] = [
+    {
+      address: basePoolAddress,
+      interface: IBaseRewardPool__factory.createInterface(),
+      method: "periodFinish()",
+    },
     {
       address: basePoolAddress,
       interface: IBaseRewardPool__factory.createInterface(),
@@ -199,6 +220,13 @@ function getPoolDataCalls({
         address: extraPoolAddress,
         interface: IBaseRewardPool__factory.createInterface(),
         method: "rewardRate()",
+      }),
+    ),
+    ...extraPoolAddresses.map(
+      (extraPoolAddress): MCall<IBaseRewardPoolInterface> => ({
+        address: extraPoolAddress,
+        interface: IBaseRewardPool__factory.createInterface(),
+        method: "periodFinish()",
       }),
     ),
   ];
@@ -227,11 +255,13 @@ export function getCVXMintAmount(crvAmount: BigNumber, cvxSupply: BigNumber) {
 }
 
 export interface CalculateConvexAPYProps {
+  baseRewardsFinish: BigNumber;
   basePoolRate: BigNumber;
   basePoolSupply: BigNumber;
   vPrice: BigNumber;
   cvxSupply: BigNumber;
   extra: Array<BigNumber>;
+  extraRewardsFinish: Array<BigNumber>;
 
   extraPoolAddresses: string[];
   poolParams: ConvexPoolParams;
@@ -242,17 +272,23 @@ export interface CalculateConvexAPYProps {
   tokenList: Record<SupportedToken, string>;
 }
 
+function getTimestampInSeconds() {
+  return Math.floor(Date.now() / 1000);
+}
+
 const CURRENCY_LIST: Partial<Record<ConvexStakedPhantomToken, SupportedToken>> =
   {
     stkcvxsteCRV: "WETH",
   };
 
 function calculateConvexAPY({
+  baseRewardsFinish,
   basePoolRate,
   basePoolSupply,
   vPrice,
   cvxSupply,
   extra,
+  extraRewardsFinish,
 
   extraPoolAddresses,
   poolParams,
@@ -262,6 +298,8 @@ function calculateConvexAPY({
   curveAPY,
   tokenList,
 }: CalculateConvexAPYProps) {
+  const currentTimestamp = getTimestampInSeconds();
+
   const currencySymbol = CURRENCY_LIST[poolParams.stakedToken];
   const currency = currencySymbol && tokenList[currencySymbol || ""];
 
@@ -275,12 +313,19 @@ function calculateConvexAPY({
   const crvPerYear = crvPerUnderlying.mul(SECONDS_PER_YEAR);
   const cvxPerYear = getCVXMintAmount(crvPerYear, cvxSupply);
 
-  const crvAPY = crvPerYear.mul(crvPrice).div(PRICE_DECIMALS);
-  const cvxAPY = cvxPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
+  const baseFinished = baseRewardsFinish.lte(currentTimestamp);
+
+  const crvAPY = baseFinished
+    ? BigNumber.from(0)
+    : crvPerYear.mul(crvPrice).div(PRICE_DECIMALS);
+  const cvxAPY = baseFinished
+    ? BigNumber.from(0)
+    : cvxPerYear.mul(cvxPrice).div(PRICE_DECIMALS);
 
   const extraAPRs = extraPoolAddresses.map((_, index) => {
     const extraRewardSymbol = poolParams.extraRewards[index].rewardToken;
     const extraPoolRate = extra[index];
+    const extraFinished = extraRewardsFinish[index];
 
     const perUnderlying = extraPoolRate.mul(WAD).div(virtualSupply);
     const perYear = perUnderlying.mul(SECONDS_PER_YEAR);
@@ -289,7 +334,9 @@ function calculateConvexAPY({
 
     const extraAPY = perYear.mul(extraPrice).div(PRICE_DECIMALS);
 
-    return extraAPY;
+    const finished = extraFinished.lte(currentTimestamp);
+
+    return finished ? BigNumber.from(0) : extraAPY;
   });
 
   const extraAPYTotal = extraAPRs.reduce(
@@ -298,6 +345,5 @@ function calculateConvexAPY({
   );
 
   const baseApyWAD = curveAPY[underlying].base;
-
   return baseApyWAD.add(crvAPY).add(cvxAPY).add(extraAPYTotal);
 }
