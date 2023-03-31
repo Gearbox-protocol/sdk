@@ -28,6 +28,7 @@ import { LidoOracleParser } from "./lidoOracleParser";
 import { LidoSTETHParser } from "./lidoSTETHParser";
 import { MulticallParser } from "./multicallParser";
 import { OffchainOracleParserParser } from "./offchainOracleParser";
+import { PoolParser } from "./poolParser";
 import { PriceOracleParser } from "./priceOracleParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
@@ -161,6 +162,9 @@ export class TxParser {
   }
   public static addCreditManager(address: string, version: number) {
     TxParser._addParser(address, new CreditManagerParser(version));
+  }
+  public static addPool(address: string, version: number) {
+    TxParser._addParser(address, new PoolParser(version));
   }
 
   public static getParser(address: string) {
