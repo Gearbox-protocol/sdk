@@ -144,22 +144,12 @@ export class Trade implements BaseTradeInterface {
     calls: Array<MultiCall>,
   ) {
     if (calls.length < 1) throw new Error("No path to execute");
-    if (calls.length === 1) {
-      return this.executeOnSigner(calls[0], signer);
-    }
     const safeCreditFacade =
       typeof creditFacade === "string"
         ? ICreditFacade__factory.connect(creditFacade, signer)
         : creditFacade;
 
     return this.executeOnCreditFacade(calls, safeCreditFacade);
-  }
-
-  private static async executeOnSigner(call: MultiCall, signer: Signer) {
-    return signer.sendTransaction({
-      to: call.target,
-      data: call.callData,
-    });
   }
 
   private static async executeOnCreditFacade(
