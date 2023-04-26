@@ -18,7 +18,7 @@ export const CHAINS = {
   Goerli: GOERLI_NETWORK,
   Local: LOCAL_NETWORK,
   Hardhat: HARDHAT_NETWORK,
-  Tenderly: TENDERLY_NETWORK,
+  MainnetTenderlyFork: TENDERLY_NETWORK,
   Optimism: OPTIMISM_NETWORK,
   Polygon: POLYGON_NETWORK,
   Arbiturum: ARBITRUM_NETWORK,
@@ -30,7 +30,7 @@ const SUPPORTED_CHAINS: Record<number, NetworkType> = {
   [CHAINS.Mainnet]: "Mainnet",
   [CHAINS.Goerli]: "Goerli",
   [CHAINS.Local]: "Mainnet",
-  [CHAINS.Tenderly]: "Mainnet",
+  [CHAINS.MainnetTenderlyFork]: "Mainnet",
   // [CHAINS.Optimism]: "Optimism",
   // [CHAINS.Polygon]: "Polygon",
 };
