@@ -225,7 +225,14 @@ export function calcOverallAPY({
   borrowRate,
   underlyingToken,
 }: CalcOverallAPYProps): number | undefined {
-  if (!lpAPY || !totalValue || totalValue.lte(0) || !debt) return undefined;
+  if (
+    !lpAPY ||
+    !totalValue ||
+    totalValue.lte(0) ||
+    !debt ||
+    totalValue.lte(debt)
+  )
+    return undefined;
 
   const assetAPYMoney = caAssets.reduce(
     (acc, { token: tokenAddress, balance: amount }) => {
