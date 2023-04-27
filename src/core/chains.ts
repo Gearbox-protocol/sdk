@@ -30,7 +30,7 @@ const SUPPORTED_CHAINS: Record<number, NetworkType> = {
   [CHAINS.Mainnet]: "Mainnet",
   [CHAINS.Goerli]: "Goerli",
   [CHAINS.Local]: "Mainnet",
-  [CHAINS.Tenderly]: "MainnetTenderlyFork",
+  [CHAINS.Tenderly]: "Mainnet",
   // [CHAINS.Optimism]: "Optimism",
   // [CHAINS.Polygon]: "Polygon",
 };
