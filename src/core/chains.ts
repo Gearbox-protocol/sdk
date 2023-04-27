@@ -24,13 +24,13 @@ export const CHAINS = {
   Arbiturum: ARBITRUM_NETWORK,
 } as const;
 
-export type NetworkType = "Mainnet" | "Goerli"; // | "Optimism" | "Polygon";
+export type NetworkType = "Mainnet" | "Goerli"; // | "Optimism" | "Polygon" | "MainnetTenderlyFork" | "MainnetTenderlyFork";
 
 const SUPPORTED_CHAINS: Record<number, NetworkType> = {
   [CHAINS.Mainnet]: "Mainnet",
   [CHAINS.Goerli]: "Goerli",
   [CHAINS.Local]: "Mainnet",
-  [CHAINS.Tenderly]: "MainnetTenderlyFork",
+  // [CHAINS.Tenderly]: "MainnetTenderlyFork",
   // [CHAINS.Optimism]: "Optimism",
   // [CHAINS.Polygon]: "Polygon",
 };
