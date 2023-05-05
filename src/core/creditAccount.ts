@@ -137,6 +137,7 @@ export class CreditAccountData {
     borrowAmountPlusInterest: BigNumber,
     maxLeverageFactor: number,
     underlyingLT: number,
+    minHf = PERCENTAGE_FACTOR,
   ): BigNumber {
     const minHealthFactor =
       maxLeverageFactor > 0
@@ -144,7 +145,7 @@ export class CreditAccountData {
             (underlyingLT * (maxLeverageFactor + LEVERAGE_DECIMALS)) /
               maxLeverageFactor,
           )
-        : PERCENTAGE_FACTOR;
+        : minHf;
 
     const result = borrowAmountPlusInterest
       .mul(healthFactor - minHealthFactor)
