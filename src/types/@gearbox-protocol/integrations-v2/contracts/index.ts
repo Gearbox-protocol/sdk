@@ -5,5 +5,7 @@ import type * as integrations from "./integrations";
 export type { integrations };
 import type * as interfaces from "./interfaces";
 export type { interfaces };
+import type * as oracles from "./oracles";
+export type { oracles };
 import type * as test from "./test";
 export type { test };

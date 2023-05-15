@@ -18,6 +18,7 @@ async function main() {
     // temporary exceptions
     "**/Multicall2.json",
     "**/PoolService.json",
+    "**/AbstractCurveLPPriceFeed.json",
   ]);
 
   rimraf(dst);
