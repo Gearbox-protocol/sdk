@@ -4,6 +4,8 @@ import moment from "moment";
 import {
   CreditSessionFilteredPayload,
   CreditSessionPayload,
+  CreditSessionsAggregatedStatsPayload,
+  UserCreditSessionsAggregatedStatsPayload,
 } from "../payload/creditSession";
 import { swapKeyValue } from "../utils/mappers";
 import { AssetWithView } from "./assets";
@@ -219,3 +221,74 @@ export type CreditSessionSortFields =
   | "leverage"
   | "tfIndex";
 export type CreditSessionSortType = "asc" | "desc";
+
+export interface UserCreditSessions
+  extends Omit<
+    UserCreditSessionsAggregatedStatsPayload,
+    "accounts" | "totalValue10kBasis"
+  > {
+  totalValueChange: number;
+  accounts: Array<CreditSession>;
+}
+
+type AggregatedOmit =
+  | "healthFactor10kBasis"
+  | "leverage10kBasis"
+  | "activeAccounts10kBasis"
+  | "openedAccounts10kBasis"
+  | "healthFactor"
+  | "healthFactorOld";
+
+export type CreditSessionsAggregatedStats = Omit<
+  CreditSessionsAggregatedStatsPayload,
+  AggregatedOmit
+> & {
+  healthFactorChange: number;
+  leverageChange: number;
+  activeAccountsChange: number;
+  openedAccountsChange: number;
+  healthFactor: BigNumber;
+  healthFactorOld: BigNumber;
+};
+
+export class UserCreditSessionsBuilder {
+  static buildUserCreditSessions(
+    payload: UserCreditSessionsAggregatedStatsPayload,
+  ): UserCreditSessions {
+    const { accounts, totalValue10kBasis = 0, ...sessionsUnfiltered } = payload;
+
+    return {
+      ...sessionsUnfiltered,
+      totalValueChange: totalValue10kBasis * PERCENTAGE_DECIMALS,
+      accounts: accounts.map(p => new CreditSession(p)),
+    };
+  }
+
+  static buildCreditSessionsAggregatedStats(
+    payload: CreditSessionsAggregatedStatsPayload,
+  ): CreditSessionsAggregatedStats {
+    const {
+      healthFactor10kBasis = 0,
+      leverage10kBasis = 0,
+      activeAccounts10kBasis = 0,
+      openedAccounts10kBasis = 0,
+      healthFactor = 0,
+      healthFactorOld = 0,
+      leverage,
+      leverageOld,
+      ...rest
+    } = payload;
+
+    return {
+      ...rest,
+      leverage: leverage,
+      leverageOld: leverageOld,
+      healthFactorChange: healthFactor10kBasis * PERCENTAGE_DECIMALS,
+      leverageChange: leverage10kBasis * PERCENTAGE_DECIMALS,
+      activeAccountsChange: activeAccounts10kBasis * PERCENTAGE_DECIMALS,
+      openedAccountsChange: openedAccounts10kBasis * PERCENTAGE_DECIMALS,
+      healthFactor: BigNumber.from(healthFactor),
+      healthFactorOld: BigNumber.from(healthFactorOld),
+    };
+  }
+}
