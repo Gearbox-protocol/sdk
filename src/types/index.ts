@@ -303,3 +303,4 @@ export { Multicall2__factory } from "./factories/contracts/support/MultiCall.sol
 export type { PoolService } from "./@gearbox-protocol/core-v2/contracts/pool/PoolService";
 export { PoolService__factory } from "./factories/@gearbox-protocol/core-v2/contracts/pool/PoolService__factory";
 export type { AbstractCurveLPPriceFeed } from "./@gearbox-protocol/integrations-v2/contracts/oracles/curve/AbstractCurveLPPriceFeed";
+export { AbstractCurveLPPriceFeed__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/oracles/curve/AbstractCurveLPPriceFeed__factory";
