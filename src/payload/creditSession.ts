@@ -26,6 +26,8 @@ export interface CreditSessionPayload {
   borrowAPY_RAY: BigNumberish;
   borrowAPY7DAverage: number;
 
+  entryPrice: number;
+
   healthFactor: BigNumberish;
   leverage: number;
   tfIndex: number;
