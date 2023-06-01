@@ -60,6 +60,8 @@ export class CreditSession {
   readonly currentBlock: number;
   readonly currentTimestamp: number;
 
+  readonly entryPrice: number;
+
   // sinceTimestamp: number;
   // closedAtTimestamp: number;
 
@@ -104,6 +106,7 @@ export class CreditSession {
     this.profitInUnderlying = payload.profitInUnderlying || 0;
     this.collateralInUSD = payload.collateralInUSD || 0;
     this.collateralInUnderlying = payload.collateralInUnderlying || 0;
+    this.entryPrice = payload.entryPrice || 0;
 
     this.borrowAPY_RAY = BigNumber.from(payload.borrowAPY_RAY || 0);
     this.borrowAPY7DAverage =
