@@ -1,5 +1,4 @@
 import { NetworkType } from "../core/chains";
-import { ADDRESS_0X0 } from "../core/constants";
 import {
   filterEmptyKeys,
   keyToLowercase,
@@ -102,6 +101,7 @@ export const tokenDataByNetwork: Record<
     WBTC: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
     WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     YFI: "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+    OHM: "0x383518188c0c6d7730d91b2c03a03c837814a899",
 
     /// UPDATE
     STETH: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
@@ -133,6 +133,7 @@ export const tokenDataByNetwork: Record<
     cvxLUSD3CRV: "0xFB9B2f06FDb404Fd3E2278E9A9edc8f252F273d0",
     cvxcrvPlain3andSUSD: "0x11D200ef1409cecA8D6d23e6496550f707772F11",
     cvxgusd3CRV: "0x15c2471ef46Fa721990730cfa526BcFb45574576",
+    cvxOHMFRAXBP: "0xd8F1B275c320819c7D752ef79988d0780bf00446",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
     stkcvx3Crv: "0xbAc7a431146aeAf3F57A16b9954f332Fd292F270",
@@ -142,6 +143,7 @@ export const tokenDataByNetwork: Record<
     stkcvxcrvPlain3andSUSD: "0x7e1992A7F28dAA5f6a2d34e2cd40f962f37B172C",
     stkcvxLUSD3CRV: "0x0A1D4A25d0390899b90bCD22E1Ef155003EA76d7",
     stkcvxcrvFRAX: "0x276187f24D41745513cbE2Bd5dFC33a4d8CDc9ed",
+    stkcvxOHMFRAXBP: "deploy me",
 
     // YEARN TOKENS
     yvDAI: "0xdA816459F1AB5631232FE5e97a05BBBb94970c95",
@@ -160,7 +162,6 @@ export const tokenDataByNetwork: Record<
     dFRAX: "0x8a1112afef7f4fc7c066a77aabbc01b3fff31d47",
 
     GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D",
-    OHM: "0x383518188c0c6d7730d91b2c03a03c837814a899",
   },
 
   ///
@@ -184,6 +185,7 @@ export const tokenDataByNetwork: Record<
     WBTC: "0x34852e54D9B4Ec4325C7344C28b584Ce972e5E62",
     WETH: "0x595DFFf822767c2E14CFB7D5e0b5a5e23eCfACdd", // SafeWETH
     YFI: "0xCad5D7701e0A85fe50B3aCaBDcdF7e75672F326e",
+    OHM: "deploy me",
 
     /// UPDATE
     STETH: "0xd628baa42b3080593a231016bF3F229161C9F745",
@@ -223,6 +225,7 @@ export const tokenDataByNetwork: Record<
     cvxFRAX3CRV: "0x17181501B6986CE1e4efD9A9Df9975aD24b0c543",
     cvxLUSD3CRV: "0xD944F38aa81804313db028924Cf0695B26B67e6E",
     cvxgusd3CRV: "0xBA9e6B05b0F2C5B41Df2d56c0b1ddaFa03d53fed",
+    cvxOHMFRAXBP: "deploy me",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
     stkcvx3Crv: "0xEB763389772eA09eddFcfed3EC571Bb20c187763",
@@ -232,6 +235,7 @@ export const tokenDataByNetwork: Record<
     stkcvxsteCRV: "0x3AE88c07D9A9b48706d7ea197aD53d30578ACdA1",
     stkcvxcrvPlain3andSUSD: "0x49416516604eF33383Bd9F3a94fEcd4ee36E2d88",
     stkcvxLUSD3CRV: "0x84c04976BA15AE880B8D6daC9CE1075D0eFD0d4D",
+    stkcvxOHMFRAXBP: "deploy me",
 
     // GEARBOX
     dDAI: "0x1726d8a1d3193D7C5A301Bb64b025cBD91BA791c", // DieselToken.sol
@@ -242,8 +246,6 @@ export const tokenDataByNetwork: Record<
     dFRAX: "deploy me",
 
     GEAR: "0x3321F5dA65165042903eDe71617F912942f4E70F",
-
-    OHM: ADDRESS_0X0,
   },
 };
 

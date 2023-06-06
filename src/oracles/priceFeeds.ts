@@ -507,6 +507,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       curveSymbol: "gusd3CRV",
     },
   },
+  cvxOHMFRAXBP: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "OHMFRAXBP",
+    },
+  },
   // CVX tokens
   stkcvx3Crv: {
     priceFeedUSD: {
@@ -548,6 +554,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "gusd3CRV",
+    },
+  },
+  stkcvxOHMFRAXBP: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "OHMFRAXBP",
     },
   },
 

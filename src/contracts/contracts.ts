@@ -46,7 +46,8 @@ export type ConvexPoolContract =
   | "CONVEX_SUSD_POOL"
   | "CONVEX_STECRV_POOL"
   | "CONVEX_FRAX3CRV_POOL"
-  | "CONVEX_LUSD3CRV_POOL";
+  | "CONVEX_LUSD3CRV_POOL"
+  | "CONVEX_OHMFRAXBP_POOL";
 
 export type BalancerVaultContract = "BALANCER_VAULT";
 
@@ -104,6 +105,7 @@ export const contractsByNetwork: Record<
     CONVEX_FRAX3CRV_POOL: "0xB900EF131301B307dB5eFcbed9DBb50A3e209B2e",
     CONVEX_LUSD3CRV_POOL: "0x2ad92A7aE036a038ff02B96c88de868ddf3f8190",
     CONVEX_CLAIM_ZAP: "0x92Cf9E5e4D1Dfbf7dA0d2BB3e884a68416a65070",
+    CONVEX_OHMFRAXBP_POOL: "0x27A8c58e3DE84280826d615D80ddb33930383fE9",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x6f4b4aB5142787c05b7aB9A9692A0f46b997C29D",
@@ -161,6 +163,7 @@ export const contractsByNetwork: Record<
     CONVEX_LUSD3CRV_POOL: "0x8550134faa6Cb42a7668f3D9098EBa59FA959b40",
     CONVEX_GUSD_POOL: "0xa8eD353f56BB2e1063B8a011F0491a1703998De4",
     CONVEX_CLAIM_ZAP: "0x74C7Bb6493C5EcfDb49E3ED5Ee4B60012b724b4b",
+    CONVEX_OHMFRAXBP_POOL: "deploy me",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x9290E44f5f819b7de0Fb88b10641f9F08a999BF7",
@@ -264,7 +267,7 @@ export type UniversalParams = {
 
 export type BalancerParams = {
   protocol: Protocols.Balancer;
-  type: AdapterInterface.BALANCER;
+  type: AdapterInterface.BALANCER_VAULT;
 } & BaseContractParams;
 
 export type ContractParams =
@@ -516,6 +519,14 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     ],
   },
 
+  CONVEX_OHMFRAXBP_POOL: {
+    name: "Convex OHMFRAXBP",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxOHMFRAXBP",
+    extraRewards: [],
+  },
+
   LIDO_STETH_GATEWAY: {
     name: "Lido STETH",
     protocol: Protocols.Lido,
@@ -542,7 +553,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   BALANCER_VAULT: {
     name: "Balancer Vault",
     protocol: Protocols.Balancer,
-    type: AdapterInterface.BALANCER,
+    type: AdapterInterface.BALANCER_VAULT,
   },
 };
 

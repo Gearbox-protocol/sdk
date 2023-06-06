@@ -1,4 +1,3 @@
-import { SupportedContract } from "../contracts/contracts";
 import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
 import { NormalToken } from "./normal";
 import type { TokenBase } from "./token";
@@ -11,7 +10,6 @@ export type BalancerLpTokenData = {
   type: TokenType.BALANCER_LP_TOKEN;
   underlying: Array<NormalToken | BalancerLPToken>;
   lpActions: Array<TradeAction>;
-  vault: SupportedContract;
   poolId: string;
 } & TokenBase;
 
@@ -21,7 +19,6 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
     symbol: "50OHM-50DAI",
     type: TokenType.BALANCER_LP_TOKEN,
     underlying: ["OHM", "DAI"],
-    vault: "BALANCER_VAULT",
     poolId:
       "0x76fcf0e8c7ff37a47a799fa2cd4c13cde0d981c90002000000000000000003d2",
     lpActions: [
@@ -37,7 +34,6 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
     symbol: "50OHM-50WETH",
     type: TokenType.BALANCER_LP_TOKEN,
     underlying: ["OHM", "WETH"],
-    vault: "BALANCER_VAULT",
     poolId:
       "0xd1ec5e215e8148d76f4460e4097fd3d5ae0a35580002000000000000000003d3",
     lpActions: [
@@ -53,7 +49,6 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
     symbol: "OHM-wstETH",
     type: TokenType.BALANCER_LP_TOKEN,
     underlying: ["OHM", "wstETH"],
-    vault: "BALANCER_VAULT",
     poolId:
       "0xd4f79ca0ac83192693bce4699d0c10c66aa6cf0f00020000000000000000047e",
     lpActions: [

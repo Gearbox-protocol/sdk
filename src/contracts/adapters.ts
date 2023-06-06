@@ -15,5 +15,5 @@ export enum AdapterInterface {
   LIDO_V1, // 13
   UNIVERSAL, // 14
   LIDO_WSTETH_V1, // 15
-  BALANCER, // 16,
+  BALANCER_VAULT, // 16,
 }
