@@ -751,6 +751,16 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         contract: "BALANCER_VAULT",
         tokenOut: "50OHM-50DAI",
       },
+      {
+        type: TradeType.BalancerJoin,
+        contract: "BALANCER_VAULT",
+        tokenOut: "50OHM-50WETH",
+      },
+      {
+        type: TradeType.BalancerJoin,
+        contract: "BALANCER_VAULT",
+        tokenOut: "OHM-wstETH",
+      },
     ],
   },
 };

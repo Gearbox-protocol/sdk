@@ -1,4 +1,5 @@
 import { NetworkType } from "../core/chains";
+import { ADDRESS_0X0 } from "../core/constants";
 import {
   filterEmptyKeys,
   keyToLowercase,
@@ -122,6 +123,7 @@ export const tokenDataByNetwork: Record<
     LUSD3CRV: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA",
     crvPlain3andSUSD: "0xC25a3A3b969415c80451098fa907EC722572917F",
     gusd3CRV: "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+    OHMFRAXBP: "0x5271045F7B73c17825A7A7aee6917eE46b0B7520",
 
     // CONVEX LP TOKENS
     cvx3Crv: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
@@ -158,6 +160,7 @@ export const tokenDataByNetwork: Record<
     dFRAX: "0x8a1112afef7f4fc7c066a77aabbc01b3fff31d47",
 
     GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D",
+    OHM: "0x383518188c0c6d7730d91b2c03a03c837814a899",
   },
 
   ///
@@ -210,6 +213,7 @@ export const tokenDataByNetwork: Record<
     gusd3CRV: "0xbD919fcC47ae2b5Cc2fe646971aCcB1e88843DC5",
     FRAX3CRV: "0x12Ad3125C67eC5325Cc94AFdA8B26cd12BCe1E9b",
     LUSD3CRV: "0x348B1846b87cA12D23A9A4E73B1CfAc2Aad49cf4",
+    OHMFRAXBP: "deploy me",
 
     // CONVEX LP TOKENS
     cvx3Crv: "0xe12bFD868a81D1AD147731D0eC164d9C4A397FCd",
@@ -238,6 +242,8 @@ export const tokenDataByNetwork: Record<
     dFRAX: "deploy me",
 
     GEAR: "0x3321F5dA65165042903eDe71617F912942f4E70F",
+
+    OHM: ADDRESS_0X0,
   },
 };
 

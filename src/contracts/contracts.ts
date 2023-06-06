@@ -4,7 +4,6 @@
  * (c) Gearbox.fi, 2021
  */
 import { NetworkType } from "../core/chains";
-import { ADDRESS_0X0 } from "../core/constants";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
@@ -29,7 +28,8 @@ export type CurvePoolContract =
   | "CURVE_LUSD_POOL"
   | "CURVE_GUSD_POOL"
   | "CURVE_SUSD_POOL"
-  | "CURVE_SUSD_DEPOSIT";
+  | "CURVE_SUSD_DEPOSIT"
+  | "CURVE_OHM_FRAXBP";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -84,6 +84,7 @@ export const contractsByNetwork: Record<
     CURVE_GUSD_POOL: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", // SEPARATE TOKEN
 
     CURVE_GEAR_POOL: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
+    CURVE_OHM_FRAXBP: "0xFc1e8bf3E81383Ef07Be24c3FD146745719DE48D",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Mainnet.yvDAI,
@@ -140,6 +141,7 @@ export const contractsByNetwork: Record<
     CURVE_GUSD_POOL: "0x8C954d89C2fB2c96F0195738b8c5538B34D5344E",
 
     CURVE_GEAR_POOL: "deploy me",
+    CURVE_OHM_FRAXBP: "deploy me",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Goerli.yvDAI,
@@ -168,7 +170,7 @@ export const contractsByNetwork: Record<
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
 
     // BALANCER
-    BALANCER_VAULT: ADDRESS_0X0,
+    BALANCER_VAULT: "deploy me",
   },
 };
 
@@ -373,6 +375,15 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     lpToken: "gusd3CRV",
     tokens: ["GUSD", "3Crv"],
     underlyings: ["GUSD", "DAI", "USDC", "USDT"],
+  },
+
+  CURVE_OHM_FRAXBP: {
+    name: "Curve OHM_FRAXBP",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "OHMFRAXBP",
+    tokens: ["OHM", "crvFRAX"],
+    underlyings: ["OHM", "FRAX", "USDC"],
   },
 
   YEARN_DAI_VAULT: {
