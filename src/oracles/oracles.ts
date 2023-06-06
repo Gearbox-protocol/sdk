@@ -18,6 +18,7 @@ export enum OracleType {
   WSTETH_ORACLE,
   BOUNDED_ORACLE,
   COMPOSITE_ORACLE,
+  CURVE_CRYPTO_ORACLE,
 }
 
 export type PriceFeedData =
@@ -57,6 +58,10 @@ export type PriceFeedData =
       type: OracleType.COMPOSITE_ORACLE;
       targetToBasePriceFeed: Record<NetworkType, string>;
       baseToUsdPriceFeed: Record<NetworkType, string>;
+    }
+  | {
+      type: OracleType.CURVE_CRYPTO_ORACLE;
+      assets: Array<SupportedToken>;
     };
 
 export interface TokenPriceFeedData {
