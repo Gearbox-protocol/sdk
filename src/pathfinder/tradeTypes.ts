@@ -1,5 +1,4 @@
 import type {
-  BalancerVaultContract,
   ConvexPoolContract,
   CurvePoolContract,
   UniswapV2Contract,
@@ -104,11 +103,11 @@ export type TradeAction =
     }
   | {
       type: TradeType.BalancerJoin;
-      contract: BalancerVaultContract;
+      contract: "BALANCER_VAULT";
       tokenOut: BalancerLPToken;
     }
   | {
       type: TradeType.BalancerExit;
-      contract: BalancerVaultContract;
+      contract: "BALANCER_VAULT";
       tokenOut: Array<NormalToken | BalancerLPToken>;
     };

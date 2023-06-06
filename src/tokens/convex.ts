@@ -225,7 +225,7 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       },
       {
         type: TradeType.ConvexStake,
-        contract: "CONVEX_GUSD_POOL",
+        contract: "CONVEX_OHMFRAXBP_POOL",
         tokenOut: "stkcvxOHMFRAXBP",
       },
     ],
@@ -401,7 +401,7 @@ const convexStakedPhantomTokens: Record<
     symbol: "stkcvxOHMFRAXBP",
     type: TokenType.CONVEX_STAKED_TOKEN,
     pool: "CONVEX_OHMFRAXBP_POOL",
-    pid: 10,
+    pid: 138,
     underlying: "OHMFRAXBP",
     lpToken: "cvxOHMFRAXBP",
     lpActions: [

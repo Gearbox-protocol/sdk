@@ -49,8 +49,6 @@ export type ConvexPoolContract =
   | "CONVEX_LUSD3CRV_POOL"
   | "CONVEX_OHMFRAXBP_POOL";
 
-export type BalancerVaultContract = "BALANCER_VAULT";
-
 export type SupportedContract =
   | UniswapV2Contract
   | "UNISWAP_V3_ROUTER"
@@ -63,7 +61,7 @@ export type SupportedContract =
   | "LIDO_STETH_GATEWAY"
   | "LIDO_WSTETH"
   | "UNIVERSAL_ADAPTER"
-  | BalancerVaultContract;
+  | "BALANCER_VAULT";
 
 export const contractsByNetwork: Record<
   NetworkType,
