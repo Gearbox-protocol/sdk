@@ -4,6 +4,7 @@
  * (c) Gearbox.fi, 2021
  */
 import { NetworkType } from "../core/chains";
+import { ADDRESS_0X0 } from "../core/constants";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
@@ -47,6 +48,8 @@ export type ConvexPoolContract =
   | "CONVEX_FRAX3CRV_POOL"
   | "CONVEX_LUSD3CRV_POOL";
 
+export type BalancerVaultContract = "BALANCER_VAULT";
+
 export type SupportedContract =
   | UniswapV2Contract
   | "UNISWAP_V3_ROUTER"
@@ -58,7 +61,8 @@ export type SupportedContract =
   | "CONVEX_CLAIM_ZAP"
   | "LIDO_STETH_GATEWAY"
   | "LIDO_WSTETH"
-  | "UNIVERSAL_ADAPTER";
+  | "UNIVERSAL_ADAPTER"
+  | BalancerVaultContract;
 
 export const contractsByNetwork: Record<
   NetworkType,
@@ -106,6 +110,9 @@ export const contractsByNetwork: Record<
 
     // GEARBOX
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+
+    // BALANCER
+    BALANCER_VAULT: "0xba12222222228d8ba445958a75a0704d566bf2c8",
   },
 
   //
@@ -159,6 +166,9 @@ export const contractsByNetwork: Record<
 
     // GEARBOX
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+
+    // BALANCER
+    BALANCER_VAULT: ADDRESS_0X0,
   },
 };
 
@@ -250,6 +260,11 @@ export type UniversalParams = {
   type: AdapterInterface.UNIVERSAL;
 } & BaseContractParams;
 
+export type BalancerParams = {
+  protocol: Protocols.Balancer;
+  type: AdapterInterface.BALANCER;
+} & BaseContractParams;
+
 export type ContractParams =
   | UniswapV2Params
   | UniswapV3Params
@@ -261,7 +276,8 @@ export type ContractParams =
   | ConvexPoolParams
   | LidoParams
   | LidoWsthETHParams
-  | UniversalParams;
+  | UniversalParams
+  | BalancerParams;
 
 export const contractParams: Record<SupportedContract, ContractParams> = {
   UNISWAP_V2_ROUTER: {
@@ -510,6 +526,12 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Gearbox universal adapter",
     protocol: Protocols.Gearbox,
     type: AdapterInterface.UNIVERSAL,
+  },
+
+  BALANCER_VAULT: {
+    name: "Balancer Vault",
+    protocol: Protocols.Balancer,
+    type: AdapterInterface.BALANCER,
   },
 };
 

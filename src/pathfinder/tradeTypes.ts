@@ -1,9 +1,11 @@
 import type {
+  BalancerVaultContract,
   ConvexPoolContract,
   CurvePoolContract,
   UniswapV2Contract,
   YearnVaultContract,
 } from "../contracts/contracts";
+import { BalancerLPToken } from "../tokens/balancer";
 import type { ConvexLPToken, ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import type { NormalToken } from "../tokens/normal";
@@ -25,6 +27,8 @@ export enum TradeType {
   ConvexWithdrawLP,
   ConvexWithdraw,
   ConvexWithdrawAndUnwrap,
+  BalancerJoin,
+  BalancerExit,
 }
 
 export type TradeAction =
@@ -97,4 +101,14 @@ export type TradeAction =
       type: TradeType.ConvexWithdrawAndUnwrap;
       contract: ConvexPoolContract;
       tokenOut: CurveLPToken;
+    }
+  | {
+      type: TradeType.BalancerJoin;
+      contract: BalancerVaultContract;
+      tokenOut: BalancerLPToken;
+    }
+  | {
+      type: TradeType.BalancerExit;
+      contract: BalancerVaultContract;
+      tokenOut: Array<NormalToken | BalancerLPToken>;
     };
