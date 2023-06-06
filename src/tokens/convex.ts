@@ -213,7 +213,7 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
 
     symbol: "cvxOHMFRAXBP",
     type: TokenType.CONVEX_LP_TOKEN,
-    pool: "CONVEX_GUSD_POOL",
+    pool: "CONVEX_OHMFRAXBP_POOL",
     pid: 138,
     underlying: "OHMFRAXBP",
     stakedToken: "stkcvxOHMFRAXBP",
