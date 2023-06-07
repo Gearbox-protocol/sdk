@@ -535,12 +535,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.LIDO_WSTETH_V1,
   },
 
-  UNIVERSAL_ADAPTER: {
-    name: "Gearbox universal adapter",
-    protocol: Protocols.Gearbox,
-    type: AdapterInterface.UNIVERSAL,
-  },
-
   BALANCER_VAULT: {
     name: "Balancer Vault",
     protocol: Protocols.Balancer,
