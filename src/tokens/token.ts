@@ -6,6 +6,11 @@ import {
   swapKeyValue,
 } from "../utils/mappers";
 import {
+  BalancerLPToken,
+  BalancerLpTokenData,
+  balancerLpTokens,
+} from "./balancer";
+import {
   ConvexLPToken,
   ConvexLPTokenData,
   ConvexPhantomTokenData,
@@ -39,7 +44,8 @@ export type LPTokens =
   | YearnLPToken
   | CurveLPToken
   | ConvexLPToken
-  | ConvexStakedPhantomToken;
+  | ConvexStakedPhantomToken
+  | BalancerLPToken;
 
 export type SupportedToken =
   | NormalToken
@@ -59,7 +65,8 @@ export type LPTokenDataI =
   | YearnVaultOfCurveLPTokenData
   | YearnVaultOfMetaCurveLPTokenData
   | ConvexLPTokenData
-  | ConvexPhantomTokenData;
+  | ConvexPhantomTokenData
+  | BalancerLpTokenData;
 
 export type TokenDataI =
   | NormalTokenData
@@ -71,6 +78,7 @@ export const lpTokens: Record<LPTokens, LPTokenDataI> = {
   ...curveTokens,
   ...convexTokens,
   ...yearnTokens,
+  ...balancerLpTokens,
 };
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
@@ -152,6 +160,11 @@ export const tokenDataByNetwork: Record<
     yvWBTC: "0xA696a63cc78DfFa1a63E9E50587C197387FF6C7E",
     yvCurve_stETH: "0xdCD90C7f6324cfa40d7169ef80b12031770B4325",
     yvCurve_FRAX: "0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139",
+
+    // BALANCER TOKENS
+    "50OHM-50DAI": "0x76FCf0e8C7Ff37A47a799FA2cd4c13cDe0D981C9",
+    "50OHM-50WETH": "0xD1eC5e215E8148D76F4460e4097FD3d5ae0A3558",
+    "OHM-wstETH": "0xd4f79CA0Ac83192693bce4699d0c10C66Aa6Cf0F",
 
     // GEARBOX
     dDAI: "0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA",
@@ -236,6 +249,11 @@ export const tokenDataByNetwork: Record<
     stkcvxcrvPlain3andSUSD: "0x49416516604eF33383Bd9F3a94fEcd4ee36E2d88",
     stkcvxLUSD3CRV: "0x84c04976BA15AE880B8D6daC9CE1075D0eFD0d4D",
     stkcvxOHMFRAXBP: "deploy me",
+
+    // BALANCER TOKENS
+    "50OHM-50DAI": "deploy me",
+    "50OHM-50WETH": "deploy me",
+    "OHM-wstETH": "deploy me",
 
     // GEARBOX
     dDAI: "0x1726d8a1d3193D7C5A301Bb64b025cBD91BA791c", // DieselToken.sol

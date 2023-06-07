@@ -26,6 +26,7 @@ export const decimals: Record<SupportedToken, number> = {
   sUSD: 18,
   GUSD: 2,
   LQTY: 18,
+  OHM: 9,
   "3Crv": 18,
   crvFRAX: 18,
   OHMFRAXBP: 18,
@@ -63,5 +64,7 @@ export const decimals: Record<SupportedToken, number> = {
   dFRAX: 18,
   dwstETH: 18,
   GEAR: 18,
-  OHM: 9,
+  "50OHM-50DAI": 18,
+  "50OHM-50WETH": 18,
+  "OHM-wstETH": 18,
 };

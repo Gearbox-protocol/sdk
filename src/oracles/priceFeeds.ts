@@ -668,4 +668,23 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       assets: ["OHM", "crvFRAX"],
     },
   },
+
+  "50OHM-50DAI": {
+    priceFeedUSD: {
+      type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
+      assets: ["OHM", "DAI"],
+    },
+  },
+  "50OHM-50WETH": {
+    priceFeedUSD: {
+      type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
+      assets: ["OHM", "WETH"],
+    },
+  },
+  "OHM-wstETH": {
+    priceFeedUSD: {
+      type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
+      assets: ["OHM", "wstETH"],
+    },
+  },
 };

@@ -19,6 +19,7 @@ export enum OracleType {
   BOUNDED_ORACLE,
   COMPOSITE_ORACLE,
   CURVE_CRYPTO_ORACLE,
+  BALANCER_WEIGHTED_LP_ORACLE,
 }
 
 export type PriceFeedData =
@@ -61,6 +62,10 @@ export type PriceFeedData =
     }
   | {
       type: OracleType.CURVE_CRYPTO_ORACLE;
+      assets: Array<SupportedToken>;
+    }
+  | {
+      type: OracleType.BALANCER_WEIGHTED_LP_ORACLE;
       assets: Array<SupportedToken>;
     };
 
