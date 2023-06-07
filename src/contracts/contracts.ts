@@ -60,7 +60,6 @@ export type SupportedContract =
   | "CONVEX_CLAIM_ZAP"
   | "LIDO_STETH_GATEWAY"
   | "LIDO_WSTETH"
-  | "UNIVERSAL_ADAPTER"
   | "BALANCER_VAULT";
 
 export const contractsByNetwork: Record<
@@ -108,9 +107,6 @@ export const contractsByNetwork: Record<
     // LIDO
     LIDO_STETH_GATEWAY: "0x6f4b4aB5142787c05b7aB9A9692A0f46b997C29D",
     LIDO_WSTETH: tokenDataByNetwork.Mainnet.wstETH,
-
-    // GEARBOX
-    UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
 
     // BALANCER
     BALANCER_VAULT: "0xba12222222228d8ba445958a75a0704d566bf2c8",
@@ -166,9 +162,6 @@ export const contractsByNetwork: Record<
     // LIDO
     LIDO_STETH_GATEWAY: "0x9290E44f5f819b7de0Fb88b10641f9F08a999BF7",
     LIDO_WSTETH: tokenDataByNetwork.Goerli.wstETH,
-
-    // GEARBOX
-    UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
 
     // BALANCER
     BALANCER_VAULT: "deploy me",

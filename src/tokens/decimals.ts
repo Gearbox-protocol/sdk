@@ -64,7 +64,7 @@ export const decimals: Record<SupportedToken, number> = {
   dFRAX: 18,
   dwstETH: 18,
   GEAR: 18,
-  "50OHM-50DAI": 18,
-  "50OHM-50WETH": 18,
-  "OHM-wstETH": 18,
+  "50OHM_50DAI": 18,
+  "50OHM_50WETH": 18,
+  OHM_wstETH: 18,
 };

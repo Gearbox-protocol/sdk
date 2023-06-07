@@ -3,7 +3,7 @@ import { NormalToken } from "./normal";
 import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
-export type BalancerLPToken = "50OHM-50DAI" | "50OHM-50WETH" | "OHM-wstETH";
+export type BalancerLPToken = "50OHM_50DAI" | "50OHM_50WETH" | "OHM_wstETH";
 
 export type BalancerLpTokenData = {
   symbol: BalancerLPToken;
@@ -14,9 +14,9 @@ export type BalancerLpTokenData = {
 } & TokenBase;
 
 export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
-  "50OHM-50DAI": {
-    name: "Balancer 50OHM-50DAI",
-    symbol: "50OHM-50DAI",
+  "50OHM_50DAI": {
+    name: "Balancer 50OHM_50DAI",
+    symbol: "50OHM_50DAI",
     type: TokenType.BALANCER_LP_TOKEN,
     underlying: ["OHM", "DAI"],
     poolId:
@@ -29,9 +29,9 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
       },
     ],
   },
-  "50OHM-50WETH": {
-    name: "Balancer 50OHM-50WETH",
-    symbol: "50OHM-50WETH",
+  "50OHM_50WETH": {
+    name: "Balancer 50OHM_50WETH",
+    symbol: "50OHM_50WETH",
     type: TokenType.BALANCER_LP_TOKEN,
     underlying: ["OHM", "WETH"],
     poolId:
@@ -44,9 +44,9 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
       },
     ],
   },
-  "OHM-wstETH": {
-    name: "Balancer OHM-wstETH",
-    symbol: "OHM-wstETH",
+  OHM_wstETH: {
+    name: "Balancer OHM_wstETH",
+    symbol: "OHM_wstETH",
     type: TokenType.BALANCER_LP_TOKEN,
     underlying: ["OHM", "wstETH"],
     poolId:

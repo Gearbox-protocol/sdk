@@ -669,19 +669,19 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
-  "50OHM-50DAI": {
+  "50OHM_50DAI": {
     priceFeedUSD: {
       type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
       assets: ["OHM", "DAI"],
     },
   },
-  "50OHM-50WETH": {
+  "50OHM_50WETH": {
     priceFeedUSD: {
       type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
       assets: ["OHM", "WETH"],
     },
   },
-  "OHM-wstETH": {
+  OHM_wstETH: {
     priceFeedUSD: {
       type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
       assets: ["OHM", "wstETH"],
