@@ -12,6 +12,7 @@ export type CurveLPToken =
   | "steCRV"
   | "crvPlain3andSUSD"
   | "crvFRAX"
+  | "OHMFRAXBP"
   | CurveMetaTokens;
 
 export type CurveLPTokenData = {
@@ -203,6 +204,30 @@ export const curveTokens: Record<
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
         tokenOut: "stkcvxcrvPlain3andSUSD",
+      },
+    ],
+  },
+  OHMFRAXBP: {
+    name: "Curve.fi Factory Crypto Pool: OHM/FRAXBP",
+    symbol: "OHMFRAXBP",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_OHM_FRAXBP",
+    wrapper: "CURVE_OHM_FRAXBP",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_OHM_FRAXBP",
+        tokenOut: ["OHM", "FRAX", "USDC"],
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxOHMFRAXBP",
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxOHMFRAXBP",
       },
     ],
   },

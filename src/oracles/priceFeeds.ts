@@ -507,6 +507,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       curveSymbol: "gusd3CRV",
     },
   },
+  cvxOHMFRAXBP: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "OHMFRAXBP",
+    },
+  },
   // CVX tokens
   stkcvx3Crv: {
     priceFeedUSD: {
@@ -548,6 +554,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "gusd3CRV",
+    },
+  },
+  stkcvxOHMFRAXBP: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "OHMFRAXBP",
     },
   },
 
@@ -626,6 +638,53 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: { Mainnet: "", Goerli: "" },
+    },
+  },
+  OHM: {
+    priceFeedETH: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: {
+        Mainnet: "0x9a72298ae3886221820b1c878d12d872087d3a23",
+        Goerli: "deploy me",
+      },
+    },
+    priceFeedUSD: {
+      type: OracleType.COMPOSITE_ORACLE,
+
+      targetToBasePriceFeed: {
+        Mainnet: "0x9a72298ae3886221820b1c878d12d872087d3a23",
+        Goerli: "deploy me",
+      },
+      baseToUsdPriceFeed: {
+        Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+        Goerli: "0x491741d9F426130d1bC27Aee82f8b4Bd4E6E5f5D",
+      },
+    },
+  },
+
+  OHMFRAXBP: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["OHM", "crvFRAX"],
+    },
+  },
+
+  "50OHM_50DAI": {
+    priceFeedUSD: {
+      type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
+      assets: ["OHM", "DAI"],
+    },
+  },
+  "50OHM_50WETH": {
+    priceFeedUSD: {
+      type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
+      assets: ["OHM", "WETH"],
+    },
+  },
+  OHM_wstETH: {
+    priceFeedUSD: {
+      type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
+      assets: ["OHM", "wstETH"],
     },
   },
 };
