@@ -1,4 +1,4 @@
-import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
+import { TradeType } from "../pathfinder/tradeTypes";
 import { NormalToken } from "./normal";
 import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
@@ -9,7 +9,18 @@ export type BalancerLpTokenData = {
   symbol: BalancerLPToken;
   type: TokenType.BALANCER_LP_TOKEN;
   underlying: Array<NormalToken | BalancerLPToken>;
-  lpActions: Array<TradeAction>;
+  lpActions: Array<
+    | {
+        type: TradeType.BalancerJoin;
+        contract: "BALANCER_VAULT";
+        tokenOut: BalancerLPToken;
+      }
+    | {
+        type: TradeType.BalancerExit;
+        contract: "BALANCER_VAULT";
+        tokenOut: Array<NormalToken | BalancerLPToken>;
+      }
+  >;
   poolId: string;
 } & TokenBase;
 
