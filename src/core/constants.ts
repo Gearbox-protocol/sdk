@@ -4,25 +4,6 @@ export const MAX_INT = BigNumber.from(
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 );
 
-export const MAINNET_NETWORK = 1;
-export const GOERLI_NETWORK = 5;
-export const LOCAL_NETWORK = 1337;
-export const HARDHAT_NETWORK = 31337;
-
-export type NetworkType = "Mainnet" | "Goerli";
-
-export const getNetworkType = (chainId: number): NetworkType => {
-  switch (chainId) {
-    case MAINNET_NETWORK:
-    case LOCAL_NETWORK:
-      return "Mainnet";
-    case GOERLI_NETWORK:
-      return "Goerli";
-    default:
-      throw new Error("unknown network");
-  }
-};
-
 export const RAY_DECIMALS_POW = 27;
 export const RAY = BigNumber.from(10).pow(RAY_DECIMALS_POW);
 export const halfRAY = RAY.div(2);
@@ -33,6 +14,7 @@ export const PRICE_DECIMALS_POW = 8;
 export const PRICE_DECIMALS = BigNumber.from(10).pow(PRICE_DECIMALS_POW);
 
 export const SECONDS_PER_YEAR = 365 * 24 * 3600;
+export const MS_PER_YEAR = SECONDS_PER_YEAR * 1000;
 
 export const PERCENTAGE_DECIMALS = 100;
 export const PERCENTAGE_FACTOR = 1e4;

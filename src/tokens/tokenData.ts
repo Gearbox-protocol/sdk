@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 
 import { STATIC_TOKEN } from "../config";
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import { TokenDataPayload } from "../payload/token";
 import { SupportedToken, tokenDataByNetwork } from "./token";
 

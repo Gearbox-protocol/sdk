@@ -12,7 +12,7 @@ import type {
 const _abi = [
   {
     inputs: [],
-    name: "IncorrectPathLengthException",
+    name: "InvalidPathException",
     type: "error",
   },
   {
@@ -50,19 +50,6 @@ const _abi = [
       },
     ],
     stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "creditFacade",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
   {

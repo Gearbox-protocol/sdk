@@ -3,7 +3,7 @@
  * Gearbox. Generalized leverage protocol, which allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
  * (c) Gearbox.fi, 2021
  */
-import { NetworkType } from "../core/constants";
+import { NetworkType } from "../core/chains";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
@@ -28,7 +28,8 @@ export type CurvePoolContract =
   | "CURVE_LUSD_POOL"
   | "CURVE_GUSD_POOL"
   | "CURVE_SUSD_POOL"
-  | "CURVE_SUSD_DEPOSIT";
+  | "CURVE_SUSD_DEPOSIT"
+  | "CURVE_OHM_FRAXBP";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -45,19 +46,21 @@ export type ConvexPoolContract =
   | "CONVEX_SUSD_POOL"
   | "CONVEX_STECRV_POOL"
   | "CONVEX_FRAX3CRV_POOL"
-  | "CONVEX_LUSD3CRV_POOL";
+  | "CONVEX_LUSD3CRV_POOL"
+  | "CONVEX_OHMFRAXBP_POOL";
 
 export type SupportedContract =
   | UniswapV2Contract
   | "UNISWAP_V3_ROUTER"
   | CurvePoolContract
+  | "CURVE_GEAR_POOL"
   | YearnVaultContract
   | "CONVEX_BOOSTER"
   | ConvexPoolContract
   | "CONVEX_CLAIM_ZAP"
   | "LIDO_STETH_GATEWAY"
   | "LIDO_WSTETH"
-  | "UNIVERSAL_ADAPTER";
+  | "BALANCER_VAULT";
 
 export const contractsByNetwork: Record<
   NetworkType,
@@ -78,6 +81,9 @@ export const contractsByNetwork: Record<
     CURVE_SUSD_DEPOSIT: "0xFCBa3E75865d2d561BE8D220616520c171F12851",
     CURVE_GUSD_POOL: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", // SEPARATE TOKEN
 
+    CURVE_GEAR_POOL: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
+    CURVE_OHM_FRAXBP: "0xFc1e8bf3E81383Ef07Be24c3FD146745719DE48D",
+
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Mainnet.yvDAI,
     YEARN_USDC_VAULT: tokenDataByNetwork.Mainnet.yvUSDC,
@@ -96,13 +102,14 @@ export const contractsByNetwork: Record<
     CONVEX_FRAX3CRV_POOL: "0xB900EF131301B307dB5eFcbed9DBb50A3e209B2e",
     CONVEX_LUSD3CRV_POOL: "0x2ad92A7aE036a038ff02B96c88de868ddf3f8190",
     CONVEX_CLAIM_ZAP: "0x92Cf9E5e4D1Dfbf7dA0d2BB3e884a68416a65070",
+    CONVEX_OHMFRAXBP_POOL: "0x27A8c58e3DE84280826d615D80ddb33930383fE9",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x6f4b4aB5142787c05b7aB9A9692A0f46b997C29D",
     LIDO_WSTETH: tokenDataByNetwork.Mainnet.wstETH,
 
-    // GEARBOX
-    UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+    // BALANCER
+    BALANCER_VAULT: "0xba12222222228d8ba445958a75a0704d566bf2c8",
   },
 
   //
@@ -129,6 +136,9 @@ export const contractsByNetwork: Record<
     CURVE_SUSD_DEPOSIT: "0x9782f1fF1AEFb387F01cae72F668F13E8061d9Dd",
     CURVE_GUSD_POOL: "0x8C954d89C2fB2c96F0195738b8c5538B34D5344E",
 
+    CURVE_GEAR_POOL: "deploy me",
+    CURVE_OHM_FRAXBP: "deploy me",
+
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Goerli.yvDAI,
     YEARN_USDC_VAULT: tokenDataByNetwork.Goerli.yvUSDC,
@@ -147,13 +157,14 @@ export const contractsByNetwork: Record<
     CONVEX_LUSD3CRV_POOL: "0x8550134faa6Cb42a7668f3D9098EBa59FA959b40",
     CONVEX_GUSD_POOL: "0xa8eD353f56BB2e1063B8a011F0491a1703998De4",
     CONVEX_CLAIM_ZAP: "0x74C7Bb6493C5EcfDb49E3ED5Ee4B60012b724b4b",
+    CONVEX_OHMFRAXBP_POOL: "deploy me",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x9290E44f5f819b7de0Fb88b10641f9F08a999BF7",
     LIDO_WSTETH: tokenDataByNetwork.Goerli.wstETH,
 
-    // GEARBOX
-    UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+    // BALANCER
+    BALANCER_VAULT: "deploy me",
   },
 };
 
@@ -193,6 +204,14 @@ export type CurveSteCRVPoolParams = {
   pool: Record<NetworkType, string>;
   tokens: ["WETH", "STETH"];
   lpToken: "steCRV";
+} & BaseContractParams;
+
+export type CurveGEARPoolParams = {
+  protocol: Protocols.Curve;
+  type: AdapterInterface.CURVE_V1_2ASSETS;
+  pool: Record<NetworkType, string>;
+  tokens: ["GEAR", "WETH"];
+  lpToken: "GEAR";
 } & BaseContractParams;
 
 export type YearnParams = {
@@ -237,17 +256,24 @@ export type UniversalParams = {
   type: AdapterInterface.UNIVERSAL;
 } & BaseContractParams;
 
+export type BalancerParams = {
+  protocol: Protocols.Balancer;
+  type: AdapterInterface.BALANCER_VAULT;
+} & BaseContractParams;
+
 export type ContractParams =
   | UniswapV2Params
   | UniswapV3Params
   | CurveParams
   | CurveSteCRVPoolParams
+  | CurveGEARPoolParams
   | YearnParams
   | ConvexParams
   | ConvexPoolParams
   | LidoParams
   | LidoWsthETHParams
-  | UniversalParams;
+  | UniversalParams
+  | BalancerParams;
 
 export const contractParams: Record<SupportedContract, ContractParams> = {
   UNISWAP_V2_ROUTER: {
@@ -292,6 +318,17 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     tokens: ["WETH", "STETH"],
     lpToken: "steCRV",
   },
+  CURVE_GEAR_POOL: {
+    name: "Curve GEAR",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    pool: {
+      Mainnet: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
+      Goerli: "implement me",
+    },
+    tokens: ["GEAR", "WETH"],
+    lpToken: "GEAR",
+  },
   CURVE_FRAX_POOL: {
     name: "Curve FRAX",
     protocol: Protocols.Curve,
@@ -332,6 +369,15 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     lpToken: "gusd3CRV",
     tokens: ["GUSD", "3Crv"],
     underlyings: ["GUSD", "DAI", "USDC", "USDT"],
+  },
+
+  CURVE_OHM_FRAXBP: {
+    name: "Curve OHM_FRAXBP",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "OHMFRAXBP",
+    tokens: ["OHM", "crvFRAX"],
+    underlyings: ["OHM", "FRAX", "USDC"],
   },
 
   YEARN_DAI_VAULT: {
@@ -464,6 +510,14 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     ],
   },
 
+  CONVEX_OHMFRAXBP_POOL: {
+    name: "Convex OHMFRAXBP",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxOHMFRAXBP",
+    extraRewards: [],
+  },
+
   LIDO_STETH_GATEWAY: {
     name: "Lido STETH",
     protocol: Protocols.Lido,
@@ -481,10 +535,10 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.LIDO_WSTETH_V1,
   },
 
-  UNIVERSAL_ADAPTER: {
-    name: "Gearbox universal adapter",
-    protocol: Protocols.Gearbox,
-    type: AdapterInterface.UNIVERSAL,
+  BALANCER_VAULT: {
+    name: "Balancer Vault",
+    protocol: Protocols.Balancer,
+    type: AdapterInterface.BALANCER_VAULT,
   },
 };
 

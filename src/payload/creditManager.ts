@@ -11,17 +11,59 @@ export interface AdapterPayload {
 export type CreditManagerDataPayload =
   ExcludeArrayProps<CreditManagerDataStructOutput>;
 
-export interface CreditManagerStatPayload extends CreditManagerDataPayload {
-  allowedContracts?: Array<string>;
-  uniqueUsers: number;
-  openedAccountsCount?: number;
-  totalOpenedAccounts?: number;
-  totalClosedAccounts?: number;
-  totalRepaidAccounts?: number;
-  totalLiquidatedAccounts?: number;
-  totalBorrowed?: BigNumberish;
-  cumulativeBorrowed?: BigNumberish;
-  totalRepaid?: BigNumberish;
-  totalProfit?: BigNumberish;
-  totalLosses?: BigNumberish;
+export interface ChartsCreditManagerPayload {
+  addr: string;
+  underlyingToken: string;
+  isWeth: boolean;
+  poolAddress: string;
+
+  maxAmount: BigNumberish;
+  minAmount: BigNumberish;
+  maxLeverageFactor: number;
+  version: number;
+
+  feeInterest: number;
+  feeLiquidation: number;
+  feeLiquidationExpired: number;
+  liquidationPremium: number;
+  liquidationPremiumExpired: number;
+
+  borrowRate: BigNumberish;
+  borrowRateOld: BigNumberish;
+  borrowRate10kBasis: number;
+
+  availableLiquidity: BigNumberish;
+  availableLiquidityInUSD: number;
+
+  totalBorrowed: BigNumberish;
+  totalBorrowedInUSD: number;
+  totalBorrowedBIOld: BigNumberish;
+  totalBorrowedBI10kBasis: number;
+
+  totalProfit: BigNumberish;
+  totalProfitInUSD: number;
+  totalProfitOld: BigNumberish;
+  pnl10kBasis: number;
+
+  totalRepaid: BigNumberish;
+  totalRepaidInUSD: number;
+
+  totalLosses: BigNumberish;
+  totalLossesOld: BigNumberish;
+  totalLossesInUSD: number;
+
+  totalOpenedAccounts: number;
+  totalOpenedAccountsChange: number;
+
+  openedAccountsCount: number;
+  openedAccountsCountChange: number;
+
+  totalLiquidatedAccounts: number;
+  totalLiquidatedAccountsChange: number;
+
+  totalClosedAccounts: number;
+  totalClosedAccountsChange: number;
+
+  totalRepaidAccounts: number;
+  liquidityThresholds: Record<string, number>;
 }

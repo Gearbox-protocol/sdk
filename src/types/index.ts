@@ -224,8 +224,12 @@ export type { ILidoV1AdapterExceptions } from "./@gearbox-protocol/integrations-
 export { ILidoV1AdapterExceptions__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/lido/ILidoV1Adapter.sol/ILidoV1AdapterExceptions__factory";
 export type { IwstETHV1Adapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/lido/IwstETHV1Adapter";
 export { IwstETHV1Adapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/lido/IwstETHV1Adapter__factory";
-export type { IUniswapV2Adapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV2Adapter";
-export { IUniswapV2Adapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV2Adapter__factory";
+export type { IUniswapPathChecker } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapPathChecker";
+export { IUniswapPathChecker__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapPathChecker__factory";
+export type { IUniswapV2Adapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV2Adapter.sol/IUniswapV2Adapter";
+export { IUniswapV2Adapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV2Adapter.sol/IUniswapV2Adapter__factory";
+export type { IUniswapV2AdapterExceptions } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV2Adapter.sol/IUniswapV2AdapterExceptions";
+export { IUniswapV2AdapterExceptions__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV2Adapter.sol/IUniswapV2AdapterExceptions__factory";
 export type { IUniswapV3Adapter } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV3Adapter.sol/IUniswapV3Adapter";
 export { IUniswapV3Adapter__factory } from "./factories/@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV3Adapter.sol/IUniswapV3Adapter__factory";
 export type { IUniswapV3AdapterExceptions } from "./@gearbox-protocol/integrations-v2/contracts/interfaces/uniswap/IUniswapV3Adapter.sol/IUniswapV3AdapterExceptions";
@@ -278,6 +282,14 @@ export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
 export type { IGas } from "./contracts/IGas";
 export { IGas__factory } from "./factories/contracts/IGas__factory";
+export type { ITokenDistributor } from "./contracts/ITokenDistributor.sol/ITokenDistributor";
+export { ITokenDistributor__factory } from "./factories/contracts/ITokenDistributor.sol/ITokenDistributor__factory";
+export type { ITokenDistributorEvents } from "./contracts/ITokenDistributor.sol/ITokenDistributorEvents";
+export { ITokenDistributorEvents__factory } from "./factories/contracts/ITokenDistributor.sol/ITokenDistributorEvents__factory";
+export type { ITokenDistributorExceptions } from "./contracts/ITokenDistributor.sol/ITokenDistributorExceptions";
+export { ITokenDistributorExceptions__factory } from "./factories/contracts/ITokenDistributor.sol/ITokenDistributorExceptions__factory";
+export type { IGnosisSafeSignatureValidator } from "./contracts/IGnosisSafeSignatureValidator";
+export { IGnosisSafeSignatureValidator__factory } from "./factories/contracts/IGnosisSafeSignatureValidator__factory";
 export type { IOffchainOracle } from "./contracts/support/IOffchainOracle";
 export { IOffchainOracle__factory } from "./factories/contracts/support/IOffchainOracle__factory";
 export type { AggregatorInterface } from "./@chainlink/contracts/src/v0.8/interfaces/AggregatorInterface";
@@ -288,3 +300,5 @@ export type { AggregatorV3Interface } from "./@chainlink/contracts/src/v0.8/inte
 export { AggregatorV3Interface__factory } from "./factories/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface__factory";
 export type { Multicall2 } from "./contracts/support/MultiCall.sol/Multicall2";
 export { Multicall2__factory } from "./factories/contracts/support/MultiCall.sol/Multicall2__factory";
+export type { PoolService } from "./@gearbox-protocol/core-v2/contracts/pool/PoolService";
+export { PoolService__factory } from "./factories/@gearbox-protocol/core-v2/contracts/pool/PoolService__factory";

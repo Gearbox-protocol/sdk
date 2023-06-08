@@ -20,7 +20,7 @@ export class AbstractParser {
     this.adapterName = "Contract";
   }
 
-  parseSelector(calldata: string): ParseSelectorResult {
+  parseSelector(calldata: BytesLike): ParseSelectorResult {
     const functionFragment = this.ifc.getFunction(
       utils.hexDataSlice(calldata, 0, 4) as any,
     );
@@ -36,6 +36,13 @@ export class AbstractParser {
     return this.ifc.decodeFunctionData(functionFragment, data);
   }
 
+  encodeFunctionResult(
+    functionFragment: FunctionFragment | string,
+    data: Array<any>,
+  ) {
+    return this.ifc.encodeFunctionResult(functionFragment, data);
+  }
+
   tokenSymbol(address: string): SupportedToken {
     const symbol = tokenSymbolByAddress[address.toLowerCase()];
     if (!symbol) throw new Error(`Unknown token: ${address}`);
@@ -46,5 +53,17 @@ export class AbstractParser {
     return `${formatBN(amount, decimals[token])} [${BigNumber.from(
       amount,
     ).toString()}]`;
+  }
+
+  parseToObject(address: string, calldata: string) {
+    const { functionFragment } = this.parseSelector(calldata);
+
+    const args = this.decodeFunctionData(functionFragment, calldata);
+
+    return {
+      address,
+      functionFragment,
+      args,
+    };
   }
 }

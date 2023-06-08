@@ -37,6 +37,7 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     "allowedContracts()": FunctionFragment;
     "creditFacade()": FunctionFragment;
     "creditManager()": FunctionFragment;
+    "forbidAdapter(address)": FunctionFragment;
     "forbidContract(address)": FunctionFragment;
     "forbidToken(address)": FunctionFragment;
     "removeContractFromUpgradeable(address)": FunctionFragment;
@@ -66,6 +67,7 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
       | "allowedContracts"
       | "creditFacade"
       | "creditManager"
+      | "forbidAdapter"
       | "forbidContract"
       | "forbidToken"
       | "removeContractFromUpgradeable"
@@ -116,6 +118,10 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "creditManager",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "forbidAdapter",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "forbidContract",
@@ -216,6 +222,10 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "forbidAdapter",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "forbidContract",
     data: BytesLike
   ): Result;
@@ -269,6 +279,7 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
+    "AdapterForbidden(address)": EventFragment;
     "AddedToUpgradeable(address)": EventFragment;
     "ContractAllowed(address,address)": EventFragment;
     "ContractForbidden(address)": EventFragment;
@@ -289,6 +300,7 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     "TokenLiquidationThresholdUpdated(address,uint16)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AdapterForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AddedToUpgradeable"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ContractAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
@@ -312,6 +324,17 @@ export interface ICreditConfiguratorInterface extends utils.Interface {
     nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated"
   ): EventFragment;
 }
+
+export interface AdapterForbiddenEventObject {
+  adapter: string;
+}
+export type AdapterForbiddenEvent = TypedEvent<
+  [string],
+  AdapterForbiddenEventObject
+>;
+
+export type AdapterForbiddenEventFilter =
+  TypedEventFilter<AdapterForbiddenEvent>;
 
 export interface AddedToUpgradeableEventObject {
   arg0: string;
@@ -572,6 +595,11 @@ export interface ICreditConfigurator extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
+    forbidAdapter(
+      adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     forbidContract(
       targetContract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -688,6 +716,11 @@ export interface ICreditConfigurator extends BaseContract {
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
+  forbidAdapter(
+    adapter: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   forbidContract(
     targetContract: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -801,6 +834,8 @@ export interface ICreditConfigurator extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
+    forbidAdapter(adapter: string, overrides?: CallOverrides): Promise<void>;
+
     forbidContract(
       targetContract: string,
       overrides?: CallOverrides
@@ -878,6 +913,11 @@ export interface ICreditConfigurator extends BaseContract {
   };
 
   filters: {
+    "AdapterForbidden(address)"(
+      adapter?: string | null
+    ): AdapterForbiddenEventFilter;
+    AdapterForbidden(adapter?: string | null): AdapterForbiddenEventFilter;
+
     "AddedToUpgradeable(address)"(arg0?: null): AddedToUpgradeableEventFilter;
     AddedToUpgradeable(arg0?: null): AddedToUpgradeableEventFilter;
 
@@ -1031,6 +1071,11 @@ export interface ICreditConfigurator extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
+    forbidAdapter(
+      adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     forbidContract(
       targetContract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1147,6 +1192,11 @@ export interface ICreditConfigurator extends BaseContract {
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    forbidAdapter(
+      adapter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     forbidContract(
       targetContract: string,

@@ -30,6 +30,7 @@ export class CreditAccountData {
   public readonly since: number;
   public readonly cumulativeIndexAtOpen: BigNumber;
   public readonly borrowedAmount: BigNumber;
+  public readonly borrowedAmountPlusInterestAndFees: BigNumber;
 
   public borrowedAmountPlusInterest: BigNumber;
   public totalValue: BigNumber;
@@ -60,6 +61,8 @@ export class CreditAccountData {
 
     this.borrowedAmount = payload.borrowedAmount;
     this.borrowedAmountPlusInterest = payload.borrowedAmountPlusInterest;
+    this.borrowedAmountPlusInterestAndFees =
+      payload.borrowedAmountPlusInterestAndFees;
 
     this.totalValue = payload.totalValue;
     this.healthFactor = payload.healthFactor.toNumber();
@@ -134,6 +137,7 @@ export class CreditAccountData {
     borrowAmountPlusInterest: BigNumber,
     maxLeverageFactor: number,
     underlyingLT: number,
+    minHf = PERCENTAGE_FACTOR,
   ): BigNumber {
     const minHealthFactor =
       maxLeverageFactor > 0
@@ -141,7 +145,7 @@ export class CreditAccountData {
             (underlyingLT * (maxLeverageFactor + LEVERAGE_DECIMALS)) /
               maxLeverageFactor,
           )
-        : PERCENTAGE_FACTOR;
+        : minHf;
 
     const result = borrowAmountPlusInterest
       .mul(healthFactor - minHealthFactor)
@@ -186,11 +190,7 @@ export function sortBalances(
         : amountAbcComparator(amount1, amount2);
     }
 
-    if (totalPrice1.gt(totalPrice2)) {
-      return -1;
-    }
-
-    return 1;
+    return amountAbcComparator(totalPrice1, totalPrice2);
   });
 }
 
@@ -202,7 +202,7 @@ export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
 }
 
 export function amountAbcComparator(t1: BigNumber, t2: BigNumber) {
-  return t1?.gt(t2) ? -1 : 1;
+  return t1.gt(t2) ? -1 : 1;
 }
 
 export interface CalcOverallAPYProps {
@@ -226,7 +226,14 @@ export function calcOverallAPY({
   borrowRate,
   underlyingToken,
 }: CalcOverallAPYProps): number | undefined {
-  if (!lpAPY || !totalValue || totalValue.lte(0) || !debt) return undefined;
+  if (
+    !lpAPY ||
+    !totalValue ||
+    totalValue.lte(0) ||
+    !debt ||
+    totalValue.lte(debt)
+  )
+    return undefined;
 
   const assetAPYMoney = caAssets.reduce(
     (acc, { token: tokenAddress, balance: amount }) => {

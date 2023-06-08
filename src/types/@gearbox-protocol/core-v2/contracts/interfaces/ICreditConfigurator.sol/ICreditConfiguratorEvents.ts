@@ -15,6 +15,7 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
   functions: {};
 
   events: {
+    "AdapterForbidden(address)": EventFragment;
     "AddedToUpgradeable(address)": EventFragment;
     "ContractAllowed(address,address)": EventFragment;
     "ContractForbidden(address)": EventFragment;
@@ -35,6 +36,7 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
     "TokenLiquidationThresholdUpdated(address,uint16)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AdapterForbidden"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AddedToUpgradeable"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ContractAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
@@ -58,6 +60,17 @@ export interface ICreditConfiguratorEventsInterface extends utils.Interface {
     nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated"
   ): EventFragment;
 }
+
+export interface AdapterForbiddenEventObject {
+  adapter: string;
+}
+export type AdapterForbiddenEvent = TypedEvent<
+  [string],
+  AdapterForbiddenEventObject
+>;
+
+export type AdapterForbiddenEventFilter =
+  TypedEventFilter<AdapterForbiddenEvent>;
 
 export interface AddedToUpgradeableEventObject {
   arg0: string;
@@ -287,6 +300,11 @@ export interface ICreditConfiguratorEvents extends BaseContract {
   callStatic: {};
 
   filters: {
+    "AdapterForbidden(address)"(
+      adapter?: string | null
+    ): AdapterForbiddenEventFilter;
+    AdapterForbidden(adapter?: string | null): AdapterForbiddenEventFilter;
+
     "AddedToUpgradeable(address)"(arg0?: null): AddedToUpgradeableEventFilter;
     AddedToUpgradeable(arg0?: null): AddedToUpgradeableEventFilter;
 

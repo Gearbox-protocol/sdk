@@ -20,7 +20,9 @@ export interface TxSerialized {
     | "TxApprove"
     | "TxOpenMultitokenAccount"
     | "TxClaimReward"
-    | "TxClaimNFT";
+    | "TxClaimNFT"
+    | "TxClaimGearRewards"
+    | "TxEnableTokens";
   content: string;
 }
 
@@ -57,6 +59,11 @@ export class TxSerializer {
           return new TxClaimReward(params);
         case "TxClaimNFT":
           return new TxClaimNFT(params);
+        case "TxClaimGearRewards":
+          return new TxClaimGearRewards(params);
+
+        case "TxEnableTokens":
+          return new TxEnableTokens(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -474,6 +481,44 @@ export class TxClaimNFT extends EVMTx {
   }
 }
 
+interface TxClaimGearRewardsProps extends EVMTxProps {
+  token: string;
+  amount: BigNumber;
+}
+
+export class TxClaimGearRewards extends EVMTx {
+  token: string;
+  amount: BigNumber;
+
+  constructor(opts: TxClaimGearRewardsProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+
+    this.amount = opts.amount;
+    this.token = opts.token;
+  }
+
+  toString(): string {
+    const [symbol, decimals] = extractTokenData(this.token);
+
+    return `GEAR Rewards claimed: ${formatBN(
+      this.amount,
+      decimals || 18,
+    )} ${symbol} `;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxClaimGearRewards",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
 interface RepayAccountProps extends EVMTxProps {
   creditManager: string;
 }
@@ -561,6 +606,60 @@ export class TxApprove extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxApprove",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxEnableTokensProps extends EVMTxProps {
+  enabledTokens: Array<string>;
+  disabledTokens: Array<string>;
+  creditManager: string;
+}
+
+export class TxEnableTokens extends EVMTx {
+  public readonly enabledTokens: Array<string>;
+  public readonly disabledTokens: Array<string>;
+  public readonly creditManager: string;
+
+  constructor(opts: TxEnableTokensProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+    this.enabledTokens = opts.enabledTokens;
+    this.disabledTokens = opts.disabledTokens;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    const enabledSymbols = this.enabledTokens.map(address => {
+      const [tokenSymbol] = extractTokenData(address);
+      return tokenSymbol;
+    });
+
+    const disabledSymbols = this.disabledTokens.map(address => {
+      const [tokenSymbol] = extractTokenData(address);
+      return tokenSymbol;
+    });
+
+    const currentSentences = [
+      enabledSymbols.length > 0 ? `enabled: ${enabledSymbols.join(", ")}` : "",
+      disabledSymbols.length > 0
+        ? `disabled: ${disabledSymbols.join(", ")}`
+        : "",
+    ].filter(s => !!s);
+
+    return `Credit account ${getContractName(
+      this.creditManager,
+    )}: ${currentSentences.join("; ")}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxEnableTokens",
       content: JSON.stringify(this),
     };
   }

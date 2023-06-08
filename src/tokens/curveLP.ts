@@ -6,14 +6,14 @@ import { PartialRecord } from "../utils/types";
 import type { SupportedToken, TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
+export type CurveMetaTokens = "FRAX3CRV" | "LUSD3CRV" | "gusd3CRV";
 export type CurveLPToken =
   | "3Crv"
   | "steCRV"
-  | "FRAX3CRV"
-  | "LUSD3CRV"
   | "crvPlain3andSUSD"
-  | "gusd3CRV"
-  | "crvFRAX";
+  | "crvFRAX"
+  | "OHMFRAXBP"
+  | CurveMetaTokens;
 
 export type CurveLPTokenData = {
   symbol: CurveLPToken;
@@ -39,6 +39,71 @@ export const Curve3CrvUnderlyingTokenIndex: PartialRecord<
   DAI: BigNumber.from(0),
   USDC: BigNumber.from(1),
   USDT: BigNumber.from(2),
+};
+
+export const curveMetaTokens: Record<CurveMetaTokens, MetaCurveLPTokenData> = {
+  //  META CURVE LP TOKENS
+  FRAX3CRV: {
+    name: "Curve FRAX3CRV-f",
+    symbol: "FRAX3CRV",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_FRAX_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_FRAX_POOL",
+        tokenOut: ["FRAX", "3Crv"],
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxFRAX3CRV",
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxFRAX3CRV",
+      },
+    ],
+  },
+
+  LUSD3CRV: {
+    name: "Curve LUSD3CRV-f",
+    symbol: "LUSD3CRV",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_LUSD_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_LUSD_POOL",
+        tokenOut: ["LUSD", "3Crv"],
+      },
+    ],
+  },
+
+  gusd3CRV: {
+    name: "Curve gusd3CRV",
+    symbol: "gusd3CRV",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_GUSD_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_GUSD_POOL",
+        tokenOut: ["GUSD", "3Crv"],
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxgusd3CRV",
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxgusd3CRV",
+      },
+    ],
+  },
 };
 
 export const curveTokens: Record<
@@ -142,70 +207,35 @@ export const curveTokens: Record<
       },
     ],
   },
-
-  //  META CURVE LP TOKENS
-  FRAX3CRV: {
-    name: "Curve FRAX3CRV-f",
-    symbol: "FRAX3CRV",
+  OHMFRAXBP: {
+    name: "Curve.fi Factory Crypto Pool: OHM/FRAXBP",
+    symbol: "OHMFRAXBP",
     type: TokenType.CURVE_LP_TOKEN,
-    pool: "CURVE_FRAX_POOL",
+    pool: "CURVE_OHM_FRAXBP",
+    wrapper: "CURVE_OHM_FRAXBP",
     lpActions: [
       {
         type: TradeType.CurveWithdrawLP,
-        contract: "CURVE_FRAX_POOL",
-        tokenOut: ["FRAX", "3Crv"],
+        contract: "CURVE_OHM_FRAXBP",
+        tokenOut: ["OHM", "FRAX", "USDC"],
       },
       {
         type: TradeType.ConvexDepositLP,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "cvxFRAX3CRV",
+        tokenOut: "cvxOHMFRAXBP",
       },
       {
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
-        tokenOut: "stkcvxFRAX3CRV",
+        tokenOut: "stkcvxOHMFRAXBP",
       },
     ],
   },
-
-  LUSD3CRV: {
-    name: "Curve LUSD3CRV-f",
-    symbol: "LUSD3CRV",
-    type: TokenType.CURVE_LP_TOKEN,
-    pool: "CURVE_LUSD_POOL",
-    lpActions: [
-      {
-        type: TradeType.CurveWithdrawLP,
-        contract: "CURVE_LUSD_POOL",
-        tokenOut: ["LUSD", "3Crv"],
-      },
-    ],
-  },
-
-  gusd3CRV: {
-    name: "Curve gusd3CRV",
-    symbol: "gusd3CRV",
-    type: TokenType.CURVE_LP_TOKEN,
-    pool: "CURVE_GUSD_POOL",
-    lpActions: [
-      {
-        type: TradeType.CurveWithdrawLP,
-        contract: "CURVE_GUSD_POOL",
-        tokenOut: ["GUSD", "3Crv"],
-      },
-      {
-        type: TradeType.ConvexDepositLP,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "cvxgusd3CRV",
-      },
-      {
-        type: TradeType.ConvexDepositLPAndStake,
-        contract: "CONVEX_BOOSTER",
-        tokenOut: "stkcvxgusd3CRV",
-      },
-    ],
-  },
+  ...curveMetaTokens,
 };
 
 export const isCurveLPToken = (t: unknown): t is CurveLPToken =>
   typeof t === "string" && !!curveTokens[t as CurveLPToken];
+
+export const isCurveMetaToken = (t: unknown): t is CurveMetaTokens =>
+  typeof t === "string" && !!curveMetaTokens[t as CurveMetaTokens];
