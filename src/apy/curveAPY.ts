@@ -86,11 +86,6 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
 };
 
 const CRV_APY_RESPONSE_DECIMALS = 100;
-const ZERO: CurveAPY = {
-  base: BigNumber.from(0),
-  crv: BigNumber.from(0),
-  gauge: [],
-};
 
 // const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
 // const FACTORY = "https://api.curve.fi/api/getPools/ethereum/factory";
@@ -106,7 +101,7 @@ interface CurveAPY {
 }
 export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
 
-export async function getCurveAPY(): Promise<CurveAPYResult> {
+export async function getCurveAPY(): Promise<CurveAPYResult | null> {
   try {
     const [{ data: apyData }, { data: factoryCrypto }, { data: main }] =
       await Promise.all([
@@ -158,18 +153,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
     return curveAPY;
   } catch (e) {
     console.error(e);
-    return {
-      "3Crv": ZERO,
-      crvFRAX: ZERO,
-      FRAX3CRV: ZERO,
-      gusd3CRV: ZERO,
-      LUSD3CRV: ZERO,
-      crvPlain3andSUSD: ZERO,
-      steCRV: ZERO,
-      GEAR: ZERO,
-      OHMFRAXBP: ZERO,
-      MIM_3LP3CRV: ZERO,
-    };
+    return null;
   }
 }
 
