@@ -29,7 +29,10 @@ export type CurvePoolContract =
   | "CURVE_GUSD_POOL"
   | "CURVE_SUSD_POOL"
   | "CURVE_SUSD_DEPOSIT"
-  | "CURVE_OHM_FRAXBP";
+  | "CURVE_OHMFRAXBP_POOL"
+  | "CURVE_CRVETH_POOL"
+  | "CURVE_CVXETH_POOL"
+  | "CURVE_3CRYPTO_POOL";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -47,7 +50,10 @@ export type ConvexPoolContract =
   | "CONVEX_STECRV_POOL"
   | "CONVEX_FRAX3CRV_POOL"
   | "CONVEX_LUSD3CRV_POOL"
-  | "CONVEX_OHMFRAXBP_POOL";
+  | "CONVEX_OHMFRAXBP_POOL"
+  | "CONVEX_CRVETH_POOL"
+  | "CONVEX_CVXETH_POOL"
+  | "CONVEX_3CRYPTO_POOL";
 
 export type SupportedContract =
   | UniswapV2Contract
@@ -80,9 +86,12 @@ export const contractsByNetwork: Record<
     CURVE_SUSD_POOL: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // SEPARATE TOKEN
     CURVE_SUSD_DEPOSIT: "0xFCBa3E75865d2d561BE8D220616520c171F12851",
     CURVE_GUSD_POOL: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", // SEPARATE TOKEN
+    CURVE_OHMFRAXBP_POOL: "0xFc1e8bf3E81383Ef07Be24c3FD146745719DE48D",
+    CURVE_CRVETH_POOL: "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511",
+    CURVE_CVXETH_POOL: "0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4",
+    CURVE_3CRYPTO_POOL: "0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",
 
     CURVE_GEAR_POOL: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
-    CURVE_OHM_FRAXBP: "0xFc1e8bf3E81383Ef07Be24c3FD146745719DE48D",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Mainnet.yvDAI,
@@ -103,6 +112,9 @@ export const contractsByNetwork: Record<
     CONVEX_LUSD3CRV_POOL: "0x2ad92A7aE036a038ff02B96c88de868ddf3f8190",
     CONVEX_CLAIM_ZAP: "0x92Cf9E5e4D1Dfbf7dA0d2BB3e884a68416a65070",
     CONVEX_OHMFRAXBP_POOL: "0x27A8c58e3DE84280826d615D80ddb33930383fE9",
+    CONVEX_CRVETH_POOL: "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f",
+    CONVEX_CVXETH_POOL: "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA",
+    CONVEX_3CRYPTO_POOL: "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x6f4b4aB5142787c05b7aB9A9692A0f46b997C29D",
@@ -135,9 +147,12 @@ export const contractsByNetwork: Record<
     CURVE_SUSD_POOL: "0x2A1b874C86734feA5be050d32fAb02FCF9eB1Bc2",
     CURVE_SUSD_DEPOSIT: "0x9782f1fF1AEFb387F01cae72F668F13E8061d9Dd",
     CURVE_GUSD_POOL: "0x8C954d89C2fB2c96F0195738b8c5538B34D5344E",
+    CURVE_OHMFRAXBP_POOL: "deploy me",
+    CURVE_CRVETH_POOL: "deploy me",
+    CURVE_CVXETH_POOL: "deploy me",
+    CURVE_3CRYPTO_POOL: "deploy me",
 
     CURVE_GEAR_POOL: "deploy me",
-    CURVE_OHM_FRAXBP: "deploy me",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Goerli.yvDAI,
@@ -158,6 +173,9 @@ export const contractsByNetwork: Record<
     CONVEX_GUSD_POOL: "0xa8eD353f56BB2e1063B8a011F0491a1703998De4",
     CONVEX_CLAIM_ZAP: "0x74C7Bb6493C5EcfDb49E3ED5Ee4B60012b724b4b",
     CONVEX_OHMFRAXBP_POOL: "deploy me",
+    CONVEX_CRVETH_POOL: "deploy me",
+    CONVEX_CVXETH_POOL: "deploy me",
+    CONVEX_3CRYPTO_POOL: "deploy me",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x9290E44f5f819b7de0Fb88b10641f9F08a999BF7",
@@ -371,13 +389,37 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     underlyings: ["GUSD", "DAI", "USDC", "USDT"],
   },
 
-  CURVE_OHM_FRAXBP: {
+  CURVE_OHMFRAXBP_POOL: {
     name: "Curve OHM_FRAXBP",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "OHMFRAXBP",
     tokens: ["OHM", "crvFRAX"],
     underlyings: ["OHM", "FRAX", "USDC"],
+  },
+
+  CURVE_CRVETH_POOL: {
+    name: "Curve CRVETH",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "crvCRVETH",
+    tokens: ["WETH", "CRV"],
+  },
+
+  CURVE_CVXETH_POOL: {
+    name: "Curve CVXETH",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "crvCVXETH",
+    tokens: ["WETH", "CVX"],
+  },
+
+  CURVE_3CRYPTO_POOL: {
+    name: "Curve 3Crypto",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_3ASSETS,
+    lpToken: "crv3crypto",
+    tokens: ["USDT", "WBTC", "WETH"],
   },
 
   YEARN_DAI_VAULT: {
@@ -515,6 +557,46 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxOHMFRAXBP",
+    extraRewards: [],
+  },
+
+  CONVEX_CRVETH_POOL: {
+    name: "Convex crvCRVETH",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvCRVETH",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0xE1eCBB4181378E2346EAC90Eb5606c01Aa08f052",
+          Goerli: "deploy me",
+        },
+      },
+    ],
+  },
+
+  CONVEX_CVXETH_POOL: {
+    name: "Convex crvCVXETH",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvCVXETH",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15",
+          Goerli: "deploy me",
+        },
+      },
+    ],
+  },
+
+  CONVEX_3CRYPTO_POOL: {
+    name: "Convex 3Crypto",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrv3crypto",
     extraRewards: [],
   },
 

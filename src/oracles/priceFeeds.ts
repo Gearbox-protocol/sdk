@@ -449,6 +449,34 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  OHMFRAXBP: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["OHM", "crvFRAX"],
+    },
+  },
+
+  crvCRVETH: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["WETH", "CRV"],
+    },
+  },
+
+  crvCVXETH: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["WETH", "CVX"],
+    },
+  },
+
+  crv3crypto: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["USDT", "WBTC", "WETH"],
+    },
+  },
+
   // YEARN- CURVE TOKENS
 
   yvCurve_stETH: {
@@ -513,6 +541,24 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       curveSymbol: "OHMFRAXBP",
     },
   },
+  cvxcrvCRVETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvCRVETH",
+    },
+  },
+  cvxcrvCVXETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvCVXETH",
+    },
+  },
+  cvxcrv3crypto: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crv3crypto",
+    },
+  },
   // CVX tokens
   stkcvx3Crv: {
     priceFeedUSD: {
@@ -560,6 +606,24 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "OHMFRAXBP",
+    },
+  },
+  stkcvxcrvCRVETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvCRVETH",
+    },
+  },
+  stkcvxcrvCVXETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvCVXETH",
+    },
+  },
+  stkcvxcrv3crypto: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crv3crypto",
     },
   },
 
@@ -661,14 +725,6 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       },
     },
   },
-
-  OHMFRAXBP: {
-    priceFeedUSD: {
-      type: OracleType.CURVE_CRYPTO_ORACLE,
-      assets: ["OHM", "crvFRAX"],
-    },
-  },
-
   "50OHM_50DAI": {
     priceFeedUSD: {
       type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,

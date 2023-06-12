@@ -132,6 +132,9 @@ export const tokenDataByNetwork: Record<
     crvPlain3andSUSD: "0xC25a3A3b969415c80451098fa907EC722572917F",
     gusd3CRV: "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
     OHMFRAXBP: "0x5271045F7B73c17825A7A7aee6917eE46b0B7520",
+    crvCRVETH: "0xEd4064f376cB8d68F770FB1Ff088a3d0F3FF5c4d",
+    crvCVXETH: "0x3A283D9c08E8b55966afb64C515f5143cf907611",
+    crv3crypto: "0xc4AD29ba4B3c580e6D59105FFf484999997675Ff",
 
     // CONVEX LP TOKENS
     cvx3Crv: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
@@ -142,6 +145,9 @@ export const tokenDataByNetwork: Record<
     cvxcrvPlain3andSUSD: "0x11D200ef1409cecA8D6d23e6496550f707772F11",
     cvxgusd3CRV: "0x15c2471ef46Fa721990730cfa526BcFb45574576",
     cvxOHMFRAXBP: "0xd8F1B275c320819c7D752ef79988d0780bf00446",
+    cvxcrvCRVETH: "0x0Fb8dcdD95e4C48D3dD0eFA4086512f6F8FD4565",
+    cvxcrvCVXETH: "0x0bC857f97c0554d1d0D602b56F2EEcE682016fBA",
+    cvxcrv3crypto: "0x903C9974aAA431A765e60bC07aF45f0A1B3b61fb",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
     stkcvx3Crv: "0xbAc7a431146aeAf3F57A16b9954f332Fd292F270",
@@ -152,6 +158,9 @@ export const tokenDataByNetwork: Record<
     stkcvxLUSD3CRV: "0x0A1D4A25d0390899b90bCD22E1Ef155003EA76d7",
     stkcvxcrvFRAX: "0x276187f24D41745513cbE2Bd5dFC33a4d8CDc9ed",
     stkcvxOHMFRAXBP: "deploy me",
+    stkcvxcrvCRVETH: "deploy me",
+    stkcvxcrvCVXETH: "deploy me",
+    stkcvxcrv3crypto: "deploy me",
 
     // YEARN TOKENS
     yvDAI: "0xdA816459F1AB5631232FE5e97a05BBBb94970c95",
@@ -229,6 +238,9 @@ export const tokenDataByNetwork: Record<
     FRAX3CRV: "0x12Ad3125C67eC5325Cc94AFdA8B26cd12BCe1E9b",
     LUSD3CRV: "0x348B1846b87cA12D23A9A4E73B1CfAc2Aad49cf4",
     OHMFRAXBP: "deploy me",
+    crvCRVETH: "deploy me",
+    crvCVXETH: "deploy me",
+    crv3crypto: "deploy me",
 
     // CONVEX LP TOKENS
     cvx3Crv: "0xe12bFD868a81D1AD147731D0eC164d9C4A397FCd",
@@ -239,6 +251,9 @@ export const tokenDataByNetwork: Record<
     cvxLUSD3CRV: "0xD944F38aa81804313db028924Cf0695B26B67e6E",
     cvxgusd3CRV: "0xBA9e6B05b0F2C5B41Df2d56c0b1ddaFa03d53fed",
     cvxOHMFRAXBP: "deploy me",
+    cvxcrvCRVETH: "deploy me",
+    cvxcrvCVXETH: "deploy me",
+    cvxcrv3crypto: "deploy me",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
     stkcvx3Crv: "0xEB763389772eA09eddFcfed3EC571Bb20c187763",
@@ -249,6 +264,9 @@ export const tokenDataByNetwork: Record<
     stkcvxcrvPlain3andSUSD: "0x49416516604eF33383Bd9F3a94fEcd4ee36E2d88",
     stkcvxLUSD3CRV: "0x84c04976BA15AE880B8D6daC9CE1075D0eFD0d4D",
     stkcvxOHMFRAXBP: "deploy me",
+    stkcvxcrvCRVETH: "deploy me",
+    stkcvxcrvCVXETH: "deploy me",
+    stkcvxcrv3crypto: "deploy me",
 
     // BALANCER TOKENS
     "50OHM_50DAI": "deploy me",
