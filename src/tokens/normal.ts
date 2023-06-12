@@ -29,7 +29,9 @@ export type NormalToken =
   | "LUSD"
   | "sUSD"
   | "GUSD"
-  | "LQTY";
+  | "LQTY"
+  | "OHM"
+  | "MIM";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -426,6 +428,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         contract: "CURVE_STETH_GATEWAY",
         tokenOut: "steCRV",
       },
+      {
+        type: TradeType.BalancerJoin,
+        contract: "BALANCER_VAULT",
+        tokenOut: "50OHM_50WETH",
+      },
     ],
   },
 
@@ -506,6 +513,13 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_STETH_GATEWAY",
         tokenOut: ["WETH"],
+      },
+    ],
+    lpActions: [
+      {
+        type: TradeType.BalancerJoin,
+        contract: "BALANCER_VAULT",
+        tokenOut: "OHM_wstETH",
       },
     ],
   },
@@ -722,6 +736,63 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+  },
+
+  OHM: {
+    name: "OHM",
+
+    symbol: "OHM",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [],
+    lpActions: [
+      {
+        type: TradeType.BalancerJoin,
+        contract: "BALANCER_VAULT",
+        tokenOut: "50OHM_50DAI",
+      },
+      {
+        type: TradeType.BalancerJoin,
+        contract: "BALANCER_VAULT",
+        tokenOut: "50OHM_50WETH",
+      },
+      {
+        type: TradeType.BalancerJoin,
+        contract: "BALANCER_VAULT",
+        tokenOut: "OHM_wstETH",
+      },
+    ],
+  },
+  MIM: {
+    name: "MIM",
+
+    symbol: "MIM",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_MIM_POOL",
+        tokenOut: ["3Crv"],
+      },
+    ],
+    lpActions: [
+      {
+        type: TradeType.CurveDepositLP,
+        contract: "CURVE_MIM_POOL",
+        tokenOut: "MIM_3LP3CRV",
       },
     ],
   },

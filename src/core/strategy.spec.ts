@@ -82,7 +82,7 @@ describe("Strategy test", () => {
     expect(result).to.be.eq(332716);
   });
   it("liquidationPrice calculation is correct", () => {
-    const result = lidoStrategy.liquidationPrice({
+    const result = Strategy.liquidationPrice({
       liquidationThresholds,
       prices,
       borrowed: toBN("350", decimals.WETH),

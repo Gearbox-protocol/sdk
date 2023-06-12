@@ -6,12 +6,17 @@ import { PartialRecord } from "../utils/types";
 import type { SupportedToken, TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
-export type CurveMetaTokens = "FRAX3CRV" | "LUSD3CRV" | "gusd3CRV";
+export type CurveMetaTokens =
+  | "FRAX3CRV"
+  | "LUSD3CRV"
+  | "gusd3CRV"
+  | "MIM_3LP3CRV";
 export type CurveLPToken =
   | "3Crv"
   | "steCRV"
   | "crvPlain3andSUSD"
   | "crvFRAX"
+  | "OHMFRAXBP"
   | CurveMetaTokens;
 
 export type CurveLPTokenData = {
@@ -100,6 +105,30 @@ export const curveMetaTokens: Record<CurveMetaTokens, MetaCurveLPTokenData> = {
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
         tokenOut: "stkcvxgusd3CRV",
+      },
+    ],
+  },
+
+  MIM_3LP3CRV: {
+    name: "Curve MIM_3LP3CRV",
+    symbol: "MIM_3LP3CRV",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_MIM_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_MIM_POOL",
+        tokenOut: ["MIM", "3Crv"],
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxMIM_3LP3CRV",
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxMIM_3LP3CRV",
       },
     ],
   },
@@ -203,6 +232,30 @@ export const curveTokens: Record<
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
         tokenOut: "stkcvxcrvPlain3andSUSD",
+      },
+    ],
+  },
+  OHMFRAXBP: {
+    name: "Curve.fi Factory Crypto Pool: OHM/FRAXBP",
+    symbol: "OHMFRAXBP",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_OHM_FRAXBP",
+    wrapper: "CURVE_OHM_FRAXBP",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_OHM_FRAXBP",
+        tokenOut: ["OHM", "FRAX", "USDC"],
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxOHMFRAXBP",
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxOHMFRAXBP",
       },
     ],
   },

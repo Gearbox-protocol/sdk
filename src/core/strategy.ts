@@ -92,8 +92,7 @@ export class Strategy {
     return roi(apy, farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  liquidationPrice({
+  static liquidationPrice({
     prices,
     liquidationThresholds,
 

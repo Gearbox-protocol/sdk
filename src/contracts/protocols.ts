@@ -6,6 +6,7 @@ export enum Protocols {
   Convex,
   Lido,
   Gearbox,
+  Balancer,
 }
 
 export interface ProtocolData {
@@ -40,6 +41,10 @@ export const protocolData: Record<Protocols, ProtocolData> = {
   },
   [Protocols.Gearbox]: {
     name: "Gearbox",
+    icon: "",
+  },
+  [Protocols.Balancer]: {
+    name: "Balancer",
     icon: "",
   },
 };

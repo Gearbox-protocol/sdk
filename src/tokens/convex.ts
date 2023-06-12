@@ -14,7 +14,9 @@ export type ConvexLPToken =
   | "cvxFRAX3CRV"
   | "cvxLUSD3CRV"
   | "cvxcrvPlain3andSUSD"
-  | "cvxgusd3CRV";
+  | "cvxgusd3CRV"
+  | "cvxOHMFRAXBP"
+  | "cvxMIM_3LP3CRV";
 
 export type ConvexStakedPhantomToken =
   | "stkcvx3Crv"
@@ -23,7 +25,9 @@ export type ConvexStakedPhantomToken =
   | "stkcvxFRAX3CRV"
   | "stkcvxLUSD3CRV"
   | "stkcvxcrvPlain3andSUSD"
-  | "stkcvxgusd3CRV";
+  | "stkcvxgusd3CRV"
+  | "stkcvxOHMFRAXBP"
+  | "stkcvxMIM_3LP3CRV";
 
 type BaseConvexToken = {
   pool: ConvexPoolContract;
@@ -205,6 +209,52 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       },
     ],
   },
+
+  cvxOHMFRAXBP: {
+    name: "Convex cvxOHMFRAXBP",
+
+    symbol: "cvxOHMFRAXBP",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_OHMFRAXBP_POOL",
+    pid: 138,
+    underlying: "OHMFRAXBP",
+    stakedToken: "stkcvxOHMFRAXBP",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "OHMFRAXBP",
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_OHMFRAXBP_POOL",
+        tokenOut: "stkcvxOHMFRAXBP",
+      },
+    ],
+  },
+
+  cvxMIM_3LP3CRV: {
+    name: "Convex cvxMIM-3LP3CRV-f",
+
+    symbol: "cvxMIM_3LP3CRV",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_MIM3CRV_POOL",
+    pid: 40,
+    underlying: "MIM_3LP3CRV",
+    stakedToken: "stkcvxMIM_3LP3CRV",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "MIM_3LP3CRV",
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_MIM3CRV_POOL",
+        tokenOut: "stkcvxMIM_3LP3CRV",
+      },
+    ],
+  },
 };
 
 const convexStakedPhantomTokens: Record<
@@ -366,6 +416,52 @@ const convexStakedPhantomTokens: Record<
         type: TradeType.ConvexWithdrawAndUnwrap,
         contract: "CONVEX_GUSD_POOL",
         tokenOut: "gusd3CRV",
+      },
+    ],
+  },
+
+  stkcvxOHMFRAXBP: {
+    name: "Convex stkcvxOHMFRAXBP",
+
+    symbol: "stkcvxOHMFRAXBP",
+    type: TokenType.CONVEX_STAKED_TOKEN,
+    pool: "CONVEX_OHMFRAXBP_POOL",
+    pid: 138,
+    underlying: "OHMFRAXBP",
+    lpToken: "cvxOHMFRAXBP",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_OHMFRAXBP_POOL",
+        tokenOut: "cvxOHMFRAXBP",
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_OHMFRAXBP_POOL",
+        tokenOut: "OHMFRAXBP",
+      },
+    ],
+  },
+
+  stkcvxMIM_3LP3CRV: {
+    name: "Convex stkcvxMIM_3LP3CRV-f",
+
+    symbol: "stkcvxMIM_3LP3CRV",
+    type: TokenType.CONVEX_STAKED_TOKEN,
+    pool: "CONVEX_MIM3CRV_POOL",
+    pid: 40,
+    underlying: "MIM_3LP3CRV",
+    lpToken: "cvxMIM_3LP3CRV",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_MIM3CRV_POOL",
+        tokenOut: "cvxMIM_3LP3CRV",
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_MIM3CRV_POOL",
+        tokenOut: "MIM_3LP3CRV",
       },
     ],
   },

@@ -9,4 +9,5 @@ export enum TokenType {
   DIESEL_LP_TOKEN,
   GEAR_TOKEN,
   C_TOKEN,
+  BALANCER_LP_TOKEN,
 }
