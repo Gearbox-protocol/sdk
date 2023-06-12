@@ -82,6 +82,7 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   crvFRAX: "44", // 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2
   GEAR: "factory-crypto-192", // 0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2
   OHMFRAXBP: "factory-crypto-158", // 0xfc1e8bf3e81383ef07be24c3fd146745719de48d
+  MIM_3LP3CRV: "40", // 0x5a6a4d54456819380173272a5e8e9b9904bdf41b
 };
 
 const CRV_APY_RESPONSE_DECIMALS = 100;
@@ -167,6 +168,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
       steCRV: ZERO,
       GEAR: ZERO,
       OHMFRAXBP: ZERO,
+      MIM_3LP3CRV: ZERO,
     };
   }
 }

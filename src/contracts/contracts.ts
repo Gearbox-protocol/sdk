@@ -29,7 +29,8 @@ export type CurvePoolContract =
   | "CURVE_GUSD_POOL"
   | "CURVE_SUSD_POOL"
   | "CURVE_SUSD_DEPOSIT"
-  | "CURVE_OHM_FRAXBP";
+  | "CURVE_OHM_FRAXBP"
+  | "CURVE_MIM_POOL";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -47,7 +48,8 @@ export type ConvexPoolContract =
   | "CONVEX_STECRV_POOL"
   | "CONVEX_FRAX3CRV_POOL"
   | "CONVEX_LUSD3CRV_POOL"
-  | "CONVEX_OHMFRAXBP_POOL";
+  | "CONVEX_OHMFRAXBP_POOL"
+  | "CONVEX_MIM3CRV_POOL";
 
 export type SupportedContract =
   | UniswapV2Contract
@@ -80,6 +82,7 @@ export const contractsByNetwork: Record<
     CURVE_SUSD_POOL: "0xA5407eAE9Ba41422680e2e00537571bcC53efBfD", // SEPARATE TOKEN
     CURVE_SUSD_DEPOSIT: "0xFCBa3E75865d2d561BE8D220616520c171F12851",
     CURVE_GUSD_POOL: "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", // SEPARATE TOKEN
+    CURVE_MIM_POOL: tokenDataByNetwork.Mainnet.MIM_3LP3CRV,
 
     CURVE_GEAR_POOL: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
     CURVE_OHM_FRAXBP: "0xFc1e8bf3E81383Ef07Be24c3FD146745719DE48D",
@@ -103,6 +106,7 @@ export const contractsByNetwork: Record<
     CONVEX_LUSD3CRV_POOL: "0x2ad92A7aE036a038ff02B96c88de868ddf3f8190",
     CONVEX_CLAIM_ZAP: "0x92Cf9E5e4D1Dfbf7dA0d2BB3e884a68416a65070",
     CONVEX_OHMFRAXBP_POOL: "0x27A8c58e3DE84280826d615D80ddb33930383fE9",
+    CONVEX_MIM3CRV_POOL: "0xFd5AbF66b003881b88567EB9Ed9c651F14Dc4771",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x6f4b4aB5142787c05b7aB9A9692A0f46b997C29D",
@@ -135,6 +139,7 @@ export const contractsByNetwork: Record<
     CURVE_SUSD_POOL: "0x2A1b874C86734feA5be050d32fAb02FCF9eB1Bc2",
     CURVE_SUSD_DEPOSIT: "0x9782f1fF1AEFb387F01cae72F668F13E8061d9Dd",
     CURVE_GUSD_POOL: "0x8C954d89C2fB2c96F0195738b8c5538B34D5344E",
+    CURVE_MIM_POOL: tokenDataByNetwork.Goerli.MIM_3LP3CRV,
 
     CURVE_GEAR_POOL: "deploy me",
     CURVE_OHM_FRAXBP: "deploy me",
@@ -158,6 +163,7 @@ export const contractsByNetwork: Record<
     CONVEX_GUSD_POOL: "0xa8eD353f56BB2e1063B8a011F0491a1703998De4",
     CONVEX_CLAIM_ZAP: "0x74C7Bb6493C5EcfDb49E3ED5Ee4B60012b724b4b",
     CONVEX_OHMFRAXBP_POOL: "deploy me",
+    CONVEX_MIM3CRV_POOL: "deploy me",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x9290E44f5f819b7de0Fb88b10641f9F08a999BF7",
@@ -380,6 +386,15 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     underlyings: ["OHM", "FRAX", "USDC"],
   },
 
+  CURVE_MIM_POOL: {
+    name: "Curve MIM",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "MIM_3LP3CRV",
+    tokens: ["MIM", "3Crv"],
+    underlyings: ["MIM", "DAI", "USDC", "USDT"],
+  },
+
   YEARN_DAI_VAULT: {
     name: "Yearn DAI",
     protocol: Protocols.Yearn,
@@ -515,6 +530,14 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxOHMFRAXBP",
+    extraRewards: [],
+  },
+
+  CONVEX_MIM3CRV_POOL: {
+    name: "Convex MIM3CRV",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxMIM_3LP3CRV",
     extraRewards: [],
   },
 
