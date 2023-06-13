@@ -137,7 +137,7 @@ export const tokenDataByNetwork: Record<
     MIM_3LP3CRV: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
     crvCRVETH: "0xEd4064f376cB8d68F770FB1Ff088a3d0F3FF5c4d",
     crvCVXETH: "0x3A283D9c08E8b55966afb64C515f5143cf907611",
-    crv3crypto: "0xc4AD29ba4B3c580e6D59105FFf484999997675Ff",
+    crvUSDTWBTCWETH: "0xf5f5b97624542d72a9e06f04804bf81baa15e2b4",
     LDOETH: "0xb79565c01b7ae53618d9b847b9443aaf4f9011e7",
 
     // CONVEX LP TOKENS
@@ -152,7 +152,7 @@ export const tokenDataByNetwork: Record<
     cvxMIM_3LP3CRV: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
     cvxcrvCRVETH: "0x0Fb8dcdD95e4C48D3dD0eFA4086512f6F8FD4565",
     cvxcrvCVXETH: "0x0bC857f97c0554d1d0D602b56F2EEcE682016fBA",
-    cvxcrv3crypto: "0x903C9974aAA431A765e60bC07aF45f0A1B3b61fb",
+    cvxcrvUSDTWBTCWETH: "0xB77BA8B4b9d981269466eE95796A9Af57d4E82DB",
     cvxLDOETH: "0xD533a949740bb3306d119CC777fa900bA034cd52",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
@@ -167,7 +167,7 @@ export const tokenDataByNetwork: Record<
     stkcvxMIM_3LP3CRV: "0x1aAbe1B22a290cCB39FD77440D5eb96Cf40079f4",
     stkcvxcrvCRVETH: "0xfC4b109D46e12170DF31AF8ba39403fAC2b8c0cf",
     stkcvxcrvCVXETH: "0x948bEd0211076b05d22e98929217d0f04D068C5c",
-    stkcvxcrv3crypto: "0x1Bcf3d78f3aC6A4d7d04c34095fcc0731405706A",
+    stkcvxcrvUSDTWBTCWETH: "0xEE3EE8373384BBfea3227E527C1B9b4e7821273E",
     stkcvxLDOETH: "0x2Fd6bD5b81c1060039D619E76e4e1f924B173006",
 
     // YEARN TOKENS
@@ -251,7 +251,7 @@ export const tokenDataByNetwork: Record<
     MIM_3LP3CRV: "deploy me",
     crvCRVETH: "deploy me",
     crvCVXETH: "deploy me",
-    crv3crypto: "deploy me",
+    crvUSDTWBTCWETH: "deploy me",
     LDOETH: "deploy me",
 
     // CONVEX LP TOKENS
@@ -266,7 +266,7 @@ export const tokenDataByNetwork: Record<
     cvxMIM_3LP3CRV: "deploy me",
     cvxcrvCRVETH: "deploy me",
     cvxcrvCVXETH: "deploy me",
-    cvxcrv3crypto: "deploy me",
+    cvxcrvUSDTWBTCWETH: "deploy me",
     cvxLDOETH: "deploy me",
 
     // CONVEX PHANTOM TOKEN ADDRESSES
@@ -281,7 +281,7 @@ export const tokenDataByNetwork: Record<
     stkcvxMIM_3LP3CRV: "deploy me",
     stkcvxcrvCRVETH: "deploy me",
     stkcvxcrvCVXETH: "deploy me",
-    stkcvxcrv3crypto: "deploy me",
+    stkcvxcrvUSDTWBTCWETH: "deploy me",
     stkcvxLDOETH: "deploy me",
 
     // BALANCER TOKENS

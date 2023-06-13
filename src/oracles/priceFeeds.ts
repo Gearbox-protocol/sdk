@@ -512,7 +512,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
-  crv3crypto: {
+  crvUSDTWBTCWETH: {
     priceFeedUSD: {
       type: OracleType.CURVE_CRYPTO_ORACLE,
       assets: ["USDT", "WBTC", "WETH"],
@@ -609,10 +609,10 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       curveSymbol: "crvCVXETH",
     },
   },
-  cvxcrv3crypto: {
+  cvxcrvUSDTWBTCWETH: {
     priceFeedUSD: {
       type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-      curveSymbol: "crv3crypto",
+      curveSymbol: "crvUSDTWBTCWETH",
     },
   },
 
@@ -690,10 +690,10 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       curveSymbol: "crvCVXETH",
     },
   },
-  stkcvxcrv3crypto: {
+  stkcvxcrvUSDTWBTCWETH: {
     priceFeedUSD: {
       type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-      curveSymbol: "crv3crypto",
+      curveSymbol: "crvUSDTWBTCWETH",
     },
   },
   stkcvxLDOETH: {

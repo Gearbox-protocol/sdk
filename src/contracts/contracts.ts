@@ -95,7 +95,7 @@ export const contractsByNetwork: Record<
     CURVE_OHMFRAXBP_POOL: "0xFc1e8bf3E81383Ef07Be24c3FD146745719DE48D",
     CURVE_CRVETH_POOL: "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511",
     CURVE_CVXETH_POOL: "0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4",
-    CURVE_3CRYPTO_POOL: "0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",
+    CURVE_3CRYPTO_POOL: tokenDataByNetwork.Mainnet.crvUSDTWBTCWETH,
     CURVE_LDOETH_POOL: "0x9409280dc1e6d33ab7a8c6ec03e5763fb61772b5",
 
     CURVE_GEAR_POOL: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
@@ -122,7 +122,7 @@ export const contractsByNetwork: Record<
     CONVEX_MIM3CRV_POOL: "0xFd5AbF66b003881b88567EB9Ed9c651F14Dc4771",
     CONVEX_CRVETH_POOL: "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f",
     CONVEX_CVXETH_POOL: "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA",
-    CONVEX_3CRYPTO_POOL: "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652",
+    CONVEX_3CRYPTO_POOL: "0xb05262D4aaAA38D0Af4AaB244D446ebDb5afd4A7",
     CONVEX_LDOETH_POOL: "0x8CA990E954611E5E3d2cc51C013fCC372c8c1D38",
 
     // LIDO
@@ -446,7 +446,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve 3Crypto",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_3ASSETS,
-    lpToken: "crv3crypto",
+    lpToken: "crvUSDTWBTCWETH",
     tokens: ["USDT", "WBTC", "WETH"],
   },
 
@@ -648,7 +648,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Convex 3Crypto",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxcrv3crypto",
+    stakedToken: "stkcvxcrvUSDTWBTCWETH",
     extraRewards: [],
   },
 
