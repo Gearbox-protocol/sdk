@@ -398,6 +398,16 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  SPELL: {
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: {
+        Mainnet: "0x8c110b94c5f1d347facf5e1e938ab2db60e3c9a8",
+        Goerli: "deploy me",
+      },
+    },
+  },
+
   yvDAI: {
     priceFeedETH: {
       type: OracleType.YEARN_TOKEN_ORACLE,

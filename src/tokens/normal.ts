@@ -31,7 +31,8 @@ export type NormalToken =
   | "GUSD"
   | "LQTY"
   | "OHM"
-  | "MIM";
+  | "MIM"
+  | "SPELL";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -795,6 +796,27 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         tokenOut: "MIM_3LP3CRV",
       },
     ],
+  },
+  SPELL: {
+    name: "SPELL",
+
+    symbol: "SPELL",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+    lpActions: [],
   },
 };
 

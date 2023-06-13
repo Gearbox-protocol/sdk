@@ -111,6 +111,7 @@ export const tokenDataByNetwork: Record<
     YFI: "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
     OHM: "0x64aa3364F17a4D01c6f1751Fd97C2BD3D7e7f1D5",
     MIM: "0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3",
+    SPELL: "0x090185f2135308BaD17527004364eBcC2D37e5F6",
 
     /// UPDATE
     STETH: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
@@ -213,6 +214,7 @@ export const tokenDataByNetwork: Record<
     YFI: "0xCad5D7701e0A85fe50B3aCaBDcdF7e75672F326e",
     OHM: "deploy me",
     MIM: "deploy me",
+    SPELL: "deploy me",
 
     /// UPDATE
     STETH: "0xd628baa42b3080593a231016bF3F229161C9F745",
