@@ -83,6 +83,9 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   GEAR: "factory-crypto-192", // 0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2
   OHMFRAXBP: "factory-crypto-158", // 0xfc1e8bf3e81383ef07be24c3fd146745719de48d
   MIM_3LP3CRV: "40", // 0x5a6a4d54456819380173272a5e8e9b9904bdf41b
+  crvCRVETH: "crypto-3", // 0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511
+  crvCVXETH: "crypto-4", // 0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4
+  crv3crypto: "crypto-0", // 0xD51a44d3FaE010294C616388b506AcdA1bfAAE46
 };
 
 const CRV_APY_RESPONSE_DECIMALS = 100;

@@ -16,7 +16,10 @@ export type ConvexLPToken =
   | "cvxcrvPlain3andSUSD"
   | "cvxgusd3CRV"
   | "cvxOHMFRAXBP"
-  | "cvxMIM_3LP3CRV";
+  | "cvxMIM_3LP3CRV"
+  | "cvxcrvCRVETH"
+  | "cvxcrvCVXETH"
+  | "cvxcrv3crypto";
 
 export type ConvexStakedPhantomToken =
   | "stkcvx3Crv"
@@ -27,7 +30,10 @@ export type ConvexStakedPhantomToken =
   | "stkcvxcrvPlain3andSUSD"
   | "stkcvxgusd3CRV"
   | "stkcvxOHMFRAXBP"
-  | "stkcvxMIM_3LP3CRV";
+  | "stkcvxMIM_3LP3CRV"
+  | "stkcvxcrvCRVETH"
+  | "stkcvxcrvCVXETH"
+  | "stkcvxcrv3crypto";
 
 type BaseConvexToken = {
   pool: ConvexPoolContract;
@@ -255,6 +261,75 @@ const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
       },
     ],
   },
+
+  cvxcrvCRVETH: {
+    name: "Convex cvxcrvCRVETH",
+
+    symbol: "cvxcrvCRVETH",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_CRVETH_POOL",
+    pid: 61,
+    underlying: "crvCRVETH",
+    stakedToken: "stkcvxcrvCRVETH",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "crvCRVETH",
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_OHMFRAXBP_POOL",
+        tokenOut: "stkcvxcrvCRVETH",
+      },
+    ],
+  },
+
+  cvxcrvCVXETH: {
+    name: "Convex cvxcrvCVXETH",
+
+    symbol: "cvxcrvCVXETH",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_CVXETH_POOL",
+    pid: 64,
+    underlying: "crvCVXETH",
+    stakedToken: "stkcvxcrvCVXETH",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "crvCVXETH",
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_CVXETH_POOL",
+        tokenOut: "stkcvxcrvCVXETH",
+      },
+    ],
+  },
+
+  cvxcrv3crypto: {
+    name: "Convex cvxcrv3crypto",
+
+    symbol: "cvxcrv3crypto",
+    type: TokenType.CONVEX_LP_TOKEN,
+    pool: "CONVEX_3CRYPTO_POOL",
+    pid: 38,
+    underlying: "crv3crypto",
+    stakedToken: "stkcvxcrv3crypto",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdrawLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "crv3crypto",
+      },
+      {
+        type: TradeType.ConvexStake,
+        contract: "CONVEX_3CRYPTO_POOL",
+        tokenOut: "stkcvxcrv3crypto",
+      },
+    ],
+  },
 };
 
 const convexStakedPhantomTokens: Record<
@@ -462,6 +537,75 @@ const convexStakedPhantomTokens: Record<
         type: TradeType.ConvexWithdrawAndUnwrap,
         contract: "CONVEX_MIM3CRV_POOL",
         tokenOut: "MIM_3LP3CRV",
+      },
+    ],
+  },
+
+  stkcvxcrvCRVETH: {
+    name: "Convex stkcvxcrvCRVETH",
+
+    symbol: "stkcvxcrvCRVETH",
+    type: TokenType.CONVEX_STAKED_TOKEN,
+    pool: "CONVEX_CRVETH_POOL",
+    pid: 61,
+    underlying: "crvCRVETH",
+    lpToken: "cvxcrvCRVETH",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_CRVETH_POOL",
+        tokenOut: "cvxcrvCRVETH",
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_CRVETH_POOL",
+        tokenOut: "crvCRVETH",
+      },
+    ],
+  },
+
+  stkcvxcrvCVXETH: {
+    name: "Convex stkcvxcrvCVXETH",
+
+    symbol: "stkcvxcrvCVXETH",
+    type: TokenType.CONVEX_STAKED_TOKEN,
+    pool: "CONVEX_CVXETH_POOL",
+    pid: 64,
+    underlying: "crvCVXETH",
+    lpToken: "cvxcrvCVXETH",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_CVXETH_POOL",
+        tokenOut: "cvxcrvCVXETH",
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_CVXETH_POOL",
+        tokenOut: "crvCVXETH",
+      },
+    ],
+  },
+
+  stkcvxcrv3crypto: {
+    name: "Convex stkcvxcrv3crypto",
+
+    symbol: "stkcvxcrv3crypto",
+    type: TokenType.CONVEX_STAKED_TOKEN,
+    pool: "CONVEX_3CRYPTO_POOL",
+    pid: 38,
+    underlying: "crv3crypto",
+    lpToken: "cvxcrv3crypto",
+    lpActions: [
+      {
+        type: TradeType.ConvexWithdraw,
+        contract: "CONVEX_3CRYPTO_POOL",
+        tokenOut: "cvxcrv3crypto",
+      },
+      {
+        type: TradeType.ConvexWithdrawAndUnwrap,
+        contract: "CONVEX_3CRYPTO_POOL",
+        tokenOut: "crv3crypto",
       },
     ],
   },
