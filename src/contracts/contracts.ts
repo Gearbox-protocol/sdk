@@ -653,7 +653,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   },
 
   CONVEX_LDOETH_POOL: {
-    name: "Convex crvLDOETH",
+    name: "Convex LDOETH",
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxLDOETH",
