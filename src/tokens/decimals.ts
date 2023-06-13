@@ -28,6 +28,7 @@ export const decimals: Record<SupportedToken, number> = {
   LQTY: 18,
   OHM: 9,
   MIM: 18,
+  SPELL: 18,
   "3Crv": 18,
   crvFRAX: 18,
   OHMFRAXBP: 18,

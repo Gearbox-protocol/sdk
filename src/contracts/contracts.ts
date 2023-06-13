@@ -601,7 +601,15 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Convex,
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxMIM_3LP3CRV",
-    extraRewards: [],
+    extraRewards: [
+      {
+        rewardToken: "SPELL",
+        poolAddress: {
+          Mainnet: "0x69a92f1656cd2e193797546cFe2EaF32EACcf6f7",
+          Goerli: "deploy me",
+        },
+      },
+    ],
   },
 
   CONVEX_CRVETH_POOL: {
