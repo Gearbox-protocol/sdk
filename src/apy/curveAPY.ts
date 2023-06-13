@@ -86,6 +86,7 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   crvCRVETH: "crypto-3", // 0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511
   crvCVXETH: "crypto-4", // 0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4
   crv3crypto: "crypto-0", // 0xD51a44d3FaE010294C616388b506AcdA1bfAAE46
+  LDOETH: "factory-crypto-204",
 };
 
 const CRV_APY_RESPONSE_DECIMALS = 100;

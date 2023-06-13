@@ -20,6 +20,7 @@ export type CurveLPToken =
   | "crvCRVETH"
   | "crvCVXETH"
   | "crv3crypto"
+  | "LDOETH"
   | CurveMetaTokens;
 
 export type CurveLPTokenData = {
@@ -327,6 +328,29 @@ export const curveTokens: Record<
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
         tokenOut: "stkcvxcrv3crypto",
+      },
+    ],
+  },
+  LDOETH: {
+    name: "Curve LDOETH",
+    symbol: "LDOETH",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_LDOETH_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_LDOETH_POOL",
+        tokenOut: ["LDO", "WETH"],
+      },
+      {
+        type: TradeType.ConvexDepositLP,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "cvxLDOETH",
+      },
+      {
+        type: TradeType.ConvexDepositLPAndStake,
+        contract: "CONVEX_BOOSTER",
+        tokenOut: "stkcvxLDOETH",
       },
     ],
   },

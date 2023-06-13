@@ -509,6 +509,13 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  LDOETH: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["LDO", "WETH"],
+    },
+  },
+
   // YEARN- CURVE TOKENS
 
   yvCurve_stETH: {
@@ -598,6 +605,14 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       curveSymbol: "crv3crypto",
     },
   },
+
+  cvxLDOETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "LDOETH",
+    },
+  },
+
   // CVX tokens
   stkcvx3Crv: {
     priceFeedUSD: {
@@ -669,6 +684,12 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "crv3crypto",
+    },
+  },
+  stkcvxLDOETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "LDOETH",
     },
   },
 

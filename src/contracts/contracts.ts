@@ -33,7 +33,8 @@ export type CurvePoolContract =
   | "CURVE_CRVETH_POOL"
   | "CURVE_CVXETH_POOL"
   | "CURVE_3CRYPTO_POOL"
-  | "CURVE_MIM_POOL";
+  | "CURVE_MIM_POOL"
+  | "CURVE_LDOETH_POOL";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -55,7 +56,8 @@ export type ConvexPoolContract =
   | "CONVEX_MIM3CRV_POOL"
   | "CONVEX_CRVETH_POOL"
   | "CONVEX_CVXETH_POOL"
-  | "CONVEX_3CRYPTO_POOL";
+  | "CONVEX_3CRYPTO_POOL"
+  | "CONVEX_LDOETH_POOL";
 
 export type SupportedContract =
   | UniswapV2Contract
@@ -94,6 +96,7 @@ export const contractsByNetwork: Record<
     CURVE_CRVETH_POOL: "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511",
     CURVE_CVXETH_POOL: "0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4",
     CURVE_3CRYPTO_POOL: "0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",
+    CURVE_LDOETH_POOL: "0x9409280dc1e6d33ab7a8c6ec03e5763fb61772b5",
 
     CURVE_GEAR_POOL: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
 
@@ -120,6 +123,7 @@ export const contractsByNetwork: Record<
     CONVEX_CRVETH_POOL: "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f",
     CONVEX_CVXETH_POOL: "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA",
     CONVEX_3CRYPTO_POOL: "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652",
+    CONVEX_LDOETH_POOL: "0x8CA990E954611E5E3d2cc51C013fCC372c8c1D38",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x6f4b4aB5142787c05b7aB9A9692A0f46b997C29D",
@@ -160,6 +164,7 @@ export const contractsByNetwork: Record<
     CURVE_CRVETH_POOL: "deploy me",
     CURVE_CVXETH_POOL: "deploy me",
     CURVE_3CRYPTO_POOL: "deploy me",
+    CURVE_LDOETH_POOL: "deploy me",
 
     CURVE_GEAR_POOL: "deploy me",
 
@@ -186,6 +191,7 @@ export const contractsByNetwork: Record<
     CONVEX_CRVETH_POOL: "deploy me",
     CONVEX_CVXETH_POOL: "deploy me",
     CONVEX_3CRYPTO_POOL: "deploy me",
+    CONVEX_LDOETH_POOL: "deploy me",
 
     // LIDO
     LIDO_STETH_GATEWAY: "0x9290E44f5f819b7de0Fb88b10641f9F08a999BF7",
@@ -444,6 +450,14 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     tokens: ["USDT", "WBTC", "WETH"],
   },
 
+  CURVE_LDOETH_POOL: {
+    name: "Curve LDOETH",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "LDOETH",
+    tokens: ["WETH", "LDO"],
+  },
+
   YEARN_DAI_VAULT: {
     name: "Yearn DAI",
     protocol: Protocols.Yearn,
@@ -628,6 +642,22 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
     stakedToken: "stkcvxcrv3crypto",
     extraRewards: [],
+  },
+
+  CONVEX_LDOETH_POOL: {
+    name: "Convex crvLDOETH",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxLDOETH",
+    extraRewards: [
+      {
+        rewardToken: "LDO",
+        poolAddress: {
+          Mainnet: "0x95e6092449a0f3946A5a0f308Ead4adcff244E2B",
+          Goerli: "deploy me",
+        },
+      },
+    ],
   },
 
   LIDO_STETH_GATEWAY: {
