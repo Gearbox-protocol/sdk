@@ -355,7 +355,16 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       },
     },
     priceFeedUSD: {
-      type: OracleType.ZERO_ORACLE,
+      type: OracleType.COMPOSITE_ORACLE,
+
+      targetToBasePriceFeed: {
+        Mainnet: "0x4e844125952d32acdf339be976c98e22f6f318db",
+        Goerli: "0x6569bae7114121aE82303F42f42b64012DcCbD7d",
+      },
+      baseToUsdPriceFeed: {
+        Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+        Goerli: "0x491741d9F426130d1bC27Aee82f8b4Bd4E6E5f5D",
+      },
     },
 
     // ADD ETH-> DAI Oracle!
