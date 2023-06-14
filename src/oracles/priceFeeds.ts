@@ -366,6 +366,48 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  OHM: {
+    priceFeedETH: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: {
+        Mainnet: "0x9a72298ae3886221820b1c878d12d872087d3a23",
+        Goerli: "deploy me",
+      },
+    },
+    priceFeedUSD: {
+      type: OracleType.COMPOSITE_ORACLE,
+
+      targetToBasePriceFeed: {
+        Mainnet: "0x9a72298ae3886221820b1c878d12d872087d3a23",
+        Goerli: "deploy me",
+      },
+      baseToUsdPriceFeed: {
+        Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+        Goerli: "0x491741d9F426130d1bC27Aee82f8b4Bd4E6E5f5D",
+      },
+    },
+  },
+
+  MIM: {
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: {
+        Mainnet: "0x7A364e8770418566e3eb2001A96116E6138Eb32F",
+        Goerli: "deploy me",
+      },
+    },
+  },
+
+  SPELL: {
+    priceFeedUSD: {
+      type: OracleType.CHAINLINK_ORACLE,
+      address: {
+        Mainnet: "0x8c110b94c5f1d347facf5e1e938ab2db60e3c9a8",
+        Goerli: "deploy me",
+      },
+    },
+  },
+
   yvDAI: {
     priceFeedETH: {
       type: OracleType.YEARN_TOKEN_ORACLE,
@@ -449,6 +491,41 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  OHMFRAXBP: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["OHM", "crvFRAX"],
+    },
+  },
+
+  crvCRVETH: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["WETH", "CRV"],
+    },
+  },
+
+  crvCVXETH: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["WETH", "CVX"],
+    },
+  },
+
+  crvUSDTWBTCWETH: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["USDT", "WBTC", "WETH"],
+    },
+  },
+
+  LDOETH: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_CRYPTO_ORACLE,
+      assets: ["LDO", "WETH"],
+    },
+  },
+
   // YEARN- CURVE TOKENS
 
   yvCurve_stETH: {
@@ -513,6 +590,39 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       curveSymbol: "OHMFRAXBP",
     },
   },
+  cvxMIM_3LP3CRV: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "MIM_3LP3CRV",
+    },
+  },
+
+  cvxcrvCRVETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvCRVETH",
+    },
+  },
+  cvxcrvCVXETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvCVXETH",
+    },
+  },
+  cvxcrvUSDTWBTCWETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvUSDTWBTCWETH",
+    },
+  },
+
+  cvxLDOETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "LDOETH",
+    },
+  },
+
   // CVX tokens
   stkcvx3Crv: {
     priceFeedUSD: {
@@ -560,6 +670,36 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
       curveSymbol: "OHMFRAXBP",
+    },
+  },
+  stkcvxMIM_3LP3CRV: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "MIM_3LP3CRV",
+    },
+  },
+  stkcvxcrvCRVETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvCRVETH",
+    },
+  },
+  stkcvxcrvCVXETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvCVXETH",
+    },
+  },
+  stkcvxcrvUSDTWBTCWETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "crvUSDTWBTCWETH",
+    },
+  },
+  stkcvxLDOETH: {
+    priceFeedUSD: {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
+      curveSymbol: "LDOETH",
     },
   },
 
@@ -640,32 +780,11 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
       address: { Mainnet: "", Goerli: "" },
     },
   },
-  OHM: {
-    priceFeedETH: {
-      type: OracleType.CHAINLINK_ORACLE,
-      address: {
-        Mainnet: "0x9a72298ae3886221820b1c878d12d872087d3a23",
-        Goerli: "deploy me",
-      },
-    },
-    priceFeedUSD: {
-      type: OracleType.COMPOSITE_ORACLE,
 
-      targetToBasePriceFeed: {
-        Mainnet: "0x9a72298ae3886221820b1c878d12d872087d3a23",
-        Goerli: "deploy me",
-      },
-      baseToUsdPriceFeed: {
-        Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-        Goerli: "0x491741d9F426130d1bC27Aee82f8b4Bd4E6E5f5D",
-      },
-    },
-  },
-
-  OHMFRAXBP: {
+  MIM_3LP3CRV: {
     priceFeedUSD: {
       type: OracleType.CURVE_CRYPTO_ORACLE,
-      assets: ["OHM", "crvFRAX"],
+      assets: ["MIM", "3Crv"],
     },
   },
 

@@ -82,14 +82,14 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   crvFRAX: "44", // 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2
   GEAR: "factory-crypto-192", // 0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2
   OHMFRAXBP: "factory-crypto-158", // 0xfc1e8bf3e81383ef07be24c3fd146745719de48d
+  MIM_3LP3CRV: "40", // 0x5a6a4d54456819380173272a5e8e9b9904bdf41b
+  crvCRVETH: "crypto-3", // 0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511
+  crvCVXETH: "crypto-4", // 0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4
+  crvUSDTWBTCWETH: "factory-tricrypto-1",
+  LDOETH: "factory-crypto-204",
 };
 
 const CRV_APY_RESPONSE_DECIMALS = 100;
-const ZERO: CurveAPY = {
-  base: BigNumber.from(0),
-  crv: BigNumber.from(0),
-  gauge: [],
-};
 
 // const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
 // const FACTORY = "https://api.curve.fi/api/getPools/ethereum/factory";
@@ -105,7 +105,7 @@ interface CurveAPY {
 }
 export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
 
-export async function getCurveAPY(): Promise<CurveAPYResult> {
+export async function getCurveAPY(): Promise<CurveAPYResult | null> {
   try {
     const [{ data: apyData }, { data: factoryCrypto }, { data: main }] =
       await Promise.all([
@@ -157,17 +157,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
     return curveAPY;
   } catch (e) {
     console.error(e);
-    return {
-      "3Crv": ZERO,
-      crvFRAX: ZERO,
-      FRAX3CRV: ZERO,
-      gusd3CRV: ZERO,
-      LUSD3CRV: ZERO,
-      crvPlain3andSUSD: ZERO,
-      steCRV: ZERO,
-      GEAR: ZERO,
-      OHMFRAXBP: ZERO,
-    };
+    return null;
   }
 }
 
