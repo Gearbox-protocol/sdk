@@ -500,6 +500,13 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     },
   },
 
+  MIM_3LP3CRV: {
+    priceFeedUSD: {
+      type: OracleType.CURVE_LP_TOKEN_ORACLE,
+      assets: ["MIM", "DAI", "USDC", "USDT"],
+    },
+  },
+
   OHMFRAXBP: {
     priceFeedUSD: {
       type: OracleType.CURVE_CRYPTO_ORACLE,
@@ -787,13 +794,6 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
     priceFeedUSD: {
       type: OracleType.CHAINLINK_ORACLE,
       address: { Mainnet: "", Goerli: "" },
-    },
-  },
-
-  MIM_3LP3CRV: {
-    priceFeedUSD: {
-      type: OracleType.CURVE_CRYPTO_ORACLE,
-      assets: ["MIM", "3Crv"],
     },
   },
 
