@@ -22,11 +22,15 @@ export interface CreditSessionPayload {
   account: string;
   creditManager: string;
   underlyingToken: string;
+  version: number;
 
   borrowAPY_RAY: BigNumberish;
   borrowAPY7DAverage: number;
 
-  entryPrice: number;
+  entryPrice?: number;
+  closePrice?: number;
+  quoteToken?: string;
+  tradingToken?: string;
 
   healthFactor: BigNumberish;
   leverage: number;
@@ -41,7 +45,6 @@ export interface CreditSessionPayload {
   debtUSD: number;
 
   borrowedAmount: BigNumberish;
-  // probably is spot borrowedAmount
   spotDebt: BigNumberish;
 
   totalValue: BigNumberish;
