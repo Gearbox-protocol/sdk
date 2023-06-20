@@ -93,10 +93,13 @@ const CRV_APY_RESPONSE_DECIMALS = 100;
 
 // const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
 // const FACTORY = "https://api.curve.fi/api/getPools/ethereum/factory";
+const CURVE_APY_URL = "https://www.convexfinance.com/api/curve-apys";
+const CURVE_MAIN_URL = "https://api.curve.fi/api/getPools/ethereum/main";
 const CURVE_FACTORY_CRYPTO_URL =
   "https://api.curve.fi/api/getPools/ethereum/factory-crypto";
-const CURVE_MAIN_URL = "https://api.curve.fi/api/getPools/ethereum/main";
-const CURVE_APY_URL = "https://www.convexfinance.com/api/curve-apys";
+const CURVE_CRYPTO_URL = "https://api.curve.fi/api/getPools/ethereum/crypto";
+const CURVE_FACTORY_TRICRYPTO_URL =
+  "https://api.curve.fi/api/getPools/ethereum/factory-tricrypto";
 
 interface CurveAPY {
   base: BigNumber;
@@ -107,20 +110,32 @@ export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
 
 export async function getCurveAPY(): Promise<CurveAPYResult | null> {
   try {
-    const [{ data: apyData }, { data: factoryCrypto }, { data: main }] =
-      await Promise.all([
-        axios.get<CurveAPYDataResponse>(CURVE_APY_URL),
-        axios.get<CurvePoolDataResponse>(CURVE_FACTORY_CRYPTO_URL),
-        axios.get<CurvePoolDataResponse>(CURVE_MAIN_URL),
-      ]);
+    const [
+      { data: apyData },
+      { data: main },
+      { data: factoryCrypto },
+      { data: crypto },
+      { data: factoryTricrypto },
+    ] = await Promise.all([
+      axios.get<CurveAPYDataResponse>(CURVE_APY_URL),
+      axios.get<CurvePoolDataResponse>(CURVE_MAIN_URL),
+      axios.get<CurvePoolDataResponse>(CURVE_FACTORY_CRYPTO_URL),
+      axios.get<CurvePoolDataResponse>(CURVE_CRYPTO_URL),
+      axios.get<CurvePoolDataResponse>(CURVE_FACTORY_TRICRYPTO_URL),
+    ]);
 
     const { apys } = apyData || {};
-    const { poolData: factoryCryptoPoolData = [] } = factoryCrypto?.data || {};
     const { poolData: mainPoolData = [] } = main?.data || {};
+    const { poolData: factoryCryptoPoolData = [] } = factoryCrypto?.data || {};
+    const { poolData: cryptoPoolData = [] } = crypto?.data || {};
+    const { poolData: factoryTricryptoPoolData = [] } =
+      factoryTricrypto?.data || {};
 
     const poolDataByID = Object.fromEntries([
-      ...factoryCryptoPoolData.map(p => [p.id, p] as const),
       ...mainPoolData.map(p => [p.id, p] as const),
+      ...factoryCryptoPoolData.map(p => [p.id, p] as const),
+      ...cryptoPoolData.map(p => [p.id, p] as const),
+      ...factoryTricryptoPoolData.map(p => [p.id, p] as const),
     ]);
 
     const curveAPY = objectEntries(APY_DICTIONARY).reduce<CurveAPYResult>(
