@@ -40,6 +40,7 @@ export class CreditSession {
   readonly creditManager: string;
   readonly account: string;
   readonly underlyingToken: string;
+  readonly version: number;
 
   readonly since: number;
   readonly sinceDate: string;
@@ -61,6 +62,9 @@ export class CreditSession {
   readonly currentTimestamp: number;
 
   readonly entryPrice: number;
+  readonly closePrice: number;
+  readonly quoteToken: string;
+  readonly tradingToken: string;
 
   // sinceTimestamp: number;
   // closedAtTimestamp: number;
@@ -87,6 +91,7 @@ export class CreditSession {
     this.creditManager = (payload.creditManager || "").toLowerCase();
     this.account = (payload.account || "").toLowerCase();
     this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.version = payload.version || 2;
 
     this.initialAmount = BigNumber.from(payload.initialAmount || 0);
     this.borrowedAmount = BigNumber.from(payload.borrowedAmount || 0);
@@ -106,7 +111,11 @@ export class CreditSession {
     this.profitInUnderlying = payload.profitInUnderlying || 0;
     this.collateralInUSD = payload.collateralInUSD || 0;
     this.collateralInUnderlying = payload.collateralInUnderlying || 0;
+
     this.entryPrice = payload.entryPrice || 0;
+    this.closePrice = payload.closePrice || 0;
+    this.tradingToken = (payload.tradingToken || "").toLowerCase();
+    this.quoteToken = (payload.quoteToken || "").toLowerCase();
 
     this.borrowAPY_RAY = BigNumber.from(payload.borrowAPY_RAY || 0);
     this.borrowAPY7DAverage =
