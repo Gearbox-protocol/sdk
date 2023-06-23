@@ -14,6 +14,7 @@ export interface TxSerialized {
     | "TxSwap"
     | "TxAddCollateral"
     | "TxIncreaseBorrowAmount"
+    | "TxDecreaseBorrowAmount"
     | "TxOpenAccount"
     | "TxRepayAccount"
     | "TxCloseAccount"
@@ -45,6 +46,8 @@ export class TxSerializer {
           return new TxAddCollateral(params);
         case "TxIncreaseBorrowAmount":
           return new TxIncreaseBorrowAmount(params);
+        case "TxDecreaseBorrowAmount":
+          return new TxDecreaseBorrowAmount(params);
         case "TxOpenAccount":
           return new TxOpenAccount(params);
         case "TxRepayAccount":
@@ -299,6 +302,48 @@ export class TxIncreaseBorrowAmount extends EVMTx {
     return `Credit account ${getContractName(
       this.creditManager,
     )}: Borrowed amount was increased for ${formatBN(
+      this.amount,
+      tokenDecimals || 18,
+    )} ${tokenSymbol}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxIncreaseBorrowAmount",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface DecreaseBorrowAmountProps extends EVMTxProps {
+  amount: BigNumber;
+  underlyingToken: string;
+  creditManager: string;
+}
+
+export class TxDecreaseBorrowAmount extends EVMTx {
+  readonly amount: BigNumber;
+  readonly underlyingToken: string;
+  readonly creditManager: string;
+
+  constructor(opts: DecreaseBorrowAmountProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+    this.amount = opts.amount;
+    this.underlyingToken = opts.underlyingToken;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
+
+    return `Credit account ${getContractName(
+      this.creditManager,
+    )}: Borrowed amount was decreased for ${formatBN(
       this.amount,
       tokenDecimals || 18,
     )} ${tokenSymbol}`;
