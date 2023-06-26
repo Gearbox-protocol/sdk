@@ -40,9 +40,9 @@ const OPERATION_NAMES: Record<TradeOperations, string> = {
 };
 
 export class Trade implements BaseTradeInterface {
-  protected helper: BaseAdapter;
-  protected tradePath: PathFinderResult;
-  protected creditFacade: string;
+  readonly helper: BaseAdapter;
+  readonly tradePath: PathFinderResult;
+  readonly creditFacade: string;
 
   readonly swapType: SwapOperation;
   readonly sourceAmount: BigNumber;
