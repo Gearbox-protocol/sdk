@@ -51,7 +51,8 @@ export interface EventSerialized {
     | "EventRemovedFromUpgradeable"
     | "EventEmergencyLiquidatorAdded"
     | "EventEmergencyLiquidatorRemoved"
-    | "EventLTUpdated";
+    | "EventLTUpdated"
+    | "EventDecreaseBorrowAmount";
 
   content: any;
 }
@@ -81,6 +82,9 @@ export class EventParser {
         return new EventAddCollateral(params);
       case "EventIncreaseBorrowAmount":
         return new EventIncreaseBorrowAmount(params);
+      case "EventDecreaseBorrowAmount":
+        return new EventDecreaseBorrowAmount(params);
+
       case "EventCMNewParameters":
         return new EventCMNewParameters(params);
       case "EventTokenAllowed":
@@ -236,24 +240,18 @@ export class EventRemoveLiquidity extends EVMEvent {
 interface OpenCreditAccountProps extends EVMEventProps {
   amount: string;
   underlyingToken: string;
-  leverage: number;
   creditManager: string;
 }
 
 export class EventOpenCreditAccount extends EVMEvent {
   public readonly amount: BigNumber;
-
   public readonly underlyingToken: string;
-
-  public readonly leverage: number;
-
   public readonly creditManager: string;
 
   constructor(opts: OpenCreditAccountProps) {
     super(opts);
     this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
-    this.leverage = opts.leverage;
     this.creditManager = opts.creditManager;
   }
 
@@ -262,48 +260,27 @@ export class EventOpenCreditAccount extends EVMEvent {
 
     return `Credit account ${getContractName(
       this.creditManager,
-    )}: open ${formatBN(
-      this.amount,
-      decimals,
-    )} ${symbol} x ${this.leverage.toFixed(2)} ⇒ 
-    ${formatBN(
-      this.amount
-        .mul(Math.floor(this.leverage + LEVERAGE_DECIMALS))
-        .div(LEVERAGE_DECIMALS),
-      decimals + 2,
-    )} ${symbol}`;
+    )}: opened with debt ${formatBN(this.amount, decimals)} ${symbol}`;
   }
 }
 
 interface CloseCreditAccountProps extends EVMEventProps {
-  amount: string;
   underlyingToken: string;
   creditManager: string;
 }
 
 export class EventCloseCreditAccount extends EVMEvent {
-  public readonly amount: BigNumber;
-
   public readonly underlyingToken: string;
-
   public readonly creditManager: string;
 
   constructor(opts: CloseCreditAccountProps) {
     super(opts);
-    this.amount = BigNumber.from(opts.amount);
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
   }
 
   toString(): string {
-    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
-
-    return `Credit account ${getContractName(
-      this.creditManager,
-    )}: was closed and got ${formatBN(
-      this.amount,
-      decimals,
-    )} ${symbol} as remaining funds`;
+    return `Credit account ${getContractName(this.creditManager)}: was closed`;
   }
 }
 
@@ -416,6 +393,38 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
     return `Credit account ${getContractName(
       this.creditManager,
     )}: borrowed amount was increased for ${formatBN(
+      this.amount,
+      decimals,
+    )} ${symbol}`;
+  }
+}
+
+interface DecreaseBorrowAmountProps extends EVMEventProps {
+  amount: string;
+  underlyingToken: string;
+  creditManager: string;
+}
+
+export class EventDecreaseBorrowAmount extends EVMEvent {
+  public readonly amount: BigNumber;
+
+  public readonly underlyingToken: string;
+
+  public readonly creditManager: string;
+
+  constructor(opts: DecreaseBorrowAmountProps) {
+    super(opts);
+    this.amount = BigNumber.from(opts.amount);
+    this.underlyingToken = opts.underlyingToken;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
+
+    return `Credit account ${getContractName(
+      this.creditManager,
+    )}: borrowed amount was decreased for ${formatBN(
       this.amount,
       decimals,
     )} ${symbol}`;
