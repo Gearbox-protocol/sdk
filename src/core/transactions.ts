@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 import { contractParams, SupportedContract } from "../contracts/contracts";
 import { getContractName } from "../contracts/contractsRegister";
 import { extractTokenData } from "../tokens/token";
@@ -75,17 +73,15 @@ export class TxSerializer {
 }
 
 interface AddLiquidityProps extends EVMTxProps {
-  amount: BigNumber;
+  amount: bigint;
   underlyingToken: string;
   pool: string;
 }
 
 export class TxAddLiquidity extends EVMTx {
-  public readonly amount: BigNumber;
-
-  public readonly underlyingToken: string;
-
-  public readonly pool: string;
+  readonly amount: bigint;
+  readonly underlyingToken: string;
+  readonly pool: string;
 
   constructor(opts: AddLiquidityProps) {
     super({
@@ -119,17 +115,15 @@ export class TxAddLiquidity extends EVMTx {
 }
 
 interface RemoveLiquidityProps extends EVMTxProps {
-  amount: BigNumber;
+  amount: bigint;
   dieselToken: string;
   pool: string;
 }
 
 export class TxRemoveLiquidity extends EVMTx {
-  public readonly amount: BigNumber;
-
-  public readonly dieselToken: string;
-
-  public readonly pool: string;
+  readonly amount: bigint;
+  readonly dieselToken: string;
+  readonly pool: string;
 
   constructor(opts: RemoveLiquidityProps) {
     super({
@@ -163,27 +157,21 @@ export class TxRemoveLiquidity extends EVMTx {
 interface SwapProps extends EVMTxProps {
   protocol: string;
   operation: string;
-  amountFrom: BigNumber;
-  amountTo?: BigNumber;
+  amountFrom: bigint;
+  amountTo?: bigint;
   tokenFrom: string;
   tokenTo?: string;
   creditManager: string;
 }
 
 export class TXSwap extends EVMTx {
-  public readonly protocol: string;
-
-  public readonly operation: string;
-
-  public readonly amountFrom: BigNumber;
-
-  public readonly amountTo?: BigNumber;
-
-  public readonly tokenFrom: string;
-
-  public readonly tokenTo?: string;
-
-  public readonly creditManager: string;
+  readonly protocol: string;
+  readonly operation: string;
+  readonly amountFrom: bigint;
+  readonly amountTo?: bigint;
+  readonly tokenFrom: string;
+  readonly tokenTo?: string;
+  readonly creditManager: string;
 
   constructor(opts: SwapProps) {
     super({
@@ -228,17 +216,15 @@ export class TXSwap extends EVMTx {
 }
 
 interface AddCollateralProps extends EVMTxProps {
-  amount: BigNumber;
+  amount: bigint;
   addedToken: string;
   creditManager: string;
 }
 
 export class TxAddCollateral extends EVMTx {
-  public readonly amount: BigNumber;
-
-  public readonly addedToken: string;
-
-  public readonly creditManager: string;
+  readonly amount: bigint;
+  readonly addedToken: string;
+  readonly creditManager: string;
 
   constructor(opts: AddCollateralProps) {
     super({
@@ -272,17 +258,15 @@ export class TxAddCollateral extends EVMTx {
 }
 
 interface IncreaseBorrowAmountProps extends EVMTxProps {
-  amount: BigNumber;
+  amount: bigint;
   underlyingToken: string;
   creditManager: string;
 }
 
 export class TxIncreaseBorrowAmount extends EVMTx {
-  public readonly amount: BigNumber;
-
-  public readonly underlyingToken: string;
-
-  public readonly creditManager: string;
+  readonly amount: bigint;
+  readonly underlyingToken: string;
+  readonly creditManager: string;
 
   constructor(opts: IncreaseBorrowAmountProps) {
     super({
@@ -316,13 +300,13 @@ export class TxIncreaseBorrowAmount extends EVMTx {
 }
 
 interface DecreaseBorrowAmountProps extends EVMTxProps {
-  amount: BigNumber;
+  amount: bigint;
   underlyingToken: string;
   creditManager: string;
 }
 
 export class TxDecreaseBorrowAmount extends EVMTx {
-  readonly amount: BigNumber;
+  readonly amount: bigint;
   readonly underlyingToken: string;
   readonly creditManager: string;
 
@@ -358,20 +342,17 @@ export class TxDecreaseBorrowAmount extends EVMTx {
 }
 
 interface OpenAccountProps extends EVMTxProps {
-  amount: BigNumber;
+  amount: bigint;
   underlyingToken: string;
   leverage: number;
   creditManager: string;
 }
 
 export class TxOpenAccount extends EVMTx {
-  public readonly amount: BigNumber;
-
-  public readonly underlyingToken: string;
-
-  public readonly leverage: number;
-
-  public readonly creditManager: string;
+  readonly amount: bigint;
+  readonly underlyingToken: string;
+  readonly leverage: number;
+  readonly creditManager: string;
 
   constructor(opts: OpenAccountProps) {
     super({
@@ -380,7 +361,7 @@ export class TxOpenAccount extends EVMTx {
       txStatus: opts.txStatus,
       timestamp: opts.timestamp,
     });
-    this.amount = BigNumber.from(opts.amount);
+    this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.leverage = opts.leverage;
     this.creditManager = opts.creditManager;
@@ -396,9 +377,9 @@ export class TxOpenAccount extends EVMTx {
       tokenDecimals || 18,
     )} ${tokenSymbol} x ${this.leverage.toFixed(2)} ⇒ 
     ${formatBN(
-      this.amount
-        .mul(Math.floor(this.leverage * LEVERAGE_DECIMALS))
-        .div(LEVERAGE_DECIMALS),
+      (this.amount *
+        BigInt(Math.floor(this.leverage * Number(LEVERAGE_DECIMALS)))) /
+        LEVERAGE_DECIMALS,
       tokenDecimals || 18,
     )} ${tokenSymbol}`;
   }
@@ -412,20 +393,17 @@ export class TxOpenAccount extends EVMTx {
 }
 
 interface TxOpenMultitokenAccountProps extends EVMTxProps {
-  borrowedAmount: BigNumber;
+  borrowedAmount: bigint;
   creditManager: string;
   underlyingToken: string;
   assets: Array<string>;
 }
 
 export class TxOpenMultitokenAccount extends EVMTx {
-  public readonly borrowedAmount: BigNumber;
-
-  public readonly creditManager: string;
-
-  public readonly underlyingToken: string;
-
-  public readonly assets: Array<string>;
+  readonly borrowedAmount: bigint;
+  readonly creditManager: string;
+  readonly underlyingToken: string;
+  readonly assets: Array<string>;
 
   constructor(opts: TxOpenMultitokenAccountProps) {
     super({
@@ -434,7 +412,7 @@ export class TxOpenMultitokenAccount extends EVMTx {
       txStatus: opts.txStatus,
       timestamp: opts.timestamp,
     });
-    this.borrowedAmount = BigNumber.from(opts.borrowedAmount);
+    this.borrowedAmount = opts.borrowedAmount;
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
     this.assets = opts.assets;
@@ -473,7 +451,7 @@ interface TxClaimRewardProps extends EVMTxProps {
 }
 
 export class TxClaimReward extends EVMTx {
-  public readonly contracts: Array<SupportedContract>;
+  readonly contracts: Array<SupportedContract>;
 
   constructor(opts: TxClaimRewardProps) {
     super({
@@ -528,12 +506,12 @@ export class TxClaimNFT extends EVMTx {
 
 interface TxClaimGearRewardsProps extends EVMTxProps {
   token: string;
-  amount: BigNumber;
+  amount: bigint;
 }
 
 export class TxClaimGearRewards extends EVMTx {
-  token: string;
-  amount: BigNumber;
+  readonly token: string;
+  readonly amount: bigint;
 
   constructor(opts: TxClaimGearRewardsProps) {
     super({
@@ -569,7 +547,7 @@ interface RepayAccountProps extends EVMTxProps {
 }
 
 export class TxRepayAccount extends EVMTx {
-  public readonly creditManager: string;
+  readonly creditManager: string;
 
   constructor(opts: RepayAccountProps) {
     super({
@@ -600,7 +578,7 @@ interface CloseAccountProps extends EVMTxProps {
 }
 
 export class TxCloseAccount extends EVMTx {
-  public readonly creditManager: string;
+  readonly creditManager: string;
 
   constructor(opts: CloseAccountProps) {
     super({
@@ -631,7 +609,7 @@ interface ApproveProps extends EVMTxProps {
 }
 
 export class TxApprove extends EVMTx {
-  public readonly token: string;
+  readonly token: string;
 
   constructor(opts: ApproveProps) {
     super({
@@ -663,9 +641,9 @@ interface TxEnableTokensProps extends EVMTxProps {
 }
 
 export class TxEnableTokens extends EVMTx {
-  public readonly enabledTokens: Array<string>;
-  public readonly disabledTokens: Array<string>;
-  public readonly creditManager: string;
+  readonly enabledTokens: Array<string>;
+  readonly disabledTokens: Array<string>;
+  readonly creditManager: string;
 
   constructor(opts: TxEnableTokensProps) {
     super({

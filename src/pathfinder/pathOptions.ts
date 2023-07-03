@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumberish } from "ethers";
 
 import { contractParams, CurveParams } from "../contracts/contracts";
 import { NetworkType } from "../core/chains";
@@ -6,6 +6,7 @@ import { ConvexLPToken, convexTokens } from "../tokens/convex";
 import { CurveLPToken, curveTokens } from "../tokens/curveLP";
 import { tokenDataByNetwork, tokenSymbolByAddress } from "../tokens/token";
 import { YearnLPToken, yearnTokens } from "../tokens/yearn";
+import { toBigInt } from "../utils/formatter";
 
 export interface PathOption {
   target: string;
@@ -61,7 +62,7 @@ export class PathOptionFactory {
     const curveSymbols = Object.keys(curveTokens);
 
     const curvePools: Array<CurveLPToken> = Object.entries(balances)
-      .filter(([, balance]) => BigNumber.from(balance).gt(1))
+      .filter(([, balance]) => toBigInt(balance) > 1)
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => curveSymbols.includes(symbol)) as Array<CurveLPToken>;
 
@@ -70,7 +71,7 @@ export class PathOptionFactory {
       .map(([token]) => token);
 
     const curvePoolsFromYearn = Object.entries(balances)
-      .filter(([, balance]) => BigNumber.from(balance).gt(1))
+      .filter(([, balance]) => toBigInt(balance) > 1)
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => yearnCurveTokens.includes(symbol))
       .map(
@@ -82,7 +83,7 @@ export class PathOptionFactory {
       .map(([token]) => token);
 
     const curvePoolsFromConvex = Object.entries(balances)
-      .filter(([, balance]) => BigNumber.from(balance).gt(1))
+      .filter(([, balance]) => toBigInt(balance) > 1)
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => convexCurveTokens.includes(symbol))
       .map(

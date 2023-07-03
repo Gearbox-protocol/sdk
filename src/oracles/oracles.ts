@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 import { NetworkType } from "../core/chains";
 import { SupportedToken } from "../tokens/token";
 
@@ -56,7 +54,7 @@ export type PriceFeedData =
   | {
       type: OracleType.BOUNDED_ORACLE;
       targetPriceFeed: Record<NetworkType, string>;
-      upperBound: BigNumber;
+      upperBound: bigint;
     }
   | {
       type: OracleType.COMPOSITE_ORACLE;

@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { BigNumber } from "ethers";
 
 import { LpTokensAPY } from "../apy";
 import { decimals } from "../tokens/decimals";
@@ -11,8 +10,8 @@ import { calcOverallAPY, CreditAccountData } from "./creditAccount";
 
 interface CATestInfo {
   assets: Array<Asset>;
-  totalValue: BigNumber;
-  debt: BigNumber;
+  totalValue: bigint;
+  debt: bigint;
   borrowRate: number;
   underlyingToken: string;
 }
@@ -142,7 +141,7 @@ describe("CreditAccount calcOverallAPY test", () => {
   it("overall APY is undefined when totalValue lte 0", () => {
     const result = calcOverallAPY({
       caAssets: caWithLP.assets,
-      totalValue: BigNumber.from(0),
+      totalValue: 0n,
       debt: undefined,
       borrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
@@ -159,36 +158,32 @@ describe("CreditAccount calcMaxIncreaseBorrow test", () => {
   it("health max increase borrow is zero if hf < 1", () => {
     const result = CreditAccountData.calcMaxIncreaseBorrow(
       9999,
-      BigNumber.from("156522834253690396032546"),
+      BigInt("156522834253690396032546"),
       0,
       9300,
     );
-    expect(result.toString()).to.be.eq(BigNumber.from(0).toString());
+    expect(result.toString()).to.be.eq("0");
   });
   it("health max increase borrow is calculated correctly", () => {
     const result = CreditAccountData.calcMaxIncreaseBorrow(
       10244,
-      BigNumber.from("156522834253690396032546"),
+      BigInt("156522834253690396032546"),
       0,
       9300,
     );
 
-    expect(result.toString()).to.be.eq(
-      BigNumber.from("54559387939857795188487").toString(),
-    );
+    expect(result.toString()).to.be.eq("54559387939857795188487");
   });
   it("health max increase borrow is calculated correctly (low hf, high debt)", () => {
     const loweHf = 10244;
 
     const result = CreditAccountData.calcMaxIncreaseBorrow(
       loweHf,
-      BigNumber.from("54782991988791638611392"),
+      BigInt("54782991988791638611392"),
       0,
       9300,
     );
 
-    expect(result.toString()).to.be.eq(
-      BigNumber.from("19095785778950228315970").toString(),
-    );
+    expect(result.toString()).to.be.eq("19095785778950228315970");
   });
 });

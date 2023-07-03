@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 export interface MetamaskError {
   code: number;
   message: string;
@@ -15,9 +13,9 @@ export type OpenAccountErrorTypes =
 export class OpenAccountError extends Error {
   message: OpenAccountErrorTypes;
 
-  payload: { amount: BigNumber };
+  payload: { amount: bigint };
 
-  constructor(errorType: OpenAccountErrorTypes, amount: BigNumber) {
+  constructor(errorType: OpenAccountErrorTypes, amount: bigint) {
     super();
     Object.setPrototypeOf(this, OpenAccountError.prototype);
     this.message = errorType;

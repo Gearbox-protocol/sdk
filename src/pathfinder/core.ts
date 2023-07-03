@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 export enum SwapOperation {
   EXACT_INPUT,
   EXACT_INPUT_ALL,
@@ -12,16 +10,16 @@ export interface MultiCall {
 }
 
 export interface PathFinderResult {
-  amount: BigNumber;
+  amount: bigint;
   calls: Array<MultiCall>;
 }
 
 export interface PathFinderOpenStrategyResult {
-  balances: Record<string, BigNumber>;
+  balances: Record<string, bigint>;
   calls: Array<MultiCall>;
 }
 
 export interface PathFinderCloseResult {
-  underlyingBalance: BigNumber;
+  underlyingBalance: bigint;
   calls: Array<MultiCall>;
 }

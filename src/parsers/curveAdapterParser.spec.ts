@@ -11,7 +11,7 @@ describe("CurveAdapterParser test", () => {
     const ifc = ICurveV1_2AssetsAdapter__factory.createInterface();
 
     let parsed = parser.parse(
-      ifc.encodeFunctionData("exchange", [0, 1, WAD.mul(3), WAD.mul(32)]),
+      ifc.encodeFunctionData("exchange", [0, 1, WAD * 3n, WAD * 32n]),
     );
     expect(parsed).to.be.eq(
       "Curve2AssetsAdapter[CURVE_FRAX_POOL].exchange(i ,j: FRAX => 3Crv, dx: 3.00 [3000000000000000000], min_dy: 32.00 [32000000000000000000])",
@@ -22,8 +22,8 @@ describe("CurveAdapterParser test", () => {
       ifc.encodeFunctionData("exchange_underlying", [
         0,
         1,
-        WAD.mul(3),
-        WAD.mul(32),
+        WAD * 3n,
+        WAD * 32n,
       ]),
     );
     expect(parsed).to.be.eq(
@@ -32,11 +32,7 @@ describe("CurveAdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("add_liquidity_one_coin", [
-        WAD.mul(3),
-        0,
-        WAD.mul(2),
-      ]),
+      ifc.encodeFunctionData("add_liquidity_one_coin", [WAD * 3n, 0, WAD * 2n]),
     );
     expect(parsed).to.be.eq(
       "Curve2AssetsAdapter[CURVE_FRAX_POOL].add_liquidity_one_coin(amount: 3.00 [3000000000000000000], i: FRAX, minAmount: 2.00 [2000000000000000000])",
@@ -44,7 +40,7 @@ describe("CurveAdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("add_all_liquidity_one_coin", [0, RAY.mul(912)]),
+      ifc.encodeFunctionData("add_all_liquidity_one_coin", [0, RAY * 912n]),
     );
     expect(parsed).to.be.eq(
       "Curve2AssetsAdapter[CURVE_FRAX_POOL].add_all_liquidity_one_coin(i: FRAX, rateMinRAY: 912.00)",
@@ -52,10 +48,7 @@ describe("CurveAdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("remove_all_liquidity_one_coin", [
-        0,
-        RAY.mul(721),
-      ]),
+      ifc.encodeFunctionData("remove_all_liquidity_one_coin", [0, RAY * 721n]),
     );
     expect(parsed).to.be.eq(
       "Curve2AssetsAdapter[CURVE_FRAX_POOL].remove_all_liquidity_one_coin(i: FRAX, rateMinRAY: 721.00)",
@@ -64,8 +57,8 @@ describe("CurveAdapterParser test", () => {
 
     parsed = parser.parse(
       ifc.encodeFunctionData("add_liquidity", [
-        [WAD.mul(100), WAD.mul(100)],
-        WAD.mul(80),
+        [WAD * 100n, WAD * 100n],
+        WAD * 80n,
       ]),
     );
     expect(parsed).to.be.eq(
@@ -75,8 +68,8 @@ describe("CurveAdapterParser test", () => {
 
     parsed = parser.parse(
       ifc.encodeFunctionData("remove_liquidity", [
-        WAD.mul(120),
-        [WAD.mul(100), WAD.mul(100)],
+        WAD * 120n,
+        [WAD * 100n, WAD * 100n],
       ]),
     );
     expect(parsed).to.be.eq(
@@ -86,8 +79,8 @@ describe("CurveAdapterParser test", () => {
 
     parsed = parser.parse(
       ifc.encodeFunctionData("remove_liquidity_imbalance", [
-        [WAD.mul(100), WAD.mul(100)],
-        WAD.mul(80),
+        [WAD * 100n, WAD * 100n],
+        WAD * 80n,
       ]),
     );
     expect(parsed).to.be.eq(

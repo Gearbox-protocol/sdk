@@ -1,34 +1,24 @@
-import { BigNumber } from "ethers";
-
 import { PRICE_DECIMALS, WAD } from "../core/constants";
 
 export const calcTotalPrice = (
-  price: BigNumber,
-  amount: BigNumber,
+  price: bigint,
+  amount: bigint,
   decimals = 18,
-) =>
-  amount
-    .mul(WAD)
-    .mul(price)
-    .div(BigNumber.from(10).pow(decimals))
-    .div(PRICE_DECIMALS);
+): bigint => (amount * WAD * price) / 10n ** BigInt(decimals) / PRICE_DECIMALS;
 
 interface Target {
-  price: BigNumber;
+  price: bigint;
   decimals: number | undefined;
 }
 
 export function convertByPrice(
-  totalMoney: BigNumber,
+  totalMoney: bigint,
   { price: targetPrice, decimals: targetDecimals = 18 }: Target,
-) {
-  const isWrongTargetPrice = targetPrice.isZero() || targetPrice.isNegative();
-
-  return isWrongTargetPrice
-    ? BigNumber.from(0)
-    : totalMoney
-        .mul(BigNumber.from(10).pow(targetDecimals))
-        .mul(PRICE_DECIMALS)
-        .div(targetPrice)
-        .div(WAD);
+): bigint {
+  if (targetPrice <= 0n) return 0n;
+  return (
+    (totalMoney * 10n ** BigInt(targetDecimals) * PRICE_DECIMALS) /
+    targetPrice /
+    WAD
+  );
 }

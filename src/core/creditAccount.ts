@@ -1,11 +1,9 @@
-import { BigNumber } from "ethers";
-
 import { isTokenWithAPY, LpTokensAPY } from "../apy";
 import { CreditAccountDataPayload } from "../payload/creditAccount";
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
 import { TokenData } from "../tokens/tokenData";
-import { toSignificant } from "../utils/formatter";
+import { toBigInt, toSignificant } from "../utils/formatter";
 import { calcTotalPrice, convertByPrice } from "../utils/price";
 import { Asset } from "./assets";
 import {
@@ -28,25 +26,25 @@ export class CreditAccountData {
   public readonly underlyingToken: string;
 
   public readonly since: number;
-  public readonly cumulativeIndexAtOpen: BigNumber;
-  public readonly borrowedAmount: BigNumber;
-  public readonly borrowedAmountPlusInterestAndFees: BigNumber;
+  public readonly cumulativeIndexAtOpen: bigint;
+  public readonly borrowedAmount: bigint;
+  public readonly borrowedAmountPlusInterestAndFees: bigint;
 
-  public borrowedAmountPlusInterest: BigNumber;
-  public totalValue: BigNumber;
+  public borrowedAmountPlusInterest: bigint;
+  public totalValue: bigint;
   public healthFactor: number;
   public borrowRate: number;
   public readonly collateralTokens: Array<string> = [];
   public readonly allTokens: Array<string> = [];
-  public balances: Record<string, BigNumber> = {};
-  public allBalances: Record<string, BigNumber> = {};
+  public balances: Record<string, bigint> = {};
+  public allBalances: Record<string, bigint> = {};
   public isDeleting: boolean;
-  public enabledTokenMask: BigNumber;
+  public enabledTokenMask: bigint;
   public readonly version: number = 1;
 
   /// V1 Artifacts
-  public readonly repayAmount: BigNumber;
-  public readonly liquidationAmount: BigNumber;
+  public readonly repayAmount: bigint;
+  public readonly liquidationAmount: bigint;
   public readonly canBeClosed: boolean;
 
   constructor(payload: CreditAccountDataPayload) {
@@ -56,44 +54,48 @@ export class CreditAccountData {
     this.creditManager = payload.creditManager.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
 
-    this.since = BigNumber.from(payload.since).toNumber();
-    this.cumulativeIndexAtOpen = payload.cumulativeIndexAtOpen;
+    this.since = Number(toBigInt(payload.since || 0));
+    this.cumulativeIndexAtOpen = toBigInt(payload.cumulativeIndexAtOpen || 0);
 
-    this.borrowedAmount = payload.borrowedAmount;
-    this.borrowedAmountPlusInterest = payload.borrowedAmountPlusInterest;
-    this.borrowedAmountPlusInterestAndFees =
-      payload.borrowedAmountPlusInterestAndFees;
+    this.borrowedAmount = toBigInt(payload.borrowedAmount || 0);
+    this.borrowedAmountPlusInterest = toBigInt(
+      payload.borrowedAmountPlusInterest || 0,
+    );
+    this.borrowedAmountPlusInterestAndFees = toBigInt(
+      payload.borrowedAmountPlusInterestAndFees || 0,
+    );
 
-    this.totalValue = payload.totalValue;
+    this.totalValue = toBigInt(payload.totalValue || 0);
     this.healthFactor = payload.healthFactor.toNumber();
-    this.borrowRate = payload.borrowRate
-      .mul(PERCENTAGE_FACTOR)
-      .mul(PERCENTAGE_DECIMALS)
-      .div(RAY)
-      .toNumber();
+    this.borrowRate = Number(
+      (toBigInt(payload.borrowRate || 0) *
+        PERCENTAGE_FACTOR *
+        PERCENTAGE_DECIMALS) /
+        RAY,
+    );
 
     payload.balances.forEach(b => {
       const tokenLC = b.token.toLowerCase();
       if (b.isAllowed) {
-        this.balances[tokenLC] = b.balance;
+        this.balances[tokenLC] = toBigInt(b.balance || 0);
         this.collateralTokens.push(tokenLC);
       }
 
-      this.allBalances[tokenLC] = b.balance;
+      this.allBalances[tokenLC] = toBigInt(b.balance || 0);
       this.allTokens.push(tokenLC);
     });
 
-    this.enabledTokenMask = payload.enabledTokenMask;
+    this.enabledTokenMask = toBigInt(payload.enabledTokenMask || 0);
     this.isDeleting = false;
     this.version = payload.version;
 
-    this.repayAmount = payload.repayAmount;
-    this.liquidationAmount = payload.liquidationAmount;
+    this.repayAmount = toBigInt(payload.repayAmount || 0);
+    this.liquidationAmount = toBigInt(payload.liquidationAmount || 0);
     this.canBeClosed = payload.canBeClosed;
   }
 
   balancesSorted(
-    prices: Record<string, BigNumber>,
+    prices: Record<string, bigint>,
     tokens: Record<string, TokenData>,
   ): Array<Asset> {
     return sortBalances(this.balances, prices, tokens).map(
@@ -101,56 +103,52 @@ export class CreditAccountData {
     );
   }
 
-  calcBorrowAmountPlusInterestRate(
-    currentCumulativeIndex: BigNumber,
-  ): BigNumber {
-    return this.borrowedAmount
-      .mul(currentCumulativeIndex)
-      .div(this.cumulativeIndexAtOpen);
+  calcBorrowAmountPlusInterestRate(currentCumulativeIndex: bigint): bigint {
+    return (
+      (this.borrowedAmount * currentCumulativeIndex) /
+      this.cumulativeIndexAtOpen
+    );
   }
 
   updateHealthFactor(
     creditManager: CreditManagerData,
-    currentCumulativeIndex: BigNumber,
+    currentCumulativeIndex: bigint,
     priceOracle: PriceOracleData,
   ) {
     const twvUSDValue = this.collateralTokens
-      .filter(
-        (_, num) =>
-          !BigNumber.from(2).pow(num).and(this.enabledTokenMask).isZero(),
+      .filter((_, num) => ((2n ** BigInt(num)) & this.enabledTokenMask) !== 0n)
+      .map(
+        token =>
+          priceOracle.convertToUSD(this.balances[token], token) *
+          creditManager.liquidationThresholds[token],
       )
-      .map(token =>
-        priceOracle
-          .convertToUSD(this.balances[token], token)
-          .mul(creditManager.liquidationThresholds[token]),
-      )
-      .reduce((a, b) => a.add(b));
+      .reduce((a, b) => a + b);
 
-    this.healthFactor = priceOracle
-      .convertFromUSD(twvUSDValue, this.underlyingToken)
-      .div(this.calcBorrowAmountPlusInterestRate(currentCumulativeIndex))
-      .toNumber();
+    this.healthFactor = Number(
+      priceOracle.convertFromUSD(twvUSDValue, this.underlyingToken) /
+        this.calcBorrowAmountPlusInterestRate(currentCumulativeIndex),
+    );
   }
 
   static calcMaxIncreaseBorrow(
     healthFactor: number,
-    borrowAmountPlusInterest: BigNumber,
+    borrowAmountPlusInterest: bigint,
     maxLeverageFactor: number,
     underlyingLT: number,
     minHf = PERCENTAGE_FACTOR,
-  ): BigNumber {
+  ): bigint {
     const minHealthFactor =
       maxLeverageFactor > 0
         ? Math.floor(
-            (underlyingLT * (maxLeverageFactor + LEVERAGE_DECIMALS)) /
+            (underlyingLT * (maxLeverageFactor + Number(LEVERAGE_DECIMALS))) /
               maxLeverageFactor,
           )
-        : minHf;
+        : Number(minHf);
 
-    const result = borrowAmountPlusInterest
-      .mul(healthFactor - minHealthFactor)
-      .div(minHealthFactor - underlyingLT);
-    return result.isNegative() ? BigNumber.from(0) : result;
+    const result =
+      (borrowAmountPlusInterest * BigInt(healthFactor - minHealthFactor)) /
+      BigInt(minHealthFactor - underlyingLT);
+    return result < 0 ? 0n : result;
   }
 
   get id(): string {
@@ -167,10 +165,10 @@ export class CreditAccountData {
 }
 
 export function sortBalances(
-  balances: Record<string, BigNumber>,
-  prices: Record<string, BigNumber>,
+  balances: Record<string, bigint>,
+  prices: Record<string, bigint>,
   tokens: Record<string, TokenData>,
-): Array<[string, BigNumber]> {
+): Array<[string, bigint]> {
   return Object.entries(balances).sort(([addr1, amount1], [addr2, amount2]) => {
     const addr1Lc = addr1.toLowerCase();
     const addr2Lc = addr2.toLowerCase();
@@ -184,8 +182,8 @@ export function sortBalances(
     const totalPrice1 = calcTotalPrice(price1, amount1, token1?.decimals);
     const totalPrice2 = calcTotalPrice(price2, amount2, token2?.decimals);
 
-    if (totalPrice1.eq(totalPrice2)) {
-      return amount1.eq(amount2)
+    if (totalPrice1 === totalPrice2) {
+      return amount1 === amount2
         ? tokensAbcComparator(token1, token2)
         : amountAbcComparator(amount1, amount2);
     }
@@ -201,17 +199,17 @@ export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
   return symbol1 > symbol2 ? 1 : -1;
 }
 
-export function amountAbcComparator(t1: BigNumber, t2: BigNumber) {
-  return t1.gt(t2) ? -1 : 1;
+export function amountAbcComparator(t1: bigint, t2: bigint) {
+  return t1 > t2 ? -1 : 1;
 }
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
   lpAPY: LpTokensAPY | undefined;
-  prices: Record<string, BigNumber>;
+  prices: Record<string, bigint>;
 
-  totalValue: BigNumber | undefined;
-  debt: BigNumber | undefined;
+  totalValue: bigint | undefined;
+  debt: bigint | undefined;
   borrowRate: number;
   underlyingToken: string;
 }
@@ -226,13 +224,7 @@ export function calcOverallAPY({
   borrowRate,
   underlyingToken,
 }: CalcOverallAPYProps): number | undefined {
-  if (
-    !lpAPY ||
-    !totalValue ||
-    totalValue.lte(0) ||
-    !debt ||
-    totalValue.lte(debt)
-  )
+  if (!lpAPY || !totalValue || totalValue <= 0n || !debt || totalValue <= debt)
     return undefined;
 
   const assetAPYMoney = caAssets.reduce(
@@ -242,15 +234,15 @@ export function calcOverallAPY({
       if (!isTokenWithAPY(symbol)) return acc;
 
       const apy = lpAPY[symbol] || 0;
-      const price = prices[tokenAddressLC] || BigNumber.from(0);
+      const price = prices[tokenAddressLC] || 0n;
       const tokenDecimals = decimals[symbol];
 
       const money = calcTotalPrice(price, amount, tokenDecimals);
-      const apyMoney = money.mul(BigNumber.from(apy));
+      const apyMoney = money * BigInt(apy);
 
-      return acc.add(apyMoney);
+      return acc + apyMoney;
     },
-    BigNumber.from(0),
+    0n,
   );
 
   const underlyingTokenAddressLC = underlyingToken.toLowerCase();
@@ -263,15 +255,14 @@ export function calcOverallAPY({
     decimals: underlyingTokenDecimals,
   });
 
-  const debtAPY = debt.mul(BigNumber.from(borrowRate));
+  const debtAPY = debt * BigInt(borrowRate);
 
-  const yourAssets = totalValue.sub(debt);
+  const yourAssets = totalValue - debt;
 
-  const apyInPercent = assetAPYAmountInUnderlying
-    .sub(debtAPY)
-    .mul(WAD)
-    .div(yourAssets)
-    .div(PERCENTAGE_FACTOR);
+  const apyInPercent =
+    ((assetAPYAmountInUnderlying - debtAPY) * WAD) /
+    yourAssets /
+    PERCENTAGE_FACTOR;
 
   return Number(toSignificant(apyInPercent, WAD_DECIMALS_POW));
 }

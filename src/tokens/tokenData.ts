@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 import { STATIC_TOKEN } from "../config";
 import { NetworkType } from "../core/chains";
 import { TokenDataPayload } from "../payload/token";
@@ -12,15 +10,11 @@ const defaultSymbolReplacement: SymbolReplacements = {
 };
 
 export class TokenData {
-  public readonly id: string;
-
-  public readonly symbol: string;
-
-  public readonly address: string;
-
-  public readonly decimals: number;
-
-  public readonly icon?: string;
+  readonly id: string;
+  readonly symbol: string;
+  readonly address: string;
+  readonly decimals: number;
+  readonly icon?: string;
 
   constructor(
     payload: TokenDataPayload,
@@ -36,16 +30,6 @@ export class TokenData {
   compareBySymbol(b: TokenData): number {
     return this.symbol > b.symbol ? 1 : -1;
   }
-}
-
-export interface TokenBalance {
-  id: string;
-  balance: BigNumber;
-}
-
-export interface TokenAllowance {
-  id: string;
-  allowance: BigNumber;
 }
 
 export const connectors: Record<NetworkType, Array<SupportedToken>> = {

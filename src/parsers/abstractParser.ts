@@ -1,9 +1,9 @@
 import { FunctionFragment, Result } from "@ethersproject/abi";
-import { BigNumber, BigNumberish, BytesLike, utils } from "ethers";
+import { BigNumberish, BytesLike, utils } from "ethers";
 
 import { decimals } from "../tokens/decimals";
 import { SupportedToken, tokenSymbolByAddress } from "../tokens/token";
-import { formatBN } from "../utils/formatter";
+import { formatBN, toBigInt } from "../utils/formatter";
 
 interface ParseSelectorResult {
   functionFragment: FunctionFragment;
@@ -50,7 +50,7 @@ export class AbstractParser {
   }
 
   formatBN(amount: BigNumberish, token: SupportedToken): string {
-    return `${formatBN(amount, decimals[token])} [${BigNumber.from(
+    return `${formatBN(amount, decimals[token])} [${toBigInt(
       amount,
     ).toString()}]`;
   }

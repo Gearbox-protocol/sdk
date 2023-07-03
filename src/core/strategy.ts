@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
 import { calcTotalPrice } from "../utils/price";
@@ -25,29 +23,23 @@ export interface StrategyPayload {
 }
 
 interface LiquidationPriceProps {
-  prices: Record<string, BigNumber>;
-  liquidationThresholds: Record<string, BigNumber>;
+  prices: Record<string, bigint>;
+  liquidationThresholds: Record<string, bigint>;
 
-  borrowed: BigNumber;
+  borrowed: bigint;
   underlyingToken: string;
 
-  lpAmount: BigNumber;
+  lpAmount: bigint;
   lpToken: string;
 }
 
 export class Strategy {
   apy: number | undefined;
-
   name: string;
-
   lpToken: string;
-
   pools: Array<string>;
-
   unleveragableCollateral: Array<string>;
-
   leveragableCollateral: Array<string>;
-
   baseAssets: Array<string>;
 
   constructor(payload: StrategyPayload) {
@@ -68,16 +60,17 @@ export class Strategy {
   static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
     const [maxThreshold] = maxLeverageThreshold(lpToken, cms);
 
-    const ONE = BigNumber.from(PERCENTAGE_FACTOR);
-    const maxLeverage = ONE.mul(LEVERAGE_DECIMALS).div(ONE.sub(maxThreshold));
-    return maxLeverage.sub(LEVERAGE_DECIMALS).toNumber();
+    const maxLeverage =
+      (PERCENTAGE_FACTOR * LEVERAGE_DECIMALS) /
+      (PERCENTAGE_FACTOR - maxThreshold);
+    return Number(maxLeverage - LEVERAGE_DECIMALS);
   }
 
   maxAPY(baseAPY: number, maxLeverage: number, borrowAPY: number) {
     return (
       baseAPY +
-      ((baseAPY - borrowAPY) * (maxLeverage - LEVERAGE_DECIMALS)) /
-        LEVERAGE_DECIMALS
+      ((baseAPY - borrowAPY) * (maxLeverage - Number(LEVERAGE_DECIMALS))) /
+        Number(LEVERAGE_DECIMALS)
     );
   }
 
@@ -89,7 +82,7 @@ export class Strategy {
   ) {
     const farmLev = this.farmLev(leverage, depositCollateral);
 
-    return roi(apy, farmLev, leverage - LEVERAGE_DECIMALS, borrowAPY);
+    return roi(apy, farmLev, leverage - Number(LEVERAGE_DECIMALS), borrowAPY);
   }
 
   static liquidationPrice({
@@ -117,25 +110,25 @@ export class Strategy {
     const lpTokenAddressLC = lpToken.toLowerCase();
     const lpTokenSymbol = tokenSymbolByAddress[lpTokenAddressLC];
     const lpTokenDecimals = decimals[lpTokenSymbol];
-    const lpLT = liquidationThresholds[lpTokenAddressLC] || BigNumber.from(0);
+    const lpLT = liquidationThresholds[lpTokenAddressLC] || 0n;
 
     const lpPrice = prices[lpTokenAddressLC] || PRICE_DECIMALS;
     const lpMoney = calcTotalPrice(lpPrice, lpAmount, lpTokenDecimals);
-    const lpLTMoney = lpMoney.mul(lpLT).div(PERCENTAGE_FACTOR);
+    const lpLTMoney = (lpMoney * lpLT) / PERCENTAGE_FACTOR;
 
-    if (lpLTMoney.gt(0)) {
-      const lqPrice = borrowedMoney.mul(WAD).div(lpLTMoney);
-      return lqPrice.gte(0) ? lqPrice : BigNumber.from(0);
+    if (lpLTMoney > 0) {
+      const lqPrice = (borrowedMoney * WAD) / lpLTMoney;
+      return lqPrice >= 0 ? lqPrice : 0n;
     }
 
-    return BigNumber.from(0);
+    return 0n;
   }
 
   protected farmLev(leverage: number, depositCollateral: string) {
     return this.inBaseAssets(depositCollateral) ||
       this.inLeveragableAssets(depositCollateral)
       ? leverage
-      : leverage - LEVERAGE_DECIMALS;
+      : leverage - Number(LEVERAGE_DECIMALS);
   }
 
   protected inBaseAssets(depositCollateral: string) {
@@ -150,25 +143,25 @@ export class Strategy {
 }
 
 function roi(apy: number, farmLev: number, debtLev: number, borrowAPY: number) {
-  return (apy * farmLev - borrowAPY * debtLev) / LEVERAGE_DECIMALS;
+  return (apy * farmLev - borrowAPY * debtLev) / Number(LEVERAGE_DECIMALS);
 }
 
 type PartialCM = Pick<CreditManagerData, "liquidationThresholds" | "address">;
 
 function maxLeverageThreshold(lpToken: string, cms: Array<PartialCM>) {
   const lpTokenLC = lpToken.toLowerCase();
-  const ltByCM: Array<[string, BigNumber]> = cms.map(cm => {
-    const lt = cm.liquidationThresholds[lpTokenLC] || BigNumber.from(0);
+  const ltByCM: Array<[string, bigint]> = cms.map(cm => {
+    const lt = cm.liquidationThresholds[lpTokenLC] || 0n;
     return [cm.address, lt];
   });
 
   const sorted = ltByCM.sort(([, ltA], [, ltB]) => {
-    if (ltA.gt(ltB)) return 1;
-    if (ltB.gt(ltA)) return -1;
+    if (ltA > ltB) return 1;
+    if (ltB > ltA) return -1;
     return 0;
   });
 
-  const [cm = "", lt = BigNumber.from(0)] = sorted[0] || [];
+  const [cm = "", lt = 0n] = sorted[0] || [];
 
-  return [lt, cm];
+  return [lt, cm] as const;
 }

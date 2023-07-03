@@ -1,5 +1,4 @@
 import axios from "axios";
-import { BigNumber } from "ethers";
 
 import { WAD_DECIMALS_POW } from "../core/constants";
 import { YearnLPToken, yearnTokens } from "../tokens/yearn";
@@ -19,15 +18,14 @@ interface YearnAPYData {
 type Response = Array<YearnAPYData>;
 
 const RESPONSE_DECIMALS = 1;
-const ZERO = BigNumber.from(0);
 
 const URL = "https://api.yearn.finance/v1/chains/1/vaults/all";
 
-export type YearnAPYResult = Record<YearnLPToken, BigNumber>;
+export type YearnAPYResult = Record<YearnLPToken, bigint>;
 
 const transformSymbol = (s: string) => s.replaceAll("_", "-").toLowerCase();
 
-export async function getYearnAPY(): Promise<YearnAPYResult> {
+export async function getYearnAPY(): Promise<YearnAPYResult | null> {
   try {
     const { data } = await axios.get<Response>(URL);
 
@@ -52,13 +50,6 @@ export async function getYearnAPY(): Promise<YearnAPYResult> {
 
     return yearnAPY;
   } catch (e) {
-    return {
-      yvDAI: ZERO,
-      yvUSDC: ZERO,
-      yvWETH: ZERO,
-      yvWBTC: ZERO,
-      yvCurve_stETH: ZERO,
-      yvCurve_FRAX: ZERO,
-    };
+    return null;
   }
 }

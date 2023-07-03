@@ -14,8 +14,6 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
     return this._parse(calldata);
   }
 
-  // parseTxInfo(calldata: string): TxInfo {}
-
   protected _parse(calldata: string): string {
     const { functionFragment, functionName } = this.parseSelector(calldata);
 

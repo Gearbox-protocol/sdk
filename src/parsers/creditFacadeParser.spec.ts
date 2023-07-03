@@ -15,7 +15,7 @@ describe("CreditFacadeParser test", () => {
       ifc.encodeFunctionData("addCollateral", [
         DUMB_ADDRESS,
         tokenDataByNetwork.Mainnet.WBTC,
-        WAD.mul(444).div(10),
+        (WAD * 444n) / 10n,
       ]),
     );
     expect(parsed).to.be.eq(
@@ -24,7 +24,7 @@ describe("CreditFacadeParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("increaseDebt", [WAD.mul(414).div(10)]),
+      ifc.encodeFunctionData("increaseDebt", [(WAD * 414n) / 10n]),
     );
     expect(parsed).to.be.eq(
       "CreditFacade[DAI].increaseDebt(amount: 41.40 [41400000000000000000])",
@@ -32,7 +32,7 @@ describe("CreditFacadeParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("decreaseDebt", [WAD.mul(334).div(10)]),
+      ifc.encodeFunctionData("decreaseDebt", [(WAD * 334n) / 10n]),
     );
     expect(parsed).to.be.eq(
       "CreditFacade[DAI].decreaseDebt(amount: 33.40 [33400000000000000000])",

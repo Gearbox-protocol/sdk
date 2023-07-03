@@ -1,4 +1,4 @@
-import { BigNumber, providers } from "ethers";
+import { providers } from "ethers";
 
 import { SupportedContract } from "../contracts/contracts";
 import { MultiCall } from "../pathfinder/core";
@@ -10,7 +10,7 @@ import { RewardConvex } from "./rewardConvex";
 
 export interface Rewards {
   contract: SupportedContract;
-  rewards: Partial<Record<SupportedToken, BigNumber>>;
+  rewards: Partial<Record<SupportedToken, bigint>>;
   calls: Array<MultiCall>;
 }
 

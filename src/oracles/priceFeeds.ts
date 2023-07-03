@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 import { SupportedToken } from "../tokens/token";
 import { OracleType, TokenPriceFeedData } from "./oracles";
 
@@ -324,7 +322,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, TokenPriceFeedData> = {
         Mainnet: "0x3D7aE7E594f2f2091Ad8798313450130d0Aba3a0",
         Goerli: "0xd6852347062aB885B6Fb9F7220BedCc5A39CE862",
       },
-      upperBound: BigNumber.from(1e8).mul(11).div(10),
+      upperBound: (BigInt(1e8) * 11n) / 10n,
     },
   },
   sUSD: {

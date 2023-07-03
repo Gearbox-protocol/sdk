@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { BigNumber } from "ethers";
 
 import { decimals } from "../tokens/decimals";
 import { tokenDataByNetwork } from "../tokens/token";
@@ -11,15 +10,15 @@ import { calcHealthFactor } from "./creditManager";
 
 interface CATestInfo {
   assets: Array<Asset>;
-  debt: BigNumber;
+  debt: bigint;
   underlyingToken: string;
   healthFactor: number;
   underlyingDecimals: number;
 }
 
 const liquidationThresholds = {
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("9300"),
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: BigNumber.from("8500"),
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 9300n,
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 8500n,
 };
 
 const prices = {
@@ -72,7 +71,7 @@ describe("CreditManager calcHealthFactor test", () => {
       prices: {},
       liquidationThresholds: {},
       underlyingToken: "",
-      borrowed: BigNumber.from(0),
+      borrowed: 0n,
     });
 
     expect(result).to.be.eq(0);
@@ -109,7 +108,7 @@ describe("CreditManager calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt.sub(amountDecrease),
+      borrowed: defaultCA.debt - amountDecrease,
     });
 
     expect(result).to.be.eq(10308);
@@ -129,7 +128,7 @@ describe("CreditManager calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt.add(amountIncrease),
+      borrowed: defaultCA.debt + amountIncrease,
     });
 
     expect(result).to.be.eq(10137);
