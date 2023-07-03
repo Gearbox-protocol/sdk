@@ -35,7 +35,7 @@ export class PriceOracleData {
 
   getPrice(token: string): bigint {
     const price = this._prices[token.toLowerCase()];
-    if (!price) throw new Error(`Price for ${token} not found`);
+    if (price === undefined) throw new Error(`Price for ${token} not found`);
     return price;
   }
 }

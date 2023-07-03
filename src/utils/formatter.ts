@@ -50,7 +50,7 @@ export function formatBN(
   decimals: number,
   precision?: number,
 ): string {
-  if (!num) return "-";
+  if (num === undefined) return "-";
 
   const numBInt = toBigInt(num);
   // GUSD: 2 decimals

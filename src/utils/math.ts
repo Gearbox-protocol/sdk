@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 import { halfRAY, PERCENTAGE_FACTOR, RAY } from "../core/constants";
 
 export function revertRay(num?: bigint): bigint | undefined {
@@ -34,4 +36,5 @@ export const nonNegativeBn = (v: bigint): bigint => (v < 0 ? 0n : v);
 
 export class BigIntMath {
   static abs = (x: bigint) => (x < 0n ? -x : x);
+  static toHexString = (x: bigint) => BigNumber.from(x).toHexString();
 }
