@@ -110,7 +110,7 @@ export function toBN(num: string, decimals: number): bigint {
 export function shortAddress(address?: string): string {
   return address === undefined
     ? ""
-    : `${address.slice(0, 6)}...${address.slice(38, 4)}`;
+    : `${address.slice(0, 6)}...${address.slice(address.length - 4)}`;
 }
 
 export function shortHash(address?: string): string {

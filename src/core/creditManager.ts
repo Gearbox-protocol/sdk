@@ -213,7 +213,7 @@ export class CreditManagerData {
   }
 
   protected validateOpenAccountV2(debt: bigint): true {
-    if (debt > this.minAmount)
+    if (debt < this.minAmount)
       throw new OpenAccountError("amountLessMin", this.minAmount);
 
     if (debt > this.maxAmount)
