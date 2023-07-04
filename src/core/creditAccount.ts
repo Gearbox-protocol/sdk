@@ -116,7 +116,9 @@ export class CreditAccountData {
     priceOracle: PriceOracleData,
   ) {
     const twvUSDValue = this.collateralTokens
-      .filter((_, num) => ((2n ** BigInt(num)) & this.enabledTokenMask) !== 0n)
+      .filter((_, num) =>
+        CreditAccountData.isTokenEnabled(num, this.enabledTokenMask),
+      )
       .map(
         token =>
           priceOracle.convertToUSD(this.balances[token], token) *
@@ -128,6 +130,10 @@ export class CreditAccountData {
       priceOracle.convertFromUSD(twvUSDValue, this.underlyingToken) /
         this.calcBorrowAmountPlusInterestRate(currentCumulativeIndex),
     );
+  }
+
+  static isTokenEnabled(index: number, enabledTokenMask: bigint) {
+    return ((2n ** BigInt(index)) & enabledTokenMask) !== 0n;
   }
 
   static calcMaxIncreaseBorrow(
