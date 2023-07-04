@@ -10,9 +10,7 @@ describe("LidoAdapterParser test", () => {
 
     const ifc = ILidoV1Adapter__factory.createInterface();
 
-    let parsed = parser.parse(
-      ifc.encodeFunctionData("submit", [WAD.mul(1020)]),
-    );
+    let parsed = parser.parse(ifc.encodeFunctionData("submit", [WAD * 1020n]));
     expect(parsed).to.be.eq(
       "LidoV1Adapter[LIDO_STETH_GATEWAY].submit(amount: 1.02K [1020000000000000000000])",
       "Incorrect parse submit(amount)",

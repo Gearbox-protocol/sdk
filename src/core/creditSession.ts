@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import moment from "moment";
 
 import {
@@ -7,6 +6,7 @@ import {
   CreditSessionsAggregatedStatsPayload,
   UserCreditSessionsAggregatedStatsPayload,
 } from "../payload/creditSession";
+import { toBigInt } from "../utils/formatter";
 import { swapKeyValue } from "../utils/mappers";
 import { AssetWithView } from "./assets";
 import { PERCENTAGE_DECIMALS } from "./constants";
@@ -47,9 +47,9 @@ export class CreditSession {
   readonly closedAt: number;
   readonly closedAtDate: string;
 
-  readonly initialAmount: BigNumber;
-  readonly borrowedAmount: BigNumber;
-  readonly totalValue: BigNumber;
+  readonly initialAmount: bigint;
+  readonly borrowedAmount: bigint;
+  readonly totalValue: bigint;
   readonly healthFactor: number;
 
   readonly profitInUSD: number;
@@ -69,17 +69,17 @@ export class CreditSession {
   // sinceTimestamp: number;
   // closedAtTimestamp: number;
 
-  readonly borrowAPY_RAY: BigNumber;
+  readonly borrowAPY_RAY: bigint;
   readonly borrowAPY7DAverage: number;
   readonly totalValueUSD: number;
-  readonly debt: BigNumber;
+  readonly debt: bigint;
   readonly debtUSD: number;
   readonly leverage: number;
   readonly tfIndex: number;
 
-  readonly spotDebt: BigNumber;
-  readonly spotTotalValue: BigNumber;
-  readonly spotUserFunds: BigNumber;
+  readonly spotDebt: bigint;
+  readonly spotTotalValue: bigint;
+  readonly spotUserFunds: bigint;
 
   readonly cvxUnclaimedRewards: Array<AssetWithView>;
   readonly balances: Array<AssetWithView>;
@@ -93,10 +93,10 @@ export class CreditSession {
     this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
     this.version = payload.version || 2;
 
-    this.initialAmount = BigNumber.from(payload.initialAmount || 0);
-    this.borrowedAmount = BigNumber.from(payload.borrowedAmount || 0);
-    this.totalValue = BigNumber.from(payload.totalValue || 0);
-    this.healthFactor = BigNumber.from(payload.healthFactor || 0).toNumber();
+    this.initialAmount = toBigInt(payload.initialAmount || 0);
+    this.borrowedAmount = toBigInt(payload.borrowedAmount || 0);
+    this.totalValue = toBigInt(payload.totalValue || 0);
+    this.healthFactor = Number(toBigInt(payload.healthFactor || 0));
 
     this.since = payload.since || 0;
     this.closedAt = payload.closedAt || 0;
@@ -117,31 +117,31 @@ export class CreditSession {
     this.tradingToken = (payload.tradingToken || "").toLowerCase();
     this.quoteToken = (payload.quoteToken || "").toLowerCase();
 
-    this.borrowAPY_RAY = BigNumber.from(payload.borrowAPY_RAY || 0);
+    this.borrowAPY_RAY = toBigInt(payload.borrowAPY_RAY || 0);
     this.borrowAPY7DAverage =
-      (payload.borrowAPY7DAverage || 0) * PERCENTAGE_DECIMALS;
+      (payload.borrowAPY7DAverage || 0) * Number(PERCENTAGE_DECIMALS);
     this.totalValueUSD = payload.totalValueUSD || 0;
-    this.debt = BigNumber.from(payload.debt || 0);
+    this.debt = toBigInt(payload.debt || 0);
     this.debtUSD = payload.debtUSD || 0;
     this.leverage = payload.leverage || 0;
-    this.tfIndex = (payload.tfIndex || 0) * PERCENTAGE_DECIMALS;
+    this.tfIndex = (payload.tfIndex || 0) * Number(PERCENTAGE_DECIMALS);
 
-    this.roi = (payload.roi || 0) / PERCENTAGE_DECIMALS;
-    this.apy = (payload.apy || 0) / PERCENTAGE_DECIMALS;
+    this.roi = (payload.roi || 0) / Number(PERCENTAGE_DECIMALS);
+    this.apy = (payload.apy || 0) / Number(PERCENTAGE_DECIMALS);
 
     this.currentBlock = payload.currentBlock || 0;
     this.currentTimestamp = payload.currentTimestamp || 0;
 
-    this.spotDebt = BigNumber.from(payload.spotDebt || 0);
-    this.spotTotalValue = BigNumber.from(payload.spotTotalValue || 0);
-    this.spotUserFunds = BigNumber.from(payload.spotUserFunds || 0);
+    this.spotDebt = toBigInt(payload.spotDebt || 0);
+    this.spotTotalValue = toBigInt(payload.spotTotalValue || 0);
+    this.spotUserFunds = toBigInt(payload.spotUserFunds || 0);
 
     this.cvxUnclaimedRewards = Object.entries(
       payload.cvxUnclaimedRewards || {},
     ).map(([token, balance]): AssetWithView => {
       return {
         token: token.toLowerCase(),
-        balance: BigNumber.from(balance.bi),
+        balance: toBigInt(balance.bi || 0),
         balanceView: balance.f.toString(),
       };
     });
@@ -150,7 +150,7 @@ export class CreditSession {
       ([token, balance]): AssetWithView => {
         return {
           token: token.toLowerCase(),
-          balance: BigNumber.from(balance.BI),
+          balance: toBigInt(balance.BI || 0),
           balanceView: balance.F.toString(),
         };
       },
@@ -174,9 +174,9 @@ export class CreditSessionFiltered {
   readonly healthFactor: number;
   readonly leverage: number;
 
-  readonly debt: BigNumber;
+  readonly debt: bigint;
   readonly debtUSD: number;
-  readonly totalValue: BigNumber;
+  readonly totalValue: bigint;
   readonly totalValueUSD: number;
 
   readonly profitInUSD: number;
@@ -201,23 +201,23 @@ export class CreditSessionFiltered {
       "Do MMM YYYY",
     );
 
-    this.healthFactor = BigNumber.from(payload.healthFactor || 0).toNumber();
+    this.healthFactor = Number(toBigInt(payload.healthFactor || 0));
     this.leverage = payload.leverage || 0;
 
-    this.debt = BigNumber.from(payload.debt || 0);
+    this.debt = toBigInt(payload.debt || 0);
     this.debtUSD = payload.debtUSD || 0;
-    this.totalValue = BigNumber.from(payload.totalValue || 0);
+    this.totalValue = toBigInt(payload.totalValue || 0);
     this.totalValueUSD = payload.totalValueUSD || 0;
 
     this.profitInUSD = payload.pnlUSD || 0;
     this.profitInUnderlying = payload.pnl || 0;
 
-    this.tfIndex = (payload.tfIndex || 0) * PERCENTAGE_DECIMALS;
+    this.tfIndex = (payload.tfIndex || 0) * Number(PERCENTAGE_DECIMALS);
 
     this.balances = Object.entries(payload.balances || {}).map(
       ([token, balance]) => ({
         token: token.toLowerCase(),
-        balance: BigNumber.from(balance.BI),
+        balance: toBigInt(balance.BI || 0),
         balanceView: balance.F.toString(),
       }),
     );
@@ -259,8 +259,8 @@ export type CreditSessionsAggregatedStats = Omit<
   leverageChange: number;
   activeAccountsChange: number;
   openedAccountsChange: number;
-  healthFactor: BigNumber;
-  healthFactorOld: BigNumber;
+  healthFactor: bigint;
+  healthFactorOld: bigint;
 };
 
 export class UserCreditSessionsBuilder {
@@ -271,7 +271,7 @@ export class UserCreditSessionsBuilder {
 
     return {
       ...sessionsUnfiltered,
-      totalValueChange: totalValue10kBasis * PERCENTAGE_DECIMALS,
+      totalValueChange: totalValue10kBasis * Number(PERCENTAGE_DECIMALS),
       accounts: accounts.map(p => new CreditSession(p)),
     };
   }
@@ -295,12 +295,14 @@ export class UserCreditSessionsBuilder {
       ...rest,
       leverage: leverage,
       leverageOld: leverageOld,
-      healthFactorChange: healthFactor10kBasis * PERCENTAGE_DECIMALS,
-      leverageChange: leverage10kBasis * PERCENTAGE_DECIMALS,
-      activeAccountsChange: activeAccounts10kBasis * PERCENTAGE_DECIMALS,
-      openedAccountsChange: openedAccounts10kBasis * PERCENTAGE_DECIMALS,
-      healthFactor: BigNumber.from(healthFactor),
-      healthFactorOld: BigNumber.from(healthFactorOld),
+      healthFactorChange: healthFactor10kBasis * Number(PERCENTAGE_DECIMALS),
+      leverageChange: leverage10kBasis * Number(PERCENTAGE_DECIMALS),
+      activeAccountsChange:
+        activeAccounts10kBasis * Number(PERCENTAGE_DECIMALS),
+      openedAccountsChange:
+        openedAccounts10kBasis * Number(PERCENTAGE_DECIMALS),
+      healthFactor: toBigInt(healthFactor || 0),
+      healthFactorOld: toBigInt(healthFactorOld || 0),
     };
   }
 }

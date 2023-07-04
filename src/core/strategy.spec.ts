@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { BigNumber } from "ethers";
 
 import { decimals } from "../tokens/decimals";
 import { tokenDataByNetwork } from "../tokens/token";
@@ -56,16 +55,16 @@ const prices = {
 };
 
 const liquidationThresholds = {
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: BigNumber.from("9300"),
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: BigNumber.from("8500"),
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: BigNumber.from("9000"),
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 9300n,
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 8500n,
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: 9000n,
 };
 
 describe("Strategy test", () => {
   it("maxAPY calculation is correct", () => {
     const result = lidoStrategy.maxAPY(
       53203,
-      10 * LEVERAGE_DECIMALS,
+      10 * Number(LEVERAGE_DECIMALS),
       pools["0x1"].borrowRate,
     );
 
@@ -74,7 +73,7 @@ describe("Strategy test", () => {
   it("overallAPY calculation is correct", () => {
     const result = lidoStrategy.overallAPY(
       lidoStrategy.apy || 0,
-      10 * LEVERAGE_DECIMALS,
+      10 * Number(LEVERAGE_DECIMALS),
       tokenDataByNetwork.Mainnet.WETH,
       pools["0x2"].borrowRate,
     );
@@ -100,6 +99,6 @@ describe("Strategy test", () => {
       { address: "0x1", liquidationThresholds },
     ]);
 
-    expect(result).to.be.eq(9 * LEVERAGE_DECIMALS);
+    expect(result).to.be.eq(9 * Number(LEVERAGE_DECIMALS));
   });
 });

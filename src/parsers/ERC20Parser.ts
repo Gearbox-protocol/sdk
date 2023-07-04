@@ -1,7 +1,6 @@
-import { BigNumber } from "ethers/lib/ethers";
-
 import { SupportedToken } from "../tokens/token";
 import { IERC20__factory } from "../types";
+import { toBigInt } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -35,9 +34,7 @@ export class ERC20Parser extends AbstractParser implements IParser {
           functionFragment,
           calldata,
         );
-        return `${functionName}(${spender}, [${BigNumber.from(
-          amount,
-        ).toString()}])`;
+        return `${functionName}(${spender}, [${toBigInt(amount).toString()}])`;
       }
 
       default:

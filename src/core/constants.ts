@@ -1,25 +1,21 @@
-import { BigNumber } from "ethers";
-
-export const MAX_INT = BigNumber.from(
+export const MAX_INT = BigInt(
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 );
 
 export const RAY_DECIMALS_POW = 27;
-export const RAY = BigNumber.from(10).pow(RAY_DECIMALS_POW);
-export const halfRAY = RAY.div(2);
+export const RAY = 10n ** BigInt(RAY_DECIMALS_POW);
+export const halfRAY = RAY / 2n;
 export const WAD_DECIMALS_POW = 18;
-export const WAD = BigNumber.from(10).pow(WAD_DECIMALS_POW);
+export const WAD = 10n ** BigInt(WAD_DECIMALS_POW);
 
 export const PRICE_DECIMALS_POW = 8;
-export const PRICE_DECIMALS = BigNumber.from(10).pow(PRICE_DECIMALS_POW);
+export const PRICE_DECIMALS = 10n ** BigInt(PRICE_DECIMALS_POW);
 
 export const SECONDS_PER_YEAR = 365 * 24 * 3600;
 export const MS_PER_YEAR = SECONDS_PER_YEAR * 1000;
 
-export const PERCENTAGE_DECIMALS = 100;
-export const PERCENTAGE_FACTOR = 1e4;
-// export const LIQUIDATION_DISCOUNTED_SUM = 9600;
-// export const UNDERLYING_TOKEN_LIQUIDATION_THRESHOLD = 9400;
+export const PERCENTAGE_DECIMALS = 100n;
+export const PERCENTAGE_FACTOR = 10000n;
 
 export const timeRanges: Record<string, number> = {
   // "1H": 3600,
@@ -29,8 +25,8 @@ export const timeRanges: Record<string, number> = {
   "1Y": 3600 * 24 * 365,
 };
 
-export const LEVERAGE_DECIMALS = 100;
-export const SLIPPAGE_DECIMALS = 100;
+export const LEVERAGE_DECIMALS = 100n;
+export const SLIPPAGE_DECIMALS = 100n;
 export const ADDRESS_0X0 = "0x0000000000000000000000000000000000000000";
 
 // Used in tests

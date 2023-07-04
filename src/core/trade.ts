@@ -1,4 +1,4 @@
-import { BigNumber, Signer } from "ethers";
+import { Signer } from "ethers";
 
 import { AdapterInterface } from "../contracts/adapters";
 import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
@@ -13,8 +13,8 @@ import { TXSwap } from "./transactions";
 
 interface BaseTradeInterface {
   swapType: SwapOperation;
-  sourceAmount: BigNumber;
-  expectedAmount: BigNumber;
+  sourceAmount: bigint;
+  expectedAmount: bigint;
   tokenFrom: string;
   tokenTo: string;
   operationName: TradeOperations;
@@ -45,9 +45,9 @@ export class Trade implements BaseTradeInterface {
   readonly creditFacade: string;
 
   readonly swapType: SwapOperation;
-  readonly sourceAmount: BigNumber;
-  readonly expectedAmount: BigNumber;
-  readonly rate: BigNumber;
+  readonly sourceAmount: bigint;
+  readonly expectedAmount: bigint;
+  readonly rate: bigint;
   readonly tokenFrom: string;
   readonly tokenTo: string;
   readonly operationName: TradeOperations;
@@ -60,7 +60,7 @@ export class Trade implements BaseTradeInterface {
     this.swapType = props.swapType;
     this.sourceAmount = props.sourceAmount;
     this.expectedAmount = props.expectedAmount;
-    this.rate = WAD.mul(props.expectedAmount).div(props.sourceAmount);
+    this.rate = (WAD * props.expectedAmount) / props.sourceAmount;
     this.tokenFrom = props.tokenFrom;
     this.tokenTo = props.tokenTo;
     this.operationName = props.operationName;

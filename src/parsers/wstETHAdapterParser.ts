@@ -1,7 +1,6 @@
-import { BigNumber } from "ethers";
-
 import { SupportedContract } from "../contracts/contracts";
 import { IwstETH__factory, IwstETHV1Adapter__factory } from "../types";
+import { toBigInt } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -49,9 +48,7 @@ export class WstETHAdapterParser extends AbstractParser implements IParser {
           functionFragment,
           calldata,
         );
-        return `${functionName}(${spender}, [${BigNumber.from(
-          amount,
-        ).toString()}])`;
+        return `${functionName}(${spender}, [${toBigInt(amount).toString()}])`;
       }
 
       default:

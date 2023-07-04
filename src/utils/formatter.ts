@@ -1,144 +1,121 @@
 import { Decimal } from "decimal.js-light";
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumberish } from "ethers";
 import { unix } from "moment";
 
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR, RAY } from "../core/constants";
+import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../core/constants";
 
 export function rayToNumber(num: BigNumberish): number {
-  return (
-    BigNumber.from(num).div(BigNumber.from(10).pow(21)).toNumber() / 1000000
-  );
+  return Number(toBigInt(num) / 10n ** 21n) / 1000000;
 }
 
-export function formatRAY(num?: BigNumber): string {
-  return toSignificant(num || BigNumber.from(0), 27);
+export function formatRAY(num = 0n): string {
+  return toSignificant(num, 27);
 }
+
+const limitPrecision = (n: bigint, p?: number) => {
+  const notZero = n !== 0n;
+  if (n <= 10n && notZero) {
+    return 6;
+  }
+  if (n <= 100n && notZero) {
+    return 5;
+  }
+  if (n <= 1000n && notZero) {
+    return 4;
+  }
+  if (n <= 10000n && notZero) {
+    return 3;
+  }
+  if (p === undefined && n > 10n ** 21n) {
+    return 2;
+  }
+  if (p === undefined && n > 10n ** 24n) {
+    return 0;
+  }
+
+  return p;
+};
+
+const limitNum = (n: bigint, d = 18): bigint => {
+  let limited = n <= 2n ? 0n : n;
+  if (d <= 6) {
+    return limited * 10n ** BigInt(6 - d);
+  } else {
+    return limited / 10n ** BigInt(d - 6);
+  }
+};
 
 export function formatBN(
-  numArg: BigNumberish | undefined,
+  num: BigNumberish | undefined,
   decimals: number,
-  precisionArg?: number,
+  precision?: number,
 ): string {
-  let num = numArg;
-  let precision = precisionArg;
+  if (num === undefined) return "-";
 
-  if (!num) {
-    return "-";
-  }
-
-  // if (BigNumber.from(num).gt(BigNumber.from(10).pow(37))) {
-  //   return "MAX";
-  // }
-
-  if (!precision && BigNumber.from(num).gt(BigNumber.from(10).pow(21))) {
-    precision = 2;
-  }
-
-  if (!precision && BigNumber.from(num).gt(BigNumber.from(10).pow(24))) {
-    precision = 0;
-  }
-
-  if (BigNumber.from(num).lte(2)) {
-    num = BigNumber.from(0);
-  }
-
+  const numBInt = toBigInt(num);
   // GUSD: 2 decimals
-  let number: BigNumber;
-  if (decimals <= 6) {
-    number = BigNumber.from(num).mul(BigNumber.from(10).pow(6 - decimals));
-  } else {
-    number = BigNumber.from(num).div(
-      BigNumber.from(10).pow((decimals || 18) - 6),
-    );
-  }
-
-  if (number.lte(10000) && !number.isZero()) {
-    precision = 3;
-  }
-
-  if (number.lte(1000) && !number.isZero()) {
-    precision = 4;
-  }
-
-  if (number.lte(100) && !number.isZero()) {
-    precision = 5;
-  }
-
-  if (number.lte(10) && !number.isZero()) {
-    precision = 6;
-  }
-
-  return toHumanFormat(number, precision);
+  const limitedNum = limitNum(numBInt, decimals);
+  const limitedPrecision = limitPrecision(limitedNum, precision);
+  return toHumanFormat(limitedNum, limitedPrecision);
 }
 
-export function formatBn4dig(num: BigNumber, precision = 2): string {
+export function formatBn4dig(num: bigint, precision = 2): string {
   if (precision > 6) {
     throw new Error("Precision is too high, try <= 6");
   }
 
-  let numStr = num.toString();
-  if (numStr.length < 6) {
-    numStr = "0".repeat(6 - numStr.length) + numStr;
+  const numStr = num.toString();
+  if (numStr.length <= 6) {
+    const completed = "0".repeat(6 - numStr.length) + numStr;
+    return `0.${completed.slice(0, precision)}`;
   }
-
-  return numStr.length <= 6
-    ? `0.${numStr.slice(0, precision)}`
-    : `${numStr.slice(0, numStr.length - 6)}.${numStr.slice(
-        numStr.length - 6,
-        numStr.length - 6 + precision,
-      )}`;
+  return `${numStr.slice(0, numStr.length - 6)}.${numStr.slice(
+    numStr.length - 6,
+    numStr.length - 6 + precision,
+  )}`;
 }
 
-export function toHumanFormat(num: BigNumber, precision = 2): string {
-  if (num.gte(1e15)) {
-    return `${formatBn4dig(num.div(1e9), precision)}Bn`;
+export function toHumanFormat(num: bigint, precision = 2): string {
+  if (num >= BigInt(1e15)) {
+    return `${formatBn4dig(num / BigInt(1e9), precision)}Bn`;
   }
 
-  if (num.gte(1e12)) {
-    return `${formatBn4dig(num.div(1e6), precision)}M`;
+  if (num >= BigInt(1e12)) {
+    return `${formatBn4dig(num / BigInt(1e6), precision)}M`;
   }
 
-  if (num.gte(1e9)) {
-    return `${formatBn4dig(num.div(1e3), precision)}K`;
+  if (num >= BigInt(1e9)) {
+    return `${formatBn4dig(num / BigInt(1e3), precision)}K`;
   }
 
   return formatBn4dig(num, precision);
 }
 
-export function toSignificant(num: BigNumber, decimals: number): string {
-  if (num.toString() === "1") return "0";
+export function toSignificant(num: bigint, decimals: number): string {
+  if (num === 1n) return "0";
   const divider = new Decimal(10).toPower(decimals);
   const number = new Decimal(num.toString()).div(divider);
   return number.toSignificantDigits(6, 4).toString();
 }
 
-export function toBN(num: string, decimals: number): BigNumber {
-  if (num === "") return BigNumber.from(0);
+export const toBigInt = (v: BigNumberish): bigint => BigInt(v.toString());
+
+export function toBN(num: string, decimals: number): bigint {
+  if (num === "") return 0n;
   const multiplier = new Decimal(10).toPower(decimals);
   const number = new Decimal(num).mul(multiplier);
-  return BigNumber.from(number.toFixed(0));
+  return BigInt(number.toFixed(0));
 }
 
 export function shortAddress(address?: string): string {
   return address === undefined
     ? ""
-    : `${address.substr(0, 6)}...${address.substr(38, 4)}`;
+    : `${address.slice(0, 6)}...${address.slice(address.length - 4)}`;
 }
 
 export function shortHash(address?: string): string {
-  return address === undefined ? "" : `${address.substr(0, 5)}...`;
+  return address === undefined ? "" : `${address.slice(0, 5)}...`;
 }
-
-export const formatRate = (rate: BigNumberish | undefined) =>
-  rate
-    ? `${(
-        BigNumber.from(rate)
-          .mul(PERCENTAGE_FACTOR)
-          .mul(100)
-          .div(RAY)
-          .toNumber() / PERCENTAGE_FACTOR
-      ).toFixed(2)}%`
-    : "0.00%";
 
 export function formatDate(date: Date): string {
   const d = new Date(date);
@@ -153,13 +130,13 @@ export function formatDate(date: Date): string {
 }
 
 export function formatPercentage(healthFactor: number, decimals = 2): string {
-  return (healthFactor / PERCENTAGE_FACTOR).toFixed(decimals);
+  return (healthFactor / Number(PERCENTAGE_FACTOR)).toFixed(decimals);
 }
 
-export function formatLeverage(leverage: number, decimals = 2) {
-  return (leverage / LEVERAGE_DECIMALS).toFixed(decimals);
+export function formatLeverage(leverage: number, decimals = 2): string {
+  return (leverage / Number(LEVERAGE_DECIMALS)).toFixed(decimals);
 }
 
-export function formatDateTime(timestamp: number) {
+export function formatDateTime(timestamp: number): string {
   return `${unix(timestamp).format("Do MMM YYYY HH:mm")} UTC`;
 }

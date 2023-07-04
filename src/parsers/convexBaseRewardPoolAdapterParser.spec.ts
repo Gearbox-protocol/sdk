@@ -14,7 +14,7 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
     const ifc = IConvexV1BaseRewardPoolAdapter__factory.createInterface();
 
     let parsed = parser.parse(
-      ifc.encodeFunctionData("stake", [WAD.mul(199).div(10)]),
+      ifc.encodeFunctionData("stake", [(WAD * 199n) / 10n]),
     );
     expect(parsed).to.be.eq(
       "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].stake(amount: 19.90 [19900000000000000000])",
@@ -28,7 +28,7 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("withdraw", [WAD.mul(199).div(1000), false]),
+      ifc.encodeFunctionData("withdraw", [(WAD * 199n) / 1000n, false]),
     );
     expect(parsed).to.be.eq(
       "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].withdraw(amount: 0.19 [199000000000000000], claim: false)",
@@ -36,7 +36,7 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("withdrawAndUnwrap", [WAD.mul(2).div(1000), true]),
+      ifc.encodeFunctionData("withdrawAndUnwrap", [(WAD * 2n) / 1000n, true]),
     );
     expect(parsed).to.be.eq(
       "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].withdrawAndUnwrap(amount: 0.002 [2000000000000000], claim: true)",

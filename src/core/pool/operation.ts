@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { unix } from "moment";
 
 import { getContractName } from "../../contracts/contractsRegister";
@@ -21,11 +20,11 @@ export abstract class AbstractPoolOperation {
   public readonly user: string;
   public readonly sessionId: string;
   public readonly pool: string;
-  public readonly amount: BigNumber;
+  public readonly amount: bigint;
 
   constructor(opts: BasePoolOperation) {
     this.txHash = opts.tx_hash;
-    this.amount = BigNumber.from(opts.amount);
+    this.amount = BigInt(opts.amount);
     this.pool = opts.pool;
     this.sessionId = opts.session_id;
     this.user = opts.user;
@@ -51,7 +50,7 @@ export class PoolOperation extends AbstractPoolOperation {
 
   toString(token: TokenData): string {
     return `${this.event} ${formatBN(
-      BigNumber.from(this.amount),
+      this.amount,
       token.decimals,
     )} ${getContractName(this.pool)}`;
   }

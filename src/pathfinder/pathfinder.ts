@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, providers, Signer } from "ethers";
+import { BigNumberish, providers, Signer } from "ethers";
 
 import { NetworkType } from "../core/chains";
 import { RAY } from "../core/constants";
@@ -9,9 +9,10 @@ import { IRouter__factory } from "../types";
 import { BalanceStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import {
   IRouter,
-  RouterResultStructOutput,
   SwapTaskStruct,
 } from "../types/@gearbox-protocol/router/contracts/interfaces/IRouter";
+import { toBigInt } from "../utils/formatter";
+import { AwaitedRes } from "../utils/types";
 import {
   MultiCall,
   PathFinderCloseResult,
@@ -25,9 +26,9 @@ const MAX_GAS_PER_ROUTE = 200e6;
 const GAS_PER_BLOCK = 400e6;
 
 export interface CloseResult {
-  amount: BigNumberish;
+  amount: bigint;
   calls: Array<MultiCall>;
-  gasUsage: BigNumberish;
+  gasUsage: bigint;
 }
 
 export class PathFinder {
@@ -84,7 +85,7 @@ export class PathFinder {
         .join("-")}`;
 
       unique[key] = {
-        amount: BigNumber.from(r.amount),
+        amount: toBigInt(r.amount),
         calls: r.calls,
       };
     });
@@ -118,7 +119,7 @@ export class PathFinder {
     );
 
     return {
-      amount: BigNumber.from(result.amount),
+      amount: toBigInt(result.amount),
       calls: result.calls,
     };
   }
@@ -169,13 +170,10 @@ export class PathFinder {
       },
     );
 
-    const balancesAfter = result[0].reduce<Record<string, BigNumber>>(
-      (acc, b) => {
-        acc[b.token.toLowerCase()] = BigNumber.from(b.balance);
-        return acc;
-      },
-      {},
-    );
+    const balancesAfter = result[0].reduce<Record<string, bigint>>((acc, b) => {
+      acc[b.token.toLowerCase()] = toBigInt(b.balance);
+      return acc;
+    }, {});
 
     return {
       balances: balancesAfter,
@@ -203,12 +201,8 @@ export class PathFinder {
       loopsPerTx,
     );
 
-    let results: Array<
-      [RouterResultStructOutput, BigNumber] & {
-        result: RouterResultStructOutput;
-        gasPriceTargetRAY: BigNumber;
-      }
-    > = [];
+    let results: Array<AwaitedRes<IRouter["callStatic"]["findBestClosePath"]>> =
+      [];
     if (noConcurency) {
       for (const po of pathOptions) {
         results.push(
@@ -244,18 +238,26 @@ export class PathFinder {
 
     const bestResult = results.reduce<CloseResult>(
       (best, [pathFinderResult, gasPriceRAY]) =>
-        PathFinder.compare(best, pathFinderResult, gasPriceRAY),
+        PathFinder.compare(
+          best,
+          {
+            calls: pathFinderResult.calls,
+            amount: toBigInt(pathFinderResult.amount),
+            gasUsage: toBigInt(pathFinderResult.gasUsage),
+          },
+          toBigInt(gasPriceRAY),
+        ),
       {
-        amount: BigNumber.from(0),
-        gasUsage: 0,
+        amount: 0n,
+        gasUsage: 0n,
         calls: [],
       },
     );
 
     return {
-      underlyingBalance: BigNumber.from(bestResult.amount).add(
+      underlyingBalance:
+        bestResult.amount +
         creditAccount.allBalances[creditAccount.underlyingToken.toLowerCase()],
-      ),
       calls: bestResult.calls,
     };
   }
@@ -263,18 +265,10 @@ export class PathFinder {
   static compare(
     r1: CloseResult,
     r2: CloseResult,
-    gasPriceRAY: BigNumberish,
+    gasPriceRAY: bigint,
   ): CloseResult {
-    const comparator = (
-      { amount, gasUsage }: CloseResult,
-      gasPrice: BigNumberish,
-    ) =>
-      BigNumber.from(amount).sub(
-        BigNumber.from(gasUsage).mul(gasPrice).div(RAY),
-      );
-
-    return comparator(r1, gasPriceRAY).gt(comparator(r2, gasPriceRAY))
-      ? r1
-      : r2;
+    const comparator = ({ amount, gasUsage }: CloseResult, gasPrice: bigint) =>
+      amount - (gasUsage * gasPrice) / RAY;
+    return comparator(r1, gasPriceRAY) > comparator(r2, gasPriceRAY) ? r1 : r2;
   }
 }

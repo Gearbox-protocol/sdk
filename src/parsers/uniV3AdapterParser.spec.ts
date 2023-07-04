@@ -1,6 +1,5 @@
 import { pack } from "@ethersproject/solidity";
 import { expect } from "chai";
-import { BigNumber } from "ethers";
 
 import { DUMB_ADDRESS, RAY, WAD } from "../core/constants";
 import { tokenDataByNetwork } from "../tokens/token";
@@ -37,8 +36,8 @@ describe("UniswapV3AdapterParser test", () => {
           fee: 3000,
           recipient: DUMB_ADDRESS,
           deadline: 12300,
-          amountIn: WAD.mul(1299000),
-          amountOutMinimum: WAD.mul(10200),
+          amountIn: WAD * 1299000n,
+          amountOutMinimum: WAD * 10200n,
           sqrtPriceLimitX96: 0,
         },
       ]),
@@ -56,7 +55,7 @@ describe("UniswapV3AdapterParser test", () => {
           tokenOut: tokenDataByNetwork.Goerli["3Crv"],
           fee: 3000,
           deadline: 12300,
-          rateMinRAY: RAY.mul(1200),
+          rateMinRAY: RAY * 1200n,
           sqrtPriceLimitX96: 0,
         },
       ]),
@@ -77,8 +76,8 @@ describe("UniswapV3AdapterParser test", () => {
           ]),
           recipient: DUMB_ADDRESS,
           deadline: 1232131,
-          amountIn: WAD.mul(12399),
-          amountOutMinimum: BigNumber.from(1e6).mul(122),
+          amountIn: WAD * 12399n,
+          amountOutMinimum: BigInt(1e6) * 122n,
         },
       ]),
     );
@@ -96,7 +95,7 @@ describe("UniswapV3AdapterParser test", () => {
             tokenDataByNetwork.Mainnet.LINK,
             tokenDataByNetwork.Mainnet.USDC,
           ]),
-          rateMinRAY: RAY.mul(1200),
+          rateMinRAY: RAY * 1200n,
           deadline: 1232131,
         },
       ]),
@@ -115,7 +114,7 @@ describe("UniswapV3AdapterParser test", () => {
           fee: 10000,
           recipient: DUMB_ADDRESS,
           deadline: 12300,
-          amountInMaximum: WAD.mul(149).div(1000),
+          amountInMaximum: (WAD * 149n) / 1000n,
           amountOut: 102e6,
           sqrtPriceLimitX96: 0,
         },
@@ -138,7 +137,7 @@ describe("UniswapV3AdapterParser test", () => {
           recipient: DUMB_ADDRESS,
           deadline: 1232131,
           amountInMaximum: 123e6,
-          amountOut: WAD.mul(122),
+          amountOut: WAD * 122n,
         },
       ]),
     );

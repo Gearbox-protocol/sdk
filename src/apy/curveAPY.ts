@@ -1,5 +1,4 @@
 import axios from "axios";
-import { BigNumber } from "ethers";
 
 import { WAD_DECIMALS_POW } from "../core/constants";
 import { CurveLPToken } from "../tokens/curveLP";
@@ -102,9 +101,9 @@ const CURVE_FACTORY_TRICRYPTO_URL =
   "https://api.curve.fi/api/getPools/ethereum/factory-tricrypto";
 
 interface CurveAPY {
-  base: BigNumber;
-  crv: BigNumber;
-  gauge: Array<[string, BigNumber]>;
+  base: bigint;
+  crv: bigint;
+  gauge: Array<[string, bigint]>;
 }
 export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
 
@@ -149,7 +148,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult | null> {
         if (pool === undefined)
           console.warn(`No pool data for: ${curveSymbol}, ${poolId}`);
         const extraRewards = gaugeRewards.map(
-          ({ apy = 0, symbol }): [string, BigNumber] => [
+          ({ apy = 0, symbol }): [string, bigint] => [
             symbol.toLowerCase(),
             curveAPYToBn(apy),
           ],

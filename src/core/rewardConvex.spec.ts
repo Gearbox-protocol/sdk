@@ -150,7 +150,7 @@ describe("RewardConvex test", () => {
       {
         contract: "CONVEX_3CRV_POOL",
         rewards: {
-          CRV: BigNumber.from(1000),
+          CRV: 1000n,
         },
         calls: [
           {
@@ -162,8 +162,8 @@ describe("RewardConvex test", () => {
       {
         contract: "CONVEX_FRAX3CRV_POOL",
         rewards: {
-          CRV: BigNumber.from(2000),
-          FXS: BigNumber.from(4000),
+          CRV: 2000n,
+          FXS: 4000n,
         },
         calls: [
           {

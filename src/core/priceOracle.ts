@@ -1,6 +1,7 @@
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumberish } from "ethers";
 
 import { getDecimals } from "../tokens/token";
+import { toBigInt } from "../utils/formatter";
 
 export interface PriceUpdate {
   token: string;
@@ -8,7 +9,7 @@ export interface PriceUpdate {
 }
 
 export class PriceOracleData {
-  protected _prices: Record<string, BigNumber> = {};
+  protected _prices: Record<string, bigint> = {};
 
   constructor(prices: Array<PriceUpdate>) {
     this.updatePrices(prices);
@@ -16,29 +17,25 @@ export class PriceOracleData {
 
   updatePrices(prices: Array<PriceUpdate>) {
     prices.forEach(p => {
-      this._prices[p.token.toLowerCase()] = BigNumber.from(p.price);
+      this._prices[p.token.toLowerCase()] = toBigInt(p.price);
     });
   }
 
-  convert(amount: BigNumber, from: string, to: string): BigNumber {
+  convert(amount: bigint, from: string, to: string): bigint {
     return this.convertFromUSD(this.convertToUSD(amount, from), to);
   }
 
-  convertFromUSD(amount: BigNumber, token: string): BigNumber {
-    return amount
-      .mul(BigNumber.from(10).pow(getDecimals(token)))
-      .div(this.getPrice(token));
+  convertFromUSD(amount: bigint, token: string): bigint {
+    return (amount * 10n ** BigInt(getDecimals(token))) / this.getPrice(token);
   }
 
-  convertToUSD(amount: BigNumber, token: string): BigNumber {
-    return amount
-      .mul(this.getPrice(token))
-      .div(BigNumber.from(10).pow(getDecimals(token)));
+  convertToUSD(amount: bigint, token: string): bigint {
+    return (amount * this.getPrice(token)) / 10n ** BigInt(getDecimals(token));
   }
 
-  getPrice(token: string): BigNumber {
+  getPrice(token: string): bigint {
     const price = this._prices[token.toLowerCase()];
-    if (!price) throw new Error(`Price for ${token} not found`);
+    if (price === undefined) throw new Error(`Price for ${token} not found`);
     return price;
   }
 }

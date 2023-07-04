@@ -15,6 +15,7 @@ import {
 } from "../types";
 import { IConvexTokenInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/integrations/convex/IConvexToken";
 import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
+import { toBigInt } from "../utils/formatter";
 import { MCall, multicall } from "../utils/multicall";
 import { NetworkType } from "./chains";
 import { CreditAccountData } from "./creditAccount";
@@ -67,8 +68,8 @@ export class RewardConvex {
 
     results.forEach(r => {
       r.rewards.CVX = getCVXMintAmount(
-        r.rewards.CRV || BigNumber.from(0),
-        totalSupply!,
+        r.rewards.CRV || 0n,
+        toBigInt(totalSupply!),
       );
     });
 
@@ -165,7 +166,7 @@ export class RewardConvex {
             ],
           };
         }
-        result[contract]!.rewards[token] = reward;
+        result[contract]!.rewards[token] = BigInt(reward.toString());
       }
     }
 

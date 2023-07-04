@@ -24,13 +24,13 @@ describe("WstETHAdapterParser test", () => {
 
     parser = new WstETHAdapterParser("LIDO_WSTETH", true);
 
-    parsed = parser.parse(ifc.encodeFunctionData("wrap", [WAD.mul(1020)]));
+    parsed = parser.parse(ifc.encodeFunctionData("wrap", [WAD * 1020n]));
     expect(parsed).to.be.eq(
       "Contract[LIDO_WSTETH].wrap(amount: 1.02K [1020000000000000000000])",
       "Incorrect parse wrap(amount)",
     );
 
-    parsed = parser.parse(ifc.encodeFunctionData("unwrap", [WAD.mul(1020)]));
+    parsed = parser.parse(ifc.encodeFunctionData("unwrap", [WAD * 1020n]));
     expect(parsed).to.be.eq(
       "Contract[LIDO_WSTETH].unwrap(amount: 1.02K [1020000000000000000000])",
       "Incorrect parse unwrap(amount)",

@@ -11,7 +11,7 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
     const ifc = IConvexV1BoosterAdapter__factory.createInterface();
 
     let parsed = parser.parse(
-      ifc.encodeFunctionData("deposit", [9, WAD.mul(19999), false]),
+      ifc.encodeFunctionData("deposit", [9, WAD * 19999n, false]),
     );
     expect(parsed).to.be.eq(
       "ConvexV1BoosterAdapter[CONVEX_BOOSTER].deposit(pid: 9 [CONVEX_3CRV_POOL], amount: 19.99K [19999000000000000000000], stake: false)",
@@ -25,7 +25,7 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("withdraw", [9, WAD.mul(555).div(10)]),
+      ifc.encodeFunctionData("withdraw", [9, (WAD * 555n) / 10n]),
     );
     expect(parsed).to.be.eq(
       "ConvexV1BoosterAdapter[CONVEX_BOOSTER].withdraw(pid: 9 [CONVEX_3CRV_POOL], amount: 55.50 [55500000000000000000])",

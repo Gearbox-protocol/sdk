@@ -17,7 +17,7 @@ describe("YearnV2AdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("deposit(uint256)", [WAD.mul(19000)]),
+      ifc.encodeFunctionData("deposit(uint256)", [WAD * 19000n]),
     );
     expect(parsed).to.be.eq(
       "YearnV2Adapter[YEARN_CURVE_STETH_VAULT].deposit(amount: 19.00K [19000000000000000000000])",
@@ -26,7 +26,7 @@ describe("YearnV2AdapterParser test", () => {
 
     parsed = parser.parse(
       ifc.encodeFunctionData("deposit(uint256,address)", [
-        WAD.mul(19000),
+        WAD * 19000n,
         DUMB_ADDRESS,
       ]),
     );
@@ -42,7 +42,7 @@ describe("YearnV2AdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("withdraw(uint256)", [WAD.mul(19000)]),
+      ifc.encodeFunctionData("withdraw(uint256)", [WAD * 19000n]),
     );
     expect(parsed).to.be.eq(
       "YearnV2Adapter[YEARN_CURVE_STETH_VAULT].withdraw(amount: 19.00K [19000000000000000000000])",
@@ -51,7 +51,7 @@ describe("YearnV2AdapterParser test", () => {
 
     parsed = parser.parse(
       ifc.encodeFunctionData("withdraw(uint256,address)", [
-        WAD.mul(19000),
+        WAD * 19000n,
         DUMB_ADDRESS,
       ]),
     );
@@ -62,7 +62,7 @@ describe("YearnV2AdapterParser test", () => {
 
     parsed = parser.parse(
       ifc.encodeFunctionData("withdraw(uint256,address,uint256)", [
-        WAD.mul(19000),
+        WAD * 19000n,
         DUMB_ADDRESS,
         555,
       ]),

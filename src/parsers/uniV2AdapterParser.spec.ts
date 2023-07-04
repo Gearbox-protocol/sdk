@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { BigNumber } from "ethers";
 
 import { DUMB_ADDRESS, RAY, WAD } from "../core/constants";
 import { tokenDataByNetwork } from "../tokens/token";
@@ -14,8 +13,8 @@ describe("UniswapV2AdapterParser test", () => {
 
     let parsed = parser.parse(
       ifc.encodeFunctionData("swapExactTokensForTokens", [
-        WAD.mul(180000),
-        BigNumber.from(1e6).mul(45),
+        WAD * 180000n,
+        BigInt(1e6) * 45n,
         [
           tokenDataByNetwork.Mainnet.DAI,
           tokenDataByNetwork.Mainnet.WETH,
@@ -33,8 +32,8 @@ describe("UniswapV2AdapterParser test", () => {
 
     parsed = parser.parse(
       ifc.encodeFunctionData("swapTokensForExactTokens", [
-        BigNumber.from(1e6).mul(234500),
-        WAD.mul(17700),
+        BigInt(1e6) * 234500n,
+        WAD * 17700n,
         [
           tokenDataByNetwork.Mainnet.USDC,
           tokenDataByNetwork.Mainnet.DAI,
@@ -52,7 +51,7 @@ describe("UniswapV2AdapterParser test", () => {
 
     parsed = parser.parse(
       ifc.encodeFunctionData("swapAllTokensForTokens", [
-        RAY.mul(3240),
+        RAY * 3240n,
         [
           tokenDataByNetwork.Mainnet.USDC,
           tokenDataByNetwork.Mainnet.DAI,
