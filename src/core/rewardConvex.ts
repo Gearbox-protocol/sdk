@@ -87,6 +87,7 @@ export class RewardConvex {
     return Object.entries(cm.adapters)
       .map(([contract, adapter]) => ({
         adapter,
+        contractAddress: contract,
         contract: contractsByAddress[contract.toLowerCase()],
       }))
       .filter(a => convexPools.includes(a.contract));
@@ -104,7 +105,7 @@ export class RewardConvex {
 
     for (let a of adapters) {
       calls.push({
-        address: a.adapter,
+        address: a.contractAddress,
         interface: RewardConvex.poolInterface,
         method: "earned(address)",
         params: [creditAccount],
