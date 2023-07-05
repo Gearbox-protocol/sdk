@@ -23,7 +23,7 @@ import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
 
 export interface RewardDistribution {
-  adapter: string;
+  contractAddress: string;
   contract: SupportedContract;
   token: SupportedToken;
 }
@@ -85,8 +85,7 @@ export class RewardConvex {
       .map(([contract]) => contract as SupportedContract);
 
     return Object.entries(cm.adapters)
-      .map(([contract, adapter]) => ({
-        adapter,
+      .map(([contract]) => ({
         contractAddress: contract,
         contract: contractsByAddress[contract.toLowerCase()],
       }))
@@ -111,7 +110,7 @@ export class RewardConvex {
         params: [creditAccount],
       });
       distribution.push({
-        adapter: a.adapter,
+        contractAddress: a.contractAddress,
         contract: a.contract,
         token: "CRV",
       });
@@ -126,7 +125,7 @@ export class RewardConvex {
           params: [creditAccount],
         });
         distribution.push({
-          adapter: a.adapter,
+          contractAddress: a.contractAddress,
           contract: a.contract,
           token: er.rewardToken,
         });
@@ -151,7 +150,7 @@ export class RewardConvex {
     );
 
     for (let i = 0; i < rewards.length; i++) {
-      const { contract, adapter, token } = distribution[i];
+      const { contract, contractAddress, token } = distribution[i];
       const reward = rewards[i];
 
       if (!reward.isZero()) {
@@ -161,7 +160,7 @@ export class RewardConvex {
             rewards: {},
             calls: [
               {
-                target: adapter,
+                target: contractAddress,
                 callData,
               },
             ],
