@@ -1,7 +1,6 @@
 import { Decimal } from "decimal.js-light";
 import { BigNumberish } from "ethers";
 import { unix } from "moment";
-import { type } from "os";
 
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../core/constants";
 
