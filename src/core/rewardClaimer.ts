@@ -15,7 +15,7 @@ export interface Rewards {
 }
 
 export interface AdapterWithType {
-  adapter: string;
+  contractAddress: string;
   contract: SupportedContract;
 }
 
