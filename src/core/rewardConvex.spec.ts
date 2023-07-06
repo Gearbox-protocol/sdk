@@ -39,10 +39,12 @@ describe("RewardConvex test", () => {
       {
         contract: "CONVEX_3CRV_POOL",
         contractAddress: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
+        adapter: ADAPTER_CONVEX_3CRV_POOL,
       },
       {
         contract: "CONVEX_FRAX3CRV_POOL",
         contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
       },
     ];
 
@@ -85,16 +87,19 @@ describe("RewardConvex test", () => {
 
     const distribution: Array<RewardDistribution> = [
       {
+        adapter: ADAPTER_CONVEX_3CRV_POOL,
         contractAddress: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
         contract: "CONVEX_3CRV_POOL",
         token: "CRV",
       },
       {
+        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
         contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
         contract: "CONVEX_FRAX3CRV_POOL",
         token: "CRV",
       },
       {
+        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
         contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
         contract: "CONVEX_FRAX3CRV_POOL",
         token: "FXS",
@@ -119,32 +124,29 @@ describe("RewardConvex test", () => {
 
     const distribution: Array<RewardDistribution> = [
       {
+        adapter: ADAPTER_CONVEX_3CRV_POOL,
         contractAddress: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
         contract: "CONVEX_3CRV_POOL",
         token: "CRV",
       },
       {
+        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
         contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
         contract: "CONVEX_FRAX3CRV_POOL",
         token: "CRV",
       },
       {
+        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
         contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
         contract: "CONVEX_FRAX3CRV_POOL",
         token: "FXS",
       },
     ];
 
-    const parsed = RewardConvex.parseResults(
-      CREDIT_ACCOUNT,
-      rewards,
-      distribution,
-    );
+    const parsed = RewardConvex.parseResults(rewards, distribution);
 
-    const callData = RewardConvex.poolInterface.encodeFunctionData(
-      "getReward(address,bool)",
-      [CREDIT_ACCOUNT, true],
-    );
+    const callData =
+      RewardConvex.poolInterface.encodeFunctionData("getReward()");
 
     const expected: Array<Rewards> = [
       {
@@ -154,7 +156,7 @@ describe("RewardConvex test", () => {
         },
         calls: [
           {
-            target: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
+            target: ADAPTER_CONVEX_3CRV_POOL,
             callData,
           },
         ],
@@ -167,7 +169,7 @@ describe("RewardConvex test", () => {
         },
         calls: [
           {
-            target: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+            target: ADAPTER_CONVEX_FRAX3CRV_POOL,
             callData,
           },
         ],
