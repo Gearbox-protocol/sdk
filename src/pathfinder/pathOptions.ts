@@ -117,6 +117,6 @@ export class PathOptionFactory {
       tokenSymbolByAddress[underlying.toLowerCase()]
     ].toLowerCase() === underlying.toLowerCase()
       ? "Mainnet"
-      : "Goerli";
+      : "Arbitrum";
   }
 }

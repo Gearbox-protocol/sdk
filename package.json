@@ -12,6 +12,7 @@
   "scripts": {
     "clean": "rm -rf lib",
     "build": "tsc",
+    "bindings": "yarn ts-node ./scripts/generate.ts",
     "dev": "tsc -w",
     "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc && yarn publish",
     "copyTypes": "node ./scripts/copyTypes.js",

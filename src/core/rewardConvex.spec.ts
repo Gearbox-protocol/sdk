@@ -30,7 +30,7 @@ describe("RewardConvex test", () => {
       adapters: {
         [contractsByNetwork.Mainnet.CONVEX_3CRV_POOL]: ADAPTER_CONVEX_3CRV_POOL,
         [contractsByNetwork.Mainnet.CURVE_FRAX_POOL]: ADAPTER_CURVE_FRAX_POOL,
-        [contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL]:
+        [contractsByNetwork.Arbitrum.CONVEX_FRAX3CRV_POOL]:
           ADAPTER_CONVEX_FRAX3CRV_POOL,
       },
     } as unknown as CreditManagerData;
@@ -56,7 +56,7 @@ describe("RewardConvex test", () => {
       adapters: {
         [contractsByNetwork.Mainnet.CONVEX_3CRV_POOL]: ADAPTER_CONVEX_3CRV_POOL,
         [contractsByNetwork.Mainnet.CURVE_FRAX_POOL]: ADAPTER_CURVE_FRAX_POOL,
-        [contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL]:
+        [contractsByNetwork.Arbitrum.CONVEX_FRAX3CRV_POOL]:
           ADAPTER_CONVEX_FRAX3CRV_POOL,
       },
     } as unknown as CreditManagerData;

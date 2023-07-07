@@ -15,20 +15,20 @@ export const ARBITRUM_NETWORK = 42161;
 
 export const CHAINS = {
   Mainnet: MAINNET_NETWORK,
-  Goerli: GOERLI_NETWORK,
+  Arbitrum: ARBITRUM_NETWORK,
   Local: LOCAL_NETWORK,
   Hardhat: HARDHAT_NETWORK,
   Tenderly: TENDERLY_NETWORK,
   Optimism: OPTIMISM_NETWORK,
   Polygon: POLYGON_NETWORK,
-  Arbiturum: ARBITRUM_NETWORK,
 } as const;
 
-export type NetworkType = "Mainnet" | "Goerli"; // | "Optimism" | "Polygon";
+export const supportedChains = ["Mainnet", "Arbitrum"] as const;
+export type NetworkType = typeof supportedChains[number]; // | "Optimism" | "Polygon";
 
 const SUPPORTED_CHAINS: Record<number, NetworkType> = {
   [CHAINS.Mainnet]: "Mainnet",
-  [CHAINS.Goerli]: "Goerli",
+  [CHAINS.Arbitrum]: "Arbitrum",
   [CHAINS.Local]: "Mainnet",
   [CHAINS.Tenderly]: "Mainnet",
   // [CHAINS.Optimism]: "Optimism",
@@ -67,11 +67,11 @@ export async function detectNetwork(
   } catch {
     try {
       const usdcMainnet = IERC20__factory.connect(
-        tokenDataByNetwork.Goerli.USDC,
+        tokenDataByNetwork.Arbitrum.USDC,
         provider,
       );
       await usdcMainnet.balanceOf(ADDRESS_0X0);
-      return "Goerli";
+      return "Arbitrum";
     } catch {
       throw new Error("Unsupported network");
     }

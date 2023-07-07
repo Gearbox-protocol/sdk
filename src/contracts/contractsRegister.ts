@@ -4,7 +4,7 @@ import { contractParams, contractsByAddress } from "./contracts";
 
 export const stEthPoolWrapper: Record<NetworkType, string> = {
   Mainnet: "0x5a97e3E43dCBFe620ccF7865739075f92E93F5E4",
-  Goerli: "0x3fe62a62C022A069952069b32C9d56718D30B7ec",
+  Arbitrum: "0x3fe62a62C022A069952069b32C9d56718D30B7ec",
 };
 
 export const CREDIT_MANAGER_DAI_V2_MAINNET =
@@ -25,7 +25,7 @@ export const CREDIT_MANAGER_WBTC_V2_MAINNET =
 export const CREDIT_MANAGER_FRAX_V2_MAINNET =
   "0xa3e1e0d58fe8dd8c9dd48204699a1178f1b274d8".toLowerCase();
 
-// GOERLI
+// Arbitrum
 export const CREDIT_MANAGER_DAI_V2_GOERLI =
   "0xf7ba434952acaa2e12035a2c3643ca327914a470".toLowerCase();
 
@@ -77,14 +77,14 @@ export const deployedContracts: Record<string, string> = {
   [CREDIT_MANAGER_WBTC_V2_MAINNET]: "WBTC",
   [CREDIT_MANAGER_FRAX_V2_MAINNET]: "FRAX",
 
-  // GOERLI CM
+  // Arbitrum CM
   [CREDIT_MANAGER_DAI_V2_GOERLI]: "DAI",
   [CREDIT_MANAGER_USDC_V2_GOERLI]: "USDC",
   [CREDIT_MANAGER_WETH_V2_GOERLI]: "WETH",
   [CREDIT_MANAGER_WSTETH_V2_GOERLI]: "wstETH",
   [CREDIT_MANAGER_WBTC_V2_GOERLI]: "WBTC",
 
-  // GOERLI pools
+  // Arbitrum pools
   "0xfb422e503f8b768184aba5e73587543d1c871a23": "DAI",
   "0x7c14c88f672d5513c8fa640fa48815f40c781a60": "USDC",
   "0x13376d637ded73a0df20d192f691a88c8af7dd0a": "ETH/WETH",

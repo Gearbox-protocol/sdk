@@ -47,7 +47,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
     // "BAL",
     // "sUSD",
   ],
-  Goerli: ["WETH", "DAI", "USDC", "WBTC"],
+  Arbitrum: ["WETH", "DAI", "USDC", "WBTC"],
 };
 
 export function getConnectors(networkType: NetworkType) {

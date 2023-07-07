@@ -4,6 +4,7 @@
  * (c) Gearbox.fi, 2021
  */
 import { NetworkType } from "../core/chains";
+import { NOT_DEPLOYED } from "../core/constants";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
@@ -140,72 +141,72 @@ export const contractsByNetwork: Record<
   //
   //
   //
-  //  G Ö E R L I
+  //  A R B I T R U M
   //
   //
   //
   //
-  Goerli: {
-    UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-    UNISWAP_V3_ROUTER: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
-    SUSHISWAP_ROUTER: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
+  Arbitrum: {
+    UNISWAP_V2_ROUTER: NOT_DEPLOYED,
+    UNISWAP_V3_ROUTER: NOT_DEPLOYED,
+    SUSHISWAP_ROUTER: NOT_DEPLOYED,
 
     // CURVE
-    CURVE_3CRV_POOL: "0x6491f8A62678c90C84b237791d9D7cF21b4D1418",
-    CURVE_FRAX_USDC_POOL: "0x9C85E4F4061160B6177cad3f72EDfd374Dc8AD88",
-    CURVE_STETH_GATEWAY: "0x6019fEa75c460ef205ef4C626F196055BAD89D1E",
-    CURVE_FRAX_POOL: tokenDataByNetwork.Goerli.FRAX3CRV,
-    CURVE_LUSD_POOL: tokenDataByNetwork.Goerli.LUSD3CRV,
-    CURVE_SUSD_POOL: "0x2A1b874C86734feA5be050d32fAb02FCF9eB1Bc2",
-    CURVE_SUSD_DEPOSIT: "0x9782f1fF1AEFb387F01cae72F668F13E8061d9Dd",
-    CURVE_GUSD_POOL: "0x8C954d89C2fB2c96F0195738b8c5538B34D5344E",
-    CURVE_MIM_POOL: tokenDataByNetwork.Goerli.MIM_3LP3CRV,
-    CURVE_OHMFRAXBP_POOL: "deploy me",
-    CURVE_CRVETH_POOL: "deploy me",
-    CURVE_CVXETH_POOL: "deploy me",
-    CURVE_3CRYPTO_POOL: "deploy me",
-    CURVE_LDOETH_POOL: "deploy me",
+    CURVE_3CRV_POOL: NOT_DEPLOYED,
+    CURVE_FRAX_USDC_POOL: NOT_DEPLOYED,
+    CURVE_STETH_GATEWAY: NOT_DEPLOYED,
+    CURVE_FRAX_POOL: tokenDataByNetwork.Arbitrum.FRAX3CRV,
+    CURVE_LUSD_POOL: tokenDataByNetwork.Arbitrum.LUSD3CRV,
+    CURVE_SUSD_POOL: NOT_DEPLOYED,
+    CURVE_SUSD_DEPOSIT: NOT_DEPLOYED,
+    CURVE_GUSD_POOL: NOT_DEPLOYED,
+    CURVE_MIM_POOL: tokenDataByNetwork.Arbitrum.MIM_3LP3CRV,
+    CURVE_OHMFRAXBP_POOL: NOT_DEPLOYED,
+    CURVE_CRVETH_POOL: NOT_DEPLOYED,
+    CURVE_CVXETH_POOL: NOT_DEPLOYED,
+    CURVE_3CRYPTO_POOL: NOT_DEPLOYED,
+    CURVE_LDOETH_POOL: NOT_DEPLOYED,
 
-    CURVE_GEAR_POOL: "deploy me",
+    CURVE_GEAR_POOL: NOT_DEPLOYED,
 
     // YEARN
-    YEARN_DAI_VAULT: tokenDataByNetwork.Goerli.yvDAI,
-    YEARN_USDC_VAULT: tokenDataByNetwork.Goerli.yvUSDC,
-    YEARN_WETH_VAULT: tokenDataByNetwork.Goerli.yvWETH,
-    YEARN_WBTC_VAULT: tokenDataByNetwork.Goerli.yvWBTC,
-    YEARN_CURVE_FRAX_VAULT: tokenDataByNetwork.Goerli.yvCurve_FRAX,
-    YEARN_CURVE_STETH_VAULT: tokenDataByNetwork.Goerli.yvCurve_stETH,
+    YEARN_DAI_VAULT: tokenDataByNetwork.Arbitrum.yvDAI,
+    YEARN_USDC_VAULT: tokenDataByNetwork.Arbitrum.yvUSDC,
+    YEARN_WETH_VAULT: tokenDataByNetwork.Arbitrum.yvWETH,
+    YEARN_WBTC_VAULT: tokenDataByNetwork.Arbitrum.yvWBTC,
+    YEARN_CURVE_FRAX_VAULT: tokenDataByNetwork.Arbitrum.yvCurve_FRAX,
+    YEARN_CURVE_STETH_VAULT: tokenDataByNetwork.Arbitrum.yvCurve_stETH,
 
     // CONVEX
-    CONVEX_BOOSTER: "0xbd1D47bbF57F49D9a72ca7f879A096d3abDF4c40",
-    CONVEX_3CRV_POOL: "0xfB9b98558c3d6851291Fbf74fa7F022a787cD795",
-    CONVEX_FRAX_USDC_POOL: "0xAc22d4495166c945cc91FDB611b7515eBbfd60c0",
-    CONVEX_STECRV_POOL: "0xd9de8eA4289e7a4458Bebad8c31bb7576f1C2B72",
-    CONVEX_SUSD_POOL: "0x85825316be95FBb3F6B5a2Dd9f1eb9577803e441",
-    CONVEX_FRAX3CRV_POOL: "0x08513eA45fdd7A9cFC33702f722090a182e4a101",
-    CONVEX_LUSD3CRV_POOL: "0x8550134faa6Cb42a7668f3D9098EBa59FA959b40",
-    CONVEX_GUSD_POOL: "0xa8eD353f56BB2e1063B8a011F0491a1703998De4",
-    CONVEX_CLAIM_ZAP: "0x74C7Bb6493C5EcfDb49E3ED5Ee4B60012b724b4b",
-    CONVEX_OHMFRAXBP_POOL: "deploy me",
-    CONVEX_MIM3CRV_POOL: "deploy me",
-    CONVEX_CRVETH_POOL: "deploy me",
-    CONVEX_CVXETH_POOL: "deploy me",
-    CONVEX_3CRYPTO_POOL: "deploy me",
-    CONVEX_LDOETH_POOL: "deploy me",
+    CONVEX_BOOSTER: NOT_DEPLOYED,
+    CONVEX_3CRV_POOL: NOT_DEPLOYED,
+    CONVEX_FRAX_USDC_POOL: NOT_DEPLOYED,
+    CONVEX_STECRV_POOL: NOT_DEPLOYED,
+    CONVEX_SUSD_POOL: NOT_DEPLOYED,
+    CONVEX_FRAX3CRV_POOL: NOT_DEPLOYED,
+    CONVEX_LUSD3CRV_POOL: NOT_DEPLOYED,
+    CONVEX_GUSD_POOL: NOT_DEPLOYED,
+    CONVEX_CLAIM_ZAP: NOT_DEPLOYED,
+    CONVEX_OHMFRAXBP_POOL: NOT_DEPLOYED,
+    CONVEX_MIM3CRV_POOL: NOT_DEPLOYED,
+    CONVEX_CRVETH_POOL: NOT_DEPLOYED,
+    CONVEX_CVXETH_POOL: NOT_DEPLOYED,
+    CONVEX_3CRYPTO_POOL: NOT_DEPLOYED,
+    CONVEX_LDOETH_POOL: NOT_DEPLOYED,
 
     // LIDO
-    LIDO_STETH_GATEWAY: "0x9290E44f5f819b7de0Fb88b10641f9F08a999BF7",
-    LIDO_WSTETH: tokenDataByNetwork.Goerli.wstETH,
+    LIDO_STETH_GATEWAY: NOT_DEPLOYED,
+    LIDO_WSTETH: tokenDataByNetwork.Arbitrum.wstETH,
 
     // BALANCER
-    BALANCER_VAULT: "deploy me",
+    BALANCER_VAULT: NOT_DEPLOYED,
 
     // GEARBOX
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
   },
 };
 
-export const UNISWAP_V3_QUOTER = "0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6";
+export const UNISWAP_V3_QUOTER = NOT_DEPLOYED;
 
 export interface BaseContractParams {
   name: string;
@@ -350,7 +351,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-      Goerli: "0x604a4aC025FbD873fB99EC67B1184a495Cc4f6D1", // CURVE_STECRV_POOL
+      Arbitrum: NOT_DEPLOYED, // CURVE_STECRV_POOL
     },
     tokens: ["WETH", "STETH"],
     lpToken: "steCRV",
@@ -361,7 +362,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_2ASSETS,
     pool: {
       Mainnet: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
-      Goerli: "implement me",
+      Arbitrum: NOT_DEPLOYED,
     },
     tokens: ["GEAR", "WETH"],
     lpToken: "GEAR",
@@ -537,7 +538,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "SNX",
         poolAddress: {
           Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
-          Goerli: "0x536389C5E416C116c42eC014D17D8639b0C1e80b", // CONVEX_SUSD_POOL_EXTRA_SNX
+          Arbitrum: NOT_DEPLOYED, // CONVEX_SUSD_POOL_EXTRA_SNX
         },
       },
     ],
@@ -552,7 +553,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LDO",
         poolAddress: {
           Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
-          Goerli: "0x47E04e2d75D0dED9eA4B93B1b78ef9e91DB0586a", // CONVEX_STECRV_POOL_EXTRA_LDO
+          Arbitrum: NOT_DEPLOYED, // CONVEX_STECRV_POOL_EXTRA_LDO
         },
       },
     ],
@@ -567,7 +568,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "FXS",
         poolAddress: {
           Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
-          Goerli: "0xB976E4ADd7A3Af394A812a3eA1906fF8f46d22Fa", // CONVEX_FRAX3CRV_POOL_EXTRA_FXS
+          Arbitrum: NOT_DEPLOYED, // CONVEX_FRAX3CRV_POOL_EXTRA_FXS
         },
       },
     ],
@@ -582,7 +583,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LQTY",
         poolAddress: {
           Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
-          Goerli: "0x1F138cAA8973FfDf57Dd692DF93836AF69Dc60da", // CONVEX_LUSD3CRV_POOL_EXTRA_LQTY
+          Arbitrum: NOT_DEPLOYED, // CONVEX_LUSD3CRV_POOL_EXTRA_LQTY
         },
       },
     ],
@@ -606,7 +607,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "SPELL",
         poolAddress: {
           Mainnet: "0x69a92f1656cd2e193797546cFe2EaF32EACcf6f7",
-          Goerli: "deploy me",
+          Arbitrum: NOT_DEPLOYED,
         },
       },
     ],
@@ -622,7 +623,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "CVX",
         poolAddress: {
           Mainnet: "0xE1eCBB4181378E2346EAC90Eb5606c01Aa08f052",
-          Goerli: "deploy me",
+          Arbitrum: NOT_DEPLOYED,
         },
       },
     ],
@@ -638,7 +639,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "CVX",
         poolAddress: {
           Mainnet: "0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15",
-          Goerli: "deploy me",
+          Arbitrum: NOT_DEPLOYED,
         },
       },
     ],
@@ -662,7 +663,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
         rewardToken: "LDO",
         poolAddress: {
           Mainnet: "0x95e6092449a0f3946A5a0f308Ead4adcff244E2B",
-          Goerli: "deploy me",
+          Arbitrum: NOT_DEPLOYED,
         },
       },
     ],
@@ -674,7 +675,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.LIDO_V1,
     oracle: {
       Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
-      Goerli: "0x2840CeAeeA3d0Af1beDBeB64539406793180709E", // LIDO_ORACLE
+      Arbitrum: NOT_DEPLOYED, // LIDO_ORACLE
     },
     lpToken: "steCRV",
   },

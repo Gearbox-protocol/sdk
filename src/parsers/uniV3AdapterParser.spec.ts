@@ -31,8 +31,8 @@ describe("UniswapV3AdapterParser test", () => {
     let parsed = parser.parse(
       ifc.encodeFunctionData("exactInputSingle", [
         {
-          tokenIn: tokenDataByNetwork.Goerli["1INCH"],
-          tokenOut: tokenDataByNetwork.Goerli["3Crv"],
+          tokenIn: tokenDataByNetwork.Arbitrum["1INCH"],
+          tokenOut: tokenDataByNetwork.Arbitrum["3Crv"],
           fee: 3000,
           recipient: DUMB_ADDRESS,
           deadline: 12300,
@@ -51,8 +51,8 @@ describe("UniswapV3AdapterParser test", () => {
     parsed = parser.parse(
       ifc.encodeFunctionData("exactAllInputSingle", [
         {
-          tokenIn: tokenDataByNetwork.Goerli["1INCH"],
-          tokenOut: tokenDataByNetwork.Goerli["3Crv"],
+          tokenIn: tokenDataByNetwork.Arbitrum["1INCH"],
+          tokenOut: tokenDataByNetwork.Arbitrum["3Crv"],
           fee: 3000,
           deadline: 12300,
           rateMinRAY: RAY * 1200n,
@@ -109,8 +109,8 @@ describe("UniswapV3AdapterParser test", () => {
     parsed = parser.parse(
       ifc.encodeFunctionData("exactOutputSingle", [
         {
-          tokenIn: tokenDataByNetwork.Goerli["1INCH"],
-          tokenOut: tokenDataByNetwork.Goerli.USDC,
+          tokenIn: tokenDataByNetwork.Arbitrum["1INCH"],
+          tokenOut: tokenDataByNetwork.Arbitrum.USDC,
           fee: 10000,
           recipient: DUMB_ADDRESS,
           deadline: 12300,

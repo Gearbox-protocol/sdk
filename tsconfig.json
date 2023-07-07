@@ -55,6 +55,6 @@
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
     "outDir": "./lib/" /* Redirect output structure to the directory. */
   },
-  "include": ["src"],
+  "include": ["src", "scripts"],
   "exclude": ["node_modules", "lib"]
 }
