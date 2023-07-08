@@ -3,13 +3,4 @@
 // (c) Gearbox Holdings, 2022
 pragma solidity ^0.8.17;
 
-/// @dev c-Tokens and LUNA are added for unit test purposes
-enum Tokens {
-    NO_TOKEN,
-    cDAI,
-    cUSDC,
-    cUSDT,
-    cLINK,
-    LUNA
-}
-// $TOKENS$
+// $ENUM_ADAPTERTYPE$

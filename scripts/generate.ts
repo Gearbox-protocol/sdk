@@ -195,7 +195,12 @@ for (const chain of supportedChains) {
         tokenDataByNetwork[chain][token as SupportedToken] !== "",
     )
     .map(([token, oracleData]) => {
-      if (oracleData.priceFeedUSD?.type === OracleType.COMPOSITE_ORACLE) {
+      if (
+        oracleData.priceFeedUSD?.type === OracleType.COMPOSITE_ORACLE &&
+        oracleData.priceFeedUSD!.targetToBasePriceFeed[chain] !==
+          NOT_DEPLOYED &&
+        oracleData.priceFeedUSD!.baseToUsdPriceFeed[chain] !== NOT_DEPLOYED
+      ) {
         const targetToBaseFeed: string | undefined =
           oracleData.priceFeedUSD!.targetToBasePriceFeed[chain];
         const baseToUSDFeed: string | undefined =
@@ -281,6 +286,20 @@ file = file.replace("// $CONTRACTS_ENUM$", contractsEnum);
 file = file.replace("// $CONTRACTS_ADDRESSES$", contractAddresses);
 
 fs.writeFileSync("./contracts/SupportedContracts.sol", file);
+
+/// ---------------- AdapterType.sol -----------------------------
+
+const adapterTypeEnum = Object.values(AdapterInterface)
+  .filter(v => isNaN(Number(v)))
+  .map(t => safeEnum(t as string))
+  .join(",\n");
+
+file = fs.readFileSync("./bindings/AdapterType.sol").toString();
+file = file.replace(
+  "// $ENUM_ADAPTERTYPE$",
+  `enum AdapterType{\n${adapterTypeEnum}\n}`,
+);
+fs.writeFileSync("./contracts/AdapterType.sol", file);
 
 /// ---------------- AdapterData.sol -----------------------------
 let adapters = Object.entries(contractParams)
