@@ -24,6 +24,7 @@ import { AdapterWithType, Rewards } from "./rewardClaimer";
 
 export interface RewardDistribution {
   adapter: string;
+  contractAddress: string;
   contract: SupportedContract;
   token: SupportedToken;
 }
@@ -64,7 +65,7 @@ export class RewardConvex {
 
     const totalSupply = rewards.pop();
 
-    const results = RewardConvex.parseResults(ca.addr, rewards, distribution);
+    const results = RewardConvex.parseResults(rewards, distribution);
 
     results.forEach(r => {
       r.rewards.CVX = getCVXMintAmount(
@@ -87,6 +88,7 @@ export class RewardConvex {
     return Object.entries(cm.adapters)
       .map(([contract, adapter]) => ({
         adapter,
+        contractAddress: contract,
         contract: contractsByAddress[contract.toLowerCase()],
       }))
       .filter(a => convexPools.includes(a.contract));
@@ -104,12 +106,13 @@ export class RewardConvex {
 
     for (let a of adapters) {
       calls.push({
-        address: a.adapter,
+        address: a.contractAddress,
         interface: RewardConvex.poolInterface,
         method: "earned(address)",
         params: [creditAccount],
       });
       distribution.push({
+        contractAddress: a.contractAddress,
         adapter: a.adapter,
         contract: a.contract,
         token: "CRV",
@@ -125,6 +128,7 @@ export class RewardConvex {
           params: [creditAccount],
         });
         distribution.push({
+          contractAddress: a.contractAddress,
           adapter: a.adapter,
           contract: a.contract,
           token: er.rewardToken,
@@ -138,16 +142,13 @@ export class RewardConvex {
   }
 
   static parseResults(
-    creditAccount: string,
     rewards: Array<BigNumber>,
     distribution: Array<RewardDistribution>,
   ): Array<Rewards> {
     const result: Partial<Record<SupportedContract, Rewards>> = {};
 
-    const callData = RewardConvex.poolInterface.encodeFunctionData(
-      "getReward(address,bool)",
-      [creditAccount, true],
-    );
+    const callData =
+      RewardConvex.poolInterface.encodeFunctionData("getReward()");
 
     for (let i = 0; i < rewards.length; i++) {
       const { contract, adapter, token } = distribution[i];

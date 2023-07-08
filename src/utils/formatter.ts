@@ -98,7 +98,13 @@ export function toSignificant(num: bigint, decimals: number): string {
   return number.toSignificantDigits(6, 4).toString();
 }
 
-export const toBigInt = (v: BigNumberish): bigint => BigInt(v.toString());
+export const toBigInt = (v: BigNumberish): bigint => {
+  const value =
+    typeof v === "object" && (v as any).type === "BigNumber"
+      ? (v as any).hex
+      : v.toString();
+  return BigInt(value);
+};
 
 export function toBN(num: string, decimals: number): bigint {
   if (num === "") return 0n;
