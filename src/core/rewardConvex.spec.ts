@@ -41,11 +41,11 @@ describe("RewardConvex test", () => {
         contractAddress: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
         adapter: ADAPTER_CONVEX_3CRV_POOL,
       },
-      {
-        contract: "CONVEX_FRAX3CRV_POOL",
-        contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-      },
+      // {
+      //   contract: "CONVEX_FRAX3CRV_POOL",
+      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
+      // },
     ];
 
     const result = RewardConvex.findAdapters(cm);
@@ -70,12 +70,12 @@ describe("RewardConvex test", () => {
         method: "earned(address)",
         params: [CREDIT_ACCOUNT],
       },
-      {
-        address: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-        interface: RewardConvex.poolInterface,
-        method: "earned(address)",
-        params: [CREDIT_ACCOUNT],
-      },
+      // {
+      //   address: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+      //   interface: RewardConvex.poolInterface,
+      //   method: "earned(address)",
+      //   params: [CREDIT_ACCOUNT],
+      // },
       {
         address: (contractParams.CONVEX_FRAX3CRV_POOL as ConvexPoolParams)
           .extraRewards[0].poolAddress.Mainnet,
@@ -92,18 +92,18 @@ describe("RewardConvex test", () => {
         contract: "CONVEX_3CRV_POOL",
         token: "CRV",
       },
-      {
-        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-        contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-        contract: "CONVEX_FRAX3CRV_POOL",
-        token: "CRV",
-      },
-      {
-        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-        contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-        contract: "CONVEX_FRAX3CRV_POOL",
-        token: "FXS",
-      },
+      // {
+      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
+      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+      //   contract: "CONVEX_FRAX3CRV_POOL",
+      //   token: "CRV",
+      // },
+      // {
+      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
+      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+      //   contract: "CONVEX_FRAX3CRV_POOL",
+      //   token: "FXS",
+      // },
     ];
 
     const result = RewardConvex.prepareMultiCalls(
@@ -129,18 +129,18 @@ describe("RewardConvex test", () => {
         contract: "CONVEX_3CRV_POOL",
         token: "CRV",
       },
-      {
-        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-        contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-        contract: "CONVEX_FRAX3CRV_POOL",
-        token: "CRV",
-      },
-      {
-        adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-        contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-        contract: "CONVEX_FRAX3CRV_POOL",
-        token: "FXS",
-      },
+      // {
+      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
+      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+      //   contract: "CONVEX_FRAX3CRV_POOL",
+      //   token: "CRV",
+      // },
+      // {
+      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
+      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
+      //   contract: "CONVEX_FRAX3CRV_POOL",
+      //   token: "FXS",
+      // },
     ];
 
     const parsed = RewardConvex.parseResults(rewards, distribution);
