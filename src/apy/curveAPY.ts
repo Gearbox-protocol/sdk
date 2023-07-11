@@ -79,11 +79,11 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   crvPlain3andSUSD: "15", // 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD
   steCRV: "14", // 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022
   crvFRAX: "44", // 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2
-  GEAR: "factory-crypto-192", // 0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2
+  GEAR: "factory-crypto-192", // 0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2
   OHMFRAXBP: "factory-crypto-158", // 0xfc1e8bf3e81383ef07be24c3fd146745719de48d
   MIM_3LP3CRV: "40", // 0x5a6a4d54456819380173272a5e8e9b9904bdf41b
   crvCRVETH: "crypto-3", // 0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511
-  crvCVXETH: "crypto-4", // 0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4
+  crvCVXETH: "crypto-4", // 0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4
   crvUSDTWBTCWETH: "factory-tricrypto-1",
   LDOETH: "factory-crypto-204",
 };

@@ -95,11 +95,11 @@ export const contractsByNetwork: Record<
     CURVE_MIM_POOL: tokenDataByNetwork.Mainnet.MIM_3LP3CRV,
     CURVE_OHMFRAXBP_POOL: "0xFc1e8bf3E81383Ef07Be24c3FD146745719DE48D",
     CURVE_CRVETH_POOL: "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511",
-    CURVE_CVXETH_POOL: "0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4",
+    CURVE_CVXETH_POOL: "0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4",
     CURVE_3CRYPTO_POOL: tokenDataByNetwork.Mainnet.crvUSDTWBTCWETH,
-    CURVE_LDOETH_POOL: "0x9409280dc1e6d33ab7a8c6ec03e5763fb61772b5",
+    CURVE_LDOETH_POOL: "0x9409280DC1e6D33AB7A8C6EC03e5763FB61772B5",
 
-    CURVE_GEAR_POOL: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
+    CURVE_GEAR_POOL: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Mainnet.yvDAI,
@@ -131,7 +131,7 @@ export const contractsByNetwork: Record<
     LIDO_WSTETH: tokenDataByNetwork.Mainnet.wstETH,
 
     // BALANCER
-    BALANCER_VAULT: "0xba12222222228d8ba445958a75a0704d566bf2c8",
+    BALANCER_VAULT: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
 
     // GEARBOX
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
@@ -361,7 +361,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     pool: {
-      Mainnet: "0x0e9b5b092cad6f1c5e6bc7f89ffe1abb5c95f1c2",
+      Mainnet: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
       Arbitrum: NOT_DEPLOYED,
     },
     tokens: ["GEAR", "WETH"],

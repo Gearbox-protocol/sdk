@@ -34,7 +34,16 @@ const tokens: Array<SupportedToken> = Object.keys(supportedTokens).filter(
 
 const tokensEnum = tokens.map(t => safeEnum(t)).join(",\n");
 let file = fs.readFileSync("./bindings/Tokens.sol").toString();
-file = file.replace("// $TOKENS$", `,\n${tokensEnum}`);
+file = file.replace(
+  "// $TOKENS$",
+  `enum Tokens {
+  NO_TOKEN,
+  cDAI,
+  cUSDC,
+  cUSDT,
+  cLINK,
+  LUNA,\n${tokensEnum}}\n`,
+);
 fs.writeFileSync("./contracts/Tokens.sol", file);
 
 /// ---------------- TokensDataLive.sol ---------------------
@@ -63,6 +72,20 @@ file = fs.readFileSync("./bindings/TokensDataLive.sol").toString();
 file = file.replace("// $TOKEN_ADDRESSES$", tokenAddresses);
 fs.writeFileSync("./contracts/TokensData.sol", file);
 
+/// ---------------- PriceFeedType.sol -----------------------------
+
+const PriceFeedTypeEnum = Object.values(OracleType)
+  .filter(v => isNaN(Number(v)))
+  .map(t => safeEnum(t as string))
+  .join(",\n");
+
+file = fs.readFileSync("./bindings/PriceFeedType.sol").toString();
+file = file.replace(
+  "// $ENUM_PRICEFEEDTYPE$",
+  `enum PriceFeedType{\n${PriceFeedTypeEnum}\n}`,
+);
+fs.writeFileSync("./contracts/PriceFeedType.sol", file);
+
 /// ---------------- PriceFeedDataLive.sol -----------------------------
 let chainlinkPriceFeeds = "";
 
@@ -70,14 +93,10 @@ for (const chain of supportedChains) {
   const chainId = CHAINS[chain];
 
   chainlinkPriceFeeds += Object.entries(priceFeedsByNetwork)
-    .filter(
-      ([, oracleData]) =>
-        oracleData.priceFeedUSD?.type === OracleType.CHAINLINK_ORACLE,
-    )
+    .filter(([, oracleData]) => oracleData.type === OracleType.CHAINLINK_ORACLE)
     .map(([token, oracleData]) => {
-      if (oracleData.priceFeedUSD?.type === OracleType.CHAINLINK_ORACLE) {
-        const address: string | undefined =
-          oracleData.priceFeedUSD!.address.Mainnet;
+      if (oracleData.type === OracleType.CHAINLINK_ORACLE) {
+        const address: string | undefined = oracleData.address[chain];
 
         return address && address !== NOT_DEPLOYED
           ? `chainlinkPriceFeedsByNetwork[${chainId}].push(ChainlinkPriceFeedData({
@@ -94,10 +113,7 @@ for (const chain of supportedChains) {
 }
 
 const zeroPriceFeeds = Object.entries(priceFeedsByNetwork)
-  .filter(
-    ([, oracleData]) =>
-      oracleData.priceFeedUSD?.type === OracleType.ZERO_ORACLE,
-  )
+  .filter(([, oracleData]) => oracleData.type === OracleType.ZERO_ORACLE)
   .map(
     ([token]) =>
       `zeroPriceFeeds.push(SingeTokenPriceFeedData({ token: Tokens.${safeEnum(
@@ -109,11 +125,17 @@ const zeroPriceFeeds = Object.entries(priceFeedsByNetwork)
 const curvePriceFeeds = Object.entries(priceFeedsByNetwork)
   .filter(
     ([, oracleData]) =>
-      oracleData.priceFeedUSD?.type === OracleType.CURVE_LP_TOKEN_ORACLE,
+      oracleData.type === OracleType.CURVE_2LP_ORACLE ||
+      oracleData.type === OracleType.CURVE_3LP_ORACLE ||
+      oracleData.type === OracleType.CURVE_4LP_ORACLE,
   )
   .map(([token, oracleData]) => {
-    if (oracleData.priceFeedUSD?.type === OracleType.CURVE_LP_TOKEN_ORACLE) {
-      const assets = oracleData.priceFeedUSD.assets
+    if (
+      oracleData.type === OracleType.CURVE_2LP_ORACLE ||
+      oracleData.type === OracleType.CURVE_3LP_ORACLE ||
+      oracleData.type === OracleType.CURVE_4LP_ORACLE
+    ) {
+      const assets = oracleData.assets
         .map(a => `Tokens.${safeEnum(a)}`)
         .join(", ");
 
@@ -133,14 +155,12 @@ const curvePriceFeeds = Object.entries(priceFeedsByNetwork)
 const curveLikePriceFeeds = Object.entries(priceFeedsByNetwork)
   .filter(
     ([token, oracleData]) =>
-      oracleData.priceFeedUSD?.type === OracleType.LIKE_CURVE_LP_TOKEN_ORACLE &&
+      oracleData.type === OracleType.LIKE_CURVE_LP_TOKEN_ORACLE &&
       tokenDataByNetwork.Mainnet[token as SupportedToken] !== "",
   )
   .map(([token, oracleData]) => {
-    if (
-      oracleData.priceFeedUSD?.type === OracleType.LIKE_CURVE_LP_TOKEN_ORACLE
-    ) {
-      const symbol = oracleData.priceFeedUSD.curveSymbol;
+    if (oracleData.type === OracleType.LIKE_CURVE_LP_TOKEN_ORACLE) {
+      const symbol = oracleData.curveSymbol;
       if (tokenDataByNetwork.Mainnet[token as SupportedToken] !== "") {
         return `likeCurvePriceFeeds.push(CurveLikePriceFeedData({
         lpToken: Tokens.${safeEnum(token as SupportedToken)},
@@ -161,19 +181,19 @@ for (const chain of supportedChains) {
   boundedPriceFeeds += Object.entries(priceFeedsByNetwork)
     .filter(
       ([token, oracleData]) =>
-        oracleData.priceFeedUSD?.type === OracleType.BOUNDED_ORACLE &&
+        oracleData.type === OracleType.BOUNDED_ORACLE &&
         tokenDataByNetwork[chain][token as SupportedToken] !== "",
     )
     .map(([token, oracleData]) => {
-      if (oracleData.priceFeedUSD?.type === OracleType.BOUNDED_ORACLE) {
+      if (oracleData.type === OracleType.BOUNDED_ORACLE) {
         const targetPriceFeed: string | undefined =
-          oracleData.priceFeedUSD!.targetPriceFeed[chain];
+          oracleData.targetPriceFeed[chain];
 
         return targetPriceFeed
           ? `boundedPriceFeedsByNetwork[${chainId}].push(BoundedPriceFeedData({
   token: Tokens.${safeEnum(token as SupportedToken)},
   priceFeed: ${targetPriceFeed},
-  upperBound: ${oracleData.priceFeedUSD!.upperBound}
+  upperBound: ${oracleData.upperBound}
 }));`
           : "";
       }
@@ -191,20 +211,19 @@ for (const chain of supportedChains) {
   compositePriceFeeds += Object.entries(priceFeedsByNetwork)
     .filter(
       ([token, oracleData]) =>
-        oracleData.priceFeedUSD?.type === OracleType.COMPOSITE_ORACLE &&
+        oracleData.type === OracleType.COMPOSITE_ORACLE &&
         tokenDataByNetwork[chain][token as SupportedToken] !== "",
     )
     .map(([token, oracleData]) => {
       if (
-        oracleData.priceFeedUSD?.type === OracleType.COMPOSITE_ORACLE &&
-        oracleData.priceFeedUSD!.targetToBasePriceFeed[chain] !==
-          NOT_DEPLOYED &&
-        oracleData.priceFeedUSD!.baseToUsdPriceFeed[chain] !== NOT_DEPLOYED
+        oracleData.type === OracleType.COMPOSITE_ORACLE &&
+        oracleData.targetToBasePriceFeed[chain] !== NOT_DEPLOYED &&
+        oracleData.baseToUsdPriceFeed[chain] !== NOT_DEPLOYED
       ) {
         const targetToBaseFeed: string | undefined =
-          oracleData.priceFeedUSD!.targetToBasePriceFeed[chain];
+          oracleData.targetToBasePriceFeed[chain];
         const baseToUSDFeed: string | undefined =
-          oracleData.priceFeedUSD!.baseToUsdPriceFeed[chain];
+          oracleData.baseToUsdPriceFeed[chain];
 
         return targetToBaseFeed && baseToUSDFeed
           ? `compositePriceFeedsByNetwork[${chainId}].push(CompositePriceFeedData({
@@ -221,11 +240,7 @@ for (const chain of supportedChains) {
 }
 
 const yearnPriceFeeds = Object.entries(priceFeedsByNetwork)
-  .filter(
-    ([, oracleData]) =>
-      oracleData.priceFeedUSD?.type === OracleType.YEARN_TOKEN_ORACLE ||
-      oracleData.priceFeedUSD?.type === OracleType.YEARN_CURVE_LP_TOKEN_ORACLE,
-  )
+  .filter(([, oracleData]) => oracleData.type === OracleType.YEARN_ORACLE)
   .map(
     ([token]) =>
       `yearnPriceFeeds.push(SingeTokenPriceFeedData({ token: Tokens.${safeEnum(
@@ -235,10 +250,7 @@ const yearnPriceFeeds = Object.entries(priceFeedsByNetwork)
   .join("\n");
 
 const wstethPriceFeed = Object.entries(priceFeedsByNetwork)
-  .filter(
-    ([, oracleData]) =>
-      oracleData.priceFeedUSD?.type === OracleType.WSTETH_ORACLE,
-  )
+  .filter(([, oracleData]) => oracleData.type === OracleType.WSTETH_ORACLE)
   .map(
     ([token]) =>
       `wstethPriceFeed = SingeTokenPriceFeedData({ token: Tokens.${safeEnum(

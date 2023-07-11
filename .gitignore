@@ -2,3 +2,5 @@
 /*.log
 /lib
 .DS_Store
+/forge-out/
+/cache/

@@ -3,4 +3,4 @@
 // (c) Gearbox Holdings, 2023
 pragma solidity ^0.8.17;
 
-// $ENUM_ADAPTERTYPE$
+// $ENUM_PRICEFEEDTYPE$

@@ -8,19 +8,21 @@ export interface PriceFeed {
 
 export enum OracleType {
   CHAINLINK_ORACLE,
-  YEARN_TOKEN_ORACLE,
-  CURVE_LP_TOKEN_ORACLE,
-  YEARN_CURVE_LP_TOKEN_ORACLE,
+  YEARN_ORACLE,
+  CURVE_2LP_ORACLE,
+  CURVE_3LP_ORACLE,
+  CURVE_4LP_ORACLE,
   ZERO_ORACLE,
-  LIKE_CURVE_LP_TOKEN_ORACLE,
   WSTETH_ORACLE,
   BOUNDED_ORACLE,
   COMPOSITE_ORACLE,
   AAVE_ORACLE,
   COMPOUND_ORACLE,
-  CURVE_CRYPTO_ORACLE,
   BALANCER_STABLE_LP_ORACLE,
   BALANCER_WEIGHTED_LP_ORACLE,
+  CURVE_CRYPTO_ORACLE,
+  LIKE_CURVE_LP_TOKEN_ORACLE,
+  REDSTONE_ORACLE,
 }
 
 export type PriceFeedData =
@@ -29,32 +31,32 @@ export type PriceFeedData =
       address: Record<NetworkType, string>;
     }
   | {
-      type: OracleType.YEARN_TOKEN_ORACLE;
+      type: OracleType.YEARN_ORACLE;
       token: SupportedToken;
     }
   | {
-      type: OracleType.CURVE_LP_TOKEN_ORACLE;
+      type: OracleType.CURVE_2LP_ORACLE;
       assets: Array<SupportedToken>;
     }
   | {
-      type: OracleType.YEARN_CURVE_LP_TOKEN_ORACLE;
-      curveSymbol: SupportedToken;
+      type: OracleType.CURVE_3LP_ORACLE;
+      assets: Array<SupportedToken>;
+    }
+  | {
+      type: OracleType.CURVE_4LP_ORACLE;
+      assets: Array<SupportedToken>;
     }
   | {
       type: OracleType.ZERO_ORACLE;
     }
   | {
-      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE;
-      curveSymbol: SupportedToken;
+      type: OracleType.BOUNDED_ORACLE;
+      targetPriceFeed: Record<NetworkType, string>;
+      upperBound: bigint;
     }
   | {
       type: OracleType.WSTETH_ORACLE;
       token: SupportedToken;
-    }
-  | {
-      type: OracleType.BOUNDED_ORACLE;
-      targetPriceFeed: Record<NetworkType, string>;
-      upperBound: bigint;
     }
   | {
       type: OracleType.COMPOSITE_ORACLE;
@@ -68,9 +70,8 @@ export type PriceFeedData =
   | {
       type: OracleType.BALANCER_WEIGHTED_LP_ORACLE;
       assets: Array<SupportedToken>;
+    }
+  | {
+      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE;
+      curveSymbol: SupportedToken;
     };
-
-export interface TokenPriceFeedData {
-  priceFeedETH?: PriceFeedData;
-  priceFeedUSD: PriceFeedData;
-}

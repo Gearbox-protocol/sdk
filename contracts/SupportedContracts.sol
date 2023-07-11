@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 // Gearbox. Generalized leverage protocol that allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
-// (c) Gearbox Holdings, 2022
+// (c) Gearbox Holdings, 2023
 pragma solidity ^0.8.17;
 
 import {Test} from "forge-std/Test.sol";
@@ -75,7 +75,10 @@ contract SupportedContracts is Test, ISupportedContracts {
 
     uint256 public override contractCount;
 
-    constructor(uint8 networkId) {
+    uint16 immutable networkId;
+
+    constructor(uint16 _networkId) {
+        networkId = _networkId;
         ContractData[] memory cd;
         cd = new  ContractData[](43);
         cd[0] = ContractData({
