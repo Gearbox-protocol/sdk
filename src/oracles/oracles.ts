@@ -23,6 +23,7 @@ export enum OracleType {
   CURVE_CRYPTO_ORACLE,
   LIKE_CURVE_LP_TOKEN_ORACLE,
   REDSTONE_ORACLE,
+  ERC4626_VAULT_ORACLE,
 }
 
 export type PriceFeedData =

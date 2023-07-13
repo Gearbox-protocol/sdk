@@ -20,4 +20,5 @@ export enum AdapterInterface {
   AAVE_V2_WRAPPED_ATOKEN,
   COMPOUND_V2_CERC20,
   COMPOUND_V2_CETHER,
+  ERC4626_VAULT,
 }
