@@ -1,6 +1,6 @@
 import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
-import { calcTotalPrice } from "../utils/price";
+import { PriceUtils } from "../utils/price";
 import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -101,7 +101,7 @@ export class Strategy {
     const underlyingTokenDecimals = decimals[underlyingTokenSymbol];
 
     const underlyingPrice = prices[underlyingTokenAddressLC] || PRICE_DECIMALS;
-    const borrowedMoney = calcTotalPrice(
+    const borrowedMoney = PriceUtils.calcTotalPrice(
       underlyingPrice,
       borrowed,
       underlyingTokenDecimals,
@@ -113,7 +113,11 @@ export class Strategy {
     const lpLT = liquidationThresholds[lpTokenAddressLC] || 0n;
 
     const lpPrice = prices[lpTokenAddressLC] || PRICE_DECIMALS;
-    const lpMoney = calcTotalPrice(lpPrice, lpAmount, lpTokenDecimals);
+    const lpMoney = PriceUtils.calcTotalPrice(
+      lpPrice,
+      lpAmount,
+      lpTokenDecimals,
+    );
     const lpLTMoney = (lpMoney * lpLT) / PERCENTAGE_FACTOR;
 
     if (lpLTMoney > 0) {

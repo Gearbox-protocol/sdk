@@ -4,7 +4,7 @@ import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
 import { TokenData } from "../tokens/tokenData";
 import { toBigInt, toSignificant } from "../utils/formatter";
-import { calcTotalPrice, convertByPrice } from "../utils/price";
+import { PriceUtils } from "../utils/price";
 import { Asset } from "./assets";
 import {
   LEVERAGE_DECIMALS,
@@ -18,34 +18,56 @@ import {
 import { CreditManagerData } from "./creditManager";
 import { PriceOracleData } from "./priceOracle";
 
+export interface CalcOverallAPYProps {
+  caAssets: Array<Asset>;
+  lpAPY: LpTokensAPY | undefined;
+  prices: Record<string, bigint>;
+
+  totalValue: bigint | undefined;
+  debt: bigint | undefined;
+  borrowRate: number;
+  underlyingToken: string;
+}
+
+export interface CalcHealthFactorProps {
+  assets: Array<Asset>;
+  prices: Record<string, bigint>;
+  liquidationThresholds: Record<string, bigint>;
+  underlyingToken: string;
+  borrowed: bigint;
+}
+
 export class CreditAccountData {
-  public readonly addr: string;
-  public readonly borrower: string;
-  public readonly inUse: boolean;
-  public readonly creditManager: string;
-  public readonly underlyingToken: string;
+  readonly addr: string;
+  readonly borrower: string;
+  readonly inUse: boolean;
+  readonly creditManager: string;
+  readonly underlyingToken: string;
 
-  public readonly since: number;
-  public readonly cumulativeIndexAtOpen: bigint;
-  public readonly borrowedAmount: bigint;
-  public readonly borrowedAmountPlusInterestAndFees: bigint;
+  readonly since: number;
+  readonly cumulativeIndexAtOpen: bigint;
+  readonly borrowedAmount: bigint;
+  readonly borrowedAmountPlusInterestAndFees: bigint;
 
-  public borrowedAmountPlusInterest: bigint;
-  public totalValue: bigint;
-  public healthFactor: number;
-  public borrowRate: number;
-  public readonly collateralTokens: Array<string> = [];
-  public readonly allTokens: Array<string> = [];
-  public balances: Record<string, bigint> = {};
-  public allBalances: Record<string, bigint> = {};
-  public isDeleting: boolean;
-  public enabledTokenMask: bigint;
-  public readonly version: number = 1;
+  readonly borrowedAmountPlusInterest: bigint;
+  readonly totalValue: bigint;
+  healthFactor: number;
+  readonly borrowRate: number;
+  isDeleting: boolean;
+  readonly enabledTokenMask: bigint;
+  readonly version: number = 1;
+
+  readonly collateralTokens: Array<string> = [];
+  readonly allTokens: Array<string> = [];
+  readonly forbiddenTokens: Array<string> = [];
+
+  readonly balances: Record<string, bigint> = {};
+  readonly allBalances: Record<string, bigint> = {};
 
   /// V1 Artifacts
-  public readonly repayAmount: bigint;
-  public readonly liquidationAmount: bigint;
-  public readonly canBeClosed: boolean;
+  readonly repayAmount: bigint;
+  readonly liquidationAmount: bigint;
+  readonly canBeClosed: boolean;
 
   constructor(payload: CreditAccountDataPayload) {
     this.addr = payload.addr.toLowerCase();
@@ -73,12 +95,13 @@ export class CreditAccountData {
         PERCENTAGE_DECIMALS) /
         RAY,
     );
-
     payload.balances.forEach(b => {
       const tokenLC = b.token.toLowerCase();
       if (b.isAllowed) {
         this.balances[tokenLC] = toBigInt(b.balance || 0);
         this.collateralTokens.push(tokenLC);
+      } else {
+        this.forbiddenTokens.push(tokenLC);
       }
 
       this.allBalances[tokenLC] = toBigInt(b.balance || 0);
@@ -98,9 +121,58 @@ export class CreditAccountData {
     prices: Record<string, bigint>,
     tokens: Record<string, TokenData>,
   ): Array<Asset> {
-    return sortBalances(this.balances, prices, tokens).map(
+    return CreditAccountData.sortBalances(this.balances, prices, tokens).map(
       ([token, balance]) => ({ token, balance }),
     );
+  }
+
+  static sortBalances(
+    balances: Record<string, bigint>,
+    prices: Record<string, bigint>,
+    tokens: Record<string, TokenData>,
+  ): Array<[string, bigint]> {
+    return Object.entries(balances).sort(
+      ([addr1, amount1], [addr2, amount2]) => {
+        const addr1Lc = addr1.toLowerCase();
+        const addr2Lc = addr2.toLowerCase();
+
+        const token1 = tokens[addr1Lc];
+        const token2 = tokens[addr2Lc];
+
+        const price1 = prices[addr1Lc] || PRICE_DECIMALS;
+        const price2 = prices[addr2Lc] || PRICE_DECIMALS;
+
+        const totalPrice1 = PriceUtils.calcTotalPrice(
+          price1,
+          amount1,
+          token1?.decimals,
+        );
+        const totalPrice2 = PriceUtils.calcTotalPrice(
+          price2,
+          amount2,
+          token2?.decimals,
+        );
+
+        if (totalPrice1 === totalPrice2) {
+          return amount1 === amount2
+            ? CreditAccountData.tokensAbcComparator(token1, token2)
+            : CreditAccountData.amountAbcComparator(amount1, amount2);
+        }
+
+        return CreditAccountData.amountAbcComparator(totalPrice1, totalPrice2);
+      },
+    );
+  }
+
+  static tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
+    const { symbol: symbol1 = "" } = t1 || {};
+    const { symbol: symbol2 = "" } = t2 || {};
+
+    return symbol1 > symbol2 ? 1 : -1;
+  }
+
+  static amountAbcComparator(t1: bigint, t2: bigint) {
+    return t1 > t2 ? -1 : 1;
   }
 
   calcBorrowAmountPlusInterestRate(currentCumulativeIndex: bigint): bigint {
@@ -108,6 +180,10 @@ export class CreditAccountData {
       (this.borrowedAmount * currentCumulativeIndex) /
       this.cumulativeIndexAtOpen
     );
+  }
+
+  isForbidden(token: string) {
+    return this.balances[token] === undefined;
   }
 
   updateHealthFactor(
@@ -157,8 +233,66 @@ export class CreditAccountData {
     return result < 0 ? 0n : result;
   }
 
-  get id(): string {
-    return this.creditManager;
+  static calcOverallAPY({
+    caAssets,
+    lpAPY,
+    prices,
+
+    totalValue,
+    debt,
+    borrowRate,
+    underlyingToken,
+  }: CalcOverallAPYProps): number | undefined {
+    if (
+      !lpAPY ||
+      !totalValue ||
+      totalValue <= 0n ||
+      !debt ||
+      totalValue <= debt
+    )
+      return undefined;
+
+    const assetAPYMoney = caAssets.reduce(
+      (acc, { token: tokenAddress, balance: amount }) => {
+        const tokenAddressLC = tokenAddress.toLowerCase();
+        const symbol = tokenSymbolByAddress[tokenAddressLC];
+        if (!isTokenWithAPY(symbol)) return acc;
+
+        const apy = lpAPY[symbol] || 0;
+        const price = prices[tokenAddressLC] || 0n;
+        const tokenDecimals = decimals[symbol];
+
+        const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
+        const apyMoney = money * BigInt(apy);
+
+        return acc + apyMoney;
+      },
+      0n,
+    );
+
+    const underlyingTokenAddressLC = underlyingToken.toLowerCase();
+    const underlyingTokenSymbol =
+      tokenSymbolByAddress[underlyingTokenAddressLC] || "";
+    const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
+    const underlyingPrice = prices[underlyingTokenAddressLC] || PRICE_DECIMALS;
+    const assetAPYAmountInUnderlying = PriceUtils.convertByPrice(
+      assetAPYMoney,
+      {
+        price: underlyingPrice,
+        decimals: underlyingTokenDecimals,
+      },
+    );
+
+    const debtAPY = debt * BigInt(borrowRate);
+
+    const yourAssets = totalValue - debt;
+
+    const apyInPercent =
+      ((assetAPYAmountInUnderlying - debtAPY) * WAD) /
+      yourAssets /
+      PERCENTAGE_FACTOR;
+
+    return Number(toSignificant(apyInPercent, WAD_DECIMALS_POW));
   }
 
   hash(): string {
@@ -168,107 +302,45 @@ export class CreditAccountData {
   static hash(creditManager: string, borrower: string): string {
     return `${creditManager.toLowerCase()}:${borrower.toLowerCase()}`;
   }
-}
 
-export function sortBalances(
-  balances: Record<string, bigint>,
-  prices: Record<string, bigint>,
-  tokens: Record<string, TokenData>,
-): Array<[string, bigint]> {
-  return Object.entries(balances).sort(([addr1, amount1], [addr2, amount2]) => {
-    const addr1Lc = addr1.toLowerCase();
-    const addr2Lc = addr2.toLowerCase();
+  static calcHealthFactor({
+    assets,
+    prices,
+    liquidationThresholds,
+    underlyingToken,
+    borrowed,
+  }: CalcHealthFactorProps): number {
+    const assetLTMoney = assets.reduce(
+      (acc, { token: tokenAddress, balance: amount }) => {
+        const tokenSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
+        const tokenDecimals: number | undefined = decimals[tokenSymbol];
 
-    const token1 = tokens[addr1Lc];
-    const token2 = tokens[addr2Lc];
+        const lt = liquidationThresholds[tokenAddress.toLowerCase()] || 0n;
+        const price = prices[tokenAddress.toLowerCase()] || 0n;
 
-    const price1 = prices[addr1Lc] || PRICE_DECIMALS;
-    const price2 = prices[addr2Lc] || PRICE_DECIMALS;
+        const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
+        const ltMoney = money * lt;
 
-    const totalPrice1 = calcTotalPrice(price1, amount1, token1?.decimals);
-    const totalPrice2 = calcTotalPrice(price2, amount2, token2?.decimals);
+        return acc + ltMoney;
+      },
+      0n,
+    );
 
-    if (totalPrice1 === totalPrice2) {
-      return amount1 === amount2
-        ? tokensAbcComparator(token1, token2)
-        : amountAbcComparator(amount1, amount2);
-    }
+    const underlyingSymbol =
+      tokenSymbolByAddress[underlyingToken.toLowerCase()];
+    const underlyingDecimals: number | undefined = decimals[underlyingSymbol];
 
-    return amountAbcComparator(totalPrice1, totalPrice2);
-  });
-}
+    const underlyingPrice =
+      prices[underlyingToken.toLowerCase()] || PRICE_DECIMALS;
 
-export function tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
-  const { symbol: symbol1 = "" } = t1 || {};
-  const { symbol: symbol2 = "" } = t2 || {};
+    const borrowedMoney = PriceUtils.calcTotalPrice(
+      underlyingPrice,
+      borrowed,
+      underlyingDecimals,
+    );
 
-  return symbol1 > symbol2 ? 1 : -1;
-}
+    const hfInPercent = borrowedMoney > 0n ? assetLTMoney / borrowedMoney : 0n;
 
-export function amountAbcComparator(t1: bigint, t2: bigint) {
-  return t1 > t2 ? -1 : 1;
-}
-
-export interface CalcOverallAPYProps {
-  caAssets: Array<Asset>;
-  lpAPY: LpTokensAPY | undefined;
-  prices: Record<string, bigint>;
-
-  totalValue: bigint | undefined;
-  debt: bigint | undefined;
-  borrowRate: number;
-  underlyingToken: string;
-}
-
-export function calcOverallAPY({
-  caAssets,
-  lpAPY,
-  prices,
-
-  totalValue,
-  debt,
-  borrowRate,
-  underlyingToken,
-}: CalcOverallAPYProps): number | undefined {
-  if (!lpAPY || !totalValue || totalValue <= 0n || !debt || totalValue <= debt)
-    return undefined;
-
-  const assetAPYMoney = caAssets.reduce(
-    (acc, { token: tokenAddress, balance: amount }) => {
-      const tokenAddressLC = tokenAddress.toLowerCase();
-      const symbol = tokenSymbolByAddress[tokenAddressLC];
-      if (!isTokenWithAPY(symbol)) return acc;
-
-      const apy = lpAPY[symbol] || 0;
-      const price = prices[tokenAddressLC] || 0n;
-      const tokenDecimals = decimals[symbol];
-
-      const money = calcTotalPrice(price, amount, tokenDecimals);
-      const apyMoney = money * BigInt(apy);
-
-      return acc + apyMoney;
-    },
-    0n,
-  );
-
-  const underlyingTokenAddressLC = underlyingToken.toLowerCase();
-  const underlyingTokenSymbol =
-    tokenSymbolByAddress[underlyingTokenAddressLC] || "";
-  const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
-  const underlyingPrice = prices[underlyingTokenAddressLC] || PRICE_DECIMALS;
-  const assetAPYAmountInUnderlying = convertByPrice(assetAPYMoney, {
-    price: underlyingPrice,
-    decimals: underlyingTokenDecimals,
-  });
-
-  const debtAPY = debt * BigInt(borrowRate);
-
-  const yourAssets = totalValue - debt;
-
-  const apyInPercent =
-    ((assetAPYAmountInUnderlying - debtAPY) * WAD) /
-    yourAssets /
-    PERCENTAGE_FACTOR;
-
-  return Number(toSignificant(apyInPercent, WAD_DECIMALS_POW));
+    return Number(hfInPercent);
+  }
 }

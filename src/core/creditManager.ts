@@ -6,7 +6,6 @@ import {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
 } from "../payload/creditManager";
-import { decimals } from "../tokens/decimals";
 import { tokenSymbolByAddress } from "../tokens/token";
 import {
   ICreditFacade__factory,
@@ -14,14 +13,11 @@ import {
   ICreditManager__factory,
 } from "../types";
 import { toBigInt } from "../utils/formatter";
-import { calcTotalPrice } from "../utils/price";
-import { Asset } from "./assets";
 import {
   ADDRESS_0X0,
   LEVERAGE_DECIMALS,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
-  PRICE_DECIMALS,
   RAY,
 } from "./constants";
 import { OpenAccountError } from "./errors";
@@ -363,52 +359,4 @@ export class ChartsCreditManagerData {
     this.totalLiquidatedAccountsChange =
       payload.totalLiquidatedAccountsChange || 0;
   }
-}
-
-export interface CalcHealthFactorProps {
-  assets: Array<Asset>;
-  prices: Record<string, bigint>;
-  liquidationThresholds: Record<string, bigint>;
-  underlyingToken: string;
-  borrowed: bigint;
-}
-
-export function calcHealthFactor({
-  assets,
-  prices,
-  liquidationThresholds,
-  underlyingToken,
-  borrowed,
-}: CalcHealthFactorProps): number {
-  const assetLTMoney = assets.reduce(
-    (acc, { token: tokenAddress, balance: amount }) => {
-      const tokenSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
-      const tokenDecimals: number | undefined = decimals[tokenSymbol];
-
-      const lt = liquidationThresholds[tokenAddress.toLowerCase()] || 0n;
-      const price = prices[tokenAddress.toLowerCase()] || 0n;
-
-      const money = calcTotalPrice(price, amount, tokenDecimals);
-      const ltMoney = money * lt;
-
-      return acc + ltMoney;
-    },
-    0n,
-  );
-
-  const underlyingSymbol = tokenSymbolByAddress[underlyingToken.toLowerCase()];
-  const underlyingDecimals: number | undefined = decimals[underlyingSymbol];
-
-  const underlyingPrice =
-    prices[underlyingToken.toLowerCase()] || PRICE_DECIMALS;
-
-  const borrowedMoney = calcTotalPrice(
-    underlyingPrice,
-    borrowed,
-    underlyingDecimals,
-  );
-
-  const hfInPercent = borrowedMoney > 0n ? assetLTMoney / borrowedMoney : 0n;
-
-  return Number(hfInPercent);
 }

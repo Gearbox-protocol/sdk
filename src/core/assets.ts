@@ -1,6 +1,6 @@
 import { TokenData } from "../tokens/tokenData";
 import { nonNegativeBn } from "../utils/math";
-import { sortBalances } from "./creditAccount";
+import { CreditAccountData } from "./creditAccount";
 
 export interface Asset {
   token: string;
@@ -46,7 +46,7 @@ export class AssetUtils {
       return !alreadySelected;
     });
 
-    const sorted = sortBalances(
+    const sorted = CreditAccountData.sortBalances(
       AssetUtils.getBalances(notSelected, balances),
       prices,
       tokensList,
