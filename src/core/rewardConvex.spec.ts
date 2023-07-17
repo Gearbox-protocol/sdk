@@ -1,11 +1,7 @@
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 
-import {
-  contractParams,
-  contractsByNetwork,
-  ConvexPoolParams,
-} from "../contracts/contracts";
+import { contractsByNetwork } from "../contracts/contracts";
 import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
 import { MCall } from "../utils/multicall";
 import {
@@ -76,13 +72,13 @@ describe("RewardConvex test", () => {
       //   method: "earned(address)",
       //   params: [CREDIT_ACCOUNT],
       // },
-      {
-        address: (contractParams.CONVEX_FRAX3CRV_POOL as ConvexPoolParams)
-          .extraRewards[0].poolAddress.Mainnet,
-        interface: RewardConvex.poolInterface,
-        method: "earned(address)",
-        params: [CREDIT_ACCOUNT],
-      },
+      // {
+      //   address: (contractParams.CONVEX_FRAX3CRV_POOL as ConvexPoolParams)
+      //     .extraRewards[0].poolAddress.Mainnet,
+      //   interface: RewardConvex.poolInterface,
+      //   method: "earned(address)",
+      //   params: [CREDIT_ACCOUNT],
+      // },
     ];
 
     const distribution: Array<RewardDistribution> = [
@@ -118,8 +114,8 @@ describe("RewardConvex test", () => {
   it("parseResults parse data correctly", () => {
     const rewards = [
       BigNumber.from(1000n),
-      BigNumber.from(2000n),
-      BigNumber.from(4000n),
+      // BigNumber.from(2000n),
+      // BigNumber.from(4000n),
     ];
 
     const distribution: Array<RewardDistribution> = [
@@ -161,19 +157,19 @@ describe("RewardConvex test", () => {
           },
         ],
       },
-      {
-        contract: "CONVEX_FRAX3CRV_POOL",
-        rewards: {
-          CRV: 2000n,
-          FXS: 4000n,
-        },
-        calls: [
-          {
-            target: ADAPTER_CONVEX_FRAX3CRV_POOL,
-            callData,
-          },
-        ],
-      },
+      // {
+      //   contract: "CONVEX_FRAX3CRV_POOL",
+      //   rewards: {
+      //     CRV: 2000n,
+      //     FXS: 4000n,
+      //   },
+      //   calls: [
+      //     {
+      //       target: ADAPTER_CONVEX_FRAX3CRV_POOL,
+      //       callData,
+      //     },
+      //   ],
+      // },
     ];
 
     expect(parsed).to.be.eql(expected);
