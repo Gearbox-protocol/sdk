@@ -24,7 +24,7 @@ export const CHAINS = {
 } as const;
 
 export const supportedChains = ["Mainnet", "Arbitrum"] as const;
-export type NetworkType = typeof supportedChains[number]; // | "Optimism" | "Polygon";
+export type NetworkType = (typeof supportedChains)[number]; // | "Optimism" | "Polygon";
 
 const SUPPORTED_CHAINS: Record<number, NetworkType> = {
   [CHAINS.Mainnet]: "Mainnet",

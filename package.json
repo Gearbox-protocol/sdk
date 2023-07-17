@@ -12,10 +12,10 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf lib",
-    "build": "tsc && rm -rf lib/scripts && mv ./lib/src/* ./lib",
+    "build": "tsc --p tsconfig.build.json",
     "bindings": "yarn ts-node ./scripts/generate.ts",
-    "dev": "tsc -w",
-    "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc && yarn publish",
+    "dev": "tsc -w --p tsconfig.build.json",
+    "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc --p tsconfig.build.json && yarn publish",
     "copyTypes": "node ./scripts/copyTypes.js",
     "prepare": "husky install",
     "prettier": "prettier --write .",

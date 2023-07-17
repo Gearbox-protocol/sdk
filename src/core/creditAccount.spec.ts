@@ -4,9 +4,10 @@ import { LpTokensAPY } from "../apy";
 import { decimals } from "../tokens/decimals";
 import { tokenDataByNetwork } from "../tokens/token";
 import { toBN } from "../utils/formatter";
-import { Asset } from "./assets";
+import { PriceUtils } from "../utils/price";
+import { Asset, AssetUtils } from "./assets";
 import { PRICE_DECIMALS_POW } from "./constants";
-import { calcOverallAPY, CreditAccountData } from "./creditAccount";
+import { CreditAccountData } from "./creditAccount";
 
 interface CATestInfo {
   assets: Array<Asset>;
@@ -67,9 +68,9 @@ const caWithLP: CATestInfo = {
   underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
 };
 
-describe("CreditAccount calcOverallAPY test", () => {
+describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
   it("overall APY calculation for caWithoutLP is correct", () => {
-    const result = calcOverallAPY({
+    const result = CreditAccountData.calcOverallAPY({
       caAssets: caWithoutLP.assets,
       totalValue: caWithoutLP.totalValue,
       debt: caWithoutLP.debt,
@@ -83,7 +84,7 @@ describe("CreditAccount calcOverallAPY test", () => {
     expect(result).to.be.eq(-6.94841);
   });
   it("overall APY calculation for caWithLP is correct", () => {
-    const result = calcOverallAPY({
+    const result = CreditAccountData.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
@@ -97,7 +98,7 @@ describe("CreditAccount calcOverallAPY test", () => {
     expect(result).to.be.eq(14.4919);
   });
   it("overall APY is undefined when !lpAPY", () => {
-    const result = calcOverallAPY({
+    const result = CreditAccountData.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
@@ -111,7 +112,7 @@ describe("CreditAccount calcOverallAPY test", () => {
     expect(result).to.be.eq(undefined);
   });
   it("overall APY is undefined when !totalValue", () => {
-    const result = calcOverallAPY({
+    const result = CreditAccountData.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: undefined,
       debt: caWithLP.debt,
@@ -125,7 +126,7 @@ describe("CreditAccount calcOverallAPY test", () => {
     expect(result).to.be.eq(undefined);
   });
   it("overall APY is undefined when !debt", () => {
-    const result = calcOverallAPY({
+    const result = CreditAccountData.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: undefined,
@@ -139,7 +140,7 @@ describe("CreditAccount calcOverallAPY test", () => {
     expect(result).to.be.eq(undefined);
   });
   it("overall APY is undefined when totalValue lte 0", () => {
-    const result = calcOverallAPY({
+    const result = CreditAccountData.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: 0n,
       debt: undefined,
@@ -185,5 +186,152 @@ describe("CreditAccount calcMaxIncreaseBorrow test", () => {
     );
 
     expect(result.toString()).to.be.eq("19095785778950228315970");
+  });
+});
+
+const liquidationThresholds = {
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 9300n,
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 8500n,
+};
+
+interface CAHfTestInfo {
+  assets: Array<Asset>;
+  debt: bigint;
+  underlyingToken: string;
+  healthFactor: number;
+  underlyingDecimals: number;
+}
+
+const defaultCA: CAHfTestInfo = {
+  assets: [
+    {
+      balance: toBN("156552", decimals.DAI),
+      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+    },
+    {
+      balance: toBN("10", decimals.WETH),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+    },
+  ],
+  debt: toBN("156552", decimals.DAI),
+  healthFactor: 10244,
+  underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+  underlyingDecimals: decimals.DAI,
+};
+
+describe("CreditManager calcHealthFactor test", () => {
+  it("health factor calculation is calculated correctly", () => {
+    const result = CreditAccountData.calcHealthFactor({
+      assets: defaultCA.assets,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt,
+    });
+
+    expect(result).to.be.eq(defaultCA.healthFactor);
+  });
+  it("health factor calculation has no division by zero error", () => {
+    const result = CreditAccountData.calcHealthFactor({
+      assets: [],
+      prices: {},
+      liquidationThresholds: {},
+      underlyingToken: "",
+      borrowed: 0n,
+    });
+
+    expect(result).to.be.eq(0);
+  });
+  it("health factor after add collateral is calculated  correctly", () => {
+    const collateral: Asset = {
+      balance: toBN("10", decimals.WETH),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+    };
+
+    const afterAdd = AssetUtils.sumAssets(defaultCA.assets, [collateral]);
+    const result = CreditAccountData.calcHealthFactor({
+      assets: afterAdd,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt,
+    });
+
+    expect(result).to.be.eq(11188);
+  });
+  it("health factor after decrease debt is calculated  correctly", () => {
+    const amountDecrease = toBN("10000", defaultCA.underlyingDecimals);
+    const debtDecrease: Asset = {
+      balance: amountDecrease,
+      token: defaultCA.underlyingToken,
+    };
+
+    const afterDecrease = AssetUtils.subAssets(defaultCA.assets, [
+      debtDecrease,
+    ]);
+    const result = CreditAccountData.calcHealthFactor({
+      assets: afterDecrease,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt - amountDecrease,
+    });
+
+    expect(result).to.be.eq(10308);
+  });
+  it("health factor after increase debt is calculated  correctly", () => {
+    const amountIncrease = toBN("20000", defaultCA.underlyingDecimals);
+    const debtIncrease: Asset = {
+      balance: amountIncrease,
+      token: defaultCA.underlyingToken,
+    };
+
+    const afterIncrease = AssetUtils.sumAssets(defaultCA.assets, [
+      debtIncrease,
+    ]);
+    const result = CreditAccountData.calcHealthFactor({
+      assets: afterIncrease,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt + amountIncrease,
+    });
+
+    expect(result).to.be.eq(10137);
+  });
+  it("health factor after swap is calculated  correctly", () => {
+    const swapAsset: Asset = {
+      balance: defaultCA.debt,
+      token: defaultCA.underlyingToken,
+    };
+    const underlyingPrice = prices[defaultCA.underlyingToken];
+    const wethPrice = prices[tokenDataByNetwork.Mainnet.WETH.toLowerCase()];
+
+    const getAmount = PriceUtils.convertByPrice(
+      PriceUtils.calcTotalPrice(
+        underlyingPrice,
+        defaultCA.debt,
+        defaultCA.underlyingDecimals,
+      ),
+      { price: wethPrice, decimals: decimals.WETH },
+    );
+
+    const getAsset: Asset = {
+      balance: getAmount,
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+    };
+
+    const afterSub = AssetUtils.subAssets(defaultCA.assets, [swapAsset]);
+    const afterSwap = AssetUtils.sumAssets(afterSub, [getAsset]);
+
+    const result = CreditAccountData.calcHealthFactor({
+      assets: afterSwap,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt,
+    });
+
+    expect(result).to.be.eq(9444);
   });
 });
