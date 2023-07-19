@@ -1,6 +1,11 @@
 import { NetworkType } from "../core/chains";
 import { NOT_DEPLOYED } from "../core/constants";
 
+export const ADDRESS_PROVIDER: Record<NetworkType, string> = {
+  Mainnet: "0xcF64698AFF7E5f27A11dff868AF228653ba53be0",
+  Arbitrum: NOT_DEPLOYED,
+};
+
 export const TIMELOCK: Record<NetworkType, string> = {
   Mainnet: "0xa133C9A92Fb8dDB962Af1cbae58b2723A0bdf23b",
   Arbitrum: NOT_DEPLOYED,
