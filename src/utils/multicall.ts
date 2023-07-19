@@ -56,7 +56,7 @@ export default async function safeMulticall<
     return [];
   }
   const multiCallContract = Multicall2__factory.connect(
-    "0x5ba1e12693dc8f9c48aad8770482f4739beed696",
+    "0xcA11bde05977b3631167028862bE2a173976CA11",
     p,
   );
 
