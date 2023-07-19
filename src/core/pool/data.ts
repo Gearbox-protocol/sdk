@@ -5,6 +5,7 @@ import {
   PoolDataPayload,
   UserPoolPayload,
 } from "../../payload/pool";
+import { tokenSymbolByAddress } from "../../tokens/token";
 import {
   IInterestRateModel__factory,
   IPoolService,
@@ -19,6 +20,7 @@ export class PoolData {
   readonly underlyingToken: string;
   readonly dieselToken: string;
   readonly isWETH: boolean;
+  readonly isWSTETH: boolean;
 
   // Information
   readonly expectedLiquidity: bigint;
@@ -42,6 +44,8 @@ export class PoolData {
     this.dieselToken = payload.dieselToken.toLowerCase();
 
     this.isWETH = payload.isWETH || false;
+    this.isWSTETH =
+      tokenSymbolByAddress[payload.underlying.toLowerCase()] === "wstETH";
 
     this.expectedLiquidity = toBigInt(payload.expectedLiquidity || 0);
     this.expectedLiquidityLimit = toBigInt(payload.expectedLiquidityLimit || 0);

@@ -47,7 +47,7 @@ export abstract class EventOrTx implements Display {
       return 1;
     }
 
-    return this.block > item.block ? -1 : 1;
+    return item.block - this.block;
   }
 
   public abstract toString(): string;
