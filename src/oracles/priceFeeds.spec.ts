@@ -1,4 +1,3 @@
-/* eslint-disable prefer-arrow-callback */
 import { expect } from "chai";
 import { BigNumber, ethers } from "ethers";
 
@@ -6,13 +5,9 @@ import { CHAINS, NetworkType } from "../core/chains";
 import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
 import { AggregatorV3Interface__factory } from "../types";
 import { AggregatorV3InterfaceInterface } from "../types/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface";
-import safeMulticall, { MCall } from "../utils/multicall";
+import safeMulticall, { KeyedCall } from "../utils/multicall";
 import { OracleType, PriceFeedData } from "./oracles";
 import { priceFeedsByNetwork } from "./priceFeeds";
-
-interface KeyedCall extends MCall<AggregatorV3InterfaceInterface> {
-  key: string;
-}
 
 type PricesDict = Record<
   string,
@@ -28,7 +23,7 @@ type PricesDict = Record<
 
 class PriceFeedsSuite {
   public readonly networkTypes: NetworkType[];
-  public readonly calls: KeyedCall[][];
+  public readonly calls: KeyedCall<AggregatorV3InterfaceInterface>[][];
 
   constructor(...networkTypes: NetworkType[]) {
     this.networkTypes = networkTypes;
@@ -36,13 +31,13 @@ class PriceFeedsSuite {
   }
 
   public async getAnswers(): Promise<PricesDict[]> {
-    const providers = this.networkTypes.map(
-      c =>
-        new ethers.providers.StaticJsonRpcProvider(
-          process.env[`${c.toUpperCase()}_TESTS_FORK`],
-          CHAINS[c],
-        ),
-    );
+    const providers = this.networkTypes.map(c => {
+      const url = process.env[`${c.toUpperCase()}_TESTS_FORK`];
+      if (!url) {
+        throw new Error(`Provider for ${c} not found in env`);
+      }
+      return new ethers.providers.StaticJsonRpcProvider(url, CHAINS[c]);
+    });
 
     const resps = await Promise.all(
       this.networkTypes.map((_, i) =>
@@ -52,7 +47,9 @@ class PriceFeedsSuite {
     return resps.map((_, i) => this.buildDict(this.calls[i], resps[i]));
   }
 
-  private collectCalls(c: NetworkType): KeyedCall[] {
+  private collectCalls(
+    c: NetworkType,
+  ): KeyedCall<AggregatorV3InterfaceInterface>[] {
     const iFeed = AggregatorV3Interface__factory.createInterface();
     const entries = Object.entries(priceFeedsByNetwork).filter(([_, f]) => {
       return (
@@ -66,7 +63,7 @@ class PriceFeedsSuite {
       );
     }) as Array<[SupportedToken, PriceFeedData]>;
 
-    const calls: KeyedCall[] = [];
+    const calls: KeyedCall<AggregatorV3InterfaceInterface>[] = [];
     for (const [symb, f] of entries) {
       const tok = tokenDataByNetwork[c][symb];
       if (!tok.startsWith("0x")) {
@@ -108,7 +105,10 @@ class PriceFeedsSuite {
     return calls;
   }
 
-  private buildDict<T>(calls: KeyedCall[], responses: T[]): Record<string, T> {
+  private buildDict<T>(
+    calls: KeyedCall<AggregatorV3InterfaceInterface>[],
+    responses: T[],
+  ): Record<string, T> {
     return calls.reduce(
       (acc, call, i) => ({
         ...acc,
@@ -119,7 +119,7 @@ class PriceFeedsSuite {
   }
 }
 
-describe("Price feeds", function () {
+describe("Price feeds", () => {
   const suite = new PriceFeedsSuite("Mainnet", "Arbitrum");
   const PERCENTAGE_FACTOR = 1_00_00;
   const THRESHOLD = 100; // 1%
@@ -132,7 +132,7 @@ describe("Price feeds", function () {
 
   describe(`should not deviate for more than ${
     (100 * THRESHOLD) / PERCENTAGE_FACTOR
-  }% from mainnet`, function () {
+  }% from mainnet`, () => {
     // have to use suite.calls here, because answers are empty atm
     // this is how mocha works, it builds test tree before execution
     const [_, ...chainCalls] = suite.calls;
@@ -141,7 +141,7 @@ describe("Price feeds", function () {
       const calls = chainCalls[i];
       const chain = suite.networkTypes[i + 1];
       for (const call of calls) {
-        it(`${chain}.${call.key} deviation`, function () {
+        it(`${chain}.${call.key} deviation`, () => {
           const mainDict = answers[0];
           const chainDict = answers[i + 1];
 

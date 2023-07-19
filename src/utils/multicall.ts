@@ -15,6 +15,10 @@ export interface MCall<T extends ethers.utils.Interface> {
   params?: any;
 }
 
+export interface KeyedCall<T extends ethers.utils.Interface> extends MCall<T> {
+  key: string;
+}
+
 export async function multicall<R extends Array<any>>(
   calls: Array<MCall<any>>,
   p: Signer | ethers.providers.Provider,
