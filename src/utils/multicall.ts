@@ -34,7 +34,62 @@ export async function multicall<R extends Array<any>>(
     .map((d, num) =>
       calls[num].interface.decodeFunctionResult(calls[num].method as string, d),
     )
-    .map(r => (Array.isArray(r) && r.length <= 1 ? r[0] : r)) as R;
+    .map(unwrapArray) as R;
+}
+
+/**
+ * Like multicall from sdk, but uses tryAggregate instead of aggregate
+ * @param calls
+ * @param p
+ * @param overrides
+ * @returns
+ */
+export default async function safeMulticall<
+  V = any,
+  T extends MCall<any> = MCall<any>,
+>(
+  calls: T[],
+  p: Signer | ethers.providers.Provider,
+  overrides?: CallOverrides,
+): Promise<Array<{ error: boolean; value?: V }>> {
+  if (!calls.length) {
+    return [];
+  }
+  const multiCallContract = Multicall2__factory.connect(
+    "0x5ba1e12693dc8f9c48aad8770482f4739beed696",
+    p,
+  );
+
+  const resp = await multiCallContract.callStatic.tryAggregate(
+    false,
+    calls.map(c => ({
+      target: c.address,
+      callData: c.interface.encodeFunctionData(c.method as string, c.params),
+    })),
+    overrides ?? {},
+  );
+
+  return resp.map((d, num) => ({
+    error: !d.success,
+    value: d.success
+      ? unwrapArray(
+          calls[num].interface.decodeFunctionResult(
+            calls[num].method as string,
+            d.returnData,
+          ),
+        )
+      : undefined,
+  }));
+}
+
+function unwrapArray<V>(data: unknown): V {
+  if (!data) {
+    return data as V;
+  }
+  if (Array.isArray(data)) {
+    return data.length === 1 ? data[0] : data;
+  }
+  return data as V;
 }
 
 export class MultiCallContract<T extends ethers.utils.Interface> {

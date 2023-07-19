@@ -23,7 +23,7 @@
     "lint": "eslint \"**/*.ts\" --fix",
     "lint:ci": "eslint \"**/*.ts\"",
     "typecheck:ci": "tsc --noEmit",
-    "test": "npx mocha --require ts-node/register src/**/*.spec.ts"
+    "test": "npx mocha -r ts-node/register -r dotenv/config src/**/*.spec.ts"
   },
   "dependencies": {
     "@types/deep-eql": "^4.0.0",
