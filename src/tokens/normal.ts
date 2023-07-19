@@ -32,7 +32,11 @@ export type NormalToken =
   | "LQTY"
   | "OHM"
   | "MIM"
-  | "SPELL";
+  | "SPELL"
+  | "GMX"
+  | "ARB"
+  | "RDNT"
+  | "BAL";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -801,6 +805,90 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     name: "SPELL",
 
     symbol: "SPELL",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+    lpActions: [],
+  },
+  GMX: {
+    name: "GMX",
+
+    symbol: "GMX",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+    lpActions: [],
+  },
+  ARB: {
+    name: "ARB",
+
+    symbol: "ARB",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+    lpActions: [],
+  },
+  RDNT: {
+    name: "RDNT",
+
+    symbol: "RDNT",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+    lpActions: [],
+  },
+  BAL: {
+    name: "BAL",
+
+    symbol: "BAL",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [
       {
