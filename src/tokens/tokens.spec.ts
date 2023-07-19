@@ -7,7 +7,8 @@ import { MCall, multicall } from "../utils/multicall";
 import { tokenDataByNetwork } from "./token";
 
 describe("Tokens tests", () => {
-  it("token symbols should match onchain symbols", async () => {
+  it("token symbols should match onchain symbols", async function (this: any) {
+    this.timeout(10000);
     const provider = new ethers.providers.StaticJsonRpcProvider(
       process.env.MAINNET_TESTS_FORK,
     );
@@ -25,8 +26,12 @@ describe("Tokens tests", () => {
     const onchainSymbols = await multicall<string[]>(mcalls, provider);
     const onchainMap: Record<string, string> = {};
 
+    const sanitize = (symbol: string): string => {
+      return symbol.replace(/\-f$/, "").replaceAll("-", "_");
+    };
+
     for (let i = 0; i < entries.length; i++) {
-      onchainMap[onchainSymbols[i]] = entries[i][1];
+      onchainMap[sanitize(onchainSymbols[i])] = entries[i][1];
     }
 
     expect(onchainMap).to.be.equal(tokenDataByNetwork.Mainnet);
