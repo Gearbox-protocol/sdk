@@ -35,6 +35,7 @@ export * from "./utils/validate";
 export * from "./apy";
 export { AdapterInterface } from "./contracts/adapters";
 export * from "./contracts/contractsRegister";
+export * from "./contracts/utilsContracts";
 export * from "./parsers/txParser";
 export * from "./pathfinder/core";
 export * from "./pathfinder/pathfinder";
