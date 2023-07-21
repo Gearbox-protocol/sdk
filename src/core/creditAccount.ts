@@ -7,7 +7,6 @@ import { toBigInt, toSignificant } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset } from "./assets";
 import {
-  LEVERAGE_DECIMALS,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
