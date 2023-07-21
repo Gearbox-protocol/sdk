@@ -82,7 +82,9 @@ export class CreditSession {
   readonly spotUserFunds: bigint;
 
   readonly cvxUnclaimedRewards: Array<AssetWithView>;
-  readonly balances: Array<AssetWithView>;
+  readonly balances: Array<AssetWithView> = [];
+  readonly forbiddenTokens: Record<string, true> = {};
+  readonly disabledTokens: Record<string, true> = {};
 
   constructor(payload: CreditSessionPayload) {
     this.id = (payload.id || "").toLowerCase();
@@ -146,15 +148,22 @@ export class CreditSession {
       };
     });
 
-    this.balances = Object.entries(payload.balances || {}).map(
-      ([token, balance]): AssetWithView => {
-        return {
-          token: token.toLowerCase(),
-          balance: toBigInt(balance.BI || 0),
-          balanceView: balance.F.toString(),
-        };
-      },
-    );
+    Object.entries(payload.balances || {}).forEach(([t, b]) => {
+      const token = t.toLowerCase();
+
+      if (!b.isEnabled) {
+        this.disabledTokens[token] = true;
+      }
+      if (!b.isAllowed) {
+        this.forbiddenTokens[token] = true;
+      }
+
+      this.balances.push({
+        token: token.toLowerCase(),
+        balance: toBigInt(b.BI || 0),
+        balanceView: b.F.toString(),
+      });
+    });
   }
 }
 
