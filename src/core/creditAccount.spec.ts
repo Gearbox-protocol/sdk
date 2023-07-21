@@ -157,19 +157,17 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
 describe("CreditAccount calcMaxIncreaseBorrow test", () => {
   it("health max increase borrow is zero if hf < 1", () => {
-    const result = CreditAccountData.calcMaxIncreaseBorrow(
+    const result = CreditAccountData.calcMaxDebtIncrease(
       9999,
       BigInt("156522834253690396032546"),
-      0,
       9300,
     );
     expect(result.toString()).to.be.eq("0");
   });
   it("health max increase borrow is calculated correctly", () => {
-    const result = CreditAccountData.calcMaxIncreaseBorrow(
+    const result = CreditAccountData.calcMaxDebtIncrease(
       10244,
       BigInt("156522834253690396032546"),
-      0,
       9300,
     );
 
@@ -178,10 +176,9 @@ describe("CreditAccount calcMaxIncreaseBorrow test", () => {
   it("health max increase borrow is calculated correctly (low hf, high debt)", () => {
     const loweHf = 10244;
 
-    const result = CreditAccountData.calcMaxIncreaseBorrow(
+    const result = CreditAccountData.calcMaxDebtIncrease(
       loweHf,
       BigInt("54782991988791638611392"),
-      0,
       9300,
     );
 
