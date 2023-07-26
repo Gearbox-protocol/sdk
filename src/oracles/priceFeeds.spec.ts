@@ -5,6 +5,7 @@ import { CHAINS, NetworkType } from "../core/chains";
 import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
 import { AggregatorV3Interface__factory } from "../types";
 import { AggregatorV3InterfaceInterface } from "../types/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface";
+import { formatBN } from "../utils/formatter";
 import safeMulticall, { KeyedCall } from "../utils/multicall";
 import { OracleType, PriceFeedData } from "./oracles";
 import { priceFeedsByNetwork } from "./priceFeeds";
@@ -165,7 +166,12 @@ describe("Price feeds", () => {
           // );
           expect(
             deviation,
-            `Mainnet price: ${mainPrice}, ${chain} price: ${chainPrice}`,
+            `Mainnet price: ${formatBN(
+              mainPrice,
+              8,
+            )}$, ${chain} price: ${formatBN(chainPrice, 8)}$ at ${
+              call.address
+            }`,
           ).to.be.below(THRESHOLD);
         });
       }
