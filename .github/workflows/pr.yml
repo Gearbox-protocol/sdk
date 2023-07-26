@@ -25,3 +25,6 @@ jobs:
           yarn lint:ci
           yarn prettier:ci
           yarn test
+        env:
+          MAINNET_TESTS_FORK: ${{ secrets.MAINNET_TESTS_FORK }}
+          ARBITRUM_TESTS_FORK: ${{ secrets.ARBITRUM_TESTS_FORK }}
