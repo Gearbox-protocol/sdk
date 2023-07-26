@@ -23,7 +23,7 @@
     "lint": "eslint \"**/*.ts\" --fix",
     "lint:ci": "eslint \"**/*.ts\"",
     "typecheck:ci": "tsc --noEmit",
-    "test": "npx mocha --require ts-node/register src/**/*.spec.ts"
+    "test": "npx mocha -r ts-node/register -r dotenv/config src/**/*.spec.ts"
   },
   "dependencies": {
     "@types/deep-eql": "^4.0.0",
@@ -40,6 +40,7 @@
     "@typechain/ethers-v5": "10.0.0",
     "@types/chai": "^4.3.3",
     "@types/jest": "^28.1.7",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^18.7.6",
     "@types/rimraf": "^3.0.2",
     "chai": "^4.3.6",

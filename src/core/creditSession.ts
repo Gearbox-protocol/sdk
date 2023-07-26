@@ -7,7 +7,7 @@ import {
   UserCreditSessionsAggregatedStatsPayload,
 } from "../payload/creditSession";
 import { toBigInt } from "../utils/formatter";
-import { swapKeyValue } from "../utils/mappers";
+import { TypedObjectUtils } from "../utils/mappers";
 import { AssetWithView } from "./assets";
 import { PERCENTAGE_DECIMALS } from "./constants";
 
@@ -29,7 +29,7 @@ export const CREDIT_SESSION_STATUS_BY_ID: Record<number, CreditSessionStatus> =
     5: "liquidatePaused",
   };
 
-export const CREDIT_SESSION_ID_BY_STATUS = swapKeyValue(
+export const CREDIT_SESSION_ID_BY_STATUS = TypedObjectUtils.swapKeyValue(
   CREDIT_SESSION_STATUS_BY_ID,
 );
 

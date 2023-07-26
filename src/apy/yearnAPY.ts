@@ -3,7 +3,7 @@ import axios from "axios";
 import { WAD_DECIMALS_POW } from "../core/constants";
 import { YearnLPToken, yearnTokens } from "../tokens/yearn";
 import { toBN } from "../utils/formatter";
-import { objectEntries } from "../utils/mappers";
+import { TypedObjectUtils } from "../utils/mappers";
 
 interface YearnAPYData {
   apy: {
@@ -34,19 +34,18 @@ export async function getYearnAPY(): Promise<YearnAPYResult | null> {
       return acc;
     }, {});
 
-    const yearnAPY = objectEntries(yearnTokens).reduce<YearnAPYResult>(
-      (acc, [yearnSymbol]) => {
-        const { apy } = dataBySymbol[transformSymbol(yearnSymbol)] || {};
-        const { net_apy: netApy } = apy || {};
+    const yearnAPY = TypedObjectUtils.entries(
+      yearnTokens,
+    ).reduce<YearnAPYResult>((acc, [yearnSymbol]) => {
+      const { apy } = dataBySymbol[transformSymbol(yearnSymbol)] || {};
+      const { net_apy: netApy } = apy || {};
 
-        acc[yearnSymbol] = toBN(
-          (netApy / RESPONSE_DECIMALS).toString(),
-          WAD_DECIMALS_POW,
-        );
-        return acc;
-      },
-      {} as YearnAPYResult,
-    );
+      acc[yearnSymbol] = toBN(
+        (netApy / RESPONSE_DECIMALS).toString(),
+        WAD_DECIMALS_POW,
+      );
+      return acc;
+    }, {} as YearnAPYResult);
 
     return yearnAPY;
   } catch (e) {

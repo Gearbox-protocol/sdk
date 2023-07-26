@@ -4,7 +4,7 @@ import { WAD_DECIMALS_POW } from "../core/constants";
 import { CurveLPToken } from "../tokens/curveLP";
 import { GearboxToken } from "../tokens/gear";
 import { toBN } from "../utils/formatter";
-import { objectEntries } from "../utils/mappers";
+import { TypedObjectUtils } from "../utils/mappers";
 
 interface CurveAPYData {
   baseApy: number;
@@ -137,36 +137,35 @@ export async function getCurveAPY(): Promise<CurveAPYResult | null> {
       ...factoryTricryptoPoolData.map(p => [p.id, p] as const),
     ]);
 
-    const curveAPY = objectEntries(APY_DICTIONARY).reduce<CurveAPYResult>(
-      (acc, [curveSymbol, poolId]) => {
-        const { baseApy, crvApy } = apys[poolId] || {};
-        if (baseApy === undefined)
-          console.warn(`No base apy for: ${curveSymbol}, ${poolId}`);
+    const curveAPY = TypedObjectUtils.entries(
+      APY_DICTIONARY,
+    ).reduce<CurveAPYResult>((acc, [curveSymbol, poolId]) => {
+      const { baseApy, crvApy } = apys[poolId] || {};
+      if (baseApy === undefined)
+        console.warn(`No base apy for: ${curveSymbol}, ${poolId}`);
 
-        const pool = poolDataByID[poolId];
-        const { gaugeRewards = [] } = pool || {};
-        if (pool === undefined)
-          console.warn(`No pool data for: ${curveSymbol}, ${poolId}`);
-        const extraRewards = gaugeRewards.map(
-          ({ apy = 0, symbol }): [string, bigint] => [
-            symbol.toLowerCase(),
-            curveAPYToBn(apy),
-          ],
-        );
+      const pool = poolDataByID[poolId];
+      const { gaugeRewards = [] } = pool || {};
+      if (pool === undefined)
+        console.warn(`No pool data for: ${curveSymbol}, ${poolId}`);
+      const extraRewards = gaugeRewards.map(
+        ({ apy = 0, symbol }): [string, bigint] => [
+          symbol.toLowerCase(),
+          curveAPYToBn(apy),
+        ],
+      );
 
-        const maxCrv =
-          pool?.gaugeCrvApy.length > 0 ? Math.max(...pool.gaugeCrvApy) : crvApy;
+      const maxCrv =
+        pool?.gaugeCrvApy.length > 0 ? Math.max(...pool.gaugeCrvApy) : crvApy;
 
-        acc[curveSymbol] = {
-          base: curveAPYToBn(baseApy || 0),
-          crv: curveAPYToBn(maxCrv || 0),
-          gauge: extraRewards,
-        };
+      acc[curveSymbol] = {
+        base: curveAPYToBn(baseApy || 0),
+        crv: curveAPYToBn(maxCrv || 0),
+        gauge: extraRewards,
+      };
 
-        return acc;
-      },
-      {} as CurveAPYResult,
-    );
+      return acc;
+    }, {} as CurveAPYResult);
 
     return curveAPY;
   } catch (e) {
