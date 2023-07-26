@@ -23,6 +23,10 @@ const EXCEPTIONS_IN_SYMBOLS: Record<NetworkType, Record<string, string>> = {
     // Our Symbol <-> On-chain Symbol
     [tokenDataByNetwork.Arbitrum.crvUSDTWBTCWETH]: "crv3crypto",
     [tokenDataByNetwork.Arbitrum["50OHM_50WETH"]]: "50WETH_50OHM",
+    [tokenDataByNetwork.Arbitrum.aDAI]: "aArbDAI",
+    [tokenDataByNetwork.Arbitrum.aUSDC]: "aArbUSDCn",
+    [tokenDataByNetwork.Arbitrum.aUSDT]: "aArbUSDT",
+    [tokenDataByNetwork.Arbitrum.aWETH]: "aArbWETH",
   },
 };
 
