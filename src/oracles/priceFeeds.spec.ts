@@ -163,7 +163,10 @@ describe("Price feeds", () => {
           //   chainPrice?.toNumber(),
           //   mainPrice.toNumber(),
           // );
-          expect(deviation).to.be.below(THRESHOLD);
+          expect(
+            deviation,
+            `Mainnet price: ${mainPrice}, ${chain} price: ${chainPrice}`,
+          ).to.be.below(THRESHOLD);
         });
       }
     }
