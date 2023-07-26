@@ -38,15 +38,16 @@ file = file.replace(
   "// $TOKENS$",
   `enum Tokens {
   NO_TOKEN,
-  cDAI,
-  cUSDC,
-  cUSDT,
-  cLINK,
   LUNA,\n${tokensEnum}}\n`,
 );
 fs.writeFileSync("./contracts/Tokens.sol", file);
 
 /// ---------------- TokensDataLive.sol ---------------------
+
+const tokenTypeEnum = Object.values(TokenType)
+  .filter(v => isNaN(Number(v)))
+  .map(t => safeEnum(t as string))
+  .join(",\n");
 
 let tokenAddresses = "";
 
@@ -69,6 +70,12 @@ for (const chain of supportedChains) {
 }
 
 file = fs.readFileSync("./bindings/TokensDataLive.sol").toString();
+
+file = file.replace(
+  "// $ENUM_TOKENTYPE$",
+  `enum TokenType{\n${tokenTypeEnum}\n}`,
+);
+
 file = file.replace("// $TOKEN_ADDRESSES$", tokenAddresses);
 fs.writeFileSync("./contracts/TokensData.sol", file);
 

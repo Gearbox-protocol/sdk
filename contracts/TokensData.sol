@@ -5,18 +5,20 @@ pragma solidity ^0.8.17;
 
 import {Tokens} from "./Tokens.sol";
 
-enum TokenType {
-    NO_TOKEN,
-    NORMAL_TOKEN,
-    CURVE_LP_TOKEN,
-    YEARN_ON_NORMAL_TOKEN,
-    YEARN_ON_CURVE_TOKEN,
-    CONVEX_LP_TOKEN,
-    CONVEX_STAKED_TOKEN,
-    DIESEL_LP_TOKEN,
-    GEAR_TOKEN,
-    C_TOKEN,
-    BALANCER_LP_TOKEN
+enum TokenType{
+NO_TOKEN,
+NORMAL_TOKEN,
+CURVE_LP_TOKEN,
+YEARN_ON_NORMAL_TOKEN,
+YEARN_ON_CURVE_TOKEN,
+CONVEX_LP_TOKEN,
+CONVEX_STAKED_TOKEN,
+DIESEL_LP_TOKEN,
+GEAR_TOKEN,
+COMPOUND_V2_C_TOKEN,
+BALANCER_LP_TOKEN,
+AAVE_V2_A_TOKEN,
+WRAPPED_AAVE_V2_TOKEN
 }
 
 struct TokenData {
@@ -64,6 +66,7 @@ tokenDataByNetwork[1].push(TokenData({ id: Tokens.SPELL, addr: 0x090185f2135308B
 tokenDataByNetwork[1].push(TokenData({ id: Tokens.ARB, addr: 0xB50721BCf8d664c30412Cfbc6cf7a15145234ad1, symbol: "ARB", tokenType: TokenType.NORMAL_TOKEN }));
 
 tokenDataByNetwork[1].push(TokenData({ id: Tokens.BAL, addr: 0xba100000625a3754423978a60c9317c58a424e3D, symbol: "BAL", tokenType: TokenType.NORMAL_TOKEN }));
+tokenDataByNetwork[1].push(TokenData({ id: Tokens.SHIB, addr: 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE, symbol: "SHIB", tokenType: TokenType.NORMAL_TOKEN }));
 tokenDataByNetwork[1].push(TokenData({ id: Tokens._3Crv, addr: 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490, symbol: "3Crv", tokenType: TokenType.CURVE_LP_TOKEN }));
 tokenDataByNetwork[1].push(TokenData({ id: Tokens.crvFRAX, addr: 0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC, symbol: "crvFRAX", tokenType: TokenType.CURVE_LP_TOKEN }));
 tokenDataByNetwork[1].push(TokenData({ id: Tokens.steCRV, addr: 0x06325440D014e39736583c165C2963BA99fAf14E, symbol: "steCRV", tokenType: TokenType.CURVE_LP_TOKEN }));
@@ -162,6 +165,7 @@ tokenDataByNetwork[42161].push(TokenData({ id: Tokens.GMX, addr: 0xfc5A1A6EB076a
 tokenDataByNetwork[42161].push(TokenData({ id: Tokens.ARB, addr: 0x912CE59144191C1204E64559FE8253a0e49E6548, symbol: "ARB", tokenType: TokenType.NORMAL_TOKEN }));
 tokenDataByNetwork[42161].push(TokenData({ id: Tokens.RDNT, addr: 0x3082CC23568eA640225c2467653dB90e9250AaA0, symbol: "RDNT", tokenType: TokenType.NORMAL_TOKEN }));
 tokenDataByNetwork[42161].push(TokenData({ id: Tokens.BAL, addr: 0x040d1EdC9569d4Bab2D15287Dc5A4F10F56a56B8, symbol: "BAL", tokenType: TokenType.NORMAL_TOKEN }));
+
 
 tokenDataByNetwork[42161].push(TokenData({ id: Tokens.crvFRAX, addr: 0xc9b8a3fdecb9d5b218d02555a8baf332e5b740d5, symbol: "crvFRAX", tokenType: TokenType.CURVE_LP_TOKEN }));
 tokenDataByNetwork[42161].push(TokenData({ id: Tokens.steCRV, addr: 0x06325440d014e39736583c165c2963ba99faf14e, symbol: "steCRV", tokenType: TokenType.CURVE_LP_TOKEN }));
