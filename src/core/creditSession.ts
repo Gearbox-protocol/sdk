@@ -7,7 +7,7 @@ import {
   UserCreditSessionsAggregatedStatsPayload,
 } from "../payload/creditSession";
 import { toBigInt } from "../utils/formatter";
-import { swapKeyValue } from "../utils/mappers";
+import { TypedObjectUtils } from "../utils/mappers";
 import { AssetWithView } from "./assets";
 import { PERCENTAGE_DECIMALS } from "./constants";
 
@@ -29,7 +29,7 @@ export const CREDIT_SESSION_STATUS_BY_ID: Record<number, CreditSessionStatus> =
     5: "liquidatePaused",
   };
 
-export const CREDIT_SESSION_ID_BY_STATUS = swapKeyValue(
+export const CREDIT_SESSION_ID_BY_STATUS = TypedObjectUtils.swapKeyValue(
   CREDIT_SESSION_STATUS_BY_ID,
 );
 
@@ -82,7 +82,9 @@ export class CreditSession {
   readonly spotUserFunds: bigint;
 
   readonly cvxUnclaimedRewards: Array<AssetWithView>;
-  readonly balances: Array<AssetWithView>;
+  readonly balances: Array<AssetWithView> = [];
+  readonly forbiddenTokens: Record<string, true> = {};
+  readonly disabledTokens: Record<string, true> = {};
 
   constructor(payload: CreditSessionPayload) {
     this.id = (payload.id || "").toLowerCase();
@@ -146,15 +148,22 @@ export class CreditSession {
       };
     });
 
-    this.balances = Object.entries(payload.balances || {}).map(
-      ([token, balance]): AssetWithView => {
-        return {
-          token: token.toLowerCase(),
-          balance: toBigInt(balance.BI || 0),
-          balanceView: balance.F.toString(),
-        };
-      },
-    );
+    Object.entries(payload.balances || {}).forEach(([t, b]) => {
+      const token = t.toLowerCase();
+
+      if (!b.isEnabled) {
+        this.disabledTokens[token] = true;
+      }
+      if (!b.isAllowed) {
+        this.forbiddenTokens[token] = true;
+      }
+
+      this.balances.push({
+        token: token.toLowerCase(),
+        balance: toBigInt(b.BI || 0),
+        balanceView: b.F.toString(),
+      });
+    });
   }
 }
 

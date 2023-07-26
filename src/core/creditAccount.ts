@@ -7,7 +7,6 @@ import { toBigInt, toSignificant } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset } from "./assets";
 import {
-  LEVERAGE_DECIMALS,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
@@ -212,24 +211,15 @@ export class CreditAccountData {
     return ((2n ** BigInt(index)) & enabledTokenMask) !== 0n;
   }
 
-  static calcMaxIncreaseBorrow(
+  static calcMaxDebtIncrease(
     healthFactor: number,
     borrowAmountPlusInterest: bigint,
-    maxLeverageFactor: number,
     underlyingLT: number,
-    minHf = PERCENTAGE_FACTOR,
+    minHf = Number(PERCENTAGE_FACTOR),
   ): bigint {
-    const minHealthFactor =
-      maxLeverageFactor > 0
-        ? Math.floor(
-            (underlyingLT * (maxLeverageFactor + Number(LEVERAGE_DECIMALS))) /
-              maxLeverageFactor,
-          )
-        : Number(minHf);
-
     const result =
-      (borrowAmountPlusInterest * BigInt(healthFactor - minHealthFactor)) /
-      BigInt(minHealthFactor - underlyingLT);
+      (borrowAmountPlusInterest * BigInt(healthFactor - minHf)) /
+      BigInt(minHf - underlyingLT);
     return result < 0 ? 0n : result;
   }
 
