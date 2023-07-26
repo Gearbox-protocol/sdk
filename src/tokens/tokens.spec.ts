@@ -14,6 +14,18 @@ interface SymbolResponse {
   error?: Error;
 }
 
+const EXCEPTIONS_IN_SYMBOLS: Record<NetworkType, Record<string, string>> = {
+  Mainnet: {
+    // Our Symbol <-> On-chain Symbol
+    [tokenDataByNetwork.Mainnet.STETH]: "stETH",
+  },
+  Arbitrum: {
+    // Our Symbol <-> On-chain Symbol
+    [tokenDataByNetwork.Arbitrum.crvUSDTWBTCWETH]: "crv3crypto",
+    [tokenDataByNetwork.Arbitrum["50OHM_50WETH"]]: "50WETH_50OHM",
+  },
+};
+
 class TokenSuite {
   private readonly provider: ethers.providers.StaticJsonRpcProvider;
   public readonly network: NetworkType;
@@ -30,7 +42,7 @@ class TokenSuite {
       url,
       CHAINS[network],
     );
-
+    // Omit NOT DEPLOYED
     const entries = Object.entries(tokenDataByNetwork[network]).filter(
       ([_, addr]) => addr?.startsWith("0x"),
     );
@@ -76,16 +88,23 @@ class TokenSuite {
     }
   }
 
-  public assertSymbol(symbol: string): void {
-    const r = this.responses[symbol];
+  /**
+   * Given <symbol, address> token map on our sdk, asserts that symbol found on chain for this address is the same
+   * Takes into account some exceptions
+   * @param sdkSymbol Symbol of token in SDK
+   */
+  public assertSymbol(sdkSymbol: string): void {
+    const r = this.responses[sdkSymbol];
     if (r.error) {
       throw new Error(
-        `failed to verify ${symbol} on address ${r.address}: ${console.error}`,
+        `failed to verify ${sdkSymbol} on address ${r.address}: ${console.error}`,
       );
     }
-    if (r.symbol !== symbol) {
+    const expectedSymbol =
+      EXCEPTIONS_IN_SYMBOLS[this.network][r.address] ?? sdkSymbol;
+    if (r.symbol !== expectedSymbol) {
       throw new Error(
-        `Expected ${symbol} but found ${r.symbol} at ${r.address}`,
+        `Expected ${expectedSymbol} but found ${r.symbol} at ${r.address}`,
       );
     }
   }
