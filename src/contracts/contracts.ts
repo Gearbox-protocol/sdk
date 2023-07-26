@@ -5,6 +5,7 @@
  */
 import { NetworkType } from "../core/chains";
 import { NOT_DEPLOYED } from "../core/constants";
+import { AaveV2LPToken } from "../tokens/aave";
 import { ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
@@ -60,6 +61,24 @@ export type ConvexPoolContract =
   | "CONVEX_3CRYPTO_POOL"
   | "CONVEX_LDOETH_POOL";
 
+export type AaveV2PoolContract =
+  | "AAVE_V2_DAI_POOL"
+  | "AAVE_V2_USDC_POOL"
+  | "AAVE_V2_USDT_POOL"
+  | "AAVE_V2_WETH_POOL";
+
+export type AaveV2TokenWrapperContract =
+  | "AAVE_V2_DAI_TOKEN_WRAPPER"
+  | "AAVE_V2_USDC_TOKEN_WRAPPER"
+  | "AAVE_V2_USDT_TOKEN_WRAPPER"
+  | "AAVE_V2_WETH_TOKEN_WRAPPER";
+
+export type CompoundV2PoolContract =
+  | "COMPOUND_V2_DAI_POOL"
+  | "COMPOUND_V2_USDC_POOL"
+  | "COMPOUND_V2_USDT_POOL"
+  | "COMPOUND_V2_WETH_POOL";
+
 export type SupportedContract =
   | UniswapV2Contract
   | "UNISWAP_V3_ROUTER"
@@ -72,7 +91,10 @@ export type SupportedContract =
   | "LIDO_STETH_GATEWAY"
   | "LIDO_WSTETH"
   | "UNIVERSAL_ADAPTER"
-  | "BALANCER_VAULT";
+  | "BALANCER_VAULT"
+  | AaveV2PoolContract
+  | AaveV2TokenWrapperContract
+  | CompoundV2PoolContract;
 
 export const contractsByNetwork: Record<
   NetworkType,
@@ -135,6 +157,22 @@ export const contractsByNetwork: Record<
 
     // GEARBOX
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+
+    // AAVE
+    AAVE_V2_DAI_POOL: NOT_DEPLOYED,
+    AAVE_V2_USDC_POOL: NOT_DEPLOYED,
+    AAVE_V2_USDT_POOL: NOT_DEPLOYED,
+    AAVE_V2_WETH_POOL: NOT_DEPLOYED,
+
+    AAVE_V2_DAI_TOKEN_WRAPPER: tokenDataByNetwork.Mainnet.waDAI,
+    AAVE_V2_USDC_TOKEN_WRAPPER: tokenDataByNetwork.Mainnet.waUSDC,
+    AAVE_V2_USDT_TOKEN_WRAPPER: tokenDataByNetwork.Mainnet.waUSDT,
+    AAVE_V2_WETH_TOKEN_WRAPPER: tokenDataByNetwork.Mainnet.waWETH,
+
+    COMPOUND_V2_DAI_POOL: tokenDataByNetwork.Mainnet.cDAI,
+    COMPOUND_V2_USDC_POOL: tokenDataByNetwork.Mainnet.cUSDC,
+    COMPOUND_V2_USDT_POOL: tokenDataByNetwork.Mainnet.cUSDT,
+    COMPOUND_V2_WETH_POOL: tokenDataByNetwork.Mainnet.cWETH,
   },
 
   //
@@ -203,6 +241,22 @@ export const contractsByNetwork: Record<
 
     // GEARBOX
     UNIVERSAL_ADAPTER: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+
+    // AAVE
+    AAVE_V2_DAI_POOL: NOT_DEPLOYED,
+    AAVE_V2_USDC_POOL: NOT_DEPLOYED,
+    AAVE_V2_USDT_POOL: NOT_DEPLOYED,
+    AAVE_V2_WETH_POOL: NOT_DEPLOYED,
+
+    AAVE_V2_DAI_TOKEN_WRAPPER: tokenDataByNetwork.Arbitrum.waDAI,
+    AAVE_V2_USDC_TOKEN_WRAPPER: tokenDataByNetwork.Arbitrum.waUSDC,
+    AAVE_V2_USDT_TOKEN_WRAPPER: tokenDataByNetwork.Arbitrum.waUSDT,
+    AAVE_V2_WETH_TOKEN_WRAPPER: tokenDataByNetwork.Arbitrum.waWETH,
+
+    COMPOUND_V2_DAI_POOL: tokenDataByNetwork.Arbitrum.cDAI,
+    COMPOUND_V2_USDC_POOL: tokenDataByNetwork.Arbitrum.cUSDC,
+    COMPOUND_V2_USDT_POOL: tokenDataByNetwork.Arbitrum.cUSDT,
+    COMPOUND_V2_WETH_POOL: tokenDataByNetwork.Arbitrum.cWETH,
   },
 };
 
@@ -299,6 +353,26 @@ export type BalancerParams = {
   type: AdapterInterface.BALANCER_VAULT;
 } & BaseContractParams;
 
+export type AaveV2Params = {
+  protocol: Protocols.AaveV2;
+  type: AdapterInterface.AAVE_V2_LENDING_POOL;
+  underlying: NormalToken;
+} & BaseContractParams;
+
+export type WrapperAaveV2Params = {
+  protocol: Protocols.AaveV2;
+  type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN;
+  underlying: AaveV2LPToken;
+} & BaseContractParams;
+
+export type CompoundV2Params = {
+  protocol: Protocols.CompoundV2;
+  type:
+    | AdapterInterface.COMPOUND_V2_CERC20
+    | AdapterInterface.COMPOUND_V2_CETHER;
+  underlying: NormalToken;
+} & BaseContractParams;
+
 export type ContractParams =
   | UniswapV2Params
   | UniswapV3Params
@@ -311,7 +385,10 @@ export type ContractParams =
   | LidoParams
   | LidoWsthETHParams
   | UniversalParams
-  | BalancerParams;
+  | BalancerParams
+  | AaveV2Params
+  | WrapperAaveV2Params
+  | CompoundV2Params;
 
 export const contractParams: Record<SupportedContract, ContractParams> = {
   UNISWAP_V2_ROUTER: {
@@ -696,6 +773,81 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Balancer Vault",
     protocol: Protocols.Balancer,
     type: AdapterInterface.BALANCER_VAULT,
+  },
+
+  AAVE_V2_DAI_POOL: {
+    name: "Aave V2 DAI",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_LENDING_POOL,
+    underlying: "DAI",
+  },
+  AAVE_V2_USDC_POOL: {
+    name: "Aave V2 USDC",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_LENDING_POOL,
+    underlying: "USDC",
+  },
+  AAVE_V2_USDT_POOL: {
+    name: "Aave V2 USDT",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_LENDING_POOL,
+    underlying: "USDT",
+  },
+  AAVE_V2_WETH_POOL: {
+    name: "Aave V2 WETH",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_LENDING_POOL,
+    underlying: "WETH",
+  },
+
+  AAVE_V2_DAI_TOKEN_WRAPPER: {
+    name: "Aave V2 DAI Token Wrapper",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN,
+    underlying: "aDAI",
+  },
+  AAVE_V2_USDC_TOKEN_WRAPPER: {
+    name: "Aave V2 USDC Token Wrapper",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN,
+    underlying: "aUSDC",
+  },
+  AAVE_V2_USDT_TOKEN_WRAPPER: {
+    name: "Aave V2 USDT Token Wrapper",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN,
+    underlying: "aUSDT",
+  },
+  AAVE_V2_WETH_TOKEN_WRAPPER: {
+    name: "Aave V2 WETH Token Wrapper",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN,
+    underlying: "aWETH",
+  },
+
+  COMPOUND_V2_DAI_POOL: {
+    name: "Compound V2 DAI",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "DAI",
+  },
+  COMPOUND_V2_USDC_POOL: {
+    name: "Compound V2 DAI",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "USDT",
+  },
+  COMPOUND_V2_USDT_POOL: {
+    name: "Compound V2 DAI",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "USDT",
+  },
+  COMPOUND_V2_WETH_POOL: {
+    name: "Compound V2 DAI",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CETHER,
+    underlying: "WETH",
   },
 };
 

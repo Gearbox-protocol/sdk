@@ -1,4 +1,6 @@
 import { NetworkType } from "../core/chains";
+import { AaveV2LPToken } from "../tokens/aave";
+import { NormalToken } from "../tokens/normal";
 import { SupportedToken } from "../tokens/token";
 
 export interface PriceFeed {
@@ -16,14 +18,15 @@ export enum OracleType {
   WSTETH_ORACLE,
   BOUNDED_ORACLE,
   COMPOSITE_ORACLE,
-  AAVE_ORACLE,
-  COMPOUND_ORACLE,
+  WRAPPED_AAVE_V2_ORACLE,
+  COMPOUND_V2_ORACLE,
   BALANCER_STABLE_LP_ORACLE,
   BALANCER_WEIGHTED_LP_ORACLE,
   CURVE_CRYPTO_ORACLE,
-  LIKE_CURVE_LP_TOKEN_ORACLE,
+  THE_SAME_AS,
   REDSTONE_ORACLE,
   ERC4626_VAULT_ORACLE,
+  NETWORK_DIFFERENT,
 }
 
 export type PriceFeedData =
@@ -73,6 +76,20 @@ export type PriceFeedData =
       assets: Array<SupportedToken>;
     }
   | {
-      type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE;
-      curveSymbol: SupportedToken;
+      type: OracleType.THE_SAME_AS;
+      token: SupportedToken;
+    }
+  | {
+      type: OracleType.WRAPPED_AAVE_V2_ORACLE;
+      underlying: AaveV2LPToken;
+    }
+  | {
+      type: OracleType.COMPOUND_V2_ORACLE;
+      underlying: NormalToken;
+    }
+  | {
+      type: OracleType.REDSTONE_ORACLE;
+      dataId: string;
+      signers: Array<string>;
+      signersThreshold: number;
     };

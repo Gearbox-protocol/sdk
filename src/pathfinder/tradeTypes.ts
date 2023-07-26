@@ -1,10 +1,14 @@
 import type {
+  AaveV2PoolContract,
+  CompoundV2PoolContract,
   ConvexPoolContract,
   CurvePoolContract,
   UniswapV2Contract,
   YearnVaultContract,
 } from "../contracts/contracts";
+import { AaveV2LPToken } from "../tokens/aave";
 import { BalancerLPToken } from "../tokens/balancer";
+import { CompoundV2LPToken } from "../tokens/compound";
 import type { ConvexLPToken, ConvexStakedPhantomToken } from "../tokens/convex";
 import type { CurveLPToken } from "../tokens/curveLP";
 import type { NormalToken } from "../tokens/normal";
@@ -28,6 +32,11 @@ export enum TradeType {
   ConvexWithdrawAndUnwrap,
   BalancerJoin,
   BalancerExit,
+  AaveV2Deposit,
+  AaveV2Withdraw,
+  AaveV2Unwrap,
+  CompoundV2Deposit,
+  CompoundV2Withdraw,
 }
 
 export type TradeAction =
@@ -110,4 +119,24 @@ export type TradeAction =
       type: TradeType.BalancerExit;
       contract: "BALANCER_VAULT";
       tokenOut: Array<NormalToken | BalancerLPToken>;
+    }
+  | {
+      type: TradeType.AaveV2Deposit;
+      contract: AaveV2PoolContract;
+      tokenOut: AaveV2LPToken;
+    }
+  | {
+      type: TradeType.AaveV2Withdraw;
+      contract: AaveV2PoolContract;
+      tokenOut: NormalToken;
+    }
+  | {
+      type: TradeType.CompoundV2Deposit;
+      contract: CompoundV2PoolContract;
+      tokenOut: CompoundV2LPToken;
+    }
+  | {
+      type: TradeType.CompoundV2Withdraw;
+      contract: CompoundV2PoolContract;
+      tokenOut: NormalToken;
     };

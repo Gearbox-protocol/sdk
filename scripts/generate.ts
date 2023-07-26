@@ -155,12 +155,12 @@ const curvePriceFeeds = Object.entries(priceFeedsByNetwork)
 const curveLikePriceFeeds = Object.entries(priceFeedsByNetwork)
   .filter(
     ([token, oracleData]) =>
-      oracleData.type === OracleType.LIKE_CURVE_LP_TOKEN_ORACLE &&
+      oracleData.type === OracleType.THE_SAME_AS &&
       tokenDataByNetwork.Mainnet[token as SupportedToken] !== "",
   )
   .map(([token, oracleData]) => {
-    if (oracleData.type === OracleType.LIKE_CURVE_LP_TOKEN_ORACLE) {
-      const symbol = oracleData.curveSymbol;
+    if (oracleData.type === OracleType.THE_SAME_AS) {
+      const symbol = oracleData.token;
       if (tokenDataByNetwork.Mainnet[token as SupportedToken] !== "") {
         return `likeCurvePriceFeeds.push(CurveLikePriceFeedData({
         lpToken: Tokens.${safeEnum(token as SupportedToken)},

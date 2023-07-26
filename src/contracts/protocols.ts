@@ -7,6 +7,8 @@ export enum Protocols {
   Lido,
   Gearbox,
   Balancer,
+  AaveV2,
+  CompoundV2,
 }
 
 export interface ProtocolData {
@@ -45,6 +47,14 @@ export const protocolData: Record<Protocols, ProtocolData> = {
   },
   [Protocols.Balancer]: {
     name: "Balancer",
+    icon: "",
+  },
+  [Protocols.AaveV2]: {
+    name: "AaveV2",
+    icon: "",
+  },
+  [Protocols.CompoundV2]: {
+    name: "CompoundV2",
     icon: "",
   },
 };

@@ -36,7 +36,11 @@ export type NormalToken =
   | "GMX"
   | "ARB"
   | "RDNT"
-  | "BAL";
+  | "BAL"
+  | "ARB"
+
+  // REDSTONE
+  | "SHIB";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -902,6 +906,22 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+    lpActions: [],
+  },
+  SHIB: {
+    name: "SHIB",
+    symbol: "SHIB",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
       },
     ],
     lpActions: [],

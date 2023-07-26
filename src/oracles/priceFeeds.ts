@@ -205,7 +205,6 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
       Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
       Arbitrum: "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612",
     },
-
     // ADD ETH-> DAI Oracle!
   },
   LQTY: {
@@ -257,6 +256,13 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     },
   },
 
+  SHIB: {
+    type: OracleType.REDSTONE_ORACLE,
+    dataId: "redstone-main-demo",
+    signers: ["0x0C39486f770B26F5527BBBf942726537986Cd7eb"],
+    signersThreshold: 1,
+  },
+
   RDNT: {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
@@ -291,7 +297,6 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
   },
 
   // CURVE LP TOKENS
-
   "3Crv": {
     type: OracleType.CURVE_3LP_ORACLE,
     assets: ["DAI", "USDC", "USDT"],
@@ -357,7 +362,6 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
   },
 
   // YEARN- CURVE TOKENS
-
   yvCurve_stETH: {
     type: OracleType.YEARN_ORACLE,
     token: "steCRV",
@@ -369,112 +373,112 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
 
   // CVX tokens
   cvx3Crv: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "3Crv",
+    type: OracleType.THE_SAME_AS,
+    token: "3Crv",
   },
   cvxcrvFRAX: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvFRAX",
+    type: OracleType.THE_SAME_AS,
+    token: "crvFRAX",
   },
   cvxsteCRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "steCRV",
+    type: OracleType.THE_SAME_AS,
+    token: "steCRV",
   },
   cvxFRAX3CRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "FRAX3CRV",
+    type: OracleType.THE_SAME_AS,
+    token: "FRAX3CRV",
   },
   cvxLUSD3CRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "LUSD3CRV",
+    type: OracleType.THE_SAME_AS,
+    token: "LUSD3CRV",
   },
   cvxcrvPlain3andSUSD: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvPlain3andSUSD",
+    type: OracleType.THE_SAME_AS,
+    token: "crvPlain3andSUSD",
   },
   cvxgusd3CRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "gusd3CRV",
+    type: OracleType.THE_SAME_AS,
+    token: "gusd3CRV",
   },
   cvxOHMFRAXBP: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "OHMFRAXBP",
+    type: OracleType.THE_SAME_AS,
+    token: "OHMFRAXBP",
   },
   cvxMIM_3LP3CRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "MIM_3LP3CRV",
+    type: OracleType.THE_SAME_AS,
+    token: "MIM_3LP3CRV",
   },
 
   cvxcrvCRVETH: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvCRVETH",
+    type: OracleType.THE_SAME_AS,
+    token: "crvCRVETH",
   },
   cvxcrvCVXETH: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvCVXETH",
+    type: OracleType.THE_SAME_AS,
+    token: "crvCVXETH",
   },
   cvxcrvUSDTWBTCWETH: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvUSDTWBTCWETH",
+    type: OracleType.THE_SAME_AS,
+    token: "crvUSDTWBTCWETH",
   },
 
   cvxLDOETH: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "LDOETH",
+    type: OracleType.THE_SAME_AS,
+    token: "LDOETH",
   },
 
   // CVX tokens
   stkcvx3Crv: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "3Crv",
+    type: OracleType.THE_SAME_AS,
+    token: "3Crv",
   },
   stkcvxcrvFRAX: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvFRAX",
+    type: OracleType.THE_SAME_AS,
+    token: "crvFRAX",
   },
   stkcvxsteCRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "steCRV",
+    type: OracleType.THE_SAME_AS,
+    token: "steCRV",
   },
   stkcvxFRAX3CRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "FRAX3CRV",
+    type: OracleType.THE_SAME_AS,
+    token: "FRAX3CRV",
   },
   stkcvxLUSD3CRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "LUSD3CRV",
+    type: OracleType.THE_SAME_AS,
+    token: "LUSD3CRV",
   },
   stkcvxcrvPlain3andSUSD: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvPlain3andSUSD",
+    type: OracleType.THE_SAME_AS,
+    token: "crvPlain3andSUSD",
   },
   stkcvxgusd3CRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "gusd3CRV",
+    type: OracleType.THE_SAME_AS,
+    token: "gusd3CRV",
   },
   stkcvxOHMFRAXBP: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "OHMFRAXBP",
+    type: OracleType.THE_SAME_AS,
+    token: "OHMFRAXBP",
   },
   stkcvxMIM_3LP3CRV: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "MIM_3LP3CRV",
+    type: OracleType.THE_SAME_AS,
+    token: "MIM_3LP3CRV",
   },
   stkcvxcrvCRVETH: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvCRVETH",
+    type: OracleType.THE_SAME_AS,
+    token: "crvCRVETH",
   },
   stkcvxcrvCVXETH: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvCVXETH",
+    type: OracleType.THE_SAME_AS,
+    token: "crvCVXETH",
   },
   stkcvxcrvUSDTWBTCWETH: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "crvUSDTWBTCWETH",
+    type: OracleType.THE_SAME_AS,
+    token: "crvUSDTWBTCWETH",
   },
   stkcvxLDOETH: {
-    type: OracleType.LIKE_CURVE_LP_TOKEN_ORACLE,
-    curveSymbol: "LDOETH",
+    type: OracleType.THE_SAME_AS,
+    token: "LDOETH",
   },
   "50OHM_50DAI": {
     type: OracleType.BALANCER_WEIGHTED_LP_ORACLE,
@@ -523,5 +527,53 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
   GEAR: {
     type: OracleType.CHAINLINK_ORACLE,
     address: { Mainnet: "", Arbitrum: "" },
+  },
+  aDAI: {
+    type: OracleType.THE_SAME_AS,
+    token: "DAI",
+  },
+  aUSDC: {
+    type: OracleType.THE_SAME_AS,
+    token: "USDC",
+  },
+  aUSDT: {
+    type: OracleType.THE_SAME_AS,
+    token: "USDT",
+  },
+  aWETH: {
+    type: OracleType.THE_SAME_AS,
+    token: "WETH",
+  },
+  waDAI: {
+    type: OracleType.WRAPPED_AAVE_V2_ORACLE,
+    underlying: "aDAI",
+  },
+  waUSDC: {
+    type: OracleType.WRAPPED_AAVE_V2_ORACLE,
+    underlying: "aUSDC",
+  },
+  waUSDT: {
+    type: OracleType.WRAPPED_AAVE_V2_ORACLE,
+    underlying: "aUSDT",
+  },
+  waWETH: {
+    type: OracleType.WRAPPED_AAVE_V2_ORACLE,
+    underlying: "aWETH",
+  },
+  cDAI: {
+    type: OracleType.COMPOUND_V2_ORACLE,
+    underlying: "DAI",
+  },
+  cUSDC: {
+    type: OracleType.COMPOUND_V2_ORACLE,
+    underlying: "USDC",
+  },
+  cUSDT: {
+    type: OracleType.COMPOUND_V2_ORACLE,
+    underlying: "USDT",
+  },
+  cWETH: {
+    type: OracleType.COMPOUND_V2_ORACLE,
+    underlying: "WETH",
   },
 };

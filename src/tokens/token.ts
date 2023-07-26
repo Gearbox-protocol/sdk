@@ -7,10 +7,23 @@ import {
   swapKeyValue,
 } from "../utils/mappers";
 import {
+  AaveV2LPToken,
+  AaveV2PoolTokenData,
+  aaveV2Tokens,
+  WrappedAaveV2LPToken,
+  WrappedAaveV2PoolTokenData,
+  wrappedAaveV2Tokens,
+} from "./aave";
+import {
   BalancerLPToken,
   BalancerLpTokenData,
   balancerLpTokens,
 } from "./balancer";
+import {
+  CompoundV2LPToken,
+  CompoundV2PoolTokenData,
+  compoundV2Tokens,
+} from "./compound";
 import {
   ConvexLPToken,
   ConvexLPTokenData,
@@ -46,7 +59,10 @@ export type LPTokens =
   | CurveLPToken
   | ConvexLPToken
   | ConvexStakedPhantomToken
-  | BalancerLPToken;
+  | BalancerLPToken
+  | AaveV2LPToken
+  | WrappedAaveV2LPToken
+  | CompoundV2LPToken;
 
 export type SupportedToken =
   | NormalToken
@@ -67,7 +83,10 @@ export type LPTokenDataI =
   | YearnVaultOfMetaCurveLPTokenData
   | ConvexLPTokenData
   | ConvexPhantomTokenData
-  | BalancerLpTokenData;
+  | BalancerLpTokenData
+  | AaveV2PoolTokenData
+  | WrappedAaveV2PoolTokenData
+  | CompoundV2PoolTokenData;
 
 export type TokenDataI =
   | NormalTokenData
@@ -80,6 +99,9 @@ export const lpTokens: Record<LPTokens, LPTokenDataI> = {
   ...convexTokens,
   ...yearnTokens,
   ...balancerLpTokens,
+  ...aaveV2Tokens,
+  ...wrappedAaveV2Tokens,
+  ...compoundV2Tokens,
 };
 
 export const supportedTokens: Record<SupportedToken, TokenDataI> = {
@@ -114,9 +136,10 @@ export const tokenDataByNetwork: Record<
     MIM: "0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3",
     SPELL: "0x090185f2135308BaD17527004364eBcC2D37e5F6",
     GMX: NOT_DEPLOYED,
-    ARB: NOT_DEPLOYED,
+    ARB: "0xB50721BCf8d664c30412Cfbc6cf7a15145234ad1",
     RDNT: NOT_DEPLOYED,
     BAL: "0xba100000625a3754423978a60c9317c58a424e3D",
+    SHIB: "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
 
     /// UPDATE
     STETH: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
@@ -197,6 +220,22 @@ export const tokenDataByNetwork: Record<
     dFRAX: "0x8A1112AFef7F4FC7c066a77AABBc01b3Fff31D47",
 
     GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D",
+
+    // AAVE
+    aUSDC: "0xBcca60bB61934080951369a648Fb03DF4F96263C",
+    aDAI: "0x028171bCA77440897B824Ca71D1c56caC55b68A3",
+    aUSDT: "0x3Ed3B47Dd13EC9a98b44e6204A523E766B225811",
+    aWETH: "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
+
+    waDAI: NOT_DEPLOYED,
+    waUSDC: NOT_DEPLOYED,
+    waUSDT: NOT_DEPLOYED,
+    waWETH: NOT_DEPLOYED,
+
+    cDAI: NOT_DEPLOYED,
+    cUSDC: NOT_DEPLOYED,
+    cUSDT: NOT_DEPLOYED,
+    cWETH: NOT_DEPLOYED,
   },
 
   ///
@@ -233,12 +272,15 @@ export const tokenDataByNetwork: Record<
     wstETH: "0x5979D7b546E38E414F7E9822514be443A4800529",
     CVX: "0xb952A807345991BD529FDded05009F5e80Fe8F45",
     FRAX: "0x17FC002b466eEc40DaE837Fc4bE5c67993ddBd6F",
-    FXS: "0x9d2F299715D94d8A7E6F5eaa8E654E8c74a988A7s",
+    FXS: "0x9d2F299715D94d8A7E6F5eaa8E654E8c74a988A7",
     LDO: "0x13Ad51ed4F1B7e9Dc168d8a00cB3f4dDD85EfA60",
     LUSD: "0x93b346b6BC2548dA6A1E7d98E9a421B42541425b",
     sUSD: "0xA970AF1a584579B618be4d69aD6F73459D112F95",
     GUSD: NOT_DEPLOYED,
     LQTY: "0xfb9E5D956D889D91a82737B9bFCDaC1DCE3e1449",
+
+    // REDSTONE
+    SHIB: NOT_DEPLOYED,
 
     // YEARN TOKENS
     yvDAI: NOT_DEPLOYED,
@@ -307,6 +349,22 @@ export const tokenDataByNetwork: Record<
     dFRAX: NOT_DEPLOYED,
 
     GEAR: NOT_DEPLOYED,
+
+    // AAVE
+    aUSDC: "0x724dc807b04555b71ed48a6896b6F41593b8C637",
+    aDAI: "0x82E64f49Ed5EC1bC6e43DAD4FC8Af9bb3A2312EE",
+    aUSDT: "0x6ab707Aca953eDAeFBc4fD23bA73294241490620",
+    aWETH: "0xe50fA9b3c56FfB159cB0FCA61F5c9D750e8128c8",
+
+    waDAI: NOT_DEPLOYED,
+    waUSDC: NOT_DEPLOYED,
+    waUSDT: NOT_DEPLOYED,
+    waWETH: NOT_DEPLOYED,
+
+    cDAI: NOT_DEPLOYED,
+    cUSDC: NOT_DEPLOYED,
+    cUSDT: NOT_DEPLOYED,
+    cWETH: NOT_DEPLOYED,
   },
 };
 
