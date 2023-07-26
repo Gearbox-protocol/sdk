@@ -10,7 +10,7 @@ import {
 import { NetworkType } from "../core/chains";
 import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
 import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
-import { objectEntries } from "../utils/mappers";
+import { TypedObjectUtils } from "../utils/mappers";
 import { AbstractParser } from "./abstractParser";
 import { AddressProviderParser } from "./addressProviderParser";
 import { AirdropDistributorParser } from "./airdropDistributorParser";
@@ -92,27 +92,34 @@ export class TxParser {
   }
 
   public static addContracts(network: NetworkType) {
-    objectEntries(contractParams).forEach(([contract, contractData]) => {
-      const address = contractsByNetwork[network][contract];
+    TypedObjectUtils.entries(contractParams).forEach(
+      ([contract, contractData]) => {
+        const address = contractsByNetwork[network][contract];
 
-      TxParser.chooseContractParser(address, contract, contractData.type, true);
+        TxParser.chooseContractParser(
+          address,
+          contract,
+          contractData.type,
+          true,
+        );
 
-      if (contractData.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL) {
-        (contractData as ConvexPoolParams).extraRewards.forEach(r => {
-          const extraAddress = r.poolAddress[network];
+        if (contractData.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL) {
+          (contractData as ConvexPoolParams).extraRewards.forEach(r => {
+            const extraAddress = r.poolAddress[network];
 
-          TxParser._addParser(
-            extraAddress,
-            new ConvexRewardPoolParser(r.rewardToken),
-          );
-        });
-      }
+            TxParser._addParser(
+              extraAddress,
+              new ConvexRewardPoolParser(r.rewardToken),
+            );
+          });
+        }
 
-      if (contractData.type === AdapterInterface.LIDO_V1) {
-        const extraAddress = (contractData as LidoParams).oracle[network];
-        TxParser._addParser(extraAddress, new LidoOracleParser());
-      }
-    });
+        if (contractData.type === AdapterInterface.LIDO_V1) {
+          const extraAddress = (contractData as LidoParams).oracle[network];
+          TxParser._addParser(extraAddress, new LidoOracleParser());
+        }
+      },
+    );
   }
 
   public static addCreditFacade(
@@ -123,7 +130,7 @@ export class TxParser {
   }
 
   public static addTokens(network: NetworkType) {
-    objectEntries(tokenDataByNetwork[network]).forEach(([s, t]) => {
+    TypedObjectUtils.entries(tokenDataByNetwork[network]).forEach(([s, t]) => {
       if (s === "STETH") {
         TxParser._addParser(t, new LidoSTETHParser(s));
       } else {

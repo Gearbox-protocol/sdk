@@ -1,5 +1,5 @@
 import { NetworkType } from "../core/chains";
-import { keyToLowercase } from "../utils/mappers";
+import { TypedObjectUtils } from "../utils/mappers";
 import { contractParams, contractsByAddress } from "./contracts";
 
 export const stEthPoolWrapper: Record<NetworkType, string> = {
@@ -102,7 +102,7 @@ const contractNames = Object.entries(contractsByAddress).reduce<
 }, {});
 
 const contractsFullList = {
-  ...keyToLowercase(deployedContracts),
+  ...TypedObjectUtils.keyToLowercase(deployedContracts),
   ...contractNames,
 };
 

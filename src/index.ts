@@ -58,7 +58,7 @@ export { TokenType } from "./tokens/tokenType";
 export * from "./tokens/yearn";
 export * from "./utils/errors";
 export { getPoolTokens, getUnderlyingToken } from "./utils/extracter";
-export { keyToLowercase, objectEntries, swapKeyValue } from "./utils/mappers";
+export * from "./utils/mappers";
 export * from "./utils/multicall";
 export * from "./utils/price";
 export { callRepeater } from "./utils/repeater";
