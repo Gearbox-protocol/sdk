@@ -10,12 +10,7 @@ import type { CurveLPToken } from "../tokens/curveLP";
 import { NormalToken } from "../tokens/normal";
 import { tokenDataByNetwork } from "../tokens/token";
 import type { YearnLPToken } from "../tokens/yearn";
-import {
-  filterEmptyKeys,
-  keyToLowercase,
-  objectEntries,
-  swapKeyValue,
-} from "../utils/mappers";
+import { TypedObjectUtils } from "../utils/mappers";
 import { AdapterInterface } from "./adapters";
 import { Protocols } from "./protocols";
 
@@ -699,12 +694,16 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   },
 };
 
-export const contractsByAddress = objectEntries(contractsByNetwork).reduce<
-  Record<string, SupportedContract>
->(
+export const contractsByAddress = TypedObjectUtils.entries(
+  contractsByNetwork,
+).reduce<Record<string, SupportedContract>>(
   (acc, [, contracts]) => ({
     ...acc,
-    ...filterEmptyKeys(keyToLowercase(swapKeyValue(contracts))),
+    ...TypedObjectUtils.fromEntries(
+      TypedObjectUtils.entries(contracts)
+        .map(([k, v]) => [v.toLowerCase(), k])
+        .filter(k => !!k) as Array<[string, SupportedContract]>,
+    ),
   }),
   {},
 );

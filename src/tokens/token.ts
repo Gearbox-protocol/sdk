@@ -1,11 +1,6 @@
 import { NetworkType } from "../core/chains";
 import { NOT_DEPLOYED } from "../core/constants";
-import {
-  filterEmptyKeys,
-  keyToLowercase,
-  objectEntries,
-  swapKeyValue,
-} from "../utils/mappers";
+import { TypedObjectUtils } from "../utils/mappers";
 import {
   BalancerLPToken,
   BalancerLpTokenData,
@@ -310,12 +305,19 @@ export const tokenDataByNetwork: Record<
   },
 };
 
-export const tokenSymbolByAddress = objectEntries(tokenDataByNetwork).reduce<
-  Record<string, SupportedToken>
->(
+export const tokenSymbolByAddress = TypedObjectUtils.entries(
+  tokenDataByNetwork,
+).reduce<Record<string, SupportedToken>>(
   (acc, [, tokens]) => ({
     ...acc,
-    ...filterEmptyKeys(keyToLowercase(swapKeyValue(tokens))),
+    ...{
+      ...acc,
+      ...TypedObjectUtils.fromEntries(
+        TypedObjectUtils.entries(tokens)
+          .map(([k, v]) => [v.toLowerCase(), k])
+          .filter(k => !!k) as Array<[string, SupportedToken]>,
+      ),
+    },
   }),
   {},
 );
