@@ -1,10 +1,11 @@
+/* eslint-disable max-nested-callbacks */
 import { ethers } from "ethers";
 
 import { CHAINS, NetworkType, supportedChains } from "../core/chains";
 import { IERC20Metadata__factory } from "../types";
 import { IERC20MetadataInterface } from "../types/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata";
 import safeMulticall, { KeyedCall } from "../utils/multicall";
-import { tokenDataByNetwork } from "./token";
+import { SupportedToken, tokenDataByNetwork } from "./token";
 
 const erc20 = IERC20Metadata__factory.createInterface();
 
@@ -33,7 +34,7 @@ const EXCEPTIONS_IN_SYMBOLS: Record<NetworkType, Record<string, string>> = {
 class TokenSuite {
   private readonly provider: ethers.providers.StaticJsonRpcProvider;
   public readonly network: NetworkType;
-  public readonly calls: KeyedCall<IERC20MetadataInterface>[];
+  public readonly calls: KeyedCall<IERC20MetadataInterface, SupportedToken>[];
   public readonly responses: Record<string, SymbolResponse> = {};
 
   constructor(network: NetworkType) {
@@ -49,9 +50,12 @@ class TokenSuite {
     // Omit NOT DEPLOYED
     const entries = Object.entries(tokenDataByNetwork[network]).filter(
       ([_, addr]) => addr?.startsWith("0x"),
-    );
+    ) as Array<[SupportedToken, string]>;
     this.calls = entries.map(
-      ([symbol, address]): KeyedCall<IERC20MetadataInterface> => ({
+      ([symbol, address]): KeyedCall<
+        IERC20MetadataInterface,
+        SupportedToken
+      > => ({
         address,
         interface: erc20,
         method: "symbol()",
@@ -113,6 +117,26 @@ class TokenSuite {
     }
   }
 
+  public assertChecksum(sdkSymbol: SupportedToken): void {
+    const sdkAddress = tokenDataByNetwork[this.network][sdkSymbol];
+    let err: Error | undefined;
+    try {
+      const addr = ethers.utils.getAddress(sdkAddress);
+      if (addr !== sdkAddress) {
+        err = new Error(
+          `sdk address for token ${sdkSymbol} is not checksummed: expected ${addr}, got ${sdkAddress}`,
+        );
+      }
+    } catch (e) {
+      err = new Error(
+        `sdk address ${sdkAddress} for token ${sdkSymbol} has bad checksum: ${e}`,
+      );
+    }
+    if (err) {
+      throw err;
+    }
+  }
+
   private sanitize(symbol: string): string {
     return symbol.replace(/\-f$/, "").replaceAll("-", "_");
   }
@@ -128,9 +152,12 @@ describe("Tokens", () => {
 
   suites.forEach(suite => {
     suite.calls.forEach(call => {
-      // eslint-disable-next-line max-nested-callbacks
-      it(`${call.key} on ${suite.network}`, () => {
+      it(`symbol for ${call.key} on ${suite.network}`, () => {
         suite.assertSymbol(call.key);
+      });
+
+      it(`address checksum for ${call.key} on ${suite.network}`, () => {
+        suite.assertChecksum(call.key);
       });
     });
   });
