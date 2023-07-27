@@ -19,409 +19,427 @@ import {
   TokenType,
 } from "../src";
 
-function safeEnum(t: string): string {
-  if (!isNaN(parseInt(t.charAt(0), 10))) {
-    return `_${t}`;
+class BindingsGenerator {
+  tokens: Array<SupportedToken>;
+
+  constructor() {
+    this.tokens = Object.keys(supportedTokens) as Array<SupportedToken>;
   }
-  return t;
-}
 
-const tokens: Array<SupportedToken> = Object.keys(supportedTokens).filter(
-  t => tokenDataByNetwork.Mainnet[t as SupportedToken] !== "",
-) as Array<SupportedToken>;
+  generateTokens() {
+    const tokensEnum = this.tokens.map(t => this.safeEnum(t)).join(",\n");
+    let data = `enum Tokens {${tokensEnum}}`;
 
-/// ---------------- Tokens.sol -----------------------------
+    const tokenTypeEnum = Object.values(TokenType)
+      .filter(v => isNaN(Number(v)))
+      .map(t => this.safeEnum(t as string))
+      .join(",\n");
 
-const tokensEnum = tokens.map(t => safeEnum(t)).join(",\n");
-let file = fs.readFileSync("./bindings/Tokens.sol").toString();
-file = file.replace(
-  "// $TOKENS$",
-  `enum Tokens {
-  NO_TOKEN,
-  LUNA,\n${tokensEnum}}\n`,
-);
-fs.writeFileSync("./contracts/Tokens.sol", file);
+    data += `enum TokenType {${tokenTypeEnum}}`;
 
-/// ---------------- TokensDataLive.sol ---------------------
+    this.makeBindings("Tokens.sol", data);
+  }
 
-const tokenTypeEnum = Object.values(TokenType)
-  .filter(v => isNaN(Number(v)))
-  .map(t => safeEnum(t as string))
-  .join(",\n");
+  /// ---------------- TokensDataLive.sol ---------------------
 
-let tokenAddresses = "";
+  generateTokenData() {
+    let data = "";
 
-for (const chain of supportedChains) {
-  const chainId = CHAINS[chain];
-  tokenAddresses += tokens
-    .map(t => {
-      const addr = tokenDataByNetwork[chain][t];
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
+      data += this.tokens
+        .map(t => {
+          const addr = tokenDataByNetwork[chain][t];
 
-      if (addr !== NOT_DEPLOYED) {
-        return `tokenDataByNetwork[${chainId}].push(TokenData({ id: Tokens.${safeEnum(
-          t,
-        )}, addr: ${addr}, symbol: "${t}", tokenType: TokenType.${
-          TokenType[supportedTokens[t].type]
-        } }));`;
-      } else return "";
-    })
+          if (addr !== NOT_DEPLOYED) {
+            return `tokenDataByNetwork[${chainId}].push(TokenData({ id: ${this.tokensEnum(
+              t,
+            )}, addr: ${addr}, symbol: "${t}", tokenType: TokenType.${
+              TokenType[supportedTokens[t].type]
+            } }));`;
+          } else return "";
+        })
 
-    .join("\n");
-}
+        .join("\n");
+    }
 
-file = fs.readFileSync("./bindings/TokensDataLive.sol").toString();
+    this.makeBindings("TokensData.sol", data);
+  }
 
-file = file.replace(
-  "// $ENUM_TOKENTYPE$",
-  `enum TokenType{\n${tokenTypeEnum}\n}`,
-);
+  /// ---------------- PriceFeedType.sol -----------------------------
+  generatePriceFeedType() {
+    const priceFeedTypeEnum = Object.values(OracleType)
+      .filter(v => isNaN(Number(v)))
+      .map(t => this.safeEnum(t as string))
+      .join(",\n");
 
-file = file.replace("// $TOKEN_ADDRESSES$", tokenAddresses);
-fs.writeFileSync("./contracts/TokensData.sol", file);
+    const data = `enum PriceFeedType {${priceFeedTypeEnum}}`;
 
-/// ---------------- PriceFeedType.sol -----------------------------
+    this.makeBindings("PriceFeedType.sol", data);
+  }
 
-const PriceFeedTypeEnum = Object.values(OracleType)
-  .filter(v => isNaN(Number(v)))
-  .map(t => safeEnum(t as string))
-  .join(",\n");
+  /// ---------------- PriceFeedDataLive.sol -----------------------------
+  generatePriceFeedData() {
+    let data = "";
 
-file = fs.readFileSync("./bindings/PriceFeedType.sol").toString();
-file = file.replace(
-  "// $ENUM_PRICEFEEDTYPE$",
-  `enum PriceFeedType{\n${PriceFeedTypeEnum}\n}`,
-);
-fs.writeFileSync("./contracts/PriceFeedType.sol", file);
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
 
-/// ---------------- PriceFeedDataLive.sol -----------------------------
-let chainlinkPriceFeeds = "";
+      data += Object.entries(priceFeedsByNetwork)
 
-for (const chain of supportedChains) {
-  const chainId = CHAINS[chain];
+        .map(([token, oracleData]) => {
+          if (oracleData.type === OracleType.CHAINLINK_ORACLE) {
+            const address: string = oracleData.address[chain];
 
-  chainlinkPriceFeeds += Object.entries(priceFeedsByNetwork)
-    .filter(([, oracleData]) => oracleData.type === OracleType.CHAINLINK_ORACLE)
-    .map(([token, oracleData]) => {
-      if (oracleData.type === OracleType.CHAINLINK_ORACLE) {
-        const address: string | undefined = oracleData.address[chain];
-
-        return address && address !== NOT_DEPLOYED
-          ? `chainlinkPriceFeedsByNetwork[${chainId}].push(ChainlinkPriceFeedData({
-    token: Tokens.${safeEnum(token as SupportedToken)},
+            return address && address !== NOT_DEPLOYED
+              ? `chainlinkPriceFeedsByNetwork[${chainId}].push(ChainlinkPriceFeedData({
+    token: ${this.tokensEnum(token)},
     priceFeed: ${address}
   }));`
-          : "";
-      }
+              : "";
+          }
 
-      return "";
-    })
-    .filter(t => t !== "")
-    .join("\n");
-}
+          return "";
+        })
+        .filter(t => t !== "")
+        .join("\n");
+    }
 
-const zeroPriceFeeds = Object.entries(priceFeedsByNetwork)
-  .filter(([, oracleData]) => oracleData.type === OracleType.ZERO_ORACLE)
-  .map(
-    ([token]) =>
-      `zeroPriceFeeds.push(SingeTokenPriceFeedData({ token: Tokens.${safeEnum(
-        token as SupportedToken,
-      )} }));`,
-  )
-  .join("\n");
+    data += this.generateSingeTokenPriceFeedData(
+      "zeroPriceFeeds",
+      OracleType.ZERO_ORACLE,
+    );
 
-const curvePriceFeeds = Object.entries(priceFeedsByNetwork)
-  .filter(
-    ([, oracleData]) =>
-      oracleData.type === OracleType.CURVE_2LP_ORACLE ||
-      oracleData.type === OracleType.CURVE_3LP_ORACLE ||
-      oracleData.type === OracleType.CURVE_4LP_ORACLE,
-  )
-  .map(([token, oracleData]) => {
-    if (
-      oracleData.type === OracleType.CURVE_2LP_ORACLE ||
-      oracleData.type === OracleType.CURVE_3LP_ORACLE ||
-      oracleData.type === OracleType.CURVE_4LP_ORACLE
-    ) {
-      const assets = oracleData.assets
-        .map(a => `Tokens.${safeEnum(a)}`)
-        .join(", ");
+    data += Object.entries(priceFeedsByNetwork)
 
-      return `curvePriceFeeds.push(CurvePriceFeedData({
-          lpToken: Tokens.${safeEnum(token as SupportedToken)},
+      .map(([token, oracleData]) => {
+        if (
+          oracleData.type === OracleType.CURVE_2LP_ORACLE ||
+          oracleData.type === OracleType.CURVE_3LP_ORACLE ||
+          oracleData.type === OracleType.CURVE_4LP_ORACLE
+        ) {
+          const assets = oracleData.assets
+            .map(t => this.tokensEnum(t))
+            .join(", ");
+
+          return `curvePriceFeeds.push(CurvePriceFeedData({
+          lpToken: ${this.tokensEnum(token)},
           assets: TokensLib.arrayOf(${assets}),
           pool: Contracts.${
             (lpTokens[token as LPTokens] as CurveLPTokenData).pool
           }
         }));`;
-    }
-    return "";
-  })
-  .filter(t => t !== "")
-  .join("\n");
+        }
+        return "";
+      })
+      .filter(t => t !== "")
+      .join("\n");
 
-const curveLikePriceFeeds = Object.entries(priceFeedsByNetwork)
-  .filter(
-    ([token, oracleData]) =>
-      oracleData.type === OracleType.THE_SAME_AS &&
-      tokenDataByNetwork.Mainnet[token as SupportedToken] !== "",
-  )
-  .map(([token, oracleData]) => {
-    if (oracleData.type === OracleType.THE_SAME_AS) {
-      const symbol = oracleData.token;
-      if (tokenDataByNetwork.Mainnet[token as SupportedToken] !== "") {
-        return `likeCurvePriceFeeds.push(CurveLikePriceFeedData({
-        lpToken: Tokens.${safeEnum(token as SupportedToken)},
-        curveToken: Tokens.${safeEnum(symbol as SupportedToken)}
+    data += Object.entries(priceFeedsByNetwork)
+      .map(([token, oracleData]) => {
+        if (oracleData.type === OracleType.THE_SAME_AS) {
+          const symbol = oracleData.token;
+          return `theSamePriceFeeds.push(TheSamePriceFeedData({
+        token: ${this.tokensEnum(token)},
+        tokenHasSamePriceFeed: ${this.tokensEnum(symbol as SupportedToken)}
       }));`;
-      }
-    }
-    return "";
-  })
-  .filter(t => t !== "")
-  .join("\n");
+        }
+        return "";
+      })
+      .filter(t => t !== "")
+      .join("\n");
 
-let boundedPriceFeeds = "";
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
 
-for (const chain of supportedChains) {
-  const chainId = CHAINS[chain];
+      data += Object.entries(priceFeedsByNetwork)
 
-  boundedPriceFeeds += Object.entries(priceFeedsByNetwork)
-    .filter(
-      ([token, oracleData]) =>
-        oracleData.type === OracleType.BOUNDED_ORACLE &&
-        tokenDataByNetwork[chain][token as SupportedToken] !== "",
-    )
-    .map(([token, oracleData]) => {
-      if (oracleData.type === OracleType.BOUNDED_ORACLE) {
-        const targetPriceFeed: string | undefined =
-          oracleData.targetPriceFeed[chain];
+        .map(([token, oracleData]) => {
+          if (oracleData.type === OracleType.BOUNDED_ORACLE) {
+            const targetPriceFeed: string | undefined =
+              oracleData.targetPriceFeed[chain];
 
-        return targetPriceFeed
-          ? `boundedPriceFeedsByNetwork[${chainId}].push(BoundedPriceFeedData({
-  token: Tokens.${safeEnum(token as SupportedToken)},
+            return targetPriceFeed !== NOT_DEPLOYED
+              ? `boundedPriceFeedsByNetwork[${chainId}].push(BoundedPriceFeedData({
+  token: ${this.tokensEnum(token)},
   priceFeed: ${targetPriceFeed},
   upperBound: ${oracleData.upperBound}
 }));`
-          : "";
-      }
-      return "";
-    })
-    .filter(t => t !== "")
-    .join("\n");
-}
+              : "";
+          }
+          return "";
+        })
+        .filter(t => t !== "")
+        .join("\n");
+    }
 
-let compositePriceFeeds = "";
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
 
-for (const chain of supportedChains) {
-  const chainId = CHAINS[chain];
+      data += Object.entries(priceFeedsByNetwork)
 
-  compositePriceFeeds += Object.entries(priceFeedsByNetwork)
-    .filter(
-      ([token, oracleData]) =>
-        oracleData.type === OracleType.COMPOSITE_ORACLE &&
-        tokenDataByNetwork[chain][token as SupportedToken] !== "",
-    )
-    .map(([token, oracleData]) => {
-      if (
-        oracleData.type === OracleType.COMPOSITE_ORACLE &&
-        oracleData.targetToBasePriceFeed[chain] !== NOT_DEPLOYED &&
-        oracleData.baseToUsdPriceFeed[chain] !== NOT_DEPLOYED
-      ) {
-        const targetToBaseFeed: string | undefined =
-          oracleData.targetToBasePriceFeed[chain];
-        const baseToUSDFeed: string | undefined =
-          oracleData.baseToUsdPriceFeed[chain];
+        .map(([token, oracleData]) => {
+          if (
+            oracleData.type === OracleType.COMPOSITE_ORACLE &&
+            oracleData.targetToBasePriceFeed[chain] !== NOT_DEPLOYED &&
+            oracleData.baseToUsdPriceFeed[chain] !== NOT_DEPLOYED
+          ) {
+            const targetToBaseFeed = oracleData.targetToBasePriceFeed[chain];
+            const baseToUSDFeed = oracleData.baseToUsdPriceFeed[chain];
 
-        return targetToBaseFeed && baseToUSDFeed
-          ? `compositePriceFeedsByNetwork[${chainId}].push(CompositePriceFeedData({
-        token: Tokens.${safeEnum(token as SupportedToken)},
+            return `compositePriceFeedsByNetwork[${chainId}].push(CompositePriceFeedData({
+        token: ${this.tokensEnum(token)},
         targetToBaseFeed: ${targetToBaseFeed},
         baseToUSDFeed: ${baseToUSDFeed}
-      }));`
-          : "";
-      }
-      return "";
-    })
-    .filter(t => t !== "")
-    .join("\n");
-}
-
-const yearnPriceFeeds = Object.entries(priceFeedsByNetwork)
-  .filter(([, oracleData]) => oracleData.type === OracleType.YEARN_ORACLE)
-  .map(
-    ([token]) =>
-      `yearnPriceFeeds.push(SingeTokenPriceFeedData({ token: Tokens.${safeEnum(
-        token as SupportedToken,
-      )} }));`,
-  )
-  .join("\n");
-
-const wstethPriceFeed = Object.entries(priceFeedsByNetwork)
-  .filter(([, oracleData]) => oracleData.type === OracleType.WSTETH_ORACLE)
-  .map(
-    ([token]) =>
-      `wstethPriceFeed = SingeTokenPriceFeedData({ token: Tokens.${safeEnum(
-        token as SupportedToken,
-      )} });`,
-  )
-  .join("\n");
-
-file = fs.readFileSync("./bindings/PriceFeedDataLive.sol").toString();
-
-file = file.replace("// $CHAINLINK_PRICE_FEEDS", chainlinkPriceFeeds);
-
-file = file.replace("// $ZERO_PRICE_FEEDS", zeroPriceFeeds);
-file = file.replace("// $CURVE_PRICE_FEEDS", curvePriceFeeds);
-file = file.replace("// $CURVE_LIKE_PRICE_FEEDS", curveLikePriceFeeds);
-
-file = file.replace("// $BOUNDED_PRICE_FEEDS", boundedPriceFeeds);
-file = file.replace("// $COMPOSITE_PRICE_FEEDS", compositePriceFeeds);
-
-file = file.replace("// $YEARN_PRICE_FEEDS", yearnPriceFeeds);
-file = file.replace("// $WSTETH_PRICE_FEED", wstethPriceFeed);
-
-fs.writeFileSync("./contracts/PriceFeedDataLive.sol", file);
-
-/// ---------------- SupportedContracts.sol -----------------------------
-
-const contracts: Array<SupportedContract> = Object.keys(
-  contractsByNetwork.Mainnet,
-) as Array<SupportedContract>;
-
-const contractsEnum = `enum Contracts {NO_CONTRACT, ${contracts.join(",\n")} }`;
-
-let contractAddresses = `cd = new  ContractData[](${contracts.length});`;
-contractAddresses += contracts
-  .map((t, num) => {
-    if (contractsByNetwork.Mainnet[t] !== NOT_DEPLOYED) {
-      return `cd[${num}] = ContractData({ id: Contracts.${t}, addr:  ${contractsByNetwork.Mainnet[t]}, name: "${t}" });`;
-    } else return "";
-  })
-  .join("\n");
-
-file = fs.readFileSync("./bindings/SupportedContracts.sol").toString();
-
-file = file.replace("// $CONTRACTS_ENUM$", contractsEnum);
-file = file.replace("// $CONTRACTS_ADDRESSES$", contractAddresses);
-
-fs.writeFileSync("./contracts/SupportedContracts.sol", file);
-
-/// ---------------- AdapterType.sol -----------------------------
-
-const adapterTypeEnum = Object.values(AdapterInterface)
-  .filter(v => isNaN(Number(v)))
-  .map(t => safeEnum(t as string))
-  .join(",\n");
-
-file = fs.readFileSync("./bindings/AdapterType.sol").toString();
-file = file.replace(
-  "// $ENUM_ADAPTERTYPE$",
-  `enum AdapterType{\n${adapterTypeEnum}\n}`,
-);
-fs.writeFileSync("./contracts/AdapterType.sol", file);
-
-/// ---------------- AdapterData.sol -----------------------------
-let adapters = Object.entries(contractParams)
-  .filter(
-    ([, contractParam]) =>
-      contractParam.type === AdapterInterface.UNISWAP_V2_ROUTER ||
-      contractParam.type === AdapterInterface.UNISWAP_V3_ROUTER ||
-      contractParam.type === AdapterInterface.YEARN_V2 ||
-      contractParam.type === AdapterInterface.CONVEX_V1_BOOSTER ||
-      contractParam.type === AdapterInterface.LIDO_V1 ||
-      contractParam.type === AdapterInterface.UNIVERSAL ||
-      contractParam.type === AdapterInterface.LIDO_WSTETH_V1,
-  )
-  .map(
-    ([contract, contractParam]) =>
-      `simpleAdapters.push(SimpleAdapter({targetContract:  Contracts.${contract},
-        adapterType: AdapterType.${AdapterInterface[contractParam.type]}}));`,
-  )
-  .join("\n");
-
-adapters += Object.entries(contractParams)
-  .filter(
-    ([, contractParam]) =>
-      contractParam.type === AdapterInterface.CURVE_V1_2ASSETS ||
-      contractParam.type === AdapterInterface.CURVE_V1_3ASSETS ||
-      contractParam.type === AdapterInterface.CURVE_V1_4ASSETS,
-  )
-  .map(([contract, contractParam]) => {
-    if (
-      contractParam.type === AdapterInterface.CURVE_V1_2ASSETS ||
-      contractParam.type === AdapterInterface.CURVE_V1_3ASSETS ||
-      contractParam.type === AdapterInterface.CURVE_V1_4ASSETS
-    ) {
-      if (contractParam.lpToken === "GEAR") return "";
-      const basePool: SupportedContract | "NO_CONTRACT" =
-        contractParam.tokens.includes("3Crv")
-          ? "CURVE_3CRV_POOL"
-          : "NO_CONTRACT";
-      return `curveAdapters.push(CurveAdapter({targetContract:  Contracts.${contract},
-  adapterType: AdapterType.${
-    AdapterInterface[contractParam.type]
-  }, lpToken: Tokens.${safeEnum(
-        contractParam.lpToken,
-      )}, basePool: Contracts.${basePool}}));`;
+      }));`;
+          }
+          return "";
+        })
+        .filter(t => t !== "")
+        .join("\n");
     }
 
-    return "";
-  })
-  .join("\n");
+    data += this.generateSingeTokenPriceFeedData(
+      "yearnPriceFeeds",
+      OracleType.YEARN_ORACLE,
+    );
 
-adapters += Object.entries(contractParams)
-  .filter(
-    ([, contractParam]) =>
-      contractParam.type === AdapterInterface.CURVE_V1_STECRV_POOL,
-  )
-  .map(([contract, contractParam]) => {
-    if (contractParam.type === AdapterInterface.CURVE_V1_STECRV_POOL) {
-      return `curveStEthAdapter = CurveStETHAdapter({curveETHGateway:  Contracts.${contract},
+    data += this.generateSingeTokenPriceFeedData(
+      "wstethPriceFeed",
+      OracleType.WSTETH_ORACLE,
+    );
+
+    data += this.generateGenericLPPriceFeedData(
+      "wrappedAaveV2PriceFeeds",
+      OracleType.WRAPPED_AAVE_V2_ORACLE,
+    );
+
+    data += this.generateGenericLPPriceFeedData(
+      "compoundV2PriceFeeds",
+      OracleType.COMPOUND_V2_ORACLE,
+    );
+
+    data += this.generateGenericLPPriceFeedData(
+      "erc4626PriceFeeds",
+      OracleType.ERC4626_VAULT_ORACLE,
+    );
+
+    this.makeBindings("PriceFeedDataLive.sol", data);
+  }
+
+  protected generateSingeTokenPriceFeedData(
+    varName: string,
+    oracleType: OracleType,
+  ): string {
+    return Object.entries(priceFeedsByNetwork)
+      .filter(([, oracleData]) => oracleData.type === oracleType)
+      .map(([token]) => {
+        const structure = `SingeTokenPriceFeedData({ token: ${this.tokensEnum(
+          token,
+        )} })`;
+
+        return oracleType === OracleType.WSTETH_ORACLE
+          ? `${varName} = ${structure};`
+          : `${varName}.push(${structure});`;
+      })
+      .join("\n");
+  }
+
+  protected generateGenericLPPriceFeedData(
+    varName: string,
+    oracleType: OracleType,
+  ): string {
+    return Object.entries(priceFeedsByNetwork)
+      .filter(([, oracleData]) => oracleData.type === oracleType)
+      .map(([token, oracleData]) => {
+        if (
+          oracleData.type === OracleType.WRAPPED_AAVE_V2_ORACLE ||
+          oracleData.type === OracleType.COMPOUND_V2_ORACLE ||
+          // @ts-ignore
+          oracleData.type === OracleType.ERC4626_VAULT_ORACLE
+        ) {
+          return `${varName}.push(GenericLPPriceFeedData({ lpToken: ${this.tokensEnum(
+            token,
+          )}, underlying: ${this.tokensEnum(
+            oracleData.underlying as SupportedToken,
+          )}}));`;
+        } else return "";
+      })
+      .join("\n");
+  }
+
+  /// ---------------- SupportedContracts.sol -----------------------------
+
+  generateSupportedContracts() {
+    const contracts: Array<SupportedContract> = Object.keys(
+      contractsByNetwork.Mainnet,
+    ) as Array<SupportedContract>;
+
+    let data = `enum Contracts {NO_CONTRACT, ${contracts.join(",\n")} }`;
+
+    this.makeBindings("ContractType.sol", data);
+
+    data = `cd = new ContractData[](${contracts.length});`;
+    data += contracts
+      .map((t, num) => {
+        if (contractsByNetwork.Mainnet[t] !== NOT_DEPLOYED) {
+          return `cd[${num}] = ContractData({ id: Contracts.${t}, addr:  ${contractsByNetwork.Mainnet[t]}, name: "${t}" });`;
+        } else return "";
+      })
+      .join("\n");
+
+    this.makeBindings(
+      "SupportedContracts.sol",
+
+      data,
+    );
+  }
+  /// ---------------- AdapterType.sol -----------------------------
+
+  generateAdapterType() {
+    const adapterTypeEnum = Object.values(AdapterInterface)
+      .filter(v => isNaN(Number(v)))
+      .map(t => this.safeEnum(t as string))
+      .join(",\n");
+
+    const data = `enum AdapterType {${adapterTypeEnum}}`;
+    this.makeBindings("AdapterType.sol", data);
+  }
+
+  /// ---------------- AdapterData.sol -----------------------------
+  generateAdapterData() {
+    let data = Object.entries(contractParams)
+      .filter(
+        ([, contractParam]) =>
+          contractParam.type === AdapterInterface.UNISWAP_V2_ROUTER ||
+          contractParam.type === AdapterInterface.UNISWAP_V3_ROUTER ||
+          contractParam.type === AdapterInterface.YEARN_V2 ||
+          contractParam.type === AdapterInterface.CONVEX_V1_BOOSTER ||
+          contractParam.type === AdapterInterface.LIDO_V1 ||
+          contractParam.type === AdapterInterface.UNIVERSAL ||
+          contractParam.type === AdapterInterface.LIDO_WSTETH_V1,
+      )
+      .map(
+        ([contract, contractParam]) =>
+          `simpleAdapters.push(SimpleAdapter({targetContract:  Contracts.${contract},
+        adapterType: AdapterType.${AdapterInterface[contractParam.type]}}));`,
+      )
+      .join("\n");
+
+    data += Object.entries(contractParams)
+      .filter(
+        ([, contractParam]) =>
+          contractParam.type === AdapterInterface.CURVE_V1_2ASSETS ||
+          contractParam.type === AdapterInterface.CURVE_V1_3ASSETS ||
+          contractParam.type === AdapterInterface.CURVE_V1_4ASSETS,
+      )
+      .map(([contract, contractParam]) => {
+        if (
+          contractParam.type === AdapterInterface.CURVE_V1_2ASSETS ||
+          contractParam.type === AdapterInterface.CURVE_V1_3ASSETS ||
+          contractParam.type === AdapterInterface.CURVE_V1_4ASSETS
+        ) {
+          if (contractParam.lpToken === "GEAR") return "";
+          const basePool: SupportedContract | "NO_CONTRACT" =
+            contractParam.tokens.includes("3Crv")
+              ? "CURVE_3CRV_POOL"
+              : "NO_CONTRACT";
+          return `curveAdapters.push(CurveAdapter({targetContract:  Contracts.${contract},
+  adapterType: AdapterType.${
+    AdapterInterface[contractParam.type]
+  }, lpToken: ${this.tokensEnum(
+            contractParam.lpToken,
+          )}, basePool: Contracts.${basePool}}));`;
+        }
+
+        return "";
+      })
+      .join("\n");
+
+    data += Object.entries(contractParams)
+      .filter(
+        ([, contractParam]) =>
+          contractParam.type === AdapterInterface.CURVE_V1_STECRV_POOL,
+      )
+      .map(([contract, contractParam]) => {
+        if (contractParam.type === AdapterInterface.CURVE_V1_STECRV_POOL) {
+          return `curveStEthAdapter = CurveStETHAdapter({curveETHGateway:  Contracts.${contract},
         adapterType: AdapterType.${
           AdapterInterface[contractParam.type]
-        }, lpToken: Tokens.${safeEnum(contractParam.lpToken)}});`;
-    }
-    return "";
-  })
-  .join("\n");
+        }, lpToken: ${this.tokensEnum(contractParam.lpToken)}});`;
+        }
+        return "";
+      })
+      .join("\n");
 
-adapters += Object.entries(contractParams)
-  .filter(
-    ([, contractParam]) =>
-      contractParam.type === AdapterInterface.CURVE_V1_WRAPPER,
-  )
-  .map(([contract, contractParam]) => {
-    if (contractParam.type === AdapterInterface.CURVE_V1_WRAPPER) {
-      return `curveWrappers.push(CurveWrapper({targetContract:  Contracts.${contract},
+    data += Object.entries(contractParams)
+      .filter(
+        ([, contractParam]) =>
+          contractParam.type === AdapterInterface.CURVE_V1_WRAPPER,
+      )
+      .map(([contract, contractParam]) => {
+        if (contractParam.type === AdapterInterface.CURVE_V1_WRAPPER) {
+          return `curveWrappers.push(CurveWrapper({targetContract:  Contracts.${contract},
   adapterType: AdapterType.${
     AdapterInterface[contractParam.type]
-  }, lpToken: Tokens.${safeEnum(contractParam.lpToken)}, nCoins: ${
-        contractParam.tokens.length
-      }}));`;
-    }
-    return "";
-  })
-  .join("\n");
+  }, lpToken: ${this.tokensEnum(contractParam.lpToken)}, nCoins: ${
+            contractParam.tokens.length
+          }}));`;
+        }
+        return "";
+      })
+      .join("\n");
 
-adapters += Object.entries(contractParams)
-  .filter(
-    ([, contractParam]) =>
-      contractParam.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL &&
-      tokens.includes(contractParam.stakedToken),
-  )
-  .map(([contract, contractParam]) => {
-    if (contractParam.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL) {
-      return `convexBasePoolAdapters.push(ConvexBasePoolAdapter({targetContract:  Contracts.${contract},
+    data += Object.entries(contractParams)
+      .filter(
+        ([, contractParam]) =>
+          contractParam.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL &&
+          this.tokens.includes(contractParam.stakedToken),
+      )
+      .map(([contract, contractParam]) => {
+        if (
+          contractParam.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL
+        ) {
+          return `convexBasePoolAdapters.push(ConvexBasePoolAdapter({targetContract:  Contracts.${contract},
   adapterType: AdapterType.${
     AdapterInterface[contractParam.type]
-  }, stakedToken: Tokens.${safeEnum(contractParam.stakedToken)}}));`;
+  }, stakedToken: ${this.tokensEnum(contractParam.stakedToken)}}));`;
+        }
+        return "";
+      })
+      .join("\n");
+
+    this.makeBindings("AdapterData.sol", data);
+  }
+
+  //
+  // INTERNAL FUNCTIONS
+  //
+
+  private makeBindings(fileName: string, replacement: string) {
+    let content = fs.readFileSync(`./bindings/${fileName}`, "utf8");
+    content = content.replace("// $GENERATE_HERE$", replacement);
+    fs.writeFileSync(`./contracts/${fileName}`, content);
+  }
+
+  private safeEnum(t: string): string {
+    if (!isNaN(parseInt(t.charAt(0), 10))) {
+      return `_${t}`;
     }
-    return "";
-  })
-  .join("\n");
+    return t;
+  }
 
-file = fs.readFileSync("./bindings/AdapterData.sol").toString();
+  private tokensEnum(t: string): string {
+    return `Tokens.${this.safeEnum(t)}`;
+  }
+}
 
-file = file.replace("// $ADAPTERS_LIST", adapters);
+const generator = new BindingsGenerator();
 
-fs.writeFileSync("./contracts/AdapterData.sol", file);
+generator.generateTokens();
+generator.generateTokenData();
+generator.generatePriceFeedType();
+generator.generatePriceFeedData();
+generator.generateSupportedContracts();
+generator.generateAdapterType();
+generator.generateAdapterData();

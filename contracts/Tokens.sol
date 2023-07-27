@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 // Gearbox. Generalized leverage protocol that allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
-// (c) Gearbox Holdings, 2023
+// (c) Gearbox Foundation, 2023
 pragma solidity ^0.8.17;
 
 /// @dev c-Tokens and LUNA are added for unit test purposes
 enum Tokens {
-    NO_TOKEN,
-    LUNA,
     _1INCH,
     AAVE,
     COMP,
@@ -107,4 +105,20 @@ enum Tokens {
     dwstETH,
     dFRAX,
     GEAR
+}
+
+enum TokenType {
+    NO_TOKEN,
+    NORMAL_TOKEN,
+    CURVE_LP_TOKEN,
+    YEARN_ON_NORMAL_TOKEN,
+    YEARN_ON_CURVE_TOKEN,
+    CONVEX_LP_TOKEN,
+    CONVEX_STAKED_TOKEN,
+    DIESEL_LP_TOKEN,
+    GEAR_TOKEN,
+    COMPOUND_V2_C_TOKEN,
+    BALANCER_LP_TOKEN,
+    AAVE_V2_A_TOKEN,
+    WRAPPED_AAVE_V2_TOKEN
 }

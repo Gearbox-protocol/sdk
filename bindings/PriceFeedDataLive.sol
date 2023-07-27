@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 // Gearbox. Generalized leverage protocol that allows to take leverage and then use it across other DeFi protocols and platforms in a composable way.
-// (c) Gearbox Holdings, 2023
+// (c) Gearbox Foundation, 2023
 pragma solidity ^0.8.17;
 
 import {Tokens} from "./Tokens.sol";
@@ -19,9 +19,9 @@ struct CurvePriceFeedData {
     Contracts pool;
 }
 
-struct CurveLikePriceFeedData {
-    Tokens lpToken;
-    Tokens curveToken;
+struct TheSamePriceFeedData {
+    Tokens token;
+    Tokens tokenHasSamePriceFeed;
 }
 
 struct SingeTokenPriceFeedData {
@@ -40,29 +40,37 @@ struct BoundedPriceFeedData {
     uint256 upperBound;
 }
 
+struct GenericLPPriceFeedData {
+    Tokens lpToken;
+    Tokens underlying;
+}
+
+struct RedStonePriceFeedData {
+    string tokenSymbol;
+    bytes32 dataFeedId;
+    address[10] signers;
+    uint8 signersThreshold;
+}
+
 contract PriceFeedDataLive {
     uint16 networkId;
 
     mapping(uint16 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
     SingeTokenPriceFeedData[] zeroPriceFeeds;
     CurvePriceFeedData[] curvePriceFeeds;
-    CurveLikePriceFeedData[] likeCurvePriceFeeds;
+    TheSamePriceFeedData[] theSamePriceFeeds;
     SingeTokenPriceFeedData[] yearnPriceFeeds;
     mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
     mapping(uint16 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
     SingeTokenPriceFeedData wstethPriceFeed;
+    GenericLPPriceFeedData[] wrappedAaveV2PriceFeeds;
+    GenericLPPriceFeedData[] compoundV2PriceFeeds;
+    GenericLPPriceFeedData[] erc4626PriceFeeds;
+    RedStonePriceFeedData[] redStonePriceFeeds;
 
     constructor(uint16 _networkId) {
         networkId = _networkId;
-        // $CHAINLINK_PRICE_FEEDS
-        // $CURVE_LIKE_PRICE_FEEDS
-        // $COMPOSITE_PRICE_FEEDS
-        // $BOUNDED_PRICE_FEEDS
-
-        // $ZERO_PRICE_FEEDS
-        // $CURVE_PRICE_FEEDS
-        // $YEARN_PRICE_FEEDS
-        // $WSTETH_PRICE_FEED
+        // $GENERATE_HERE$
     }
 
     function chainlinkPriceFeeds(uint256 index) external view returns (ChainlinkPriceFeedData memory) {
