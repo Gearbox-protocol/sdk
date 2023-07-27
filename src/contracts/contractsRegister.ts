@@ -8,38 +8,22 @@ export const stEthPoolWrapper: Record<NetworkType, string> = {
 };
 
 export const CREDIT_MANAGER_DAI_V2_MAINNET =
-  "0x672461bfc20dd783444a830ad4c38b345ab6e2f7".toLowerCase();
+  "0x672461Bfc20DD783444a830Ad4c38b345aB6E2f7".toLowerCase();
 
 export const CREDIT_MANAGER_USDC_V2_MAINNET =
   "0x95357303f995e184A7998dA6C6eA35cC728A1900".toLowerCase();
 
 export const CREDIT_MANAGER_WETH_V2_MAINNET =
-  "0x5887ad4cb2352e7f01527035faa3ae0ef2ce2b9b".toLowerCase();
+  "0x5887ad4Cb2352E7F01527035fAa3AE0Ef2cE2b9B".toLowerCase();
 
 export const CREDIT_MANAGER_WSTETH_V2_MAINNET =
-  "0xe0bce4460795281d39c91da9b0275bca968293de".toLowerCase();
+  "0xe0bCE4460795281d39c91da9B0275BcA968293de".toLowerCase();
 
 export const CREDIT_MANAGER_WBTC_V2_MAINNET =
-  "0xc62bf8a7889adf1c5dc4665486c7683ae6e74e0f".toLowerCase();
+  "0xc62BF8a7889AdF1c5Dc4665486c7683ae6E74e0F".toLowerCase();
 
 export const CREDIT_MANAGER_FRAX_V2_MAINNET =
-  "0xa3e1e0d58fe8dd8c9dd48204699a1178f1b274d8".toLowerCase();
-
-// Arbitrum
-export const CREDIT_MANAGER_DAI_V2_ARBITRUM =
-  "0xf7ba434952acaa2e12035a2c3643ca327914a470".toLowerCase();
-
-export const CREDIT_MANAGER_USDC_V2_ARBITRUM =
-  "0x2144a7785baecbab32295188285717cad6c1a11c".toLowerCase();
-
-export const CREDIT_MANAGER_WETH_V2_ARBITRUM =
-  "0x2ad4a2f1bdd815e285a22cdcc072fbb43818b09b".toLowerCase();
-
-export const CREDIT_MANAGER_WSTETH_V2_ARBITRUM =
-  "0x40d542a5c15b2c0c65af047984c285c2c30847af".toLowerCase();
-
-export const CREDIT_MANAGER_WBTC_V2_ARBITRUM =
-  "0x6546dd4e8d507e3e45bb924818c0bad2a3aa2c5f".toLowerCase();
+  "0xA3E1e0d58FE8dD8C9dd48204699a1178f1B274D8".toLowerCase();
 
 export type CreditManagersV2 =
   | typeof CREDIT_MANAGER_DAI_V2_MAINNET
@@ -47,13 +31,7 @@ export type CreditManagersV2 =
   | typeof CREDIT_MANAGER_WETH_V2_MAINNET
   | typeof CREDIT_MANAGER_WSTETH_V2_MAINNET
   | typeof CREDIT_MANAGER_WBTC_V2_MAINNET
-  | typeof CREDIT_MANAGER_DAI_V2_ARBITRUM
-  | typeof CREDIT_MANAGER_USDC_V2_ARBITRUM
-  | typeof CREDIT_MANAGER_WETH_V2_ARBITRUM
-  | typeof CREDIT_MANAGER_WSTETH_V2_ARBITRUM
-  | typeof CREDIT_MANAGER_WBTC_V2_ARBITRUM
   | typeof CREDIT_MANAGER_FRAX_V2_MAINNET;
-
 export const deployedContracts: Record<string, string> = {
   // MAINNET
   "0x777E23A2AcB2fCbB35f6ccF98272d03C722Ba6EB": "DAI",
@@ -76,20 +54,6 @@ export const deployedContracts: Record<string, string> = {
   [CREDIT_MANAGER_WSTETH_V2_MAINNET]: "wstETH",
   [CREDIT_MANAGER_WBTC_V2_MAINNET]: "WBTC",
   [CREDIT_MANAGER_FRAX_V2_MAINNET]: "FRAX",
-
-  // Arbitrum CM
-  [CREDIT_MANAGER_DAI_V2_ARBITRUM]: "DAI",
-  [CREDIT_MANAGER_USDC_V2_ARBITRUM]: "USDC",
-  [CREDIT_MANAGER_WETH_V2_ARBITRUM]: "WETH",
-  [CREDIT_MANAGER_WSTETH_V2_ARBITRUM]: "wstETH",
-  [CREDIT_MANAGER_WBTC_V2_ARBITRUM]: "WBTC",
-
-  // Arbitrum pools
-  "0xfb422e503f8b768184aba5e73587543d1c871a23": "DAI",
-  "0x7c14c88f672d5513c8fa640fa48815f40c781a60": "USDC",
-  "0x13376d637ded73a0df20d192f691a88c8af7dd0a": "ETH/WETH",
-  "0x3f926a46893af659c2768f118d5f189190baa15c": "WBTC",
-  "0xbdf0395fa6f134b8de35ef30c61b2b9711cbd67a": "wstETH",
 };
 
 const contractNames = Object.entries(contractsByAddress).reduce<

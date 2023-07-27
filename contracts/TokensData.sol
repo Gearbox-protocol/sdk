@@ -167,12 +167,6 @@ tokenDataByNetwork[42161].push(TokenData({ id: Tokens.RDNT, addr: 0x3082CC23568e
 tokenDataByNetwork[42161].push(TokenData({ id: Tokens.BAL, addr: 0x040d1EdC9569d4Bab2D15287Dc5A4F10F56a56B8, symbol: "BAL", tokenType: TokenType.NORMAL_TOKEN }));
 
 
-tokenDataByNetwork[42161].push(TokenData({ id: Tokens.crvFRAX, addr: 0xc9b8a3fdecb9d5b218d02555a8baf332e5b740d5, symbol: "crvFRAX", tokenType: TokenType.CURVE_LP_TOKEN }));
-tokenDataByNetwork[42161].push(TokenData({ id: Tokens.steCRV, addr: 0x06325440d014e39736583c165c2963ba99faf14e, symbol: "steCRV", tokenType: TokenType.CURVE_LP_TOKEN }));
-
-
-
-tokenDataByNetwork[42161].push(TokenData({ id: Tokens.crvUSDTWBTCWETH, addr: 0x8e0b8c8bb9db49a46697f3a5bb8a308e744821d2, symbol: "crvUSDTWBTCWETH", tokenType: TokenType.CURVE_LP_TOKEN }));
 
 
 
@@ -212,7 +206,13 @@ tokenDataByNetwork[42161].push(TokenData({ id: Tokens.crvUSDTWBTCWETH, addr: 0x8
 
 
 
-tokenDataByNetwork[42161].push(TokenData({ id: Tokens._50OHM_50WETH, addr: 0x89dc7e71e362faf88d92288fe2311d25c6a1b5e0, symbol: "50OHM_50WETH", tokenType: TokenType.BALANCER_LP_TOKEN }));
+
+
+
+
+
+
+tokenDataByNetwork[42161].push(TokenData({ id: Tokens._50OHM_50WETH, addr: 0x89dc7e71e362faF88D92288fE2311D25c6a1B5E0, symbol: "50OHM_50WETH", tokenType: TokenType.BALANCER_LP_TOKEN }));
 
 tokenDataByNetwork[42161].push(TokenData({ id: Tokens.aDAI, addr: 0x82E64f49Ed5EC1bC6e43DAD4FC8Af9bb3A2312EE, symbol: "aDAI", tokenType: TokenType.AAVE_V2_A_TOKEN }));
 tokenDataByNetwork[42161].push(TokenData({ id: Tokens.aUSDC, addr: 0x724dc807b04555b71ed48a6896b6F41593b8C637, symbol: "aUSDC", tokenType: TokenType.AAVE_V2_A_TOKEN }));

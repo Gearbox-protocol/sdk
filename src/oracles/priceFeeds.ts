@@ -9,7 +9,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0xc929ad75B72593967DE83E7F7Cda0493458261D9",
-      Arbitrum: "0x4bc735ef24bf286983024cad5d03f0738865aaef",
+      Arbitrum: "0x4bC735Ef24bf286983024CAd5D03f0738865Aaef",
     },
   },
 
@@ -17,7 +17,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9",
-      Arbitrum: "0xad1d5344aade45f43e596773bcc4c423eabdd034",
+      Arbitrum: "0xaD1d5344AaDE45F43E596773Bcc4c423EAbdD034",
     },
   },
 
@@ -25,7 +25,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5",
-      Arbitrum: "0xe7c53ffd03eb6cef7d208bc4c13446c76d1e5884",
+      Arbitrum: "0xe7C53FFd03Eb6ceF7d208bC4C13446c76d1E5884",
     },
   },
 
@@ -33,7 +33,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0xCd627aA160A6fA45Eb793D19Ef54f5062F20f33f",
-      Arbitrum: "0xaebda2c976cfd1ee1977eac079b4382acb849325",
+      Arbitrum: "0xaebDA2c976cfd1eE1977Eac079B4382acb849325",
     },
   },
 
@@ -41,7 +41,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
-      Arbitrum: "0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb",
+      Arbitrum: "0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB",
     },
   },
 
@@ -73,7 +73,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c",
-      Arbitrum: "0x86e53cf1b870786351da77a57575e79cb55812cb",
+      Arbitrum: "0x86E53CF1B870786351Da77A57575e79CB55812CB",
     },
   },
 
@@ -81,7 +81,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0xDC3EA94CD0AC27d9A86C180091e7f78C683d3699",
-      Arbitrum: "0x054296f0d036b95531b4e14afb578b80cfb41252",
+      Arbitrum: "0x054296f0D036b95531B4E14aFB578B80CFb41252",
     },
   },
 
@@ -89,7 +89,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0x553303d460EE0afB37EdFf9bE42922D8FF63220e",
-      Arbitrum: "0x9c917083fdb403ab5adbec26ee294f6ecada2720",
+      Arbitrum: "0x9C917083fDb403ab5ADbEC26Ee294f6EcAda2720",
     },
   },
 
@@ -97,7 +97,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
-      Arbitrum: "0x50834f3163758fcc1df9973b6e91f0f0f0434ad3",
+      Arbitrum: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     },
   },
 
@@ -105,7 +105,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
-      Arbitrum: "0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7",
+      Arbitrum: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
     },
   },
 
@@ -113,11 +113,11 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.COMPOSITE_ORACLE,
     targetToBasePriceFeed: {
       Mainnet: "0xfdFD9C85aD200c506Cf9e21F1FD8dd01932FBB23",
-      Arbitrum: "0x0017abac5b6f291f9164e35b1234ca1d697f9cf4",
+      Arbitrum: "0x0017abAc5b6f291F9164e35B1234CA1D697f9CF4",
     },
     baseToUsdPriceFeed: {
       Mainnet: "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
-      Arbitrum: "0x6ce185860a4963106506c203335a2910413708e9",
+      Arbitrum: "0x6ce185860a4963106506C203335A2910413708e9",
     },
   },
 
@@ -125,7 +125,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-      Arbitrum: "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612",
+      Arbitrum: "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
     },
   },
 
@@ -133,7 +133,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0xA027702dbb89fbd58938e4324ac03B58d812b0E1",
-      Arbitrum: "0x745ab5b69e01e2be1104ca84937bb71f96f5fb21",
+      Arbitrum: "0x745Ab5b69E01E2BE1104Ca84937Bb71f96f5fB21",
     },
   },
 
@@ -143,11 +143,11 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
 
     targetToBasePriceFeed: {
       Mainnet: "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
-      Arbitrum: "0xded2c52b75b24732e9107377b7ba93ec1ffa4baf",
+      Arbitrum: "0xded2c52b75B24732e9107377B7Ba93eC1fFa4BAf",
     },
     baseToUsdPriceFeed: {
       Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-      Arbitrum: "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612",
+      Arbitrum: "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
     },
   },
 
@@ -160,7 +160,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0xd962fC30A72A84cE50161031391756Bf2876Af5D",
-      Arbitrum: "0x851175a919f36c8e30197c09a9a49da932c2cc00",
+      Arbitrum: "0x851175a919f36c8e30197c09a9A49dA932c2CC00",
     },
   },
 
@@ -168,14 +168,14 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0xB9E1E3A9feFf48998E45Fa90847ed4D467E8BcfD",
-      Arbitrum: "0x0809e3d38d1b4214958faf06d8b1b1a2b73f2ab8",
+      Arbitrum: "0x0809E3d38d1B4214958faf06D8b1B1a2b73f2ab8",
     },
   },
   LUSD: {
     type: OracleType.BOUNDED_ORACLE,
     targetPriceFeed: {
       Mainnet: "0x3D7aE7E594f2f2091Ad8798313450130d0Aba3a0",
-      Arbitrum: "0x0411d28c94d85a36bc72cb0f875dfa8371d8ffff",
+      Arbitrum: "0x0411D28c94d85A36bC72Cb0f875dfA8371D8fFfF",
     },
     upperBound: (BigInt(1e8) * 11n) / 10n,
   },
@@ -191,7 +191,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0x6Ebc52C8C1089be9eB3945C4350B68B8E4C2233f",
-      Arbitrum: "0x36a121448d74fa81450c992a1a44b9b7377cd3a5",
+      Arbitrum: "0x36a121448D74Fa81450c992A1a44B9b7377CD3a5",
     },
   },
   LDO: {
@@ -203,7 +203,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     },
     baseToUsdPriceFeed: {
       Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-      Arbitrum: "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612",
+      Arbitrum: "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
     },
     // ADD ETH-> DAI Oracle!
   },
@@ -220,7 +220,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     },
     baseToUsdPriceFeed: {
       Mainnet: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-      Arbitrum: "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612",
+      Arbitrum: "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
     },
   },
 
@@ -236,7 +236,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: "0x8c110B94C5f1d347fAcF5E1E938AB2db60E3c9a8",
-      Arbitrum: "0x383b3624478124697bef675f07ca37570b73992f",
+      Arbitrum: "0x383b3624478124697BEF675F07cA37570b73992f",
     },
   },
 
@@ -244,7 +244,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: NOT_DEPLOYED,
-      Arbitrum: "0xdb98056fecfff59d032ab628337a4887110df3db",
+      Arbitrum: "0xDB98056FecFff59D032aB628337A4887110df3dB",
     },
   },
 
@@ -252,7 +252,7 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: NOT_DEPLOYED,
-      Arbitrum: "0xb2a824043730fe05f3da2efafa1cbbe83fa548d6",
+      Arbitrum: "0xb2A824043730FE05F3DA2efaFa1CBbe83fa548D6",
     },
   },
 
@@ -267,15 +267,15 @@ export const priceFeedsByNetwork: Record<SupportedToken, PriceFeedData> = {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
       Mainnet: NOT_DEPLOYED,
-      Arbitrum: "0x20d0fcab0ecfd078b036b6caf1fac69a6453b352",
+      Arbitrum: "0x20d0Fcab0ECFD078B036b6CAf1FaC69A6453b352",
     },
   },
 
   BAL: {
     type: OracleType.CHAINLINK_ORACLE,
     address: {
-      Mainnet: "0xdf2917806e30300537aeb49a7663062f4d1f2b5f",
-      Arbitrum: "0xbe5ea816870d11239c543f84b71439511d70b94f",
+      Mainnet: "0xdF2917806E30300537aEB49A7663062F4d1F2b5F",
+      Arbitrum: "0xBE5eA816870D11239c543F84b71439511D70B94f",
     },
   },
 

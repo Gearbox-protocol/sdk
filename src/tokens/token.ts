@@ -287,8 +287,8 @@ export const tokenDataByNetwork: Record<
 
     // CURVE LP TOKENS
     "3Crv": NOT_DEPLOYED,
-    crvFRAX: "0xc9b8a3fdecb9d5b218d02555a8baf332e5b740d5",
-    steCRV: "0x06325440d014e39736583c165c2963ba99faf14e",
+    crvFRAX: NOT_DEPLOYED,
+    steCRV: NOT_DEPLOYED,
     FRAX3CRV: NOT_DEPLOYED,
     LUSD3CRV: NOT_DEPLOYED,
     crvPlain3andSUSD: NOT_DEPLOYED,
@@ -297,7 +297,7 @@ export const tokenDataByNetwork: Record<
     MIM_3LP3CRV: NOT_DEPLOYED,
     crvCRVETH: NOT_DEPLOYED,
     crvCVXETH: NOT_DEPLOYED,
-    crvUSDTWBTCWETH: "0x8e0b8c8bb9db49a46697f3a5bb8a308e744821d2",
+    crvUSDTWBTCWETH: NOT_DEPLOYED,
     LDOETH: NOT_DEPLOYED,
 
     // CONVEX LP TOKENS
@@ -332,7 +332,7 @@ export const tokenDataByNetwork: Record<
 
     // BALANCER TOKENS
     "50OHM_50DAI": NOT_DEPLOYED,
-    "50OHM_50WETH": "0x89dc7e71e362faf88d92288fe2311d25c6a1b5e0",
+    "50OHM_50WETH": "0x89dc7e71e362faF88D92288fE2311D25c6a1B5E0",
     OHM_wstETH: NOT_DEPLOYED,
 
     // GEARBOX
