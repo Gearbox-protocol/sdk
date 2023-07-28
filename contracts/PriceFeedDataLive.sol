@@ -392,6 +392,26 @@ contract PriceFeedDataLive {
         compoundV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.cUSDC, underlying: Tokens.USDC}));
         compoundV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.cUSDT, underlying: Tokens.USDT}));
         compoundV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.cWETH, underlying: Tokens.WETH}));
+
+        redStonePriceFeeds.push(
+            RedStonePriceFeedData({
+                tokenSymbol: "SHIB",
+                dataFeedId: "redstone-main-demo",
+                signers: [
+                    0x0C39486f770B26F5527BBBf942726537986Cd7eb,
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0)
+                ],
+                signersThreshold: 1
+            })
+        );
     }
 
     function chainlinkPriceFeeds(uint256 index) external view returns (ChainlinkPriceFeedData memory) {

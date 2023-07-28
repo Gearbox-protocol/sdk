@@ -80,124 +80,20 @@ class BindingsGenerator {
 
   /// ---------------- PriceFeedDataLive.sol -----------------------------
   generatePriceFeedData() {
-    let data = "";
-
-    for (const chain of supportedChains) {
-      const chainId = CHAINS[chain];
-
-      data += Object.entries(priceFeedsByNetwork)
-
-        .map(([token, oracleData]) => {
-          if (oracleData.type === OracleType.CHAINLINK_ORACLE) {
-            const address: string = oracleData.address[chain];
-
-            return address && address !== NOT_DEPLOYED
-              ? `chainlinkPriceFeedsByNetwork[${chainId}].push(ChainlinkPriceFeedData({
-    token: ${this.tokensEnum(token)},
-    priceFeed: ${address}
-  }));`
-              : "";
-          }
-
-          return "";
-        })
-        .filter(t => t !== "")
-        .join("\n");
-    }
+    let data = this.generateChainlinkPriceFeedData();
 
     data += this.generateSingeTokenPriceFeedData(
       "zeroPriceFeeds",
       OracleType.ZERO_ORACLE,
     );
 
-    data += Object.entries(priceFeedsByNetwork)
+    data += this.generateCurvePriceFeedData();
 
-      .map(([token, oracleData]) => {
-        if (
-          oracleData.type === OracleType.CURVE_2LP_ORACLE ||
-          oracleData.type === OracleType.CURVE_3LP_ORACLE ||
-          oracleData.type === OracleType.CURVE_4LP_ORACLE
-        ) {
-          const assets = oracleData.assets
-            .map(t => this.tokensEnum(t))
-            .join(", ");
+    data += this.generateTheSamePriceFeedData();
 
-          return `curvePriceFeeds.push(CurvePriceFeedData({
-          lpToken: ${this.tokensEnum(token)},
-          assets: TokensLib.arrayOf(${assets}),
-          pool: Contracts.${
-            (lpTokens[token as LPTokens] as CurveLPTokenData).pool
-          }
-        }));`;
-        }
-        return "";
-      })
-      .filter(t => t !== "")
-      .join("\n");
+    data += this.generateBoundedPriceFeedData();
 
-    data += Object.entries(priceFeedsByNetwork)
-      .map(([token, oracleData]) => {
-        if (oracleData.type === OracleType.THE_SAME_AS) {
-          const symbol = oracleData.token;
-          return `theSamePriceFeeds.push(TheSamePriceFeedData({
-        token: ${this.tokensEnum(token)},
-        tokenHasSamePriceFeed: ${this.tokensEnum(symbol as SupportedToken)}
-      }));`;
-        }
-        return "";
-      })
-      .filter(t => t !== "")
-      .join("\n");
-
-    for (const chain of supportedChains) {
-      const chainId = CHAINS[chain];
-
-      data += Object.entries(priceFeedsByNetwork)
-
-        .map(([token, oracleData]) => {
-          if (oracleData.type === OracleType.BOUNDED_ORACLE) {
-            const targetPriceFeed: string | undefined =
-              oracleData.targetPriceFeed[chain];
-
-            return targetPriceFeed !== NOT_DEPLOYED
-              ? `boundedPriceFeedsByNetwork[${chainId}].push(BoundedPriceFeedData({
-  token: ${this.tokensEnum(token)},
-  priceFeed: ${targetPriceFeed},
-  upperBound: ${oracleData.upperBound}
-}));`
-              : "";
-          }
-          return "";
-        })
-        .filter(t => t !== "")
-        .join("\n");
-    }
-
-    for (const chain of supportedChains) {
-      const chainId = CHAINS[chain];
-
-      data += Object.entries(priceFeedsByNetwork)
-
-        .map(([token, oracleData]) => {
-          if (
-            oracleData.type === OracleType.COMPOSITE_ORACLE &&
-            oracleData.targetToBasePriceFeed[chain] !== NOT_DEPLOYED &&
-            oracleData.baseToUsdPriceFeed[chain] !== NOT_DEPLOYED
-          ) {
-            const targetToBaseFeed = oracleData.targetToBasePriceFeed[chain];
-            const baseToUSDFeed = oracleData.baseToUsdPriceFeed[chain];
-
-            return `compositePriceFeedsByNetwork[${chainId}].push(CompositePriceFeedData({
-        token: ${this.tokensEnum(token)},
-        targetToBaseFeed: ${targetToBaseFeed},
-        baseToUSDFeed: ${baseToUSDFeed}
-      }));`;
-          }
-          return "";
-        })
-        .filter(t => t !== "")
-        .join("\n");
-    }
+    data += this.generateCompositePriceFeedData();
 
     data += this.generateSingeTokenPriceFeedData(
       "yearnPriceFeeds",
@@ -224,7 +120,141 @@ class BindingsGenerator {
       OracleType.ERC4626_VAULT_ORACLE,
     );
 
+    data += this.generateRedStoneFeedData();
+
     this.makeBindings("PriceFeedDataLive.sol", data);
+  }
+
+  protected generateChainlinkPriceFeedData(): string {
+    let data = "";
+
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
+
+      data += Object.entries(priceFeedsByNetwork)
+
+        .map(([token, oracleData]) => {
+          if (oracleData.type === OracleType.CHAINLINK_ORACLE) {
+            const address: string = oracleData.address[chain];
+
+            return address && address !== NOT_DEPLOYED
+              ? `chainlinkPriceFeedsByNetwork[${chainId}].push(ChainlinkPriceFeedData({
+    token: ${this.tokensEnum(token)},
+    priceFeed: ${address}
+  }));`
+              : "";
+          }
+
+          return "";
+        })
+        .filter(t => t !== "")
+        .join("\n");
+    }
+
+    return data;
+  }
+
+  protected generateCurvePriceFeedData(): string {
+    return Object.entries(priceFeedsByNetwork)
+
+      .map(([token, oracleData]) => {
+        if (
+          oracleData.type === OracleType.CURVE_2LP_ORACLE ||
+          oracleData.type === OracleType.CURVE_3LP_ORACLE ||
+          oracleData.type === OracleType.CURVE_4LP_ORACLE
+        ) {
+          const assets = oracleData.assets
+            .map(t => this.tokensEnum(t))
+            .join(", ");
+
+          return `curvePriceFeeds.push(CurvePriceFeedData({
+        lpToken: ${this.tokensEnum(token)},
+        assets: TokensLib.arrayOf(${assets}),
+        pool: Contracts.${
+          (lpTokens[token as LPTokens] as CurveLPTokenData).pool
+        }
+      }));`;
+        }
+        return "";
+      })
+      .filter(t => t !== "")
+      .join("\n");
+  }
+
+  protected generateTheSamePriceFeedData(): string {
+    return Object.entries(priceFeedsByNetwork)
+      .map(([token, oracleData]) => {
+        if (oracleData.type === OracleType.THE_SAME_AS) {
+          const symbol = oracleData.token;
+          return `theSamePriceFeeds.push(TheSamePriceFeedData({
+    token: ${this.tokensEnum(token)},
+    tokenHasSamePriceFeed: ${this.tokensEnum(symbol as SupportedToken)}
+  }));`;
+        }
+        return "";
+      })
+      .filter(t => t !== "")
+      .join("\n");
+  }
+
+  protected generateBoundedPriceFeedData(): string {
+    let data = "";
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
+
+      data += Object.entries(priceFeedsByNetwork)
+
+        .map(([token, oracleData]) => {
+          if (oracleData.type === OracleType.BOUNDED_ORACLE) {
+            const targetPriceFeed: string | undefined =
+              oracleData.targetPriceFeed[chain];
+
+            return targetPriceFeed !== NOT_DEPLOYED
+              ? `boundedPriceFeedsByNetwork[${chainId}].push(BoundedPriceFeedData({
+  token: ${this.tokensEnum(token)},
+  priceFeed: ${targetPriceFeed},
+  upperBound: ${oracleData.upperBound}
+}));`
+              : "";
+          }
+          return "";
+        })
+        .filter(t => t !== "")
+        .join("\n");
+    }
+
+    return data;
+  }
+
+  generateCompositePriceFeedData(): string {
+    let data = "";
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
+
+      data += Object.entries(priceFeedsByNetwork)
+
+        .map(([token, oracleData]) => {
+          if (
+            oracleData.type === OracleType.COMPOSITE_ORACLE &&
+            oracleData.targetToBasePriceFeed[chain] !== NOT_DEPLOYED &&
+            oracleData.baseToUsdPriceFeed[chain] !== NOT_DEPLOYED
+          ) {
+            const targetToBaseFeed = oracleData.targetToBasePriceFeed[chain];
+            const baseToUSDFeed = oracleData.baseToUsdPriceFeed[chain];
+
+            return `compositePriceFeedsByNetwork[${chainId}].push(CompositePriceFeedData({
+        token: ${this.tokensEnum(token)},
+        targetToBaseFeed: ${targetToBaseFeed},
+        baseToUSDFeed: ${baseToUSDFeed}
+      }));`;
+          }
+          return "";
+        })
+        .filter(t => t !== "")
+        .join("\n");
+    }
+
+    return data;
   }
 
   protected generateSingeTokenPriceFeedData(
@@ -263,6 +293,28 @@ class BindingsGenerator {
           )}, underlying: ${this.tokensEnum(
             oracleData.underlying as SupportedToken,
           )}}));`;
+        } else return "";
+      })
+      .join("\n");
+  }
+
+  protected generateRedStoneFeedData(): string {
+    return Object.entries(priceFeedsByNetwork)
+      .map(([token, oracleData]) => {
+        if (oracleData.type === OracleType.REDSTONE_ORACLE) {
+          const signers = [];
+          for (let i = 0; i < 10; i++) {
+            signers.push(
+              i < oracleData.signers.length
+                ? oracleData.signers[i]
+                : "address(0)",
+            );
+          }
+
+          return `redStonePriceFeeds.push(RedStonePriceFeedData({ tokenSymbol: "${token}", 
+            dataFeedId: "${oracleData.dataId}", signers: [${signers.join(
+            ",",
+          )}], signersThreshold: ${oracleData.signersThreshold} }));`;
         } else return "";
       })
       .join("\n");
