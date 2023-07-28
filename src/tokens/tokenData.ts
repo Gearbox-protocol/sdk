@@ -3,12 +3,6 @@ import { NetworkType } from "../core/chains";
 import { TokenDataPayload } from "../payload/token";
 import { SupportedToken, tokenDataByNetwork } from "./token";
 
-type SymbolReplacements = Record<string, string>;
-const defaultSymbolReplacement: SymbolReplacements = {
-  dWETH: "dETH",
-  WETH: "ETH",
-};
-
 export class TokenData {
   readonly id: string;
   readonly symbol: string;
@@ -18,7 +12,7 @@ export class TokenData {
 
   constructor(
     payload: TokenDataPayload,
-    symbolReplacements: SymbolReplacements = defaultSymbolReplacement,
+    symbolReplacements: Record<string, string> = {},
   ) {
     this.id = payload.addr.toLowerCase();
     this.address = payload.addr.toLowerCase();
