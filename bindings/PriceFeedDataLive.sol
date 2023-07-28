@@ -46,6 +46,7 @@ struct GenericLPPriceFeedData {
 }
 
 struct RedStonePriceFeedData {
+    Tokens token;
     string tokenSymbol;
     bytes32 dataFeedId;
     address[10] signers;

@@ -46,6 +46,7 @@ struct GenericLPPriceFeedData {
 }
 
 struct RedStonePriceFeedData {
+    Tokens token;
     string tokenSymbol;
     bytes32 dataFeedId;
     address[10] signers;
@@ -395,6 +396,7 @@ contract PriceFeedDataLive {
 
         redStonePriceFeeds.push(
             RedStonePriceFeedData({
+                token: Tokens.SHIB,
                 tokenSymbol: "SHIB",
                 dataFeedId: "redstone-main-demo",
                 signers: [

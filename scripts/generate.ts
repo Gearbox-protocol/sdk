@@ -311,7 +311,9 @@ class BindingsGenerator {
             );
           }
 
-          return `redStonePriceFeeds.push(RedStonePriceFeedData({ tokenSymbol: "${token}", 
+          return `redStonePriceFeeds.push(RedStonePriceFeedData({ 
+            token: ${this.tokensEnum(token)},
+            tokenSymbol: "${token}", 
             dataFeedId: "${oracleData.dataId}", signers: [${signers.join(
             ",",
           )}], signersThreshold: ${oracleData.signersThreshold} }));`;
