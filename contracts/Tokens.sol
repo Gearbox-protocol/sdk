@@ -6,6 +6,7 @@ pragma solidity ^0.8.17;
 /// @dev c-Tokens and LUNA are added for unit test purposes
 enum Tokens {
     NO_TOKEN,
+    LUNA,
     _1INCH,
     AAVE,
     COMP,
