@@ -161,13 +161,19 @@ class BindingsGenerator {
         if (
           oracleData.type === OracleType.CURVE_2LP_ORACLE ||
           oracleData.type === OracleType.CURVE_3LP_ORACLE ||
-          oracleData.type === OracleType.CURVE_4LP_ORACLE
+          oracleData.type === OracleType.CURVE_4LP_ORACLE ||
+          oracleData.type === OracleType.CURVE_CRYPTO_ORACLE
         ) {
           const assets = oracleData.assets
             .map(t => this.tokensEnum(t))
             .join(", ");
 
-          return `curvePriceFeeds.push(CurvePriceFeedData({
+          const mapping =
+            oracleData.type === OracleType.CURVE_CRYPTO_ORACLE
+              ? "curveCryptoPriceFeeds"
+              : "curvePriceFeeds";
+
+          return `${mapping}.push(CurvePriceFeedData({
         lpToken: ${this.tokensEnum(token)},
         assets: TokensLib.arrayOf(${assets}),
         pool: Contracts.${

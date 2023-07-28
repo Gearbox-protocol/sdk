@@ -59,6 +59,7 @@ contract PriceFeedDataLive {
     mapping(uint16 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
     SingeTokenPriceFeedData[] zeroPriceFeeds;
     CurvePriceFeedData[] curvePriceFeeds;
+    CurvePriceFeedData[] curveCryptoPriceFeeds;
     TheSamePriceFeedData[] theSamePriceFeeds;
     SingeTokenPriceFeedData[] yearnPriceFeeds;
     mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;

@@ -59,6 +59,7 @@ contract PriceFeedDataLive {
     mapping(uint16 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
     SingeTokenPriceFeedData[] zeroPriceFeeds;
     CurvePriceFeedData[] curvePriceFeeds;
+    CurvePriceFeedData[] curveCryptoPriceFeeds;
     TheSamePriceFeedData[] theSamePriceFeeds;
     SingeTokenPriceFeedData[] yearnPriceFeeds;
     mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
@@ -252,6 +253,41 @@ contract PriceFeedDataLive {
                 lpToken: Tokens.MIM_3LP3CRV,
                 assets: TokensLib.arrayOf(Tokens.MIM, Tokens.DAI, Tokens.USDC, Tokens.USDT),
                 pool: Contracts.CURVE_MIM_POOL
+            })
+        );
+        curveCryptoPriceFeeds.push(
+            CurvePriceFeedData({
+                lpToken: Tokens.OHMFRAXBP,
+                assets: TokensLib.arrayOf(Tokens.OHM, Tokens.crvFRAX),
+                pool: Contracts.CURVE_OHMFRAXBP_POOL
+            })
+        );
+        curveCryptoPriceFeeds.push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvCRVETH,
+                assets: TokensLib.arrayOf(Tokens.WETH, Tokens.CRV),
+                pool: Contracts.CURVE_CRVETH_POOL
+            })
+        );
+        curveCryptoPriceFeeds.push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvCVXETH,
+                assets: TokensLib.arrayOf(Tokens.WETH, Tokens.CVX),
+                pool: Contracts.CURVE_CVXETH_POOL
+            })
+        );
+        curveCryptoPriceFeeds.push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDTWBTCWETH,
+                assets: TokensLib.arrayOf(Tokens.USDT, Tokens.WBTC, Tokens.WETH),
+                pool: Contracts.CURVE_3CRYPTO_POOL
+            })
+        );
+        curveCryptoPriceFeeds.push(
+            CurvePriceFeedData({
+                lpToken: Tokens.LDOETH,
+                assets: TokensLib.arrayOf(Tokens.LDO, Tokens.WETH),
+                pool: Contracts.CURVE_LDOETH_POOL
             })
         );
         theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.cvx3Crv, tokenHasSamePriceFeed: Tokens._3Crv}));
