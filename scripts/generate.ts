@@ -28,7 +28,7 @@ class BindingsGenerator {
 
   generateTokens() {
     const tokensEnum = this.tokens.map(t => this.safeEnum(t)).join(",\n");
-    let data = `enum Tokens {NO_TOKEN, ${tokensEnum}}`;
+    let data = `enum Tokens {NO_TOKEN, LUNA, ${tokensEnum}}`;
 
     const tokenTypeEnum = Object.values(TokenType)
       .filter(v => isNaN(Number(v)))
