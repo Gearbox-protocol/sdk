@@ -51,6 +51,22 @@ export const creditManagerByNetwork: CreditManagersListType = {
   Arbitrum: {},
 };
 
+export const creditManagerByAddress = TypedObjectUtils.entries(
+  creditManagerByNetwork,
+).reduce<Record<string, MainnetCreditManagers | ArbitrumCreditManagers>>(
+  (acc, [, cms]) => ({
+    ...acc,
+    ...TypedObjectUtils.fromEntries(
+      TypedObjectUtils.entries(cms)
+        .map(([k, v]) => [v.toLowerCase(), k])
+        .filter(k => !!k) as Array<
+        [string, MainnetCreditManagers | ArbitrumCreditManagers]
+      >,
+    ),
+  }),
+  {},
+);
+
 export type MainnetPools =
   | "DAI_V1"
   | "USDC_V1"
