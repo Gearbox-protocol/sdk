@@ -51,17 +51,19 @@ export const creditManagerByNetwork: CreditManagersListType = {
   Arbitrum: {},
 };
 
+export type SupportedCreditManagers =
+  | MainnetCreditManagers
+  | ArbitrumCreditManagers;
+
 export const creditManagerByAddress = TypedObjectUtils.entries(
   creditManagerByNetwork,
-).reduce<Record<string, MainnetCreditManagers | ArbitrumCreditManagers>>(
+).reduce<Record<string, SupportedCreditManagers>>(
   (acc, [, cms]) => ({
     ...acc,
     ...TypedObjectUtils.fromEntries(
       TypedObjectUtils.entries(cms)
         .map(([k, v]) => [v.toLowerCase(), k])
-        .filter(k => !!k) as Array<
-        [string, MainnetCreditManagers | ArbitrumCreditManagers]
-      >,
+        .filter(k => !!k) as Array<[string, SupportedCreditManagers]>,
     ),
   }),
   {},
@@ -96,6 +98,8 @@ export const poolByNetwork: PoolsListType = {
   },
   Arbitrum: {},
 };
+
+export type SupportedCreditPools = MainnetPools | ArbitrumPools;
 
 const deployedContractNames: Record<string, string> = {
   // MAINNET V1 CM
