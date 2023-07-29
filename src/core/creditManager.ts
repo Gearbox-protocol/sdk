@@ -33,7 +33,8 @@ export class CreditManagerData {
   readonly maxAmount: bigint;
   readonly maxLeverageFactor: number; // for V1 only
   readonly availableLiquidity: bigint;
-  readonly collateralTokens: Array<string>;
+  readonly collateralTokens: Array<string> = [];
+  readonly supportedTokens: Record<string, true> = {};
   readonly adapters: Record<string, string>;
   readonly liquidationThresholds: Record<string, bigint>;
   readonly version: number;
@@ -77,7 +78,12 @@ export class CreditManagerData {
 
     this.availableLiquidity = toBigInt(payload.availableLiquidity || 0);
 
-    this.collateralTokens = payload.collateralTokens.map(t => t.toLowerCase());
+    payload.collateralTokens.forEach(t => {
+      const tLc = t.toLowerCase();
+
+      this.collateralTokens.push(tLc);
+      this.supportedTokens[tLc] = true;
+    });
 
     this.adapters = payload.adapters.reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({

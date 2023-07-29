@@ -42,13 +42,15 @@ export class PathFinder {
     address: string,
     provider: Signer | providers.Provider,
     network: NetworkType = "Mainnet",
-    connectors?: Array<SupportedToken>,
+    connectors = PathFinder.connectors,
   ) {
     this.pathFinder = IRouter__factory.connect(address, provider);
     this.network = network;
-    this._connectors = (connectors || PathFinder.connectors).map(
-      c => tokenDataByNetwork[this.network][c as SupportedToken],
-    );
+    this._connectors = connectors
+      .map(c =>
+        tokenDataByNetwork[this.network][c as SupportedToken]?.toLowerCase(),
+      )
+      .filter(t => !t);
   }
 
   async findAllSwaps(
@@ -59,6 +61,8 @@ export class PathFinder {
     amount: BigNumberish,
     slippage: number,
   ): Promise<Array<PathFinderResult>> {
+    const connectors = this.getAvailableConnectors(creditAccount.balances);
+
     const swapTask: SwapTaskStruct = {
       swapOperation: swapOperation,
       creditAccount: creditAccount.addr,
@@ -67,7 +71,7 @@ export class PathFinder {
       tokenOut:
         tokenDataByNetwork[this.network][tokenOut as SupportedToken] ||
         tokenOut,
-      connectors: this._connectors,
+      connectors,
       amount: amount,
       slippage,
       externalSlippage: false,
@@ -103,15 +107,14 @@ export class PathFinder {
     const tokenInAddr =
       tokenDataByNetwork[this.network][tokenIn as SupportedToken] || tokenIn;
 
-    // if (creditAccount.balances[tokenInAddr.toLowerCase()].lt(amount)) {
-    //   throw new Error(`Not enough balance for token ${tokenIn}`);
-    // }
+    const connectors = this.getAvailableConnectors(creditAccount.balances);
+
     const result = await this.pathFinder.callStatic.findOneTokenPath(
       tokenInAddr,
       amount,
       tokenDataByNetwork[this.network][tokenOut as SupportedToken] || tokenOut,
       creditAccount.addr,
-      this._connectors,
+      connectors,
       slippage,
       {
         gasLimit: GAS_PER_BLOCK,
@@ -159,11 +162,13 @@ export class PathFinder {
       balance: expectedBalancesAddr[token] || 0,
     }));
 
+    const connectors = this.getAvailableConnectors(cm.supportedTokens);
+
     const result = await this.pathFinder.callStatic.findOpenStrategyPath(
       cm.address,
       balances,
       targetAddr,
-      this._connectors,
+      connectors,
       slippage,
       {
         gasLimit: GAS_PER_BLOCK,
@@ -201,6 +206,8 @@ export class PathFinder {
       loopsPerTx,
     );
 
+    const connectors = this.getAvailableConnectors(creditAccount.balances);
+
     let results: Array<AwaitedRes<IRouter["callStatic"]["findBestClosePath"]>> =
       [];
     if (noConcurency) {
@@ -208,7 +215,7 @@ export class PathFinder {
         results.push(
           await this.pathFinder.callStatic.findBestClosePath(
             creditAccount.addr,
-            this._connectors,
+            connectors,
             slippage,
             po,
             loopsPerTx,
@@ -223,7 +230,7 @@ export class PathFinder {
       const requests = pathOptions.map(po =>
         this.pathFinder.callStatic.findBestClosePath(
           creditAccount.addr,
-          this._connectors,
+          connectors,
           slippage,
           po,
           loopsPerTx,
@@ -270,5 +277,18 @@ export class PathFinder {
     const comparator = ({ amount, gasUsage }: CloseResult, gasPrice: bigint) =>
       amount - (gasUsage * gasPrice) / RAY;
     return comparator(r1, gasPriceRAY) > comparator(r2, gasPriceRAY) ? r1 : r2;
+  }
+
+  getAvailableConnectors(
+    availableList: Record<string, bigint> | Record<string, true>,
+  ) {
+    return PathFinder.getAvailableConnectors(availableList, this._connectors);
+  }
+
+  static getAvailableConnectors(
+    availableList: Record<string, bigint> | Record<string, true>,
+    connectors: string[],
+  ) {
+    return connectors.filter(t => availableList[t] !== undefined);
   }
 }
