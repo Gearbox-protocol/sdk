@@ -140,7 +140,7 @@ export class CreditManagerData {
     tokenAddress: string,
     amount: bigint,
   ): MultiCall {
-    if (this.version !== 2)
+    if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
@@ -152,7 +152,7 @@ export class CreditManagerData {
   }
 
   encodeIncreaseDebt(amount: bigint): MultiCall {
-    if (this.version !== 2)
+    if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
@@ -164,7 +164,7 @@ export class CreditManagerData {
   }
 
   encodeDecreaseDebt(amount: bigint): MultiCall {
-    if (this.version !== 2)
+    if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
@@ -176,9 +176,9 @@ export class CreditManagerData {
   }
 
   validateOpenAccount(collateral: bigint, debt: bigint): true {
-    return this.version === 2
-      ? this.validateOpenAccountV2(debt)
-      : this.validateOpenAccountV1(collateral, debt);
+    return this.version === 1
+      ? this.validateOpenAccountV1(collateral, debt)
+      : this.validateOpenAccountV2(debt);
   }
 
   protected validateOpenAccountV1(collateral: bigint, debt: bigint): true {
