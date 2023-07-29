@@ -7,8 +7,8 @@ import { AggregatorV3Interface__factory } from "../types";
 import { AggregatorV3InterfaceInterface } from "../types/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface";
 import { formatBN } from "../utils/formatter";
 import safeMulticall, { KeyedCall } from "../utils/multicall";
-import { OracleType, PriceFeedData } from "./oracles";
-import { priceFeedsByNetwork } from "./priceFeeds";
+import { priceFeedsByToken } from "./priceFeeds";
+import { PriceFeedData, PriceFeedType } from "./pricefeedType";
 
 type PricesDict = Record<
   string,
@@ -52,14 +52,14 @@ class PriceFeedsSuite {
     c: NetworkType,
   ): KeyedCall<AggregatorV3InterfaceInterface>[] {
     const iFeed = AggregatorV3Interface__factory.createInterface();
-    const entries = Object.entries(priceFeedsByNetwork).filter(([_, f]) => {
+    const entries = Object.entries(priceFeedsByToken).filter(([_, f]) => {
       return (
-        (f.type === OracleType.CHAINLINK_ORACLE &&
+        (f.type === PriceFeedType.CHAINLINK_ORACLE &&
           f.address[c]?.startsWith("0x")) ||
-        (f.type === OracleType.COMPOSITE_ORACLE &&
+        (f.type === PriceFeedType.COMPOSITE_ORACLE &&
           f.baseToUsdPriceFeed[c]?.startsWith("0x") &&
           f.targetToBasePriceFeed[c]?.startsWith("0x")) ||
-        (f.type === OracleType.BOUNDED_ORACLE &&
+        (f.type === PriceFeedType.BOUNDED_ORACLE &&
           f.targetPriceFeed[c]?.startsWith("0x"))
       );
     }) as Array<[SupportedToken, PriceFeedData]>;
@@ -71,7 +71,7 @@ class PriceFeedsSuite {
         continue;
       }
       switch (f.type) {
-        case OracleType.CHAINLINK_ORACLE:
+        case PriceFeedType.CHAINLINK_ORACLE:
           calls.push({
             address: f.address[c],
             interface: iFeed,
@@ -79,7 +79,7 @@ class PriceFeedsSuite {
             key: symb,
           });
           break;
-        case OracleType.BOUNDED_ORACLE:
+        case PriceFeedType.BOUNDED_ORACLE:
           calls.push({
             address: f.targetPriceFeed[c],
             interface: iFeed,
@@ -87,7 +87,7 @@ class PriceFeedsSuite {
             key: symb,
           });
           break;
-        case OracleType.COMPOSITE_ORACLE:
+        case PriceFeedType.COMPOSITE_ORACLE:
           calls.push({
             address: f.baseToUsdPriceFeed[c],
             interface: iFeed,

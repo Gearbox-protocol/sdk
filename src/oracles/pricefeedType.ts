@@ -8,7 +8,7 @@ export interface PriceFeed {
   priceFeed: string;
 }
 
-export enum OracleType {
+export enum PriceFeedType {
   CHAINLINK_ORACLE,
   YEARN_ORACLE,
   CURVE_2LP_ORACLE,
@@ -26,70 +26,78 @@ export enum OracleType {
   THE_SAME_AS,
   REDSTONE_ORACLE,
   ERC4626_VAULT_ORACLE,
-  NETWORK_DIFFERENT,
+  NETWORK_DEPENDENT,
 }
 
 export type PriceFeedData =
   | {
-      type: OracleType.CHAINLINK_ORACLE;
-      address: Record<NetworkType, string>;
+      type: PriceFeedType.CHAINLINK_ORACLE;
+      address: string;
     }
   | {
-      type: OracleType.YEARN_ORACLE;
+      type: PriceFeedType.YEARN_ORACLE;
       token: SupportedToken;
     }
   | {
-      type: OracleType.CURVE_2LP_ORACLE;
+      type: PriceFeedType.CURVE_2LP_ORACLE;
       assets: Array<SupportedToken>;
     }
   | {
-      type: OracleType.CURVE_3LP_ORACLE;
+      type: PriceFeedType.CURVE_3LP_ORACLE;
       assets: Array<SupportedToken>;
     }
   | {
-      type: OracleType.CURVE_4LP_ORACLE;
+      type: PriceFeedType.CURVE_4LP_ORACLE;
       assets: Array<SupportedToken>;
     }
   | {
-      type: OracleType.ZERO_ORACLE;
+      type: PriceFeedType.ZERO_ORACLE;
     }
   | {
-      type: OracleType.BOUNDED_ORACLE;
-      targetPriceFeed: Record<NetworkType, string>;
+      type: PriceFeedType.BOUNDED_ORACLE;
+      targetPriceFeed: string;
       upperBound: bigint;
     }
   | {
-      type: OracleType.WSTETH_ORACLE;
+      type: PriceFeedType.WSTETH_ORACLE;
       token: SupportedToken;
     }
   | {
-      type: OracleType.COMPOSITE_ORACLE;
-      targetToBasePriceFeed: Record<NetworkType, string>;
-      baseToUsdPriceFeed: Record<NetworkType, string>;
+      type: PriceFeedType.COMPOSITE_ORACLE;
+      targetToBasePriceFeed: string;
+      baseToUsdPriceFeed: string;
     }
   | {
-      type: OracleType.CURVE_CRYPTO_ORACLE;
+      type: PriceFeedType.CURVE_CRYPTO_ORACLE;
       assets: Array<SupportedToken>;
     }
   | {
-      type: OracleType.BALANCER_WEIGHTED_LP_ORACLE;
+      type: PriceFeedType.BALANCER_WEIGHTED_LP_ORACLE;
       assets: Array<SupportedToken>;
     }
   | {
-      type: OracleType.THE_SAME_AS;
+      type: PriceFeedType.THE_SAME_AS;
       token: SupportedToken;
     }
   | {
-      type: OracleType.WRAPPED_AAVE_V2_ORACLE;
+      type: PriceFeedType.WRAPPED_AAVE_V2_ORACLE;
       underlying: AaveV2LPToken;
     }
   | {
-      type: OracleType.COMPOUND_V2_ORACLE;
+      type: PriceFeedType.COMPOUND_V2_ORACLE;
       underlying: NormalToken;
     }
   | {
-      type: OracleType.REDSTONE_ORACLE;
+      type: PriceFeedType.ERC4626_VAULT_ORACLE;
+      underlying: NormalToken;
+    }
+  | {
+      type: PriceFeedType.REDSTONE_ORACLE;
       dataId: string;
       signers: Array<string>;
       signersThreshold: number;
+    }
+  | {
+      type: PriceFeedType.NETWORK_DEPENDENT;
+      feeds: Record<NetworkType, PriceFeedData>;
     };
