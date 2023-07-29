@@ -17,6 +17,8 @@ export interface StrategyPayload {
   creditManagers: Array<string>;
 
   baseAssets: Array<string>;
+  unleveragableCollateral: Array<string>;
+  leveragableCollateral: Array<string>;
 }
 
 interface LiquidationPriceProps {
@@ -34,7 +36,11 @@ export class Strategy {
   apy: number | undefined;
   name: string;
   lpToken: string;
+
   baseAssets: Array<string>;
+  unleveragableCollateral: Array<string>;
+  leveragableCollateral: Array<string>;
+
   creditManagers: Array<string>;
 
   constructor(payload: StrategyPayload) {
@@ -46,6 +52,12 @@ export class Strategy {
       addr.toLowerCase(),
     );
     this.baseAssets = payload.baseAssets.map(addr => addr.toLowerCase());
+    this.unleveragableCollateral = payload.unleveragableCollateral.map(addr =>
+      addr.toLowerCase(),
+    );
+    this.leveragableCollateral = payload.leveragableCollateral.map(addr =>
+      addr.toLowerCase(),
+    );
   }
 
   static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
