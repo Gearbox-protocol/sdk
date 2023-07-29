@@ -339,14 +339,18 @@ class BindingsGenerator {
 
     this.makeBindings("ContractType.sol", data);
 
-    data = `cd = new ContractData[](${contracts.length});`;
-    data += contracts
-      .map((t, num) => {
-        if (contractsByNetwork.Mainnet[t] !== NOT_DEPLOYED) {
-          return `cd[${num}] = ContractData({ id: Contracts.${t}, addr:  ${contractsByNetwork.Mainnet[t]}, name: "${t}" });`;
-        } else return "";
-      })
-      .join("\n");
+    data = "";
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
+
+      data += contracts
+        .map(t => {
+          if (contractsByNetwork[chain][t] !== NOT_DEPLOYED) {
+            return `contractDataByNetwork[${chainId}].push(ContractData({ id: Contracts.${t}, addr:  ${contractsByNetwork[chain][t]}, name: "${t}" }));`;
+          } else return "";
+        })
+        .join("\n");
+    }
 
     this.makeBindings(
       "SupportedContracts.sol",

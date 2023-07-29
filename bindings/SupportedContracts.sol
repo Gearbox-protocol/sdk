@@ -26,6 +26,7 @@ contract SupportedContracts is Test, ISupportedContracts {
     mapping(Contracts => address) public override addressOf;
     mapping(Contracts => string) public override nameOf;
     mapping(address => Contracts) public override contractIndex;
+    mapping(uint16 => ContractData[]) public contractDataByNetwork;
 
     uint256 public override contractCount;
 
@@ -33,8 +34,9 @@ contract SupportedContracts is Test, ISupportedContracts {
 
     constructor(uint16 _networkId) {
         networkId = _networkId;
-        ContractData[] memory cd;
         // $GENERATE_HERE$
+
+        ContractData[] storage cd = contractDataByNetwork[networkId];
 
         uint256 len = cd.length;
         contractCount = len;
