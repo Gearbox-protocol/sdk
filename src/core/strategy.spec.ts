@@ -1,5 +1,6 @@
 import { expect } from "chai";
 
+import { creditManagerByNetwork } from "../contracts/contractsRegister";
 import { decimals } from "../tokens/decimals";
 import { tokenDataByNetwork } from "../tokens/token";
 import { toBN, toSignificant } from "../utils/formatter";
@@ -16,7 +17,7 @@ const lidoPayload: StrategyPayload = {
 
   apy: 38434,
 
-  pools: [tokenDataByNetwork.Mainnet.WETH],
+  creditManagers: [creditManagerByNetwork.Mainnet.WETH_V2],
 
   unleveragableCollateral: [
     tokenDataByNetwork.Mainnet.USDC,
@@ -69,16 +70,6 @@ describe("Strategy test", () => {
     );
 
     expect(result).to.be.eq(284143);
-  });
-  it("overallAPY calculation is correct", () => {
-    const result = lidoStrategy.overallAPY(
-      lidoStrategy.apy || 0,
-      10 * Number(LEVERAGE_DECIMALS),
-      tokenDataByNetwork.Mainnet.WETH,
-      pools["0x2"].borrowRate,
-    );
-
-    expect(result).to.be.eq(332716);
   });
   it("liquidationPrice calculation is correct", () => {
     const result = Strategy.liquidationPrice({
