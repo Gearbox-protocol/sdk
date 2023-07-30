@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { BigNumber, ethers } from "ethers";
 
 import { CHAINS, NetworkType } from "../core/chains";
-import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
+import { SupportedToken } from "../tokens/token";
 import { AggregatorV3Interface__factory } from "../types";
 import { AggregatorV3InterfaceInterface } from "../types/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface";
 import { formatBN } from "../utils/formatter";
@@ -21,6 +21,8 @@ type PricesDict = Record<
       | undefined;
   }
 >;
+
+const iFeed = AggregatorV3Interface__factory.createInterface();
 
 class PriceFeedsSuite {
   public readonly networkTypes: NetworkType[];
@@ -51,57 +53,63 @@ class PriceFeedsSuite {
   private collectCalls(
     c: NetworkType,
   ): KeyedCall<AggregatorV3InterfaceInterface>[] {
-    const iFeed = AggregatorV3Interface__factory.createInterface();
-    const entries = Object.entries(priceFeedsByToken).filter(([_, f]) => {
-      return (
-        (f.type === PriceFeedType.CHAINLINK_ORACLE &&
-          f.address[c]?.startsWith("0x")) ||
-        (f.type === PriceFeedType.COMPOSITE_ORACLE &&
-          f.baseToUsdPriceFeed[c]?.startsWith("0x") &&
-          f.targetToBasePriceFeed[c]?.startsWith("0x")) ||
-        (f.type === PriceFeedType.BOUNDED_ORACLE &&
-          f.targetPriceFeed[c]?.startsWith("0x"))
-      );
-    }) as Array<[SupportedToken, PriceFeedData]>;
-
     const calls: KeyedCall<AggregatorV3InterfaceInterface>[] = [];
-    for (const [symb, f] of entries) {
-      const tok = tokenDataByNetwork[c][symb];
-      if (!tok.startsWith("0x")) {
-        continue;
-      }
-      switch (f.type) {
-        case PriceFeedType.CHAINLINK_ORACLE:
+    for (const [symb, data] of Object.entries(priceFeedsByToken)) {
+      calls.push(...this.getCallsForToken(c, symb as SupportedToken, data));
+    }
+    return calls;
+  }
+
+  private getCallsForToken(
+    network: NetworkType,
+    token: SupportedToken,
+    data: PriceFeedData,
+  ): KeyedCall<AggregatorV3InterfaceInterface>[] {
+    const calls: KeyedCall<AggregatorV3InterfaceInterface>[] = [];
+    switch (data.type) {
+      case PriceFeedType.NETWORK_DEPENDENT:
+        calls.push(
+          ...this.getCallsForToken(network, token, data.feeds[network]),
+        );
+        break;
+      case PriceFeedType.CHAINLINK_ORACLE:
+        if (data.address.startsWith("0x")) {
           calls.push({
-            address: f.address[c],
+            address: data.address,
             interface: iFeed,
             method: "latestRoundData()",
-            key: symb,
+            key: token,
           });
-          break;
-        case PriceFeedType.BOUNDED_ORACLE:
+        }
+        break;
+      case PriceFeedType.BOUNDED_ORACLE:
+        if (data.targetPriceFeed.startsWith("0x")) {
           calls.push({
-            address: f.targetPriceFeed[c],
+            address: data.targetPriceFeed,
             interface: iFeed,
             method: "latestRoundData()",
-            key: symb,
+            key: token,
           });
-          break;
-        case PriceFeedType.COMPOSITE_ORACLE:
+        }
+        break;
+      case PriceFeedType.COMPOSITE_ORACLE:
+        if (data.baseToUsdPriceFeed.startsWith("0x")) {
           calls.push({
-            address: f.baseToUsdPriceFeed[c],
+            address: data.baseToUsdPriceFeed,
             interface: iFeed,
             method: "latestRoundData()",
-            key: `${symb}.baseToUsdPriceFeed`,
+            key: `${token}.baseToUsdPriceFeed`,
           });
+        }
+        if (data.targetToBasePriceFeed.startsWith("0x")) {
           calls.push({
-            address: f.targetToBasePriceFeed[c],
+            address: data.targetToBasePriceFeed,
             interface: iFeed,
             method: "latestRoundData()",
-            key: `${symb}.targetToBasePriceFeed`,
+            key: `${token}.targetToBasePriceFeed`,
           });
-          break;
-      }
+        }
+        break;
     }
     return calls;
   }
