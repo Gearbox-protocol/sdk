@@ -83,23 +83,16 @@ class BindingsGenerator {
   generatePriceFeedData() {
     let data = "";
     for (let [token, pf] of Object.entries(priceFeedsByToken)) {
-      if (pf.type === PriceFeedType.NETWORK_DEPENDENT) {
-        data += `// ------------------------ ${token} ------------------------\n`;
-        for (const chain of supportedChains) {
-          const chainId = CHAINS[chain];
-          const priceFeedData = this.getPriceFeedData(
-            token,
-            pf.feeds[chain],
-            chainId,
-          );
-          if (priceFeedData) {
-            data += priceFeedData;
-          }
-        }
-      } else {
-        const priceFeedData = this.getPriceFeedData(token, pf, 0);
+      data += `// ------------------------ ${token} ------------------------\n`;
+
+      for (const chain of supportedChains) {
+        const chainId = CHAINS[chain];
+        const priceFeedData = this.getPriceFeedData(
+          token,
+          pf.type === PriceFeedType.NETWORK_DEPENDENT ? pf.feeds[chain] : pf,
+          chainId,
+        );
         if (priceFeedData) {
-          data += `// ------------------------ ${token} ------------------------\n`;
           data += priceFeedData;
         } else {
           console.warn(`No price feed data for ${token}`);
@@ -132,10 +125,10 @@ class BindingsGenerator {
     );
     if (result) return result;
 
-    result = this.generateCurvePriceFeedData(token, priceFeedData);
+    result = this.generateCurvePriceFeedData(token, priceFeedData, chainId);
     if (result) return result;
 
-    result = this.generateTheSamePriceFeedData(token, priceFeedData);
+    result = this.generateTheSamePriceFeedData(token, priceFeedData, chainId);
     if (result) return result;
 
     result = this.generateBoundedPriceFeedData(token, priceFeedData, chainId);
@@ -165,6 +158,7 @@ class BindingsGenerator {
     result = this.generateGenericLPPriceFeedData(
       token,
       priceFeedData,
+      chainId,
       "wrappedAaveV2PriceFeeds",
       PriceFeedType.WRAPPED_AAVE_V2_ORACLE,
     );
@@ -173,6 +167,7 @@ class BindingsGenerator {
     result = this.generateGenericLPPriceFeedData(
       token,
       priceFeedData,
+      chainId,
       "compoundV2PriceFeeds",
       PriceFeedType.COMPOUND_V2_ORACLE,
     );
@@ -181,12 +176,13 @@ class BindingsGenerator {
     result = this.generateGenericLPPriceFeedData(
       token,
       priceFeedData,
+      chainId,
       "erc4626PriceFeeds",
       PriceFeedType.ERC4626_VAULT_ORACLE,
     );
     if (result) return result;
 
-    result = this.generateRedStoneFeedData(token, priceFeedData);
+    result = this.generateRedStoneFeedData(token, priceFeedData, chainId);
     if (result) return result;
 
     return undefined;
@@ -214,6 +210,7 @@ class BindingsGenerator {
   protected generateCurvePriceFeedData(
     token: string,
     priceFeedData: PriceFeedData,
+    chainId: number,
   ): string | undefined {
     if (
       priceFeedData.type === PriceFeedType.CURVE_2LP_ORACLE ||
@@ -230,7 +227,7 @@ class BindingsGenerator {
           ? "curveCryptoPriceFeeds"
           : "curvePriceFeeds";
 
-      return `${mapping}.push(CurvePriceFeedData({
+      return `${mapping}[${chainId}].push(CurvePriceFeedData({
         lpToken: ${this.tokensEnum(token)},
         assets: TokensLib.arrayOf(${assets}),
         pool: Contracts.${
@@ -243,10 +240,11 @@ class BindingsGenerator {
   protected generateTheSamePriceFeedData(
     token: string,
     priceFeedData: PriceFeedData,
+    chainId: number,
   ): string | undefined {
     if (priceFeedData.type === PriceFeedType.THE_SAME_AS) {
       const symbol = priceFeedData.token;
-      return `theSamePriceFeeds.push(TheSamePriceFeedData({
+      return `theSamePriceFeeds[${chainId}].push(TheSamePriceFeedData({
     token: ${this.tokensEnum(token)},
     tokenHasSamePriceFeed: ${this.tokensEnum(symbol as SupportedToken)}
   }));`;
@@ -306,7 +304,7 @@ class BindingsGenerator {
 
       return oracleType === PriceFeedType.WSTETH_ORACLE
         ? `${varName}[${chainId}] = ${structure};`
-        : `${varName}.push(${structure});`;
+        : `${varName}[${chainId}].push(${structure});`;
     }
     return undefined;
   }
@@ -314,6 +312,7 @@ class BindingsGenerator {
   protected generateGenericLPPriceFeedData(
     token: string,
     priceFeedData: PriceFeedData,
+    chainId: number,
     varName: string,
     oracleType: PriceFeedType,
   ): string | undefined {
@@ -323,7 +322,7 @@ class BindingsGenerator {
         priceFeedData.type === PriceFeedType.COMPOUND_V2_ORACLE ||
         priceFeedData.type === PriceFeedType.ERC4626_VAULT_ORACLE
       ) {
-        return `${varName}.push(GenericLPPriceFeedData({ lpToken: ${this.tokensEnum(
+        return `${varName}[${chainId}].push(GenericLPPriceFeedData({ lpToken: ${this.tokensEnum(
           token,
         )}, underlying: ${this.tokensEnum(
           priceFeedData.underlying as SupportedToken,
@@ -336,6 +335,7 @@ class BindingsGenerator {
   protected generateRedStoneFeedData(
     token: string,
     priceFeedData: PriceFeedData,
+    chainId: number,
   ): string | undefined {
     if (priceFeedData.type === PriceFeedType.REDSTONE_ORACLE) {
       const signers = [];
@@ -347,7 +347,7 @@ class BindingsGenerator {
         );
       }
 
-      return `redStonePriceFeeds.push(RedStonePriceFeedData({ 
+      return `redStonePriceFeeds[${chainId}].push(RedStonePriceFeedData({ 
             token: ${this.tokensEnum(token)},
             tokenSymbol: "${token}", 
             dataFeedId: "${priceFeedData.dataId}", signers: [${signers.join(

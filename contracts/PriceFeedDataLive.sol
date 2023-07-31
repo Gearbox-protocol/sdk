@@ -57,18 +57,18 @@ contract PriceFeedDataLive {
     uint16 networkId;
 
     mapping(uint16 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
-    SingeTokenPriceFeedData[] zeroPriceFeeds;
-    CurvePriceFeedData[] curvePriceFeeds;
-    CurvePriceFeedData[] curveCryptoPriceFeeds;
-    TheSamePriceFeedData[] theSamePriceFeeds;
-    SingeTokenPriceFeedData[] yearnPriceFeeds;
+    mapping(uint16 => SingeTokenPriceFeedData[]) zeroPriceFeeds;
+    mapping(uint16 => CurvePriceFeedData[]) curvePriceFeeds;
+    mapping(uint16 => CurvePriceFeedData[]) curveCryptoPriceFeeds;
+    mapping(uint16 => TheSamePriceFeedData[]) theSamePriceFeeds;
+    mapping(uint16 => SingeTokenPriceFeedData[]) yearnPriceFeeds;
     mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
     mapping(uint16 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
     mapping(uint16 => SingeTokenPriceFeedData) wstethPriceFeed;
-    GenericLPPriceFeedData[] wrappedAaveV2PriceFeeds;
-    GenericLPPriceFeedData[] compoundV2PriceFeeds;
-    GenericLPPriceFeedData[] erc4626PriceFeeds;
-    RedStonePriceFeedData[] redStonePriceFeeds;
+    mapping(uint16 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeeds;
+    mapping(uint16 => GenericLPPriceFeedData[]) compoundV2PriceFeeds;
+    mapping(uint16 => GenericLPPriceFeedData[]) erc4626PriceFeeds;
+    mapping(uint16 => RedStonePriceFeedData[]) redStonePriceFeeds;
 
     constructor(uint16 _networkId) {
         networkId = _networkId;
@@ -264,10 +264,11 @@ contract PriceFeedDataLive {
                 baseToUSDFeed: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
             })
         );
-        zeroPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.LDO}));
+        zeroPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.LDO}));
 
         // ------------------------ LQTY ------------------------
-        zeroPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.LQTY}));
+        zeroPriceFeeds[1].push(SingeTokenPriceFeedData({token: Tokens.LQTY}));
+        zeroPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.LQTY}));
 
         // ------------------------ OHM ------------------------
         compositePriceFeedsByNetwork[1].push(
@@ -277,7 +278,7 @@ contract PriceFeedDataLive {
                 baseToUSDFeed: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
             })
         );
-        zeroPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.OHM}));
+        zeroPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.OHM}));
 
         // ------------------------ MIM ------------------------
         chainlinkPriceFeedsByNetwork[1].push(
@@ -303,7 +304,27 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ SHIB ------------------------
-        redStonePriceFeeds.push(
+        redStonePriceFeeds[1].push(
+            RedStonePriceFeedData({
+                token: Tokens.SHIB,
+                tokenSymbol: "SHIB",
+                dataFeedId: "redstone-main-demo",
+                signers: [
+                    0x0C39486f770B26F5527BBBf942726537986Cd7eb,
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0),
+                    address(0)
+                ],
+                signersThreshold: 1
+            })
+        );
+        redStonePriceFeeds[42161].push(
             RedStonePriceFeedData({
                 token: Tokens.SHIB,
                 tokenSymbol: "SHIB",
@@ -338,19 +359,30 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ yvDAI ------------------------
-        yearnPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.yvDAI}));
+        yearnPriceFeeds[1].push(SingeTokenPriceFeedData({token: Tokens.yvDAI}));
+        yearnPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.yvDAI}));
 
         // ------------------------ yvUSDC ------------------------
-        yearnPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.yvUSDC}));
+        yearnPriceFeeds[1].push(SingeTokenPriceFeedData({token: Tokens.yvUSDC}));
+        yearnPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.yvUSDC}));
 
         // ------------------------ yvWETH ------------------------
-        yearnPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.yvWETH}));
+        yearnPriceFeeds[1].push(SingeTokenPriceFeedData({token: Tokens.yvWETH}));
+        yearnPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.yvWETH}));
 
         // ------------------------ yvWBTC ------------------------
-        yearnPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.yvWBTC}));
+        yearnPriceFeeds[1].push(SingeTokenPriceFeedData({token: Tokens.yvWBTC}));
+        yearnPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.yvWBTC}));
 
         // ------------------------ 3Crv ------------------------
-        curvePriceFeeds.push(
+        curvePriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens._3Crv,
+                assets: TokensLib.arrayOf(Tokens.DAI, Tokens.USDC, Tokens.USDT),
+                pool: Contracts.CURVE_3CRV_POOL
+            })
+        );
+        curvePriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens._3Crv,
                 assets: TokensLib.arrayOf(Tokens.DAI, Tokens.USDC, Tokens.USDT),
@@ -359,7 +391,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ crvFRAX ------------------------
-        curvePriceFeeds.push(
+        curvePriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvFRAX,
+                assets: TokensLib.arrayOf(Tokens.FRAX, Tokens.USDC),
+                pool: Contracts.CURVE_FRAX_USDC_POOL
+            })
+        );
+        curvePriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.crvFRAX,
                 assets: TokensLib.arrayOf(Tokens.FRAX, Tokens.USDC),
@@ -368,7 +407,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ steCRV ------------------------
-        curvePriceFeeds.push(
+        curvePriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.steCRV,
+                assets: TokensLib.arrayOf(Tokens.STETH, Tokens.WETH),
+                pool: Contracts.CURVE_STETH_GATEWAY
+            })
+        );
+        curvePriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.steCRV,
                 assets: TokensLib.arrayOf(Tokens.STETH, Tokens.WETH),
@@ -377,7 +423,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ FRAX3CRV ------------------------
-        curvePriceFeeds.push(
+        curvePriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.FRAX3CRV,
+                assets: TokensLib.arrayOf(Tokens.FRAX, Tokens.DAI, Tokens.USDC, Tokens.USDT),
+                pool: Contracts.CURVE_FRAX_POOL
+            })
+        );
+        curvePriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.FRAX3CRV,
                 assets: TokensLib.arrayOf(Tokens.FRAX, Tokens.DAI, Tokens.USDC, Tokens.USDT),
@@ -386,7 +439,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ LUSD3CRV ------------------------
-        curvePriceFeeds.push(
+        curvePriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.LUSD3CRV,
+                assets: TokensLib.arrayOf(Tokens.LUSD, Tokens.DAI, Tokens.USDC, Tokens.USDT),
+                pool: Contracts.CURVE_LUSD_POOL
+            })
+        );
+        curvePriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.LUSD3CRV,
                 assets: TokensLib.arrayOf(Tokens.LUSD, Tokens.DAI, Tokens.USDC, Tokens.USDT),
@@ -395,7 +455,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ crvPlain3andSUSD ------------------------
-        curvePriceFeeds.push(
+        curvePriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvPlain3andSUSD,
+                assets: TokensLib.arrayOf(Tokens.DAI, Tokens.USDC, Tokens.USDT, Tokens.sUSD),
+                pool: Contracts.CURVE_SUSD_POOL
+            })
+        );
+        curvePriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.crvPlain3andSUSD,
                 assets: TokensLib.arrayOf(Tokens.DAI, Tokens.USDC, Tokens.USDT, Tokens.sUSD),
@@ -404,7 +471,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ gusd3CRV ------------------------
-        curvePriceFeeds.push(
+        curvePriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.gusd3CRV,
+                assets: TokensLib.arrayOf(Tokens.GUSD, Tokens.DAI, Tokens.USDC, Tokens.USDT),
+                pool: Contracts.CURVE_GUSD_POOL
+            })
+        );
+        curvePriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.gusd3CRV,
                 assets: TokensLib.arrayOf(Tokens.GUSD, Tokens.DAI, Tokens.USDC, Tokens.USDT),
@@ -413,7 +487,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ MIM_3LP3CRV ------------------------
-        curvePriceFeeds.push(
+        curvePriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.MIM_3LP3CRV,
+                assets: TokensLib.arrayOf(Tokens.MIM, Tokens.DAI, Tokens.USDC, Tokens.USDT),
+                pool: Contracts.CURVE_MIM_POOL
+            })
+        );
+        curvePriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.MIM_3LP3CRV,
                 assets: TokensLib.arrayOf(Tokens.MIM, Tokens.DAI, Tokens.USDC, Tokens.USDT),
@@ -422,7 +503,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ OHMFRAXBP ------------------------
-        curveCryptoPriceFeeds.push(
+        curveCryptoPriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.OHMFRAXBP,
+                assets: TokensLib.arrayOf(Tokens.OHM, Tokens.crvFRAX),
+                pool: Contracts.CURVE_OHMFRAXBP_POOL
+            })
+        );
+        curveCryptoPriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.OHMFRAXBP,
                 assets: TokensLib.arrayOf(Tokens.OHM, Tokens.crvFRAX),
@@ -431,7 +519,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ crvCRVETH ------------------------
-        curveCryptoPriceFeeds.push(
+        curveCryptoPriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvCRVETH,
+                assets: TokensLib.arrayOf(Tokens.WETH, Tokens.CRV),
+                pool: Contracts.CURVE_CRVETH_POOL
+            })
+        );
+        curveCryptoPriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.crvCRVETH,
                 assets: TokensLib.arrayOf(Tokens.WETH, Tokens.CRV),
@@ -440,7 +535,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ crvCVXETH ------------------------
-        curveCryptoPriceFeeds.push(
+        curveCryptoPriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvCVXETH,
+                assets: TokensLib.arrayOf(Tokens.WETH, Tokens.CVX),
+                pool: Contracts.CURVE_CVXETH_POOL
+            })
+        );
+        curveCryptoPriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.crvCVXETH,
                 assets: TokensLib.arrayOf(Tokens.WETH, Tokens.CVX),
@@ -449,7 +551,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ crvUSDTWBTCWETH ------------------------
-        curveCryptoPriceFeeds.push(
+        curveCryptoPriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDTWBTCWETH,
+                assets: TokensLib.arrayOf(Tokens.USDT, Tokens.WBTC, Tokens.WETH),
+                pool: Contracts.CURVE_3CRYPTO_POOL
+            })
+        );
+        curveCryptoPriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.crvUSDTWBTCWETH,
                 assets: TokensLib.arrayOf(Tokens.USDT, Tokens.WBTC, Tokens.WETH),
@@ -458,7 +567,14 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ LDOETH ------------------------
-        curveCryptoPriceFeeds.push(
+        curveCryptoPriceFeeds[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.LDOETH,
+                assets: TokensLib.arrayOf(Tokens.LDO, Tokens.WETH),
+                pool: Contracts.CURVE_LDOETH_POOL
+            })
+        );
+        curveCryptoPriceFeeds[42161].push(
             CurvePriceFeedData({
                 lpToken: Tokens.LDOETH,
                 assets: TokensLib.arrayOf(Tokens.LDO, Tokens.WETH),
@@ -467,126 +583,218 @@ contract PriceFeedDataLive {
         );
 
         // ------------------------ yvCurve_stETH ------------------------
-        yearnPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.yvCurve_stETH}));
+        yearnPriceFeeds[1].push(SingeTokenPriceFeedData({token: Tokens.yvCurve_stETH}));
+        yearnPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.yvCurve_stETH}));
 
         // ------------------------ yvCurve_FRAX ------------------------
-        yearnPriceFeeds.push(SingeTokenPriceFeedData({token: Tokens.yvCurve_FRAX}));
+        yearnPriceFeeds[1].push(SingeTokenPriceFeedData({token: Tokens.yvCurve_FRAX}));
+        yearnPriceFeeds[42161].push(SingeTokenPriceFeedData({token: Tokens.yvCurve_FRAX}));
 
         // ------------------------ cvx3Crv ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.cvx3Crv, tokenHasSamePriceFeed: Tokens._3Crv}));
+        theSamePriceFeeds[1].push(TheSamePriceFeedData({token: Tokens.cvx3Crv, tokenHasSamePriceFeed: Tokens._3Crv}));
+        theSamePriceFeeds[42161].push(
+            TheSamePriceFeedData({token: Tokens.cvx3Crv, tokenHasSamePriceFeed: Tokens._3Crv})
+        );
 
         // ------------------------ cvxcrvFRAX ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.cvxcrvFRAX, tokenHasSamePriceFeed: Tokens.crvFRAX}));
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxcrvFRAX, tokenHasSamePriceFeed: Tokens.crvFRAX})
+        );
+        theSamePriceFeeds[42161].push(
+            TheSamePriceFeedData({token: Tokens.cvxcrvFRAX, tokenHasSamePriceFeed: Tokens.crvFRAX})
+        );
 
         // ------------------------ cvxsteCRV ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.cvxsteCRV, tokenHasSamePriceFeed: Tokens.steCRV}));
+        theSamePriceFeeds[1].push(TheSamePriceFeedData({token: Tokens.cvxsteCRV, tokenHasSamePriceFeed: Tokens.steCRV}));
+        theSamePriceFeeds[42161].push(
+            TheSamePriceFeedData({token: Tokens.cvxsteCRV, tokenHasSamePriceFeed: Tokens.steCRV})
+        );
 
         // ------------------------ cvxFRAX3CRV ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxFRAX3CRV, tokenHasSamePriceFeed: Tokens.FRAX3CRV})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxFRAX3CRV, tokenHasSamePriceFeed: Tokens.FRAX3CRV})
         );
 
         // ------------------------ cvxLUSD3CRV ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxLUSD3CRV, tokenHasSamePriceFeed: Tokens.LUSD3CRV})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxLUSD3CRV, tokenHasSamePriceFeed: Tokens.LUSD3CRV})
         );
 
         // ------------------------ cvxcrvPlain3andSUSD ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxcrvPlain3andSUSD, tokenHasSamePriceFeed: Tokens.crvPlain3andSUSD})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxcrvPlain3andSUSD, tokenHasSamePriceFeed: Tokens.crvPlain3andSUSD})
         );
 
         // ------------------------ cvxgusd3CRV ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxgusd3CRV, tokenHasSamePriceFeed: Tokens.gusd3CRV})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxgusd3CRV, tokenHasSamePriceFeed: Tokens.gusd3CRV})
         );
 
         // ------------------------ cvxOHMFRAXBP ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxOHMFRAXBP, tokenHasSamePriceFeed: Tokens.OHMFRAXBP})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxOHMFRAXBP, tokenHasSamePriceFeed: Tokens.OHMFRAXBP})
         );
 
         // ------------------------ cvxMIM_3LP3CRV ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxMIM_3LP3CRV, tokenHasSamePriceFeed: Tokens.MIM_3LP3CRV})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxMIM_3LP3CRV, tokenHasSamePriceFeed: Tokens.MIM_3LP3CRV})
         );
 
         // ------------------------ cvxcrvCRVETH ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxcrvCRVETH, tokenHasSamePriceFeed: Tokens.crvCRVETH})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxcrvCRVETH, tokenHasSamePriceFeed: Tokens.crvCRVETH})
         );
 
         // ------------------------ cvxcrvCVXETH ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxcrvCVXETH, tokenHasSamePriceFeed: Tokens.crvCVXETH})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxcrvCVXETH, tokenHasSamePriceFeed: Tokens.crvCVXETH})
         );
 
         // ------------------------ cvxcrvUSDTWBTCWETH ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.cvxcrvUSDTWBTCWETH, tokenHasSamePriceFeed: Tokens.crvUSDTWBTCWETH})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.cvxcrvUSDTWBTCWETH, tokenHasSamePriceFeed: Tokens.crvUSDTWBTCWETH})
         );
 
         // ------------------------ cvxLDOETH ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.cvxLDOETH, tokenHasSamePriceFeed: Tokens.LDOETH}));
+        theSamePriceFeeds[1].push(TheSamePriceFeedData({token: Tokens.cvxLDOETH, tokenHasSamePriceFeed: Tokens.LDOETH}));
+        theSamePriceFeeds[42161].push(
+            TheSamePriceFeedData({token: Tokens.cvxLDOETH, tokenHasSamePriceFeed: Tokens.LDOETH})
+        );
 
         // ------------------------ stkcvx3Crv ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.stkcvx3Crv, tokenHasSamePriceFeed: Tokens._3Crv}));
+        theSamePriceFeeds[1].push(TheSamePriceFeedData({token: Tokens.stkcvx3Crv, tokenHasSamePriceFeed: Tokens._3Crv}));
+        theSamePriceFeeds[42161].push(
+            TheSamePriceFeedData({token: Tokens.stkcvx3Crv, tokenHasSamePriceFeed: Tokens._3Crv})
+        );
 
         // ------------------------ stkcvxcrvFRAX ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxcrvFRAX, tokenHasSamePriceFeed: Tokens.crvFRAX})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxcrvFRAX, tokenHasSamePriceFeed: Tokens.crvFRAX})
         );
 
         // ------------------------ stkcvxsteCRV ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.stkcvxsteCRV, tokenHasSamePriceFeed: Tokens.steCRV}));
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxsteCRV, tokenHasSamePriceFeed: Tokens.steCRV})
+        );
+        theSamePriceFeeds[42161].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxsteCRV, tokenHasSamePriceFeed: Tokens.steCRV})
+        );
 
         // ------------------------ stkcvxFRAX3CRV ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxFRAX3CRV, tokenHasSamePriceFeed: Tokens.FRAX3CRV})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxFRAX3CRV, tokenHasSamePriceFeed: Tokens.FRAX3CRV})
         );
 
         // ------------------------ stkcvxLUSD3CRV ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxLUSD3CRV, tokenHasSamePriceFeed: Tokens.LUSD3CRV})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxLUSD3CRV, tokenHasSamePriceFeed: Tokens.LUSD3CRV})
         );
 
         // ------------------------ stkcvxcrvPlain3andSUSD ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxcrvPlain3andSUSD, tokenHasSamePriceFeed: Tokens.crvPlain3andSUSD})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxcrvPlain3andSUSD, tokenHasSamePriceFeed: Tokens.crvPlain3andSUSD})
         );
 
         // ------------------------ stkcvxgusd3CRV ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxgusd3CRV, tokenHasSamePriceFeed: Tokens.gusd3CRV})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxgusd3CRV, tokenHasSamePriceFeed: Tokens.gusd3CRV})
         );
 
         // ------------------------ stkcvxOHMFRAXBP ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxOHMFRAXBP, tokenHasSamePriceFeed: Tokens.OHMFRAXBP})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxOHMFRAXBP, tokenHasSamePriceFeed: Tokens.OHMFRAXBP})
         );
 
         // ------------------------ stkcvxMIM_3LP3CRV ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxMIM_3LP3CRV, tokenHasSamePriceFeed: Tokens.MIM_3LP3CRV})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxMIM_3LP3CRV, tokenHasSamePriceFeed: Tokens.MIM_3LP3CRV})
         );
 
         // ------------------------ stkcvxcrvCRVETH ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxcrvCRVETH, tokenHasSamePriceFeed: Tokens.crvCRVETH})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxcrvCRVETH, tokenHasSamePriceFeed: Tokens.crvCRVETH})
         );
 
         // ------------------------ stkcvxcrvCVXETH ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxcrvCVXETH, tokenHasSamePriceFeed: Tokens.crvCVXETH})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxcrvCVXETH, tokenHasSamePriceFeed: Tokens.crvCVXETH})
         );
 
         // ------------------------ stkcvxcrvUSDTWBTCWETH ------------------------
-        theSamePriceFeeds.push(
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxcrvUSDTWBTCWETH, tokenHasSamePriceFeed: Tokens.crvUSDTWBTCWETH})
+        );
+        theSamePriceFeeds[42161].push(
             TheSamePriceFeedData({token: Tokens.stkcvxcrvUSDTWBTCWETH, tokenHasSamePriceFeed: Tokens.crvUSDTWBTCWETH})
         );
 
         // ------------------------ stkcvxLDOETH ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.stkcvxLDOETH, tokenHasSamePriceFeed: Tokens.LDOETH}));
+        theSamePriceFeeds[1].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxLDOETH, tokenHasSamePriceFeed: Tokens.LDOETH})
+        );
+        theSamePriceFeeds[42161].push(
+            TheSamePriceFeedData({token: Tokens.stkcvxLDOETH, tokenHasSamePriceFeed: Tokens.LDOETH})
+        );
+
+        // ------------------------ 50OHM_50DAI ------------------------
+
+        // ------------------------ 50OHM_50WETH ------------------------
+
+        // ------------------------ OHM_wstETH ------------------------
 
         // ------------------------ dDAI ------------------------
 
@@ -603,40 +811,52 @@ contract PriceFeedDataLive {
         // ------------------------ GEAR ------------------------
 
         // ------------------------ aDAI ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.aDAI, tokenHasSamePriceFeed: Tokens.DAI}));
+        theSamePriceFeeds[1].push(TheSamePriceFeedData({token: Tokens.aDAI, tokenHasSamePriceFeed: Tokens.DAI}));
+        theSamePriceFeeds[42161].push(TheSamePriceFeedData({token: Tokens.aDAI, tokenHasSamePriceFeed: Tokens.DAI}));
 
         // ------------------------ aUSDC ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.aUSDC, tokenHasSamePriceFeed: Tokens.USDC}));
+        theSamePriceFeeds[1].push(TheSamePriceFeedData({token: Tokens.aUSDC, tokenHasSamePriceFeed: Tokens.USDC}));
+        theSamePriceFeeds[42161].push(TheSamePriceFeedData({token: Tokens.aUSDC, tokenHasSamePriceFeed: Tokens.USDC}));
 
         // ------------------------ aUSDT ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.aUSDT, tokenHasSamePriceFeed: Tokens.USDT}));
+        theSamePriceFeeds[1].push(TheSamePriceFeedData({token: Tokens.aUSDT, tokenHasSamePriceFeed: Tokens.USDT}));
+        theSamePriceFeeds[42161].push(TheSamePriceFeedData({token: Tokens.aUSDT, tokenHasSamePriceFeed: Tokens.USDT}));
 
         // ------------------------ aWETH ------------------------
-        theSamePriceFeeds.push(TheSamePriceFeedData({token: Tokens.aWETH, tokenHasSamePriceFeed: Tokens.WETH}));
+        theSamePriceFeeds[1].push(TheSamePriceFeedData({token: Tokens.aWETH, tokenHasSamePriceFeed: Tokens.WETH}));
+        theSamePriceFeeds[42161].push(TheSamePriceFeedData({token: Tokens.aWETH, tokenHasSamePriceFeed: Tokens.WETH}));
 
         // ------------------------ waDAI ------------------------
-        wrappedAaveV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.waDAI, underlying: Tokens.aDAI}));
+        wrappedAaveV2PriceFeeds[1].push(GenericLPPriceFeedData({lpToken: Tokens.waDAI, underlying: Tokens.aDAI}));
+        wrappedAaveV2PriceFeeds[42161].push(GenericLPPriceFeedData({lpToken: Tokens.waDAI, underlying: Tokens.aDAI}));
 
         // ------------------------ waUSDC ------------------------
-        wrappedAaveV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.waUSDC, underlying: Tokens.aUSDC}));
+        wrappedAaveV2PriceFeeds[1].push(GenericLPPriceFeedData({lpToken: Tokens.waUSDC, underlying: Tokens.aUSDC}));
+        wrappedAaveV2PriceFeeds[42161].push(GenericLPPriceFeedData({lpToken: Tokens.waUSDC, underlying: Tokens.aUSDC}));
 
         // ------------------------ waUSDT ------------------------
-        wrappedAaveV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.waUSDT, underlying: Tokens.aUSDT}));
+        wrappedAaveV2PriceFeeds[1].push(GenericLPPriceFeedData({lpToken: Tokens.waUSDT, underlying: Tokens.aUSDT}));
+        wrappedAaveV2PriceFeeds[42161].push(GenericLPPriceFeedData({lpToken: Tokens.waUSDT, underlying: Tokens.aUSDT}));
 
         // ------------------------ waWETH ------------------------
-        wrappedAaveV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.waWETH, underlying: Tokens.aWETH}));
+        wrappedAaveV2PriceFeeds[1].push(GenericLPPriceFeedData({lpToken: Tokens.waWETH, underlying: Tokens.aWETH}));
+        wrappedAaveV2PriceFeeds[42161].push(GenericLPPriceFeedData({lpToken: Tokens.waWETH, underlying: Tokens.aWETH}));
 
         // ------------------------ cDAI ------------------------
-        compoundV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.cDAI, underlying: Tokens.DAI}));
+        compoundV2PriceFeeds[1].push(GenericLPPriceFeedData({lpToken: Tokens.cDAI, underlying: Tokens.DAI}));
+        compoundV2PriceFeeds[42161].push(GenericLPPriceFeedData({lpToken: Tokens.cDAI, underlying: Tokens.DAI}));
 
         // ------------------------ cUSDC ------------------------
-        compoundV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.cUSDC, underlying: Tokens.USDC}));
+        compoundV2PriceFeeds[1].push(GenericLPPriceFeedData({lpToken: Tokens.cUSDC, underlying: Tokens.USDC}));
+        compoundV2PriceFeeds[42161].push(GenericLPPriceFeedData({lpToken: Tokens.cUSDC, underlying: Tokens.USDC}));
 
         // ------------------------ cUSDT ------------------------
-        compoundV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.cUSDT, underlying: Tokens.USDT}));
+        compoundV2PriceFeeds[1].push(GenericLPPriceFeedData({lpToken: Tokens.cUSDT, underlying: Tokens.USDT}));
+        compoundV2PriceFeeds[42161].push(GenericLPPriceFeedData({lpToken: Tokens.cUSDT, underlying: Tokens.USDT}));
 
         // ------------------------ cWETH ------------------------
-        compoundV2PriceFeeds.push(GenericLPPriceFeedData({lpToken: Tokens.cWETH, underlying: Tokens.WETH}));
+        compoundV2PriceFeeds[1].push(GenericLPPriceFeedData({lpToken: Tokens.cWETH, underlying: Tokens.WETH}));
+        compoundV2PriceFeeds[42161].push(GenericLPPriceFeedData({lpToken: Tokens.cWETH, underlying: Tokens.WETH}));
     }
 
     function chainlinkPriceFeeds(uint256 index) external view returns (ChainlinkPriceFeedData memory) {
