@@ -44,10 +44,23 @@ contract TokensDataLive {
     }
 
     function checkNetworkId(uint16 _networkId) internal view returns (bool) {
-        try IERC20Check(usdcByNetwork[_networkId]).totalSupply() returns (uint256) {
+        address tokenToCheck = usdcByNetwork[_networkId];
+
+        if (!isContract(tokenToCheck)) {
+            return false;
+        }
+
+        try IERC20Check(tokenToCheck).totalSupply() returns (uint256) {
             return true;
         } catch {
             return false;
         }
+    }
+
+    // This method relies on extcodesize/address.code.length, which returns 0
+    // for contracts in construction, since the code is only stored at the end
+    // of the constructor execution.
+    function isContract(address account) internal view returns (bool) {
+        return account.code.length > 0;
     }
 }
