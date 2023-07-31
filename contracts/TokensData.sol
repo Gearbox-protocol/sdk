@@ -1006,7 +1006,7 @@ contract TokensDataLive {
         );
     }
 
-    function getTokenData() external view returns (TokenData[] memory) {
-        return tokenDataByNetwork[block.chainid];
+    function getTokenData(uint256 chainId) external view returns (TokenData[] memory) {
+        return tokenDataByNetwork[chainId];
     }
 }

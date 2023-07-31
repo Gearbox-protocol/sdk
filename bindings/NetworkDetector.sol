@@ -14,9 +14,11 @@ contract NetworkDetector is Test {
 
     uint16[] public connectedNetworks;
 
+    uint256 public immutable chainId;
+
     constructor() {
         // $GENERATE_HERE$
-        vm.chainId(getNetworkId());
+        chainId = getNetworkId();
     }
 
     function getNetworkId() internal view returns (uint256) {
