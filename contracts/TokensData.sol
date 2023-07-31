@@ -5,6 +5,10 @@ pragma solidity ^0.8.17;
 
 import {Tokens, TokenType} from "./Tokens.sol";
 
+interface IERC20Check {
+    function totalSupply() external view returns (uint256);
+}
+
 struct TokenData {
     Tokens id;
     address addr;
@@ -13,11 +17,18 @@ struct TokenData {
 }
 
 contract TokensDataLive {
-    uint16 immutable networkId;
+    uint16 public immutable networkId;
     mapping(uint16 => TokenData[]) tokenDataByNetwork;
+    mapping(uint16 => address) usdcByNetwork;
 
-    constructor(uint16 _networkId) {
-        networkId = _networkId;
+    uint16[] public connectedNetworks;
+
+    constructor() {
+        // ---------------- Networks ---------------------
+        connectedNetworks.push(1);
+        connectedNetworks.push(42161);
+
+        // ---------------- TokensData ---------------------
         tokenDataByNetwork[1].push(
             TokenData({
                 id: Tokens._1INCH,
@@ -98,6 +109,7 @@ contract TokensDataLive {
                 tokenType: TokenType.NORMAL_TOKEN
             })
         );
+        usdcByNetwork[1] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
         tokenDataByNetwork[1].push(
             TokenData({
                 id: Tokens.USDC,
@@ -798,6 +810,7 @@ contract TokensDataLive {
                 tokenType: TokenType.NORMAL_TOKEN
             })
         );
+        usdcByNetwork[42161] = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831;
         tokenDataByNetwork[42161].push(
             TokenData({
                 id: Tokens.USDC,
@@ -1002,9 +1015,30 @@ contract TokensDataLive {
                 tokenType: TokenType.AAVE_V2_A_TOKEN
             })
         );
+
+        networkId = getNetworkId();
     }
 
     function getTokenData() external view returns (TokenData[] memory) {
         return tokenDataByNetwork[networkId];
+    }
+
+    function getNetworkId() internal view returns (uint16) {
+        uint256 len = connectedNetworks.length;
+        for (uint256 i = 0; i < len; i++) {
+            if (checkNetworkId(connectedNetworks[i])) {
+                return connectedNetworks[i];
+            }
+        }
+
+        revert("No network found");
+    }
+
+    function checkNetworkId(uint16 _networkId) internal view returns (bool) {
+        try IERC20Check(usdcByNetwork[_networkId]).totalSupply() returns (uint256) {
+            return true;
+        } catch {
+            return false;
+        }
     }
 }

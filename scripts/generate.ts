@@ -44,16 +44,25 @@ class BindingsGenerator {
   /// ---------------- TokensDataLive.sol ---------------------
 
   generateTokenData() {
-    let data = "";
+    let data = "// ---------------- Networks ---------------------\n";
+    data += supportedChains
+      .map(chain => `connectedNetworks.push(${CHAINS[chain]});`)
+      .join("\n");
+
+    data += "\n\n// ---------------- TokensData ---------------------\n";
 
     for (const chain of supportedChains) {
       const chainId = CHAINS[chain];
       data += this.tokens
         .map(t => {
           const addr = tokenDataByNetwork[chain][t];
+          let mapping = "";
+          if (t === "USDC") {
+            mapping = `usdcByNetwork[${chainId}] = ${addr};\n`;
+          }
 
           if (addr !== NOT_DEPLOYED) {
-            return `tokenDataByNetwork[${chainId}].push(TokenData({ id: ${this.tokensEnum(
+            return `${mapping}tokenDataByNetwork[${chainId}].push(TokenData({ id: ${this.tokensEnum(
               t,
             )}, addr: ${addr}, symbol: "${t}", tokenType: TokenType.${
               TokenType[supportedTokens[t].type]
