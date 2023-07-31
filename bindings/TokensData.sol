@@ -17,22 +17,20 @@ struct TokenData {
 }
 
 contract TokensDataLive {
-    uint16 public immutable networkId;
-    mapping(uint16 => TokenData[]) tokenDataByNetwork;
-    mapping(uint16 => address) usdcByNetwork;
+    mapping(uint256 => TokenData[]) tokenDataByNetwork;
+    mapping(uint256 => address) usdcByNetwork;
 
     uint16[] public connectedNetworks;
 
     constructor() {
         // $GENERATE_HERE$
-        networkId = getNetworkId();
     }
 
     function getTokenData() external view returns (TokenData[] memory) {
-        return tokenDataByNetwork[networkId];
+        return tokenDataByNetwork[block.chainid];
     }
 
-    function getNetworkId() internal view returns (uint16) {
+    function getNetworkId() internal view returns (uint256) {
         if (block.chainid == 1337 || block.chainid == 31337) {
             uint256 len = connectedNetworks.length;
             for (uint256 i = 0; i < len; i++) {
@@ -40,11 +38,8 @@ contract TokensDataLive {
                     return connectedNetworks[i];
                 }
             }
-
-            revert("No network found");
-        } else {
-            return uint16(block.chainid);
         }
+        return block.chainid;
     }
 
     function checkNetworkId(uint16 _networkId) internal view returns (bool) {

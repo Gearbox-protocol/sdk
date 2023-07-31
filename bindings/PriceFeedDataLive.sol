@@ -54,23 +54,23 @@ struct RedStonePriceFeedData {
 }
 
 contract PriceFeedDataLive {
-    uint16 networkId;
+    uint256 networkId;
 
-    mapping(uint16 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
-    mapping(uint16 => SingeTokenPriceFeedData[]) zeroPriceFeedsByNetwork;
-    mapping(uint16 => CurvePriceFeedData[]) curvePriceFeedsByNetwork;
-    mapping(uint16 => CurvePriceFeedData[]) curveCryptoPriceFeedsByNetwork;
-    mapping(uint16 => TheSamePriceFeedData[]) theSamePriceFeedsByNetwork;
-    mapping(uint16 => SingeTokenPriceFeedData[]) yearnPriceFeedsByNetwork;
-    mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
-    mapping(uint16 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
-    mapping(uint16 => SingeTokenPriceFeedData) wstethPriceFeedByNetwork;
-    mapping(uint16 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeedsByNetwork;
-    mapping(uint16 => GenericLPPriceFeedData[]) compoundV2PriceFeedsByNetwork;
-    mapping(uint16 => GenericLPPriceFeedData[]) erc4626PriceFeedsByNetwork;
-    mapping(uint16 => RedStonePriceFeedData[]) redStonePriceFeedsByNetwork;
+    mapping(uint256 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
+    mapping(uint256 => SingeTokenPriceFeedData[]) zeroPriceFeedsByNetwork;
+    mapping(uint256 => CurvePriceFeedData[]) curvePriceFeedsByNetwork;
+    mapping(uint256 => CurvePriceFeedData[]) curveCryptoPriceFeedsByNetwork;
+    mapping(uint256 => TheSamePriceFeedData[]) theSamePriceFeedsByNetwork;
+    mapping(uint256 => SingeTokenPriceFeedData[]) yearnPriceFeedsByNetwork;
+    mapping(uint256 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
+    mapping(uint256 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
+    mapping(uint256 => SingeTokenPriceFeedData) wstethPriceFeedByNetwork;
+    mapping(uint256 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeedsByNetwork;
+    mapping(uint256 => GenericLPPriceFeedData[]) compoundV2PriceFeedsByNetwork;
+    mapping(uint256 => GenericLPPriceFeedData[]) erc4626PriceFeedsByNetwork;
+    mapping(uint256 => RedStonePriceFeedData[]) redStonePriceFeedsByNetwork;
 
-    constructor(uint16 _networkId) {
+    constructor(uint256 _networkId) {
         networkId = _networkId;
         // $GENERATE_HERE$
     }
