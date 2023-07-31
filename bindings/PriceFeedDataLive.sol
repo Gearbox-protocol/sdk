@@ -65,7 +65,7 @@ contract PriceFeedDataLive {
     mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
     mapping(uint16 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
     mapping(uint16 => SingeTokenPriceFeedData) wstethPriceFeedByNetwork;
-    mapping(uint16 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeeds;
+    mapping(uint16 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeedsByNetwork;
     mapping(uint16 => GenericLPPriceFeedData[]) compoundV2PriceFeedsByNetwork;
     mapping(uint16 => GenericLPPriceFeedData[]) erc4626PriceFeedsByNetwork;
     mapping(uint16 => RedStonePriceFeedData[]) redStonePriceFeedsByNetwork;

@@ -120,7 +120,7 @@ class BindingsGenerator {
       token,
       priceFeedData,
       chainId,
-      "zeroPriceFeeds",
+      "zeroPriceFeedsByNetwork",
       PriceFeedType.ZERO_ORACLE,
     );
     if (result) return result;
@@ -141,7 +141,7 @@ class BindingsGenerator {
       token,
       priceFeedData,
       chainId,
-      "yearnPriceFeeds",
+      "yearnPriceFeedsByNetwork",
       PriceFeedType.YEARN_ORACLE,
     );
     if (result) return result;
@@ -150,7 +150,7 @@ class BindingsGenerator {
       token,
       priceFeedData,
       chainId,
-      "wstethPriceFeed",
+      "wstethPriceFeedByNetwork",
       PriceFeedType.WSTETH_ORACLE,
     );
     if (result) return result;
@@ -159,7 +159,7 @@ class BindingsGenerator {
       token,
       priceFeedData,
       chainId,
-      "wrappedAaveV2PriceFeeds",
+      "wrappedAaveV2PriceFeedsByNetwork",
       PriceFeedType.WRAPPED_AAVE_V2_ORACLE,
     );
     if (result) return result;
@@ -168,7 +168,7 @@ class BindingsGenerator {
       token,
       priceFeedData,
       chainId,
-      "compoundV2PriceFeeds",
+      "compoundV2PriceFeedsByNetwork",
       PriceFeedType.COMPOUND_V2_ORACLE,
     );
     if (result) return result;
@@ -177,7 +177,7 @@ class BindingsGenerator {
       token,
       priceFeedData,
       chainId,
-      "erc4626PriceFeeds",
+      "erc4626PriceFeedsByNetwork",
       PriceFeedType.ERC4626_VAULT_ORACLE,
     );
     if (result) return result;
@@ -224,8 +224,8 @@ class BindingsGenerator {
 
       const mapping =
         priceFeedData.type === PriceFeedType.CURVE_CRYPTO_ORACLE
-          ? "curveCryptoPriceFeeds"
-          : "curvePriceFeeds";
+          ? "curveCryptoPriceFeedsByNetwork"
+          : "curvePriceFeedsByNetwork";
 
       return `${mapping}[${chainId}].push(CurvePriceFeedData({
         lpToken: ${this.tokensEnum(token)},
@@ -244,7 +244,7 @@ class BindingsGenerator {
   ): string | undefined {
     if (priceFeedData.type === PriceFeedType.THE_SAME_AS) {
       const symbol = priceFeedData.token;
-      return `theSamePriceFeeds[${chainId}].push(TheSamePriceFeedData({
+      return `theSamePriceFeedsByNetwork[${chainId}].push(TheSamePriceFeedData({
     token: ${this.tokensEnum(token)},
     tokenHasSamePriceFeed: ${this.tokensEnum(symbol as SupportedToken)}
   }));`;
@@ -347,7 +347,7 @@ class BindingsGenerator {
         );
       }
 
-      return `redStonePriceFeeds[${chainId}].push(RedStonePriceFeedData({ 
+      return `redStonePriceFeedsByNetwork[${chainId}].push(RedStonePriceFeedData({ 
             token: ${this.tokensEnum(token)},
             tokenSymbol: "${token}", 
             dataFeedId: "${priceFeedData.dataId}", signers: [${signers.join(
