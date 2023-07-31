@@ -1024,21 +1024,38 @@ contract TokensDataLive {
     }
 
     function getNetworkId() internal view returns (uint16) {
-        uint256 len = connectedNetworks.length;
-        for (uint256 i = 0; i < len; i++) {
-            if (checkNetworkId(connectedNetworks[i])) {
-                return connectedNetworks[i];
+        if (block.chainid == 1337 || block.chainid == 31337) {
+            uint256 len = connectedNetworks.length;
+            for (uint256 i = 0; i < len; i++) {
+                if (checkNetworkId(connectedNetworks[i])) {
+                    return connectedNetworks[i];
+                }
             }
-        }
 
-        revert("No network found");
+            revert("No network found");
+        } else {
+            return uint16(block.chainid);
+        }
     }
 
     function checkNetworkId(uint16 _networkId) internal view returns (bool) {
-        try IERC20Check(usdcByNetwork[_networkId]).totalSupply() returns (uint256) {
+        address tokenToCheck = usdcByNetwork[_networkId];
+
+        if (!isContract(tokenToCheck)) {
+            return false;
+        }
+
+        try IERC20Check(tokenToCheck).totalSupply() returns (uint256) {
             return true;
         } catch {
             return false;
         }
+    }
+
+    // This method relies on extcodesize/address.code.length, which returns 0
+    // for contracts in construction, since the code is only stored at the end
+    // of the constructor execution.
+    function isContract(address account) internal view returns (bool) {
+        return account.code.length > 0;
     }
 }

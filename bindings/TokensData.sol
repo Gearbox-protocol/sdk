@@ -33,14 +33,18 @@ contract TokensDataLive {
     }
 
     function getNetworkId() internal view returns (uint16) {
-        uint256 len = connectedNetworks.length;
-        for (uint256 i = 0; i < len; i++) {
-            if (checkNetworkId(connectedNetworks[i])) {
-                return connectedNetworks[i];
+        if (block.chainid == 1337 || block.chainid == 31337) {
+            uint256 len = connectedNetworks.length;
+            for (uint256 i = 0; i < len; i++) {
+                if (checkNetworkId(connectedNetworks[i])) {
+                    return connectedNetworks[i];
+                }
             }
-        }
 
-        revert("No network found");
+            revert("No network found");
+        } else {
+            return uint16(block.chainid);
+        }
     }
 
     function checkNetworkId(uint16 _networkId) internal view returns (bool) {
