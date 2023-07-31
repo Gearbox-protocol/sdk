@@ -30,7 +30,7 @@ contract SupportedContracts is Test, ISupportedContracts {
 
     uint256 public override contractCount;
 
-    constructor() {
+    constructor(uint256 _chainId) {
         contractDataByNetwork[1].push(
             ContractData({
                 id: Contracts.UNISWAP_V2_ROUTER,
@@ -349,7 +349,7 @@ contract SupportedContracts is Test, ISupportedContracts {
             })
         );
 
-        ContractData[] storage cd = contractDataByNetwork[block.chainid];
+        ContractData[] storage cd = contractDataByNetwork[_chainId];
 
         uint256 len = cd.length;
         contractCount = len;

@@ -30,10 +30,10 @@ contract SupportedContracts is Test, ISupportedContracts {
 
     uint256 public override contractCount;
 
-    constructor() {
+    constructor(uint256 _chainId) {
         // $GENERATE_HERE$
 
-        ContractData[] storage cd = contractDataByNetwork[block.chainid];
+        ContractData[] storage cd = contractDataByNetwork[_chainId];
 
         uint256 len = cd.length;
         contractCount = len;
