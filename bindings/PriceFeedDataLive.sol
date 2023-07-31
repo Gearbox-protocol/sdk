@@ -54,8 +54,6 @@ struct RedStonePriceFeedData {
 }
 
 contract PriceFeedDataLive {
-    uint256 networkId;
-
     mapping(uint256 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
     mapping(uint256 => SingeTokenPriceFeedData[]) zeroPriceFeedsByNetwork;
     mapping(uint256 => CurvePriceFeedData[]) curvePriceFeedsByNetwork;
@@ -70,12 +68,11 @@ contract PriceFeedDataLive {
     mapping(uint256 => GenericLPPriceFeedData[]) erc4626PriceFeedsByNetwork;
     mapping(uint256 => RedStonePriceFeedData[]) redStonePriceFeedsByNetwork;
 
-    constructor(uint256 _networkId) {
-        networkId = _networkId;
+    constructor() {
         // $GENERATE_HERE$
     }
 
     function chainlinkPriceFeeds(uint256 index) external view returns (ChainlinkPriceFeedData memory) {
-        return chainlinkPriceFeedsByNetwork[networkId][index];
+        return chainlinkPriceFeedsByNetwork[block.chainid][index];
     }
 }

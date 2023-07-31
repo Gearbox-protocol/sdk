@@ -18,16 +18,8 @@ struct TokenData {
 
 contract TokensDataLive {
     mapping(uint256 => TokenData[]) tokenDataByNetwork;
-    mapping(uint256 => address) usdcByNetwork;
-
-    uint16[] public connectedNetworks;
 
     constructor() {
-        // ---------------- Networks ---------------------
-        connectedNetworks.push(1);
-        connectedNetworks.push(42161);
-
-        // ---------------- TokensData ---------------------
         tokenDataByNetwork[1].push(
             TokenData({
                 id: Tokens._1INCH,
@@ -108,7 +100,6 @@ contract TokensDataLive {
                 tokenType: TokenType.NORMAL_TOKEN
             })
         );
-        usdcByNetwork[1] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
         tokenDataByNetwork[1].push(
             TokenData({
                 id: Tokens.USDC,
@@ -809,7 +800,6 @@ contract TokensDataLive {
                 tokenType: TokenType.NORMAL_TOKEN
             })
         );
-        usdcByNetwork[42161] = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831;
         tokenDataByNetwork[42161].push(
             TokenData({
                 id: Tokens.USDC,
@@ -1018,38 +1008,5 @@ contract TokensDataLive {
 
     function getTokenData() external view returns (TokenData[] memory) {
         return tokenDataByNetwork[block.chainid];
-    }
-
-    function getNetworkId() external view returns (uint256) {
-        if (block.chainid == 1337 || block.chainid == 31337) {
-            uint256 len = connectedNetworks.length;
-            for (uint256 i = 0; i < len; i++) {
-                if (checkNetworkId(connectedNetworks[i])) {
-                    return connectedNetworks[i];
-                }
-            }
-        }
-        return block.chainid;
-    }
-
-    function checkNetworkId(uint16 _networkId) internal view returns (bool) {
-        address tokenToCheck = usdcByNetwork[_networkId];
-
-        if (!isContract(tokenToCheck)) {
-            return false;
-        }
-
-        try IERC20Check(tokenToCheck).totalSupply() returns (uint256) {
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    // This method relies on extcodesize/address.code.length, which returns 0
-    // for contracts in construction, since the code is only stored at the end
-    // of the constructor execution.
-    function isContract(address account) internal view returns (bool) {
-        return account.code.length > 0;
     }
 }

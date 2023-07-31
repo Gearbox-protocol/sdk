@@ -41,28 +41,33 @@ class BindingsGenerator {
     this.makeBindings("Tokens.sol", data);
   }
 
-  /// ---------------- TokensDataLive.sol ---------------------
-
-  generateTokenData() {
+  generateNetworkDetector() {
     let data = "// ---------------- Networks ---------------------\n";
     data += supportedChains
       .map(chain => `connectedNetworks.push(${CHAINS[chain]});`)
       .join("\n");
 
-    data += "\n\n// ---------------- TokensData ---------------------\n";
+    for (const chain of supportedChains) {
+      const chainId = CHAINS[chain];
+      data += `usdcByNetwork[${chainId}] = ${tokenDataByNetwork[chain].USDC};\n`;
+    }
+
+    this.makeBindings("NetworkDetector.sol", data);
+  }
+
+  /// ---------------- TokensDataLive.sol ---------------------
+
+  generateTokenData() {
+    let data = "";
 
     for (const chain of supportedChains) {
       const chainId = CHAINS[chain];
       data += this.tokens
         .map(t => {
           const addr = tokenDataByNetwork[chain][t];
-          let mapping = "";
-          if (t === "USDC") {
-            mapping = `usdcByNetwork[${chainId}] = ${addr};\n`;
-          }
 
           if (addr !== NOT_DEPLOYED) {
-            return `${mapping}tokenDataByNetwork[${chainId}].push(TokenData({ id: ${this.tokensEnum(
+            return `tokenDataByNetwork[${chainId}].push(TokenData({ id: ${this.tokensEnum(
               t,
             )}, addr: ${addr}, symbol: "${t}", tokenType: TokenType.${
               TokenType[supportedTokens[t].type]
@@ -538,6 +543,7 @@ class BindingsGenerator {
 
 const generator = new BindingsGenerator();
 
+generator.generateNetworkDetector();
 generator.generateTokens();
 generator.generateTokenData();
 generator.generatePriceFeedType();

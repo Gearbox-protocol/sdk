@@ -26,14 +26,11 @@ contract SupportedContracts is Test, ISupportedContracts {
     mapping(Contracts => address) public override addressOf;
     mapping(Contracts => string) public override nameOf;
     mapping(address => Contracts) public override contractIndex;
-    mapping(uint16 => ContractData[]) public contractDataByNetwork;
+    mapping(uint256 => ContractData[]) public contractDataByNetwork;
 
     uint256 public override contractCount;
 
-    uint16 immutable networkId;
-
-    constructor(uint16 _networkId) {
-        networkId = _networkId;
+    constructor() {
         contractDataByNetwork[1].push(
             ContractData({
                 id: Contracts.UNISWAP_V2_ROUTER,
@@ -352,7 +349,7 @@ contract SupportedContracts is Test, ISupportedContracts {
             })
         );
 
-        ContractData[] storage cd = contractDataByNetwork[networkId];
+        ContractData[] storage cd = contractDataByNetwork[block.chainid];
 
         uint256 len = cd.length;
         contractCount = len;
