@@ -1020,7 +1020,7 @@ contract TokensDataLive {
         return tokenDataByNetwork[block.chainid];
     }
 
-    function getNetworkId() internal view returns (uint256) {
+    function getNetworkId() external view returns (uint256) {
         if (block.chainid == 1337 || block.chainid == 31337) {
             uint256 len = connectedNetworks.length;
             for (uint256 i = 0; i < len; i++) {
