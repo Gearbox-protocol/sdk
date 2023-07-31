@@ -57,18 +57,18 @@ contract PriceFeedDataLive {
     uint16 networkId;
 
     mapping(uint16 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
-    mapping(uint16 => SingeTokenPriceFeedData[]) zeroPriceFeeds;
-    mapping(uint16 => CurvePriceFeedData[]) curvePriceFeeds;
-    mapping(uint16 => CurvePriceFeedData[]) curveCryptoPriceFeeds;
-    mapping(uint16 => TheSamePriceFeedData[]) theSamePriceFeeds;
-    mapping(uint16 => SingeTokenPriceFeedData[]) yearnPriceFeeds;
+    mapping(uint16 => SingeTokenPriceFeedData[]) zeroPriceFeedsByNetwork;
+    mapping(uint16 => CurvePriceFeedData[]) curvePriceFeedsByNetwork;
+    mapping(uint16 => CurvePriceFeedData[]) curveCryptoPriceFeedsByNetwork;
+    mapping(uint16 => TheSamePriceFeedData[]) theSamePriceFeedsByNetwork;
+    mapping(uint16 => SingeTokenPriceFeedData[]) yearnPriceFeedsByNetwork;
     mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
     mapping(uint16 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
-    mapping(uint16 => SingeTokenPriceFeedData) wstethPriceFeed;
+    mapping(uint16 => SingeTokenPriceFeedData) wstethPriceFeedByNetwork;
     mapping(uint16 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeeds;
-    mapping(uint16 => GenericLPPriceFeedData[]) compoundV2PriceFeeds;
-    mapping(uint16 => GenericLPPriceFeedData[]) erc4626PriceFeeds;
-    mapping(uint16 => RedStonePriceFeedData[]) redStonePriceFeeds;
+    mapping(uint16 => GenericLPPriceFeedData[]) compoundV2PriceFeedsByNetwork;
+    mapping(uint16 => GenericLPPriceFeedData[]) erc4626PriceFeedsByNetwork;
+    mapping(uint16 => RedStonePriceFeedData[]) redStonePriceFeedsByNetwork;
 
     constructor(uint16 _networkId) {
         networkId = _networkId;
