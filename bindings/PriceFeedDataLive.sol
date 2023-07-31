@@ -64,7 +64,7 @@ contract PriceFeedDataLive {
     SingeTokenPriceFeedData[] yearnPriceFeeds;
     mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
     mapping(uint16 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
-    SingeTokenPriceFeedData wstethPriceFeed;
+    mapping(uint16 => SingeTokenPriceFeedData) wstethPriceFeed;
     GenericLPPriceFeedData[] wrappedAaveV2PriceFeeds;
     GenericLPPriceFeedData[] compoundV2PriceFeeds;
     GenericLPPriceFeedData[] erc4626PriceFeeds;

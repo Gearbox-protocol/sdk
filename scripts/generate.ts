@@ -126,6 +126,7 @@ class BindingsGenerator {
     result = this.generateSingeTokenPriceFeedData(
       token,
       priceFeedData,
+      chainId,
       "zeroPriceFeeds",
       PriceFeedType.ZERO_ORACLE,
     );
@@ -146,6 +147,7 @@ class BindingsGenerator {
     result = this.generateSingeTokenPriceFeedData(
       token,
       priceFeedData,
+      chainId,
       "yearnPriceFeeds",
       PriceFeedType.YEARN_ORACLE,
     );
@@ -154,6 +156,7 @@ class BindingsGenerator {
     result = this.generateSingeTokenPriceFeedData(
       token,
       priceFeedData,
+      chainId,
       "wstethPriceFeed",
       PriceFeedType.WSTETH_ORACLE,
     );
@@ -292,6 +295,7 @@ class BindingsGenerator {
   protected generateSingeTokenPriceFeedData(
     token: string,
     priceFeedData: PriceFeedData,
+    chainId: number,
     varName: string,
     oracleType: PriceFeedType,
   ): string | undefined {
@@ -301,7 +305,7 @@ class BindingsGenerator {
       )} })`;
 
       return oracleType === PriceFeedType.WSTETH_ORACLE
-        ? `${varName} = ${structure};`
+        ? `${varName}[${chainId}] = ${structure};`
         : `${varName}.push(${structure});`;
     }
     return undefined;
