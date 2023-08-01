@@ -1,4 +1,5 @@
 import { BigNumber } from "ethers";
+import { Interface } from "ethers/lib/utils";
 
 import {
   contractParams,
@@ -16,7 +17,6 @@ import {
   ConvexStakedPhantomToken,
 } from "../tokens/convex";
 import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
-import { decimals } from "../tokens/decimals";
 import {
   SupportedToken,
   supportedTokens,
@@ -29,12 +29,9 @@ import {
   IConvexToken__factory,
   ICurvePool,
   ICurvePool__factory,
-  IERC20,
-  IERC20__factory,
 } from "../types";
 import { formatBN, toBigInt } from "../utils/formatter";
 import { MCall } from "../utils/multicall";
-import { PriceUtils } from "../utils/price";
 import { CurveAPYResult } from "./curveAPY";
 
 const V2_POOLS: Record<number, true> = { 20: true };
@@ -69,7 +66,6 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
   const apyList = parsedResponse.map(
     (
       [
-        crvLpSupply,
         cvxPoolRewardsFinish,
         cvxPoolRate,
         cvxPoolSupply,
@@ -79,7 +75,7 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
       ],
       i,
     ) => {
-      const { cvxExtraPools, crvV2Tokens } = poolsInfo[i];
+      const { cvxExtraPools, crvLpPrice: crvLpPriceList } = poolsInfo[i];
 
       const extraEnd = cvxExtraPools.length;
       const cvxExtraRewards = rest.slice(0, extraEnd);
@@ -87,11 +83,10 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
       const extraFinishEnd = cvxExtraPools.length * 2;
       const cvxExtraRewardsFinish = rest.slice(extraEnd, extraFinishEnd);
 
-      const v2Tokens = extraFinishEnd + crvV2Tokens.length;
-      const crvTokenBalances = rest.slice(extraFinishEnd, v2Tokens);
+      const lpPriceEnd = extraFinishEnd + crvLpPriceList.length;
+      const crvLpPrice = rest.slice(extraFinishEnd, lpPriceEnd);
 
       const apy = calculateConvexAPY({
-        crvLpSupply: toBigInt(crvLpSupply),
         cvxPoolRewardsFinish: toBigInt(cvxPoolRewardsFinish),
         cvxPoolRate: toBigInt(cvxPoolRate),
         cvxPoolSupply: toBigInt(cvxPoolSupply),
@@ -99,7 +94,7 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
         cvxTokenSupply: toBigInt(cvxTokenSupply),
         cvxExtraRewards: cvxExtraRewards.map(v => toBigInt(v)),
         cvxExtraRewardsFinish: cvxExtraRewardsFinish.map(v => toBigInt(v)),
-        crvTokenBalances: crvTokenBalances.map(v => toBigInt(v)),
+        crvLpPrice: crvLpPrice.map(v => toBigInt(v)),
 
         info: poolsInfo[i],
         getTokenPrice: props.getTokenPrice,
@@ -126,7 +121,7 @@ interface PoolInfo {
   crvPoolAddress: string;
   crvToken: CurveLPToken;
   crvPool: CrvParams;
-  crvV2Tokens: CrvParams["tokens"];
+  crvLpPrice: Array<string>;
 
   tokenList: Record<SupportedToken, string>;
 }
@@ -153,8 +148,8 @@ function getPoolInfo({ pool, networkType }: GetPoolInfoProps): PoolInfo {
   const swapPoolAddress = contractsList[crvParams.pool];
   const crvPoolParams = contractParams[crvParams.pool] as CrvParams;
 
-  const crvV2Tokens = V2_POOLS[crvPoolParams.version]
-    ? crvPoolParams.tokens
+  const crvLpPrice = V2_POOLS[crvPoolParams["version"]]
+    ? [swapPoolAddress]
     : [];
 
   return {
@@ -164,8 +159,8 @@ function getPoolInfo({ pool, networkType }: GetPoolInfoProps): PoolInfo {
 
     crvPoolAddress: swapPoolAddress,
     crvPool: crvPoolParams,
-    crvV2Tokens,
     crvToken: underlying,
+    crvLpPrice,
 
     tokenList,
   };
@@ -191,24 +186,17 @@ export function getConvexAPYBulkCalls({
 type IBaseRewardPoolInterface = IBaseRewardPool["interface"];
 type IConvexTokenInterface = IConvexToken["interface"];
 type CurveV1AdapterStETHInterface = ICurvePool["interface"];
-type IERC20Interface = IERC20["interface"];
 
 function getPoolDataCalls(props: PoolInfo) {
   const calls: [
-    MCall<IERC20Interface>,
     MCall<IBaseRewardPoolInterface>,
     MCall<IBaseRewardPoolInterface>,
     MCall<IBaseRewardPoolInterface>,
     MCall<CurveV1AdapterStETHInterface>,
     MCall<IConvexTokenInterface>,
     ...Array<MCall<IBaseRewardPoolInterface>>,
-    ...Array<MCall<IERC20Interface>>,
+    ...Array<MCall<any>>,
   ] = [
-    {
-      address: props.tokenList[props.crvPool.lpToken],
-      interface: IERC20__factory.createInterface(),
-      method: "totalSupply()",
-    },
     {
       address: props.cvxPoolAddress,
       interface: IBaseRewardPool__factory.createInterface(),
@@ -248,14 +236,17 @@ function getPoolDataCalls(props: PoolInfo) {
         method: "periodFinish()",
       }),
     ),
-    ...props.crvV2Tokens.map(
-      (t): MCall<IERC20Interface> => ({
-        address: props.tokenList[t],
-        interface: IERC20__factory.createInterface(),
-        method: "balanceOf(address)",
-        params: [props.crvPoolAddress],
-      }),
-    ),
+    ...(V2_POOLS[props.crvPool["version"]]
+      ? [
+          {
+            address: props.crvPoolAddress,
+            interface: new Interface([
+              "function lp_price() view returns (uint256)",
+            ]),
+            method: "lp_price()",
+          },
+        ]
+      : []),
   ];
 
   return calls;
@@ -275,8 +266,7 @@ export interface CalculateConvexAPYProps {
   cvxExtraRewardsFinish: Array<bigint>;
 
   crvVPrice: bigint;
-  crvLpSupply: bigint;
-  crvTokenBalances: Array<bigint>;
+  crvLpPrice: Array<bigint>;
 
   info: PoolInfo;
   getTokenPrice: GetTokenPriceCallback;
@@ -286,6 +276,10 @@ export interface CalculateConvexAPYProps {
 const CURRENCY_LIST: Partial<Record<ConvexStakedPhantomToken, SupportedToken>> =
   {
     stkcvxsteCRV: "WETH",
+    stkcvxcrvCVXETH: "WETH",
+    stkcvxcrvCRVETH: "WETH",
+    stkcvxLDOETH: "WETH",
+    stkcvxcrvUSDTWBTCWETH: "USDT",
   };
 
 function calculateConvexAPY(props: CalculateConvexAPYProps) {
@@ -359,20 +353,7 @@ export function getCVXMintAmount(crvAmount: bigint, cvxTokenSupply: bigint) {
 
 function getVirtualPrice(props: CalculateConvexAPYProps) {
   if (V2_POOLS[props.info.crvPool.version]) {
-    const total = props.crvTokenBalances.reduce((sum, a, i) => {
-      const symbol = props.info.crvV2Tokens[i];
-      const price = props.getTokenPrice(props.info.tokenList[symbol]);
-
-      const tokenMoney = PriceUtils.calcTotalPrice(price, a, decimals[symbol]);
-
-      return sum + tokenMoney;
-    }, 0n);
-
-    return (
-      (total * WAD) /
-      ((props.crvLpSupply * WAD) /
-        10n ** BigInt(decimals[props.info.crvPool.lpToken]))
-    );
+    return props.crvLpPrice[0] ?? props.crvVPrice;
   } else {
     return props.crvVPrice;
   }
