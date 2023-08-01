@@ -146,7 +146,7 @@ describe("Tokens", () => {
   const suites = supportedChains.map(n => new TokenSuite(n));
 
   before(async function (this) {
-    this.timeout(60000);
+    this.timeout(120000);
     await Promise.all(suites.map(s => s.fetchSymbols()));
   });
 

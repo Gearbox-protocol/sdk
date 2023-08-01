@@ -46,6 +46,7 @@ struct GenericLPPriceFeedData {
 }
 
 struct RedStonePriceFeedData {
+    Tokens token;
     string tokenSymbol;
     bytes32 dataFeedId;
     address[10] signers;
@@ -53,27 +54,25 @@ struct RedStonePriceFeedData {
 }
 
 contract PriceFeedDataLive {
-    uint16 networkId;
+    mapping(uint256 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
+    mapping(uint256 => SingeTokenPriceFeedData[]) zeroPriceFeedsByNetwork;
+    mapping(uint256 => CurvePriceFeedData[]) curvePriceFeedsByNetwork;
+    mapping(uint256 => CurvePriceFeedData[]) curveCryptoPriceFeedsByNetwork;
+    mapping(uint256 => TheSamePriceFeedData[]) theSamePriceFeedsByNetwork;
+    mapping(uint256 => SingeTokenPriceFeedData[]) yearnPriceFeedsByNetwork;
+    mapping(uint256 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
+    mapping(uint256 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
+    mapping(uint256 => SingeTokenPriceFeedData) wstethPriceFeedByNetwork;
+    mapping(uint256 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeedsByNetwork;
+    mapping(uint256 => GenericLPPriceFeedData[]) compoundV2PriceFeedsByNetwork;
+    mapping(uint256 => GenericLPPriceFeedData[]) erc4626PriceFeedsByNetwork;
+    mapping(uint256 => RedStonePriceFeedData[]) redStonePriceFeedsByNetwork;
 
-    mapping(uint16 => ChainlinkPriceFeedData[]) chainlinkPriceFeedsByNetwork;
-    SingeTokenPriceFeedData[] zeroPriceFeeds;
-    CurvePriceFeedData[] curvePriceFeeds;
-    TheSamePriceFeedData[] theSamePriceFeeds;
-    SingeTokenPriceFeedData[] yearnPriceFeeds;
-    mapping(uint16 => BoundedPriceFeedData[]) boundedPriceFeedsByNetwork;
-    mapping(uint16 => CompositePriceFeedData[]) compositePriceFeedsByNetwork;
-    SingeTokenPriceFeedData wstethPriceFeed;
-    GenericLPPriceFeedData[] wrappedAaveV2PriceFeeds;
-    GenericLPPriceFeedData[] compoundV2PriceFeeds;
-    GenericLPPriceFeedData[] erc4626PriceFeeds;
-    RedStonePriceFeedData[] redStonePriceFeeds;
-
-    constructor(uint16 _networkId) {
-        networkId = _networkId;
+    constructor() {
         // $GENERATE_HERE$
     }
 
     function chainlinkPriceFeeds(uint256 index) external view returns (ChainlinkPriceFeedData memory) {
-        return chainlinkPriceFeedsByNetwork[networkId][index];
+        return chainlinkPriceFeedsByNetwork[block.chainid][index];
     }
 }

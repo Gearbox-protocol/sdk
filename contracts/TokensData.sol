@@ -5,6 +5,10 @@ pragma solidity ^0.8.17;
 
 import {Tokens, TokenType} from "./Tokens.sol";
 
+interface IERC20Check {
+    function totalSupply() external view returns (uint256);
+}
+
 struct TokenData {
     Tokens id;
     address addr;
@@ -13,11 +17,9 @@ struct TokenData {
 }
 
 contract TokensDataLive {
-    uint16 immutable networkId;
-    mapping(uint16 => TokenData[]) tokenDataByNetwork;
+    mapping(uint256 => TokenData[]) tokenDataByNetwork;
 
-    constructor(uint16 _networkId) {
-        networkId = _networkId;
+    constructor() {
         tokenDataByNetwork[1].push(
             TokenData({
                 id: Tokens._1INCH,
@@ -1004,7 +1006,7 @@ contract TokensDataLive {
         );
     }
 
-    function getTokenData() external view returns (TokenData[] memory) {
-        return tokenDataByNetwork[networkId];
+    function getTokenData(uint256 chainId) external view returns (TokenData[] memory) {
+        return tokenDataByNetwork[chainId];
     }
 }
