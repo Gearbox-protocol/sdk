@@ -30,7 +30,7 @@ import {
   ICurvePool,
   ICurvePool__factory,
 } from "../types";
-import { formatBN, toBigInt } from "../utils/formatter";
+import { toBigInt } from "../utils/formatter";
 import { MCall } from "../utils/multicall";
 import { CurveAPYResult } from "./curveAPY";
 
