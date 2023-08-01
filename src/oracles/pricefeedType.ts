@@ -29,10 +29,14 @@ export enum PriceFeedType {
   NETWORK_DEPENDENT,
 }
 
+export const HOUR_1 = 60 * 60;
+export const HOUR_24 = 24 * HOUR_1;
+
 export type PriceFeedData =
   | {
       type: PriceFeedType.CHAINLINK_ORACLE;
       address: string;
+      stalenessPeriod?: number;
     }
   | {
       type: PriceFeedType.YEARN_ORACLE;

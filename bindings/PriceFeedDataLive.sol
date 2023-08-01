@@ -11,6 +11,7 @@ import {TokensLib} from "./TokensLib.sol";
 struct ChainlinkPriceFeedData {
     Tokens token;
     address priceFeed;
+    uint32 stalenessPeriod;
 }
 
 struct CurvePriceFeedData {

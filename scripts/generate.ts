@@ -6,6 +6,7 @@ import {
   contractParams,
   contractsByNetwork,
   CurveLPTokenData,
+  HOUR_24,
   LPTokens,
   lpTokens,
   NOT_DEPLOYED,
@@ -213,7 +214,8 @@ class BindingsGenerator {
       return address && address !== NOT_DEPLOYED
         ? `chainlinkPriceFeedsByNetwork[${chainId}].push(ChainlinkPriceFeedData({
     token: ${this.tokensEnum(token)},
-    priceFeed: ${address}
+    priceFeed: ${address},
+    stalenessPeriod: ${priceFeedData.stalenessPeriod || HOUR_24}
   }));`
         : undefined;
     }
