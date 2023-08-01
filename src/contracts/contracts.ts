@@ -279,6 +279,7 @@ export type CurveParams = {
     | AdapterInterface.CURVE_V1_3ASSETS
     | AdapterInterface.CURVE_V1_4ASSETS
     | AdapterInterface.CURVE_V1_WRAPPER;
+  version: number;
   lpToken: CurveLPToken;
   tokens: Array<NormalToken | CurveLPToken>;
   underlyings?: Array<NormalToken>;
@@ -288,6 +289,8 @@ export type CurveParams = {
 export type CurveSteCRVPoolParams = {
   protocol: Protocols.Curve;
   type: AdapterInterface.CURVE_V1_STECRV_POOL;
+  version: number;
+
   pool: Record<NetworkType, string>;
   tokens: ["WETH", "STETH"];
   lpToken: "steCRV";
@@ -296,6 +299,8 @@ export type CurveSteCRVPoolParams = {
 export type CurveGEARPoolParams = {
   protocol: Protocols.Curve;
   type: AdapterInterface.CURVE_V1_2ASSETS;
+  version: number;
+
   pool: Record<NetworkType, string>;
   tokens: ["GEAR", "WETH"];
   lpToken: "GEAR";
@@ -403,10 +408,12 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Sushiswap,
     type: AdapterInterface.UNISWAP_V2_ROUTER,
   },
+
   CURVE_3CRV_POOL: {
     name: "Curve 3Pool",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_3ASSETS,
+    version: 10,
     lpToken: "3Crv",
     tokens: ["DAI", "USDC", "USDT"],
   },
@@ -414,6 +421,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve crvFRAX",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 10,
     lpToken: "crvFRAX",
     tokens: ["FRAX", "USDC"],
   },
@@ -421,6 +429,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve stETH",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
+    version: 10,
     pool: {
       Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
       Arbitrum: NOT_DEPLOYED, // CURVE_STECRV_POOL
@@ -432,6 +441,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve GEAR",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 10,
     pool: {
       Mainnet: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
       Arbitrum: NOT_DEPLOYED,
@@ -443,6 +453,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve FRAX",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 10,
     lpToken: "FRAX3CRV",
     tokens: ["FRAX", "3Crv"],
     underlyings: ["FRAX", "DAI", "USDC", "USDT"],
@@ -451,6 +462,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve LUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 10,
     lpToken: "LUSD3CRV",
     tokens: ["LUSD", "3Crv"],
     underlyings: ["LUSD", "DAI", "USDC", "USDT"],
@@ -459,74 +471,76 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve SUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_4ASSETS,
+    version: 10,
     lpToken: "crvPlain3andSUSD",
     tokens: ["DAI", "USDC", "USDT", "sUSD"],
     wrapper: "CURVE_SUSD_DEPOSIT",
   },
-
   CURVE_SUSD_DEPOSIT: {
     name: "Curve SUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_WRAPPER,
+    version: 10,
     lpToken: "crvPlain3andSUSD",
     tokens: ["DAI", "USDC", "USDT", "sUSD"],
   },
-
   CURVE_GUSD_POOL: {
     name: "Curve GUSD",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 10,
     lpToken: "gusd3CRV",
     tokens: ["GUSD", "3Crv"],
     underlyings: ["GUSD", "DAI", "USDC", "USDT"],
+  },
+  CURVE_MIM_POOL: {
+    name: "Curve MIM",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 10,
+    lpToken: "MIM_3LP3CRV",
+    tokens: ["MIM", "3Crv"],
+    underlyings: ["MIM", "DAI", "USDC", "USDT"],
   },
 
   CURVE_OHMFRAXBP_POOL: {
     name: "Curve OHM_FRAXBP",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 20,
     lpToken: "OHMFRAXBP",
     tokens: ["OHM", "crvFRAX"],
     underlyings: ["OHM", "FRAX", "USDC"],
   },
-
-  CURVE_MIM_POOL: {
-    name: "Curve MIM",
-    protocol: Protocols.Curve,
-    type: AdapterInterface.CURVE_V1_2ASSETS,
-    lpToken: "MIM_3LP3CRV",
-    tokens: ["MIM", "3Crv"],
-    underlyings: ["MIM", "DAI", "USDC", "USDT"],
-  },
-
   CURVE_CRVETH_POOL: {
     name: "Curve CRVETH",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 20,
     lpToken: "crvCRVETH",
     tokens: ["WETH", "CRV"],
   },
-
   CURVE_CVXETH_POOL: {
     name: "Curve CVXETH",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 20,
     lpToken: "crvCVXETH",
     tokens: ["WETH", "CVX"],
   },
-
   CURVE_3CRYPTO_POOL: {
     name: "Curve 3Crypto",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_3ASSETS,
+    version: 20,
     lpToken: "crvUSDTWBTCWETH",
     tokens: ["USDT", "WBTC", "WETH"],
   },
-
   CURVE_LDOETH_POOL: {
     name: "Curve LDOETH",
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 20,
     lpToken: "LDOETH",
     tokens: ["WETH", "LDO"],
   },
@@ -660,15 +674,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
       },
     ],
   },
-
-  CONVEX_OHMFRAXBP_POOL: {
-    name: "Convex OHMFRAXBP",
-    protocol: Protocols.Convex,
-    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-    stakedToken: "stkcvxOHMFRAXBP",
-    extraRewards: [],
-  },
-
   CONVEX_MIM3CRV_POOL: {
     name: "Convex MIM3CRV",
     protocol: Protocols.Convex,
@@ -685,6 +690,13 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     ],
   },
 
+  CONVEX_OHMFRAXBP_POOL: {
+    name: "Convex OHMFRAXBP",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxOHMFRAXBP",
+    extraRewards: [],
+  },
   CONVEX_CRVETH_POOL: {
     name: "Convex crvCRVETH",
     protocol: Protocols.Convex,
@@ -700,7 +712,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
       },
     ],
   },
-
   CONVEX_CVXETH_POOL: {
     name: "Convex crvCVXETH",
     protocol: Protocols.Convex,
@@ -716,7 +727,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
       },
     ],
   },
-
   CONVEX_3CRYPTO_POOL: {
     name: "Convex 3Crypto",
     protocol: Protocols.Convex,
@@ -724,7 +734,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     stakedToken: "stkcvxcrvUSDTWBTCWETH",
     extraRewards: [],
   },
-
   CONVEX_LDOETH_POOL: {
     name: "Convex LDOETH",
     protocol: Protocols.Convex,
