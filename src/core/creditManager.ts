@@ -5,7 +5,6 @@ import { MultiCall } from "../pathfinder/core";
 import {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
-  TotalDebt,
 } from "../payload/creditManager";
 import { tokenSymbolByAddress } from "../tokens/token";
 import {
