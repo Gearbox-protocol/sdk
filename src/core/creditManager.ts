@@ -5,6 +5,7 @@ import { MultiCall } from "../pathfinder/core";
 import {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
+  TotalDebt,
 } from "../payload/creditManager";
 import { tokenSymbolByAddress } from "../tokens/token";
 import {
@@ -51,6 +52,8 @@ export class CreditManagerData {
   readonly liquidationDiscount: number;
   readonly feeLiquidationExpired: number;
   readonly liquidationDiscountExpired: number;
+
+  readonly totalDebt: TotalDebt | undefined;
 
   readonly isPaused: boolean = false;
 
@@ -116,6 +119,8 @@ export class CreditManagerData {
     this.liquidationDiscount = payload.liquidationDiscount;
     this.feeLiquidationExpired = payload.feeLiquidationExpired;
     this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
+
+    this.totalDebt = payload.totalDebt;
 
     TxParser.addCreditManager(this.address, this.version);
     if (this.creditFacade !== "" && this.creditFacade !== ADDRESS_0X0) {
