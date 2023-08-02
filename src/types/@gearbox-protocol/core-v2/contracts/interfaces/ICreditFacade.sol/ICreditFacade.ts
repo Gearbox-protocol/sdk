@@ -56,6 +56,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
     "openCreditAccount(uint256,address,uint16,uint16)": FunctionFragment;
     "openCreditAccountMulticall(uint256,address,(address,bytes)[],uint16)": FunctionFragment;
     "params()": FunctionFragment;
+    "totalDebt()": FunctionFragment;
     "transferAccountOwnership(address)": FunctionFragment;
     "transfersAllowed(address,address)": FunctionFragment;
     "underlying()": FunctionFragment;
@@ -84,166 +85,169 @@ export interface ICreditFacadeInterface extends utils.Interface {
       | "openCreditAccount"
       | "openCreditAccountMulticall"
       | "params"
+      | "totalDebt"
       | "transferAccountOwnership"
       | "transfersAllowed"
       | "underlying"
-      | "version"
+      | "version",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addCollateral",
-    values: [string, string, BigNumberish]
+    values: [string, string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "approve",
-    values: [string, string, BigNumberish]
+    values: [string, string, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "approveAccountTransfer",
-    values: [string, boolean]
+    values: [string, boolean],
   ): string;
   encodeFunctionData(
     functionFragment: "calcCreditAccountHealthFactor",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "calcTotalValue",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "closeCreditAccount",
-    values: [string, BigNumberish, boolean, MultiCallStruct[]]
+    values: [string, BigNumberish, boolean, MultiCallStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseDebt",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "degenNFT", values?: undefined): string;
   encodeFunctionData(functionFragment: "enableToken", values: [string]): string;
   encodeFunctionData(
     functionFragment: "hasOpenedCreditAccount",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "increaseDebt",
-    values: [BigNumberish]
+    values: [BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "isTokenAllowed",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(functionFragment: "limits", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount",
-    values: [string, string, BigNumberish, boolean, MultiCallStruct[]]
+    values: [string, string, BigNumberish, boolean, MultiCallStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateExpiredCreditAccount",
-    values: [string, string, BigNumberish, boolean, MultiCallStruct[]]
+    values: [string, string, BigNumberish, boolean, MultiCallStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "multicall",
-    values: [MultiCallStruct[]]
+    values: [MultiCallStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount",
-    values: [BigNumberish, string, BigNumberish, BigNumberish]
+    values: [BigNumberish, string, BigNumberish, BigNumberish],
   ): string;
   encodeFunctionData(
     functionFragment: "openCreditAccountMulticall",
-    values: [BigNumberish, string, MultiCallStruct[], BigNumberish]
+    values: [BigNumberish, string, MultiCallStruct[], BigNumberish],
   ): string;
   encodeFunctionData(functionFragment: "params", values?: undefined): string;
+  encodeFunctionData(functionFragment: "totalDebt", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferAccountOwnership",
-    values: [string]
+    values: [string],
   ): string;
   encodeFunctionData(
     functionFragment: "transfersAllowed",
-    values: [string, string]
+    values: [string, string],
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "addCollateral",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "approveAccountTransfer",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "calcCreditAccountHealthFactor",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "calcTotalValue",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "closeCreditAccount",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "creditManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "decreaseDebt",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "degenNFT", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "enableToken",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "hasOpenedCreditAccount",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "increaseDebt",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "isTokenAllowed",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "limits", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "liquidateCreditAccount",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "liquidateExpiredCreditAccount",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "openCreditAccount",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "openCreditAccountMulticall",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "params", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "totalDebt", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferAccountOwnership",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "transfersAllowed",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
@@ -270,7 +274,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
+    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount",
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
@@ -447,15 +451,15 @@ export interface ICreditFacade extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
   listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
+    eventFilter?: TypedEventFilter<TEvent>,
   ): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
   removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
+    eventFilter: TypedEventFilter<TEvent>,
   ): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
@@ -468,30 +472,30 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     approve(
       targetContract: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     approveAccountTransfer(
       from: string,
       state: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     calcCreditAccountHealthFactor(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber] & { hf: BigNumber }>;
 
     calcTotalValue(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber] & { total: BigNumber; twv: BigNumber }>;
 
     closeCreditAccount(
@@ -499,41 +503,39 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
     decreaseDebt(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     degenNFT(overrides?: CallOverrides): Promise<[string]>;
 
     enableToken(
       token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     hasOpenedCreditAccount(
       borrower: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[boolean]>;
 
     increaseDebt(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     isTokenAllowed(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[boolean]>;
 
-    limits(
-      overrides?: CallOverrides
-    ): Promise<
+    limits(overrides?: CallOverrides): Promise<
       [BigNumber, BigNumber] & {
         minBorrowedAmount: BigNumber;
         maxBorrowedAmount: BigNumber;
@@ -546,7 +548,7 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     liquidateExpiredCreditAccount(
@@ -555,12 +557,12 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     multicall(
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     openCreditAccount(
@@ -568,7 +570,7 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     openCreditAccountMulticall(
@@ -576,12 +578,10 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       calls: MultiCallStruct[],
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
-    params(
-      overrides?: CallOverrides
-    ): Promise<
+    params(overrides?: CallOverrides): Promise<
       [BigNumber, boolean, number] & {
         maxBorrowedAmountPerBlock: BigNumber;
         isIncreaseDebtForbidden: boolean;
@@ -589,15 +589,22 @@ export interface ICreditFacade extends BaseContract {
       }
     >;
 
+    totalDebt(overrides?: CallOverrides): Promise<
+      [BigNumber, BigNumber] & {
+        currentTotalDebt: BigNumber;
+        totalDebtLimit: BigNumber;
+      }
+    >;
+
     transferAccountOwnership(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     transfersAllowed(
       from: string,
       to: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[boolean]>;
 
     underlying(overrides?: CallOverrides): Promise<[string]>;
@@ -609,30 +616,30 @@ export interface ICreditFacade extends BaseContract {
     onBehalfOf: string,
     token: string,
     amount: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   approve(
     targetContract: string,
     token: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   approveAccountTransfer(
     from: string,
     state: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   calcCreditAccountHealthFactor(
     creditAccount: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   calcTotalValue(
     creditAccount: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<[BigNumber, BigNumber] & { total: BigNumber; twv: BigNumber }>;
 
   closeCreditAccount(
@@ -640,38 +647,36 @@ export interface ICreditFacade extends BaseContract {
     skipTokenMask: BigNumberish,
     convertWETH: boolean,
     calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
   decreaseDebt(
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   degenNFT(overrides?: CallOverrides): Promise<string>;
 
   enableToken(
     token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   hasOpenedCreditAccount(
     borrower: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<boolean>;
 
   increaseDebt(
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   isTokenAllowed(token: string, overrides?: CallOverrides): Promise<boolean>;
 
-  limits(
-    overrides?: CallOverrides
-  ): Promise<
+  limits(overrides?: CallOverrides): Promise<
     [BigNumber, BigNumber] & {
       minBorrowedAmount: BigNumber;
       maxBorrowedAmount: BigNumber;
@@ -684,7 +689,7 @@ export interface ICreditFacade extends BaseContract {
     skipTokenMask: BigNumberish,
     convertWETH: boolean,
     calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   liquidateExpiredCreditAccount(
@@ -693,12 +698,12 @@ export interface ICreditFacade extends BaseContract {
     skipTokenMask: BigNumberish,
     convertWETH: boolean,
     calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   multicall(
     calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   openCreditAccount(
@@ -706,7 +711,7 @@ export interface ICreditFacade extends BaseContract {
     onBehalfOf: string,
     leverageFactor: BigNumberish,
     referralCode: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   openCreditAccountMulticall(
@@ -714,12 +719,10 @@ export interface ICreditFacade extends BaseContract {
     onBehalfOf: string,
     calls: MultiCallStruct[],
     referralCode: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
-  params(
-    overrides?: CallOverrides
-  ): Promise<
+  params(overrides?: CallOverrides): Promise<
     [BigNumber, boolean, number] & {
       maxBorrowedAmountPerBlock: BigNumber;
       isIncreaseDebtForbidden: boolean;
@@ -727,15 +730,22 @@ export interface ICreditFacade extends BaseContract {
     }
   >;
 
+  totalDebt(overrides?: CallOverrides): Promise<
+    [BigNumber, BigNumber] & {
+      currentTotalDebt: BigNumber;
+      totalDebtLimit: BigNumber;
+    }
+  >;
+
   transferAccountOwnership(
     to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
   transfersAllowed(
     from: string,
     to: string,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<boolean>;
 
   underlying(overrides?: CallOverrides): Promise<string>;
@@ -747,30 +757,30 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     approve(
       targetContract: string,
       token: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     approveAccountTransfer(
       from: string,
       state: boolean,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     calcCreditAccountHealthFactor(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     calcTotalValue(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber, BigNumber] & { total: BigNumber; twv: BigNumber }>;
 
     closeCreditAccount(
@@ -778,14 +788,14 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
     decreaseDebt(
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     degenNFT(overrides?: CallOverrides): Promise<string>;
@@ -794,19 +804,17 @@ export interface ICreditFacade extends BaseContract {
 
     hasOpenedCreditAccount(
       borrower: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     increaseDebt(
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     isTokenAllowed(token: string, overrides?: CallOverrides): Promise<boolean>;
 
-    limits(
-      overrides?: CallOverrides
-    ): Promise<
+    limits(overrides?: CallOverrides): Promise<
       [BigNumber, BigNumber] & {
         minBorrowedAmount: BigNumber;
         maxBorrowedAmount: BigNumber;
@@ -819,7 +827,7 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     liquidateExpiredCreditAccount(
@@ -828,12 +836,12 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     multicall(
       calls: MultiCallStruct[],
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     openCreditAccount(
@@ -841,7 +849,7 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     openCreditAccountMulticall(
@@ -849,12 +857,10 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       calls: MultiCallStruct[],
       referralCode: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
-    params(
-      overrides?: CallOverrides
-    ): Promise<
+    params(overrides?: CallOverrides): Promise<
       [BigNumber, boolean, number] & {
         maxBorrowedAmountPerBlock: BigNumber;
         isIncreaseDebtForbidden: boolean;
@@ -862,15 +868,22 @@ export interface ICreditFacade extends BaseContract {
       }
     >;
 
+    totalDebt(overrides?: CallOverrides): Promise<
+      [BigNumber, BigNumber] & {
+        currentTotalDebt: BigNumber;
+        totalDebtLimit: BigNumber;
+      }
+    >;
+
     transferAccountOwnership(
       to: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     transfersAllowed(
       from: string,
       to: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
 
     underlying(overrides?: CallOverrides): Promise<string>;
@@ -882,72 +895,72 @@ export interface ICreditFacade extends BaseContract {
     "AddCollateral(address,address,uint256)"(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null
+      value?: null,
     ): AddCollateralEventFilter;
     AddCollateral(
       onBehalfOf?: string | null,
       token?: string | null,
-      value?: null
+      value?: null,
     ): AddCollateralEventFilter;
 
     "CloseCreditAccount(address,address)"(
       borrower?: string | null,
-      to?: string | null
+      to?: string | null,
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
       borrower?: string | null,
-      to?: string | null
+      to?: string | null,
     ): CloseCreditAccountEventFilter;
 
     "DecreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null
+      amount?: null,
     ): DecreaseBorrowedAmountEventFilter;
     DecreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null
+      amount?: null,
     ): DecreaseBorrowedAmountEventFilter;
 
     "IncreaseBorrowedAmount(address,uint256)"(
       borrower?: string | null,
-      amount?: null
+      amount?: null,
     ): IncreaseBorrowedAmountEventFilter;
     IncreaseBorrowedAmount(
       borrower?: string | null,
-      amount?: null
+      amount?: null,
     ): IncreaseBorrowedAmountEventFilter;
 
     "LiquidateCreditAccount(address,address,address,uint256)"(
       borrower?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null
+      remainingFunds?: null,
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
       borrower?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null
+      remainingFunds?: null,
     ): LiquidateCreditAccountEventFilter;
 
     "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
       borrower?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null
+      remainingFunds?: null,
     ): LiquidateExpiredCreditAccountEventFilter;
     LiquidateExpiredCreditAccount(
       borrower?: string | null,
       liquidator?: string | null,
       to?: string | null,
-      remainingFunds?: null
+      remainingFunds?: null,
     ): LiquidateExpiredCreditAccountEventFilter;
 
     "MultiCallFinished()"(): MultiCallFinishedEventFilter;
     MultiCallFinished(): MultiCallFinishedEventFilter;
 
     "MultiCallStarted(address)"(
-      borrower?: string | null
+      borrower?: string | null,
     ): MultiCallStartedEventFilter;
     MultiCallStarted(borrower?: string | null): MultiCallStartedEventFilter;
 
@@ -955,51 +968,51 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null
+      referralCode?: null,
     ): OpenCreditAccountEventFilter;
     OpenCreditAccount(
       onBehalfOf?: string | null,
       creditAccount?: string | null,
       borrowAmount?: null,
-      referralCode?: null
+      referralCode?: null,
     ): OpenCreditAccountEventFilter;
 
     "TokenDisabled(address,address)"(
       borrower?: string | null,
-      token?: string | null
+      token?: string | null,
     ): TokenDisabledEventFilter;
     TokenDisabled(
       borrower?: string | null,
-      token?: string | null
+      token?: string | null,
     ): TokenDisabledEventFilter;
 
     "TokenEnabled(address,address)"(
       borrower?: string | null,
-      token?: string | null
+      token?: string | null,
     ): TokenEnabledEventFilter;
     TokenEnabled(
       borrower?: string | null,
-      token?: string | null
+      token?: string | null,
     ): TokenEnabledEventFilter;
 
     "TransferAccount(address,address)"(
       oldOwner?: string | null,
-      newOwner?: string | null
+      newOwner?: string | null,
     ): TransferAccountEventFilter;
     TransferAccount(
       oldOwner?: string | null,
-      newOwner?: string | null
+      newOwner?: string | null,
     ): TransferAccountEventFilter;
 
     "TransferAccountAllowed(address,address,bool)"(
       from?: string | null,
       to?: string | null,
-      state?: null
+      state?: null,
     ): TransferAccountAllowedEventFilter;
     TransferAccountAllowed(
       from?: string | null,
       to?: string | null,
-      state?: null
+      state?: null,
     ): TransferAccountAllowedEventFilter;
   };
 
@@ -1008,30 +1021,30 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     approve(
       targetContract: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     approveAccountTransfer(
       from: string,
       state: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     calcCreditAccountHealthFactor(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     calcTotalValue(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     closeCreditAccount(
@@ -1039,36 +1052,36 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     decreaseDebt(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     degenNFT(overrides?: CallOverrides): Promise<BigNumber>;
 
     enableToken(
       token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     hasOpenedCreditAccount(
       borrower: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     increaseDebt(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     isTokenAllowed(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     limits(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1079,7 +1092,7 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     liquidateExpiredCreditAccount(
@@ -1088,12 +1101,12 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     multicall(
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     openCreditAccount(
@@ -1101,7 +1114,7 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     openCreditAccountMulticall(
@@ -1109,20 +1122,22 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       calls: MultiCallStruct[],
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     params(overrides?: CallOverrides): Promise<BigNumber>;
 
+    totalDebt(overrides?: CallOverrides): Promise<BigNumber>;
+
     transferAccountOwnership(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
     transfersAllowed(
       from: string,
       to: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     underlying(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1135,30 +1150,30 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       token: string,
       amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     approve(
       targetContract: string,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     approveAccountTransfer(
       from: string,
       state: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     calcCreditAccountHealthFactor(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     calcTotalValue(
       creditAccount: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     closeCreditAccount(
@@ -1166,36 +1181,36 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     decreaseDebt(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     degenNFT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     enableToken(
       token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     hasOpenedCreditAccount(
       borrower: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     increaseDebt(
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     isTokenAllowed(
       token: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     limits(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1206,7 +1221,7 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     liquidateExpiredCreditAccount(
@@ -1215,12 +1230,12 @@ export interface ICreditFacade extends BaseContract {
       skipTokenMask: BigNumberish,
       convertWETH: boolean,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     multicall(
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     openCreditAccount(
@@ -1228,7 +1243,7 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       leverageFactor: BigNumberish,
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     openCreditAccountMulticall(
@@ -1236,20 +1251,22 @@ export interface ICreditFacade extends BaseContract {
       onBehalfOf: string,
       calls: MultiCallStruct[],
       referralCode: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     params(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    totalDebt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     transferAccountOwnership(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     transfersAllowed(
       from: string,
       to: string,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
