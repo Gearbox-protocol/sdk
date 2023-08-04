@@ -99,7 +99,7 @@ export const poolByNetwork: PoolsListType = {
   Arbitrum: {},
 };
 
-export type SupportedCreditPools = MainnetPools | ArbitrumPools;
+export type SupportedPools = MainnetPools | ArbitrumPools;
 
 const deployedContractNames: Record<string, string> = {
   // MAINNET V1 CM

@@ -269,7 +269,7 @@ export class UserPoolData {
     this.depositAPY =
       rayToNumber(payload.depositAPY_RAY || 0) * Number(PERCENTAGE_DECIMALS);
     this.depositAPYRay = toBigInt(payload.depositAPY_RAY || 0);
-    this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_FACTOR || 0);
+    this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS || 0);
 
     this.providedLiquidity = toBigInt(payload.liqValue || 0);
     this.providedLiquidityInUSD = payload.liqValueInUSD;
