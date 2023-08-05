@@ -56,6 +56,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
     "openCreditAccount(uint256,address,uint16,uint16)": FunctionFragment;
     "openCreditAccountMulticall(uint256,address,(address,bytes)[],uint16)": FunctionFragment;
     "params()": FunctionFragment;
+    "totalDebt()": FunctionFragment;
     "transferAccountOwnership(address)": FunctionFragment;
     "transfersAllowed(address,address)": FunctionFragment;
     "underlying()": FunctionFragment;
@@ -84,6 +85,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
       | "openCreditAccount"
       | "openCreditAccountMulticall"
       | "params"
+      | "totalDebt"
       | "transferAccountOwnership"
       | "transfersAllowed"
       | "underlying"
@@ -158,6 +160,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
     values: [BigNumberish, string, MultiCallStruct[], BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "params", values?: undefined): string;
+  encodeFunctionData(functionFragment: "totalDebt", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferAccountOwnership",
     values: [string]
@@ -237,6 +240,7 @@ export interface ICreditFacadeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "params", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "totalDebt", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferAccountOwnership",
     data: BytesLike
@@ -589,6 +593,13 @@ export interface ICreditFacade extends BaseContract {
       }
     >;
 
+    totalDebt(overrides?: CallOverrides): Promise<
+      [BigNumber, BigNumber] & {
+        currentTotalDebt: BigNumber;
+        totalDebtLimit: BigNumber;
+      }
+    >;
+
     transferAccountOwnership(
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -727,6 +738,13 @@ export interface ICreditFacade extends BaseContract {
     }
   >;
 
+  totalDebt(overrides?: CallOverrides): Promise<
+    [BigNumber, BigNumber] & {
+      currentTotalDebt: BigNumber;
+      totalDebtLimit: BigNumber;
+    }
+  >;
+
   transferAccountOwnership(
     to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -859,6 +877,13 @@ export interface ICreditFacade extends BaseContract {
         maxBorrowedAmountPerBlock: BigNumber;
         isIncreaseDebtForbidden: boolean;
         expirationDate: number;
+      }
+    >;
+
+    totalDebt(overrides?: CallOverrides): Promise<
+      [BigNumber, BigNumber] & {
+        currentTotalDebt: BigNumber;
+        totalDebtLimit: BigNumber;
       }
     >;
 
@@ -1114,6 +1139,8 @@ export interface ICreditFacade extends BaseContract {
 
     params(overrides?: CallOverrides): Promise<BigNumber>;
 
+    totalDebt(overrides?: CallOverrides): Promise<BigNumber>;
+
     transferAccountOwnership(
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1240,6 +1267,8 @@ export interface ICreditFacade extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     params(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalDebt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferAccountOwnership(
       to: string,

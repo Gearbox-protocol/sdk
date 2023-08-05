@@ -4,6 +4,7 @@ export interface MetamaskError {
   data: string;
 }
 export type OpenAccountErrorTypes =
+  | "insufficientDebtLimit"
   | "insufficientPoolLiquidity"
   | "leverageGreaterMax"
   | "wrongLeverage"

@@ -912,6 +912,29 @@ const _abi = [
         name: "expirationDate",
         type: "uint40",
       },
+      {
+        internalType: "uint16",
+        name: "emergencyLiquidationDiscount",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalDebt",
+    outputs: [
+      {
+        internalType: "uint128",
+        name: "currentTotalDebt",
+        type: "uint128",
+      },
+      {
+        internalType: "uint128",
+        name: "totalDebtLimit",
+        type: "uint128",
+      },
     ],
     stateMutability: "view",
     type: "function",

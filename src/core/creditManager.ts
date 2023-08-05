@@ -52,6 +52,10 @@ export class CreditManagerData {
   readonly feeLiquidationExpired: number;
   readonly liquidationDiscountExpired: number;
 
+  readonly totalDebt:
+    | { currentTotalDebt: bigint; totalDebtLimit: bigint }
+    | undefined;
+
   readonly isPaused: boolean = false;
 
   constructor(payload: CreditManagerDataPayload) {
@@ -116,6 +120,13 @@ export class CreditManagerData {
     this.liquidationDiscount = payload.liquidationDiscount;
     this.feeLiquidationExpired = payload.feeLiquidationExpired;
     this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
+
+    this.totalDebt = payload.totalDebt
+      ? {
+          totalDebtLimit: toBigInt(payload.totalDebt.totalDebtLimit),
+          currentTotalDebt: toBigInt(payload.totalDebt.currentTotalDebt),
+        }
+      : undefined;
 
     TxParser.addCreditManager(this.address, this.version);
     if (this.creditFacade !== "" && this.creditFacade !== ADDRESS_0X0) {
@@ -224,6 +235,15 @@ export class CreditManagerData {
     if (debt > this.availableLiquidity)
       throw new OpenAccountError(
         "insufficientPoolLiquidity",
+        this.availableLiquidity,
+      );
+
+    if (
+      this.totalDebt &&
+      debt > this.totalDebt.totalDebtLimit - this.totalDebt.currentTotalDebt
+    )
+      throw new OpenAccountError(
+        "insufficientDebtLimit",
         this.availableLiquidity,
       );
 
