@@ -72,7 +72,8 @@ export type CompoundV2PoolContract =
   | "COMPOUND_V2_DAI_POOL"
   | "COMPOUND_V2_USDC_POOL"
   | "COMPOUND_V2_USDT_POOL"
-  | "COMPOUND_V2_WETH_POOL";
+  | "COMPOUND_V2_WETH_POOL"
+  | "COMPOUND_V2_LINK_POOL";
 
 export type SupportedContract =
   | UniswapV2Contract
@@ -167,6 +168,7 @@ export const contractsByNetwork: Record<
     COMPOUND_V2_DAI_POOL: tokenDataByNetwork.Mainnet.cDAI,
     COMPOUND_V2_USDC_POOL: tokenDataByNetwork.Mainnet.cUSDC,
     COMPOUND_V2_USDT_POOL: tokenDataByNetwork.Mainnet.cUSDT,
+    COMPOUND_V2_LINK_POOL: tokenDataByNetwork.Mainnet.cLINK,
     COMPOUND_V2_WETH_POOL: tokenDataByNetwork.Mainnet.cWETH,
   },
 
@@ -251,6 +253,7 @@ export const contractsByNetwork: Record<
     COMPOUND_V2_DAI_POOL: tokenDataByNetwork.Arbitrum.cDAI,
     COMPOUND_V2_USDC_POOL: tokenDataByNetwork.Arbitrum.cUSDC,
     COMPOUND_V2_USDT_POOL: tokenDataByNetwork.Arbitrum.cUSDT,
+    COMPOUND_V2_LINK_POOL: tokenDataByNetwork.Mainnet.cLINK,
     COMPOUND_V2_WETH_POOL: tokenDataByNetwork.Arbitrum.cWETH,
   },
 };
@@ -846,6 +849,12 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.CompoundV2,
     type: AdapterInterface.COMPOUND_V2_CERC20,
     underlying: "USDT",
+  },
+  COMPOUND_V2_LINK_POOL: {
+    name: "Compound V2 LINK",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "LINK",
   },
   COMPOUND_V2_WETH_POOL: {
     name: "Compound V2 DAI",

@@ -1066,6 +1066,12 @@ contract PriceFeedDataLive {
             GenericLPPriceFeedData({lpToken: Tokens.cUSDT, underlying: Tokens.USDT})
         );
 
+        // ------------------------ cLINK ------------------------
+        compoundV2PriceFeedsByNetwork[1].push(GenericLPPriceFeedData({lpToken: Tokens.cLINK, underlying: Tokens.LINK}));
+        compoundV2PriceFeedsByNetwork[42161].push(
+            GenericLPPriceFeedData({lpToken: Tokens.cLINK, underlying: Tokens.LINK})
+        );
+
         // ------------------------ cWETH ------------------------
         compoundV2PriceFeedsByNetwork[1].push(GenericLPPriceFeedData({lpToken: Tokens.cWETH, underlying: Tokens.WETH}));
         compoundV2PriceFeedsByNetwork[42161].push(

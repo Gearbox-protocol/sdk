@@ -231,6 +231,7 @@ export const tokenDataByNetwork: Record<
     cUSDC: NOT_DEPLOYED,
     cUSDT: NOT_DEPLOYED,
     cWETH: NOT_DEPLOYED,
+    cLINK: NOT_DEPLOYED,
   },
 
   ///
@@ -360,6 +361,7 @@ export const tokenDataByNetwork: Record<
     cUSDC: NOT_DEPLOYED,
     cUSDT: NOT_DEPLOYED,
     cWETH: NOT_DEPLOYED,
+    cLINK: NOT_DEPLOYED,
   },
 };
 

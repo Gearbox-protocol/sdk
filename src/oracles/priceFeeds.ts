@@ -811,6 +811,10 @@ export const priceFeedsByToken: Record<SupportedToken, PriceFeedData> = {
     type: PriceFeedType.COMPOUND_V2_ORACLE,
     underlying: "USDT",
   },
+  cLINK: {
+    type: PriceFeedType.COMPOUND_V2_ORACLE,
+    underlying: "LINK",
+  },
   cWETH: {
     type: PriceFeedType.COMPOUND_V2_ORACLE,
     underlying: "WETH",
