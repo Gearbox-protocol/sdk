@@ -272,6 +272,14 @@ contract TokensDataLive {
         );
         tokenDataByNetwork[1].push(
             TokenData({
+                id: Tokens.crvUSD,
+                addr: 0x95ECDC6caAf7E4805FCeF2679A92338351D24297,
+                symbol: "crvUSD",
+                tokenType: TokenType.NORMAL_TOKEN
+            })
+        );
+        tokenDataByNetwork[1].push(
+            TokenData({
                 id: Tokens._3Crv,
                 addr: 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490,
                 symbol: "3Crv",
@@ -331,6 +339,38 @@ contract TokensDataLive {
                 id: Tokens.LDOETH,
                 addr: 0xb79565c01b7Ae53618d9B847b9443aAf4f9011e7,
                 symbol: "LDOETH",
+                tokenType: TokenType.CURVE_LP_TOKEN
+            })
+        );
+        tokenDataByNetwork[1].push(
+            TokenData({
+                id: Tokens.crvUSDUSDC,
+                addr: 0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E,
+                symbol: "crvUSDUSDC",
+                tokenType: TokenType.CURVE_LP_TOKEN
+            })
+        );
+        tokenDataByNetwork[1].push(
+            TokenData({
+                id: Tokens.crvUSDUSDT,
+                addr: 0x390f3595bCa2Df7d23783dFd126427CCeb997BF4,
+                symbol: "crvUSDUSDT",
+                tokenType: TokenType.CURVE_LP_TOKEN
+            })
+        );
+        tokenDataByNetwork[1].push(
+            TokenData({
+                id: Tokens.crvUSDFRAX,
+                addr: 0x0CD6f267b2086bea681E922E19D40512511BE538,
+                symbol: "crvUSDFRAX",
+                tokenType: TokenType.CURVE_LP_TOKEN
+            })
+        );
+        tokenDataByNetwork[1].push(
+            TokenData({
+                id: Tokens.crvUSDETHCRV,
+                addr: 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14,
+                symbol: "crvUSDETHCRV",
                 tokenType: TokenType.CURVE_LP_TOKEN
             })
         );

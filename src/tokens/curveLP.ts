@@ -21,6 +21,10 @@ export type CurveLPToken =
   | "crvCVXETH"
   | "crvUSDTWBTCWETH"
   | "LDOETH"
+  | "crvUSDUSDC"
+  | "crvUSDUSDT"
+  | "crvUSDFRAX"
+  | "crvUSDETHCRV"
   | CurveMetaTokens;
 
 export type CurveLPTokenData = {
@@ -351,6 +355,60 @@ export const curveTokens: Record<
         type: TradeType.ConvexDepositLPAndStake,
         contract: "CONVEX_BOOSTER",
         tokenOut: "stkcvxLDOETH",
+      },
+    ],
+  },
+
+  crvUSDUSDC: {
+    name: "Curve crvUSDUSDC",
+    symbol: "crvUSDUSDC",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_CRVUSD_USDC_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_CRVUSD_USDC_POOL",
+        tokenOut: ["crvUSD", "USDC"],
+      },
+    ],
+  },
+  crvUSDUSDT: {
+    name: "Curve crvUSDUSDT",
+    symbol: "crvUSDUSDT",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_CRVUSD_USDT_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_CRVUSD_USDT_POOL",
+        tokenOut: ["crvUSD", "USDT"],
+      },
+    ],
+  },
+  crvUSDFRAX: {
+    name: "Curve crvUSDFRAX",
+    symbol: "crvUSDFRAX",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_CRVUSD_USDC_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_CRVUSD_FRAX_POOL",
+        tokenOut: ["crvUSD", "FRAX"],
+      },
+    ],
+  },
+
+  crvUSDETHCRV: {
+    name: "Curve crvUSDETHCRV",
+    symbol: "crvUSDETHCRV",
+    type: TokenType.CURVE_LP_TOKEN,
+    pool: "CURVE_TRI_CRV_POOL",
+    lpActions: [
+      {
+        type: TradeType.CurveWithdrawLP,
+        contract: "CURVE_TRI_CRV_POOL",
+        tokenOut: ["crvUSD", "WETH", "CRV"],
       },
     ],
   },

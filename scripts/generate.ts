@@ -196,6 +196,15 @@ class BindingsGenerator {
     );
     if (result) return result;
 
+    result = this.generateGenericLPPriceFeedData(
+      token,
+      priceFeedData,
+      chainId,
+      "crvUSDPriceFeedsByNetwork",
+      PriceFeedType.CURVE_USD_ORACLE,
+    );
+    if (result) return result;
+
     result = this.generateRedStoneFeedData(token, priceFeedData, chainId);
     if (result) return result;
 
@@ -334,7 +343,8 @@ class BindingsGenerator {
       if (
         priceFeedData.type === PriceFeedType.WRAPPED_AAVE_V2_ORACLE ||
         priceFeedData.type === PriceFeedType.COMPOUND_V2_ORACLE ||
-        priceFeedData.type === PriceFeedType.ERC4626_VAULT_ORACLE
+        priceFeedData.type === PriceFeedType.ERC4626_VAULT_ORACLE ||
+        priceFeedData.type === PriceFeedType.CURVE_USD_ORACLE
       ) {
         return `${varName}[${chainId}].push(GenericLPPriceFeedData({ lpToken: ${this.tokensEnum(
           token,

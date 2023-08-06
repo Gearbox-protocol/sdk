@@ -66,6 +66,7 @@ contract PriceFeedDataLive {
     mapping(uint256 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeedsByNetwork;
     mapping(uint256 => GenericLPPriceFeedData[]) compoundV2PriceFeedsByNetwork;
     mapping(uint256 => GenericLPPriceFeedData[]) erc4626PriceFeedsByNetwork;
+    mapping(uint256 => GenericLPPriceFeedData[]) crvUSDPriceFeedsByNetwork;
     mapping(uint256 => RedStonePriceFeedData[]) redStonePriceFeedsByNetwork;
 
     constructor() {
@@ -576,6 +577,74 @@ contract PriceFeedDataLive {
                 lpToken: Tokens.LDOETH,
                 assets: TokensLib.arrayOf(Tokens.LDO, Tokens.WETH),
                 pool: Contracts.CURVE_LDOETH_POOL
+            })
+        );
+
+        // ------------------------ crvUSD ------------------------
+        crvUSDPriceFeedsByNetwork[1].push(GenericLPPriceFeedData({lpToken: Tokens.crvUSD, underlying: Tokens.USDC}));
+        crvUSDPriceFeedsByNetwork[42161].push(GenericLPPriceFeedData({lpToken: Tokens.crvUSD, underlying: Tokens.USDC}));
+
+        // ------------------------ crvUSDUSDC ------------------------
+        curvePriceFeedsByNetwork[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDUSDC,
+                assets: TokensLib.arrayOf(Tokens.crvUSD, Tokens.USDC),
+                pool: Contracts.CURVE_CRVUSD_USDC_POOL
+            })
+        );
+        curvePriceFeedsByNetwork[42161].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDUSDC,
+                assets: TokensLib.arrayOf(Tokens.crvUSD, Tokens.USDC),
+                pool: Contracts.CURVE_CRVUSD_USDC_POOL
+            })
+        );
+
+        // ------------------------ crvUSDUSDT ------------------------
+        curvePriceFeedsByNetwork[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDUSDT,
+                assets: TokensLib.arrayOf(Tokens.crvUSD, Tokens.USDT),
+                pool: Contracts.CURVE_CRVUSD_USDT_POOL
+            })
+        );
+        curvePriceFeedsByNetwork[42161].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDUSDT,
+                assets: TokensLib.arrayOf(Tokens.crvUSD, Tokens.USDT),
+                pool: Contracts.CURVE_CRVUSD_USDT_POOL
+            })
+        );
+
+        // ------------------------ crvUSDFRAX ------------------------
+        curvePriceFeedsByNetwork[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDFRAX,
+                assets: TokensLib.arrayOf(Tokens.crvUSD, Tokens.FRAX),
+                pool: Contracts.CURVE_CRVUSD_USDC_POOL
+            })
+        );
+        curvePriceFeedsByNetwork[42161].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDFRAX,
+                assets: TokensLib.arrayOf(Tokens.crvUSD, Tokens.FRAX),
+                pool: Contracts.CURVE_CRVUSD_USDC_POOL
+            })
+        );
+
+        // ------------------------ crvUSDETHCRV ------------------------
+        curveCryptoPriceFeedsByNetwork[1].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDETHCRV,
+                assets: TokensLib.arrayOf(Tokens.crvUSD, Tokens.WETH, Tokens.CRV),
+                pool: Contracts.CURVE_TRI_CRV_POOL
+            })
+        );
+        curveCryptoPriceFeedsByNetwork[42161].push(
+            CurvePriceFeedData({
+                lpToken: Tokens.crvUSDETHCRV,
+                assets: TokensLib.arrayOf(Tokens.crvUSD, Tokens.WETH, Tokens.CRV),
+                pool: Contracts.CURVE_TRI_CRV_POOL
             })
         );
 

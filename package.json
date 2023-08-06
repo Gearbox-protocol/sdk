@@ -13,7 +13,8 @@
   "scripts": {
     "clean": "rm -rf lib",
     "build": "tsc --p tsconfig.build.json",
-    "bindings": "yarn ts-node ./scripts/generate.ts",
+    "bindings": "yarn ts-node ./scripts/generate.ts && forge b && forge fmt",
+    "decimals": "yarn ts-node ./scripts/generate_decimals.ts",
     "dev": "tsc -w --p tsconfig.build.json",
     "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc --p tsconfig.build.json && yarn publish",
     "copyTypes": "node ./scripts/copyTypes.js",

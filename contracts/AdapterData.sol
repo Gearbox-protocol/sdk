@@ -182,6 +182,38 @@ contract AdapterData {
                 basePool: Contracts.NO_CONTRACT
             })
         );
+        curveAdapters.push(
+            CurveAdapter({
+                targetContract: Contracts.CURVE_CRVUSD_USDC_POOL,
+                adapterType: AdapterType.CURVE_V1_2ASSETS,
+                lpToken: Tokens.crvUSDUSDC,
+                basePool: Contracts.NO_CONTRACT
+            })
+        );
+        curveAdapters.push(
+            CurveAdapter({
+                targetContract: Contracts.CURVE_CRVUSD_USDT_POOL,
+                adapterType: AdapterType.CURVE_V1_2ASSETS,
+                lpToken: Tokens.crvUSDUSDT,
+                basePool: Contracts.NO_CONTRACT
+            })
+        );
+        curveAdapters.push(
+            CurveAdapter({
+                targetContract: Contracts.CURVE_CRVUSD_FRAX_POOL,
+                adapterType: AdapterType.CURVE_V1_2ASSETS,
+                lpToken: Tokens.crvUSDFRAX,
+                basePool: Contracts.NO_CONTRACT
+            })
+        );
+        curveAdapters.push(
+            CurveAdapter({
+                targetContract: Contracts.CURVE_TRI_CRV_POOL,
+                adapterType: AdapterType.CURVE_V1_3ASSETS,
+                lpToken: Tokens.crvUSDETHCRV,
+                basePool: Contracts.NO_CONTRACT
+            })
+        );
         curveStEthAdapter = CurveStETHAdapter({
             curveETHGateway: Contracts.CURVE_STETH_GATEWAY,
             adapterType: AdapterType.CURVE_V1_STECRV_POOL,

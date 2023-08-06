@@ -537,6 +537,27 @@ export const priceFeedsByToken: Record<SupportedToken, PriceFeedData> = {
     assets: ["LDO", "WETH"],
   },
 
+  crvUSD: {
+    type: PriceFeedType.CURVE_USD_ORACLE,
+    underlying: "USDC",
+  },
+
+  crvUSDUSDC: {
+    type: PriceFeedType.CURVE_2LP_ORACLE,
+    assets: ["crvUSD", "USDC"],
+  },
+  crvUSDUSDT: {
+    type: PriceFeedType.CURVE_2LP_ORACLE,
+    assets: ["crvUSD", "USDT"],
+  },
+  crvUSDFRAX: {
+    type: PriceFeedType.CURVE_2LP_ORACLE,
+    assets: ["crvUSD", "FRAX"],
+  },
+  crvUSDETHCRV: {
+    type: PriceFeedType.CURVE_CRYPTO_ORACLE,
+    assets: ["crvUSD", "WETH", "CRV"],
+  },
   // YEARN- CURVE TOKENS
   yvCurve_stETH: {
     type: PriceFeedType.YEARN_ORACLE,

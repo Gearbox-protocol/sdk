@@ -27,6 +27,7 @@ export enum PriceFeedType {
   REDSTONE_ORACLE,
   ERC4626_VAULT_ORACLE,
   NETWORK_DEPENDENT,
+  CURVE_USD_ORACLE,
 }
 
 export type PriceFeedData =
@@ -100,4 +101,8 @@ export type PriceFeedData =
   | {
       type: PriceFeedType.NETWORK_DEPENDENT;
       feeds: Record<NetworkType, PriceFeedData>;
+    }
+  | {
+      type: PriceFeedType.CURVE_USD_ORACLE;
+      underlying: NormalToken;
     };

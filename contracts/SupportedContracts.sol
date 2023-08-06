@@ -159,6 +159,34 @@ contract SupportedContracts is Test, ISupportedContracts {
         );
         contractDataByNetwork[1].push(
             ContractData({
+                id: Contracts.CURVE_CRVUSD_USDC_POOL,
+                addr: 0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E,
+                name: "CURVE_CRVUSD_USDC_POOL"
+            })
+        );
+        contractDataByNetwork[1].push(
+            ContractData({
+                id: Contracts.CURVE_CRVUSD_USDT_POOL,
+                addr: 0x390f3595bCa2Df7d23783dFd126427CCeb997BF4,
+                name: "CURVE_CRVUSD_USDT_POOL"
+            })
+        );
+        contractDataByNetwork[1].push(
+            ContractData({
+                id: Contracts.CURVE_CRVUSD_FRAX_POOL,
+                addr: 0x0CD6f267b2086bea681E922E19D40512511BE538,
+                name: "CURVE_CRVUSD_FRAX_POOL"
+            })
+        );
+        contractDataByNetwork[1].push(
+            ContractData({
+                id: Contracts.CURVE_TRI_CRV_POOL,
+                addr: 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14,
+                name: "CURVE_TRI_CRV_POOL"
+            })
+        );
+        contractDataByNetwork[1].push(
+            ContractData({
                 id: Contracts.YEARN_DAI_VAULT,
                 addr: 0xdA816459F1AB5631232FE5e97a05BBBb94970c95,
                 name: "YEARN_DAI_VAULT"
@@ -330,6 +358,35 @@ contract SupportedContracts is Test, ISupportedContracts {
                 id: Contracts.UNIVERSAL_ADAPTER,
                 addr: 0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC,
                 name: "UNIVERSAL_ADAPTER"
+            })
+        );
+
+        contractDataByNetwork[42161].push(
+            ContractData({
+                id: Contracts.CURVE_CRVUSD_USDC_POOL,
+                addr: 0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E,
+                name: "CURVE_CRVUSD_USDC_POOL"
+            })
+        );
+        contractDataByNetwork[42161].push(
+            ContractData({
+                id: Contracts.CURVE_CRVUSD_USDT_POOL,
+                addr: 0x390f3595bCa2Df7d23783dFd126427CCeb997BF4,
+                name: "CURVE_CRVUSD_USDT_POOL"
+            })
+        );
+        contractDataByNetwork[42161].push(
+            ContractData({
+                id: Contracts.CURVE_CRVUSD_FRAX_POOL,
+                addr: 0x0CD6f267b2086bea681E922E19D40512511BE538,
+                name: "CURVE_CRVUSD_FRAX_POOL"
+            })
+        );
+        contractDataByNetwork[42161].push(
+            ContractData({
+                id: Contracts.CURVE_TRI_CRV_POOL,
+                addr: 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14,
+                name: "CURVE_TRI_CRV_POOL"
             })
         );
 

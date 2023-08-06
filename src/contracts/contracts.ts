@@ -31,7 +31,11 @@ export type CurvePoolContract =
   | "CURVE_CVXETH_POOL"
   | "CURVE_3CRYPTO_POOL"
   | "CURVE_MIM_POOL"
-  | "CURVE_LDOETH_POOL";
+  | "CURVE_LDOETH_POOL"
+  | "CURVE_CRVUSD_USDC_POOL"
+  | "CURVE_CRVUSD_USDT_POOL"
+  | "CURVE_CRVUSD_FRAX_POOL"
+  | "CURVE_TRI_CRV_POOL";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -118,6 +122,11 @@ export const contractsByNetwork: Record<
 
     CURVE_GEAR_POOL: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
 
+    CURVE_CRVUSD_USDC_POOL: tokenDataByNetwork.Mainnet.crvUSDUSDC,
+    CURVE_CRVUSD_USDT_POOL: tokenDataByNetwork.Mainnet.crvUSDUSDT,
+    CURVE_CRVUSD_FRAX_POOL: tokenDataByNetwork.Mainnet.crvUSDFRAX,
+    CURVE_TRI_CRV_POOL: tokenDataByNetwork.Mainnet.crvUSDETHCRV,
+
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Mainnet.yvDAI,
     YEARN_USDC_VAULT: tokenDataByNetwork.Mainnet.yvUSDC,
@@ -201,6 +210,11 @@ export const contractsByNetwork: Record<
     CURVE_LDOETH_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
+
+    CURVE_CRVUSD_USDC_POOL: tokenDataByNetwork.Mainnet.crvUSDUSDC,
+    CURVE_CRVUSD_USDT_POOL: tokenDataByNetwork.Mainnet.crvUSDUSDT,
+    CURVE_CRVUSD_FRAX_POOL: tokenDataByNetwork.Mainnet.crvUSDFRAX,
+    CURVE_TRI_CRV_POOL: tokenDataByNetwork.Mainnet.crvUSDETHCRV,
 
     // YEARN
     YEARN_DAI_VAULT: tokenDataByNetwork.Arbitrum.yvDAI,
@@ -529,6 +543,38 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "LDOETH",
     tokens: ["WETH", "LDO"],
+  },
+
+  CURVE_CRVUSD_USDC_POOL: {
+    name: "Curve crvUSDUSDC",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "crvUSDUSDC",
+    tokens: ["crvUSD", "USDC"],
+  },
+
+  CURVE_CRVUSD_USDT_POOL: {
+    name: "Curve crvUSDUSDC",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "crvUSDUSDT",
+    tokens: ["crvUSD", "USDT"],
+  },
+
+  CURVE_CRVUSD_FRAX_POOL: {
+    name: "Curve crvUSDUSDC",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "crvUSDFRAX",
+    tokens: ["crvUSD", "FRAX"],
+  },
+
+  CURVE_TRI_CRV_POOL: {
+    name: "Curve crvUSDUSDC",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_3ASSETS,
+    lpToken: "crvUSDETHCRV",
+    tokens: ["crvUSD", "WETH", "CRV"],
   },
 
   YEARN_DAI_VAULT: {

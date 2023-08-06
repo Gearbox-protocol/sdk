@@ -40,7 +40,10 @@ export type NormalToken =
   | "ARB"
 
   // REDSTONE
-  | "SHIB";
+  | "SHIB"
+
+  // crvUSD
+  | "crvUSD";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -925,6 +928,34 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
       },
     ],
     lpActions: [],
+  },
+
+  crvUSD: {
+    name: "crvUSD",
+    symbol: "crvUSD",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_CRVUSD_USDC_POOL",
+        tokenOut: ["USDC"],
+      },
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_CRVUSD_USDT_POOL",
+        tokenOut: ["USDT"],
+      },
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_CRVUSD_FRAX_POOL",
+        tokenOut: ["FRAX"],
+      },
+      {
+        type: TradeType.CurveExchange,
+        contract: "CURVE_TRI_CRV_POOL",
+        tokenOut: ["WETH", "CRV"],
+      },
+    ],
   },
 };
 
