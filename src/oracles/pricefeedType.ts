@@ -30,10 +30,14 @@ export enum PriceFeedType {
   CURVE_USD_ORACLE,
 }
 
+export const HOUR_1 = 60 * 60;
+export const HOUR_24 = 24 * HOUR_1;
+
 export type PriceFeedData =
   | {
       type: PriceFeedType.CHAINLINK_ORACLE;
       address: string;
+      stalenessPeriod?: number;
     }
   | {
       type: PriceFeedType.YEARN_ORACLE;
@@ -56,7 +60,8 @@ export type PriceFeedData =
     }
   | {
       type: PriceFeedType.BOUNDED_ORACLE;
-      targetPriceFeed: string;
+      priceFeed: string;
+      stalenessPeriod?: number;
       upperBound: bigint;
     }
   | {
@@ -66,7 +71,9 @@ export type PriceFeedData =
   | {
       type: PriceFeedType.COMPOSITE_ORACLE;
       targetToBasePriceFeed: string;
+      targetStalenessPeriod?: number;
       baseToUsdPriceFeed: string;
+      baseStalenessPeriod?: number;
     }
   | {
       type: PriceFeedType.CURVE_CRYPTO_ORACLE;

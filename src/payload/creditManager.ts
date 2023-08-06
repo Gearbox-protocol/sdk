@@ -1,5 +1,6 @@
 import { BigNumberish } from "ethers";
 
+import { ICreditFacade } from "../types";
 import { CreditManagerDataStructOutput } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { ExcludeArrayProps } from "../utils/types";
 
@@ -8,8 +9,14 @@ export interface AdapterPayload {
   adapter: string;
 }
 
+export type TotalDebt = ExcludeArrayProps<
+  Awaited<ReturnType<ICreditFacade["totalDebt"]>>
+>;
+
 export type CreditManagerDataPayload =
-  ExcludeArrayProps<CreditManagerDataStructOutput>;
+  ExcludeArrayProps<CreditManagerDataStructOutput> & {
+    totalDebt?: TotalDebt;
+  };
 
 export interface ChartsCreditManagerPayload {
   addr: string;

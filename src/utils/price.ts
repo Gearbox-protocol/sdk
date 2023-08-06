@@ -9,7 +9,7 @@ export class PriceUtils {
   static calcTotalPrice = (
     price: bigint,
     amount: bigint,
-    decimals = 18,
+    decimals: number | undefined = 18,
   ): bigint =>
     (amount * WAD * price) / 10n ** BigInt(decimals) / PRICE_DECIMALS;
 

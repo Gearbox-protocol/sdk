@@ -238,6 +238,7 @@ export const tokenDataByNetwork: Record<
     cUSDC: NOT_DEPLOYED,
     cUSDT: NOT_DEPLOYED,
     cWETH: NOT_DEPLOYED,
+    cLINK: NOT_DEPLOYED,
   },
 
   ///
@@ -374,6 +375,7 @@ export const tokenDataByNetwork: Record<
     cUSDC: NOT_DEPLOYED,
     cUSDT: NOT_DEPLOYED,
     cWETH: NOT_DEPLOYED,
+    cLINK: NOT_DEPLOYED,
   },
 };
 
@@ -382,14 +384,11 @@ export const tokenSymbolByAddress = TypedObjectUtils.entries(
 ).reduce<Record<string, SupportedToken>>(
   (acc, [, tokens]) => ({
     ...acc,
-    ...{
-      ...acc,
-      ...TypedObjectUtils.fromEntries(
-        TypedObjectUtils.entries(tokens)
-          .map(([k, v]) => [v.toLowerCase(), k])
-          .filter(k => !!k) as Array<[string, SupportedToken]>,
-      ),
-    },
+    ...TypedObjectUtils.fromEntries(
+      TypedObjectUtils.entries(tokens)
+        .map(([k, v]) => [v.toLowerCase(), k])
+        .filter(k => !!k) as Array<[string, SupportedToken]>,
+    ),
   }),
   {},
 );

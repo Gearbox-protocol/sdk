@@ -6,6 +6,7 @@ import {
   contractParams,
   contractsByNetwork,
   CurveLPTokenData,
+  HOUR_24,
   LPTokens,
   lpTokens,
   NOT_DEPLOYED,
@@ -222,7 +223,8 @@ class BindingsGenerator {
       return address && address !== NOT_DEPLOYED
         ? `chainlinkPriceFeedsByNetwork[${chainId}].push(ChainlinkPriceFeedData({
     token: ${this.tokensEnum(token)},
-    priceFeed: ${address}
+    priceFeed: ${address},
+    stalenessPeriod: ${priceFeedData.stalenessPeriod || HOUR_24}
   }));`
         : undefined;
     }
@@ -280,12 +282,13 @@ class BindingsGenerator {
     chainId: number,
   ): string | undefined {
     if (priceFeedData.type === PriceFeedType.BOUNDED_ORACLE) {
-      const targetPriceFeed: string | undefined = priceFeedData.targetPriceFeed;
+      const targetPriceFeed: string | undefined = priceFeedData.priceFeed;
 
       return targetPriceFeed !== NOT_DEPLOYED
         ? `boundedPriceFeedsByNetwork[${chainId}].push(BoundedPriceFeedData({
   token: ${this.tokensEnum(token)},
   priceFeed: ${targetPriceFeed},
+  stalenessPeriod: ${priceFeedData.stalenessPeriod || HOUR_24},
   upperBound: ${priceFeedData.upperBound}
 }));`
         : undefined;
@@ -308,7 +311,11 @@ class BindingsGenerator {
       return `compositePriceFeedsByNetwork[${chainId}].push(CompositePriceFeedData({
         token: ${this.tokensEnum(token)},
         targetToBaseFeed: ${targetToBaseFeed},
-        baseToUSDFeed: ${baseToUSDFeed}
+        targetStalenessPeriod: ${
+          priceFeedData.targetStalenessPeriod || HOUR_24
+        },
+        baseToUSDFeed: ${baseToUSDFeed},
+        baseStalenessPeriod: ${priceFeedData.baseStalenessPeriod || HOUR_24}
       }));`;
     } else return undefined;
   }

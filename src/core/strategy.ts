@@ -14,12 +14,11 @@ export interface StrategyPayload {
 
   name: string;
   lpToken: string;
-  pools: Array<string>;
-
-  unleveragableCollateral: Array<string>;
-  leveragableCollateral: Array<string>;
+  creditManagers: Array<string>;
 
   baseAssets: Array<string>;
+  unleveragableCollateral: Array<string>;
+  leveragableCollateral: Array<string>;
 }
 
 interface LiquidationPriceProps {
@@ -37,28 +36,32 @@ export class Strategy {
   apy: number | undefined;
   name: string;
   lpToken: string;
-  pools: Array<string>;
+
+  baseAssets: Array<string>;
   unleveragableCollateral: Array<string>;
   leveragableCollateral: Array<string>;
-  baseAssets: Array<string>;
+
+  creditManagers: Array<string>;
 
   constructor(payload: StrategyPayload) {
     this.apy = payload.apy;
 
     this.name = payload.name;
     this.lpToken = payload.lpToken.toLowerCase();
-    this.pools = payload.pools.map(addr => addr.toLowerCase());
+    this.creditManagers = payload.creditManagers.map(addr =>
+      addr.toLowerCase(),
+    );
+    this.baseAssets = payload.baseAssets.map(addr => addr.toLowerCase());
     this.unleveragableCollateral = payload.unleveragableCollateral.map(addr =>
       addr.toLowerCase(),
     );
     this.leveragableCollateral = payload.leveragableCollateral.map(addr =>
       addr.toLowerCase(),
     );
-    this.baseAssets = payload.baseAssets.map(addr => addr.toLowerCase());
   }
 
   static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
-    const [maxThreshold] = maxLeverageThreshold(lpToken, cms);
+    const [maxThreshold] = Strategy.maxLeverageThreshold(lpToken, cms);
 
     const maxLeverage =
       (PERCENTAGE_FACTOR * LEVERAGE_DECIMALS) /
@@ -72,17 +75,6 @@ export class Strategy {
       ((baseAPY - borrowAPY) * (maxLeverage - Number(LEVERAGE_DECIMALS))) /
         Number(LEVERAGE_DECIMALS)
     );
-  }
-
-  overallAPY(
-    apy: number,
-    leverage: number,
-    depositCollateral: string,
-    borrowAPY: number,
-  ) {
-    const farmLev = this.farmLev(leverage, depositCollateral);
-
-    return roi(apy, farmLev, leverage - Number(LEVERAGE_DECIMALS), borrowAPY);
   }
 
   static liquidationPrice({
@@ -128,44 +120,26 @@ export class Strategy {
     return 0n;
   }
 
-  protected farmLev(leverage: number, depositCollateral: string) {
-    return this.inBaseAssets(depositCollateral) ||
-      this.inLeveragableAssets(depositCollateral)
-      ? leverage
-      : leverage - Number(LEVERAGE_DECIMALS);
-  }
+  protected static maxLeverageThreshold(
+    lpToken: string,
+    cms: Array<PartialCM>,
+  ) {
+    const lpTokenLC = lpToken.toLowerCase();
+    const ltByCM: Array<[string, bigint]> = cms.map(cm => {
+      const lt = cm.liquidationThresholds[lpTokenLC] || 0n;
+      return [cm.address, lt];
+    });
 
-  protected inBaseAssets(depositCollateral: string) {
-    return this.baseAssets.some(c => c === depositCollateral.toLowerCase());
-  }
+    const sorted = ltByCM.sort(([, ltA], [, ltB]) => {
+      if (ltA > ltB) return 1;
+      if (ltB > ltA) return -1;
+      return 0;
+    });
 
-  protected inLeveragableAssets(depositCollateral: string) {
-    return this.leveragableCollateral.some(
-      c => c === depositCollateral.toLowerCase(),
-    );
-  }
-}
+    const [cm = "", lt = 0n] = sorted[0] || [];
 
-function roi(apy: number, farmLev: number, debtLev: number, borrowAPY: number) {
-  return (apy * farmLev - borrowAPY * debtLev) / Number(LEVERAGE_DECIMALS);
+    return [lt, cm] as const;
+  }
 }
 
 type PartialCM = Pick<CreditManagerData, "liquidationThresholds" | "address">;
-
-function maxLeverageThreshold(lpToken: string, cms: Array<PartialCM>) {
-  const lpTokenLC = lpToken.toLowerCase();
-  const ltByCM: Array<[string, bigint]> = cms.map(cm => {
-    const lt = cm.liquidationThresholds[lpTokenLC] || 0n;
-    return [cm.address, lt];
-  });
-
-  const sorted = ltByCM.sort(([, ltA], [, ltB]) => {
-    if (ltA > ltB) return 1;
-    if (ltB > ltA) return -1;
-    return 0;
-  });
-
-  const [cm = "", lt = 0n] = sorted[0] || [];
-
-  return [lt, cm] as const;
-}

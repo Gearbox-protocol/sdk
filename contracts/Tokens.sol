@@ -105,6 +105,7 @@ enum Tokens {
     cUSDC,
     cUSDT,
     cWETH,
+    cLINK,
     dDAI,
     dUSDC,
     dWBTC,

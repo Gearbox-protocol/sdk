@@ -11,6 +11,7 @@ import {TokensLib} from "./TokensLib.sol";
 struct ChainlinkPriceFeedData {
     Tokens token;
     address priceFeed;
+    uint32 stalenessPeriod;
 }
 
 struct CurvePriceFeedData {
@@ -31,12 +32,15 @@ struct SingeTokenPriceFeedData {
 struct CompositePriceFeedData {
     Tokens token;
     address targetToBaseFeed;
+    uint32 targetStalenessPeriod;
     address baseToUSDFeed;
+    uint32 baseStalenessPeriod;
 }
 
 struct BoundedPriceFeedData {
     Tokens token;
     address priceFeed;
+    uint32 stalenessPeriod;
     uint256 upperBound;
 }
 

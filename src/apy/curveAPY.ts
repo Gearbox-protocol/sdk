@@ -160,7 +160,7 @@ export async function getCurveAPY(): Promise<CurveAPYResult | null> {
       );
 
       const maxCrv =
-        pool?.gaugeCrvApy.length > 0 ? Math.max(...pool.gaugeCrvApy) : crvApy;
+        pool?.gaugeCrvApy?.length > 0 ? Math.max(...pool.gaugeCrvApy) : crvApy;
 
       acc[curveSymbol] = {
         base: curveAPYToBn(baseApy || 0),

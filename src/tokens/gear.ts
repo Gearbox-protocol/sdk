@@ -22,10 +22,7 @@ export type GearboxTokenData = {
   type: TokenType.GEAR_TOKEN;
 } & TokenBase;
 
-export const gearTokens: Record<
-  DieselTokenTypes | GearboxToken,
-  DieselTokenData | GearboxTokenData
-> = {
+const dieselTokens: Record<DieselTokenTypes, DieselTokenData> = {
   // GEARBOX
   dDAI: {
     name: "dDAI",
@@ -62,10 +59,19 @@ export const gearTokens: Record<
     symbol: "dFRAX",
     type: TokenType.DIESEL_LP_TOKEN,
   },
+};
 
+export const gearTokens: Record<
+  DieselTokenTypes | GearboxToken,
+  DieselTokenData | GearboxTokenData
+> = {
+  ...dieselTokens,
   GEAR: {
     name: "GEAR",
     symbol: "GEAR",
     type: TokenType.GEAR_TOKEN,
   },
 };
+
+export const isDieselToken = (t: unknown): t is DieselTokenTypes =>
+  typeof t === "string" && !!dieselTokens[t as DieselTokenTypes];

@@ -33,7 +33,8 @@ export class CreditManagerData {
   readonly maxAmount: bigint;
   readonly maxLeverageFactor: number; // for V1 only
   readonly availableLiquidity: bigint;
-  readonly collateralTokens: Array<string>;
+  readonly collateralTokens: Array<string> = [];
+  readonly supportedTokens: Record<string, true> = {};
   readonly adapters: Record<string, string>;
   readonly liquidationThresholds: Record<string, bigint>;
   readonly version: number;
@@ -50,6 +51,10 @@ export class CreditManagerData {
   readonly liquidationDiscount: number;
   readonly feeLiquidationExpired: number;
   readonly liquidationDiscountExpired: number;
+
+  readonly totalDebt:
+    | { currentTotalDebt: bigint; totalDebtLimit: bigint }
+    | undefined;
 
   readonly isPaused: boolean = false;
 
@@ -77,7 +82,12 @@ export class CreditManagerData {
 
     this.availableLiquidity = toBigInt(payload.availableLiquidity || 0);
 
-    this.collateralTokens = payload.collateralTokens.map(t => t.toLowerCase());
+    payload.collateralTokens.forEach(t => {
+      const tLc = t.toLowerCase();
+
+      this.collateralTokens.push(tLc);
+      this.supportedTokens[tLc] = true;
+    });
 
     this.adapters = payload.adapters.reduce<Record<string, string>>(
       (acc, { allowedContract, adapter }) => ({
@@ -111,6 +121,13 @@ export class CreditManagerData {
     this.feeLiquidationExpired = payload.feeLiquidationExpired;
     this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
 
+    this.totalDebt = payload.totalDebt
+      ? {
+          totalDebtLimit: toBigInt(payload.totalDebt.totalDebtLimit),
+          currentTotalDebt: toBigInt(payload.totalDebt.currentTotalDebt),
+        }
+      : undefined;
+
     TxParser.addCreditManager(this.address, this.version);
     if (this.creditFacade !== "" && this.creditFacade !== ADDRESS_0X0) {
       TxParser.addCreditFacade(
@@ -140,7 +157,7 @@ export class CreditManagerData {
     tokenAddress: string,
     amount: bigint,
   ): MultiCall {
-    if (this.version !== 2)
+    if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
@@ -152,7 +169,7 @@ export class CreditManagerData {
   }
 
   encodeIncreaseDebt(amount: bigint): MultiCall {
-    if (this.version !== 2)
+    if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
@@ -164,7 +181,7 @@ export class CreditManagerData {
   }
 
   encodeDecreaseDebt(amount: bigint): MultiCall {
-    if (this.version !== 2)
+    if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
@@ -176,9 +193,9 @@ export class CreditManagerData {
   }
 
   validateOpenAccount(collateral: bigint, debt: bigint): true {
-    return this.version === 2
-      ? this.validateOpenAccountV2(debt)
-      : this.validateOpenAccountV1(collateral, debt);
+    return this.version === 1
+      ? this.validateOpenAccountV1(collateral, debt)
+      : this.validateOpenAccountV2(debt);
   }
 
   protected validateOpenAccountV1(collateral: bigint, debt: bigint): true {
@@ -218,6 +235,15 @@ export class CreditManagerData {
     if (debt > this.availableLiquidity)
       throw new OpenAccountError(
         "insufficientPoolLiquidity",
+        this.availableLiquidity,
+      );
+
+    if (
+      this.totalDebt &&
+      debt > this.totalDebt.totalDebtLimit - this.totalDebt.currentTotalDebt
+    )
+      throw new OpenAccountError(
+        "insufficientDebtLimit",
         this.availableLiquidity,
       );
 

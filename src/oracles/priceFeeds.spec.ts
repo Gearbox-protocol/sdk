@@ -83,9 +83,9 @@ class PriceFeedsSuite {
         }
         break;
       case PriceFeedType.BOUNDED_ORACLE:
-        if (data.targetPriceFeed.startsWith("0x")) {
+        if (data.priceFeed.startsWith("0x")) {
           calls.push({
-            address: data.targetPriceFeed,
+            address: data.priceFeed,
             interface: iFeed,
             method: "latestRoundData()",
             key: token,
