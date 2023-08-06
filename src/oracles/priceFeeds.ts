@@ -295,12 +295,12 @@ export const priceFeedsByToken: Record<SupportedToken, PriceFeedData> = {
     feeds: {
       Mainnet: {
         type: PriceFeedType.BOUNDED_ORACLE,
-        targetPriceFeed: "0x3D7aE7E594f2f2091Ad8798313450130d0Aba3a0",
+        priceFeed: "0x3D7aE7E594f2f2091Ad8798313450130d0Aba3a0",
         upperBound: (BigInt(1e8) * 11n) / 10n,
       },
       Arbitrum: {
         type: PriceFeedType.BOUNDED_ORACLE,
-        targetPriceFeed: "0x0411D28c94d85A36bC72Cb0f875dfA8371D8fFfF",
+        priceFeed: "0x0411D28c94d85A36bC72Cb0f875dfA8371D8fFfF",
         upperBound: (BigInt(1e8) * 11n) / 10n,
       },
     },

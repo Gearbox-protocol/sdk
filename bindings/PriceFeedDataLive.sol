@@ -40,6 +40,7 @@ struct CompositePriceFeedData {
 struct BoundedPriceFeedData {
     Tokens token;
     address priceFeed;
+    uint32 stalenessPeriod;
     uint256 upperBound;
 }
 

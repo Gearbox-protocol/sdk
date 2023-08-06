@@ -59,7 +59,8 @@ export type PriceFeedData =
     }
   | {
       type: PriceFeedType.BOUNDED_ORACLE;
-      targetPriceFeed: string;
+      priceFeed: string;
+      stalenessPeriod?: number;
       upperBound: bigint;
     }
   | {

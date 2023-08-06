@@ -273,12 +273,13 @@ class BindingsGenerator {
     chainId: number,
   ): string | undefined {
     if (priceFeedData.type === PriceFeedType.BOUNDED_ORACLE) {
-      const targetPriceFeed: string | undefined = priceFeedData.targetPriceFeed;
+      const targetPriceFeed: string | undefined = priceFeedData.priceFeed;
 
       return targetPriceFeed !== NOT_DEPLOYED
         ? `boundedPriceFeedsByNetwork[${chainId}].push(BoundedPriceFeedData({
   token: ${this.tokensEnum(token)},
   priceFeed: ${targetPriceFeed},
+  stalenessPeriod: ${priceFeedData.stalenessPeriod || HOUR_24},
   upperBound: ${priceFeedData.upperBound}
 }));`
         : undefined;

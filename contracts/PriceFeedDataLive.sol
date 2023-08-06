@@ -40,6 +40,7 @@ struct CompositePriceFeedData {
 struct BoundedPriceFeedData {
     Tokens token;
     address priceFeed;
+    uint32 stalenessPeriod;
     uint256 upperBound;
 }
 
@@ -362,6 +363,7 @@ contract PriceFeedDataLive {
             BoundedPriceFeedData({
                 token: Tokens.LUSD,
                 priceFeed: 0x3D7aE7E594f2f2091Ad8798313450130d0Aba3a0,
+                stalenessPeriod: 86400,
                 upperBound: 110000000
             })
         );
@@ -369,6 +371,7 @@ contract PriceFeedDataLive {
             BoundedPriceFeedData({
                 token: Tokens.LUSD,
                 priceFeed: 0x0411D28c94d85A36bC72Cb0f875dfA8371D8fFfF,
+                stalenessPeriod: 86400,
                 upperBound: 110000000
             })
         );
