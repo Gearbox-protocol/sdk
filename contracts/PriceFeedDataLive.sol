@@ -32,7 +32,9 @@ struct SingeTokenPriceFeedData {
 struct CompositePriceFeedData {
     Tokens token;
     address targetToBaseFeed;
+    uint32 targetStalenessPeriod;
     address baseToUSDFeed;
+    uint32 baseStalenessPeriod;
 }
 
 struct BoundedPriceFeedData {
@@ -262,14 +264,18 @@ contract PriceFeedDataLive {
             CompositePriceFeedData({
                 token: Tokens.WBTC,
                 targetToBaseFeed: 0xfdFD9C85aD200c506Cf9e21F1FD8dd01932FBB23,
-                baseToUSDFeed: 0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c
+                targetStalenessPeriod: 86400,
+                baseToUSDFeed: 0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c,
+                baseStalenessPeriod: 86400
             })
         );
         compositePriceFeedsByNetwork[42161].push(
             CompositePriceFeedData({
                 token: Tokens.WBTC,
                 targetToBaseFeed: 0x0017abAc5b6f291F9164e35B1234CA1D697f9CF4,
-                baseToUSDFeed: 0x6ce185860a4963106506C203335A2910413708e9
+                targetStalenessPeriod: 86400,
+                baseToUSDFeed: 0x6ce185860a4963106506C203335A2910413708e9,
+                baseStalenessPeriod: 86400
             })
         );
 
@@ -310,7 +316,9 @@ contract PriceFeedDataLive {
             CompositePriceFeedData({
                 token: Tokens.STETH,
                 targetToBaseFeed: 0x86392dC19c0b719886221c78AB11eb8Cf5c52812,
-                baseToUSDFeed: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
+                targetStalenessPeriod: 86400,
+                baseToUSDFeed: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419,
+                baseStalenessPeriod: 86400
             })
         );
 
@@ -395,7 +403,9 @@ contract PriceFeedDataLive {
             CompositePriceFeedData({
                 token: Tokens.LDO,
                 targetToBaseFeed: 0x4e844125952D32AcdF339BE976c98E22F6F318dB,
-                baseToUSDFeed: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
+                targetStalenessPeriod: 86400,
+                baseToUSDFeed: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419,
+                baseStalenessPeriod: 86400
             })
         );
         zeroPriceFeedsByNetwork[42161].push(SingeTokenPriceFeedData({token: Tokens.LDO}));
@@ -409,7 +419,9 @@ contract PriceFeedDataLive {
             CompositePriceFeedData({
                 token: Tokens.OHM,
                 targetToBaseFeed: 0x9a72298ae3886221820B1c878d12D872087D3a23,
-                baseToUSDFeed: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
+                targetStalenessPeriod: 86400,
+                baseToUSDFeed: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419,
+                baseStalenessPeriod: 86400
             })
         );
         zeroPriceFeedsByNetwork[42161].push(SingeTokenPriceFeedData({token: Tokens.OHM}));

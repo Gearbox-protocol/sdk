@@ -301,7 +301,11 @@ class BindingsGenerator {
       return `compositePriceFeedsByNetwork[${chainId}].push(CompositePriceFeedData({
         token: ${this.tokensEnum(token)},
         targetToBaseFeed: ${targetToBaseFeed},
-        baseToUSDFeed: ${baseToUSDFeed}
+        targetStalenessPeriod: ${
+          priceFeedData.targetStalenessPeriod || HOUR_24
+        },
+        baseToUSDFeed: ${baseToUSDFeed},
+        baseStalenessPeriod: ${priceFeedData.baseStalenessPeriod || HOUR_24}
       }));`;
     } else return undefined;
   }

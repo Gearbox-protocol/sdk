@@ -69,7 +69,9 @@ export type PriceFeedData =
   | {
       type: PriceFeedType.COMPOSITE_ORACLE;
       targetToBasePriceFeed: string;
+      targetStalenessPeriod?: number;
       baseToUsdPriceFeed: string;
+      baseStalenessPeriod?: number;
     }
   | {
       type: PriceFeedType.CURVE_CRYPTO_ORACLE;

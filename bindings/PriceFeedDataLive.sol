@@ -32,7 +32,9 @@ struct SingeTokenPriceFeedData {
 struct CompositePriceFeedData {
     Tokens token;
     address targetToBaseFeed;
+    uint32 targetStalenessPeriod;
     address baseToUSDFeed;
+    uint32 baseStalenessPeriod;
 }
 
 struct BoundedPriceFeedData {
