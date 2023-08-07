@@ -49,10 +49,7 @@ export async function multicall<R extends Array<any>>(
  * @param overrides
  * @returns
  */
-export default async function safeMulticall<
-  V = any,
-  T extends MCall<any> = MCall<any>,
->(
+export async function safeMulticall<V = any, T extends MCall<any> = MCall<any>>(
   calls: T[],
   p: Signer | ethers.providers.Provider,
   overrides?: CallOverrides,
