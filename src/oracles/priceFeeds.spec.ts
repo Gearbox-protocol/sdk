@@ -6,7 +6,7 @@ import { SupportedToken } from "../tokens/token";
 import { AggregatorV3Interface__factory } from "../types";
 import { AggregatorV3InterfaceInterface } from "../types/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface";
 import { formatBN } from "../utils/formatter";
-import safeMulticall, { KeyedCall } from "../utils/multicall";
+import { KeyedCall, safeMulticall } from "../utils/multicall";
 import { priceFeedsByToken } from "./priceFeeds";
 import { PriceFeedData, PriceFeedType } from "./pricefeedType";
 
