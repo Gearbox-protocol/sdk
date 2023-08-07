@@ -565,6 +565,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   CURVE_CRVUSD_USDC_POOL: {
     name: "Curve crvUSDUSDC",
     protocol: Protocols.Curve,
+    version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDUSDC",
     tokens: ["crvUSD", "USDC"],
@@ -573,6 +574,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   CURVE_CRVUSD_USDT_POOL: {
     name: "Curve crvUSDUSDC",
     protocol: Protocols.Curve,
+    version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDUSDT",
     tokens: ["crvUSD", "USDT"],
@@ -581,6 +583,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   CURVE_CRVUSD_FRAX_POOL: {
     name: "Curve crvUSDUSDC",
     protocol: Protocols.Curve,
+    version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDFRAX",
     tokens: ["crvUSD", "FRAX"],
@@ -589,6 +592,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   CURVE_TRI_CRV_POOL: {
     name: "Curve crvUSDUSDC",
     protocol: Protocols.Curve,
+    version: 20,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "crvUSDETHCRV",
     tokens: ["crvUSD", "WETH", "CRV"],
