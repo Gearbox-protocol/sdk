@@ -539,6 +539,7 @@ export const priceFeedsByToken: Record<SupportedToken, PriceFeedData> = {
 
   crvUSD: {
     type: PriceFeedType.CURVE_USD_ORACLE,
+    pool: "CURVE_CRVUSD_USDC_POOL",
     underlying: "USDC",
   },
 

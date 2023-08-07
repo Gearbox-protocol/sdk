@@ -20,6 +20,12 @@ struct CurvePriceFeedData {
     Contracts pool;
 }
 
+struct CrvUsdPriceFeedData {
+    Tokens token;
+    Tokens underlying;
+    Contracts pool;
+}
+
 struct TheSamePriceFeedData {
     Tokens token;
     Tokens tokenHasSamePriceFeed;
@@ -70,7 +76,7 @@ contract PriceFeedDataLive {
     mapping(uint256 => GenericLPPriceFeedData[]) wrappedAaveV2PriceFeedsByNetwork;
     mapping(uint256 => GenericLPPriceFeedData[]) compoundV2PriceFeedsByNetwork;
     mapping(uint256 => GenericLPPriceFeedData[]) erc4626PriceFeedsByNetwork;
-    mapping(uint256 => GenericLPPriceFeedData[]) crvUSDPriceFeedsByNetwork;
+    mapping(uint256 => CrvUsdPriceFeedData[]) crvUSDPriceFeedsByNetwork;
     mapping(uint256 => RedStonePriceFeedData[]) redStonePriceFeedsByNetwork;
 
     constructor() {

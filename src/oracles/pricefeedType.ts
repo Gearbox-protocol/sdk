@@ -1,3 +1,4 @@
+import { CurvePoolContract } from "../contracts/contracts";
 import { NetworkType } from "../core/chains";
 import { AaveV2LPToken } from "../tokens/aave";
 import { NormalToken } from "../tokens/normal";
@@ -111,5 +112,6 @@ export type PriceFeedData =
     }
   | {
       type: PriceFeedType.CURVE_USD_ORACLE;
+      pool: CurvePoolContract;
       underlying: NormalToken;
     };

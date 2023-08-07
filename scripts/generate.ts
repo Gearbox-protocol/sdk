@@ -197,13 +197,7 @@ class BindingsGenerator {
     );
     if (result) return result;
 
-    result = this.generateGenericLPPriceFeedData(
-      token,
-      priceFeedData,
-      chainId,
-      "crvUSDPriceFeedsByNetwork",
-      PriceFeedType.CURVE_USD_ORACLE,
-    );
+    result = this.generateCrvUSDPriceFeedData(token, priceFeedData, chainId);
     if (result) return result;
 
     result = this.generateRedStoneFeedData(token, priceFeedData, chainId);
@@ -350,8 +344,7 @@ class BindingsGenerator {
       if (
         priceFeedData.type === PriceFeedType.WRAPPED_AAVE_V2_ORACLE ||
         priceFeedData.type === PriceFeedType.COMPOUND_V2_ORACLE ||
-        priceFeedData.type === PriceFeedType.ERC4626_VAULT_ORACLE ||
-        priceFeedData.type === PriceFeedType.CURVE_USD_ORACLE
+        priceFeedData.type === PriceFeedType.ERC4626_VAULT_ORACLE
       ) {
         return `${varName}[${chainId}].push(GenericLPPriceFeedData({ lpToken: ${this.tokensEnum(
           token,
@@ -359,6 +352,23 @@ class BindingsGenerator {
           priceFeedData.underlying as SupportedToken,
         )}}));`;
       }
+    }
+    return undefined;
+  }
+
+  protected generateCrvUSDPriceFeedData(
+    token: string,
+    priceFeedData: PriceFeedData,
+    chainId: number,
+  ): string | undefined {
+    if (priceFeedData.type === PriceFeedType.CURVE_USD_ORACLE) {
+      return `crvUSDPriceFeedsByNetwork[${chainId}].push(CrvUsdPriceFeedData({ token: ${this.tokensEnum(
+        token,
+      )}, 
+      pool: Contracts.${priceFeedData.pool},
+      underlying: ${this.tokensEnum(
+        priceFeedData.underlying as SupportedToken,
+      )}}));`;
     }
     return undefined;
   }
