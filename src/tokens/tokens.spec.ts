@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import { CHAINS, NetworkType, supportedChains } from "../core/chains";
 import { IERC20Metadata__factory } from "../types";
 import { IERC20MetadataInterface } from "../types/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata";
-import safeMulticall, { KeyedCall } from "../utils/multicall";
+import { KeyedCall, safeMulticall } from "../utils/multicall";
 import { SupportedToken, tokenDataByNetwork } from "./token";
 
 const erc20 = IERC20Metadata__factory.createInterface();
