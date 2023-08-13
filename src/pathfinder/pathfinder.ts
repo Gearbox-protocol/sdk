@@ -35,7 +35,12 @@ export class PathFinder {
   pathFinder: IRouter;
   network: NetworkType;
 
-  public static connectors: Array<SupportedToken> = ["USDC", "WETH", "DAI"];
+  public static connectors: Array<SupportedToken> = [
+    "USDC",
+    "WETH",
+    "DAI",
+    "FRAX",
+  ];
   protected readonly _connectors: Array<string>;
 
   constructor(
@@ -46,11 +51,10 @@ export class PathFinder {
   ) {
     this.pathFinder = IRouter__factory.connect(address, provider);
     this.network = network;
+
     this._connectors = connectors
-      .map(c =>
-        tokenDataByNetwork[this.network][c as SupportedToken]?.toLowerCase(),
-      )
-      .filter(t => !t);
+      .map(c => tokenDataByNetwork[this.network][c]?.toLowerCase())
+      .filter(t => !!t);
   }
 
   async findAllSwaps(
