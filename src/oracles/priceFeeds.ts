@@ -846,11 +846,11 @@ export const priceFeedsByToken: Record<SupportedToken, PriceFeedData> = {
     feeds: {
       Mainnet: {
         type: PriceFeedType.CHAINLINK_ORACLE,
-        address: "0xec1d1b3b0443256cc3860e24a46f108e699484aa",
+        address: "0xec1D1B3b0443256cc3860e24a46F108e699484Aa",
       },
       Arbitrum: {
         type: PriceFeedType.CHAINLINK_ORACLE,
-        address: "0xde9f0894670c4efcacf370426f10c3ad2cdf147e",
+        address: "0xdE9f0894670c4EFcacF370426F10C3AD2Cdf147e",
       },
     },
   },
@@ -859,11 +859,11 @@ export const priceFeedsByToken: Record<SupportedToken, PriceFeedData> = {
     feeds: {
       Mainnet: {
         type: PriceFeedType.CHAINLINK_ORACLE,
-        address: "0x4e155ed98afe9034b7a5962f6c84c86d869daa9d",
+        address: "0x4E155eD98aFE9034b7A5962f6C84c86d869daA9d",
       },
       Arbitrum: {
         type: PriceFeedType.CHAINLINK_ORACLE,
-        address: "0x4e155ed98afe9034b7a5962f6c84c86d869daa9d",
+        address: "0xF0b7159BbFc341Cc41E7Cb182216F62c6d40533D",
       },
     },
   },
@@ -872,11 +872,11 @@ export const priceFeedsByToken: Record<SupportedToken, PriceFeedData> = {
     feeds: {
       Mainnet: {
         type: PriceFeedType.CHAINLINK_ORACLE,
-        address: "0xd10abbc76679a20055e167bb80a24ac851b37056",
+        address: "0xD10aBbC76679a20055E167BB80A24ac851b37056",
       },
       Arbitrum: {
         type: PriceFeedType.CHAINLINK_ORACLE,
-        address: "0x221912ce795669f628c51c69b7d0873eda9c03bb",
+        address: "0x221912ce795669f628c51c69b7d0873eDA9C03bB",
       },
     },
   },

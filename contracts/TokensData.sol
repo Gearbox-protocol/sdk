@@ -280,6 +280,30 @@ contract TokensDataLive {
         );
         tokenDataByNetwork[1].push(
             TokenData({
+                id: Tokens.MKR,
+                addr: 0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2,
+                symbol: "MKR",
+                tokenType: TokenType.NORMAL_TOKEN
+            })
+        );
+        tokenDataByNetwork[1].push(
+            TokenData({
+                id: Tokens.RPL,
+                addr: 0xB4EFd85c19999D84251304bDA99E90B92300Bd93,
+                symbol: "RPL",
+                tokenType: TokenType.NORMAL_TOKEN
+            })
+        );
+        tokenDataByNetwork[1].push(
+            TokenData({
+                id: Tokens.APE,
+                addr: 0x4d224452801ACEd8B2F0aebE155379bb5D594381,
+                symbol: "APE",
+                tokenType: TokenType.NORMAL_TOKEN
+            })
+        );
+        tokenDataByNetwork[1].push(
+            TokenData({
                 id: Tokens._3Crv,
                 addr: 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490,
                 symbol: "3Crv",
