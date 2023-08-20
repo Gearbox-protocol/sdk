@@ -20,6 +20,7 @@ import {
   tokenDataByNetwork,
   TokenType,
 } from "../src";
+import { safeEnum } from "./safeEnum";
 
 class BindingsGenerator {
   tokens: Array<SupportedToken>;
@@ -29,12 +30,12 @@ class BindingsGenerator {
   }
 
   generateTokens() {
-    const tokensEnum = this.tokens.map(t => this.safeEnum(t)).join(",\n");
+    const tokensEnum = this.tokens.map(t => safeEnum(t)).join(",\n");
     let data = `enum Tokens {NO_TOKEN, LUNA, ${tokensEnum}}`;
 
     const tokenTypeEnum = Object.values(TokenType)
       .filter(v => isNaN(Number(v)))
-      .map(t => this.safeEnum(t as string))
+      .map(t => safeEnum(t as string))
       .join(",\n");
 
     data += `enum TokenType {${tokenTypeEnum}}`;
@@ -86,7 +87,7 @@ class BindingsGenerator {
   generatePriceFeedType() {
     const priceFeedTypeEnum = Object.values(PriceFeedType)
       .filter(v => isNaN(Number(v)))
-      .map(t => this.safeEnum(t as string))
+      .map(t => safeEnum(t as string))
       .join(",\n");
 
     const data = `enum PriceFeedType {${priceFeedTypeEnum}}`;
@@ -433,7 +434,7 @@ class BindingsGenerator {
   generateAdapterType() {
     const adapterTypeEnum = Object.values(AdapterInterface)
       .filter(v => isNaN(Number(v)))
-      .map(t => this.safeEnum(t as string))
+      .map(t => safeEnum(t as string))
       .join(",\n");
 
     const data = `enum AdapterType {${adapterTypeEnum}}`;
@@ -556,15 +557,8 @@ class BindingsGenerator {
     fs.writeFileSync(`./contracts/${fileName}`, content);
   }
 
-  private safeEnum(t: string): string {
-    if (!isNaN(parseInt(t.charAt(0), 10))) {
-      return `_${t}`;
-    }
-    return t;
-  }
-
   private tokensEnum(t: string): string {
-    return `Tokens.${this.safeEnum(t)}`;
+    return `Tokens.${safeEnum(t)}`;
   }
 }
 
