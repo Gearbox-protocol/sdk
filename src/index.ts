@@ -62,6 +62,7 @@ export * from "./utils/mappers";
 export * from "./utils/multicall";
 export * from "./utils/price";
 export { callRepeater } from "./utils/repeater";
+export { safeEnum } from "./utils/safeEnum";
 export * from "./utils/types";
 export * from "./watchers/creditAccountWatcher";
 export * from "./watchers/creditManagerWatcher";
