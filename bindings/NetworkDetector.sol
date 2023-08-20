@@ -22,14 +22,13 @@ contract NetworkDetector is Test {
     }
 
     function getNetworkId() internal view returns (uint256) {
-        if (block.chainid == 1337 || block.chainid == 31337) {
-            uint256 len = connectedNetworks.length;
-            for (uint256 i = 0; i < len; i++) {
-                if (checkNetworkId(connectedNetworks[i])) {
-                    return connectedNetworks[i];
-                }
+        uint256 len = connectedNetworks.length;
+        for (uint256 i = 0; i < len; i++) {
+            if (checkNetworkId(connectedNetworks[i])) {
+                return connectedNetworks[i];
             }
         }
+
         return block.chainid;
     }
 
