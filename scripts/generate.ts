@@ -20,7 +20,7 @@ import {
   tokenDataByNetwork,
   TokenType,
 } from "../src";
-import { safeEnum } from "./safeEnum";
+import { safeEnum } from "../src/utils/safeEnum";
 
 class BindingsGenerator {
   tokens: Array<SupportedToken>;
