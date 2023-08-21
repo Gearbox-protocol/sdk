@@ -27,20 +27,7 @@ export class TokenData {
 }
 
 export const connectors: Record<NetworkType, Array<SupportedToken>> = {
-  Mainnet: [
-    "WETH",
-    "1INCH",
-    "DAI",
-    "USDC",
-    // "USDT",
-    "WBTC",
-    // "stETH",
-    // "PAX",
-    // "TUSD",
-    // "BNT",
-    // "BAL",
-    // "sUSD",
-  ],
+  Mainnet: ["WETH", "DAI", "USDC", "FRAX"],
   Arbitrum: ["WETH", "DAI", "USDC", "WBTC"],
 };
 

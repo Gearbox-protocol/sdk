@@ -38,6 +38,9 @@ export type NormalToken =
   | "RDNT"
   | "BAL"
   | "ARB"
+  | "MKR"
+  | "RPL"
+  | "APE"
 
   // REDSTONE
   | "SHIB"
@@ -954,6 +957,67 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_TRI_CRV_POOL",
         tokenOut: ["WETH", "CRV"],
+      },
+    ],
+  },
+
+  MKR: {
+    name: "MKR",
+
+    symbol: "MKR",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+  },
+  RPL: {
+    name: "RPL",
+
+    symbol: "RPL",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
+      },
+    ],
+  },
+  APE: {
+    name: "APE",
+
+    symbol: "APE",
+    type: TokenType.NORMAL_TOKEN,
+    swapActions: [
+      {
+        type: TradeType.UniswapV3Swap,
+        contract: "UNISWAP_V3_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "UNISWAP_V2_ROUTER",
+      },
+      {
+        type: TradeType.UniswapV2Swap,
+        contract: "SUSHISWAP_ROUTER",
       },
     ],
   },

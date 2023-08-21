@@ -84,12 +84,12 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   MIM_3LP3CRV: "40", // 0x5a6a4d54456819380173272a5e8e9b9904bdf41b
   crvCRVETH: "crypto-3", // 0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511
   crvCVXETH: "crypto-4", // 0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4
-  crvUSDTWBTCWETH: "factory-tricrypto-1",
-  LDOETH: "factory-crypto-204",
-  crvUSDUSDC: "",
-  crvUSDUSDT: "",
-  crvUSDFRAX: "",
-  crvUSDETHCRV: "",
+  crvUSDTWBTCWETH: "factory-tricrypto-1", // 0xf5f5B97624542D72A9E06f04804Bf81baA15e2B4
+  LDOETH: "factory-crypto-204", // "0x9409280DC1e6D33AB7A8C6EC03e5763FB61772B5"
+  crvUSDUSDC: "factory-crvusd-0", // 0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E
+  crvUSDUSDT: "factory-crvusd-1", // 0x390f3595bCa2Df7d23783dFd126427CCeb997BF4
+  crvUSDFRAX: "factory-crvusd-4", // 0x0CD6f267b2086bea681E922E19D40512511BE538
+  crvUSDETHCRV: "factory-tricrypto-4", // 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14
 };
 
 const CRV_APY_RESPONSE_DECIMALS = 100;
@@ -103,6 +103,8 @@ const CURVE_FACTORY_CRYPTO_URL =
 const CURVE_CRYPTO_URL = "https://api.curve.fi/api/getPools/ethereum/crypto";
 const CURVE_FACTORY_TRICRYPTO_URL =
   "https://api.curve.fi/api/getPools/ethereum/factory-tricrypto";
+const CURVE_FACTORY_CRVUSD_URL =
+  "https://api.curve.fi/api/getPools/ethereum/factory-crvusd";
 
 interface CurveAPY {
   base: bigint;
@@ -113,33 +115,25 @@ export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
 
 export async function getCurveAPY(): Promise<CurveAPYResult | null> {
   try {
-    const [
-      { data: apyData },
-      { data: main },
-      { data: factoryCrypto },
-      { data: crypto },
-      { data: factoryTricrypto },
-    ] = await Promise.all([
+    const [{ data: apyData }, ...restData] = await Promise.all([
       axios.get<CurveAPYDataResponse>(CURVE_APY_URL),
       axios.get<CurvePoolDataResponse>(CURVE_MAIN_URL),
       axios.get<CurvePoolDataResponse>(CURVE_FACTORY_CRYPTO_URL),
       axios.get<CurvePoolDataResponse>(CURVE_CRYPTO_URL),
       axios.get<CurvePoolDataResponse>(CURVE_FACTORY_TRICRYPTO_URL),
+      axios.get<CurvePoolDataResponse>(CURVE_FACTORY_CRVUSD_URL),
     ]);
 
     const { apys } = apyData || {};
-    const { poolData: mainPoolData = [] } = main?.data || {};
-    const { poolData: factoryCryptoPoolData = [] } = factoryCrypto?.data || {};
-    const { poolData: cryptoPoolData = [] } = crypto?.data || {};
-    const { poolData: factoryTricryptoPoolData = [] } =
-      factoryTricrypto?.data || {};
 
-    const poolDataByID = Object.fromEntries([
-      ...mainPoolData.map(p => [p.id, p] as const),
-      ...factoryCryptoPoolData.map(p => [p.id, p] as const),
-      ...cryptoPoolData.map(p => [p.id, p] as const),
-      ...factoryTricryptoPoolData.map(p => [p.id, p] as const),
-    ]);
+    const poolDataByID = Object.fromEntries(
+      restData
+        .map(resp => {
+          const { poolData = [] } = resp?.data?.data || {};
+          return poolData.map(p => [p.id, p] as const);
+        })
+        .flat(1),
+    );
 
     const curveAPY = TypedObjectUtils.entries(
       APY_DICTIONARY,

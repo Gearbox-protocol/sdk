@@ -1171,6 +1171,54 @@ contract PriceFeedDataLive {
         compoundV2PriceFeedsByNetwork[42161].push(
             GenericLPPriceFeedData({lpToken: Tokens.cWETH, underlying: Tokens.WETH})
         );
+
+        // ------------------------ MKR ------------------------
+        chainlinkPriceFeedsByNetwork[1].push(
+            ChainlinkPriceFeedData({
+                token: Tokens.MKR,
+                priceFeed: 0xec1D1B3b0443256cc3860e24a46F108e699484Aa,
+                stalenessPeriod: 86400
+            })
+        );
+        chainlinkPriceFeedsByNetwork[42161].push(
+            ChainlinkPriceFeedData({
+                token: Tokens.MKR,
+                priceFeed: 0xdE9f0894670c4EFcacF370426F10C3AD2Cdf147e,
+                stalenessPeriod: 86400
+            })
+        );
+
+        // ------------------------ RPL ------------------------
+        chainlinkPriceFeedsByNetwork[1].push(
+            ChainlinkPriceFeedData({
+                token: Tokens.RPL,
+                priceFeed: 0x4E155eD98aFE9034b7A5962f6C84c86d869daA9d,
+                stalenessPeriod: 86400
+            })
+        );
+        chainlinkPriceFeedsByNetwork[42161].push(
+            ChainlinkPriceFeedData({
+                token: Tokens.RPL,
+                priceFeed: 0xF0b7159BbFc341Cc41E7Cb182216F62c6d40533D,
+                stalenessPeriod: 86400
+            })
+        );
+
+        // ------------------------ APE ------------------------
+        chainlinkPriceFeedsByNetwork[1].push(
+            ChainlinkPriceFeedData({
+                token: Tokens.APE,
+                priceFeed: 0xD10aBbC76679a20055E167BB80A24ac851b37056,
+                stalenessPeriod: 86400
+            })
+        );
+        chainlinkPriceFeedsByNetwork[42161].push(
+            ChainlinkPriceFeedData({
+                token: Tokens.APE,
+                priceFeed: 0x221912ce795669f628c51c69b7d0873eDA9C03bB,
+                stalenessPeriod: 86400
+            })
+        );
     }
 
     function chainlinkPriceFeeds(uint256 index) external view returns (ChainlinkPriceFeedData memory) {

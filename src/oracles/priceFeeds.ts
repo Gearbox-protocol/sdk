@@ -841,4 +841,43 @@ export const priceFeedsByToken: Record<SupportedToken, PriceFeedData> = {
     type: PriceFeedType.COMPOUND_V2_ORACLE,
     underlying: "WETH",
   },
+  MKR: {
+    type: PriceFeedType.NETWORK_DEPENDENT,
+    feeds: {
+      Mainnet: {
+        type: PriceFeedType.CHAINLINK_ORACLE,
+        address: "0xec1D1B3b0443256cc3860e24a46F108e699484Aa",
+      },
+      Arbitrum: {
+        type: PriceFeedType.CHAINLINK_ORACLE,
+        address: "0xdE9f0894670c4EFcacF370426F10C3AD2Cdf147e",
+      },
+    },
+  },
+  RPL: {
+    type: PriceFeedType.NETWORK_DEPENDENT,
+    feeds: {
+      Mainnet: {
+        type: PriceFeedType.CHAINLINK_ORACLE,
+        address: "0x4E155eD98aFE9034b7A5962f6C84c86d869daA9d",
+      },
+      Arbitrum: {
+        type: PriceFeedType.CHAINLINK_ORACLE,
+        address: "0xF0b7159BbFc341Cc41E7Cb182216F62c6d40533D",
+      },
+    },
+  },
+  APE: {
+    type: PriceFeedType.NETWORK_DEPENDENT,
+    feeds: {
+      Mainnet: {
+        type: PriceFeedType.CHAINLINK_ORACLE,
+        address: "0xD10aBbC76679a20055E167BB80A24ac851b37056",
+      },
+      Arbitrum: {
+        type: PriceFeedType.CHAINLINK_ORACLE,
+        address: "0x221912ce795669f628c51c69b7d0873eDA9C03bB",
+      },
+    },
+  },
 };
