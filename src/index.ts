@@ -17,8 +17,6 @@ export * from "./core/strategy";
 export * from "./core/tokenDistributor";
 export * from "./core/trade";
 export * from "./core/transactions";
-export * from "./oracles/priceFeeds";
-export * from "./oracles/pricefeedType";
 export * from "./payload/creditAccount";
 export * from "./payload/creditManager";
 export * from "./payload/creditSession";
