@@ -58,7 +58,9 @@ export class CreditAccountWatcher {
     provider: providers.Provider,
     toBlock?: number,
   ): Promise<Array<CreditAccountHash>> {
-    if (creditManager.version !== 2) throw new Error("Works for V2 only");
+    if (!(creditManager.version === 2 || creditManager.version === 210)) {
+      throw new Error("Works for V2 only");
+    }
 
     const eventsByDate: Array<CMEvent> = [];
 
