@@ -27,7 +27,7 @@ export class CreditManagerWatcher {
       ).getCreditManagersList({ blockTag: atBlock });
 
     creditManagersPayload
-      .filter(c => c.version === 2)
+      .filter(c => c.version === 2 || c.version === 210)
       .forEach(c => {
         creditManagers[c.addr.toLowerCase()] = new CreditManagerData(c);
       });
