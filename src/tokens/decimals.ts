@@ -108,6 +108,6 @@ export const decimals: Record<SupportedToken, number> = {
   cUSDC: 6,
   cUSDT: 6,
   cLINK: 18,
-  cWETH: 18,
+  cETH: 18,
   SHIB: 18,
 };

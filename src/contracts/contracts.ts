@@ -76,7 +76,7 @@ export type CompoundV2PoolContract =
   | "COMPOUND_V2_DAI_POOL"
   | "COMPOUND_V2_USDC_POOL"
   | "COMPOUND_V2_USDT_POOL"
-  | "COMPOUND_V2_WETH_POOL"
+  | "COMPOUND_V2_ETH_POOL"
   | "COMPOUND_V2_LINK_POOL";
 
 export type SupportedContract =
@@ -178,7 +178,7 @@ export const contractsByNetwork: Record<
     COMPOUND_V2_USDC_POOL: tokenDataByNetwork.Mainnet.cUSDC,
     COMPOUND_V2_USDT_POOL: tokenDataByNetwork.Mainnet.cUSDT,
     COMPOUND_V2_LINK_POOL: tokenDataByNetwork.Mainnet.cLINK,
-    COMPOUND_V2_WETH_POOL: tokenDataByNetwork.Mainnet.cWETH,
+    COMPOUND_V2_ETH_POOL: tokenDataByNetwork.Mainnet.cETH,
   },
 
   //
@@ -268,7 +268,7 @@ export const contractsByNetwork: Record<
     COMPOUND_V2_USDC_POOL: tokenDataByNetwork.Arbitrum.cUSDC,
     COMPOUND_V2_USDT_POOL: tokenDataByNetwork.Arbitrum.cUSDT,
     COMPOUND_V2_LINK_POOL: tokenDataByNetwork.Mainnet.cLINK,
-    COMPOUND_V2_WETH_POOL: tokenDataByNetwork.Arbitrum.cWETH,
+    COMPOUND_V2_ETH_POOL: tokenDataByNetwork.Arbitrum.cETH,
   },
 };
 
@@ -906,8 +906,8 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.COMPOUND_V2_CERC20,
     underlying: "LINK",
   },
-  COMPOUND_V2_WETH_POOL: {
-    name: "Compound V2 DAI",
+  COMPOUND_V2_ETH_POOL: {
+    name: "Compound V2 ETH",
     protocol: Protocols.CompoundV2,
     type: AdapterInterface.COMPOUND_V2_CETHER,
     underlying: "WETH",
