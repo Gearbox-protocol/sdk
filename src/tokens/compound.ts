@@ -3,7 +3,7 @@ import { NormalToken } from "./normal";
 import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
-export type CompoundV2LPToken = "cDAI" | "cUSDC" | "cWETH" | "cUSDT" | "cLINK";
+export type CompoundV2LPToken = "cDAI" | "cUSDC" | "cETH" | "cUSDT" | "cLINK";
 
 export type CompoundV2PoolTokenData = {
   symbol: CompoundV2LPToken;
@@ -61,16 +61,16 @@ export const compoundV2Tokens: Record<
     ],
   },
 
-  cWETH: {
-    name: "CompoundV2 cWETH",
-    symbol: "cWETH",
+  cETH: {
+    name: "CompoundV2 cETH",
+    symbol: "cETH",
     type: TokenType.COMPOUND_V2_C_TOKEN,
     underlying: "WETH",
 
     lpActions: [
       {
         type: TradeType.CompoundV2Withdraw,
-        contract: "COMPOUND_V2_WETH_POOL",
+        contract: "COMPOUND_V2_ETH_POOL",
         tokenOut: "WETH",
       },
     ],
