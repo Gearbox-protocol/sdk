@@ -96,6 +96,7 @@ export const decimals: Record<SupportedToken, number> = {
   "50OHM_50DAI": 18,
   "50OHM_50WETH": 18,
   OHM_wstETH: 18,
+  "USDC-DAI-USDT": 18,
   aDAI: 18,
   aUSDC: 6,
   aUSDT: 6,
