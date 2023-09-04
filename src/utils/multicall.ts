@@ -53,7 +53,7 @@ export async function safeMulticall<V = any, T extends MCall<any> = MCall<any>>(
   calls: T[],
   p: Signer | ethers.providers.Provider,
   overrides?: CallOverrides,
-): Promise<Array<{ error: boolean; value?: V }>> {
+): Promise<Array<{ error?: Error; value?: V }>> {
   if (!calls.length) {
     return [];
   }
@@ -71,17 +71,29 @@ export async function safeMulticall<V = any, T extends MCall<any> = MCall<any>>(
     overrides ?? {},
   );
 
-  return resp.map((d, num) => ({
-    error: !d.success,
-    value: d.success
-      ? unwrapArray(
+  return resp.map((d, num) => {
+    let value: V | undefined;
+    let error: Error | undefined;
+    if (d.success) {
+      try {
+        value = unwrapArray(
           calls[num].interface.decodeFunctionResult(
             calls[num].method as string,
             d.returnData,
           ),
-        )
-      : undefined,
-  }));
+        );
+      } catch (e) {
+        if (e instanceof Error) {
+          error = e;
+        } else {
+          error = new Error(`${e}`);
+        }
+      }
+    } else {
+      error = new Error("multicall call failed");
+    }
+    return { error, value };
+  });
 }
 
 function unwrapArray<V>(data: unknown): V {

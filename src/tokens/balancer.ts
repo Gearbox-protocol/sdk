@@ -7,7 +7,7 @@ export type BalancerLPToken =
   | "50OHM_50DAI"
   | "50OHM_50WETH"
   | "OHM_wstETH"
-  | "USDC-DAI-USDT";
+  | "USDC_DAI_USDT";
 
 export type BalancerLpTokenData = {
   symbol: BalancerLPToken;
@@ -74,9 +74,9 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
       },
     ],
   },
-  "USDC-DAI-USDT": {
-    name: "Balancer USDC-DAI-USDT",
-    symbol: "USDC-DAI-USDT",
+  USDC_DAI_USDT: {
+    name: "Balancer USDC_DAI_USDT",
+    symbol: "USDC_DAI_USDT",
     type: TokenType.BALANCER_LP_TOKEN,
     underlying: ["USDC", "DAI", "USDT"],
     poolId:
