@@ -3,11 +3,28 @@ import { ethers } from "ethers";
 
 import { CHAINS, NetworkType, supportedChains } from "../core/chains";
 import { IERC20Metadata__factory } from "../types";
-import { IERC20MetadataInterface } from "../types/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata";
 import { KeyedCall, safeMulticall } from "../utils/multicall";
 import { SupportedToken, tokenDataByNetwork } from "./token";
 
 const erc20 = IERC20Metadata__factory.createInterface();
+
+// Some contracts return something other than string for symbol
+const NON_ERC20_SYMBOLS = {
+  [tokenDataByNetwork.Mainnet.MKR]: {
+    interface: new ethers.utils.Interface([
+      "function symbol() view returns (bytes32)",
+    ]),
+    // convert bytes32 to string
+    stringifySymbol: (result: string): string =>
+      ethers.utils
+        .toUtf8String(ethers.utils.arrayify(result))
+        .replaceAll(String.fromCharCode(0), ""), // trim tail of zeroes
+  },
+};
+
+function identity<T>(value: T): T {
+  return value;
+}
 
 interface SymbolResponse {
   address: string;
@@ -34,7 +51,7 @@ const EXCEPTIONS_IN_SYMBOLS: Record<NetworkType, Record<string, string>> = {
 class TokenSuite {
   private readonly provider: ethers.providers.StaticJsonRpcProvider;
   public readonly network: NetworkType;
-  public readonly calls: KeyedCall<IERC20MetadataInterface, SupportedToken>[];
+  public readonly calls: KeyedCall<ethers.utils.Interface, SupportedToken>[];
   public readonly responses: Record<string, SymbolResponse> = {};
 
   constructor(network: NetworkType) {
@@ -53,11 +70,11 @@ class TokenSuite {
     ) as Array<[SupportedToken, string]>;
     this.calls = entries.map(
       ([symbol, address]): KeyedCall<
-        IERC20MetadataInterface,
+        ethers.utils.Interface,
         SupportedToken
       > => ({
         address,
-        interface: erc20,
+        interface: NON_ERC20_SYMBOLS[address]?.interface ?? erc20,
         method: "symbol()",
         key: symbol,
       }),
@@ -67,6 +84,7 @@ class TokenSuite {
   public async fetchSymbols(): Promise<void> {
     // even safe multicall fails when one of addresses is an EOA and not contract address
     if (this.network === "Arbitrum") {
+      // if (true) {
       for (const call of this.calls) {
         const c = IERC20Metadata__factory.connect(call.address, this.provider);
         try {
@@ -87,10 +105,16 @@ class TokenSuite {
       for (let i = 0; i < resps.length; i++) {
         const call = this.calls[i];
         const resp = resps[i];
+        // most symbols are ok, but some return non-string value for symbol.
+        // stringifySymbol makes sure that we get symbol as string
+        const stringifySymbol =
+          NON_ERC20_SYMBOLS[call.address]?.stringifySymbol ?? identity;
         this.responses[call.key] = {
           address: call.address,
-          symbol: resp.error ? undefined : this.sanitize(resp.value ?? ""),
-          error: resp.error ? new Error("multicall error") : undefined,
+          symbol: resp.error
+            ? undefined
+            : this.sanitize(stringifySymbol(resp.value ?? "")),
+          error: resp.error,
         };
       }
     }
@@ -105,7 +129,7 @@ class TokenSuite {
     const r = this.responses[sdkSymbol];
     if (r.error) {
       throw new Error(
-        `failed to verify ${sdkSymbol} on address ${r.address}: ${console.error}`,
+        `failed to verify ${sdkSymbol} on address ${r.address}: ${r.error}`,
       );
     }
     const expectedSymbol =
