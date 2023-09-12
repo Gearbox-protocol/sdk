@@ -1,6 +1,5 @@
 export * from "./contracts/contracts";
 export * from "./contracts/protocols";
-export * from "./core/adapter";
 export * from "./core/assets";
 export * from "./core/chains";
 export * from "./core/constants";
@@ -10,7 +9,6 @@ export * from "./core/creditSession";
 export * from "./core/errors";
 export * from "./core/eventOrTx";
 export * from "./core/events";
-export * from "./core/operations";
 export * from "./core/pool";
 export * from "./core/rewardClaimer";
 export * from "./core/strategy";
