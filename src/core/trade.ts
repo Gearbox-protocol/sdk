@@ -2,9 +2,10 @@ import { Signer } from "ethers";
 
 import {
   contractParams,
-  contractsByAddress,
   isSupportedContract,
+  SupportedContract,
 } from "../contracts/contracts";
+import { TxParser } from "../parsers/txParser";
 import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
 import { decimals } from "../tokens/decimals";
 import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
@@ -54,6 +55,7 @@ export interface GetTradesProps {
   results: Array<PathFinderResult>;
 
   creditManager: CreditManagerData;
+  currentContracts: Record<SupportedContract, string>;
 }
 
 export class Trade {
@@ -130,11 +132,17 @@ export class Trade {
     to,
     amount,
     results,
+
     creditManager,
+    currentContracts,
   }: GetTradesProps) {
     const trades = results.reduce<Array<Trade>>((acc, tradePath) => {
       const { calls } = tradePath;
-      const callInfo = Trade.getCallInfo(calls, creditManager.address);
+      const callInfo = Trade.getCallInfo(
+        calls,
+        creditManager.address,
+        currentContracts,
+      );
 
       const trade = new Trade({
         tradePath,
@@ -174,23 +182,37 @@ export class Trade {
     return "unknownOperation";
   }
 
-  static getCallInfo(calls: Array<MultiCall>, cm: string) {
+  static getCallInfo(
+    calls: Array<MultiCall>,
+    creditManager: string,
+    currentContracts: Record<SupportedContract, string>,
+  ) {
     const callAdapters = calls.reduce<Array<Info>>((acc, call) => {
-      const contractSymbol = contractsByAddress[call.target.toLowerCase()];
+      const contractSymbol = this.getContractSymbol(call.target.toLowerCase());
       if (!isSupportedContract(contractSymbol)) return acc;
 
       const { name } = contractParams[contractSymbol];
+      const contractAddress = currentContracts[contractSymbol];
 
       acc.push({
         name,
-        contractAddress: call.target,
-        creditManager: cm,
+        contractAddress,
+        creditManager,
       });
 
       return acc;
     }, []);
 
     return callAdapters;
+  }
+
+  private static getContractSymbol(address: string) {
+    try {
+      const { contract } = TxParser.getParseData(address);
+      return contract;
+    } catch (e) {
+      return undefined;
+    }
   }
 
   static getTradeId(trade: Trade) {
