@@ -35,7 +35,6 @@ export * from "./contracts/utilsContracts";
 export * from "./parsers/txParser";
 export * from "./pathfinder/core";
 export * from "./pathfinder/pathfinder";
-export * from "./pathfinder/tradeTypes";
 export * from "./tokens/convex";
 export * from "./tokens/curveLP";
 export * from "./tokens/decimals";
