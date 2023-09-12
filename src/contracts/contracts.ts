@@ -306,7 +306,6 @@ export type CurveSteCRVPoolParams = {
   type: AdapterInterface.CURVE_V1_STECRV_POOL;
   version: number;
 
-  pool: Record<NetworkType, string>;
   tokens: ["WETH", "STETH"];
   lpToken: "steCRV";
 } & BaseContractParams;
@@ -316,7 +315,6 @@ export type CurveGEARPoolParams = {
   type: AdapterInterface.CURVE_V1_2ASSETS;
   version: number;
 
-  pool: Record<NetworkType, string>;
   tokens: ["GEAR", "WETH"];
   lpToken: "GEAR";
 } & BaseContractParams;
@@ -444,10 +442,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     version: 10,
-    pool: {
-      Mainnet: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-      Arbitrum: NOT_DEPLOYED, // CURVE_STECRV_POOL
-    },
     tokens: ["WETH", "STETH"],
     lpToken: "steCRV",
   },
@@ -456,10 +450,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
-    pool: {
-      Mainnet: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
-      Arbitrum: NOT_DEPLOYED,
-    },
     tokens: ["GEAR", "WETH"],
     lpToken: "GEAR",
   },
