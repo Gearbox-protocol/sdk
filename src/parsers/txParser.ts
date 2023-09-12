@@ -176,7 +176,7 @@ export class TxParser {
 
   public static getParser(address: string) {
     const parser = TxParser.parsers[address.toLowerCase()];
-    if (!parser) throw new Error(`Can find parser for ${address}`);
+    if (!parser) throw new Error(`Can't find parser for ${address}`);
     return parser;
   }
 

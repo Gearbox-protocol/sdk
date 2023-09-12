@@ -1,29 +1,38 @@
 import { Signer } from "ethers";
 
-import { AdapterInterface } from "../contracts/adapters";
+import {
+  contractParams,
+  isSupportedContract,
+  SupportedContract,
+} from "../contracts/contracts";
+import { TxParser } from "../parsers/txParser";
 import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
 import { decimals } from "../tokens/decimals";
 import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
 import { ICreditFacade, ICreditFacade__factory } from "../types";
 import { formatBN } from "../utils/formatter";
-import { BaseAdapter } from "./adapter";
 import { WAD } from "./constants";
+import { CreditManagerData } from "./creditManager";
 import { EVMTx } from "./eventOrTx";
 import { TXSwap } from "./transactions";
 
-interface BaseTradeInterface {
-  swapType: SwapOperation;
-  sourceAmount: bigint;
-  expectedAmount: bigint;
-  tokenFrom: string;
-  tokenTo: string;
-  operationName: TradeOperations;
+interface Info {
+  name: string;
+  contractAddress: string;
+  creditManager: string;
 }
 
-export interface TradeProps extends BaseTradeInterface {
-  adapter: BaseAdapter;
+export interface TradeProps {
+  adapter: Info;
   tradePath: PathFinderResult;
   creditFacade: string;
+
+  tokenFrom: string;
+  tokenTo: string;
+  sourceAmount: bigint;
+  expectedAmount: bigint;
+  swapType: SwapOperation;
+  swapName: TradeOperations;
 }
 
 export type TradeOperations =
@@ -39,8 +48,18 @@ const OPERATION_NAMES: Record<TradeOperations, string> = {
   unknownOperation: "Unknown operation",
 };
 
-export class Trade implements BaseTradeInterface {
-  readonly helper: BaseAdapter;
+export interface GetTradesProps {
+  from: string;
+  to: string;
+  amount: bigint;
+  results: Array<PathFinderResult>;
+
+  creditManager: CreditManagerData;
+  currentContracts: Record<SupportedContract, string>;
+}
+
+export class Trade {
+  readonly helper: Info;
   readonly tradePath: PathFinderResult;
   readonly creditFacade: string;
 
@@ -63,23 +82,11 @@ export class Trade implements BaseTradeInterface {
     this.rate = (WAD * props.expectedAmount) / props.sourceAmount;
     this.tokenFrom = props.tokenFrom;
     this.tokenTo = props.tokenTo;
-    this.operationName = props.operationName;
+    this.operationName = props.swapName;
   }
 
   getName(): string {
     return this.helper.name;
-  }
-
-  getAdapterInterface(): AdapterInterface {
-    return this.helper.adapterInterface;
-  }
-
-  getContractAddress(): string {
-    return this.helper.contractAddress;
-  }
-
-  getAdapterAddress(): string {
-    return this.helper.adapterAddress;
   }
 
   async execute(signer: Signer): Promise<EVMTx> {
@@ -120,6 +127,43 @@ export class Trade implements BaseTradeInterface {
     )} ${symbolTo} on ${this.helper.name}`;
   }
 
+  static getTrades({
+    from,
+    to,
+    amount,
+    results,
+
+    creditManager,
+    currentContracts,
+  }: GetTradesProps) {
+    const trades = results.reduce<Array<Trade>>((acc, tradePath) => {
+      const { calls } = tradePath;
+      const callInfo = Trade.getCallInfo(
+        calls,
+        creditManager.address,
+        currentContracts,
+      );
+
+      const trade = new Trade({
+        tradePath,
+        creditFacade: creditManager.creditFacade,
+        adapter: callInfo[0],
+        swapType: SwapOperation.EXACT_INPUT,
+        sourceAmount: amount,
+        expectedAmount: tradePath.amount,
+        tokenFrom: from,
+        tokenTo: to,
+        swapName: Trade.getOperationName(from, to),
+      });
+
+      acc.push(trade);
+
+      return acc;
+    }, []);
+
+    return trades;
+  }
+
   static getOperationName(
     tokenInAddress: string,
     tokenOutAddress: string,
@@ -136,6 +180,65 @@ export class Trade implements BaseTradeInterface {
     if (!tokenInIsLp && tokenOutIsLp) return "farmDeposit";
     if (!tokenInIsLp && !tokenOutIsLp) return "swap";
     return "unknownOperation";
+  }
+
+  static getCallInfo(
+    calls: Array<MultiCall>,
+    creditManager: string,
+    currentContracts: Record<SupportedContract, string>,
+  ) {
+    const callAdapters = calls.reduce<Array<Info>>((acc, call) => {
+      const contractSymbol = this.getContractSymbol(call.target.toLowerCase());
+      if (!isSupportedContract(contractSymbol)) return acc;
+
+      const { name } = contractParams[contractSymbol];
+      const contractAddress = currentContracts[contractSymbol];
+
+      acc.push({
+        name,
+        contractAddress,
+        creditManager,
+      });
+
+      return acc;
+    }, []);
+
+    return callAdapters;
+  }
+
+  private static getContractSymbol(address: string) {
+    try {
+      const { contract } = TxParser.getParseData(address);
+      return contract;
+    } catch (e) {
+      return undefined;
+    }
+  }
+
+  static getTradeId(trade: Trade) {
+    return `${trade.getName()}:${trade.expectedAmount.toString()}`;
+  }
+
+  static sortTrades(trades: Array<Trade>, swapStrategy: string) {
+    if (trades.length === 0) return [];
+
+    const { swapType } = trades[0];
+
+    const sorted = [...trades].sort((a, b) => {
+      const aSelected =
+        a.getName().toLowerCase().search(swapStrategy.toLowerCase()) >= 0;
+      const bSelected =
+        b.getName().toLowerCase().search(swapStrategy.toLowerCase()) >= 0;
+
+      if ((aSelected && bSelected) || (!aSelected && !bSelected)) {
+        const sign = a.expectedAmount > b.expectedAmount ? -1 : 1;
+        return swapType === SwapOperation.EXACT_INPUT ? sign : -sign;
+      }
+
+      return aSelected ? -1 : 1;
+    });
+
+    return sorted;
   }
 
   static async executeMulticallPath(

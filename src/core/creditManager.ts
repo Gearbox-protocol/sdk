@@ -8,7 +8,9 @@ import {
 } from "../payload/creditManager";
 import { tokenSymbolByAddress } from "../tokens/token";
 import {
+  IConvexV1BaseRewardPoolAdapter__factory,
   ICreditFacade__factory,
+  ICreditFacadeExtended__factory,
   ICreditManager,
   ICreditManager__factory,
 } from "../types";
@@ -189,6 +191,45 @@ export class CreditManagerData {
         "decreaseDebt",
         [amount],
       ),
+    };
+  }
+
+  encodeEnableToken(token: string): MultiCall {
+    if (this.version === 1)
+      throw new Error("Multicall is eligible only for version 2");
+    return {
+      target: this.creditFacade,
+      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
+        "enableToken",
+        [token],
+      ),
+    };
+  }
+
+  encodeDisableToken(token: string): MultiCall {
+    if (this.version === 1)
+      throw new Error("Multicall is eligible only for version 2");
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
+          "disableToken",
+          [token],
+        ),
+    };
+  }
+
+  static withdrawAllAndUnwrap_Convex(
+    address: string,
+    claim: boolean,
+  ): MultiCall {
+    return {
+      target: address,
+      callData:
+        IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
+          "withdrawAllAndUnwrap",
+          [claim],
+        ),
     };
   }
 

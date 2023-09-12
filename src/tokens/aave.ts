@@ -1,5 +1,4 @@
 import type { AaveV2PoolContract } from "../contracts/contracts";
-import { TradeAction, TradeType } from "../pathfinder/tradeTypes";
 import { NormalToken } from "./normal";
 import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
@@ -11,7 +10,6 @@ export type AaveV2PoolTokenData = {
   symbol: AaveV2LPToken;
   type: TokenType.AAVE_V2_A_TOKEN;
   underlying: NormalToken;
-  lpActions: Array<TradeAction>;
   pool: AaveV2PoolContract;
 } & TokenBase;
 
@@ -19,7 +17,6 @@ export type WrappedAaveV2PoolTokenData = {
   symbol: WrappedAaveV2LPToken;
   type: TokenType.WRAPPED_AAVE_V2_TOKEN;
   underlying: AaveV2LPToken;
-  lpActions: Array<TradeAction>;
 } & TokenBase;
 
 export const aaveV2Tokens: Record<AaveV2LPToken, AaveV2PoolTokenData> = {
@@ -29,13 +26,6 @@ export const aaveV2Tokens: Record<AaveV2LPToken, AaveV2PoolTokenData> = {
     type: TokenType.AAVE_V2_A_TOKEN,
     underlying: "DAI",
     pool: "AAVE_V2_DAI_POOL",
-    lpActions: [
-      {
-        type: TradeType.AaveV2Withdraw,
-        contract: "AAVE_V2_DAI_POOL",
-        tokenOut: "DAI",
-      },
-    ],
   },
 
   aUSDC: {
@@ -44,13 +34,6 @@ export const aaveV2Tokens: Record<AaveV2LPToken, AaveV2PoolTokenData> = {
     type: TokenType.AAVE_V2_A_TOKEN,
     underlying: "USDC",
     pool: "AAVE_V2_USDC_POOL",
-    lpActions: [
-      {
-        type: TradeType.AaveV2Withdraw,
-        contract: "AAVE_V2_USDC_POOL",
-        tokenOut: "USDC",
-      },
-    ],
   },
 
   aUSDT: {
@@ -59,13 +42,6 @@ export const aaveV2Tokens: Record<AaveV2LPToken, AaveV2PoolTokenData> = {
     type: TokenType.AAVE_V2_A_TOKEN,
     underlying: "USDT",
     pool: "AAVE_V2_USDT_POOL",
-    lpActions: [
-      {
-        type: TradeType.AaveV2Withdraw,
-        contract: "AAVE_V2_USDT_POOL",
-        tokenOut: "USDT",
-      },
-    ],
   },
 
   aWETH: {
@@ -74,13 +50,6 @@ export const aaveV2Tokens: Record<AaveV2LPToken, AaveV2PoolTokenData> = {
     type: TokenType.AAVE_V2_A_TOKEN,
     underlying: "WETH",
     pool: "AAVE_V2_WETH_POOL",
-    lpActions: [
-      {
-        type: TradeType.AaveV2Withdraw,
-        contract: "AAVE_V2_WETH_POOL",
-        tokenOut: "WETH",
-      },
-    ],
   },
 };
 
@@ -93,13 +62,6 @@ export const wrappedAaveV2Tokens: Record<
     symbol: "waDAI",
     type: TokenType.WRAPPED_AAVE_V2_TOKEN,
     underlying: "aDAI",
-    lpActions: [
-      {
-        type: TradeType.AaveV2Withdraw,
-        contract: "AAVE_V2_DAI_POOL",
-        tokenOut: "DAI",
-      },
-    ],
   },
 
   waUSDC: {
@@ -107,14 +69,6 @@ export const wrappedAaveV2Tokens: Record<
     symbol: "waUSDC",
     type: TokenType.WRAPPED_AAVE_V2_TOKEN,
     underlying: "aUSDC",
-
-    lpActions: [
-      {
-        type: TradeType.AaveV2Withdraw,
-        contract: "AAVE_V2_USDC_POOL",
-        tokenOut: "USDC",
-      },
-    ],
   },
 
   waUSDT: {
@@ -122,14 +76,6 @@ export const wrappedAaveV2Tokens: Record<
     symbol: "waUSDT",
     type: TokenType.WRAPPED_AAVE_V2_TOKEN,
     underlying: "aUSDT",
-
-    lpActions: [
-      {
-        type: TradeType.AaveV2Withdraw,
-        contract: "AAVE_V2_USDT_POOL",
-        tokenOut: "USDT",
-      },
-    ],
   },
 
   waWETH: {
@@ -137,14 +83,6 @@ export const wrappedAaveV2Tokens: Record<
     symbol: "waWETH",
     type: TokenType.WRAPPED_AAVE_V2_TOKEN,
     underlying: "aWETH",
-
-    lpActions: [
-      {
-        type: TradeType.AaveV2Withdraw,
-        contract: "AAVE_V2_WETH_POOL",
-        tokenOut: "WETH",
-      },
-    ],
   },
 };
 
