@@ -1,4 +1,3 @@
-import type { TradeAction } from "../pathfinder/tradeTypes";
 import type { TokenBase } from "./token";
 import { TokenType } from "./tokenType";
 
@@ -18,7 +17,6 @@ export type DieselTokenData = {
 
 export type GearboxTokenData = {
   symbol: GearboxToken;
-  swapActions?: Array<TradeAction>;
   type: TokenType.GEAR_TOKEN;
 } & TokenBase;
 

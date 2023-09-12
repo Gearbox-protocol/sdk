@@ -1,7 +1,6 @@
 import { BigNumber } from "ethers";
 
 import type { CurvePoolContract } from "../contracts/contracts";
-import { TradeAction } from "../pathfinder/tradeTypes";
 import { PartialRecord } from "../utils/types";
 import { NormalToken } from "./normal";
 import type { SupportedToken, TokenBase } from "./token";
@@ -31,7 +30,6 @@ export type CurveLPToken =
 export type CurveLPTokenData = {
   symbol: CurveLPToken;
   type: TokenType.CURVE_LP_TOKEN;
-  swapActions?: Array<TradeAction>;
   tokenOut: Array<CurveLPToken | NormalToken>;
   pool: CurvePoolContract;
   wrapper?: CurvePoolContract;
