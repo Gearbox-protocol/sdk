@@ -52,7 +52,6 @@ export type NormalTokenData = {
   symbol: NormalToken;
   type: TokenType.NORMAL_TOKEN;
   swapActions: Array<TradeAction>;
-  lpActions?: Array<TradeAction>;
 } & TokenBase;
 
 export const normalTokens: Record<NormalToken, NormalTokenData> = {
@@ -167,23 +166,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_SUSD_POOL",
         tokenOut: ["USDC", "USDT", "sUSD"],
-      },
-    ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_3CRV_POOL",
-        tokenOut: "3Crv",
-      },
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD",
-      },
-      {
-        type: TradeType.YearnDeposit,
-        contract: "YEARN_DAI_VAULT",
-        tokenOut: "yvDAI",
       },
     ],
   },
@@ -318,23 +300,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         tokenOut: ["DAI", "USDT", "sUSD"],
       },
     ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_3CRV_POOL",
-        tokenOut: "3Crv",
-      },
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD",
-      },
-      {
-        type: TradeType.YearnDeposit,
-        contract: "YEARN_USDC_VAULT",
-        tokenOut: "yvUSDC",
-      },
-    ],
   },
 
   USDT: {
@@ -366,18 +331,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         tokenOut: ["DAI", "USDC", "sUSD"],
       },
     ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_3CRV_POOL",
-        tokenOut: "3Crv",
-      },
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD",
-      },
-    ],
   },
 
   WBTC: {
@@ -397,13 +350,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
       {
         type: TradeType.UniswapV2Swap,
         contract: "SUSHISWAP_ROUTER",
-      },
-    ],
-    lpActions: [
-      {
-        type: TradeType.YearnDeposit,
-        contract: "YEARN_WBTC_VAULT",
-        tokenOut: "yvWBTC",
       },
     ],
   },
@@ -430,23 +376,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_STETH_GATEWAY",
         tokenOut: ["STETH"],
-      },
-    ],
-    lpActions: [
-      {
-        type: TradeType.YearnDeposit,
-        contract: "YEARN_WETH_VAULT",
-        tokenOut: "yvWETH",
-      },
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_STETH_GATEWAY",
-        tokenOut: "steCRV",
-      },
-      {
-        type: TradeType.BalancerJoin,
-        contract: "BALANCER_VAULT",
-        tokenOut: "50OHM_50WETH",
       },
     ],
   },
@@ -497,13 +426,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         tokenOut: ["WETH"],
       },
     ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_STETH_GATEWAY",
-        tokenOut: "steCRV",
-      },
-    ],
   },
 
   wstETH: {
@@ -528,13 +450,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_STETH_GATEWAY",
         tokenOut: ["WETH"],
-      },
-    ],
-    lpActions: [
-      {
-        type: TradeType.BalancerJoin,
-        contract: "BALANCER_VAULT",
-        tokenOut: "OHM_wstETH",
       },
     ],
   },
@@ -582,13 +497,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_FRAX_POOL",
         tokenOut: ["3Crv"],
-      },
-    ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_FRAX_POOL",
-        tokenOut: "FRAX3CRV",
       },
     ],
   },
@@ -659,13 +567,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         tokenOut: ["3Crv"],
       },
     ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_LUSD_POOL",
-        tokenOut: "LUSD3CRV",
-      },
-    ],
   },
 
   sUSD: {
@@ -692,13 +593,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         tokenOut: ["DAI", "USDT", "USDC"],
       },
     ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_SUSD_POOL",
-        tokenOut: "crvPlain3andSUSD",
-      },
-    ],
   },
 
   GUSD: {
@@ -723,13 +617,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         type: TradeType.CurveExchange,
         contract: "CURVE_GUSD_POOL",
         tokenOut: ["3Crv"],
-      },
-    ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_GUSD_POOL",
-        tokenOut: "gusd3CRV",
       },
     ],
   },
@@ -761,23 +648,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     symbol: "OHM",
     type: TokenType.NORMAL_TOKEN,
     swapActions: [],
-    lpActions: [
-      {
-        type: TradeType.BalancerJoin,
-        contract: "BALANCER_VAULT",
-        tokenOut: "50OHM_50DAI",
-      },
-      {
-        type: TradeType.BalancerJoin,
-        contract: "BALANCER_VAULT",
-        tokenOut: "50OHM_50WETH",
-      },
-      {
-        type: TradeType.BalancerJoin,
-        contract: "BALANCER_VAULT",
-        tokenOut: "OHM_wstETH",
-      },
-    ],
   },
   MIM: {
     name: "MIM",
@@ -803,13 +673,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         tokenOut: ["3Crv"],
       },
     ],
-    lpActions: [
-      {
-        type: TradeType.CurveDepositLP,
-        contract: "CURVE_MIM_POOL",
-        tokenOut: "MIM_3LP3CRV",
-      },
-    ],
   },
   SPELL: {
     name: "SPELL",
@@ -830,7 +693,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         contract: "SUSHISWAP_ROUTER",
       },
     ],
-    lpActions: [],
   },
   GMX: {
     name: "GMX",
@@ -851,7 +713,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         contract: "SUSHISWAP_ROUTER",
       },
     ],
-    lpActions: [],
   },
   ARB: {
     name: "ARB",
@@ -872,7 +733,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         contract: "SUSHISWAP_ROUTER",
       },
     ],
-    lpActions: [],
   },
   RDNT: {
     name: "RDNT",
@@ -893,7 +753,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         contract: "SUSHISWAP_ROUTER",
       },
     ],
-    lpActions: [],
   },
   BAL: {
     name: "BAL",
@@ -914,7 +773,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         contract: "SUSHISWAP_ROUTER",
       },
     ],
-    lpActions: [],
   },
   SHIB: {
     name: "SHIB",
@@ -930,7 +788,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
         contract: "UNISWAP_V2_ROUTER",
       },
     ],
-    lpActions: [],
   },
 
   crvUSD: {
