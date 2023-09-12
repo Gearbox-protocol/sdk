@@ -286,7 +286,6 @@ type UniswapV2Params = {
 type UniswapV3Params = {
   protocol: Protocols.Uniswap;
   type: AdapterInterface.UNISWAP_V3_ROUTER;
-  quoter: string;
 } & BaseContractParams;
 
 export type CurveParams = {
@@ -416,7 +415,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   UNISWAP_V3_ROUTER: {
     name: "Uniswap V3",
     protocol: Protocols.Uniswap,
-    quoter: UNISWAP_V3_QUOTER,
     type: AdapterInterface.UNISWAP_V3_ROUTER,
   },
 
