@@ -299,6 +299,7 @@ export type CurveParams = {
   lpToken: CurveLPToken;
   tokens: Array<NormalToken | CurveLPToken>;
   underlyings?: Array<NormalToken>;
+  wrapper?: CurvePoolContract;
 } & BaseContractParams;
 
 export type CurveSteCRVPoolParams = {
@@ -478,6 +479,7 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     version: 10,
     lpToken: "crvPlain3andSUSD",
     tokens: ["DAI", "USDC", "USDT", "sUSD"],
+    wrapper: "CURVE_SUSD_DEPOSIT",
   },
   CURVE_SUSD_DEPOSIT: {
     name: "Curve SUSD",
