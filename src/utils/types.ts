@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 export type PartialRecord<K extends keyof any, T> = {
   [P in K]?: T;
 };
@@ -14,4 +16,8 @@ type NonArrayKeys<T> = T extends `${number}` | number | ArrayMethodKeys
 
 export type ExcludeArrayProps<T> = {
   [K in keyof T as NonArrayKeys<K>]: T[K];
+};
+
+export type BigintifyProps<T extends {}> = {
+  [K in keyof T]: T[K] extends BigNumber ? bigint : T[K];
 };
