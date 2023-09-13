@@ -8,7 +8,12 @@ import { ExcludeArrayProps } from "../utils/types";
 
 export type PoolDataPayload = ExcludeArrayProps<PoolDataStructOutput>;
 
-export type LinearModelStruct = ExcludeArrayProps<LinearModelStructOutput>;
+export type LinearModelStruct = Omit<
+  ExcludeArrayProps<LinearModelStructOutput>,
+  "version"
+> & {
+  version: number;
+};
 
 export interface ChartsPoolDataPayload {
   addr: string;

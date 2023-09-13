@@ -86,10 +86,10 @@ export class PoolData {
     this.totalAssets = toBigInt(payload.totalAssets || 0);
     this.totalSupply = toBigInt(payload.totalSupply || 0);
 
-    this.depositAPY = 0;
-    this.borrowAPY = 0;
-    // !&
-    console.log(payload.supplyRate, payload.baseInterestRate);
+    this.depositAPY =
+      rayToNumber(payload.supplyRate) * Number(PERCENTAGE_DECIMALS);
+    this.borrowAPY =
+      rayToNumber(payload.baseInterestRate) * Number(PERCENTAGE_DECIMALS);
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
@@ -99,6 +99,7 @@ export class PoolData {
       R_slope1: payload.lirm.R_slope1 || 0,
       R_slope2: payload.lirm.R_slope2 || 0,
       R_slope3: payload.lirm.R_slope3 || 0,
+      version: payload?.lirm?.version?.toNumber() || 0,
     };
     this.dieselRate = rayToNumber(payload.dieselRate_RAY || 0);
     this.dieselRateRay = toBigInt(payload.dieselRate_RAY || 0);
