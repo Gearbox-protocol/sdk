@@ -1,8 +1,12 @@
 import { pack } from "@ethersproject/solidity";
+import {
+  DUMB_ADDRESS,
+  RAY,
+  tokenDataByNetwork,
+  WAD,
+} from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { DUMB_ADDRESS, RAY, WAD } from "../core/constants";
-import { tokenDataByNetwork } from "../tokens/token";
 import { IUniswapV3Adapter__factory } from "../types";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
 

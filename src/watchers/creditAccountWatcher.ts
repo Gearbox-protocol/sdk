@@ -1,3 +1,4 @@
+import { CallData, MultiCallContract } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
 import { CreditAccountData } from "../core/creditAccount";
@@ -12,7 +13,6 @@ import {
 } from "../types";
 import { IDataCompressorInterface } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { TypedEvent } from "../types/common";
-import { CallData, MultiCallContract } from "../utils/multicall";
 
 interface CMEvent {
   time: number;

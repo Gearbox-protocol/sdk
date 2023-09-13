@@ -1,6 +1,9 @@
-import { NetworkType } from "../core/chains";
-import { TypedObjectUtils } from "../utils/mappers";
-import { contractParams, contractsByAddress } from "./contracts";
+import {
+  contractParams,
+  contractsByAddress,
+  NetworkType,
+  TypedObjectUtils,
+} from "@gearbox-protocol/sdk-gov";
 
 export const stEthPoolWrapper: Record<NetworkType, string> = {
   Mainnet: "0x5a97e3E43dCBFe620ccF7865739075f92E93F5E4",

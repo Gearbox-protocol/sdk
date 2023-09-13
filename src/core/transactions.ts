@@ -1,8 +1,12 @@
-import { contractParams, SupportedContract } from "../contracts/contracts";
+import {
+  contractParams,
+  extractTokenData,
+  LEVERAGE_DECIMALS,
+  SupportedContract,
+} from "@gearbox-protocol/sdk-gov";
+
 import { getContractName } from "../contracts/contractsRegister";
-import { extractTokenData } from "../tokens/token";
 import { formatBN } from "../utils/formatter";
-import { LEVERAGE_DECIMALS } from "./constants";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
 
 export interface TxSerialized {

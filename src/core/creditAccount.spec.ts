@@ -1,12 +1,14 @@
+import {
+  decimals,
+  PRICE_DECIMALS_POW,
+  tokenDataByNetwork,
+} from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
 import { LpTokensAPY } from "../apy";
-import { decimals } from "../tokens/decimals";
-import { tokenDataByNetwork } from "../tokens/token";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetUtils } from "./assets";
-import { PRICE_DECIMALS_POW } from "./constants";
 import { CreditAccountData } from "./creditAccount";
 
 interface CATestInfo {

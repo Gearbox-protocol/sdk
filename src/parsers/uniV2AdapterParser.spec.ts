@@ -1,7 +1,11 @@
+import {
+  DUMB_ADDRESS,
+  RAY,
+  tokenDataByNetwork,
+  WAD,
+} from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { DUMB_ADDRESS, RAY, WAD } from "../core/constants";
-import { tokenDataByNetwork } from "../tokens/token";
 import { IUniswapV2Adapter__factory } from "../types";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 

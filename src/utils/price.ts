@@ -1,4 +1,4 @@
-import { PRICE_DECIMALS, WAD } from "../core/constants";
+import { PRICE_DECIMALS, WAD } from "@gearbox-protocol/sdk-gov";
 
 interface Target {
   price: bigint;

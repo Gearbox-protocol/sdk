@@ -1,6 +1,6 @@
+import { WAD } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { WAD } from "../core/constants";
 import { IConvexV1BoosterAdapter__factory } from "../types";
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 

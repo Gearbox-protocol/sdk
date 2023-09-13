@@ -1,6 +1,9 @@
+import {
+  PERCENTAGE_DECIMALS,
+  WAD_DECIMALS_POW,
+} from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
 
-import { PERCENTAGE_DECIMALS, WAD_DECIMALS_POW } from "../core/constants";
 import { toBN } from "../utils/formatter";
 
 interface Apy {

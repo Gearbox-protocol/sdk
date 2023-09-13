@@ -1,7 +1,10 @@
+import {
+  DUMB_ADDRESS,
+  tokenDataByNetwork,
+  WAD,
+} from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { DUMB_ADDRESS, WAD } from "../core/constants";
-import { tokenDataByNetwork } from "../tokens/token";
 import { ICreditFacadeExtended__factory } from "../types";
 import { CreditFacadeParser } from "./creditFacadeParser";
 

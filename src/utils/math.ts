@@ -1,6 +1,5 @@
+import { halfRAY, PERCENTAGE_FACTOR, RAY } from "@gearbox-protocol/sdk-gov";
 import { BigNumber } from "ethers";
-
-import { halfRAY, PERCENTAGE_FACTOR, RAY } from "../core/constants";
 
 export function revertRay(num?: bigint): bigint | undefined {
   if (!num) return undefined;

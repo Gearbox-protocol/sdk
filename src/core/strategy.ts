@@ -1,12 +1,13 @@
-import { decimals } from "../tokens/decimals";
-import { tokenSymbolByAddress } from "../tokens/token";
-import { PriceUtils } from "../utils/price";
 import {
+  decimals,
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
+  tokenSymbolByAddress,
   WAD,
-} from "./constants";
+} from "@gearbox-protocol/sdk-gov";
+
+import { PriceUtils } from "../utils/price";
 import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {

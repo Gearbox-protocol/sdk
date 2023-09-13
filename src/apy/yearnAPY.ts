@@ -1,9 +1,12 @@
+import {
+  TypedObjectUtils,
+  WAD_DECIMALS_POW,
+  YearnLPToken,
+  yearnTokens,
+} from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
 
-import { WAD_DECIMALS_POW } from "../core/constants";
-import { YearnLPToken, yearnTokens } from "../tokens/yearn";
 import { toBN } from "../utils/formatter";
-import { TypedObjectUtils } from "../utils/mappers";
 
 interface YearnAPYData {
   apy: {

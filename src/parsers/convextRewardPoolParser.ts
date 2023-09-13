@@ -1,4 +1,5 @@
-import { NormalToken } from "../tokens/normal";
+import { NormalToken } from "@gearbox-protocol/sdk-gov";
+
 import { IBaseRewardPool__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";

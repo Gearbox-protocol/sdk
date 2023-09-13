@@ -1,10 +1,9 @@
+import { TypedObjectUtils, WAD_DECIMALS_POW } from "@gearbox-protocol/sdk-gov";
+import { CurveLPToken } from "@gearbox-protocol/sdk-gov/lib/tokens/curveLP";
+import { GearboxToken } from "@gearbox-protocol/sdk-gov/lib/tokens/gear";
 import axios from "axios";
 
-import { WAD_DECIMALS_POW } from "../core/constants";
-import { CurveLPToken } from "../tokens/curveLP";
-import { GearboxToken } from "../tokens/gear";
 import { toBN } from "../utils/formatter";
-import { TypedObjectUtils } from "../utils/mappers";
 
 interface CurveAPYData {
   baseApy: number;

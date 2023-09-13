@@ -1,6 +1,6 @@
+import { WAD } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { WAD } from "../core/constants";
 import { ILidoV1Adapter__factory } from "../types";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 

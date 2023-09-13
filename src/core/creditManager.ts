@@ -1,3 +1,11 @@
+import {
+  ADDRESS_0X0,
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  RAY,
+  tokenSymbolByAddress,
+} from "@gearbox-protocol/sdk-gov";
 import { ethers, Signer } from "ethers";
 
 import { TxParser } from "../parsers/txParser";
@@ -6,7 +14,6 @@ import {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
 } from "../payload/creditManager";
-import { tokenSymbolByAddress } from "../tokens/token";
 import {
   IConvexV1BaseRewardPoolAdapter__factory,
   ICreditFacade__factory,
@@ -15,13 +22,6 @@ import {
   ICreditManager__factory,
 } from "../types";
 import { toBigInt } from "../utils/formatter";
-import {
-  ADDRESS_0X0,
-  LEVERAGE_DECIMALS,
-  PERCENTAGE_DECIMALS,
-  PERCENTAGE_FACTOR,
-  RAY,
-} from "./constants";
 import { OpenAccountError } from "./errors";
 
 export class CreditManagerData {

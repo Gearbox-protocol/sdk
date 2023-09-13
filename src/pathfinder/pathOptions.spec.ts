@@ -1,8 +1,7 @@
+import { CurveLPToken, tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 import { BigNumberish } from "ethers";
 
-import { CurveLPToken } from "../tokens/curveLP";
-import { tokenDataByNetwork } from "../tokens/token";
 import { PathOptionFactory, PathOptionSerie } from "./pathOptions";
 
 describe("PathOptionFactory test", () => {

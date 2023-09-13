@@ -1,7 +1,7 @@
+import { ADDRESS_0X0, DUMB_ADDRESS } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 import { providers, utils } from "ethers";
 
-import { ADDRESS_0X0, DUMB_ADDRESS } from "../core/constants";
 import { CreditManagerData } from "../core/creditManager";
 import {
   ICreditConfigurator__factory,

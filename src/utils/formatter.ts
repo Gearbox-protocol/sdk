@@ -1,8 +1,10 @@
+import {
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+} from "@gearbox-protocol/sdk-gov";
 import { Decimal } from "decimal.js-light";
 import { BigNumberish } from "ethers";
 import { unix } from "moment";
-
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../core/constants";
 
 export function rayToNumber(num: BigNumberish): number {
   return Number(toBigInt(num) / 10n ** 21n) / 1000000;

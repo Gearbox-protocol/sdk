@@ -1,4 +1,5 @@
-import { SupportedContract } from "../contracts/contracts";
+import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+
 import { ILidoV1Adapter__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";

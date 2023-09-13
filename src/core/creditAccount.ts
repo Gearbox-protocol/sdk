@@ -1,19 +1,20 @@
-import { isTokenWithAPY, LpTokensAPY } from "../apy";
-import { CreditAccountDataPayload } from "../payload/creditAccount";
-import { decimals } from "../tokens/decimals";
-import { tokenSymbolByAddress } from "../tokens/token";
-import { TokenData } from "../tokens/tokenData";
-import { toBigInt, toSignificant } from "../utils/formatter";
-import { PriceUtils } from "../utils/price";
-import { Asset } from "./assets";
 import {
+  decimals,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   RAY,
+  tokenSymbolByAddress,
   WAD,
   WAD_DECIMALS_POW,
-} from "./constants";
+} from "@gearbox-protocol/sdk-gov";
+
+import { isTokenWithAPY, LpTokensAPY } from "../apy";
+import { CreditAccountDataPayload } from "../payload/creditAccount";
+import { TokenData } from "../tokens/tokenData";
+import { toBigInt, toSignificant } from "../utils/formatter";
+import { PriceUtils } from "../utils/price";
+import { Asset } from "./assets";
 import { CreditManagerData } from "./creditManager";
 import { PriceOracleData } from "./priceOracle";
 

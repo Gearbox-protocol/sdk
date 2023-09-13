@@ -1,7 +1,10 @@
+import {
+  convexLpTokenByPid,
+  convexPoolByPid,
+  SupportedContract,
+} from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
-import { SupportedContract } from "../contracts/contracts";
-import { convexLpTokenByPid, convexPoolByPid } from "../tokens/convex";
 import { IConvexV1BoosterAdapter__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
