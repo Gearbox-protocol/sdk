@@ -203,6 +203,7 @@ export type QuotaInfoStructOutput = [
 
 export type LinearModelStruct = {
   interestModel: PromiseOrValue<string>;
+  version: PromiseOrValue<BigNumberish>;
   U_1: PromiseOrValue<BigNumberish>;
   U_2: PromiseOrValue<BigNumberish>;
   R_base: PromiseOrValue<BigNumberish>;
@@ -213,6 +214,7 @@ export type LinearModelStruct = {
 
 export type LinearModelStructOutput = [
   string,
+  BigNumber,
   number,
   number,
   number,
@@ -221,6 +223,7 @@ export type LinearModelStructOutput = [
   number,
 ] & {
   interestModel: string;
+  version: BigNumber;
   U_1: number;
   U_2: number;
   R_base: number;

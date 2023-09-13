@@ -191,6 +191,7 @@ export type QuotaInfoStructOutput = [
 
 export type LinearModelStruct = {
   interestModel: PromiseOrValue<string>;
+  version: PromiseOrValue<BigNumberish>;
   U_1: PromiseOrValue<BigNumberish>;
   U_2: PromiseOrValue<BigNumberish>;
   R_base: PromiseOrValue<BigNumberish>;
@@ -201,6 +202,7 @@ export type LinearModelStruct = {
 
 export type LinearModelStructOutput = [
   string,
+  BigNumber,
   number,
   number,
   number,
@@ -209,6 +211,7 @@ export type LinearModelStructOutput = [
   number,
 ] & {
   interestModel: string;
+  version: BigNumber;
   U_1: number;
   U_2: number;
   R_base: number;
@@ -400,9 +403,9 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
     "getCreditAccountData(address,address)": FunctionFragment;
     "getCreditAccountList(address)": FunctionFragment;
     "getCreditManagerData(address)": FunctionFragment;
-    "getCreditManagersList()": FunctionFragment;
+    "getCreditManagersV2List()": FunctionFragment;
     "getPoolData(address)": FunctionFragment;
-    "getPoolsList()": FunctionFragment;
+    "getPoolsV1List()": FunctionFragment;
     "hasOpenedCreditAccount(address,address)": FunctionFragment;
     "version()": FunctionFragment;
   };
@@ -413,9 +416,9 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
       | "getCreditAccountData"
       | "getCreditAccountList"
       | "getCreditManagerData"
-      | "getCreditManagersList"
+      | "getCreditManagersV2List"
       | "getPoolData"
-      | "getPoolsList"
+      | "getPoolsV1List"
       | "hasOpenedCreditAccount"
       | "version",
   ): FunctionFragment;
@@ -437,7 +440,7 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
     values: [PromiseOrValue<string>],
   ): string;
   encodeFunctionData(
-    functionFragment: "getCreditManagersList",
+    functionFragment: "getCreditManagersV2List",
     values?: undefined,
   ): string;
   encodeFunctionData(
@@ -445,7 +448,7 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
     values: [PromiseOrValue<string>],
   ): string;
   encodeFunctionData(
-    functionFragment: "getPoolsList",
+    functionFragment: "getPoolsV1List",
     values?: undefined,
   ): string;
   encodeFunctionData(
@@ -468,7 +471,7 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
     data: BytesLike,
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getCreditManagersList",
+    functionFragment: "getCreditManagersV2List",
     data: BytesLike,
   ): Result;
   decodeFunctionResult(
@@ -476,7 +479,7 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
     data: BytesLike,
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPoolsList",
+    functionFragment: "getPoolsV1List",
     data: BytesLike,
   ): Result;
   decodeFunctionResult(
@@ -537,7 +540,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<[CreditManagerDataStructOutput]>;
 
-    getCreditManagersList(
+    getCreditManagersV2List(
       overrides?: CallOverrides,
     ): Promise<[CreditManagerDataStructOutput[]]>;
 
@@ -546,7 +549,9 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<[PoolDataStructOutput]>;
 
-    getPoolsList(overrides?: CallOverrides): Promise<[PoolDataStructOutput[]]>;
+    getPoolsV1List(
+      overrides?: CallOverrides,
+    ): Promise<[PoolDataStructOutput[]]>;
 
     hasOpenedCreditAccount(
       creditManager: PromiseOrValue<string>,
@@ -579,7 +584,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
     overrides?: CallOverrides,
   ): Promise<CreditManagerDataStructOutput>;
 
-  getCreditManagersList(
+  getCreditManagersV2List(
     overrides?: CallOverrides,
   ): Promise<CreditManagerDataStructOutput[]>;
 
@@ -588,7 +593,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
     overrides?: CallOverrides,
   ): Promise<PoolDataStructOutput>;
 
-  getPoolsList(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
+  getPoolsV1List(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
 
   hasOpenedCreditAccount(
     creditManager: PromiseOrValue<string>,
@@ -621,7 +626,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<CreditManagerDataStructOutput>;
 
-    getCreditManagersList(
+    getCreditManagersV2List(
       overrides?: CallOverrides,
     ): Promise<CreditManagerDataStructOutput[]>;
 
@@ -630,7 +635,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<PoolDataStructOutput>;
 
-    getPoolsList(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
+    getPoolsV1List(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
 
     hasOpenedCreditAccount(
       creditManager: PromiseOrValue<string>,
@@ -666,14 +671,14 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    getCreditManagersList(overrides?: CallOverrides): Promise<BigNumber>;
+    getCreditManagersV2List(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPoolData(
       _pool: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    getPoolsList(overrides?: CallOverrides): Promise<BigNumber>;
+    getPoolsV1List(overrides?: CallOverrides): Promise<BigNumber>;
 
     hasOpenedCreditAccount(
       creditManager: PromiseOrValue<string>,
@@ -707,7 +712,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
-    getCreditManagersList(
+    getCreditManagersV2List(
       overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
@@ -716,7 +721,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
-    getPoolsList(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getPoolsV1List(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     hasOpenedCreditAccount(
       creditManager: PromiseOrValue<string>,

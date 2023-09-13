@@ -663,6 +663,11 @@ const _abi = [
                 type: "address",
               },
               {
+                internalType: "uint256",
+                name: "version",
+                type: "uint256",
+              },
+              {
                 internalType: "uint16",
                 name: "U_1",
                 type: "uint16",
@@ -713,7 +718,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getCreditManagersList",
+    name: "getCreditManagersV2List",
     outputs: [
       {
         components: [
@@ -887,6 +892,11 @@ const _abi = [
                 internalType: "address",
                 name: "interestModel",
                 type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "version",
+                type: "uint256",
               },
               {
                 internalType: "uint16",
@@ -1101,6 +1111,11 @@ const _abi = [
                 type: "address",
               },
               {
+                internalType: "uint256",
+                name: "version",
+                type: "uint256",
+              },
+              {
                 internalType: "uint16",
                 name: "U_1",
                 type: "uint16",
@@ -1151,7 +1166,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getPoolsList",
+    name: "getPoolsV1List",
     outputs: [
       {
         components: [
@@ -1305,6 +1320,11 @@ const _abi = [
                 internalType: "address",
                 name: "interestModel",
                 type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "version",
+                type: "uint256",
               },
               {
                 internalType: "uint16",
