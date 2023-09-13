@@ -33,3 +33,38 @@ export * from "./utils/price";
 export { callRepeater } from "./utils/repeater";
 export * from "./watchers/creditAccountWatcher";
 export * from "./watchers/creditManagerWatcher";
+export type {
+  CallData,
+  MCall,
+  NetworkType,
+  NormalToken,
+  NormalTokenData,
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
+export {
+  ARBITRUM_NETWORK,
+  CHAINS,
+  extractTokenData,
+  getDecimals,
+  getNetworkType,
+  GOERLI_NETWORK,
+  HARDHAT_NETWORK,
+  isLPToken,
+  isNormalToken,
+  isSupportedNetwork,
+  isSupportedToken,
+  LOCAL_NETWORK,
+  lpTokens,
+  MAINNET_NETWORK,
+  MultiCallContract,
+  normalTokens,
+  OPTIMISM_NETWORK,
+  POLYGON_NETWORK,
+  safeMulticall,
+  supportedChains,
+  supportedTokens,
+  TENDERLY_NETWORK,
+  tokenDataByNetwork,
+  tokenSymbolByAddress,
+  WAD,
+} from "@gearbox-protocol/sdk-gov";
