@@ -86,10 +86,12 @@ export class PoolData {
     this.totalAssets = toBigInt(payload.totalAssets || 0);
     this.totalSupply = toBigInt(payload.totalSupply || 0);
 
-    this.depositAPY =
-      rayToNumber(payload.supplyRate) * Number(PERCENTAGE_DECIMALS);
-    this.borrowAPY =
-      rayToNumber(payload.baseInterestRate) * Number(PERCENTAGE_DECIMALS);
+    this.depositAPY = rayToNumber(
+      toBigInt(payload.supplyRate || 0) * PERCENTAGE_DECIMALS,
+    );
+    this.borrowAPY = rayToNumber(
+      toBigInt(payload.baseInterestRate || 0) * PERCENTAGE_DECIMALS,
+    );
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),

@@ -1,10 +1,17 @@
 import {
-  CreditAccountDataStruct,
   CreditAccountDataStructOutput,
-} from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
-import { ExcludeArrayProps } from "../utils/types";
+  ScheduledWithdrawalStructOutput,
+  TokenBalanceStructOutput,
+} from "../types-v3/IDataCompressorV3_00";
+import { BigintifyProps, ExcludeArrayProps } from "../utils/types";
 
-export type TokenBalancePayload = CreditAccountDataStruct["balances"];
+export type CaTokenBalance = BigintifyProps<
+  ExcludeArrayProps<TokenBalanceStructOutput>
+>;
+
+export type ScheduledWithdrawal = BigintifyProps<
+  ExcludeArrayProps<ScheduledWithdrawalStructOutput>
+>;
 
 export type CreditAccountDataPayload =
   ExcludeArrayProps<CreditAccountDataStructOutput>;

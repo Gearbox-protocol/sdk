@@ -15,12 +15,10 @@ import {
 import { toBigInt } from "../utils/formatter";
 import {
   ADDRESS_0X0,
-  LEVERAGE_DECIMALS,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
 } from "./constants";
-import { OpenAccountError } from "./errors";
 
 export class CreditManagerData {
   readonly address: string;
