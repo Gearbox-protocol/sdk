@@ -173,6 +173,7 @@ export type QuotaInfoStruct = {
   quotaIncreaseFee: PromiseOrValue<BigNumberish>;
   totalQuoted: PromiseOrValue<BigNumberish>;
   limit: PromiseOrValue<BigNumberish>;
+  isActive: PromiseOrValue<boolean>;
 };
 
 export type QuotaInfoStructOutput = [
@@ -181,12 +182,14 @@ export type QuotaInfoStructOutput = [
   number,
   BigNumber,
   BigNumber,
+  boolean,
 ] & {
   token: string;
   rate: number;
   quotaIncreaseFee: number;
   totalQuoted: BigNumber;
   limit: BigNumber;
+  isActive: boolean;
 };
 
 export type LinearModelStruct = {
@@ -401,7 +404,7 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
   functions: {
     "getAdapter(address,address)": FunctionFragment;
     "getCreditAccountData(address,address)": FunctionFragment;
-    "getCreditAccountList(address)": FunctionFragment;
+    "getCreditAccountsByBorrower(address)": FunctionFragment;
     "getCreditManagerData(address)": FunctionFragment;
     "getCreditManagersV2List()": FunctionFragment;
     "getPoolData(address)": FunctionFragment;
@@ -414,7 +417,7 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "getAdapter"
       | "getCreditAccountData"
-      | "getCreditAccountList"
+      | "getCreditAccountsByBorrower"
       | "getCreditManagerData"
       | "getCreditManagersV2List"
       | "getPoolData"
@@ -432,7 +435,7 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<string>],
   ): string;
   encodeFunctionData(
-    functionFragment: "getCreditAccountList",
+    functionFragment: "getCreditAccountsByBorrower",
     values: [PromiseOrValue<string>],
   ): string;
   encodeFunctionData(
@@ -463,7 +466,7 @@ export interface IDataCompressorV2_10Interface extends utils.Interface {
     data: BytesLike,
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getCreditAccountList",
+    functionFragment: "getCreditAccountsByBorrower",
     data: BytesLike,
   ): Result;
   decodeFunctionResult(
@@ -530,7 +533,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<[CreditAccountDataStructOutput]>;
 
-    getCreditAccountList(
+    getCreditAccountsByBorrower(
       borrower: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<[CreditAccountDataStructOutput[]]>;
@@ -574,7 +577,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
     overrides?: CallOverrides,
   ): Promise<CreditAccountDataStructOutput>;
 
-  getCreditAccountList(
+  getCreditAccountsByBorrower(
     borrower: PromiseOrValue<string>,
     overrides?: CallOverrides,
   ): Promise<CreditAccountDataStructOutput[]>;
@@ -616,7 +619,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<CreditAccountDataStructOutput>;
 
-    getCreditAccountList(
+    getCreditAccountsByBorrower(
       borrower: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<CreditAccountDataStructOutput[]>;
@@ -661,7 +664,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    getCreditAccountList(
+    getCreditAccountsByBorrower(
       borrower: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
@@ -702,7 +705,7 @@ export interface IDataCompressorV2_10 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
-    getCreditAccountList(
+    getCreditAccountsByBorrower(
       borrower: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;

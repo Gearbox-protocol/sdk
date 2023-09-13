@@ -185,6 +185,7 @@ export type QuotaInfoStruct = {
   quotaIncreaseFee: PromiseOrValue<BigNumberish>;
   totalQuoted: PromiseOrValue<BigNumberish>;
   limit: PromiseOrValue<BigNumberish>;
+  isActive: PromiseOrValue<boolean>;
 };
 
 export type QuotaInfoStructOutput = [
@@ -193,12 +194,14 @@ export type QuotaInfoStructOutput = [
   number,
   BigNumber,
   BigNumber,
+  boolean,
 ] & {
   token: string;
   rate: number;
   quotaIncreaseFee: number;
   totalQuoted: BigNumber;
   limit: BigNumber;
+  isActive: boolean;
 };
 
 export type LinearModelStruct = {

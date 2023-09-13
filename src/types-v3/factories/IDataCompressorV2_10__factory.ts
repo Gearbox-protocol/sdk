@@ -267,7 +267,7 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "getCreditAccountList",
+    name: "getCreditAccountsByBorrower",
     outputs: [
       {
         components: [
@@ -650,6 +650,11 @@ const _abi = [
                 name: "limit",
                 type: "uint96",
               },
+              {
+                internalType: "bool",
+                name: "isActive",
+                type: "bool",
+              },
             ],
             internalType: "struct QuotaInfo[]",
             name: "quotas",
@@ -881,6 +886,11 @@ const _abi = [
                 name: "limit",
                 type: "uint96",
               },
+              {
+                internalType: "bool",
+                name: "isActive",
+                type: "bool",
+              },
             ],
             internalType: "struct QuotaInfo[]",
             name: "quotas",
@@ -1098,6 +1108,11 @@ const _abi = [
                 name: "limit",
                 type: "uint96",
               },
+              {
+                internalType: "bool",
+                name: "isActive",
+                type: "bool",
+              },
             ],
             internalType: "struct QuotaInfo[]",
             name: "quotas",
@@ -1308,6 +1323,11 @@ const _abi = [
                 internalType: "uint96",
                 name: "limit",
                 type: "uint96",
+              },
+              {
+                internalType: "bool",
+                name: "isActive",
+                type: "bool",
               },
             ],
             internalType: "struct QuotaInfo[]",

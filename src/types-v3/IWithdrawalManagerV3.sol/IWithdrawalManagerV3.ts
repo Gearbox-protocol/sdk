@@ -49,9 +49,9 @@ export interface IWithdrawalManagerV3Interface extends utils.Interface {
     "cancellableScheduledWithdrawals(address,bool)": FunctionFragment;
     "claimImmediateWithdrawal(address,address)": FunctionFragment;
     "claimScheduledWithdrawals(address,address,uint8)": FunctionFragment;
-    "creditManagers()": FunctionFragment;
     "delay()": FunctionFragment;
     "immediateWithdrawals(address,address)": FunctionFragment;
+    "isValidCreditManager(address)": FunctionFragment;
     "scheduledWithdrawals(address)": FunctionFragment;
     "setWithdrawalDelay(uint40)": FunctionFragment;
     "version()": FunctionFragment;
@@ -66,9 +66,9 @@ export interface IWithdrawalManagerV3Interface extends utils.Interface {
       | "cancellableScheduledWithdrawals"
       | "claimImmediateWithdrawal"
       | "claimScheduledWithdrawals"
-      | "creditManagers"
       | "delay"
       | "immediateWithdrawals"
+      | "isValidCreditManager"
       | "scheduledWithdrawals"
       | "setWithdrawalDelay"
       | "version"
@@ -112,14 +112,14 @@ export interface IWithdrawalManagerV3Interface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
     ],
   ): string;
-  encodeFunctionData(
-    functionFragment: "creditManagers",
-    values?: undefined,
-  ): string;
   encodeFunctionData(functionFragment: "delay", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "immediateWithdrawals",
     values: [PromiseOrValue<string>, PromiseOrValue<string>],
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isValidCreditManager",
+    values: [PromiseOrValue<string>],
   ): string;
   encodeFunctionData(
     functionFragment: "scheduledWithdrawals",
@@ -156,13 +156,13 @@ export interface IWithdrawalManagerV3Interface extends utils.Interface {
     functionFragment: "claimScheduledWithdrawals",
     data: BytesLike,
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "creditManagers",
-    data: BytesLike,
-  ): Result;
   decodeFunctionResult(functionFragment: "delay", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "immediateWithdrawals",
+    data: BytesLike,
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isValidCreditManager",
     data: BytesLike,
   ): Result;
   decodeFunctionResult(
@@ -358,8 +358,6 @@ export interface IWithdrawalManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    creditManagers(overrides?: CallOverrides): Promise<[string[]]>;
-
     delay(overrides?: CallOverrides): Promise<[number]>;
 
     immediateWithdrawals(
@@ -367,6 +365,11 @@ export interface IWithdrawalManagerV3 extends BaseContract {
       token: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
+
+    isValidCreditManager(
+      addr: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<[boolean]>;
 
     scheduledWithdrawals(
       creditAccount: PromiseOrValue<string>,
@@ -436,8 +439,6 @@ export interface IWithdrawalManagerV3 extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  creditManagers(overrides?: CallOverrides): Promise<string[]>;
-
   delay(overrides?: CallOverrides): Promise<number>;
 
   immediateWithdrawals(
@@ -445,6 +446,11 @@ export interface IWithdrawalManagerV3 extends BaseContract {
     token: PromiseOrValue<string>,
     overrides?: CallOverrides,
   ): Promise<BigNumber>;
+
+  isValidCreditManager(
+    addr: PromiseOrValue<string>,
+    overrides?: CallOverrides,
+  ): Promise<boolean>;
 
   scheduledWithdrawals(
     creditAccount: PromiseOrValue<string>,
@@ -514,8 +520,6 @@ export interface IWithdrawalManagerV3 extends BaseContract {
       }
     >;
 
-    creditManagers(overrides?: CallOverrides): Promise<string[]>;
-
     delay(overrides?: CallOverrides): Promise<number>;
 
     immediateWithdrawals(
@@ -523,6 +527,11 @@ export interface IWithdrawalManagerV3 extends BaseContract {
       token: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
+
+    isValidCreditManager(
+      addr: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<boolean>;
 
     scheduledWithdrawals(
       creditAccount: PromiseOrValue<string>,
@@ -656,13 +665,16 @@ export interface IWithdrawalManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    creditManagers(overrides?: CallOverrides): Promise<BigNumber>;
-
     delay(overrides?: CallOverrides): Promise<BigNumber>;
 
     immediateWithdrawals(
       account: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
+    isValidCreditManager(
+      addr: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
@@ -721,13 +733,16 @@ export interface IWithdrawalManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    creditManagers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     delay(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     immediateWithdrawals(
       account: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<PopulatedTransaction>;
+
+    isValidCreditManager(
+      addr: PromiseOrValue<string>,
       overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
