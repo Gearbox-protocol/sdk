@@ -1,16 +1,18 @@
-import { AdapterInterface } from "../contracts/adapters";
 import {
+  AdapterInterface,
   contractParams,
   contractsByAddress,
   contractsByNetwork,
   ConvexPoolParams,
   LidoParams,
+  NetworkType,
   SupportedContract,
-} from "../contracts/contracts";
-import { NetworkType } from "../core/chains";
-import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
+  SupportedToken,
+  tokenDataByNetwork,
+  TypedObjectUtils,
+} from "@gearbox-protocol/sdk-gov";
+
 import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
-import { TypedObjectUtils } from "../utils/mappers";
 import { AbstractParser } from "./abstractParser";
 import { AddressProviderParser } from "./addressProviderParser";
 import { AirdropDistributorParser } from "./airdropDistributorParser";

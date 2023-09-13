@@ -1,6 +1,3 @@
-import { BigNumber } from "ethers";
-import { Interface } from "ethers/lib/utils";
-
 import {
   contractParams,
   contractsByNetwork,
@@ -9,19 +6,28 @@ import {
   CurveGEARPoolParams,
   CurveParams,
   CurveSteCRVPoolParams,
-} from "../contracts/contracts";
-import { NetworkType } from "../core/chains";
-import { PRICE_DECIMALS, SECONDS_PER_YEAR, WAD } from "../core/constants";
+  MCall,
+  NetworkType,
+  PRICE_DECIMALS,
+  SECONDS_PER_YEAR,
+  WAD,
+} from "@gearbox-protocol/sdk-gov";
 import {
   ConvexPhantomTokenData,
   ConvexStakedPhantomToken,
-} from "../tokens/convex";
-import { CurveLPToken, CurveLPTokenData } from "../tokens/curveLP";
+} from "@gearbox-protocol/sdk-gov/lib/tokens/convex";
+import {
+  CurveLPToken,
+  CurveLPTokenData,
+} from "@gearbox-protocol/sdk-gov/lib/tokens/curveLP";
 import {
   SupportedToken,
   supportedTokens,
   tokenDataByNetwork,
-} from "../tokens/token";
+} from "@gearbox-protocol/sdk-gov/lib/tokens/token";
+import { BigNumber } from "ethers";
+import { Interface } from "ethers/lib/utils";
+
 import {
   IBaseRewardPool,
   IBaseRewardPool__factory,
@@ -31,7 +37,6 @@ import {
   ICurvePool__factory,
 } from "../types";
 import { toBigInt } from "../utils/formatter";
-import { MCall } from "../utils/multicall";
 import { CurveAPYResult } from "./curveAPY";
 
 const V2_POOLS: Record<number, true> = { 20: true };

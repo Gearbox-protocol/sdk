@@ -1,6 +1,6 @@
+import { WAD } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { WAD } from "../core/constants";
 import { IwstETHV1Adapter__factory } from "../types";
 import { WstETHAdapterParser } from "./wstETHAdapterParser";
 

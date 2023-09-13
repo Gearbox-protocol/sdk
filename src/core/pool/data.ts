@@ -1,3 +1,8 @@
+import {
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  tokenSymbolByAddress,
+} from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
 import {
@@ -5,14 +10,12 @@ import {
   PoolDataPayload,
   UserPoolPayload,
 } from "../../payload/pool";
-import { tokenSymbolByAddress } from "../../tokens/token";
 import {
   IInterestRateModel__factory,
   IPoolService,
   IPoolService__factory,
 } from "../../types";
 import { rayToNumber, toBigInt } from "../../utils/formatter";
-import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "../constants";
 
 export class PoolData {
   readonly id: string;

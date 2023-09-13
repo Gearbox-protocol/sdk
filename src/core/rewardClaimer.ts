@@ -1,9 +1,11 @@
+import {
+  NetworkType,
+  SupportedContract,
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
 import { providers } from "ethers";
 
-import { SupportedContract } from "../contracts/contracts";
 import { MultiCall } from "../pathfinder/core";
-import { SupportedToken } from "../tokens/token";
-import { NetworkType } from "./chains";
 import { CreditAccountData } from "./creditAccount";
 import { CreditManagerData } from "./creditManager";
 import { RewardConvex } from "./rewardConvex";

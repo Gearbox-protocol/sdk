@@ -1,8 +1,8 @@
+import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
 import { ICreditFacade } from "../types";
 import { CreditManagerDataStructOutput } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
-import { ExcludeArrayProps } from "../utils/types";
 
 export interface AdapterPayload {
   allowedContract: string;

@@ -1,14 +1,18 @@
-import { BigNumber, providers } from "ethers";
-
-import { getCVXMintAmount } from "../apy";
-import { AdapterInterface } from "../contracts/adapters";
 import {
+  AdapterInterface,
   contractParams,
   contractsByAddress,
   ConvexPoolParams,
+  MCall,
+  multicall,
+  NetworkType,
   SupportedContract,
-} from "../contracts/contracts";
-import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
+  SupportedToken,
+  tokenDataByNetwork,
+} from "@gearbox-protocol/sdk-gov";
+import { BigNumber, providers } from "ethers";
+
+import { getCVXMintAmount } from "../apy";
 import {
   IConvexToken__factory,
   IConvexV1BaseRewardPoolAdapter__factory,
@@ -16,8 +20,6 @@ import {
 import { IConvexTokenInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/integrations/convex/IConvexToken";
 import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
 import { toBigInt } from "../utils/formatter";
-import { MCall, multicall } from "../utils/multicall";
-import { NetworkType } from "./chains";
 import { CreditAccountData } from "./creditAccount";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";

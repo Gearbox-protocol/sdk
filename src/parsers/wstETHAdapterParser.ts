@@ -1,4 +1,5 @@
-import { SupportedContract } from "../contracts/contracts";
+import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+
 import { IwstETH__factory, IwstETHV1Adapter__factory } from "../types";
 import { toBigInt } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
