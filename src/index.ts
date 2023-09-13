@@ -42,6 +42,7 @@ export type {
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 export {
+  ADDRESS_PROVIDER,
   ARBITRUM_NETWORK,
   CHAINS,
   decimals,
