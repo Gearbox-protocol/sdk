@@ -22,6 +22,7 @@ export * from "./payload/graphPayload";
 export * from "./payload/pool";
 export * from "./payload/token";
 export * from "./types/index";
+export * as TypesV3 from "./types-v3";
 export * from "./utils/formatter";
 export * from "./utils/loading";
 export * from "./utils/math";
