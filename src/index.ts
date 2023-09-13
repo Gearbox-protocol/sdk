@@ -44,6 +44,8 @@ export type {
 export {
   ARBITRUM_NETWORK,
   CHAINS,
+  decimals,
+  detectNetwork,
   extractTokenData,
   getDecimals,
   getNetworkType,
