@@ -1,6 +1,6 @@
+import { RAY, WAD } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { RAY, WAD } from "../core/constants";
 import { ICurveV1_2AssetsAdapter__factory } from "../types";
 import { CurveAdapterParser } from "./curveAdapterParser";
 

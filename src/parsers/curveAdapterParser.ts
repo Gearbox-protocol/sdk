@@ -1,11 +1,11 @@
-import { BigNumberish } from "ethers";
-
 import {
   contractParams,
   CurveParams,
   SupportedContract,
-} from "../contracts/contracts";
-import { SupportedToken } from "../tokens/token";
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
+import { BigNumberish } from "ethers";
+
 import {
   ICurveV1_2AssetsAdapter__factory,
   ICurveV1_3AssetsAdapter__factory,

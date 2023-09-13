@@ -1,8 +1,7 @@
+import { RAY, tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 import { providers } from "ethers";
 
-import { RAY } from "../core/constants";
-import { tokenDataByNetwork } from "../tokens/token";
 import { CloseResult, PathFinder } from "./pathfinder";
 
 describe("PathFinder test", () => {

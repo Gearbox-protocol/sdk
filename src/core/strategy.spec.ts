@@ -1,14 +1,14 @@
+import {
+  decimals,
+  LEVERAGE_DECIMALS,
+  PRICE_DECIMALS_POW,
+  tokenDataByNetwork,
+  WAD_DECIMALS_POW,
+} from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
 import { creditManagerByNetwork } from "../contracts/contractsRegister";
-import { decimals } from "../tokens/decimals";
-import { tokenDataByNetwork } from "../tokens/token";
 import { toBN, toSignificant } from "../utils/formatter";
-import {
-  LEVERAGE_DECIMALS,
-  PRICE_DECIMALS_POW,
-  WAD_DECIMALS_POW,
-} from "./constants";
 import { Strategy, StrategyPayload } from "./strategy";
 
 const lidoPayload: StrategyPayload = {
