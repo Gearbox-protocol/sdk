@@ -1,18 +1,16 @@
-import { ethers, Signer } from "ethers";
-
 import { TxParser } from "../parsers/txParser";
 import { MultiCall } from "../pathfinder/core";
 import {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
+  QuotaInfo,
 } from "../payload/creditManager";
+import { LinearModelStruct } from "../payload/pool";
 import { tokenSymbolByAddress } from "../tokens/token";
 import {
   IConvexV1BaseRewardPoolAdapter__factory,
   ICreditFacade__factory,
   ICreditFacadeExtended__factory,
-  ICreditManager,
-  ICreditManager__factory,
 } from "../types";
 import { toBigInt } from "../utils/formatter";
 import {
@@ -28,25 +26,22 @@ export class CreditManagerData {
   readonly address: string;
   readonly underlyingToken: string;
   readonly pool: string;
-  readonly isWETH: boolean;
-  readonly canBorrow: boolean;
-  readonly borrowRate: number;
-  readonly minAmount: bigint;
-  readonly maxAmount: bigint;
-  readonly maxLeverageFactor: number; // for V1 only
-  readonly availableLiquidity: bigint;
-  readonly collateralTokens: Array<string> = [];
-  readonly supportedTokens: Record<string, true> = {};
-  readonly adapters: Record<string, string>;
-  readonly liquidationThresholds: Record<string, bigint>;
-  readonly version: number;
   readonly creditFacade: string; // V2 only: address of creditFacade
   readonly creditConfigurator: string; // V2 only: address of creditFacade
-  readonly isDegenMode: boolean; // V2 only: true if contract is in Degen mode
   readonly degenNFT: string; // V2 only: degenNFT, address(0) if not in degen mode
-  readonly isIncreaseDebtForbidden: boolean; // V2 only: true if increasing debt is forbidden
+  readonly isDegenMode: boolean;
+  readonly version: number;
+  readonly isPaused: boolean;
   readonly forbiddenTokenMask: bigint; // V2 only: mask which forbids some particular tokens
   readonly maxEnabledTokensLength: number;
+
+  readonly borrowRate: number;
+
+  readonly minDebt: bigint;
+  readonly maxDebt: bigint;
+  readonly availableToBorrow: bigint;
+  readonly totalDebt: bigint;
+  readonly totalDebtLimit: bigint;
 
   readonly feeInterest: number;
   readonly feeLiquidation: number;
@@ -54,35 +49,44 @@ export class CreditManagerData {
   readonly feeLiquidationExpired: number;
   readonly liquidationDiscountExpired: number;
 
-  readonly totalDebt:
-    | { currentTotalDebt: bigint; totalDebtLimit: bigint }
-    | undefined;
-
-  readonly isPaused: boolean = false;
+  readonly collateralTokens: Array<string> = [];
+  readonly supportedTokens: Record<string, true> = {};
+  readonly adapters: Record<string, string>;
+  readonly liquidationThresholds: Record<string, bigint>;
+  readonly quotas: Array<QuotaInfo>;
+  readonly interestModel: LinearModelStruct;
 
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
     this.pool = payload.pool.toLowerCase();
-
-    this.isWETH = payload.isWETH;
-    this.canBorrow = payload.canBorrow;
-
+    this.creditFacade = payload.creditFacade.toLowerCase();
+    this.creditConfigurator = payload.creditConfigurator.toLowerCase();
+    this.degenNFT = payload.degenNFT.toLowerCase();
+    this.isDegenMode = payload.isDegenMode || false;
+    this.version = payload.cfVersion?.toNumber() || 0;
+    this.isPaused = payload.isPaused || false;
+    this.forbiddenTokenMask = toBigInt(payload.forbiddenTokenMask || 0);
     this.maxEnabledTokensLength = payload.maxEnabledTokensLength;
 
     this.borrowRate = Number(
-      (toBigInt(payload.borrowRate || 0) *
+      (toBigInt(payload.baseBorrowRate || 0) *
         (toBigInt(payload.feeInterest || 0) + PERCENTAGE_FACTOR) *
         PERCENTAGE_DECIMALS) /
         RAY,
     );
 
-    this.minAmount = toBigInt(payload.minAmount || 0);
-    this.maxAmount = toBigInt(payload.maxAmount || 0);
+    this.minDebt = toBigInt(payload.minDebt || 0);
+    this.maxDebt = toBigInt(payload.maxDebt || 0);
+    this.availableToBorrow = toBigInt(payload.availableToBorrow || 0);
+    this.totalDebt = toBigInt(payload.totalDebt || 0);
+    this.totalDebtLimit = toBigInt(payload.totalDebtLimit || 0);
 
-    this.maxLeverageFactor = Number(toBigInt(payload.maxLeverageFactor || 0));
-
-    this.availableLiquidity = toBigInt(payload.availableLiquidity || 0);
+    this.feeInterest = payload.feeInterest || 0;
+    this.feeLiquidation = payload.feeLiquidation || 0;
+    this.liquidationDiscount = payload.liquidationDiscount || 0;
+    this.feeLiquidationExpired = payload.feeLiquidationExpired || 0;
+    this.liquidationDiscountExpired = payload.liquidationDiscountExpired || 0;
 
     payload.collateralTokens.forEach(t => {
       const tLc = t.toLowerCase();
@@ -91,44 +95,39 @@ export class CreditManagerData {
       this.supportedTokens[tLc] = true;
     });
 
-    this.adapters = payload.adapters.reduce<Record<string, string>>(
-      (acc, { allowedContract, adapter }) => ({
-        ...acc,
-        [allowedContract.toLowerCase()]: adapter.toLowerCase(),
-      }),
-      {},
+    this.adapters = Object.fromEntries(
+      payload.adapters.map(a => [
+        a.targetContract.toLowerCase(),
+        a.adapter.toLowerCase(),
+      ]),
     );
 
     this.liquidationThresholds = payload.liquidationThresholds.reduce<
       Record<string, bigint>
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
-
       if (address) acc[address.toLowerCase()] = toBigInt(threshold || 0);
-
       return acc;
     }, {});
 
-    this.version = payload.version;
-    this.creditFacade = payload.creditFacade.toLowerCase();
-    this.creditConfigurator = payload.creditConfigurator.toLowerCase();
-    this.isDegenMode = payload.isDegenMode;
-    this.degenNFT = payload.degenNFT.toLowerCase();
-    this.isIncreaseDebtForbidden = payload.isIncreaseDebtForbidden;
-    this.forbiddenTokenMask = toBigInt(payload.forbiddenTokenMask || 0);
+    this.quotas = payload.quotas.map(q => ({
+      token: q.token.toLowerCase(),
+      rate: q.rate,
+      quotaIncreaseFee: q.quotaIncreaseFee,
+      totalQuoted: toBigInt(q.totalQuoted || 0),
+      limit: toBigInt(q.limit || 0),
+    }));
 
-    this.feeInterest = payload.feeInterest;
-    this.feeLiquidation = payload.feeLiquidation;
-    this.liquidationDiscount = payload.liquidationDiscount;
-    this.feeLiquidationExpired = payload.feeLiquidationExpired;
-    this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
-
-    this.totalDebt = payload.totalDebt
-      ? {
-          totalDebtLimit: toBigInt(payload.totalDebt.totalDebtLimit),
-          currentTotalDebt: toBigInt(payload.totalDebt.currentTotalDebt),
-        }
-      : undefined;
+    this.interestModel = {
+      interestModel: payload.lirm.interestModel.toLowerCase(),
+      U_1: payload.lirm.U_1 || 0,
+      U_2: payload.lirm.U_2 || 0,
+      R_base: payload.lirm.R_base || 0,
+      R_slope1: payload.lirm.R_slope1 || 0,
+      R_slope2: payload.lirm.R_slope2 || 0,
+      R_slope3: payload.lirm.R_slope3 || 0,
+      version: payload?.lirm?.version?.toNumber() || 0,
+    };
 
     TxParser.addCreditManager(this.address, this.version);
     if (this.creditFacade !== "" && this.creditFacade !== ADDRESS_0X0) {
@@ -140,18 +139,10 @@ export class CreditManagerData {
       TxParser.addAdapters(
         payload.adapters.map(a => ({
           adapter: a.adapter,
-          contract: a.allowedContract,
+          contract: a.targetContract,
         })),
       );
     }
-  }
-
-  getContractETH(signer: Signer | ethers.providers.Provider): ICreditManager {
-    return ICreditManager__factory.connect(this.address, signer);
-  }
-
-  contractToAdapter(contractAddress: string): string | undefined {
-    return this.adapters[contractAddress];
   }
 
   encodeAddCollateral(
@@ -231,64 +222,6 @@ export class CreditManagerData {
           [claim],
         ),
     };
-  }
-
-  validateOpenAccount(collateral: bigint, debt: bigint): true {
-    return this.version === 1
-      ? this.validateOpenAccountV1(collateral, debt)
-      : this.validateOpenAccountV2(debt);
-  }
-
-  protected validateOpenAccountV1(collateral: bigint, debt: bigint): true {
-    if (collateral < this.minAmount)
-      throw new OpenAccountError("amountLessMin", this.minAmount);
-
-    if (collateral > this.maxAmount)
-      throw new OpenAccountError("amountGreaterMax", this.maxAmount);
-
-    const leverage = Number((debt * LEVERAGE_DECIMALS) / collateral);
-
-    if (!leverage || leverage < 0)
-      throw new OpenAccountError("wrongLeverage", 0n);
-
-    if (leverage > this.maxLeverageFactor)
-      throw new OpenAccountError(
-        "leverageGreaterMax",
-        toBigInt(this.maxLeverageFactor || 0),
-      );
-
-    if (debt > this.availableLiquidity)
-      throw new OpenAccountError(
-        "insufficientPoolLiquidity",
-        toBigInt(this.availableLiquidity || 0),
-      );
-
-    return true;
-  }
-
-  protected validateOpenAccountV2(debt: bigint): true {
-    if (debt < this.minAmount)
-      throw new OpenAccountError("amountLessMin", this.minAmount);
-
-    if (debt > this.maxAmount)
-      throw new OpenAccountError("amountGreaterMax", this.maxAmount);
-
-    if (debt > this.availableLiquidity)
-      throw new OpenAccountError(
-        "insufficientPoolLiquidity",
-        this.availableLiquidity,
-      );
-
-    if (
-      this.totalDebt &&
-      debt > this.totalDebt.totalDebtLimit - this.totalDebt.currentTotalDebt
-    )
-      throw new OpenAccountError(
-        "insufficientDebtLimit",
-        this.availableLiquidity,
-      );
-
-    return true;
   }
 
   get id(): string {
