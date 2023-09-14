@@ -62,57 +62,57 @@ export class PoolData {
     this.dieselToken = payload.dieselToken.toLowerCase();
     this.isWETH = tokenSymbolByAddress[underlying] === "WETH";
     this.isWSTETH = tokenSymbolByAddress[underlying] === "wstETH";
-    this.isPaused = payload.isPaused || false;
-    this.version = payload.version?.toNumber() || 1;
+    this.isPaused = payload.isPaused;
+    this.version = payload.version.toNumber();
 
-    this.expectedLiquidity = toBigInt(payload.expectedLiquidity || 0);
-    this.availableLiquidity = toBigInt(payload.availableLiquidity || 0);
+    this.expectedLiquidity = toBigInt(payload.expectedLiquidity);
+    this.availableLiquidity = toBigInt(payload.availableLiquidity);
     this.expectedLiquidityLimit =
       this.expectedLiquidity + this.availableLiquidity;
-    this.linearCumulativeIndex = toBigInt(payload.linearCumulativeIndex || 0);
+    this.linearCumulativeIndex = toBigInt(payload.linearCumulativeIndex);
 
-    this.totalBorrowed = toBigInt(payload.totalBorrowed || 0);
-    this.totalDebtLimit = toBigInt(payload.totalDebtLimit || 0);
+    this.totalBorrowed = toBigInt(payload.totalBorrowed);
+    this.totalDebtLimit = toBigInt(payload.totalDebtLimit);
     this.creditManagerDebtParams = payload.creditManagerDebtParams.map(p => ({
       creditManager: p.creditManager.toLowerCase(),
-      borrowed: toBigInt(p.borrowed || 0),
-      limit: toBigInt(p.limit || 0),
-      availableToBorrow: toBigInt(p.availableToBorrow || 0),
+      borrowed: toBigInt(p.borrowed),
+      limit: toBigInt(p.limit),
+      availableToBorrow: toBigInt(p.availableToBorrow),
     }));
     this.quotas = payload.quotas.map(q => ({
       token: q.token.toLowerCase(),
       rate: q.rate,
       quotaIncreaseFee: q.quotaIncreaseFee,
-      totalQuoted: toBigInt(q.totalQuoted || 0),
-      limit: toBigInt(q.limit || 0),
-      isActive: q.isActive || false,
+      totalQuoted: toBigInt(q.totalQuoted),
+      limit: toBigInt(q.limit),
+      isActive: q.isActive,
     }));
 
-    this.totalAssets = toBigInt(payload.totalAssets || 0);
-    this.totalSupply = toBigInt(payload.totalSupply || 0);
+    this.totalAssets = toBigInt(payload.totalAssets);
+    this.totalSupply = toBigInt(payload.totalSupply);
 
     this.depositAPY = rayToNumber(
-      toBigInt(payload.supplyRate || 0) * PERCENTAGE_DECIMALS,
+      toBigInt(payload.supplyRate) * PERCENTAGE_DECIMALS,
     );
     this.borrowAPY = rayToNumber(
-      toBigInt(payload.baseInterestRate || 0) * PERCENTAGE_DECIMALS,
+      toBigInt(payload.baseInterestRate) * PERCENTAGE_DECIMALS,
     );
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
-      U_1: payload.lirm.U_1 || 0,
-      U_2: payload.lirm.U_2 || 0,
-      R_base: payload.lirm.R_base || 0,
-      R_slope1: payload.lirm.R_slope1 || 0,
-      R_slope2: payload.lirm.R_slope2 || 0,
-      R_slope3: payload.lirm.R_slope3 || 0,
-      version: payload?.lirm?.version?.toNumber() || 0,
+      U_1: payload.lirm.U_1,
+      U_2: payload.lirm.U_2,
+      R_base: payload.lirm.R_base,
+      R_slope1: payload.lirm.R_slope1,
+      R_slope2: payload.lirm.R_slope2,
+      R_slope3: payload.lirm.R_slope3,
+      version: payload?.lirm?.version?.toNumber(),
     };
-    this.dieselRate = rayToNumber(payload.dieselRate_RAY || 0);
-    this.dieselRateRay = toBigInt(payload.dieselRate_RAY || 0);
-    this.cumulativeIndex_RAY = toBigInt(payload.cumulativeIndex_RAY || 0);
+    this.dieselRate = rayToNumber(payload.dieselRate_RAY);
+    this.dieselRateRay = toBigInt(payload.dieselRate_RAY);
+    this.cumulativeIndex_RAY = toBigInt(payload.cumulativeIndex_RAY);
     this.withdrawFee =
-      Number(toBigInt(payload.withdrawFee || 0)) / Number(PERCENTAGE_DECIMALS);
+      Number(toBigInt(payload.withdrawFee)) / Number(PERCENTAGE_DECIMALS);
   }
 
   getContractETH(signer: Signer): IPoolService {
@@ -211,11 +211,14 @@ export class ChartsPoolData {
 
     this.earned7D = payload.earned7D || 0;
     this.earned7DInUSD = payload.earned7DInUSD || 0;
+    const expected = toBigInt(payload.expectedLiquidity || 0);
     this.utilization =
-      Number(
-        (toBigInt(payload.totalBorrowed || 0) * PERCENTAGE_FACTOR) /
-          toBigInt(payload.expectedLiquidity || 0),
-      ) / Number(PERCENTAGE_DECIMALS);
+      expected > 0
+        ? Number(
+            (toBigInt(payload.totalBorrowed || 0) * PERCENTAGE_FACTOR) /
+              expected,
+          ) / Number(PERCENTAGE_DECIMALS)
+        : 0;
 
     this.dieselRate = rayToNumber(payload.dieselRate_RAY || 0);
     this.dieselRateRay = toBigInt(payload.dieselRate_RAY || 0);
