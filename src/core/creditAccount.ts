@@ -226,6 +226,10 @@ export class CreditAccountData {
     return !!this.quotedTokens[token];
   }
 
+  isTokenEnabled(index: number) {
+    return ((2n ** BigInt(index)) & this.enabledTokenMask) !== 0n;
+  }
+
   static isTokenEnabled(index: number, enabledTokenMask: bigint) {
     return ((2n ** BigInt(index)) & enabledTokenMask) !== 0n;
   }
