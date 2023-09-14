@@ -207,11 +207,14 @@ export class ChartsPoolData {
 
     this.earned7D = payload.earned7D || 0;
     this.earned7DInUSD = payload.earned7DInUSD || 0;
+    const expected = toBigInt(payload.expectedLiquidity || 0);
     this.utilization =
-      Number(
-        (toBigInt(payload.totalBorrowed || 0) * PERCENTAGE_FACTOR) /
-          toBigInt(payload.expectedLiquidity || 0),
-      ) / Number(PERCENTAGE_DECIMALS);
+      expected > 0
+        ? Number(
+            (toBigInt(payload.totalBorrowed || 0) * PERCENTAGE_FACTOR) /
+              expected,
+          ) / Number(PERCENTAGE_DECIMALS)
+        : 0;
 
     this.dieselRate = rayToNumber(payload.dieselRate_RAY || 0);
     this.dieselRateRay = toBigInt(payload.dieselRate_RAY || 0);
