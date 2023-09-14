@@ -81,6 +81,7 @@ export class PoolData {
       quotaIncreaseFee: q.quotaIncreaseFee,
       totalQuoted: toBigInt(q.totalQuoted || 0),
       limit: toBigInt(q.limit || 0),
+      isActive: q.isActive || false,
     }));
 
     this.totalAssets = toBigInt(payload.totalAssets || 0);

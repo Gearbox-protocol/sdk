@@ -114,6 +114,7 @@ export class CreditManagerData {
       quotaIncreaseFee: q.quotaIncreaseFee,
       totalQuoted: toBigInt(q.totalQuoted || 0),
       limit: toBigInt(q.limit || 0),
+      isActive: q.isActive || false,
     }));
 
     this.interestModel = {

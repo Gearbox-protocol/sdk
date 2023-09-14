@@ -268,7 +268,8 @@ export class PathFinder {
     return {
       underlyingBalance:
         bestResult.amount +
-        creditAccount.allBalances[creditAccount.underlyingToken.toLowerCase()],
+        creditAccount.allBalances[creditAccount.underlyingToken.toLowerCase()]
+          .balance,
       calls: bestResult.calls,
     };
   }

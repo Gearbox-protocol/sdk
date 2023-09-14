@@ -1,9 +1,12 @@
 import { expect } from "chai";
-import { BigNumberish } from "ethers";
 
 import { CurveLPToken } from "../tokens/curveLP";
 import { tokenDataByNetwork } from "../tokens/token";
-import { PathOptionFactory, PathOptionSerie } from "./pathOptions";
+import {
+  BalanceInterface,
+  PathOptionFactory,
+  PathOptionSerie,
+} from "./pathOptions";
 
 describe("PathOptionFactory test", () => {
   it("next works correctly", () => {
@@ -67,12 +70,12 @@ describe("PathOptionFactory test", () => {
   });
 
   it("generatePathOptions works correctly", () => {
-    const balances: Record<string, BigNumberish> = {
-      [tokenDataByNetwork.Mainnet["1INCH"]]: 100,
-      [tokenDataByNetwork.Mainnet["3Crv"]]: 200,
-      [tokenDataByNetwork.Mainnet.USDC]: 200,
-      [tokenDataByNetwork.Mainnet.FRAX3CRV]: 200,
-      [tokenDataByNetwork.Mainnet.LUSD3CRV]: 200,
+    const balances: Record<string, BalanceInterface> = {
+      [tokenDataByNetwork.Mainnet["1INCH"]]: { balance: 100n },
+      [tokenDataByNetwork.Mainnet["3Crv"]]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.FRAX3CRV]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.LUSD3CRV]: { balance: 200n },
     };
 
     const result = PathOptionFactory.generatePathOptions(balances, 4);
@@ -102,12 +105,12 @@ describe("PathOptionFactory test", () => {
   });
 
   it(" getCurvePools works correctly", () => {
-    let balances: Record<string, BigNumberish> = {
-      [tokenDataByNetwork.Mainnet["1INCH"]]: 100,
-      [tokenDataByNetwork.Mainnet["3Crv"]]: 200,
-      [tokenDataByNetwork.Mainnet.USDC]: 200,
-      [tokenDataByNetwork.Mainnet.FRAX3CRV]: 200,
-      [tokenDataByNetwork.Mainnet.LUSD3CRV]: 200,
+    let balances: Record<string, BalanceInterface> = {
+      [tokenDataByNetwork.Mainnet["1INCH"]]: { balance: 100n },
+      [tokenDataByNetwork.Mainnet["3Crv"]]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.FRAX3CRV]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.LUSD3CRV]: { balance: 200n },
     };
 
     let expectedCurvePools: Array<CurveLPToken> = [
@@ -121,11 +124,11 @@ describe("PathOptionFactory test", () => {
     );
 
     balances = {
-      [tokenDataByNetwork.Mainnet["1INCH"]]: 100,
-      [tokenDataByNetwork.Mainnet["3Crv"]]: 200,
-      [tokenDataByNetwork.Mainnet.USDC]: 200,
-      [tokenDataByNetwork.Mainnet.yvCurve_FRAX]: 200,
-      [tokenDataByNetwork.Mainnet.yvCurve_stETH]: 200,
+      [tokenDataByNetwork.Mainnet["1INCH"]]: { balance: 100n },
+      [tokenDataByNetwork.Mainnet["3Crv"]]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.yvCurve_FRAX]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.yvCurve_stETH]: { balance: 200n },
     };
 
     expectedCurvePools = ["3Crv", "FRAX3CRV", "steCRV"];
@@ -135,10 +138,10 @@ describe("PathOptionFactory test", () => {
     );
 
     balances = {
-      [tokenDataByNetwork.Mainnet["1INCH"]]: 100,
-      [tokenDataByNetwork.Mainnet.USDC]: 200,
-      [tokenDataByNetwork.Mainnet.cvx3Crv]: 200,
-      [tokenDataByNetwork.Mainnet.cvxFRAX3CRV]: 200,
+      [tokenDataByNetwork.Mainnet["1INCH"]]: { balance: 100n },
+      [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.cvx3Crv]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.cvxFRAX3CRV]: { balance: 200n },
     };
 
     expectedCurvePools = ["3Crv", "FRAX3CRV"];
@@ -148,10 +151,10 @@ describe("PathOptionFactory test", () => {
     );
 
     balances = {
-      [tokenDataByNetwork.Mainnet.wstETH]: 100,
-      [tokenDataByNetwork.Mainnet.USDC]: 200,
-      [tokenDataByNetwork.Mainnet.stkcvx3Crv]: 200,
-      [tokenDataByNetwork.Mainnet.stkcvxFRAX3CRV]: 200,
+      [tokenDataByNetwork.Mainnet.wstETH]: { balance: 100n },
+      [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.stkcvx3Crv]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.stkcvxFRAX3CRV]: { balance: 200n },
     };
 
     expectedCurvePools = ["3Crv", "FRAX3CRV"];
@@ -161,11 +164,11 @@ describe("PathOptionFactory test", () => {
     );
 
     balances = {
-      [tokenDataByNetwork.Mainnet["3Crv"]]: 100,
-      [tokenDataByNetwork.Mainnet.USDC]: 200,
-      [tokenDataByNetwork.Mainnet.stkcvx3Crv]: 200,
-      [tokenDataByNetwork.Mainnet.cvx3Crv]: 200,
-      [tokenDataByNetwork.Mainnet.yvCurve_stETH]: 200,
+      [tokenDataByNetwork.Mainnet["3Crv"]]: { balance: 100n },
+      [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.stkcvx3Crv]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.cvx3Crv]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet.yvCurve_stETH]: { balance: 200n },
     };
 
     expectedCurvePools = ["3Crv", "steCRV"];
