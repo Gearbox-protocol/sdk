@@ -1,14 +1,14 @@
+import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
 import {
   LinearModelStructOutput,
   PoolDataStructOutput,
 } from "../types-v3/IDataCompressorV3_00";
-import { ExcludeArrayProps } from "../utils/types";
 
 export type PoolDataPayload = ExcludeArrayProps<PoolDataStructOutput>;
 
-export type LinearModelStruct = Omit<
+export type LinearModel = Omit<
   ExcludeArrayProps<LinearModelStructOutput>,
   "version"
 > & {

@@ -1,17 +1,18 @@
-import { Signer } from "ethers";
-
 import {
   contractParams,
+  decimals,
+  isLPToken,
   isSupportedContract,
   SupportedContract,
-} from "../contracts/contracts";
+  tokenSymbolByAddress,
+  WAD,
+} from "@gearbox-protocol/sdk-gov";
+import { Signer } from "ethers";
+
 import { TxParser } from "../parsers/txParser";
 import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
-import { decimals } from "../tokens/decimals";
-import { isLPToken, tokenSymbolByAddress } from "../tokens/token";
 import { ICreditFacade, ICreditFacade__factory } from "../types";
 import { formatBN } from "../utils/formatter";
-import { WAD } from "./constants";
 import { CreditManagerData } from "./creditManager";
 import { EVMTx } from "./eventOrTx";
 import { TXSwap } from "./transactions";

@@ -1,8 +1,4 @@
-export * from "./contracts/contracts";
-export * from "./contracts/protocols";
 export * from "./core/assets";
-export * from "./core/chains";
-export * from "./core/constants";
 export * from "./core/creditAccount";
 export * from "./core/creditManager";
 export * from "./core/creditSession";
@@ -30,27 +26,49 @@ export * from "./utils/validate";
 
 // Tokens
 export * from "./apy";
-export { AdapterInterface } from "./contracts/adapters";
-export * from "./contracts/contractsRegister";
-export * from "./contracts/utilsContracts";
 export * from "./parsers/txParser";
 export * from "./pathfinder/core";
 export * from "./pathfinder/pathfinder";
-export * from "./tokens/convex";
-export * from "./tokens/curveLP";
-export * from "./tokens/decimals";
-export * from "./tokens/gear";
-export * from "./tokens/normal";
-export * from "./tokens/token";
-export * from "./tokens/tokenData";
-export { TokenType } from "./tokens/tokenType";
-export * from "./tokens/yearn";
 export * from "./utils/errors";
-export * from "./utils/mappers";
-export * from "./utils/multicall";
 export * from "./utils/price";
 export { callRepeater } from "./utils/repeater";
-export { safeEnum } from "./utils/safeEnum";
-export * from "./utils/types";
 export * from "./watchers/creditAccountWatcher";
 export * from "./watchers/creditManagerWatcher";
+export type {
+  CallData,
+  MCall,
+  NetworkType,
+  NormalToken,
+  NormalTokenData,
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
+export {
+  ADDRESS_PROVIDER,
+  ARBITRUM_NETWORK,
+  CHAINS,
+  decimals,
+  detectNetwork,
+  extractTokenData,
+  getDecimals,
+  getNetworkType,
+  GOERLI_NETWORK,
+  HARDHAT_NETWORK,
+  isLPToken,
+  isNormalToken,
+  isSupportedNetwork,
+  isSupportedToken,
+  LOCAL_NETWORK,
+  lpTokens,
+  MAINNET_NETWORK,
+  MultiCallContract,
+  normalTokens,
+  OPTIMISM_NETWORK,
+  POLYGON_NETWORK,
+  safeMulticall,
+  supportedChains,
+  supportedTokens,
+  TENDERLY_NETWORK,
+  tokenDataByNetwork,
+  tokenSymbolByAddress,
+  WAD,
+} from "@gearbox-protocol/sdk-gov";

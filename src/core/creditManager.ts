@@ -1,3 +1,11 @@
+import {
+  ADDRESS_0X0,
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  RAY,
+  tokenSymbolByAddress,
+} from "@gearbox-protocol/sdk-gov";
+
 import { TxParser } from "../parsers/txParser";
 import { MultiCall } from "../pathfinder/core";
 import {
@@ -5,20 +13,13 @@ import {
   CreditManagerDataPayload,
   QuotaInfo,
 } from "../payload/creditManager";
-import { LinearModelStruct } from "../payload/pool";
-import { tokenSymbolByAddress } from "../tokens/token";
+import { LinearModel } from "../payload/pool";
 import {
   IConvexV1BaseRewardPoolAdapter__factory,
   ICreditFacade__factory,
   ICreditFacadeExtended__factory,
 } from "../types";
 import { toBigInt } from "../utils/formatter";
-import {
-  ADDRESS_0X0,
-  PERCENTAGE_DECIMALS,
-  PERCENTAGE_FACTOR,
-  RAY,
-} from "./constants";
 
 export class CreditManagerData {
   readonly address: string;
@@ -52,7 +53,7 @@ export class CreditManagerData {
   readonly adapters: Record<string, string>;
   readonly liquidationThresholds: Record<string, bigint>;
   readonly quotas: Array<QuotaInfo>;
-  readonly interestModel: LinearModelStruct;
+  readonly interestModel: LinearModel;
 
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase();

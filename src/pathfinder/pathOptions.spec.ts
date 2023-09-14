@@ -1,7 +1,6 @@
+import { CurveLPToken, tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { CurveLPToken } from "../tokens/curveLP";
-import { tokenDataByNetwork } from "../tokens/token";
 import {
   BalanceInterface,
   PathOptionFactory,

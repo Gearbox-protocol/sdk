@@ -1,7 +1,11 @@
+import {
+  extractTokenData,
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_DECIMALS,
+} from "@gearbox-protocol/sdk-gov";
+
 import { getContractName } from "../contracts/contractsRegister";
-import { extractTokenData } from "../tokens/token";
 import { formatBN, formatDateTime, toBigInt } from "../utils/formatter";
-import { LEVERAGE_DECIMALS, PERCENTAGE_DECIMALS } from "./constants";
 import { EVMEvent, EVMEventProps, EVMTx } from "./eventOrTx";
 
 export interface EventSerialized {

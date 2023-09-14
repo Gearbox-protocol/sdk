@@ -1,3 +1,8 @@
+import {
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  tokenSymbolByAddress,
+} from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
 import {
@@ -6,18 +11,16 @@ import {
 } from "../../payload/creditManager";
 import {
   ChartsPoolDataPayload,
-  LinearModelStruct,
+  LinearModel,
   PoolDataPayload,
   UserPoolPayload,
 } from "../../payload/pool";
-import { tokenSymbolByAddress } from "../../tokens/token";
 import {
   IInterestRateModel__factory,
   IPoolService,
   IPoolService__factory,
 } from "../../types";
 import { rayToNumber, toBigInt } from "../../utils/formatter";
-import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "../constants";
 
 export class PoolData {
   readonly address: string;
@@ -45,7 +48,7 @@ export class PoolData {
   readonly depositAPY: number;
   readonly borrowAPY: number;
 
-  readonly interestModel: LinearModelStruct;
+  readonly interestModel: LinearModel;
   readonly dieselRate: number;
   readonly dieselRateRay: bigint;
   readonly withdrawFee: number;

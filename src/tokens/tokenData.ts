@@ -1,7 +1,5 @@
 import { STATIC_TOKEN } from "../config";
-import { NetworkType } from "../core/chains";
 import { TokenDataPayload } from "../payload/token";
-import { SupportedToken, tokenDataByNetwork } from "./token";
 
 export class TokenData {
   readonly id: string;
@@ -24,20 +22,4 @@ export class TokenData {
   compareBySymbol(b: TokenData): number {
     return this.symbol > b.symbol ? 1 : -1;
   }
-}
-
-export const connectors: Record<NetworkType, Array<SupportedToken>> = {
-  Mainnet: ["WETH", "DAI", "USDC", "FRAX"],
-  Arbitrum: ["WETH", "DAI", "USDC", "WBTC"],
-};
-
-export function getConnectors(networkType: NetworkType) {
-  return connectors[networkType].map(e => {
-    const result = tokenDataByNetwork[networkType][e];
-
-    if (!result) {
-      throw new Error(`connector token ${e} not found`);
-    }
-    return result;
-  });
 }

@@ -1,6 +1,6 @@
+import { WAD } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { WAD } from "../core/constants";
 import { IConvexV1BaseRewardPoolAdapter__factory } from "../types";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
 

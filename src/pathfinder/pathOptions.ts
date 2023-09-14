@@ -1,10 +1,18 @@
-import { contractParams, CurveParams } from "../contracts/contracts";
-import { NetworkType } from "../core/chains";
+import {
+  contractParams,
+  ConvexLPToken,
+  convexTokens,
+  CurveLPToken,
+  CurveParams,
+  curveTokens,
+  NetworkType,
+  tokenDataByNetwork,
+  tokenSymbolByAddress,
+  YearnLPToken,
+  yearnTokens,
+} from "@gearbox-protocol/sdk-gov";
+
 import { CaTokenBalance } from "../payload/creditAccount";
-import { ConvexLPToken, convexTokens } from "../tokens/convex";
-import { CurveLPToken, curveTokens } from "../tokens/curveLP";
-import { tokenDataByNetwork, tokenSymbolByAddress } from "../tokens/token";
-import { YearnLPToken, yearnTokens } from "../tokens/yearn";
 import { toBigInt } from "../utils/formatter";
 
 export interface PathOption {

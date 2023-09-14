@@ -1,4 +1,8 @@
-import { contractsByNetwork, SupportedContract } from "../contracts/contracts";
+import {
+  contractsByNetwork,
+  SupportedContract,
+} from "@gearbox-protocol/sdk-gov";
+
 import { IYVault__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";

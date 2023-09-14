@@ -1,4 +1,4 @@
-import { LPTokens, lpTokens, SupportedToken } from "../tokens/token";
+import { LPTokens, lpTokens, SupportedToken } from "@gearbox-protocol/sdk-gov";
 
 export type AdditionalTokenWithAPY = Extract<SupportedToken, "STETH">;
 export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {

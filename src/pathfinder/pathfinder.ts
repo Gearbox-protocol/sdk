@@ -1,10 +1,14 @@
+import {
+  AwaitedRes,
+  NetworkType,
+  RAY,
+  SupportedToken,
+  tokenDataByNetwork,
+} from "@gearbox-protocol/sdk-gov";
 import { BigNumberish, providers, Signer } from "ethers";
 
-import { NetworkType } from "../core/chains";
-import { RAY } from "../core/constants";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
-import { SupportedToken, tokenDataByNetwork } from "../tokens/token";
 import { IRouter__factory } from "../types";
 import { BalanceStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
 import {
@@ -12,7 +16,6 @@ import {
   SwapTaskStruct,
 } from "../types/@gearbox-protocol/router/contracts/interfaces/IRouter";
 import { toBigInt } from "../utils/formatter";
-import { AwaitedRes } from "../utils/types";
 import {
   MultiCall,
   PathFinderCloseResult,

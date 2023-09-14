@@ -1,3 +1,4 @@
+import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
 import { ICreditFacade } from "../types";
@@ -6,7 +7,7 @@ import {
   CreditManagerDebtParamsStructOutput,
   QuotaInfoStructOutput,
 } from "../types-v3/IDataCompressorV3_00";
-import { BigintifyProps, ExcludeArrayProps } from "../utils/types";
+import { BigintifyProps } from "../utils/types";
 
 export type CreditManagerDebtParams = BigintifyProps<
   ExcludeArrayProps<CreditManagerDebtParamsStructOutput>

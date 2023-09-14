@@ -1,15 +1,15 @@
-import { expect } from "chai";
-import { BigNumber } from "ethers";
-
-import { contractsByNetwork } from "../contracts/contracts";
-import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
-import { MCall } from "../utils/multicall";
 import {
+  contractsByNetwork,
   DUMB_ADDRESS,
   DUMB_ADDRESS2,
   DUMB_ADDRESS3,
   DUMB_ADDRESS4,
-} from "./constants";
+  MCall,
+} from "@gearbox-protocol/sdk-gov";
+import { expect } from "chai";
+import { BigNumber } from "ethers";
+
+import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
 import { RewardConvex, RewardDistribution } from "./rewardConvex";

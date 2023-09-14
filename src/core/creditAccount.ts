@@ -1,22 +1,23 @@
+import {
+  decimals,
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  PRICE_DECIMALS,
+  tokenSymbolByAddress,
+  WAD,
+  WAD_DECIMALS_POW,
+} from "@gearbox-protocol/sdk-gov";
+
 import { isTokenWithAPY, LpTokensAPY } from "../apy";
 import {
   CaTokenBalance,
   CreditAccountDataPayload,
   ScheduledWithdrawal,
 } from "../payload/creditAccount";
-import { decimals } from "../tokens/decimals";
-import { tokenSymbolByAddress } from "../tokens/token";
 import { TokenData } from "../tokens/tokenData";
 import { rayToNumber, toBigInt, toSignificant } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset } from "./assets";
-import {
-  PERCENTAGE_DECIMALS,
-  PERCENTAGE_FACTOR,
-  PRICE_DECIMALS,
-  WAD,
-  WAD_DECIMALS_POW,
-} from "./constants";
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
