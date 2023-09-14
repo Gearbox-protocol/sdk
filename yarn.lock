@@ -1202,10 +1202,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@gearbox-protocol/core-v2@1.19.0-base.14":
-  version "1.19.0-base.14"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.14.tgz#7b6704f4bd28a87754cbe5493260130be5919f66"
-  integrity sha512-aDpvKiVBxushefdJtteTLsIHq7FmPnIEga8VT8+H6ObtpHt5L+LESPXZnI4C2DOD5wAb9Hl/rjh6N0GEqDIqdg==
+"@gearbox-protocol/core-v2@1.19.0-base.15":
+  version "1.19.0-base.15"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.15.tgz#3234121887e1297b601a9e74723234cc1fec57b4"
+  integrity sha512-rV4QpztBtqU95wn+KqFqM9IklsuYl2HO9qDbwsT4MkLbwVdAV9lBBg043ZwhWJq1Q3FLZu1lLrKC+sYXO/BakA==
 
 "@gearbox-protocol/core-v3@^1.39.0":
   version "1.39.0"
@@ -1227,7 +1227,12 @@
     eslint-plugin-simple-import-sort "^7.0.0"
     eslint-plugin-unused-imports "^2.0.0"
 
-"@gearbox-protocol/oracles-v3@^1.7.2":
+"@gearbox-protocol/integrations-v3@^1.15.0":
+  version "1.15.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.15.0.tgz#c8becc2e01730ee666ef69ab56ab121dfdda577b"
+  integrity sha512-+8rhf2KK85gtVbWBuFYQOCCIMF+QS8WvlsfUDwoQVdR75pE7VQeEPCvY8930BhYkI4jusFI+10w8Y4+Ewq2k3g==
+
+"@gearbox-protocol/oracles-v3@^1.7.6":
   version "1.7.6"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/oracles-v3/-/oracles-v3-1.7.6.tgz#5b7a834bed48026766b0754be44ebf1e9c611713"
   integrity sha512-aKjbhz8FI32I9ZJSM2BluJNrCUUo4FGQMT+ObxfYr4iEBSAlSKrZd7SiABGIMdy/7QRnS88qBvj5GH6VUi4HhQ==

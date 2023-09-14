@@ -6,7 +6,7 @@ import {
   CreditManagerDataStructOutput,
   CreditManagerDebtParamsStructOutput,
   QuotaInfoStructOutput,
-} from "../types-v3/IDataCompressorV3_00";
+} from "../types/IDataCompressorV3_00";
 import { BigintifyProps } from "../utils/types";
 
 export type CreditManagerDebtParams = BigintifyProps<

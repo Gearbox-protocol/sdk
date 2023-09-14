@@ -1,8 +1,8 @@
-import { IDataCompressor__factory } from "../types";
 import {
+  IDataCompressor__factory,
   IDataCompressorV2_10__factory,
   IDataCompressorV3_00__factory,
-} from "../types-v3";
+} from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

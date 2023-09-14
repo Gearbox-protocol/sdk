@@ -4,7 +4,7 @@ import { BigNumberish } from "ethers";
 import {
   LinearModelStructOutput,
   PoolDataStructOutput,
-} from "../types-v3/IDataCompressorV3_00";
+} from "../types/IDataCompressorV3_00";
 
 export type PoolDataPayload = ExcludeArrayProps<PoolDataStructOutput>;
 

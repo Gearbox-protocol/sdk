@@ -5,8 +5,8 @@ import { CreditManagerData } from "../core/creditManager";
 import {
   ICreditConfigurator__factory,
   ICreditManagerV2__factory,
+  IDataCompressorV2_10__factory,
 } from "../types";
-import { IDataCompressorV2_10__factory } from "../types-v3";
 
 export class CreditManagerWatcher {
   static creditManagerInterface = ICreditManagerV2__factory.createInterface();
