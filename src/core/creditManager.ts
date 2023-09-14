@@ -17,8 +17,7 @@ import {
 import { LinearModel } from "../payload/pool";
 import {
   IConvexV1BaseRewardPoolAdapter__factory,
-  ICreditFacade__factory,
-  ICreditFacadeExtended__factory,
+  ICreditFacadeV2Extended__factory,
 } from "../types";
 
 export class CreditManagerData {
@@ -154,10 +153,11 @@ export class CreditManagerData {
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
-      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
-        "addCollateral",
-        [accountAddress, tokenAddress, amount],
-      ),
+      callData:
+        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
+          "addCollateral",
+          [accountAddress, tokenAddress, amount],
+        ),
     };
   }
 
@@ -166,10 +166,11 @@ export class CreditManagerData {
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
-      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
-        "increaseDebt",
-        [amount],
-      ),
+      callData:
+        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
+          "increaseDebt",
+          [amount],
+        ),
     };
   }
 
@@ -178,10 +179,11 @@ export class CreditManagerData {
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
-      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
-        "decreaseDebt",
-        [amount],
-      ),
+      callData:
+        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
+          "decreaseDebt",
+          [amount],
+        ),
     };
   }
 
@@ -190,10 +192,11 @@ export class CreditManagerData {
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
-      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
-        "enableToken",
-        [token],
-      ),
+      callData:
+        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
+          "enableToken",
+          [token],
+        ),
     };
   }
 
@@ -203,7 +206,7 @@ export class CreditManagerData {
     return {
       target: this.creditFacade,
       callData:
-        ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
+        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
           "disableToken",
           [token],
         ),

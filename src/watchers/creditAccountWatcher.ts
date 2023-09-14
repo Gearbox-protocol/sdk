@@ -5,13 +5,12 @@ import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { CreditAccountDataPayload } from "../payload/creditAccount";
 import {
-  ICreditConfigurator__factory,
-  ICreditFacade__factory,
+  ICreditConfiguratorV2__factory,
+  ICreditFacadeV2__factory,
   ICreditManagerV2__factory,
-  IDataCompressor__factory,
+  IDataCompressorV2_10__factory,
   IERC20__factory,
 } from "../types";
-import { IDataCompressorInterface } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
 import { TypedEvent } from "../types/common";
 
 interface CMEvent {
@@ -43,8 +42,8 @@ export class CreditAccountWatcher {
 
   static creditManagerInterface = ICreditManagerV2__factory.createInterface();
   static creditConfiguratorInterface =
-    ICreditConfigurator__factory.createInterface();
-  static creditFacadeInterface = ICreditFacade__factory.createInterface();
+    ICreditConfiguratorV2__factory.createInterface();
+  static creditFacadeInterface = ICreditFacadeV2__factory.createInterface();
 
   /**
    * Gets hashes of all opened credit accounts at toBlock (or "latest" by default)
@@ -91,7 +90,7 @@ export class CreditAccountWatcher {
     const cfUpgraded = (
       await Promise.all(
         ccAddrs.map(async (ccAddr): Promise<string[]> => {
-          const cc = ICreditConfigurator__factory.connect(ccAddr, provider);
+          const cc = ICreditConfiguratorV2__factory.connect(ccAddr, provider);
           const cfUpgradedEvents = await cc.queryFilter(
             cc.filters.CreditFacadeUpgraded(),
             undefined,
@@ -103,7 +102,7 @@ export class CreditAccountWatcher {
     ).flat();
 
     for (const creditFacade of cfUpgraded) {
-      const cf = ICreditFacade__factory.connect(creditFacade, provider);
+      const cf = ICreditFacadeV2__factory.connect(creditFacade, provider);
 
       const topics = {
         OpenCreditAccount: cf.interface.getEventTopic("OpenCreditAccount"),
@@ -177,13 +176,11 @@ export class CreditAccountWatcher {
       atBlock = options;
     }
 
-    const dcmc = new MultiCallContract(
-      dataCompressor,
-      IDataCompressor__factory.createInterface(),
-      signer,
-    );
+    const dcInterface = IDataCompressorV2_10__factory.createInterface();
 
-    const calls: Array<Array<CallData<IDataCompressorInterface>>> = [];
+    const dcmc = new MultiCallContract(dataCompressor, dcInterface, signer);
+
+    const calls: Array<Array<CallData<typeof dcInterface>>> = [];
 
     for (let i = 0; i < accs.length; i++) {
       const chunk = accs.slice(i * chunkSize, (i + 1) * chunkSize);

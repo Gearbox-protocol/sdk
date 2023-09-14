@@ -4,8 +4,8 @@ import { providers, utils } from "ethers";
 
 import { CreditManagerData } from "../core/creditManager";
 import {
-  ICreditConfigurator__factory,
-  ICreditFacade__factory,
+  ICreditConfiguratorV2__factory,
+  ICreditFacadeV2__factory,
   ICreditManagerV2__factory,
 } from "../types";
 import { CreditAccountWatcher } from "./creditAccountWatcher";
@@ -22,9 +22,9 @@ const BORROWER = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
 const expectedHash = `${CREDIT_MANAGER_ADDRESS.toLowerCase()}:${BORROWER.toLowerCase()}`;
 
 const creditManagerInterface = ICreditManagerV2__factory.createInterface();
-const creditFacadeInterface = ICreditFacade__factory.createInterface();
+const creditFacadeInterface = ICreditFacadeV2__factory.createInterface();
 const creditConfiguratorInterface =
-  ICreditConfigurator__factory.createInterface();
+  ICreditConfiguratorV2__factory.createInterface();
 
 const cmDumb = {
   address: CREDIT_MANAGER_ADDRESS.toLowerCase(),

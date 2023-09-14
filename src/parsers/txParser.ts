@@ -4,7 +4,6 @@ import {
   contractsByAddress,
   contractsByNetwork,
   ConvexPoolParams,
-  LidoParams,
   NetworkType,
   SupportedContract,
   SupportedToken,
@@ -12,24 +11,19 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 
-import { MultiCallStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
+import { MultiCallStructOutput } from "../types/IRouter";
 import { AbstractParser } from "./abstractParser";
 import { AddressProviderParser } from "./addressProviderParser";
-import { AirdropDistributorParser } from "./airdropDistributorParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 import { ConvexRewardPoolParser } from "./convextRewardPoolParser";
 import { CreditFacadeParser } from "./creditFacadeParser";
 import { CreditManagerParser } from "./creditManagerParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
-import { DataCompressorParser } from "./dataCompressorParser";
 import { ERC20Parser } from "./ERC20Parser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
-import { LidoOracleParser } from "./lidoOracleParser";
 import { LidoSTETHParser } from "./lidoSTETHParser";
-import { MulticallParser } from "./multicallParser";
-import { OffchainOracleParserParser } from "./offchainOracleParser";
 import { PoolParser } from "./poolParser";
 import { PriceOracleParser } from "./priceOracleParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
@@ -65,13 +59,15 @@ export class TxParser {
     return { contract: parser.contract, adapterName: parser.adapterName };
   }
 
-  public static parseMultiCall(calls: Array<MultiCallStruct>): Array<string> {
+  public static parseMultiCall(
+    calls: Array<MultiCallStructOutput>,
+  ): Array<string> {
     return calls.map(call =>
       TxParser.parse(call.target, call.callData.toString()),
     );
   }
 
-  public static parseToObjectMultiCall(calls: Array<MultiCallStruct>) {
+  public static parseToObjectMultiCall(calls: Array<MultiCallStructOutput>) {
     return calls.map(call =>
       TxParser.parseToObject(call.target, call.callData.toString()),
     );
@@ -115,11 +111,6 @@ export class TxParser {
             );
           });
         }
-
-        if (contractData.type === AdapterInterface.LIDO_V1) {
-          const extraAddress = (contractData as LidoParams).oracle[network];
-          TxParser._addParser(extraAddress, new LidoOracleParser());
-        }
       },
     );
   }
@@ -151,23 +142,13 @@ export class TxParser {
       }
     });
   }
-  public static addOffchainOracleParser(address: string) {
-    TxParser._addParser(address, new OffchainOracleParserParser());
-  }
+
   public static addPriceOracle(address: string) {
     TxParser._addParser(address, new PriceOracleParser());
   }
-  public static addDataCompressor(address: string, version = 2) {
-    TxParser._addParser(address, new DataCompressorParser(version));
-  }
+
   public static addAddressProvider(address: string) {
     TxParser._addParser(address, new AddressProviderParser());
-  }
-  public static addMulticall(address: string) {
-    TxParser._addParser(address, new MulticallParser());
-  }
-  public static addAirdropDistributor(address: string) {
-    TxParser._addParser(address, new AirdropDistributorParser());
   }
   public static addCreditManager(address: string, version: number) {
     TxParser._addParser(address, new CreditManagerParser(version));

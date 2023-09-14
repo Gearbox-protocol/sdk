@@ -9,7 +9,7 @@ import {
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 
-import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
+import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
 import { RewardConvex, RewardDistribution } from "./rewardConvex";
@@ -59,7 +59,7 @@ describe("RewardConvex test", () => {
       },
     } as unknown as CreditManagerData;
 
-    const calls: Array<MCall<IConvexV1BaseRewardPoolAdapterInterface>> = [
+    const calls: Array<MCall<IBaseRewardPoolInterface>> = [
       {
         address: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
         interface: RewardConvex.poolInterface,

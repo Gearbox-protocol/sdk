@@ -11,7 +11,7 @@ import { Signer } from "ethers";
 
 import { TxParser } from "../parsers/txParser";
 import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
-import { ICreditFacade, ICreditFacade__factory } from "../types";
+import { ICreditFacadeV2, ICreditFacadeV2__factory } from "../types";
 import { formatBN } from "../utils/formatter";
 import { CreditManagerData } from "./creditManager";
 import { EVMTx } from "./eventOrTx";
@@ -243,14 +243,14 @@ export class Trade {
   }
 
   static async executeMulticallPath(
-    creditFacade: string | ICreditFacade,
+    creditFacade: string | ICreditFacadeV2,
     signer: Signer,
     calls: Array<MultiCall>,
   ) {
     if (calls.length < 1) throw new Error("No path to execute");
     const safeCreditFacade =
       typeof creditFacade === "string"
-        ? ICreditFacade__factory.connect(creditFacade, signer)
+        ? ICreditFacadeV2__factory.connect(creditFacade, signer)
         : creditFacade;
 
     return this.executeOnCreditFacade(calls, safeCreditFacade);
@@ -258,7 +258,7 @@ export class Trade {
 
   private static async executeOnCreditFacade(
     calls: Array<MultiCall>,
-    creditFacade: ICreditFacade,
+    creditFacade: ICreditFacadeV2,
   ) {
     return creditFacade.multicall(calls);
   }

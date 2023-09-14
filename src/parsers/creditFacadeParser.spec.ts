@@ -5,14 +5,14 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { ICreditFacadeExtended__factory } from "../types";
+import { ICreditFacadeV2Extended__factory } from "../types";
 import { CreditFacadeParser } from "./creditFacadeParser";
 
 describe("CreditFacadeParser test", () => {
   it("all functions works well", () => {
     let parser = new CreditFacadeParser("DAI");
 
-    const ifc = ICreditFacadeExtended__factory.createInterface();
+    const ifc = ICreditFacadeV2Extended__factory.createInterface();
 
     let parsed = parser.parse(
       ifc.encodeFunctionData("addCollateral", [

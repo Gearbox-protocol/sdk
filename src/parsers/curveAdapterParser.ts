@@ -153,6 +153,20 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
         )}], max_burn_amount: ${this.formatBN(maxBurnAmount, this.lpToken)})`;
       }
 
+      case "remove_liquidity_one_coin": {
+        const [amount, i, min_amount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+
+        const iSym = this.getTokenByIndex(i);
+
+        return `${functionName}(amount: ${this.formatBN(
+          amount,
+          this.lpToken,
+        )},i: ${iSym}, min_amount: ${this.formatBN(min_amount, iSym)})`;
+      }
+
       case "totalSupply": {
         return `${functionName}()`;
       }

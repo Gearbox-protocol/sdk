@@ -1,11 +1,11 @@
-import { IPriceOracleV2__factory } from "../types";
+import { IPriceOracleBase__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class PriceOracleParser extends AbstractParser implements IParser {
   constructor() {
     super("PriceOracle");
-    this.ifc = IPriceOracleV2__factory.createInterface();
+    this.ifc = IPriceOracleBase__factory.createInterface();
   }
   parse(calldata: string): string {
     const { functionFragment, functionName } = this.parseSelector(calldata);

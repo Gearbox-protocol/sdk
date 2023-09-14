@@ -4,7 +4,7 @@ import { providers, utils } from "ethers";
 
 import { CreditManagerData } from "../core/creditManager";
 import {
-  ICreditConfigurator__factory,
+  ICreditConfiguratorV2__factory,
   ICreditManagerV2__factory,
 } from "../types";
 import { CreditManagerWatcher } from "./creditManagerWatcher";
@@ -63,7 +63,7 @@ describe("CreditManagerTracker test", () => {
     );
   });
   it("detects CreditConfigurator events correctly", () => {
-    const ccInterface = ICreditConfigurator__factory.createInterface();
+    const ccInterface = ICreditConfiguratorV2__factory.createInterface();
 
     let log = makeLog(
       CREDIT_CONFIGIURATOR_ADDRESS,

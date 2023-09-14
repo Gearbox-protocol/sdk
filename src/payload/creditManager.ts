@@ -1,7 +1,7 @@
 import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
-import { ICreditFacade } from "../types";
+import { ICreditFacadeV2 } from "../types";
 import {
   CreditManagerDataStructOutput,
   CreditManagerDebtParamsStructOutput,
@@ -23,7 +23,7 @@ export interface AdapterPayload {
 }
 
 export type TotalDebt = ExcludeArrayProps<
-  Awaited<ReturnType<ICreditFacade["totalDebt"]>>
+  Awaited<ReturnType<ICreditFacadeV2["totalDebt"]>>
 >;
 
 export type CreditManagerDataPayload =

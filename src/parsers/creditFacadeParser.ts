@@ -1,15 +1,15 @@
 import { SupportedToken } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
-import { ICreditFacadeExtended__factory } from "../types";
-import { BalanceStruct } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/ICreditFacade.sol/ICreditFacadeExtended";
+import { ICreditFacadeV2Extended__factory } from "../types";
+import { BalanceStructOutput } from "../types/ICreditFacadeV2.sol/ICreditFacadeV2Extended";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class CreditFacadeParser extends AbstractParser implements IParser {
   constructor(token: SupportedToken) {
     super(token);
-    this.ifc = ICreditFacadeExtended__factory.createInterface();
+    this.ifc = ICreditFacadeV2Extended__factory.createInterface();
     this.adapterName = "CreditFacade";
   }
   parse(calldata: string): string {
@@ -39,10 +39,13 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       case "revertIfReceivedLessThan": {
         const [balances] = this.decodeFunctionData(functionFragment, calldata);
 
-        const balancesStr = (balances as BalanceStruct[])
+        const balancesStr = (balances as BalanceStructOutput[])
           .map(b => {
-            const symbol = this.tokenSymbol(b.token);
-            return `${symbol}: ${this.formatBN(b.balance, symbol)}`;
+            const symbol = this.tokenSymbol((b as BalanceStructOutput).token);
+            return `${symbol}: ${this.formatBN(
+              (b as BalanceStructOutput).balance,
+              symbol,
+            )}`;
           })
           .join(", ");
 

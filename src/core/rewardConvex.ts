@@ -14,12 +14,9 @@ import {
 import { BigNumber, providers } from "ethers";
 
 import { getCVXMintAmount } from "../apy";
-import {
-  IConvexToken__factory,
-  IConvexV1BaseRewardPoolAdapter__factory,
-} from "../types";
-import { IConvexTokenInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/integrations/convex/IConvexToken";
-import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
+import { IBaseRewardPool__factory, IConvexToken__factory } from "../types";
+import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
+import { IConvexTokenInterface } from "../types/IConvexToken";
 import { CreditAccountData } from "./creditAccount";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
@@ -32,13 +29,12 @@ export interface RewardDistribution {
 }
 
 interface MCallPreparation {
-  calls: Array<MCall<IConvexV1BaseRewardPoolAdapterInterface>>;
+  calls: Array<MCall<IBaseRewardPoolInterface>>;
   distribution: Array<RewardDistribution>;
 }
 
 export class RewardConvex {
-  static poolInterface =
-    IConvexV1BaseRewardPoolAdapter__factory.createInterface();
+  static poolInterface = IBaseRewardPool__factory.createInterface();
 
   static async findRewards(
     ca: CreditAccountData,
@@ -53,8 +49,7 @@ export class RewardConvex {
     );
 
     const mcalls: Array<
-      | MCall<IConvexV1BaseRewardPoolAdapterInterface>
-      | MCall<IConvexTokenInterface>
+      MCall<IBaseRewardPoolInterface> | MCall<IConvexTokenInterface>
     > = calls;
 
     mcalls.push({
@@ -101,7 +96,7 @@ export class RewardConvex {
     cm: CreditManagerData,
     network: NetworkType,
   ): MCallPreparation {
-    const calls: Array<MCall<IConvexV1BaseRewardPoolAdapterInterface>> = [];
+    const calls: Array<MCall<IBaseRewardPoolInterface>> = [];
     const distribution: Array<RewardDistribution> = [];
 
     const adapters = this.findAdapters(cm);

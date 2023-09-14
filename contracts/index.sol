@@ -11,6 +11,36 @@ import {IPoolV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IPoolV3.so
 import {ICreditFacadeV3} from "@gearbox-protocol/core-v3/contracts/interfaces/ICreditFacadeV3.sol";
 import {IPoolService} from "@gearbox-protocol/core-v2/contracts/interfaces/IPoolService.sol";
 import {ICreditFacadeV2} from "@gearbox-protocol/core-v2/contracts/interfaces/ICreditFacadeV2.sol";
+import {ICreditConfiguratorV2} from "@gearbox-protocol/core-v2/contracts/interfaces/ICreditConfiguratorV2.sol";
 import {WATokenZapper} from "@gearbox-protocol/integrations-v3/contracts/zappers/WATokenZapper.sol";
 import {WETHZapper} from "@gearbox-protocol/integrations-v3/contracts/zappers/WETHZapper.sol";
 import {WstETHZapper} from "@gearbox-protocol/integrations-v3/contracts/zappers/WstETHZapper.sol";
+
+// Adapters
+import {ILidoV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/lido/ILidoV1Adapter.sol";
+import {IBaseRewardPool} from "@gearbox-protocol/integrations-v3/contracts/integrations/convex/IBaseRewardPool.sol";
+import {IConvexToken} from "@gearbox-protocol/integrations-v3/contracts/integrations/convex/IConvexToken.sol";
+import {ICurvePool} from "@gearbox-protocol/integrations-v3/contracts/integrations/curve/ICurvePool.sol";
+import {IConvexV1BaseRewardPoolAdapter} from
+    "@gearbox-protocol/integrations-v3/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol";
+import {IConvexV1BoosterAdapter} from
+    "@gearbox-protocol/integrations-v3/contracts/interfaces/convex/IConvexV1BoosterAdapter.sol";
+
+import {IInterestRateModel} from "@gearbox-protocol/core-v2/contracts/interfaces/IInterestRateModel.sol";
+import {IUniswapV2Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/uniswap/IUniswapV2Adapter.sol";
+import {IUniswapV3Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/uniswap/IUniswapV3Adapter.sol";
+import {IYVault} from "@gearbox-protocol/integrations-v3/contracts/integrations/yearn/IYVault.sol";
+import {IYearnV2Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/yearn/IYearnV2Adapter.sol";
+
+import {IwstETHV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/lido/IwstETHV1Adapter.sol";
+import {IstETH} from "@gearbox-protocol/integrations-v3/contracts/integrations/lido/IstETH.sol";
+import {IPriceOracleBase} from "@gearbox-protocol/core-v2/contracts/interfaces/IPriceOracleBase.sol";
+
+import {ICurveV1_2AssetsAdapter} from
+    "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_2AssetsAdapter.sol";
+
+import {ICurveV1_3AssetsAdapter} from
+    "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_3AssetsAdapter.sol";
+
+import {ICurveV1_4AssetsAdapter} from
+    "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_4AssetsAdapter.sol";

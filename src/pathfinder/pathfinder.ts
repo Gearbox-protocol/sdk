@@ -10,12 +10,9 @@ import { BigNumberish, providers, Signer } from "ethers";
 
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
-import { IRouter__factory } from "../types";
-import { BalanceStruct } from "../types/@gearbox-protocol/router/contracts/interfaces/IClosePathResolver";
-import {
-  IRouter,
-  SwapTaskStruct,
-} from "../types/@gearbox-protocol/router/contracts/interfaces/IRouter";
+import { IRouter, IRouter__factory } from "../types";
+import { BalanceStruct } from "../types/ICreditFacadeV3Multicall";
+import { SwapTaskStruct } from "../types/IRouter";
 import {
   MultiCall,
   PathFinderCloseResult,

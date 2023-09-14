@@ -3,7 +3,7 @@ import { providers, Signer } from "ethers";
 
 import { CreditManagerData } from "../core/creditManager";
 import {
-  ICreditConfigurator__factory,
+  ICreditConfiguratorV2__factory,
   ICreditManagerV2__factory,
   IDataCompressorV2_10__factory,
 } from "../types";
@@ -11,7 +11,7 @@ import {
 export class CreditManagerWatcher {
   static creditManagerInterface = ICreditManagerV2__factory.createInterface();
   static creditConfiguratorInterface =
-    ICreditConfigurator__factory.createInterface();
+    ICreditConfiguratorV2__factory.createInterface();
 
   static async getV2CreditManagers(
     dataCompressor: string,
