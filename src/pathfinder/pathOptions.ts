@@ -6,6 +6,7 @@ import {
   CurveParams,
   curveTokens,
   NetworkType,
+  toBigInt,
   tokenDataByNetwork,
   tokenSymbolByAddress,
   YearnLPToken,
@@ -13,7 +14,6 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 
 import { CaTokenBalance } from "../payload/creditAccount";
-import { toBigInt } from "../utils/formatter";
 
 export interface PathOption {
   target: string;

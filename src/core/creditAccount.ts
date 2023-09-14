@@ -3,6 +3,7 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
+  toBigInt,
   tokenSymbolByAddress,
   WAD,
   WAD_DECIMALS_POW,
@@ -15,7 +16,7 @@ import {
   ScheduledWithdrawal,
 } from "../payload/creditAccount";
 import { TokenData } from "../tokens/tokenData";
-import { rayToNumber, toBigInt, toSignificant } from "../utils/formatter";
+import { rayToNumber, toSignificant } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset } from "./assets";
 

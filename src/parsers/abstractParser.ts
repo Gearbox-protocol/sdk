@@ -2,11 +2,12 @@ import { FunctionFragment, Result } from "@ethersproject/abi";
 import {
   decimals,
   SupportedToken,
+  toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish, BytesLike, utils } from "ethers";
 
-import { formatBN, toBigInt } from "../utils/formatter";
+import { formatBN } from "../utils/formatter";
 
 interface ParseSelectorResult {
   functionFragment: FunctionFragment;

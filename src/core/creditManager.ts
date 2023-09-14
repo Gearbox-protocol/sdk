@@ -3,6 +3,7 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
+  toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
 
@@ -19,7 +20,6 @@ import {
   ICreditFacade__factory,
   ICreditFacadeExtended__factory,
 } from "../types";
-import { toBigInt } from "../utils/formatter";
 
 export class CreditManagerData {
   readonly address: string;

@@ -1,3 +1,4 @@
+import { toBigInt } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
 import { CreditManagerData } from "../core/creditManager";
@@ -6,7 +7,6 @@ import {
   ICreditManagerV2__factory,
 } from "../types";
 import { IDataCompressorV2_10__factory } from "../types-v3";
-import { toBigInt } from "../utils/formatter";
 
 export class CreditManagerWatcher {
   static creditManagerInterface = ICreditManagerV2__factory.createInterface();

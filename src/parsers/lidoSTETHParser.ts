@@ -1,7 +1,6 @@
-import { SupportedToken } from "@gearbox-protocol/sdk-gov";
+import { SupportedToken, toBigInt } from "@gearbox-protocol/sdk-gov";
 
 import { IstETH__factory } from "../types";
-import { toBigInt } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

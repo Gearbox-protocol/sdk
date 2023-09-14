@@ -8,6 +8,7 @@ import {
   NetworkType,
   SupportedContract,
   SupportedToken,
+  toBigInt,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { BigNumber, providers } from "ethers";
@@ -19,7 +20,6 @@ import {
 } from "../types";
 import { IConvexTokenInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/integrations/convex/IConvexToken";
 import { IConvexV1BaseRewardPoolAdapterInterface } from "../types/@gearbox-protocol/integrations-v2/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol/IConvexV1BaseRewardPoolAdapter";
-import { toBigInt } from "../utils/formatter";
 import { CreditAccountData } from "./creditAccount";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
