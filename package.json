@@ -30,7 +30,7 @@
     "test": "npx mocha -r ts-node/register -r dotenv/config src/**/*.spec.ts"
   },
   "dependencies": {
-    "@gearbox-protocol/sdk-gov": "^1.5.24",
+    "@gearbox-protocol/sdk-gov": "^1.5.25",
     "@types/deep-eql": "^4.0.0",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
@@ -47,7 +47,6 @@
     "@gearbox-protocol/oracles-v3": "^1.7.2",
     "@gearbox-protocol/periphery-v3": "^1.0.9",
     "@gearbox-protocol/prettier-config": "^1.4.1",
-    "@gearbox-protocol/sdk-gov": "^1.5.10",
     "@openzeppelin/contracts": "4.8.3",
     "@typechain/ethers-v5": "^10.1.0",
     "@types/chai": "^4.3.3",
