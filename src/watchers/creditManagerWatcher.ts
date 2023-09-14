@@ -1,12 +1,12 @@
+import { toBigInt } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
 import { CreditManagerData } from "../core/creditManager";
-import { CreditManagerDataPayload } from "../payload/creditManager";
 import {
   ICreditConfigurator__factory,
   ICreditManagerV2__factory,
-  IDataCompressor__factory,
 } from "../types";
+import { IDataCompressorV2_10__factory } from "../types-v3";
 
 export class CreditManagerWatcher {
   static creditManagerInterface = ICreditManagerV2__factory.createInterface();
@@ -20,14 +20,15 @@ export class CreditManagerWatcher {
   ): Promise<Record<string, CreditManagerData>> {
     const creditManagers: Record<string, CreditManagerData> = {};
 
-    const creditManagersPayload: Array<CreditManagerDataPayload> =
-      await IDataCompressor__factory.connect(
-        dataCompressor,
-        signer,
-      ).getCreditManagersList({ blockTag: atBlock });
+    const creditManagersPayload = await IDataCompressorV2_10__factory.connect(
+      dataCompressor,
+      signer,
+    ).getCreditManagersV2List({ blockTag: atBlock });
 
     creditManagersPayload
-      .filter(c => c.version === 2 || c.version === 210)
+      .filter(
+        c => toBigInt(c.cfVersion) === 2n || toBigInt(c.cfVersion) === 210n,
+      )
       .forEach(c => {
         creditManagers[c.addr.toLowerCase()] = new CreditManagerData(c);
       });

@@ -157,8 +157,8 @@ export class TxParser {
   public static addPriceOracle(address: string) {
     TxParser._addParser(address, new PriceOracleParser());
   }
-  public static addDataCompressor(address: string) {
-    TxParser._addParser(address, new DataCompressorParser());
+  public static addDataCompressor(address: string, version = 2) {
+    TxParser._addParser(address, new DataCompressorParser(version));
   }
   public static addAddressProvider(address: string) {
     TxParser._addParser(address, new AddressProviderParser());

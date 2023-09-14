@@ -1,5 +1,6 @@
 import {
   PERCENTAGE_DECIMALS,
+  toBigInt,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import moment from "moment";
@@ -10,7 +11,6 @@ import {
   CreditSessionsAggregatedStatsPayload,
   UserCreditSessionsAggregatedStatsPayload,
 } from "../payload/creditSession";
-import { toBigInt } from "../utils/formatter";
 import { AssetWithView } from "./assets";
 
 export type CreditSessionStatus =

@@ -3,6 +3,7 @@ import {
   NetworkType,
   RAY,
   SupportedToken,
+  toBigInt,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish, providers, Signer } from "ethers";
@@ -15,7 +16,6 @@ import {
   IRouter,
   SwapTaskStruct,
 } from "../types/@gearbox-protocol/router/contracts/interfaces/IRouter";
-import { toBigInt } from "../utils/formatter";
 import {
   MultiCall,
   PathFinderCloseResult,
@@ -271,7 +271,8 @@ export class PathFinder {
     return {
       underlyingBalance:
         bestResult.amount +
-        creditAccount.allBalances[creditAccount.underlyingToken.toLowerCase()],
+        creditAccount.allBalances[creditAccount.underlyingToken.toLowerCase()]
+          .balance,
       calls: bestResult.calls,
     };
   }

@@ -3,20 +3,22 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
-  RAY,
+  toBigInt,
   tokenSymbolByAddress,
   WAD,
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
 
 import { isTokenWithAPY, LpTokensAPY } from "../apy";
-import { CreditAccountDataPayload } from "../payload/creditAccount";
+import {
+  CaTokenBalance,
+  CreditAccountDataPayload,
+  ScheduledWithdrawal,
+} from "../payload/creditAccount";
 import { TokenData } from "../tokens/tokenData";
-import { toBigInt, toSignificant } from "../utils/formatter";
+import { rayToNumber, toSignificant } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset } from "./assets";
-import { CreditManagerData } from "./creditManager";
-import { PriceOracleData } from "./priceOracle";
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
@@ -40,81 +42,124 @@ export interface CalcHealthFactorProps {
 export class CreditAccountData {
   readonly addr: string;
   readonly borrower: string;
-  readonly inUse: boolean;
   readonly creditManager: string;
+  readonly creditFacade: string;
   readonly underlyingToken: string;
-
   readonly since: number;
-  readonly cumulativeIndexAtOpen: bigint;
-  readonly borrowedAmount: bigint;
-  readonly borrowedAmountPlusInterestAndFees: bigint;
+  readonly expirationDate: number;
+  readonly version: number;
 
-  readonly borrowedAmountPlusInterest: bigint;
-  readonly totalValue: bigint;
-  healthFactor: number;
-  readonly borrowRate: number;
-  isDeleting: boolean;
   readonly enabledTokenMask: bigint;
-  readonly version: number = 1;
+  readonly healthFactor: number;
+  isDeleting: boolean;
 
-  readonly collateralTokens: Array<string> = [];
-  readonly allTokens: Array<string> = [];
-  readonly forbiddenTokens: Array<string> = [];
+  readonly baseBorrowRate: number;
+  readonly borrowRate: number;
+
+  readonly borrowedAmount: bigint;
+  readonly accruedInterest: bigint;
+  readonly accruedFees: bigint;
+  readonly totalDebtUSD: bigint;
+  readonly borrowedAmountPlusInterestAndFees: bigint;
+  readonly totalValue: bigint;
+  readonly totalValueUSD: bigint;
+  readonly twvUSD: bigint;
+
+  readonly cumulativeIndexNow: bigint;
+  readonly cumulativeIndexLastUpdate: bigint;
+  readonly cumulativeQuotaInterest: bigint;
+
+  readonly activeBots: string[];
+  readonly maxApprovedBots: bigint;
 
   readonly balances: Record<string, bigint> = {};
-  readonly allBalances: Record<string, bigint> = {};
+  readonly collateralTokens: Array<string> = [];
+  readonly allBalances: Record<string, CaTokenBalance> = {};
+  readonly forbiddenTokens: Record<string, true> = {};
+  readonly quotedTokens: Record<string, true> = {};
 
-  /// V1 Artifacts
-  readonly repayAmount: bigint;
-  readonly liquidationAmount: bigint;
-  readonly canBeClosed: boolean;
+  readonly schedultedWithdrawals: Array<ScheduledWithdrawal>;
 
   constructor(payload: CreditAccountDataPayload) {
     this.addr = payload.addr.toLowerCase();
     this.borrower = payload.borrower.toLowerCase();
-    this.inUse = payload.inUse;
     this.creditManager = payload.creditManager.toLowerCase();
+    this.creditFacade = payload.creditFacade.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
+    this.since = Number(toBigInt(payload.since));
+    this.expirationDate = Number(toBigInt(payload.expirationDate));
+    this.version = payload.cfVersion?.toNumber();
 
-    this.since = Number(toBigInt(payload.since || 0));
-    this.cumulativeIndexAtOpen = toBigInt(payload.cumulativeIndexAtOpen || 0);
+    this.healthFactor = Number(toBigInt(payload.healthFactor));
+    this.enabledTokenMask = toBigInt(payload.enabledTokensMask);
+    this.isDeleting = false;
 
-    this.borrowedAmount = toBigInt(payload.borrowedAmount || 0);
-    this.borrowedAmountPlusInterest = toBigInt(
-      payload.borrowedAmountPlusInterest || 0,
+    this.borrowedAmount = toBigInt(payload.debt);
+    this.accruedInterest = toBigInt(payload.accruedInterest);
+    this.accruedFees = toBigInt(payload.accruedFees);
+    this.borrowedAmountPlusInterestAndFees =
+      this.borrowedAmount + this.accruedInterest + this.accruedFees;
+    this.totalDebtUSD = toBigInt(payload.totalDebtUSD);
+    this.totalValue = toBigInt(payload.totalValue);
+    this.totalValueUSD = toBigInt(payload.totalValueUSD);
+    this.twvUSD = toBigInt(payload.twvUSD);
+
+    this.baseBorrowRate = rayToNumber(
+      toBigInt(payload.baseBorrowRate) *
+        PERCENTAGE_DECIMALS *
+        PERCENTAGE_FACTOR,
     );
-    this.borrowedAmountPlusInterestAndFees = toBigInt(
-      payload.borrowedAmountPlusInterestAndFees || 0,
+    this.borrowRate = rayToNumber(
+      toBigInt(payload.aggregatedBorrowRate) *
+        PERCENTAGE_DECIMALS *
+        PERCENTAGE_FACTOR,
     );
 
-    this.totalValue = toBigInt(payload.totalValue || 0);
-    this.healthFactor = payload.healthFactor.toNumber();
-    this.borrowRate = Number(
-      (toBigInt(payload.borrowRate || 0) *
-        PERCENTAGE_FACTOR *
-        PERCENTAGE_DECIMALS) /
-        RAY,
+    this.cumulativeIndexNow = toBigInt(payload.cumulativeIndexNow);
+    this.cumulativeIndexLastUpdate = toBigInt(
+      payload.cumulativeIndexLastUpdate,
     );
+    this.cumulativeQuotaInterest = toBigInt(payload.cumulativeQuotaInterest);
+
+    this.activeBots = payload.activeBots.map(b => b.toLowerCase());
+    this.maxApprovedBots = toBigInt(payload.maxApprovedBots);
+
     payload.balances.forEach(b => {
-      const tokenLC = b.token.toLowerCase();
-      if (b.isAllowed) {
-        this.balances[tokenLC] = toBigInt(b.balance || 0);
-        this.collateralTokens.push(tokenLC);
-      } else {
-        this.forbiddenTokens.push(tokenLC);
+      const token = b.token.toLowerCase();
+      const balance: CaTokenBalance = {
+        token,
+        balance: toBigInt(b.balance),
+        isForbidden: b.isForbidden,
+        isEnabled: b.isEnabled,
+        isQuoted: b.isQuoted,
+        quota: toBigInt(b.quota),
+        quotaRate: b.quotaRate,
+      };
+
+      if (!b.isForbidden) {
+        this.balances[token] = balance.balance;
+        this.collateralTokens.push(token);
+      }
+      if (b.isForbidden) {
+        this.forbiddenTokens[token] = true;
+      }
+      if (b.isQuoted) {
+        this.quotedTokens[token] = true;
       }
 
-      this.allBalances[tokenLC] = toBigInt(b.balance || 0);
-      this.allTokens.push(tokenLC);
+      this.allBalances[token] = balance;
     });
 
-    this.enabledTokenMask = toBigInt(payload.enabledTokenMask || 0);
-    this.isDeleting = false;
-    this.version = payload.version;
+    this.schedultedWithdrawals = payload.schedultedWithdrawals.map(w => ({
+      tokenIndex: w.tokenIndex,
+      maturity: w.maturity,
+      token: w.token.toLowerCase(),
+      amount: toBigInt(w.amount),
+    }));
+  }
 
-    this.repayAmount = toBigInt(payload.repayAmount || 0);
-    this.liquidationAmount = toBigInt(payload.liquidationAmount || 0);
-    this.canBeClosed = payload.canBeClosed;
+  setDeleteInProgress(d: boolean) {
+    this.isDeleting = d;
   }
 
   balancesSorted(
@@ -175,37 +220,16 @@ export class CreditAccountData {
     return t1 > t2 ? -1 : 1;
   }
 
-  calcBorrowAmountPlusInterestRate(currentCumulativeIndex: bigint): bigint {
-    return (
-      (this.borrowedAmount * currentCumulativeIndex) /
-      this.cumulativeIndexAtOpen
-    );
-  }
-
   isForbidden(token: string) {
-    return this.balances[token] === undefined;
+    return !!this.forbiddenTokens[token];
   }
 
-  updateHealthFactor(
-    creditManager: CreditManagerData,
-    currentCumulativeIndex: bigint,
-    priceOracle: PriceOracleData,
-  ) {
-    const twvUSDValue = this.collateralTokens
-      .filter((_, num) =>
-        CreditAccountData.isTokenEnabled(num, this.enabledTokenMask),
-      )
-      .map(
-        token =>
-          priceOracle.convertToUSD(this.balances[token], token) *
-          creditManager.liquidationThresholds[token],
-      )
-      .reduce((a, b) => a + b);
+  isQuoted(token: string) {
+    return !!this.quotedTokens[token];
+  }
 
-    this.healthFactor = Number(
-      priceOracle.convertFromUSD(twvUSDValue, this.underlyingToken) /
-        this.calcBorrowAmountPlusInterestRate(currentCumulativeIndex),
-    );
+  isTokenEnabled(index: number) {
+    return ((2n ** BigInt(index)) & this.enabledTokenMask) !== 0n;
   }
 
   static isTokenEnabled(index: number, enabledTokenMask: bigint) {

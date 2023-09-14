@@ -6,14 +6,14 @@ import {
   CurveParams,
   curveTokens,
   NetworkType,
+  toBigInt,
   tokenDataByNetwork,
   tokenSymbolByAddress,
   YearnLPToken,
   yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
 
-import { toBigInt } from "../utils/formatter";
+import { CaTokenBalance } from "../payload/creditAccount";
 
 export interface PathOption {
   target: string;
@@ -23,9 +23,11 @@ export interface PathOption {
 
 export type PathOptionSerie = Array<PathOption>;
 
+export type BalanceInterface = Pick<CaTokenBalance, "balance">;
+
 export class PathOptionFactory {
   static generatePathOptions(
-    balances: Record<string, BigNumberish>,
+    balances: Record<string, BalanceInterface>,
     loopsInTx: number,
   ): Array<PathOptionSerie> {
     const curvePools: Array<CurveLPToken> =
@@ -64,12 +66,12 @@ export class PathOptionFactory {
   }
 
   static getCurvePools(
-    balances: Record<string, BigNumberish>,
+    balances: Record<string, BalanceInterface>,
   ): Array<CurveLPToken> {
     const curveSymbols = Object.keys(curveTokens);
 
     const curvePools: Array<CurveLPToken> = Object.entries(balances)
-      .filter(([, balance]) => toBigInt(balance) > 1)
+      .filter(([, balance]) => toBigInt(balance.balance) > 1)
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => curveSymbols.includes(symbol)) as Array<CurveLPToken>;
 
@@ -78,7 +80,7 @@ export class PathOptionFactory {
       .map(([token]) => token);
 
     const curvePoolsFromYearn = Object.entries(balances)
-      .filter(([, balance]) => toBigInt(balance) > 1)
+      .filter(([, balance]) => toBigInt(balance.balance) > 1)
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => yearnCurveTokens.includes(symbol))
       .map(
@@ -90,7 +92,7 @@ export class PathOptionFactory {
       .map(([token]) => token);
 
     const curvePoolsFromConvex = Object.entries(balances)
-      .filter(([, balance]) => toBigInt(balance) > 1)
+      .filter(([, balance]) => toBigInt(balance.balance) > 1)
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => convexCurveTokens.includes(symbol))
       .map(

@@ -2,7 +2,20 @@ import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
 import { ICreditFacade } from "../types";
-import { CreditManagerDataStructOutput } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
+import {
+  CreditManagerDataStructOutput,
+  CreditManagerDebtParamsStructOutput,
+  QuotaInfoStructOutput,
+} from "../types-v3/IDataCompressorV3_00";
+import { BigintifyProps } from "../utils/types";
+
+export type CreditManagerDebtParams = BigintifyProps<
+  ExcludeArrayProps<CreditManagerDebtParamsStructOutput>
+>;
+
+export type QuotaInfo = BigintifyProps<
+  ExcludeArrayProps<QuotaInfoStructOutput>
+>;
 
 export interface AdapterPayload {
   allowedContract: string;
@@ -14,9 +27,7 @@ export type TotalDebt = ExcludeArrayProps<
 >;
 
 export type CreditManagerDataPayload =
-  ExcludeArrayProps<CreditManagerDataStructOutput> & {
-    totalDebt?: TotalDebt;
-  };
+  ExcludeArrayProps<CreditManagerDataStructOutput>;
 
 export interface ChartsCreditManagerPayload {
   addr: string;

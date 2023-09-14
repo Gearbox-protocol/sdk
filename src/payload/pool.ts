@@ -1,9 +1,19 @@
 import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
-import { PoolDataStruct } from "../types/@gearbox-protocol/core-v2/contracts/interfaces/IDataCompressor.sol/IDataCompressor";
+import {
+  LinearModelStructOutput,
+  PoolDataStructOutput,
+} from "../types-v3/IDataCompressorV3_00";
 
-export type PoolDataPayload = ExcludeArrayProps<PoolDataStruct>;
+export type PoolDataPayload = ExcludeArrayProps<PoolDataStructOutput>;
+
+export type LinearModel = Omit<
+  ExcludeArrayProps<LinearModelStructOutput>,
+  "version"
+> & {
+  version: number;
+};
 
 export interface ChartsPoolDataPayload {
   addr: string;

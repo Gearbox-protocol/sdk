@@ -1,6 +1,7 @@
 import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
+  toBigInt,
 } from "@gearbox-protocol/sdk-gov";
 import { Decimal } from "decimal.js-light";
 import { BigNumberish } from "ethers";
@@ -99,14 +100,6 @@ export function toSignificant(num: bigint, decimals: number): string {
   const number = new Decimal(num.toString()).div(divider);
   return number.toSignificantDigits(6, 4).toString();
 }
-
-export const toBigInt = (v: BigNumberish): bigint => {
-  const value =
-    typeof v === "object" && (v as any).type === "BigNumber"
-      ? (v as any).hex
-      : v.toString();
-  return BigInt(value);
-};
 
 export function toBN(num: string, decimals: number): bigint {
   if (num === "") return 0n;

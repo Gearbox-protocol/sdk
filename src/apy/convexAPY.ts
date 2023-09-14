@@ -10,6 +10,7 @@ import {
   NetworkType,
   PRICE_DECIMALS,
   SECONDS_PER_YEAR,
+  toBigInt,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 import {
@@ -36,7 +37,6 @@ import {
   ICurvePool,
   ICurvePool__factory,
 } from "../types";
-import { toBigInt } from "../utils/formatter";
 import { CurveAPYResult } from "./curveAPY";
 
 const V2_POOLS: Record<number, true> = { 20: true };

@@ -1,3 +1,5 @@
+export * from "./apy";
+export * from "./contracts/contractsRegister";
 export * from "./core/assets";
 export * from "./core/creditAccount";
 export * from "./core/creditManager";
@@ -11,63 +13,25 @@ export * from "./core/strategy";
 export * from "./core/tokenDistributor";
 export * from "./core/trade";
 export * from "./core/transactions";
+export * from "./parsers/txParser";
+export * from "./pathfinder/core";
+export * from "./pathfinder/pathfinder";
 export * from "./payload/creditAccount";
 export * from "./payload/creditManager";
 export * from "./payload/creditSession";
 export * from "./payload/graphPayload";
 export * from "./payload/pool";
 export * from "./payload/token";
+export * from "./tokens/tokenData";
 export * from "./types/index";
+export * as TypesV3 from "./types-v3";
+export * from "./utils/errors";
 export * from "./utils/formatter";
 export * from "./utils/loading";
 export * from "./utils/math";
-export * from "./utils/validate";
-
-// Tokens
-export * from "./apy";
-export * from "./parsers/txParser";
-export * from "./pathfinder/core";
-export * from "./pathfinder/pathfinder";
-export * from "./utils/errors";
 export * from "./utils/price";
 export { callRepeater } from "./utils/repeater";
+export * from "./utils/validate";
 export * from "./watchers/creditAccountWatcher";
 export * from "./watchers/creditManagerWatcher";
-export type {
-  CallData,
-  MCall,
-  NetworkType,
-  NormalToken,
-  NormalTokenData,
-  SupportedToken,
-} from "@gearbox-protocol/sdk-gov";
-export {
-  ADDRESS_PROVIDER,
-  ARBITRUM_NETWORK,
-  CHAINS,
-  decimals,
-  detectNetwork,
-  extractTokenData,
-  getDecimals,
-  getNetworkType,
-  GOERLI_NETWORK,
-  HARDHAT_NETWORK,
-  isLPToken,
-  isNormalToken,
-  isSupportedNetwork,
-  isSupportedToken,
-  LOCAL_NETWORK,
-  lpTokens,
-  MAINNET_NETWORK,
-  MultiCallContract,
-  normalTokens,
-  OPTIMISM_NETWORK,
-  POLYGON_NETWORK,
-  safeMulticall,
-  supportedChains,
-  supportedTokens,
-  TENDERLY_NETWORK,
-  tokenDataByNetwork,
-  tokenSymbolByAddress,
-  WAD,
-} from "@gearbox-protocol/sdk-gov";
+export * from "@gearbox-protocol/sdk-gov";
