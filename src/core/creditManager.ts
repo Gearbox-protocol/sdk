@@ -61,30 +61,30 @@ export class CreditManagerData {
     this.creditFacade = payload.creditFacade.toLowerCase();
     this.creditConfigurator = payload.creditConfigurator.toLowerCase();
     this.degenNFT = payload.degenNFT.toLowerCase();
-    this.isDegenMode = payload.isDegenMode || false;
-    this.version = payload.cfVersion?.toNumber() || 0;
-    this.isPaused = payload.isPaused || false;
-    this.forbiddenTokenMask = toBigInt(payload.forbiddenTokenMask || 0);
+    this.isDegenMode = payload.isDegenMode;
+    this.version = payload.cfVersion?.toNumber();
+    this.isPaused = payload.isPaused;
+    this.forbiddenTokenMask = toBigInt(payload.forbiddenTokenMask);
     this.maxEnabledTokensLength = payload.maxEnabledTokensLength;
 
     this.borrowRate = Number(
-      (toBigInt(payload.baseBorrowRate || 0) *
-        (toBigInt(payload.feeInterest || 0) + PERCENTAGE_FACTOR) *
+      (toBigInt(payload.baseBorrowRate) *
+        (toBigInt(payload.feeInterest) + PERCENTAGE_FACTOR) *
         PERCENTAGE_DECIMALS) /
         RAY,
     );
 
-    this.minDebt = toBigInt(payload.minDebt || 0);
-    this.maxDebt = toBigInt(payload.maxDebt || 0);
-    this.availableToBorrow = toBigInt(payload.availableToBorrow || 0);
-    this.totalDebt = toBigInt(payload.totalDebt || 0);
-    this.totalDebtLimit = toBigInt(payload.totalDebtLimit || 0);
+    this.minDebt = toBigInt(payload.minDebt);
+    this.maxDebt = toBigInt(payload.maxDebt);
+    this.availableToBorrow = toBigInt(payload.availableToBorrow);
+    this.totalDebt = toBigInt(payload.totalDebt);
+    this.totalDebtLimit = toBigInt(payload.totalDebtLimit);
 
-    this.feeInterest = payload.feeInterest || 0;
-    this.feeLiquidation = payload.feeLiquidation || 0;
-    this.liquidationDiscount = payload.liquidationDiscount || 0;
-    this.feeLiquidationExpired = payload.feeLiquidationExpired || 0;
-    this.liquidationDiscountExpired = payload.liquidationDiscountExpired || 0;
+    this.feeInterest = payload.feeInterest;
+    this.feeLiquidation = payload.feeLiquidation;
+    this.liquidationDiscount = payload.liquidationDiscount;
+    this.feeLiquidationExpired = payload.feeLiquidationExpired;
+    this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
 
     payload.collateralTokens.forEach(t => {
       const tLc = t.toLowerCase();
@@ -104,7 +104,7 @@ export class CreditManagerData {
       Record<string, bigint>
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
-      if (address) acc[address.toLowerCase()] = toBigInt(threshold || 0);
+      if (address) acc[address.toLowerCase()] = toBigInt(threshold);
       return acc;
     }, {});
 
@@ -112,20 +112,20 @@ export class CreditManagerData {
       token: q.token.toLowerCase(),
       rate: q.rate,
       quotaIncreaseFee: q.quotaIncreaseFee,
-      totalQuoted: toBigInt(q.totalQuoted || 0),
-      limit: toBigInt(q.limit || 0),
-      isActive: q.isActive || false,
+      totalQuoted: toBigInt(q.totalQuoted),
+      limit: toBigInt(q.limit),
+      isActive: q.isActive,
     }));
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
-      U_1: payload.lirm.U_1 || 0,
-      U_2: payload.lirm.U_2 || 0,
-      R_base: payload.lirm.R_base || 0,
-      R_slope1: payload.lirm.R_slope1 || 0,
-      R_slope2: payload.lirm.R_slope2 || 0,
-      R_slope3: payload.lirm.R_slope3 || 0,
-      version: payload?.lirm?.version?.toNumber() || 0,
+      U_1: payload.lirm.U_1,
+      U_2: payload.lirm.U_2,
+      R_base: payload.lirm.R_base,
+      R_slope1: payload.lirm.R_slope1,
+      R_slope2: payload.lirm.R_slope2,
+      R_slope3: payload.lirm.R_slope3,
+      version: payload?.lirm?.version?.toNumber(),
     };
 
     TxParser.addCreditManager(this.address, this.version);

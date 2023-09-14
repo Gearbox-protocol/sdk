@@ -84,56 +84,54 @@ export class CreditAccountData {
     this.creditManager = payload.creditManager.toLowerCase();
     this.creditFacade = payload.creditFacade.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
-    this.since = Number(toBigInt(payload.since || 0));
-    this.expirationDate = Number(toBigInt(payload.expirationDate || 0));
-    this.version = payload.cfVersion?.toNumber() || 0;
+    this.since = Number(toBigInt(payload.since));
+    this.expirationDate = Number(toBigInt(payload.expirationDate));
+    this.version = payload.cfVersion?.toNumber();
 
-    this.healthFactor = Number(toBigInt(payload.healthFactor || 0));
-    this.enabledTokenMask = toBigInt(payload.enabledTokensMask || 0);
+    this.healthFactor = Number(toBigInt(payload.healthFactor));
+    this.enabledTokenMask = toBigInt(payload.enabledTokensMask);
     this.isDeleting = false;
 
-    this.borrowedAmount = toBigInt(payload.debt || 0);
-    this.accruedInterest = toBigInt(payload.accruedInterest || 0);
-    this.accruedFees = toBigInt(payload.accruedFees || 0);
+    this.borrowedAmount = toBigInt(payload.debt);
+    this.accruedInterest = toBigInt(payload.accruedInterest);
+    this.accruedFees = toBigInt(payload.accruedFees);
     this.borrowedAmountPlusInterestAndFees =
       this.borrowedAmount + this.accruedInterest + this.accruedFees;
-    this.totalDebtUSD = toBigInt(payload.totalDebtUSD || 0);
-    this.totalValue = toBigInt(payload.totalValue || 0);
-    this.totalValueUSD = toBigInt(payload.totalValueUSD || 0);
-    this.twvUSD = toBigInt(payload.twvUSD || 0);
+    this.totalDebtUSD = toBigInt(payload.totalDebtUSD);
+    this.totalValue = toBigInt(payload.totalValue);
+    this.totalValueUSD = toBigInt(payload.totalValueUSD);
+    this.twvUSD = toBigInt(payload.twvUSD);
 
     this.baseBorrowRate = rayToNumber(
-      toBigInt(payload.baseBorrowRate || 0) *
+      toBigInt(payload.baseBorrowRate) *
         PERCENTAGE_DECIMALS *
         PERCENTAGE_FACTOR,
     );
     this.borrowRate = rayToNumber(
-      toBigInt(payload.aggregatedBorrowRate || 0) *
+      toBigInt(payload.aggregatedBorrowRate) *
         PERCENTAGE_DECIMALS *
         PERCENTAGE_FACTOR,
     );
 
-    this.cumulativeIndexNow = toBigInt(payload.cumulativeIndexNow || 0);
+    this.cumulativeIndexNow = toBigInt(payload.cumulativeIndexNow);
     this.cumulativeIndexLastUpdate = toBigInt(
-      payload.cumulativeIndexLastUpdate || 0,
+      payload.cumulativeIndexLastUpdate,
     );
-    this.cumulativeQuotaInterest = toBigInt(
-      payload.cumulativeQuotaInterest || 0,
-    );
+    this.cumulativeQuotaInterest = toBigInt(payload.cumulativeQuotaInterest);
 
     this.activeBots = payload.activeBots.map(b => b.toLowerCase());
-    this.maxApprovedBots = toBigInt(payload.maxApprovedBots || 0);
+    this.maxApprovedBots = toBigInt(payload.maxApprovedBots);
 
     payload.balances.forEach(b => {
       const token = b.token.toLowerCase();
       const balance: CaTokenBalance = {
         token,
-        balance: toBigInt(b.balance || 0),
-        isForbidden: b.isForbidden || false,
-        isEnabled: b.isEnabled || false,
-        isQuoted: b.isQuoted || false,
-        quota: toBigInt(b.quota || 0),
-        quotaRate: b.quotaRate || 0,
+        balance: toBigInt(b.balance),
+        isForbidden: b.isForbidden,
+        isEnabled: b.isEnabled,
+        isQuoted: b.isQuoted,
+        quota: toBigInt(b.quota),
+        quotaRate: b.quotaRate,
       };
 
       if (!b.isForbidden) {
