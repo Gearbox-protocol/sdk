@@ -12,9 +12,8 @@ import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { IRouter, IRouter__factory } from "../types";
 import { BalanceStruct } from "../types/ICreditFacadeV3Multicall";
-import { SwapTaskStruct } from "../types/IRouter";
+import { MultiCallStructOutput, SwapTaskStruct } from "../types/IRouter";
 import {
-  MultiCall,
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,
   PathFinderResult,
@@ -27,7 +26,7 @@ const GAS_PER_BLOCK = 400e6;
 
 export interface CloseResult {
   amount: bigint;
-  calls: Array<MultiCall>;
+  calls: Array<MultiCallStructOutput>;
   gasUsage: bigint;
 }
 
