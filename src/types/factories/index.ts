@@ -25,7 +25,6 @@ export * as iWithdrawalManagerV3Sol from "./IWithdrawalManagerV3.sol";
 export * as istEthSol from "./IstETH.sol";
 export * as iwstEthSol from "./IwstETH.sol";
 export * as draftIerc20PermitSol from "./draft-IERC20Permit.sol";
-export * as external from "./external";
 export { AddressProvider__factory } from "./AddressProvider__factory";
 export { Claimable__factory } from "./Claimable__factory";
 export { ERC20__factory } from "./ERC20__factory";
