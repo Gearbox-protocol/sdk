@@ -4,6 +4,7 @@ import {
   contractsByAddress,
   contractsByNetwork,
   ConvexPoolParams,
+  ExcludeArrayProps,
   NetworkType,
   SupportedContract,
   SupportedToken,
@@ -60,14 +61,16 @@ export class TxParser {
   }
 
   public static parseMultiCall(
-    calls: Array<MultiCallStructOutput>,
+    calls: Array<ExcludeArrayProps<MultiCallStructOutput>>,
   ): Array<string> {
     return calls.map(call =>
       TxParser.parse(call.target, call.callData.toString()),
     );
   }
 
-  public static parseToObjectMultiCall(calls: Array<MultiCallStructOutput>) {
+  public static parseToObjectMultiCall(
+    calls: Array<ExcludeArrayProps<MultiCallStructOutput>>,
+  ) {
     return calls.map(call =>
       TxParser.parseToObject(call.target, call.callData.toString()),
     );
