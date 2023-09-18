@@ -1215,7 +1215,7 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.39.0.tgz#6f1d51e6c3e5392f97c81cba53c2b16459f99c5c"
   integrity sha512-Z6BDSJIzXm9RebnJWFtyhlcbSm4/1bfAXhDsuQv9lAUY04fHD3uM8qfyP9PekkK/ISPW2N8x8yJNHFcnZC8VHw==
 
-"@gearbox-protocol/eslint-config@^1.4.1", "@gearbox-protocol/eslint-config@^1.6.1":
+"@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/eslint-config/-/eslint-config-1.6.1.tgz#315a5c0b19593e925db32de72c27964adc44d2f8"
   integrity sha512-CNOjCt8fNESxnub1dXNEZWVxMQiau+fOSbRY5q7xPIv7H6iYQTxdPDefC7geStC8dzqvv2F9t/dFUzPJjbEzuQ==
@@ -1247,26 +1247,17 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.0.9.tgz#98e751cd03143a3fdd7f85ef1c7ff575956f0421"
   integrity sha512-ALus5ziS+jFJ4Tli8s056DSvBIqX7pZAGKG638uCn7lWVYlQzgpcTt6FE0iKqaNNV2A2/k6k4kInmETjv+zFEg==
 
-"@gearbox-protocol/prettier-config@^1.4.1", "@gearbox-protocol/prettier-config@^1.5.0":
+"@gearbox-protocol/prettier-config@^1.4.1":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/prettier-config/-/prettier-config-1.5.0.tgz#4df8e9fd2305fee6ab8c1417a02e31343836932a"
   integrity sha512-FUoprSsBdZyBjgxXCKL6mTkbeUJytaLzPJqIOoQpDmBRTX0seCc2o5I9PI9tySoRIlNnd/XXnKCXq1xHDEGbxw==
 
-"@gearbox-protocol/sdk-gov@^1.5.26":
-  version "1.5.26"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.5.26.tgz#b3dcb7bd0908ec97ab45890727f226fec447cec4"
-  integrity sha512-gosvvSpdJpmd0L/iBLpVit5ghdex1WC6Egx4qqswvX4xIpm+ZVDwNANeJyQtTQiaky3iBGbdG+L0zflZ4Udnlw==
+"@gearbox-protocol/sdk-gov@^1.5.27":
+  version "1.5.27"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.5.27.tgz#7d0edf70a4ceb6fd5e14f2698dfa9cd4a7f0d0a3"
+  integrity sha512-faahcbhg9xVvFrmOxlLhXv2kcqTC8zTBOWs9icwa9c9ujD5j2Q2+39XTUK/h+/EKt3sYHzRott4H4xQ+0+O8hg==
   dependencies:
-    "@gearbox-protocol/eslint-config" "^1.6.1"
-    "@gearbox-protocol/prettier-config" "^1.5.0"
-    "@types/chai" "^4.3.5"
-    "@types/mocha" "^10.0.1"
-    axios "^1.4.0"
-    chai "^4.3.7"
-    dotenv "^16.3.1"
     ethers "5.6.9"
-    ts-toolbelt "^9.6.0"
-    tslog "^4.8.2"
 
 "@humanwhocodes/config-array@^0.11.11":
   version "0.11.11"
@@ -1744,7 +1735,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/chai@^4.3.3", "@types/chai@^4.3.5":
+"@types/chai@^4.3.3":
   version "4.3.6"
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.3.6.tgz#7b489e8baf393d5dd1266fb203ddd4ea941259e6"
   integrity sha512-VOVRLM1mBxIRxydiViqPcKn6MIxZytrbMpd6RJLIWKxUNr3zux8no0Oc7kJx0WAPIitgZ0gkrDS+btlqQpubpw==
@@ -2229,7 +2220,7 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-axios@^1.2.6, axios@^1.4.0:
+axios@^1.2.6:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.5.0.tgz#f02e4af823e2e46a9768cfc74691fdd0517ea267"
   integrity sha512-D4DdjDo5CY50Qms0qGQTTw6Q44jl7zRwY7bthds06pUGfChBCTcQs+N743eFWGEd6pRTMd6A+I87aWyFV5wiZQ==
@@ -2459,7 +2450,7 @@ caniuse-lite@^1.0.30001517:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001534.tgz#f24a9b2a6d39630bac5c132b5dff89b39a12e7dd"
   integrity sha512-vlPVrhsCS7XaSh2VvWluIQEzVhefrUQcEsQWSS5A5V+dM07uv1qHeQzAOTGIMy9i3e9bH15+muvI/UHojVgS/Q==
 
-chai@^4.3.6, chai@^4.3.7:
+chai@^4.3.6:
   version "4.3.8"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.8.tgz#40c59718ad6928da6629c70496fe990b2bb5b17c"
   integrity sha512-vX4YvVVtxlfSZ2VecZgFUTU5qPCYsobVI2O9FmwEXBhDigYGQA6jRXCycIs1yJnnWbZ6/+a2zNIF5DfVCcJBFQ==
@@ -2875,7 +2866,7 @@ dot-prop@^5.1.0:
   dependencies:
     is-obj "^2.0.0"
 
-dotenv@^16.0.1, dotenv@^16.3.1:
+dotenv@^16.0.1:
   version "16.3.1"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.3.1.tgz#369034de7d7e5b120972693352a3bf112172cc3e"
   integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
@@ -6120,11 +6111,6 @@ ts-node@^10.8.1, ts-node@^10.9.1:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-ts-toolbelt@^9.6.0:
-  version "9.6.0"
-  resolved "https://registry.yarnpkg.com/ts-toolbelt/-/ts-toolbelt-9.6.0.tgz#50a25426cfed500d4a09bd1b3afb6f28879edfd5"
-  integrity sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==
-
 tsconfig-paths@^3.14.2:
   version "3.14.2"
   resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.14.2.tgz#6e32f1f79412decd261f92d633a9dc1cfa99f088"
@@ -6146,11 +6132,6 @@ tslog@^3.3.3:
   integrity sha512-N0HHuHE0e/o75ALfkioFObknHR5dVchUad4F0XyFf3gXJYB++DewEzwGI/uIOM216E5a43ovnRNEeQIq9qgm4Q==
   dependencies:
     source-map-support "^0.5.21"
-
-tslog@^4.8.2:
-  version "4.9.2"
-  resolved "https://registry.yarnpkg.com/tslog/-/tslog-4.9.2.tgz#35de3a073784dfe3849caeaa028010c7a62b7f4a"
-  integrity sha512-wBM+LRJoNl34Bdu8mYEFxpvmOUedpNUwMNQB/NcuPIZKwdDde6xLHUev3bBjXQU7gdurX++X/YE7gLH8eXYsiQ==
 
 tsutils@^3.21.0:
   version "3.21.0"
