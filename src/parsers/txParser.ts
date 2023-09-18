@@ -4,7 +4,6 @@ import {
   contractsByAddress,
   contractsByNetwork,
   ConvexPoolParams,
-  ExcludeArrayProps,
   NetworkType,
   SupportedContract,
   SupportedToken,
@@ -12,7 +11,7 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 
-import { MultiCallStructOutput } from "../types/IRouter";
+import { MultiCall } from "../pathfinder/core";
 import { AbstractParser } from "./abstractParser";
 import { AddressProviderParser } from "./addressProviderParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
@@ -60,17 +59,13 @@ export class TxParser {
     return { contract: parser.contract, adapterName: parser.adapterName };
   }
 
-  public static parseMultiCall(
-    calls: Array<ExcludeArrayProps<MultiCallStructOutput>>,
-  ): Array<string> {
+  public static parseMultiCall(calls: Array<MultiCall>): Array<string> {
     return calls.map(call =>
       TxParser.parse(call.target, call.callData.toString()),
     );
   }
 
-  public static parseToObjectMultiCall(
-    calls: Array<ExcludeArrayProps<MultiCallStructOutput>>,
-  ) {
+  public static parseToObjectMultiCall(calls: Array<MultiCall>) {
     return calls.map(call =>
       TxParser.parseToObject(call.target, call.callData.toString()),
     );

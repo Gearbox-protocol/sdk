@@ -8,6 +8,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 
 import { TxParser } from "../parsers/txParser";
+import { MultiCall } from "../pathfinder/core";
 import {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
@@ -18,7 +19,6 @@ import {
   IConvexV1BaseRewardPoolAdapter__factory,
   ICreditFacadeV2Extended__factory,
 } from "../types";
-import { MultiCallStruct } from "../types/IRouter";
 
 export class CreditManagerData {
   readonly address: string;
@@ -148,7 +148,7 @@ export class CreditManagerData {
     accountAddress: string,
     tokenAddress: string,
     amount: bigint,
-  ): MultiCallStruct {
+  ): MultiCall {
     if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
@@ -161,7 +161,7 @@ export class CreditManagerData {
     };
   }
 
-  encodeIncreaseDebt(amount: bigint): MultiCallStruct {
+  encodeIncreaseDebt(amount: bigint): MultiCall {
     if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
@@ -174,7 +174,7 @@ export class CreditManagerData {
     };
   }
 
-  encodeDecreaseDebt(amount: bigint): MultiCallStruct {
+  encodeDecreaseDebt(amount: bigint): MultiCall {
     if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
@@ -187,7 +187,7 @@ export class CreditManagerData {
     };
   }
 
-  encodeEnableToken(token: string): MultiCallStruct {
+  encodeEnableToken(token: string): MultiCall {
     if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
@@ -200,7 +200,7 @@ export class CreditManagerData {
     };
   }
 
-  encodeDisableToken(token: string): MultiCallStruct {
+  encodeDisableToken(token: string): MultiCall {
     if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
@@ -216,7 +216,7 @@ export class CreditManagerData {
   static withdrawAllAndUnwrap_Convex(
     address: string,
     claim: boolean,
-  ): MultiCallStruct {
+  ): MultiCall {
     return {
       target: address,
       callData:

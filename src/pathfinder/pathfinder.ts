@@ -6,18 +6,19 @@ import {
   toBigInt,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish, providers, Signer } from "ethers";
+import { BigNumber, BigNumberish, providers, Signer } from "ethers";
 
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { IRouter, IRouter__factory } from "../types";
 import { BalanceStruct } from "../types/ICreditFacadeV3Multicall";
-import { MultiCallStructOutput, SwapTaskStruct } from "../types/IRouter";
 import {
+  MultiCall,
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,
   PathFinderResult,
   SwapOperation,
+  SwapTask,
 } from "./core";
 import { PathOptionFactory } from "./pathOptions";
 
@@ -26,7 +27,7 @@ const GAS_PER_BLOCK = 400e6;
 
 export interface CloseResult {
   amount: bigint;
-  calls: Array<MultiCallStructOutput>;
+  calls: Array<MultiCall>;
   gasUsage: bigint;
 }
 
@@ -66,7 +67,7 @@ export class PathFinder {
   ): Promise<Array<PathFinderResult>> {
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    const swapTask: SwapTaskStruct = {
+    const swapTask: SwapTask = {
       swapOperation: swapOperation,
       creditAccount: creditAccount.addr,
       tokenIn:
@@ -75,8 +76,8 @@ export class PathFinder {
         tokenDataByNetwork[this.network][tokenOut as SupportedToken] ||
         tokenOut,
       connectors,
-      amount: amount,
-      slippage,
+      amount: BigNumber.from(amount),
+      slippage: BigNumber.from(slippage),
       externalSlippage: false,
     };
 
