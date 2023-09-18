@@ -51,7 +51,7 @@ export class CreditManagerData {
   readonly supportedTokens: Record<string, true> = {};
   readonly adapters: Record<string, string>;
   readonly liquidationThresholds: Record<string, bigint>;
-  readonly quotas: Array<QuotaInfo>;
+  readonly quotas: Record<string, QuotaInfo>;
   readonly interestModel: LinearModel;
 
   constructor(payload: CreditManagerDataPayload) {
@@ -108,14 +108,19 @@ export class CreditManagerData {
       return acc;
     }, {});
 
-    this.quotas = payload.quotas.map(q => ({
-      token: q.token.toLowerCase(),
-      rate: q.rate,
-      quotaIncreaseFee: q.quotaIncreaseFee,
-      totalQuoted: toBigInt(q.totalQuoted),
-      limit: toBigInt(q.limit),
-      isActive: q.isActive,
-    }));
+    this.quotas = Object.fromEntries(
+      payload.quotas.map(q => [
+        q.token.toLowerCase(),
+        {
+          token: q.token.toLowerCase(),
+          rate: q.rate,
+          quotaIncreaseFee: q.quotaIncreaseFee,
+          totalQuoted: toBigInt(q.totalQuoted),
+          limit: toBigInt(q.limit),
+          isActive: q.isActive,
+        },
+      ]),
+    );
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
