@@ -10,8 +10,9 @@ import {
 import { Signer } from "ethers";
 
 import { TxParser } from "../parsers/txParser";
-import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
+import { PathFinderResult, SwapOperation } from "../pathfinder/core";
 import { ICreditFacadeV2, ICreditFacadeV2__factory } from "../types";
+import { MultiCallStruct, MultiCallStructOutput } from "../types/IRouter";
 import { formatBN } from "../utils/formatter";
 import { CreditManagerData } from "./creditManager";
 import { EVMTx } from "./eventOrTx";
@@ -184,7 +185,7 @@ export class Trade {
   }
 
   static getCallInfo(
-    calls: Array<MultiCall>,
+    calls: Array<MultiCallStructOutput>,
     creditManager: string,
     currentContracts: Record<SupportedContract, string>,
   ) {
@@ -245,7 +246,7 @@ export class Trade {
   static async executeMulticallPath(
     creditFacade: string | ICreditFacadeV2,
     signer: Signer,
-    calls: Array<MultiCall>,
+    calls: Array<MultiCallStruct>,
   ) {
     if (calls.length < 1) throw new Error("No path to execute");
     const safeCreditFacade =
@@ -257,7 +258,7 @@ export class Trade {
   }
 
   private static async executeOnCreditFacade(
-    calls: Array<MultiCall>,
+    calls: Array<MultiCallStruct>,
     creditFacade: ICreditFacadeV2,
   ) {
     return creditFacade.multicall(calls);
