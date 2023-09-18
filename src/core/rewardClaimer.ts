@@ -5,7 +5,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { providers } from "ethers";
 
-import { MultiCallStruct } from "../types/IRouter";
+import { MultiCall } from "../pathfinder/core";
 import { CreditAccountData } from "./creditAccount";
 import { CreditManagerData } from "./creditManager";
 import { RewardConvex } from "./rewardConvex";
@@ -13,7 +13,7 @@ import { RewardConvex } from "./rewardConvex";
 export interface Rewards {
   contract: SupportedContract;
   rewards: Partial<Record<SupportedToken, bigint>>;
-  calls: Array<MultiCallStruct>;
+  calls: Array<MultiCall>;
 }
 
 export interface AdapterWithType {

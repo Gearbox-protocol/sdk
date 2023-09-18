@@ -8,6 +8,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 
 import { TxParser } from "../parsers/txParser";
+import { MultiCall } from "../pathfinder/core";
 import {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
@@ -17,8 +18,8 @@ import { LinearModel } from "../payload/pool";
 import {
   IConvexV1BaseRewardPoolAdapter__factory,
   ICreditFacadeV2Extended__factory,
+  ICreditFacadeV3Multicall__factory,
 } from "../types";
-import { MultiCallStruct } from "../types/IRouter";
 
 export class CreditManagerData {
   readonly address: string;
@@ -51,7 +52,7 @@ export class CreditManagerData {
   readonly supportedTokens: Record<string, true> = {};
   readonly adapters: Record<string, string>;
   readonly liquidationThresholds: Record<string, bigint>;
-  readonly quotas: Array<QuotaInfo>;
+  readonly quotas: Record<string, QuotaInfo>;
   readonly interestModel: LinearModel;
 
   constructor(payload: CreditManagerDataPayload) {
@@ -108,14 +109,19 @@ export class CreditManagerData {
       return acc;
     }, {});
 
-    this.quotas = payload.quotas.map(q => ({
-      token: q.token.toLowerCase(),
-      rate: q.rate,
-      quotaIncreaseFee: q.quotaIncreaseFee,
-      totalQuoted: toBigInt(q.totalQuoted),
-      limit: toBigInt(q.limit),
-      isActive: q.isActive,
-    }));
+    this.quotas = Object.fromEntries(
+      payload.quotas.map(q => [
+        q.token.toLowerCase(),
+        {
+          token: q.token.toLowerCase(),
+          rate: q.rate,
+          quotaIncreaseFee: q.quotaIncreaseFee,
+          totalQuoted: toBigInt(q.totalQuoted),
+          limit: toBigInt(q.limit),
+          isActive: q.isActive,
+        },
+      ]),
+    );
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
@@ -144,26 +150,32 @@ export class CreditManagerData {
     }
   }
 
-  encodeAddCollateral(
-    accountAddress: string,
+  encodeAddCollateralV2(
+    account: string,
     tokenAddress: string,
     amount: bigint,
-  ): MultiCallStruct {
-    if (this.version === 1)
-      throw new Error("Multicall is eligible only for version 2");
+  ): MultiCall {
     return {
       target: this.creditFacade,
       callData:
         ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
           "addCollateral",
-          [accountAddress, tokenAddress, amount],
+          [account, tokenAddress, amount],
+        ),
+    };
+  }
+  encodeAddCollateralV3(tokenAddress: string, amount: bigint): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "addCollateral",
+          [tokenAddress, amount],
         ),
     };
   }
 
-  encodeIncreaseDebt(amount: bigint): MultiCallStruct {
-    if (this.version === 1)
-      throw new Error("Multicall is eligible only for version 2");
+  encodeIncreaseDebtV2(amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
       callData:
@@ -173,10 +185,18 @@ export class CreditManagerData {
         ),
     };
   }
+  encodeIncreaseDebtV3(amount: bigint): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "increaseDebt",
+          [amount],
+        ),
+    };
+  }
 
-  encodeDecreaseDebt(amount: bigint): MultiCallStruct {
-    if (this.version === 1)
-      throw new Error("Multicall is eligible only for version 2");
+  encodeDecreaseDebtV2(amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
       callData:
@@ -186,10 +206,18 @@ export class CreditManagerData {
         ),
     };
   }
+  encodeDecreaseDebtV3(amount: bigint): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "decreaseDebt",
+          [amount],
+        ),
+    };
+  }
 
-  encodeEnableToken(token: string): MultiCallStruct {
-    if (this.version === 1)
-      throw new Error("Multicall is eligible only for version 2");
+  encodeEnableTokenV2(token: string): MultiCall {
     return {
       target: this.creditFacade,
       callData:
@@ -199,10 +227,18 @@ export class CreditManagerData {
         ),
     };
   }
+  encodeEnableTokenV3(token: string): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "enableToken",
+          [token],
+        ),
+    };
+  }
 
-  encodeDisableToken(token: string): MultiCallStruct {
-    if (this.version === 1)
-      throw new Error("Multicall is eligible only for version 2");
+  encodeDisableTokenV2(token: string): MultiCall {
     return {
       target: this.creditFacade,
       callData:
@@ -212,11 +248,21 @@ export class CreditManagerData {
         ),
     };
   }
+  encodeDisableTokenV3(token: string): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "disableToken",
+          [token],
+        ),
+    };
+  }
 
   static withdrawAllAndUnwrap_Convex(
     address: string,
     claim: boolean,
-  ): MultiCallStruct {
+  ): MultiCall {
     return {
       target: address,
       callData:

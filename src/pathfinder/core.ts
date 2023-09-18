@@ -1,4 +1,6 @@
-import { MultiCallStructOutput } from "../types/IRouter";
+import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
+
+import { MultiCallStructOutput, SwapTaskStructOutput } from "../types/IRouter";
 
 export enum SwapOperation {
   EXACT_INPUT,
@@ -6,17 +8,20 @@ export enum SwapOperation {
   EXACT_OUTPUT,
 }
 
+export type MultiCall = ExcludeArrayProps<MultiCallStructOutput>;
+export type SwapTask = ExcludeArrayProps<SwapTaskStructOutput>;
+
 export interface PathFinderResult {
   amount: bigint;
-  calls: Array<MultiCallStructOutput>;
+  calls: Array<MultiCall>;
 }
 
 export interface PathFinderOpenStrategyResult {
   balances: Record<string, bigint>;
-  calls: Array<MultiCallStructOutput>;
+  calls: Array<MultiCall>;
 }
 
 export interface PathFinderCloseResult {
   underlyingBalance: bigint;
-  calls: Array<MultiCallStructOutput>;
+  calls: Array<MultiCall>;
 }

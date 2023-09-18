@@ -20,6 +20,8 @@ import {
   IInterestRateModel__factory,
   IPoolService,
   IPoolService__factory,
+  IPoolV3,
+  IPoolV3__factory,
 } from "../../types";
 import { rayToNumber } from "../../utils/formatter";
 
@@ -115,8 +117,12 @@ export class PoolData {
       Number(toBigInt(payload.withdrawFee)) / Number(PERCENTAGE_DECIMALS);
   }
 
-  getContractETH(signer: Signer): IPoolService {
+  getPoolContractV2(signer: Signer): IPoolService {
     return IPoolService__factory.connect(this.address, signer);
+  }
+
+  getPoolContractV3(signer: Signer): IPoolV3 {
+    return IPoolV3__factory.connect(this.address, signer);
   }
 
   async calculateBorrowRate({
