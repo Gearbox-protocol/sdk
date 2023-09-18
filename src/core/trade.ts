@@ -1,21 +1,16 @@
 import {
   contractParams,
   decimals,
-  isLPToken,
   isSupportedContract,
   SupportedContract,
   tokenSymbolByAddress,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
-import { Signer } from "ethers";
 
 import { TxParser } from "../parsers/txParser";
 import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
-import { ICreditFacadeV2, ICreditFacadeV2__factory } from "../types";
 import { formatBN } from "../utils/formatter";
 import { CreditManagerData } from "./creditManager";
-import { EVMTx } from "./eventOrTx";
-import { TXSwap } from "./transactions";
 
 interface Info {
   name: string;
@@ -23,10 +18,9 @@ interface Info {
   creditManager: string;
 }
 
-export interface TradeProps {
+interface TradeProps {
   adapter: Info;
   tradePath: PathFinderResult;
-  creditFacade: string;
 
   tokenFrom: string;
   tokenTo: string;
@@ -36,18 +30,7 @@ export interface TradeProps {
   swapName: TradeOperations;
 }
 
-export type TradeOperations =
-  | "farmWithdraw"
-  | "farmDeposit"
-  | "swap"
-  | "unknownOperation";
-
-const OPERATION_NAMES: Record<TradeOperations, string> = {
-  farmWithdraw: "Farm withdraw",
-  farmDeposit: "Farm deposit",
-  swap: "Swap",
-  unknownOperation: "Unknown operation",
-};
+export type TradeOperations = "farmWithdraw" | "farmDeposit" | "swap";
 
 export interface GetTradesProps {
   from: string;
@@ -57,12 +40,14 @@ export interface GetTradesProps {
 
   creditManager: CreditManagerData;
   currentContracts: Record<SupportedContract, string>;
+
+  swapType: SwapOperation;
+  swapName: TradeOperations;
 }
 
 export class Trade {
   readonly helper: Info;
   readonly tradePath: PathFinderResult;
-  readonly creditFacade: string;
 
   readonly swapType: SwapOperation;
   readonly sourceAmount: bigint;
@@ -72,10 +57,9 @@ export class Trade {
   readonly tokenTo: string;
   readonly operationName: TradeOperations;
 
-  constructor(props: TradeProps) {
+  private constructor(props: TradeProps) {
     this.helper = props.adapter;
     this.tradePath = props.tradePath;
-    this.creditFacade = props.creditFacade;
 
     this.swapType = props.swapType;
     this.sourceAmount = props.sourceAmount;
@@ -88,26 +72,6 @@ export class Trade {
 
   getName(): string {
     return this.helper.name;
-  }
-
-  async execute(signer: Signer): Promise<EVMTx> {
-    const receipt = await Trade.executeMulticallPath(
-      this.creditFacade,
-      signer,
-      this.tradePath.calls,
-    );
-
-    return new TXSwap({
-      txHash: receipt.hash,
-      protocol: this.helper.contractAddress,
-      operation: OPERATION_NAMES[this.operationName],
-      amountFrom: this.sourceAmount,
-      amountTo: this.expectedAmount,
-      tokenFrom: this.tokenFrom,
-      tokenTo: this.tokenTo,
-      creditManager: this.helper.creditManager,
-      timestamp: 0,
-    });
   }
 
   toString(): string {
@@ -136,6 +100,9 @@ export class Trade {
 
     creditManager,
     currentContracts,
+
+    swapType,
+    swapName,
   }: GetTradesProps) {
     const trades = results.reduce<Array<Trade>>((acc, tradePath) => {
       const { calls } = tradePath;
@@ -147,14 +114,13 @@ export class Trade {
 
       const trade = new Trade({
         tradePath,
-        creditFacade: creditManager.creditFacade,
         adapter: callInfo[0],
-        swapType: SwapOperation.EXACT_INPUT,
+        swapType,
         sourceAmount: amount,
         expectedAmount: tradePath.amount,
         tokenFrom: from,
         tokenTo: to,
-        swapName: Trade.getOperationName(from, to),
+        swapName,
       });
 
       acc.push(trade);
@@ -163,24 +129,6 @@ export class Trade {
     }, []);
 
     return trades;
-  }
-
-  static getOperationName(
-    tokenInAddress: string,
-    tokenOutAddress: string,
-  ): TradeOperations {
-    const tokenInSymbol = tokenSymbolByAddress[tokenInAddress];
-    const tokenOutSymbol = tokenSymbolByAddress[tokenOutAddress];
-
-    const tokenInIsLp = isLPToken(tokenInSymbol);
-    const tokenOutIsLp = isLPToken(tokenOutSymbol);
-
-    if (!tokenInSymbol) throw new Error(`Unknown token: ${tokenInAddress}`);
-    if (!tokenOutSymbol) throw new Error(`Unknown token: ${tokenOutAddress}`);
-    if (tokenInIsLp && !tokenOutIsLp) return "farmWithdraw";
-    if (!tokenInIsLp && tokenOutIsLp) return "farmDeposit";
-    if (!tokenInIsLp && !tokenOutIsLp) return "swap";
-    return "unknownOperation";
   }
 
   static getCallInfo(
@@ -216,10 +164,6 @@ export class Trade {
     }
   }
 
-  static getTradeId(trade: Trade) {
-    return `${trade.getName()}:${trade.expectedAmount.toString()}`;
-  }
-
   static sortTrades(trades: Array<Trade>, swapStrategy: string) {
     if (trades.length === 0) return [];
 
@@ -240,26 +184,5 @@ export class Trade {
     });
 
     return sorted;
-  }
-
-  static async executeMulticallPath(
-    creditFacade: string | ICreditFacadeV2,
-    signer: Signer,
-    calls: Array<MultiCall>,
-  ) {
-    if (calls.length < 1) throw new Error("No path to execute");
-    const safeCreditFacade =
-      typeof creditFacade === "string"
-        ? ICreditFacadeV2__factory.connect(creditFacade, signer)
-        : creditFacade;
-
-    return this.executeOnCreditFacade(calls, safeCreditFacade);
-  }
-
-  private static async executeOnCreditFacade(
-    calls: Array<MultiCall>,
-    creditFacade: ICreditFacadeV2,
-  ) {
-    return creditFacade.multicall(calls);
   }
 }
