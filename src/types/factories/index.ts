@@ -22,6 +22,7 @@ export * as iUniswapV3Sol from "./IUniswapV3.sol";
 export * as iUniswapV3AdapterSol from "./IUniswapV3Adapter.sol";
 export * as iWithdrawalManagerV3Sol from "./IWithdrawalManagerV3.sol";
 export * as istEthSol from "./IstETH.sol";
+export * as iwstEthSol from "./IwstETH.sol";
 export * as iwstEthGatewaySol from "./IwstETHGateway.sol";
 export { AddressProvider__factory } from "./AddressProvider__factory";
 export { Claimable__factory } from "./Claimable__factory";
