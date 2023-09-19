@@ -30,8 +30,6 @@ export class PoolData {
   readonly address: string;
   readonly underlyingToken: string;
   readonly dieselToken: string;
-  readonly isWETH: boolean;
-  readonly isWSTETH: boolean;
   readonly isPaused: boolean;
   readonly version: number;
   readonly poolQuotaKeeper: string;
@@ -63,11 +61,8 @@ export class PoolData {
 
   constructor(payload: PoolDataPayload) {
     this.address = payload.addr.toLowerCase();
-    const underlying = payload.underlying.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
     this.dieselToken = payload.dieselToken.toLowerCase();
-    this.isWETH = tokenSymbolByAddress[underlying] === "WETH";
-    this.isWSTETH = tokenSymbolByAddress[underlying] === "wstETH";
     this.isPaused = payload.isPaused;
     this.version = payload.version.toNumber();
     this.poolQuotaKeeper = payload.poolQuotaKeeper.toLowerCase();
