@@ -7,7 +7,12 @@ import {
   PoolDataStructOutput,
 } from "../types/IDataCompressorV3_00";
 
-export type PoolDataPayload = ExcludeArrayProps<PoolDataStructOutput>;
+export type PoolDataPayload = Omit<
+  ExcludeArrayProps<PoolDataStructOutput>,
+  "zappers"
+> & {
+  zappers: Array<PoolZapper>;
+};
 
 export type LinearModel = Omit<
   ExcludeArrayProps<LinearModelStructOutput>,

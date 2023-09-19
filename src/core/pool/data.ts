@@ -2,7 +2,6 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   toBigInt,
-  tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
@@ -146,10 +145,9 @@ export class PoolData {
       Number(toBigInt(payload.withdrawFee)) / Number(PERCENTAGE_DECIMALS);
   }
 
-  getPoolContractV2(signer: Signer): IPoolService {
+  getPoolContractV1(signer: Signer): IPoolService {
     return IPoolService__factory.connect(this.address, signer);
   }
-
   getPoolContractV3(signer: Signer): IPoolV3 {
     return IPoolV3__factory.connect(this.address, signer);
   }
