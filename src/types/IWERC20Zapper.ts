@@ -9,7 +9,6 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -24,14 +23,15 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export interface WETHZapperInterface extends utils.Interface {
+export interface IWERC20ZapperInterface extends utils.Interface {
   functions: {
-    "deposit(address)": FunctionFragment;
-    "depositWithReferral(address,uint16)": FunctionFragment;
+    "deposit(uint256,address)": FunctionFragment;
+    "depositWithReferral(uint256,address,uint16)": FunctionFragment;
     "pool()": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
+    "unwrappedToken()": FunctionFragment;
     "wrappedToken()": FunctionFragment;
   };
 
@@ -43,16 +43,21 @@ export interface WETHZapperInterface extends utils.Interface {
       | "previewDeposit"
       | "previewRedeem"
       | "redeem"
+      | "unwrappedToken"
       | "wrappedToken"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "depositWithReferral",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(functionFragment: "pool", values?: undefined): string;
   encodeFunctionData(
@@ -70,6 +75,10 @@ export interface WETHZapperInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<string>
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "unwrappedToken",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "wrappedToken",
@@ -92,6 +101,10 @@ export interface WETHZapperInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "unwrappedToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "wrappedToken",
     data: BytesLike
   ): Result;
@@ -99,12 +112,12 @@ export interface WETHZapperInterface extends utils.Interface {
   events: {};
 }
 
-export interface WETHZapper extends BaseContract {
+export interface IWERC20Zapper extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: WETHZapperInterface;
+  interface: IWERC20ZapperInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -127,14 +140,16 @@ export interface WETHZapper extends BaseContract {
 
   functions: {
     deposit(
+      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     depositWithReferral(
+      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     pool(overrides?: CallOverrides): Promise<[string]>;
@@ -156,18 +171,22 @@ export interface WETHZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    unwrappedToken(overrides?: CallOverrides): Promise<[string]>;
+
     wrappedToken(overrides?: CallOverrides): Promise<[string]>;
   };
 
   deposit(
+    amount: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   depositWithReferral(
+    amount: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
     referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   pool(overrides?: CallOverrides): Promise<string>;
@@ -189,15 +208,19 @@ export interface WETHZapper extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  unwrappedToken(overrides?: CallOverrides): Promise<string>;
+
   wrappedToken(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     deposit(
+      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     depositWithReferral(
+      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -222,6 +245,8 @@ export interface WETHZapper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    unwrappedToken(overrides?: CallOverrides): Promise<string>;
+
     wrappedToken(overrides?: CallOverrides): Promise<string>;
   };
 
@@ -229,14 +254,16 @@ export interface WETHZapper extends BaseContract {
 
   estimateGas: {
     deposit(
+      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     depositWithReferral(
+      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     pool(overrides?: CallOverrides): Promise<BigNumber>;
@@ -258,19 +285,23 @@ export interface WETHZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    unwrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
+
     wrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     deposit(
+      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     depositWithReferral(
+      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -291,6 +322,8 @@ export interface WETHZapper extends BaseContract {
       owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
+
+    unwrappedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     wrappedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

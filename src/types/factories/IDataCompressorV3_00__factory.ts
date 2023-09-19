@@ -1324,6 +1324,16 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "address",
+            name: "poolQuotaKeeper",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "gauge",
+            type: "address",
+          },
+          {
             components: [
               {
                 internalType: "address",
@@ -1358,6 +1368,23 @@ const _abi = [
             ],
             internalType: "struct QuotaInfo[]",
             name: "quotas",
+            type: "tuple[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "tokenFrom",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "zapper",
+                type: "address",
+              },
+            ],
+            internalType: "struct ZapperInfo[]",
+            name: "zappers",
             type: "tuple[]",
           },
           {
@@ -1540,6 +1567,16 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "address",
+            name: "poolQuotaKeeper",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "gauge",
+            type: "address",
+          },
+          {
             components: [
               {
                 internalType: "address",
@@ -1574,6 +1611,23 @@ const _abi = [
             ],
             internalType: "struct QuotaInfo[]",
             name: "quotas",
+            type: "tuple[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "tokenFrom",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "zapper",
+                type: "address",
+              },
+            ],
+            internalType: "struct ZapperInfo[]",
+            name: "zappers",
             type: "tuple[]",
           },
           {

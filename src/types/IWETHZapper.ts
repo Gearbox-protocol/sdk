@@ -9,6 +9,7 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -23,10 +24,10 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export interface WstETHZapperInterface extends utils.Interface {
+export interface IWETHZapperInterface extends utils.Interface {
   functions: {
-    "deposit(uint256,address)": FunctionFragment;
-    "depositWithUnderlying(uint256,address,uint16)": FunctionFragment;
+    "deposit(address)": FunctionFragment;
+    "depositWithReferral(address,uint16)": FunctionFragment;
     "pool()": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
@@ -38,7 +39,7 @@ export interface WstETHZapperInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "deposit"
-      | "depositWithUnderlying"
+      | "depositWithReferral"
       | "pool"
       | "previewDeposit"
       | "previewRedeem"
@@ -49,15 +50,11 @@ export interface WstETHZapperInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "depositWithUnderlying",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    functionFragment: "depositWithReferral",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "pool", values?: undefined): string;
   encodeFunctionData(
@@ -87,7 +84,7 @@ export interface WstETHZapperInterface extends utils.Interface {
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "depositWithUnderlying",
+    functionFragment: "depositWithReferral",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "pool", data: BytesLike): Result;
@@ -112,12 +109,12 @@ export interface WstETHZapperInterface extends utils.Interface {
   events: {};
 }
 
-export interface WstETHZapper extends BaseContract {
+export interface IWETHZapper extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: WstETHZapperInterface;
+  interface: IWETHZapperInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -140,16 +137,14 @@ export interface WstETHZapper extends BaseContract {
 
   functions: {
     deposit(
-      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    depositWithUnderlying(
-      amount: PromiseOrValue<BigNumberish>,
+    depositWithReferral(
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     pool(overrides?: CallOverrides): Promise<[string]>;
@@ -177,16 +172,14 @@ export interface WstETHZapper extends BaseContract {
   };
 
   deposit(
-    amount: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  depositWithUnderlying(
-    amount: PromiseOrValue<BigNumberish>,
+  depositWithReferral(
     receiver: PromiseOrValue<string>,
     referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   pool(overrides?: CallOverrides): Promise<string>;
@@ -214,13 +207,11 @@ export interface WstETHZapper extends BaseContract {
 
   callStatic: {
     deposit(
-      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    depositWithUnderlying(
-      amount: PromiseOrValue<BigNumberish>,
+    depositWithReferral(
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -254,16 +245,14 @@ export interface WstETHZapper extends BaseContract {
 
   estimateGas: {
     deposit(
-      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    depositWithUnderlying(
-      amount: PromiseOrValue<BigNumberish>,
+    depositWithReferral(
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     pool(overrides?: CallOverrides): Promise<BigNumber>;
@@ -292,16 +281,14 @@ export interface WstETHZapper extends BaseContract {
 
   populateTransaction: {
     deposit(
-      amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    depositWithUnderlying(
-      amount: PromiseOrValue<BigNumberish>,
+    depositWithReferral(
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;

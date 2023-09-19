@@ -4,27 +4,9 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type {
-  WERC20ZapperBase,
-  WERC20ZapperBaseInterface,
-} from "../WERC20ZapperBase";
+import type { IWERC20Zapper, IWERC20ZapperInterface } from "../IWERC20Zapper";
 
 const _abi = [
-  {
-    inputs: [],
-    name: "ForceApproveFailed",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "SafeTransferFailed",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "SafeTransferFromFailed",
-    type: "error",
-  },
   {
     inputs: [
       {
@@ -67,7 +49,7 @@ const _abi = [
         type: "uint16",
       },
     ],
-    name: "depositWithUnderlying",
+    name: "depositWithReferral",
     outputs: [
       {
         internalType: "uint256",
@@ -186,15 +168,15 @@ const _abi = [
   },
 ] as const;
 
-export class WERC20ZapperBase__factory {
+export class IWERC20Zapper__factory {
   static readonly abi = _abi;
-  static createInterface(): WERC20ZapperBaseInterface {
-    return new utils.Interface(_abi) as WERC20ZapperBaseInterface;
+  static createInterface(): IWERC20ZapperInterface {
+    return new utils.Interface(_abi) as IWERC20ZapperInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): WERC20ZapperBase {
-    return new Contract(address, _abi, signerOrProvider) as WERC20ZapperBase;
+  ): IWERC20Zapper {
+    return new Contract(address, _abi, signerOrProvider) as IWERC20Zapper;
   }
 }

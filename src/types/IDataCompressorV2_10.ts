@@ -330,6 +330,16 @@ export type CreditManagerDebtParamsStructOutput = [
   availableToBorrow: BigNumber;
 };
 
+export type ZapperInfoStruct = {
+  tokenFrom: PromiseOrValue<string>;
+  zapper: PromiseOrValue<string>;
+};
+
+export type ZapperInfoStructOutput = [string, string] & {
+  tokenFrom: string;
+  zapper: string;
+};
+
 export type PoolDataStruct = {
   addr: PromiseOrValue<string>;
   underlying: PromiseOrValue<string>;
@@ -349,7 +359,10 @@ export type PoolDataStruct = {
   cumulativeIndex_RAY: PromiseOrValue<BigNumberish>;
   baseInterestIndexLU: PromiseOrValue<BigNumberish>;
   version: PromiseOrValue<BigNumberish>;
+  poolQuotaKeeper: PromiseOrValue<string>;
+  gauge: PromiseOrValue<string>;
   quotas: QuotaInfoStruct[];
+  zappers: ZapperInfoStruct[];
   lirm: LinearModelStruct;
   isPaused: PromiseOrValue<boolean>;
 };
@@ -373,7 +386,10 @@ export type PoolDataStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
+  string,
+  string,
   QuotaInfoStructOutput[],
+  ZapperInfoStructOutput[],
   LinearModelStructOutput,
   boolean
 ] & {
@@ -395,7 +411,10 @@ export type PoolDataStructOutput = [
   cumulativeIndex_RAY: BigNumber;
   baseInterestIndexLU: BigNumber;
   version: BigNumber;
+  poolQuotaKeeper: string;
+  gauge: string;
   quotas: QuotaInfoStructOutput[];
+  zappers: ZapperInfoStructOutput[];
   lirm: LinearModelStructOutput;
   isPaused: boolean;
 };
