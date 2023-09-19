@@ -97,10 +97,10 @@ export class AssetUtils {
       // if there unwrapped token
       if (unwrapped) {
         const unwrappedToken = tokensList[unwrappedAddress];
-        const unwrappedPrice = prices[unwrappedAddress];
+        const unwrappedPrice = prices[unwrappedAddress] || 0n;
 
         const wrappedToken = tokensList[wrappedAddress];
-        const wrappedPrice = prices[wrappedAddress];
+        const wrappedPrice = prices[wrappedAddress] || 0n;
 
         // convert unwrapped into wrapped by price
         const unwrappedInWrapped = PriceUtils.convertByPrice(
