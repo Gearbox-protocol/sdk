@@ -23,14 +23,15 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export interface WERC20ZapperBaseInterface extends utils.Interface {
+export interface IWERC20ZapperInterface extends utils.Interface {
   functions: {
     "deposit(uint256,address)": FunctionFragment;
-    "depositWithUnderlying(uint256,address,uint16)": FunctionFragment;
+    "depositWithReferral(uint256,address,uint16)": FunctionFragment;
     "pool()": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
+    "tokenOut()": FunctionFragment;
     "unwrappedToken()": FunctionFragment;
     "wrappedToken()": FunctionFragment;
   };
@@ -38,11 +39,12 @@ export interface WERC20ZapperBaseInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "deposit"
-      | "depositWithUnderlying"
+      | "depositWithReferral"
       | "pool"
       | "previewDeposit"
       | "previewRedeem"
       | "redeem"
+      | "tokenOut"
       | "unwrappedToken"
       | "wrappedToken"
   ): FunctionFragment;
@@ -52,7 +54,7 @@ export interface WERC20ZapperBaseInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "depositWithUnderlying",
+    functionFragment: "depositWithReferral",
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
@@ -76,6 +78,7 @@ export interface WERC20ZapperBaseInterface extends utils.Interface {
       PromiseOrValue<string>
     ]
   ): string;
+  encodeFunctionData(functionFragment: "tokenOut", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "unwrappedToken",
     values?: undefined
@@ -87,7 +90,7 @@ export interface WERC20ZapperBaseInterface extends utils.Interface {
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "depositWithUnderlying",
+    functionFragment: "depositWithReferral",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "pool", data: BytesLike): Result;
@@ -100,6 +103,7 @@ export interface WERC20ZapperBaseInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokenOut", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unwrappedToken",
     data: BytesLike
@@ -112,12 +116,12 @@ export interface WERC20ZapperBaseInterface extends utils.Interface {
   events: {};
 }
 
-export interface WERC20ZapperBase extends BaseContract {
+export interface IWERC20Zapper extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: WERC20ZapperBaseInterface;
+  interface: IWERC20ZapperInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -145,7 +149,7 @@ export interface WERC20ZapperBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    depositWithUnderlying(
+    depositWithReferral(
       amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
@@ -171,6 +175,8 @@ export interface WERC20ZapperBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    tokenOut(overrides?: CallOverrides): Promise<[string]>;
+
     unwrappedToken(overrides?: CallOverrides): Promise<[string]>;
 
     wrappedToken(overrides?: CallOverrides): Promise<[string]>;
@@ -182,7 +188,7 @@ export interface WERC20ZapperBase extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  depositWithUnderlying(
+  depositWithReferral(
     amount: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
     referralCode: PromiseOrValue<BigNumberish>,
@@ -208,6 +214,8 @@ export interface WERC20ZapperBase extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  tokenOut(overrides?: CallOverrides): Promise<string>;
+
   unwrappedToken(overrides?: CallOverrides): Promise<string>;
 
   wrappedToken(overrides?: CallOverrides): Promise<string>;
@@ -219,7 +227,7 @@ export interface WERC20ZapperBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    depositWithUnderlying(
+    depositWithReferral(
       amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
@@ -245,6 +253,8 @@ export interface WERC20ZapperBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    tokenOut(overrides?: CallOverrides): Promise<string>;
+
     unwrappedToken(overrides?: CallOverrides): Promise<string>;
 
     wrappedToken(overrides?: CallOverrides): Promise<string>;
@@ -259,7 +269,7 @@ export interface WERC20ZapperBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    depositWithUnderlying(
+    depositWithReferral(
       amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
@@ -285,6 +295,8 @@ export interface WERC20ZapperBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    tokenOut(overrides?: CallOverrides): Promise<BigNumber>;
+
     unwrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     wrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
@@ -297,7 +309,7 @@ export interface WERC20ZapperBase extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    depositWithUnderlying(
+    depositWithReferral(
       amount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       referralCode: PromiseOrValue<BigNumberish>,
@@ -322,6 +334,8 @@ export interface WERC20ZapperBase extends BaseContract {
       owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
+
+    tokenOut(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     unwrappedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

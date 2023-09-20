@@ -1,12 +1,18 @@
 import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
+import { ZapperInfoStructOutput } from "../types/IDataCompressorV2_10";
 import {
   LinearModelStructOutput,
   PoolDataStructOutput,
 } from "../types/IDataCompressorV3_00";
 
-export type PoolDataPayload = ExcludeArrayProps<PoolDataStructOutput>;
+export type PoolDataPayload = Omit<
+  ExcludeArrayProps<PoolDataStructOutput>,
+  "zappers"
+> & {
+  zappers: Array<PoolZapper>;
+};
 
 export type LinearModel = Omit<
   ExcludeArrayProps<LinearModelStructOutput>,
@@ -14,6 +20,8 @@ export type LinearModel = Omit<
 > & {
   version: number;
 };
+
+export type PoolZapper = ExcludeArrayProps<ZapperInfoStructOutput>;
 
 export interface ChartsPoolDataPayload {
   addr: string;

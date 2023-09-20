@@ -1,5 +1,6 @@
 import { TokenData } from "../tokens/tokenData";
 import { nonNegativeBn } from "../utils/math";
+import { PriceUtils } from "../utils/price";
 import { CreditAccountData } from "./creditAccount";
 
 export interface Asset {
@@ -23,7 +24,7 @@ interface NextAssetProps<T extends Asset> {
   prices?: Record<string, bigint>;
 }
 
-export type WrapResult<T> = [Array<T>, bigint, bigint];
+export type WrapResult = [Array<Asset>, bigint, bigint];
 
 export class AssetUtils {
   static nextAsset<T extends Asset>({
@@ -78,31 +79,54 @@ export class AssetUtils {
     return record;
   }
 
-  static memoWrapETH = (ethAddress: string, wethAddress: string) =>
-    function wrapETH<T extends Asset>(assets: Array<T>): WrapResult<T> {
+  static memoWrap = (
+    unwrappedAddress: string,
+    wrappedAddress: string,
+    prices: Record<string, bigint>,
+    tokensList: Record<string, TokenData>,
+  ) =>
+    function wrap(assets: Array<Asset>): WrapResult {
       const assetsRecord = AssetUtils.constructAssetRecord(assets);
 
-      const weth = assetsRecord[wethAddress];
-      const { balance: wethAmount = 0n } = weth || {};
+      const unwrapped = assetsRecord[unwrappedAddress];
+      const { balance: unwrappedAmount = 0n } = unwrapped || {};
 
-      const eth = assetsRecord[ethAddress];
-      const { balance: ethAmount = 0n } = eth || {};
+      const wrapped = assetsRecord[wrappedAddress];
+      const { balance: wrappedAmount = 0n } = wrapped || {};
 
-      const wethOrETH = weth || eth;
+      // if there unwrapped token
+      if (unwrapped) {
+        const unwrappedToken = tokensList[unwrappedAddress];
+        const unwrappedPrice = prices[unwrappedAddress] || 0n;
 
-      if (wethOrETH) {
-        assetsRecord[wethAddress] = {
-          ...wethOrETH,
-          token: wethAddress,
-          balance: nonNegativeBn(ethAmount) + nonNegativeBn(wethAmount),
+        const wrappedToken = tokensList[wrappedAddress];
+        const wrappedPrice = prices[wrappedAddress] || 0n;
+
+        // convert unwrapped into wrapped by price
+        const unwrappedInWrapped = PriceUtils.convertByPrice(
+          PriceUtils.calcTotalPrice(
+            unwrappedPrice,
+            nonNegativeBn(unwrappedAmount),
+            unwrappedToken.decimals,
+          ),
+          {
+            price: wrappedPrice,
+            decimals: wrappedToken.decimals,
+          },
+        );
+
+        // sum them
+        assetsRecord[wrappedAddress] = {
+          token: wrappedAddress,
+          balance: nonNegativeBn(wrappedAmount) + unwrappedInWrapped,
         };
-      }
+        // remove unwrapped
+        delete assetsRecord[unwrappedAddress];
 
-      if (eth) {
-        delete assetsRecord[ethAddress];
+        return [Object.values(assetsRecord), unwrappedInWrapped, wrappedAmount];
       }
-
-      return [Object.values(assetsRecord), ethAmount, wethAmount];
+      // else no actions needed
+      return [Object.values(assetsRecord), unwrappedAmount, wrappedAmount];
     };
 
   /**

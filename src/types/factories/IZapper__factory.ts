@@ -4,14 +4,9 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { ZapperBase, ZapperBaseInterface } from "../ZapperBase";
+import type { IZapper, IZapperInterface } from "../IZapper";
 
 const _abi = [
-  {
-    inputs: [],
-    name: "ForceApproveFailed",
-    type: "error",
-  },
   {
     inputs: [],
     name: "pool",
@@ -64,6 +59,61 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "shares",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "redeem",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "tokenOut",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "unwrappedToken",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "wrappedToken",
     outputs: [
@@ -78,15 +128,15 @@ const _abi = [
   },
 ] as const;
 
-export class ZapperBase__factory {
+export class IZapper__factory {
   static readonly abi = _abi;
-  static createInterface(): ZapperBaseInterface {
-    return new utils.Interface(_abi) as ZapperBaseInterface;
+  static createInterface(): IZapperInterface {
+    return new utils.Interface(_abi) as IZapperInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): ZapperBase {
-    return new Contract(address, _abi, signerOrProvider) as ZapperBase;
+  ): IZapper {
+    return new Contract(address, _abi, signerOrProvider) as IZapper;
   }
 }

@@ -944,6 +944,11 @@ const _abi = [
                 name: "R_slope3",
                 type: "uint16",
               },
+              {
+                internalType: "bool",
+                name: "isBorrowingMoreU2Forbidden",
+                type: "bool",
+              },
             ],
             internalType: "struct LinearModel",
             name: "lirm",
@@ -1180,6 +1185,11 @@ const _abi = [
                 name: "R_slope3",
                 type: "uint16",
               },
+              {
+                internalType: "bool",
+                name: "isBorrowingMoreU2Forbidden",
+                type: "bool",
+              },
             ],
             internalType: "struct LinearModel",
             name: "lirm",
@@ -1324,6 +1334,16 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "address",
+            name: "poolQuotaKeeper",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "gauge",
+            type: "address",
+          },
+          {
             components: [
               {
                 internalType: "address",
@@ -1358,6 +1378,23 @@ const _abi = [
             ],
             internalType: "struct QuotaInfo[]",
             name: "quotas",
+            type: "tuple[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "tokenFrom",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "zapper",
+                type: "address",
+              },
+            ],
+            internalType: "struct ZapperInfo[]",
+            name: "zappers",
             type: "tuple[]",
           },
           {
@@ -1401,6 +1438,11 @@ const _abi = [
                 internalType: "uint16",
                 name: "R_slope3",
                 type: "uint16",
+              },
+              {
+                internalType: "bool",
+                name: "isBorrowingMoreU2Forbidden",
+                type: "bool",
               },
             ],
             internalType: "struct LinearModel",
@@ -1540,6 +1582,16 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "address",
+            name: "poolQuotaKeeper",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "gauge",
+            type: "address",
+          },
+          {
             components: [
               {
                 internalType: "address",
@@ -1574,6 +1626,23 @@ const _abi = [
             ],
             internalType: "struct QuotaInfo[]",
             name: "quotas",
+            type: "tuple[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "tokenFrom",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "zapper",
+                type: "address",
+              },
+            ],
+            internalType: "struct ZapperInfo[]",
+            name: "zappers",
             type: "tuple[]",
           },
           {
@@ -1617,6 +1686,11 @@ const _abi = [
                 internalType: "uint16",
                 name: "R_slope3",
                 type: "uint16",
+              },
+              {
+                internalType: "bool",
+                name: "isBorrowingMoreU2Forbidden",
+                type: "bool",
               },
             ],
             internalType: "struct LinearModel",

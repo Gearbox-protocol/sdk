@@ -1210,10 +1210,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.15.tgz#3234121887e1297b601a9e74723234cc1fec57b4"
   integrity sha512-rV4QpztBtqU95wn+KqFqM9IklsuYl2HO9qDbwsT4MkLbwVdAV9lBBg043ZwhWJq1Q3FLZu1lLrKC+sYXO/BakA==
 
-"@gearbox-protocol/core-v3@^1.39.0":
-  version "1.39.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.39.0.tgz#6f1d51e6c3e5392f97c81cba53c2b16459f99c5c"
-  integrity sha512-Z6BDSJIzXm9RebnJWFtyhlcbSm4/1bfAXhDsuQv9lAUY04fHD3uM8qfyP9PekkK/ISPW2N8x8yJNHFcnZC8VHw==
+"@gearbox-protocol/core-v3@^1.39.2":
+  version "1.39.2"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.39.2.tgz#2ca1fa656210ecd86fcf5534f8430e412b0ab4c7"
+  integrity sha512-uBGp+nYt9QR9bMMXpyL3EA1bV3hTzxH5tLqeDRxz1gnt9TUqQlXiGNhQf3/g2PZmJxjeVdzbfkwcGslJlzZKzQ==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1230,10 +1230,10 @@
     eslint-plugin-simple-import-sort "^7.0.0"
     eslint-plugin-unused-imports "^2.0.0"
 
-"@gearbox-protocol/integrations-v3@^1.15.0":
-  version "1.15.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.15.1.tgz#a77b242e59ed068d3555ff536989c1b78d64cad1"
-  integrity sha512-1FAtzmPnFiAJ94R/0KtcZqD5oJ3eH5YgWuFUTwG9ijGW1UJY6d+2Xb0ZE2DTIY/klgGgkb6gu1ntI7hOpXCKaQ==
+"@gearbox-protocol/integrations-v3@^1.16.1":
+  version "1.16.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.16.1.tgz#5f3f9dbeefe702b016328cddeaa0d03e9a571c86"
+  integrity sha512-q+oPMi8ExV5N2JyTceLG1emo6eCsM90/9LUOBXg1tWuRjXpvsFCfvCpx46NR1pnE+ym1nwiEEtV2venKvlFohQ==
 
 "@gearbox-protocol/oracles-v3@^1.7.6":
   version "1.7.6"
@@ -1242,10 +1242,14 @@
   dependencies:
     redstone-protocol "^1.0.5"
 
-"@gearbox-protocol/periphery-v3@^1.0.9":
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.0.9.tgz#98e751cd03143a3fdd7f85ef1c7ff575956f0421"
-  integrity sha512-ALus5ziS+jFJ4Tli8s056DSvBIqX7pZAGKG638uCn7lWVYlQzgpcTt6FE0iKqaNNV2A2/k6k4kInmETjv+zFEg==
+"@gearbox-protocol/periphery-v3@^1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.2.4.tgz#7ef4d31b5e2bad3dbc9f98f0d2f7ee2a5130a045"
+  integrity sha512-VtGfOC1vM7eb462gXveYV7MwvDxwHJLqH6z6NZbBv5yLZqGzf39jyL9r1sUPPv4Uy7dR59Uj8uFcgwINSFeDRw==
+  dependencies:
+    husky "^8.0.3"
+    lint-staged "^13.0.3"
+    prettier "^3.0.3"
 
 "@gearbox-protocol/prettier-config@^1.4.1":
   version "1.5.0"
@@ -3873,7 +3877,7 @@ human-signals@^4.3.0:
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-4.3.1.tgz#ab7f811e851fca97ffbd2c1fe9a958964de321b2"
   integrity sha512-nZXjEF2nbo7lIw3mgYjItAfgQXog3OjJogSbKa2CQIIvSGWcKgeJnQlNXip6NglNzYH45nSRiEVimMvYL8DDqQ==
 
-husky@>=6:
+husky@>=6, husky@^8.0.3:
   version "8.0.3"
   resolved "https://registry.yarnpkg.com/husky/-/husky-8.0.3.tgz#4936d7212e46d1dea28fef29bb3a108872cd9184"
   integrity sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==
@@ -4753,6 +4757,22 @@ lint-staged@>=10:
     string-argv "0.3.2"
     yaml "2.3.1"
 
+lint-staged@^13.0.3:
+  version "13.3.0"
+  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-13.3.0.tgz#7965d72a8d6a6c932f85e9c13ccf3596782d28a5"
+  integrity sha512-mPRtrYnipYYv1FEE134ufbWpeggNTo+O/UPzngoaKzbzHAthvR55am+8GfHTnqNRQVRRrYQLGW9ZyUoD7DsBHQ==
+  dependencies:
+    chalk "5.3.0"
+    commander "11.0.0"
+    debug "4.3.4"
+    execa "7.2.0"
+    lilconfig "2.1.0"
+    listr2 "6.6.1"
+    micromatch "4.0.5"
+    pidtree "0.6.0"
+    string-argv "0.3.2"
+    yaml "2.3.1"
+
 listr2@6.6.1:
   version "6.6.1"
   resolved "https://registry.yarnpkg.com/listr2/-/listr2-6.6.1.tgz#08b2329e7e8ba6298481464937099f4a2cd7f95d"
@@ -5380,6 +5400,11 @@ prettier@^2.3.1, prettier@^2.7.1:
   version "2.8.8"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
   integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
+
+prettier@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.0.3.tgz#432a51f7ba422d1469096c0fdc28e235db8f9643"
+  integrity sha512-L/4pUDMxcNa8R/EthV08Zt42WBO4h1rarVtK0K+QJG0X187OLo7l699jWw0GKuwzkPQ//jMFA/8Xm6Fh3J/DAg==
 
 pretty-format@^28.0.0, pretty-format@^28.1.3:
   version "28.1.3"

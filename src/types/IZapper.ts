@@ -23,42 +23,28 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export interface WstETHZapperInterface extends utils.Interface {
+export interface IZapperInterface extends utils.Interface {
   functions: {
-    "deposit(uint256,address)": FunctionFragment;
-    "depositWithUnderlying(uint256,address,uint16)": FunctionFragment;
     "pool()": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
+    "tokenOut()": FunctionFragment;
     "unwrappedToken()": FunctionFragment;
     "wrappedToken()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "deposit"
-      | "depositWithUnderlying"
       | "pool"
       | "previewDeposit"
       | "previewRedeem"
       | "redeem"
+      | "tokenOut"
       | "unwrappedToken"
       | "wrappedToken"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "depositWithUnderlying",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
   encodeFunctionData(functionFragment: "pool", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "previewDeposit",
@@ -76,6 +62,7 @@ export interface WstETHZapperInterface extends utils.Interface {
       PromiseOrValue<string>
     ]
   ): string;
+  encodeFunctionData(functionFragment: "tokenOut", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "unwrappedToken",
     values?: undefined
@@ -85,11 +72,6 @@ export interface WstETHZapperInterface extends utils.Interface {
     values?: undefined
   ): string;
 
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "depositWithUnderlying",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "pool", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "previewDeposit",
@@ -100,6 +82,7 @@ export interface WstETHZapperInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokenOut", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unwrappedToken",
     data: BytesLike
@@ -112,12 +95,12 @@ export interface WstETHZapperInterface extends utils.Interface {
   events: {};
 }
 
-export interface WstETHZapper extends BaseContract {
+export interface IZapper extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: WstETHZapperInterface;
+  interface: IZapperInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -139,19 +122,6 @@ export interface WstETHZapper extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    deposit(
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    depositWithUnderlying(
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     pool(overrides?: CallOverrides): Promise<[string]>;
 
     previewDeposit(
@@ -171,23 +141,12 @@ export interface WstETHZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    tokenOut(overrides?: CallOverrides): Promise<[string]>;
+
     unwrappedToken(overrides?: CallOverrides): Promise<[string]>;
 
     wrappedToken(overrides?: CallOverrides): Promise<[string]>;
   };
-
-  deposit(
-    amount: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  depositWithUnderlying(
-    amount: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
 
   pool(overrides?: CallOverrides): Promise<string>;
 
@@ -208,24 +167,13 @@ export interface WstETHZapper extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  tokenOut(overrides?: CallOverrides): Promise<string>;
+
   unwrappedToken(overrides?: CallOverrides): Promise<string>;
 
   wrappedToken(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    deposit(
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    depositWithUnderlying(
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     pool(overrides?: CallOverrides): Promise<string>;
 
     previewDeposit(
@@ -245,6 +193,8 @@ export interface WstETHZapper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    tokenOut(overrides?: CallOverrides): Promise<string>;
+
     unwrappedToken(overrides?: CallOverrides): Promise<string>;
 
     wrappedToken(overrides?: CallOverrides): Promise<string>;
@@ -253,19 +203,6 @@ export interface WstETHZapper extends BaseContract {
   filters: {};
 
   estimateGas: {
-    deposit(
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    depositWithUnderlying(
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     pool(overrides?: CallOverrides): Promise<BigNumber>;
 
     previewDeposit(
@@ -285,25 +222,14 @@ export interface WstETHZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    tokenOut(overrides?: CallOverrides): Promise<BigNumber>;
+
     unwrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     wrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    deposit(
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    depositWithUnderlying(
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     previewDeposit(
@@ -322,6 +248,8 @@ export interface WstETHZapper extends BaseContract {
       owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
+
+    tokenOut(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     unwrappedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

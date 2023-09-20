@@ -24,7 +24,7 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export interface WETHZapperInterface extends utils.Interface {
+export interface IWETHZapperInterface extends utils.Interface {
   functions: {
     "deposit(address)": FunctionFragment;
     "depositWithReferral(address,uint16)": FunctionFragment;
@@ -32,6 +32,8 @@ export interface WETHZapperInterface extends utils.Interface {
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
+    "tokenOut()": FunctionFragment;
+    "unwrappedToken()": FunctionFragment;
     "wrappedToken()": FunctionFragment;
   };
 
@@ -43,6 +45,8 @@ export interface WETHZapperInterface extends utils.Interface {
       | "previewDeposit"
       | "previewRedeem"
       | "redeem"
+      | "tokenOut"
+      | "unwrappedToken"
       | "wrappedToken"
   ): FunctionFragment;
 
@@ -71,6 +75,11 @@ export interface WETHZapperInterface extends utils.Interface {
       PromiseOrValue<string>
     ]
   ): string;
+  encodeFunctionData(functionFragment: "tokenOut", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "unwrappedToken",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "wrappedToken",
     values?: undefined
@@ -91,6 +100,11 @@ export interface WETHZapperInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokenOut", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "unwrappedToken",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "wrappedToken",
     data: BytesLike
@@ -99,12 +113,12 @@ export interface WETHZapperInterface extends utils.Interface {
   events: {};
 }
 
-export interface WETHZapper extends BaseContract {
+export interface IWETHZapper extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: WETHZapperInterface;
+  interface: IWETHZapperInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -156,6 +170,10 @@ export interface WETHZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    tokenOut(overrides?: CallOverrides): Promise<[string]>;
+
+    unwrappedToken(overrides?: CallOverrides): Promise<[string]>;
+
     wrappedToken(overrides?: CallOverrides): Promise<[string]>;
   };
 
@@ -189,6 +207,10 @@ export interface WETHZapper extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  tokenOut(overrides?: CallOverrides): Promise<string>;
+
+  unwrappedToken(overrides?: CallOverrides): Promise<string>;
+
   wrappedToken(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
@@ -221,6 +243,10 @@ export interface WETHZapper extends BaseContract {
       owner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    tokenOut(overrides?: CallOverrides): Promise<string>;
+
+    unwrappedToken(overrides?: CallOverrides): Promise<string>;
 
     wrappedToken(overrides?: CallOverrides): Promise<string>;
   };
@@ -258,6 +284,10 @@ export interface WETHZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    tokenOut(overrides?: CallOverrides): Promise<BigNumber>;
+
+    unwrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
+
     wrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -291,6 +321,10 @@ export interface WETHZapper extends BaseContract {
       owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
+
+    tokenOut(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    unwrappedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     wrappedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

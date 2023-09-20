@@ -242,10 +242,23 @@ const _abi = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "botList",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
-        name: "borrower",
+        name: "creditAccount",
         type: "address",
       },
       {
@@ -399,6 +412,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "expirable",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "expirationDate",
     outputs: [
       {
@@ -488,12 +514,38 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "maxApprovedBots",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "maxDebtPerBlockMultiplier",
     outputs: [
       {
         internalType: "uint8",
         name: "",
         type: "uint8",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "maxQuotaMultiplier",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -579,6 +631,19 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "newBotList",
+        type: "address",
+      },
+    ],
+    name: "setBotList",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "creditAccount",
         type: "address",
       },
@@ -609,6 +674,96 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint128",
+        name: "newMaxCumulativeLoss",
+        type: "uint128",
+      },
+      {
+        internalType: "bool",
+        name: "resetCumulativeLoss",
+        type: "bool",
+      },
+    ],
+    name: "setCumulativeLossParams",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint128",
+        name: "newMinDebt",
+        type: "uint128",
+      },
+      {
+        internalType: "uint128",
+        name: "newMaxDebt",
+        type: "uint128",
+      },
+      {
+        internalType: "uint8",
+        name: "newMaxDebtPerBlockMultiplier",
+        type: "uint8",
+      },
+    ],
+    name: "setDebtLimits",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "liquidator",
+        type: "address",
+      },
+      {
+        internalType: "enum AllowanceAction",
+        name: "allowance",
+        type: "uint8",
+      },
+    ],
+    name: "setEmergencyLiquidator",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint40",
+        name: "newExpirationDate",
+        type: "uint40",
+      },
+    ],
+    name: "setExpirationDate",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "enum AllowanceAction",
+        name: "allowance",
+        type: "uint8",
+      },
+    ],
+    name: "setTokenAllowance",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "version",
     outputs: [
@@ -616,6 +771,32 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "weth",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "withdrawalManager",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",

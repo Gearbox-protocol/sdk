@@ -127,7 +127,7 @@ const _abi = [
           },
         ],
         internalType: "struct Balance[]",
-        name: "expected",
+        name: "balanceDeltas",
         type: "tuple[]",
       },
     ],

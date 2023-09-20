@@ -2,7 +2,6 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   toBigInt,
-  tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
@@ -14,6 +13,7 @@ import {
   ChartsPoolDataPayload,
   LinearModel,
   PoolDataPayload,
+  PoolZapper,
   UserPoolPayload,
 } from "../../payload/pool";
 import {
@@ -29,10 +29,10 @@ export class PoolData {
   readonly address: string;
   readonly underlyingToken: string;
   readonly dieselToken: string;
-  readonly isWETH: boolean;
-  readonly isWSTETH: boolean;
   readonly isPaused: boolean;
   readonly version: number;
+  readonly poolQuotaKeeper: string;
+  readonly gauge: string;
 
   // Information
   readonly expectedLiquidity: bigint;
@@ -42,8 +42,9 @@ export class PoolData {
 
   readonly totalBorrowed: bigint;
   readonly totalDebtLimit: bigint;
-  readonly creditManagerDebtParams: Array<CreditManagerDebtParams>;
-  readonly quotas: Array<QuotaInfo>;
+  readonly creditManagerDebtParams: Record<string, CreditManagerDebtParams>;
+  readonly quotas: Record<string, QuotaInfo>;
+  readonly zappers: Record<string, PoolZapper>;
 
   readonly totalAssets: bigint;
   readonly totalSupply: bigint;
@@ -59,13 +60,12 @@ export class PoolData {
 
   constructor(payload: PoolDataPayload) {
     this.address = payload.addr.toLowerCase();
-    const underlying = payload.underlying.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
     this.dieselToken = payload.dieselToken.toLowerCase();
-    this.isWETH = tokenSymbolByAddress[underlying] === "WETH";
-    this.isWSTETH = tokenSymbolByAddress[underlying] === "wstETH";
     this.isPaused = payload.isPaused;
     this.version = payload.version.toNumber();
+    this.poolQuotaKeeper = payload.poolQuotaKeeper.toLowerCase();
+    this.gauge = payload.gauge.toLowerCase();
 
     this.expectedLiquidity = toBigInt(payload.expectedLiquidity);
     this.availableLiquidity = toBigInt(payload.availableLiquidity);
@@ -75,20 +75,48 @@ export class PoolData {
 
     this.totalBorrowed = toBigInt(payload.totalBorrowed);
     this.totalDebtLimit = toBigInt(payload.totalDebtLimit);
-    this.creditManagerDebtParams = payload.creditManagerDebtParams.map(p => ({
-      creditManager: p.creditManager.toLowerCase(),
-      borrowed: toBigInt(p.borrowed),
-      limit: toBigInt(p.limit),
-      availableToBorrow: toBigInt(p.availableToBorrow),
-    }));
-    this.quotas = payload.quotas.map(q => ({
-      token: q.token.toLowerCase(),
-      rate: q.rate,
-      quotaIncreaseFee: q.quotaIncreaseFee,
-      totalQuoted: toBigInt(q.totalQuoted),
-      limit: toBigInt(q.limit),
-      isActive: q.isActive,
-    }));
+    this.creditManagerDebtParams = Object.fromEntries(
+      payload.creditManagerDebtParams.map(p => {
+        const creditManager = p.creditManager.toLowerCase();
+        return [
+          creditManager,
+          {
+            creditManager,
+            borrowed: toBigInt(p.borrowed),
+            limit: toBigInt(p.limit),
+            availableToBorrow: toBigInt(p.availableToBorrow),
+          },
+        ];
+      }),
+    );
+    this.quotas = Object.fromEntries(
+      payload.quotas.map(q => {
+        const token = q.token.toLowerCase();
+        return [
+          token,
+          {
+            token,
+            rate: q.rate,
+            quotaIncreaseFee: q.quotaIncreaseFee,
+            totalQuoted: toBigInt(q.totalQuoted),
+            limit: toBigInt(q.limit),
+            isActive: q.isActive,
+          },
+        ];
+      }),
+    );
+    this.zappers = Object.fromEntries(
+      payload.zappers.map(z => {
+        const tokenFrom = z.tokenFrom.toLowerCase();
+        return [
+          tokenFrom,
+          {
+            tokenFrom,
+            zapper: z.zapper.toLowerCase(),
+          },
+        ];
+      }),
+    );
 
     this.totalAssets = toBigInt(payload.totalAssets);
     this.totalSupply = toBigInt(payload.totalSupply);
@@ -109,6 +137,7 @@ export class PoolData {
       R_slope2: payload.lirm.R_slope2,
       R_slope3: payload.lirm.R_slope3,
       version: payload?.lirm?.version?.toNumber(),
+      isBorrowingMoreU2Forbidden: payload?.lirm?.isBorrowingMoreU2Forbidden,
     };
     this.dieselRate = rayToNumber(payload.dieselRate_RAY);
     this.dieselRateRay = toBigInt(payload.dieselRate_RAY);
@@ -117,10 +146,9 @@ export class PoolData {
       Number(toBigInt(payload.withdrawFee)) / Number(PERCENTAGE_DECIMALS);
   }
 
-  getPoolContractV2(signer: Signer): IPoolService {
+  getPoolContractV1(signer: Signer): IPoolService {
     return IPoolService__factory.connect(this.address, signer);
   }
-
   getPoolContractV3(signer: Signer): IPoolV3 {
     return IPoolV3__factory.connect(this.address, signer);
   }

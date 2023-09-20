@@ -4,34 +4,11 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type {
-  WERC20ZapperBase,
-  WERC20ZapperBaseInterface,
-} from "../WERC20ZapperBase";
+import type { IWETHZapper, IWETHZapperInterface } from "../IWETHZapper";
 
 const _abi = [
   {
-    inputs: [],
-    name: "ForceApproveFailed",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "SafeTransferFailed",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "SafeTransferFromFailed",
-    type: "error",
-  },
-  {
     inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
       {
         internalType: "address",
         name: "receiver",
@@ -46,16 +23,11 @@ const _abi = [
         type: "uint256",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function",
   },
   {
     inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
       {
         internalType: "address",
         name: "receiver",
@@ -67,7 +39,7 @@ const _abi = [
         type: "uint16",
       },
     ],
-    name: "depositWithUnderlying",
+    name: "depositWithReferral",
     outputs: [
       {
         internalType: "uint256",
@@ -75,7 +47,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function",
   },
   {
@@ -160,6 +132,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "tokenOut",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "unwrappedToken",
     outputs: [
       {
@@ -186,15 +171,15 @@ const _abi = [
   },
 ] as const;
 
-export class WERC20ZapperBase__factory {
+export class IWETHZapper__factory {
   static readonly abi = _abi;
-  static createInterface(): WERC20ZapperBaseInterface {
-    return new utils.Interface(_abi) as WERC20ZapperBaseInterface;
+  static createInterface(): IWETHZapperInterface {
+    return new utils.Interface(_abi) as IWETHZapperInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): WERC20ZapperBase {
-    return new Contract(address, _abi, signerOrProvider) as WERC20ZapperBase;
+  ): IWETHZapper {
+    return new Contract(address, _abi, signerOrProvider) as IWETHZapper;
   }
 }

@@ -12,9 +12,8 @@ import {ICreditFacadeV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IC
 import {IPoolService} from "@gearbox-protocol/core-v2/contracts/interfaces/IPoolService.sol";
 import {ICreditFacadeV2} from "@gearbox-protocol/core-v2/contracts/interfaces/ICreditFacadeV2.sol";
 import {ICreditConfiguratorV2} from "@gearbox-protocol/core-v2/contracts/interfaces/ICreditConfiguratorV2.sol";
-import {WATokenZapper} from "@gearbox-protocol/integrations-v3/contracts/zappers/WATokenZapper.sol";
-import {WETHZapper} from "@gearbox-protocol/integrations-v3/contracts/zappers/WETHZapper.sol";
-import {WstETHZapper} from "@gearbox-protocol/integrations-v3/contracts/zappers/WstETHZapper.sol";
+import {IWERC20Zapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IWERC20Zapper.sol";
+import {IWETHZapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IWETHZapper.sol";
 
 // Adapters
 import {ILidoV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/lido/ILidoV1Adapter.sol";
@@ -34,6 +33,7 @@ import {IYearnV2Adapter} from "@gearbox-protocol/integrations-v3/contracts/inter
 
 import {IwstETHV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/lido/IwstETHV1Adapter.sol";
 import {IstETH} from "@gearbox-protocol/integrations-v3/contracts/integrations/lido/IstETH.sol";
+import {IwstETH} from "@gearbox-protocol/integrations-v3/contracts/integrations/lido/IwstETH.sol";
 import {IPriceOracleBase} from "@gearbox-protocol/core-v2/contracts/interfaces/IPriceOracleBase.sol";
 
 import {ICurveV1_2AssetsAdapter} from
