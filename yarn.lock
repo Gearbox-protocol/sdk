@@ -1210,10 +1210,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.15.tgz#3234121887e1297b601a9e74723234cc1fec57b4"
   integrity sha512-rV4QpztBtqU95wn+KqFqM9IklsuYl2HO9qDbwsT4MkLbwVdAV9lBBg043ZwhWJq1Q3FLZu1lLrKC+sYXO/BakA==
 
-"@gearbox-protocol/core-v3@^1.39.0":
-  version "1.39.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.39.0.tgz#6f1d51e6c3e5392f97c81cba53c2b16459f99c5c"
-  integrity sha512-Z6BDSJIzXm9RebnJWFtyhlcbSm4/1bfAXhDsuQv9lAUY04fHD3uM8qfyP9PekkK/ISPW2N8x8yJNHFcnZC8VHw==
+"@gearbox-protocol/core-v3@^1.39.2":
+  version "1.39.2"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.39.2.tgz#2ca1fa656210ecd86fcf5534f8430e412b0ab4c7"
+  integrity sha512-uBGp+nYt9QR9bMMXpyL3EA1bV3hTzxH5tLqeDRxz1gnt9TUqQlXiGNhQf3/g2PZmJxjeVdzbfkwcGslJlzZKzQ==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1230,10 +1230,10 @@
     eslint-plugin-simple-import-sort "^7.0.0"
     eslint-plugin-unused-imports "^2.0.0"
 
-"@gearbox-protocol/integrations-v3@^1.16.0":
-  version "1.16.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.16.0.tgz#62a7fc6b2f73bb10d67ba5eff8368e14eb15920a"
-  integrity sha512-cv70TB4cbtz1rX+LbCMWud85da4+hsRjzYJq/XZ5Qha4DqMZBF7wcco55pbEqp+cZ95hLjjl9J00xEY7JIVuSw==
+"@gearbox-protocol/integrations-v3@^1.16.1":
+  version "1.16.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.16.1.tgz#5f3f9dbeefe702b016328cddeaa0d03e9a571c86"
+  integrity sha512-q+oPMi8ExV5N2JyTceLG1emo6eCsM90/9LUOBXg1tWuRjXpvsFCfvCpx46NR1pnE+ym1nwiEEtV2venKvlFohQ==
 
 "@gearbox-protocol/oracles-v3@^1.7.6":
   version "1.7.6"
@@ -1242,10 +1242,10 @@
   dependencies:
     redstone-protocol "^1.0.5"
 
-"@gearbox-protocol/periphery-v3@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.2.2.tgz#e3e347eb8aff8d35ba9548118687fbfa9e14b0c3"
-  integrity sha512-XnprZPvTClZBQDQJHgVewtE1GsI8Jb67ty/s/YZvhkwA1fFBykCERme8XtaOimhAw0g3OMAwCXuXCVCkEOtM+w==
+"@gearbox-protocol/periphery-v3@^1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.2.4.tgz#7ef4d31b5e2bad3dbc9f98f0d2f7ee2a5130a045"
+  integrity sha512-VtGfOC1vM7eb462gXveYV7MwvDxwHJLqH6z6NZbBv5yLZqGzf39jyL9r1sUPPv4Uy7dR59Uj8uFcgwINSFeDRw==
   dependencies:
     husky "^8.0.3"
     lint-staged "^13.0.3"

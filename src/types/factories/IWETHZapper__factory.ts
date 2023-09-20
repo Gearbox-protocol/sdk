@@ -132,6 +132,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "tokenOut",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "unwrappedToken",
     outputs: [
       {

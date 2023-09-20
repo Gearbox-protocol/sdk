@@ -6,6 +6,7 @@ export * as iAddressProviderSol from "./IAddressProvider.sol";
 export * as iAddressProviderV3Sol from "./IAddressProviderV3.sol";
 export * as iAirdropDistributorSol from "./IAirdropDistributor.sol";
 export * as iCreditConfiguratorV2Sol from "./ICreditConfiguratorV2.sol";
+export * as iCreditConfiguratorV3Sol from "./ICreditConfiguratorV3.sol";
 export * as iCreditFacadeV2Sol from "./ICreditFacadeV2.sol";
 export * as iCreditFacadeV3Sol from "./ICreditFacadeV3.sol";
 export * as iCreditManagerV2Sol from "./ICreditManagerV2.sol";

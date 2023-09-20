@@ -213,6 +213,7 @@ export type LinearModelStruct = {
   R_slope1: PromiseOrValue<BigNumberish>;
   R_slope2: PromiseOrValue<BigNumberish>;
   R_slope3: PromiseOrValue<BigNumberish>;
+  isBorrowingMoreU2Forbidden: PromiseOrValue<boolean>;
 };
 
 export type LinearModelStructOutput = [
@@ -223,7 +224,8 @@ export type LinearModelStructOutput = [
   number,
   number,
   number,
-  number
+  number,
+  boolean
 ] & {
   interestModel: string;
   version: BigNumber;
@@ -233,6 +235,7 @@ export type LinearModelStructOutput = [
   R_slope1: number;
   R_slope2: number;
   R_slope3: number;
+  isBorrowingMoreU2Forbidden: boolean;
 };
 
 export type CreditManagerDataStruct = {

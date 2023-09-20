@@ -455,19 +455,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "calcLinearCumulative_RAY",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "uint256",

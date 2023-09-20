@@ -38,7 +38,6 @@ export interface IPoolV3Interface extends utils.Interface {
     "baseInterestIndex()": FunctionFragment;
     "baseInterestIndexLU()": FunctionFragment;
     "baseInterestRate()": FunctionFragment;
-    "calcLinearCumulative_RAY()": FunctionFragment;
     "convertToAssets(uint256)": FunctionFragment;
     "convertToShares(uint256)": FunctionFragment;
     "creditManagerBorrowable(address)": FunctionFragment;
@@ -102,7 +101,6 @@ export interface IPoolV3Interface extends utils.Interface {
       | "baseInterestIndex"
       | "baseInterestIndexLU"
       | "baseInterestRate"
-      | "calcLinearCumulative_RAY"
       | "convertToAssets"
       | "convertToShares"
       | "creditManagerBorrowable"
@@ -186,10 +184,6 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "baseInterestRate",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "calcLinearCumulative_RAY",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -424,10 +418,6 @@ export interface IPoolV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "baseInterestRate",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "calcLinearCumulative_RAY",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -846,8 +836,6 @@ export interface IPoolV3 extends BaseContract {
 
     baseInterestRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     convertToAssets(
       shares: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1087,8 +1075,6 @@ export interface IPoolV3 extends BaseContract {
 
   baseInterestRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-  calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
-
   convertToAssets(
     shares: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
@@ -1325,8 +1311,6 @@ export interface IPoolV3 extends BaseContract {
     baseInterestIndexLU(overrides?: CallOverrides): Promise<BigNumber>;
 
     baseInterestRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
 
     convertToAssets(
       shares: PromiseOrValue<BigNumberish>,
@@ -1698,8 +1682,6 @@ export interface IPoolV3 extends BaseContract {
 
     baseInterestRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-    calcLinearCumulative_RAY(overrides?: CallOverrides): Promise<BigNumber>;
-
     convertToAssets(
       shares: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1941,10 +1923,6 @@ export interface IPoolV3 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     baseInterestRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    calcLinearCumulative_RAY(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     convertToAssets(
       shares: PromiseOrValue<BigNumberish>,

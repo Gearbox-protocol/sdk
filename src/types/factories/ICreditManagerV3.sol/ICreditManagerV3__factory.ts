@@ -24,6 +24,19 @@ const _abi = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "accountFactory",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -35,7 +48,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address",
-        name: "",
+        name: "targetContract",
         type: "address",
       },
     ],
@@ -69,10 +82,23 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "tokenMask",
         type: "uint256",
       },
     ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "addToken",
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
@@ -196,7 +222,7 @@ const _abi = [
           },
         ],
         internalType: "struct CollateralDebtData",
-        name: "collateralDebtData",
+        name: "cdd",
         type: "tuple",
       },
     ],
@@ -407,7 +433,61 @@ const _abi = [
     outputs: [
       {
         internalType: "address",
-        name: "",
+        name: "adapter",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+    ],
+    name: "creditAccountInfo",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "cumulativeIndexLastUpdate",
+        type: "uint256",
+      },
+      {
+        internalType: "uint128",
+        name: "cumulativeQuotaInterest",
+        type: "uint128",
+      },
+      {
+        internalType: "uint128",
+        name: "quotaFees",
+        type: "uint128",
+      },
+      {
+        internalType: "uint256",
+        name: "enabledTokensMask",
+        type: "uint256",
+      },
+      {
+        internalType: "uint16",
+        name: "flags",
+        type: "uint16",
+      },
+      {
+        internalType: "uint64",
+        name: "since",
+        type: "uint64",
+      },
+      {
+        internalType: "address",
+        name: "borrower",
         type: "address",
       },
     ],
@@ -453,7 +533,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "creditAccountsLegth",
+    name: "creditAccountsLen",
     outputs: [
       {
         internalType: "uint256",
@@ -491,6 +571,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "description",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -513,7 +606,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes",
-        name: "callData",
+        name: "data",
         type: "bytes",
       },
     ],
@@ -521,7 +614,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes",
-        name: "",
+        name: "result",
         type: "bytes",
       },
     ],
@@ -589,7 +682,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "enabledTokensMaskBefore",
+        name: "enabledTokensMask",
         type: "uint256",
       },
       {
@@ -607,7 +700,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "updatedEnabledTokensMaskBefore",
+        name: "enabledTokensMaskAfter",
         type: "uint256",
       },
     ],
@@ -677,7 +770,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "tokenMask",
         type: "uint256",
       },
     ],
@@ -720,7 +813,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint16",
-        name: "",
+        name: "lt",
         type: "uint16",
       },
     ],
@@ -870,19 +963,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "poolService",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "priceOracle",
     outputs: [
       {
@@ -983,6 +1063,116 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint16",
+        name: "ltInitial",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "ltFinal",
+        type: "uint16",
+      },
+      {
+        internalType: "uint40",
+        name: "timestampRampStart",
+        type: "uint40",
+      },
+      {
+        internalType: "uint24",
+        name: "rampDuration",
+        type: "uint24",
+      },
+    ],
+    name: "setCollateralTokenData",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "adapter",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "targetContract",
+        type: "address",
+      },
+    ],
+    name: "setContractAllowance",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditConfigurator",
+        type: "address",
+      },
+    ],
+    name: "setCreditConfigurator",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditFacade",
+        type: "address",
+      },
+    ],
+    name: "setCreditFacade",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint16",
+        name: "feeInterest",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "feeLiquidation",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "liquidationDiscount",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "feeLiquidationExpired",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "liquidationDiscountExpired",
+        type: "uint16",
+      },
+    ],
+    name: "setFees",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "creditAccount",
         type: "address",
       },
@@ -998,6 +1188,45 @@ const _abi = [
       },
     ],
     name: "setFlagFor",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "maxEnabledTokens",
+        type: "uint8",
+      },
+    ],
+    name: "setMaxEnabledTokens",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "priceOracle",
+        type: "address",
+      },
+    ],
+    name: "setPriceOracle",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "quotedTokensMask",
+        type: "uint256",
+      },
+    ],
+    name: "setQuotedMask",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

@@ -40,6 +40,7 @@ export type MultiCallStructOutput = [string, string] & {
 
 export interface ICreditFacadeV3Interface extends utils.Interface {
   functions: {
+    "botList()": FunctionFragment;
     "botMulticall(address,(address,bytes)[])": FunctionFragment;
     "canLiquidateWhilePaused(address)": FunctionFragment;
     "claimWithdrawals(address,address)": FunctionFragment;
@@ -47,19 +48,31 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "creditManager()": FunctionFragment;
     "debtLimits()": FunctionFragment;
     "degenNFT()": FunctionFragment;
+    "expirable()": FunctionFragment;
     "expirationDate()": FunctionFragment;
     "forbiddenTokenMask()": FunctionFragment;
     "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])": FunctionFragment;
     "lossParams()": FunctionFragment;
+    "maxApprovedBots()": FunctionFragment;
     "maxDebtPerBlockMultiplier()": FunctionFragment;
+    "maxQuotaMultiplier()": FunctionFragment;
     "multicall(address,(address,bytes)[])": FunctionFragment;
     "openCreditAccount(uint256,address,(address,bytes)[],uint16)": FunctionFragment;
+    "setBotList(address)": FunctionFragment;
     "setBotPermissions(address,address,uint192,uint72,uint72)": FunctionFragment;
+    "setCumulativeLossParams(uint128,bool)": FunctionFragment;
+    "setDebtLimits(uint128,uint128,uint8)": FunctionFragment;
+    "setEmergencyLiquidator(address,uint8)": FunctionFragment;
+    "setExpirationDate(uint40)": FunctionFragment;
+    "setTokenAllowance(address,uint8)": FunctionFragment;
     "version()": FunctionFragment;
+    "weth()": FunctionFragment;
+    "withdrawalManager()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "botList"
       | "botMulticall"
       | "canLiquidateWhilePaused"
       | "claimWithdrawals"
@@ -67,17 +80,29 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
       | "creditManager"
       | "debtLimits"
       | "degenNFT"
+      | "expirable"
       | "expirationDate"
       | "forbiddenTokenMask"
       | "liquidateCreditAccount"
       | "lossParams"
+      | "maxApprovedBots"
       | "maxDebtPerBlockMultiplier"
+      | "maxQuotaMultiplier"
       | "multicall"
       | "openCreditAccount"
+      | "setBotList"
       | "setBotPermissions"
+      | "setCumulativeLossParams"
+      | "setDebtLimits"
+      | "setEmergencyLiquidator"
+      | "setExpirationDate"
+      | "setTokenAllowance"
       | "version"
+      | "weth"
+      | "withdrawalManager"
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: "botList", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "botMulticall",
     values: [PromiseOrValue<string>, MultiCallStruct[]]
@@ -109,6 +134,7 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "degenNFT", values?: undefined): string;
+  encodeFunctionData(functionFragment: "expirable", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "expirationDate",
     values?: undefined
@@ -132,7 +158,15 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "maxApprovedBots",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "maxDebtPerBlockMultiplier",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maxQuotaMultiplier",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -149,6 +183,10 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "setBotList",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setBotPermissions",
     values: [
       PromiseOrValue<string>,
@@ -158,8 +196,38 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
       PromiseOrValue<BigNumberish>
     ]
   ): string;
+  encodeFunctionData(
+    functionFragment: "setCumulativeLossParams",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setDebtLimits",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setEmergencyLiquidator",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setExpirationDate",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setTokenAllowance",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
+  encodeFunctionData(functionFragment: "weth", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "withdrawalManager",
+    values?: undefined
+  ): string;
 
+  decodeFunctionResult(functionFragment: "botList", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "botMulticall",
     data: BytesLike
@@ -182,6 +250,7 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "debtLimits", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "degenNFT", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "expirable", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "expirationDate",
     data: BytesLike
@@ -196,7 +265,15 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "lossParams", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "maxApprovedBots",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "maxDebtPerBlockMultiplier",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "maxQuotaMultiplier",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
@@ -204,11 +281,37 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     functionFragment: "openCreditAccount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setBotList", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setBotPermissions",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "setCumulativeLossParams",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setDebtLimits",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setEmergencyLiquidator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setExpirationDate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setTokenAllowance",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawalManager",
+    data: BytesLike
+  ): Result;
 
   events: {
     "AddCollateral(address,address,uint256)": EventFragment;
@@ -376,8 +479,10 @@ export interface ICreditFacadeV3 extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    botList(overrides?: CallOverrides): Promise<[string]>;
+
     botMulticall(
-      borrower: PromiseOrValue<string>,
+      creditAccount: PromiseOrValue<string>,
       calls: MultiCallStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -412,6 +517,8 @@ export interface ICreditFacadeV3 extends BaseContract {
 
     degenNFT(overrides?: CallOverrides): Promise<[string]>;
 
+    expirable(overrides?: CallOverrides): Promise<[boolean]>;
+
     expirationDate(overrides?: CallOverrides): Promise<[number]>;
 
     forbiddenTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -434,7 +541,11 @@ export interface ICreditFacadeV3 extends BaseContract {
       }
     >;
 
+    maxApprovedBots(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<[number]>;
+
+    maxQuotaMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     multicall(
       creditAccount: PromiseOrValue<string>,
@@ -450,6 +561,11 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    setBotList(
+      newBotList: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     setBotPermissions(
       creditAccount: PromiseOrValue<string>,
       bot: PromiseOrValue<string>,
@@ -459,11 +575,47 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    setCumulativeLossParams(
+      newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
+      resetCumulativeLoss: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setDebtLimits(
+      newMinDebt: PromiseOrValue<BigNumberish>,
+      newMaxDebt: PromiseOrValue<BigNumberish>,
+      newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setEmergencyLiquidator(
+      liquidator: PromiseOrValue<string>,
+      allowance: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setExpirationDate(
+      newExpirationDate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setTokenAllowance(
+      token: PromiseOrValue<string>,
+      allowance: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    weth(overrides?: CallOverrides): Promise<[string]>;
+
+    withdrawalManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
+  botList(overrides?: CallOverrides): Promise<string>;
+
   botMulticall(
-    borrower: PromiseOrValue<string>,
+    creditAccount: PromiseOrValue<string>,
     calls: MultiCallStruct[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -498,6 +650,8 @@ export interface ICreditFacadeV3 extends BaseContract {
 
   degenNFT(overrides?: CallOverrides): Promise<string>;
 
+  expirable(overrides?: CallOverrides): Promise<boolean>;
+
   expirationDate(overrides?: CallOverrides): Promise<number>;
 
   forbiddenTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
@@ -520,7 +674,11 @@ export interface ICreditFacadeV3 extends BaseContract {
     }
   >;
 
+  maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
+
   maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<number>;
+
+  maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
   multicall(
     creditAccount: PromiseOrValue<string>,
@@ -536,6 +694,11 @@ export interface ICreditFacadeV3 extends BaseContract {
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  setBotList(
+    newBotList: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   setBotPermissions(
     creditAccount: PromiseOrValue<string>,
     bot: PromiseOrValue<string>,
@@ -545,11 +708,47 @@ export interface ICreditFacadeV3 extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  setCumulativeLossParams(
+    newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
+    resetCumulativeLoss: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setDebtLimits(
+    newMinDebt: PromiseOrValue<BigNumberish>,
+    newMaxDebt: PromiseOrValue<BigNumberish>,
+    newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setEmergencyLiquidator(
+    liquidator: PromiseOrValue<string>,
+    allowance: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setExpirationDate(
+    newExpirationDate: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setTokenAllowance(
+    token: PromiseOrValue<string>,
+    allowance: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   version(overrides?: CallOverrides): Promise<BigNumber>;
 
+  weth(overrides?: CallOverrides): Promise<string>;
+
+  withdrawalManager(overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
+    botList(overrides?: CallOverrides): Promise<string>;
+
     botMulticall(
-      borrower: PromiseOrValue<string>,
+      creditAccount: PromiseOrValue<string>,
       calls: MultiCallStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
@@ -584,6 +783,8 @@ export interface ICreditFacadeV3 extends BaseContract {
 
     degenNFT(overrides?: CallOverrides): Promise<string>;
 
+    expirable(overrides?: CallOverrides): Promise<boolean>;
+
     expirationDate(overrides?: CallOverrides): Promise<number>;
 
     forbiddenTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
@@ -606,7 +807,11 @@ export interface ICreditFacadeV3 extends BaseContract {
       }
     >;
 
+    maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
+
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<number>;
+
+    maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
     multicall(
       creditAccount: PromiseOrValue<string>,
@@ -622,6 +827,11 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    setBotList(
+      newBotList: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setBotPermissions(
       creditAccount: PromiseOrValue<string>,
       bot: PromiseOrValue<string>,
@@ -631,7 +841,41 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setCumulativeLossParams(
+      newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
+      resetCumulativeLoss: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setDebtLimits(
+      newMinDebt: PromiseOrValue<BigNumberish>,
+      newMaxDebt: PromiseOrValue<BigNumberish>,
+      newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setEmergencyLiquidator(
+      liquidator: PromiseOrValue<string>,
+      allowance: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setExpirationDate(
+      newExpirationDate: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setTokenAllowance(
+      token: PromiseOrValue<string>,
+      allowance: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    weth(overrides?: CallOverrides): Promise<string>;
+
+    withdrawalManager(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -739,8 +983,10 @@ export interface ICreditFacadeV3 extends BaseContract {
   };
 
   estimateGas: {
+    botList(overrides?: CallOverrides): Promise<BigNumber>;
+
     botMulticall(
-      borrower: PromiseOrValue<string>,
+      creditAccount: PromiseOrValue<string>,
       calls: MultiCallStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -771,6 +1017,8 @@ export interface ICreditFacadeV3 extends BaseContract {
 
     degenNFT(overrides?: CallOverrides): Promise<BigNumber>;
 
+    expirable(overrides?: CallOverrides): Promise<BigNumber>;
+
     expirationDate(overrides?: CallOverrides): Promise<BigNumber>;
 
     forbiddenTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
@@ -786,7 +1034,11 @@ export interface ICreditFacadeV3 extends BaseContract {
 
     lossParams(overrides?: CallOverrides): Promise<BigNumber>;
 
+    maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
+
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
     multicall(
       creditAccount: PromiseOrValue<string>,
@@ -802,6 +1054,11 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    setBotList(
+      newBotList: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     setBotPermissions(
       creditAccount: PromiseOrValue<string>,
       bot: PromiseOrValue<string>,
@@ -811,12 +1068,48 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    setCumulativeLossParams(
+      newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
+      resetCumulativeLoss: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setDebtLimits(
+      newMinDebt: PromiseOrValue<BigNumberish>,
+      newMaxDebt: PromiseOrValue<BigNumberish>,
+      newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setEmergencyLiquidator(
+      liquidator: PromiseOrValue<string>,
+      allowance: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setExpirationDate(
+      newExpirationDate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setTokenAllowance(
+      token: PromiseOrValue<string>,
+      allowance: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     version(overrides?: CallOverrides): Promise<BigNumber>;
+
+    weth(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdrawalManager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    botList(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     botMulticall(
-      borrower: PromiseOrValue<string>,
+      creditAccount: PromiseOrValue<string>,
       calls: MultiCallStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -847,6 +1140,8 @@ export interface ICreditFacadeV3 extends BaseContract {
 
     degenNFT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    expirable(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     expirationDate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     forbiddenTokenMask(
@@ -864,7 +1159,13 @@ export interface ICreditFacadeV3 extends BaseContract {
 
     lossParams(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    maxApprovedBots(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     maxDebtPerBlockMultiplier(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxQuotaMultiplier(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -882,6 +1183,11 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    setBotList(
+      newBotList: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     setBotPermissions(
       creditAccount: PromiseOrValue<string>,
       bot: PromiseOrValue<string>,
@@ -891,6 +1197,40 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    setCumulativeLossParams(
+      newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
+      resetCumulativeLoss: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setDebtLimits(
+      newMinDebt: PromiseOrValue<BigNumberish>,
+      newMaxDebt: PromiseOrValue<BigNumberish>,
+      newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setEmergencyLiquidator(
+      liquidator: PromiseOrValue<string>,
+      allowance: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setExpirationDate(
+      newExpirationDate: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setTokenAllowance(
+      token: PromiseOrValue<string>,
+      allowance: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdrawalManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }
