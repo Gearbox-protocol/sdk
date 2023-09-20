@@ -137,6 +137,7 @@ export class PoolData {
       R_slope2: payload.lirm.R_slope2,
       R_slope3: payload.lirm.R_slope3,
       version: payload?.lirm?.version?.toNumber(),
+      isBorrowingMoreU2Forbidden: payload?.lirm?.isBorrowingMoreU2Forbidden,
     };
     this.dieselRate = rayToNumber(payload.dieselRate_RAY);
     this.dieselRateRay = toBigInt(payload.dieselRate_RAY);
