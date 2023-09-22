@@ -1091,6 +1091,13 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@gearbox-protocol/core-v2@^1.21.1":
+  version "1.21.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.21.1.tgz#7d01207a6b5ef2e3941dee970e993e4a38f9a97f"
+  integrity sha512-pEIXRnmkdbPiR8j7d+l80OdOpVcRjeNE2ZfnUL2sfDq5lx7aTUNUNxAPfKT3S5vD+8NISL3ojmxQwiAFTwAFEw==
+  dependencies:
+    "@typechain/ethers-v5" "^10.2.1"
+
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/eslint-config/-/eslint-config-1.6.1.tgz#315a5c0b19593e925db32de72c27964adc44d2f8"
@@ -1465,6 +1472,14 @@
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-10.0.0.tgz#1b6e292d2ed9afb0d2f7a4674cc199bb95bad714"
   integrity sha512-Kot7fwAqnH96ZbI8xrRgj5Kpv9yCEdjo7mxRqrH7bYpEgijT5MmuOo8IVsdhOu7Uog4ONg7k/d5UdbAtTKUgsA==
+  dependencies:
+    lodash "^4.17.15"
+    ts-essentials "^7.0.1"
+
+"@typechain/ethers-v5@^10.2.1":
+  version "10.2.1"
+  resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-10.2.1.tgz#50241e6957683281ecfa03fb5a6724d8a3ce2391"
+  integrity sha512-n3tQmCZjRE6IU4h6lqUGiQ1j866n5MTCBJreNEHHVWXa2u9GJTaeYyU1/k+1qLutkyw+sS6VAN+AbeiTqsxd/A==
   dependencies:
     lodash "^4.17.15"
     ts-essentials "^7.0.1"

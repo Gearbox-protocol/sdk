@@ -24,7 +24,11 @@
     "lint": "eslint \"**/*.ts\" --fix",
     "lint:ci": "eslint \"**/*.ts\"",
     "typecheck:ci": "tsc --noEmit",
-    "test": "npx mocha -r ts-node/register -r dotenv/config src/**/*.spec.ts"
+    "test": "npx mocha -r ts-node/register -r dotenv/config src/**/*.spec.ts",
+    "types:clean": "rm -rf forge-out src/types-extra",
+    "types:build": "forge build",
+    "types:generate": "typechain --target ethers-v5 --out-dir src/types-extra ./forge-out/**/*.json",
+    "types": "yarn types:clean && yarn types:build && yarn types:generate"
   },
   "dependencies": {
     "@types/deep-eql": "^4.0.0",
@@ -36,6 +40,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
+    "@gearbox-protocol/core-v2": "^1.21.1",
     "@gearbox-protocol/eslint-config": "^1.4.1",
     "@gearbox-protocol/prettier-config": "^1.4.1",
     "@typechain/ethers-v5": "10.0.0",
