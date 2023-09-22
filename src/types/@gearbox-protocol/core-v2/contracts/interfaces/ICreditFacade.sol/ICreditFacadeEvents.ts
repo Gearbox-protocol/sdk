@@ -16,9 +16,11 @@ export interface ICreditFacadeEventsInterface extends utils.Interface {
 
   events: {
     "AddCollateral(address,address,uint256)": EventFragment;
+    "BlacklistHelperSet(address)": EventFragment;
     "CloseCreditAccount(address,address)": EventFragment;
     "DecreaseBorrowedAmount(address,uint256)": EventFragment;
     "IncreaseBorrowedAmount(address,uint256)": EventFragment;
+    "IncurLossOnLiquidation(uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
     "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
     "MultiCallFinished()": EventFragment;
@@ -28,12 +30,15 @@ export interface ICreditFacadeEventsInterface extends utils.Interface {
     "TokenEnabled(address,address)": EventFragment;
     "TransferAccount(address,address)": EventFragment;
     "TransferAccountAllowed(address,address,bool)": EventFragment;
+    "UnderlyingSentToBlacklistHelper(address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddCollateral"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BlacklistHelperSet"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CloseCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DecreaseBorrowedAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "IncurLossOnLiquidation"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(
     nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
@@ -45,6 +50,9 @@ export interface ICreditFacadeEventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "UnderlyingSentToBlacklistHelper"
+  ): EventFragment;
 }
 
 export interface AddCollateralEventObject {
@@ -58,6 +66,17 @@ export type AddCollateralEvent = TypedEvent<
 >;
 
 export type AddCollateralEventFilter = TypedEventFilter<AddCollateralEvent>;
+
+export interface BlacklistHelperSetEventObject {
+  blacklistHelper: string;
+}
+export type BlacklistHelperSetEvent = TypedEvent<
+  [string],
+  BlacklistHelperSetEventObject
+>;
+
+export type BlacklistHelperSetEventFilter =
+  TypedEventFilter<BlacklistHelperSetEvent>;
 
 export interface CloseCreditAccountEventObject {
   borrower: string;
@@ -94,6 +113,17 @@ export type IncreaseBorrowedAmountEvent = TypedEvent<
 
 export type IncreaseBorrowedAmountEventFilter =
   TypedEventFilter<IncreaseBorrowedAmountEvent>;
+
+export interface IncurLossOnLiquidationEventObject {
+  loss: BigNumber;
+}
+export type IncurLossOnLiquidationEvent = TypedEvent<
+  [BigNumber],
+  IncurLossOnLiquidationEventObject
+>;
+
+export type IncurLossOnLiquidationEventFilter =
+  TypedEventFilter<IncurLossOnLiquidationEvent>;
 
 export interface LiquidateCreditAccountEventObject {
   borrower: string;
@@ -203,6 +233,18 @@ export type TransferAccountAllowedEvent = TypedEvent<
 export type TransferAccountAllowedEventFilter =
   TypedEventFilter<TransferAccountAllowedEvent>;
 
+export interface UnderlyingSentToBlacklistHelperEventObject {
+  borrower: string;
+  amount: BigNumber;
+}
+export type UnderlyingSentToBlacklistHelperEvent = TypedEvent<
+  [string, BigNumber],
+  UnderlyingSentToBlacklistHelperEventObject
+>;
+
+export type UnderlyingSentToBlacklistHelperEventFilter =
+  TypedEventFilter<UnderlyingSentToBlacklistHelperEvent>;
+
 export interface ICreditFacadeEvents extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
@@ -245,6 +287,13 @@ export interface ICreditFacadeEvents extends BaseContract {
       value?: null
     ): AddCollateralEventFilter;
 
+    "BlacklistHelperSet(address)"(
+      blacklistHelper?: string | null
+    ): BlacklistHelperSetEventFilter;
+    BlacklistHelperSet(
+      blacklistHelper?: string | null
+    ): BlacklistHelperSetEventFilter;
+
     "CloseCreditAccount(address,address)"(
       borrower?: string | null,
       to?: string | null
@@ -271,6 +320,11 @@ export interface ICreditFacadeEvents extends BaseContract {
       borrower?: string | null,
       amount?: null
     ): IncreaseBorrowedAmountEventFilter;
+
+    "IncurLossOnLiquidation(uint256)"(
+      loss?: null
+    ): IncurLossOnLiquidationEventFilter;
+    IncurLossOnLiquidation(loss?: null): IncurLossOnLiquidationEventFilter;
 
     "LiquidateCreditAccount(address,address,address,uint256)"(
       borrower?: string | null,
@@ -356,6 +410,15 @@ export interface ICreditFacadeEvents extends BaseContract {
       to?: string | null,
       state?: null
     ): TransferAccountAllowedEventFilter;
+
+    "UnderlyingSentToBlacklistHelper(address,uint256)"(
+      borrower?: string | null,
+      amount?: null
+    ): UnderlyingSentToBlacklistHelperEventFilter;
+    UnderlyingSentToBlacklistHelper(
+      borrower?: string | null,
+      amount?: null
+    ): UnderlyingSentToBlacklistHelperEventFilter;
   };
 
   estimateGas: {};

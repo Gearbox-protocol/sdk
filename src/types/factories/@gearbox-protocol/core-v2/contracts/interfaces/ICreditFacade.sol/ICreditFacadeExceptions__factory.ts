@@ -108,6 +108,16 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "LiquiditySanityCheckException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotAllowedForBlacklistedAddressException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "NotAllowedInWhitelistedMode",
     type: "error",
   },

@@ -41,6 +41,19 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "blacklistHelper",
+        type: "address",
+      },
+    ],
+    name: "BlacklistHelperSet",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "borrower",
         type: "address",
       },
@@ -90,6 +103,19 @@ const _abi = [
       },
     ],
     name: "IncreaseBorrowedAmount",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "loss",
+        type: "uint256",
+      },
+    ],
+    name: "IncurLossOnLiquidation",
     type: "event",
   },
   {
@@ -284,6 +310,25 @@ const _abi = [
       },
     ],
     name: "TransferAccountAllowed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "borrower",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "UnderlyingSentToBlacklistHelper",
     type: "event",
   },
 ];
