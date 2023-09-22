@@ -140,6 +140,7 @@ export class CreditManagerData {
       TxParser.addCreditFacade(
         this.creditFacade,
         tokenSymbolByAddress[this.underlyingToken],
+        this.version,
       );
 
       TxParser.addAdapters(
@@ -149,6 +150,10 @@ export class CreditManagerData {
         })),
       );
     }
+  }
+
+  isQuoted(token: string) {
+    return !!this.quotas[token];
   }
 
   encodeAddCollateralV2(
@@ -256,6 +261,21 @@ export class CreditManagerData {
         ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
           "disableToken",
           [token],
+        ),
+    };
+  }
+
+  encodeUpdateQuotaV3(
+    token: string,
+    quotaChange: bigint,
+    minQuota: bigint,
+  ): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "updateQuota",
+          [token, quotaChange, minQuota],
         ),
     };
   }
