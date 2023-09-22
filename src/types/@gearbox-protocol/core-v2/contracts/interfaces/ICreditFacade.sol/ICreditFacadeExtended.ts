@@ -32,7 +32,7 @@ export type BalanceStructOutput = [string, BigNumber] & {
 
 export interface ICreditFacadeExtendedInterface extends utils.Interface {
   functions: {
-    "addCollateral(address,address,uint256)": FunctionFragment;
+    "addCollateral(address,uint256)": FunctionFragment;
     "decreaseDebt(uint256)": FunctionFragment;
     "disableToken(address)": FunctionFragment;
     "enableToken(address)": FunctionFragment;
@@ -52,7 +52,7 @@ export interface ICreditFacadeExtendedInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "addCollateral",
-    values: [string, string, BigNumberish]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseDebt",
@@ -128,7 +128,6 @@ export interface ICreditFacadeExtended extends BaseContract {
 
   functions: {
     addCollateral(
-      onBehalfOf: string,
       token: string,
       amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -161,7 +160,6 @@ export interface ICreditFacadeExtended extends BaseContract {
   };
 
   addCollateral(
-    onBehalfOf: string,
     token: string,
     amount: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -194,7 +192,6 @@ export interface ICreditFacadeExtended extends BaseContract {
 
   callStatic: {
     addCollateral(
-      onBehalfOf: string,
       token: string,
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -224,7 +221,6 @@ export interface ICreditFacadeExtended extends BaseContract {
 
   estimateGas: {
     addCollateral(
-      onBehalfOf: string,
       token: string,
       amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -258,7 +254,6 @@ export interface ICreditFacadeExtended extends BaseContract {
 
   populateTransaction: {
     addCollateral(
-      onBehalfOf: string,
       token: string,
       amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }

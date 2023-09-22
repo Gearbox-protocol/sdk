@@ -108,6 +108,16 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "LiquiditySanityCheckException",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotAllowedForBlacklistedAddressException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "NotAllowedInWhitelistedMode",
     type: "error",
   },
@@ -197,6 +207,19 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "blacklistHelper",
+        type: "address",
+      },
+    ],
+    name: "BlacklistHelperSet",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "borrower",
         type: "address",
       },
@@ -246,6 +269,19 @@ const _abi = [
       },
     ],
     name: "IncreaseBorrowedAmount",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "loss",
+        type: "uint256",
+      },
+    ],
+    name: "IncurLossOnLiquidation",
     type: "event",
   },
   {
@@ -443,6 +479,25 @@ const _abi = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "borrower",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "UnderlyingSentToBlacklistHelper",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -469,29 +524,6 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "targetContract",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "approve",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
         name: "from",
         type: "address",
       },
@@ -504,6 +536,19 @@ const _abi = [
     name: "approveAccountTransfer",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "blacklistHelper",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -562,6 +607,41 @@ const _abi = [
         type: "uint256",
       },
       {
+        components: [
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "bytes",
+            name: "callData",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct MultiCall[]",
+        name: "calls",
+        type: "tuple[]",
+      },
+    ],
+    name: "closeCreditAccount",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "skipTokenMask",
+        type: "uint256",
+      },
+      {
         internalType: "bool",
         name: "convertWETH",
         type: "bool",
@@ -603,19 +683,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "decreaseDebt",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "degenNFT",
     outputs: [
@@ -626,19 +693,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "enableToken",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -661,16 +715,16 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "isBlacklistableUnderlying",
+    outputs: [
       {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
-    name: "increaseDebt",
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -708,6 +762,46 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "borrower",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "skipTokenMask",
+        type: "uint256",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "bytes",
+            name: "callData",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct MultiCall[]",
+        name: "calls",
+        type: "tuple[]",
+      },
+    ],
+    name: "liquidateCreditAccount",
+    outputs: [],
+    stateMutability: "payable",
     type: "function",
   },
   {
@@ -773,6 +867,46 @@ const _abi = [
         type: "uint256",
       },
       {
+        components: [
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "bytes",
+            name: "callData",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct MultiCall[]",
+        name: "calls",
+        type: "tuple[]",
+      },
+    ],
+    name: "liquidateExpiredCreditAccount",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "borrower",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "skipTokenMask",
+        type: "uint256",
+      },
+      {
         internalType: "bool",
         name: "convertWETH",
         type: "bool",
@@ -798,6 +932,24 @@ const _abi = [
     name: "liquidateExpiredCreditAccount",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "lossParams",
+    outputs: [
+      {
+        internalType: "uint128",
+        name: "currentCumulativeLoss",
+        type: "uint128",
+      },
+      {
+        internalType: "uint128",
+        name: "maxCumulativeLoss",
+        type: "uint128",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

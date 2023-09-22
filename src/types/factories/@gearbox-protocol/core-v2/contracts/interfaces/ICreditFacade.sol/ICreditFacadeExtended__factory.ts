@@ -14,11 +14,6 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "onBehalfOf",
-        type: "address",
-      },
-      {
-        internalType: "address",
         name: "token",
         type: "address",
       },
