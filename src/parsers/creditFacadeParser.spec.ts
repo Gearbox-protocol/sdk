@@ -10,7 +10,7 @@ import { CreditFacadeParser } from "./creditFacadeParser";
 
 describe("CreditFacadeParser test", () => {
   it("all functions works well", () => {
-    let parser = new CreditFacadeParser("DAI");
+    let parser = new CreditFacadeParser("DAI", 1);
 
     const ifc = ICreditFacadeV2Extended__factory.createInterface();
 
