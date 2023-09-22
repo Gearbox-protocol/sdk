@@ -19,7 +19,7 @@ type Response = Array<YearnAPYData>;
 
 const RESPONSE_DECIMALS = 1;
 
-const URL = "https://api.yearn.finance/v1/chains/1/vaults/all";
+const URL = "https://api.yexporter.io/v1/chains/1/vaults/all";
 
 export type YearnAPYResult = Record<YearnLPToken, bigint>;
 
