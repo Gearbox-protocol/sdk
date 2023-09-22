@@ -9,7 +9,6 @@ import {
 import { tokenSymbolByAddress } from "../tokens/token";
 import {
   IConvexV1BaseRewardPoolAdapter__factory,
-  ICreditFacade__factory,
   ICreditFacadeExtended__factory,
   ICreditManager,
   ICreditManager__factory,
@@ -154,19 +153,16 @@ export class CreditManagerData {
     return this.adapters[contractAddress];
   }
 
-  encodeAddCollateral(
-    accountAddress: string,
-    tokenAddress: string,
-    amount: bigint,
-  ): MultiCall {
+  encodeAddCollateral(tokenAddress: string, amount: bigint): MultiCall {
     if (this.version === 1)
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
-      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
-        "addCollateral",
-        [accountAddress, tokenAddress, amount],
-      ),
+      callData:
+        ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
+          "addCollateral",
+          [tokenAddress, amount],
+        ),
     };
   }
 
@@ -175,10 +171,11 @@ export class CreditManagerData {
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
-      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
-        "increaseDebt",
-        [amount],
-      ),
+      callData:
+        ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
+          "increaseDebt",
+          [amount],
+        ),
     };
   }
 
@@ -187,10 +184,11 @@ export class CreditManagerData {
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
-      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
-        "decreaseDebt",
-        [amount],
-      ),
+      callData:
+        ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
+          "decreaseDebt",
+          [amount],
+        ),
     };
   }
 
@@ -199,10 +197,11 @@ export class CreditManagerData {
       throw new Error("Multicall is eligible only for version 2");
     return {
       target: this.creditFacade,
-      callData: ICreditFacade__factory.createInterface().encodeFunctionData(
-        "enableToken",
-        [token],
-      ),
+      callData:
+        ICreditFacadeExtended__factory.createInterface().encodeFunctionData(
+          "enableToken",
+          [token],
+        ),
     };
   }
 
