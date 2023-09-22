@@ -1,15 +1,24 @@
 import { SupportedToken } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
-import { ICreditFacadeV2Extended__factory } from "../types";
+import {
+  ICreditFacadeV2Extended__factory,
+  ICreditFacadeV3Multicall__factory,
+} from "../types";
 import { BalanceStructOutput } from "../types/ICreditFacadeV2.sol/ICreditFacadeV2Extended";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class CreditFacadeParser extends AbstractParser implements IParser {
-  constructor(token: SupportedToken) {
+  version: number;
+
+  constructor(token: SupportedToken, version: number) {
     super(token);
-    this.ifc = ICreditFacadeV2Extended__factory.createInterface();
+    this.version = version;
+    this.ifc =
+      version === 300
+        ? ICreditFacadeV3Multicall__factory.createInterface()
+        : ICreditFacadeV2Extended__factory.createInterface();
     this.adapterName = "CreditFacade";
   }
   parse(calldata: string): string {
@@ -17,10 +26,12 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
 
     switch (functionFragment.name) {
       case "addCollateral": {
-        const [onBehalf, token, amount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const r = this.decodeFunctionData(functionFragment, calldata);
+
+        const onBehalf = this.version === 300 ? "none" : r[0];
+        const token = this.version === 300 ? r[0] : r[1];
+        const amount = this.version === 300 ? r[1] : r[2];
+
         return `${functionName}(onBehalf: ${onBehalf}, token: ${this.tokenSymbol(
           token,
         )}, amount: ${this.formatAmount(amount)})`;
@@ -34,6 +45,18 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       case "disableToken": {
         const [address] = this.decodeFunctionData(functionFragment, calldata);
         return `${functionName}(token: ${this.tokenSymbol(address)})`;
+      }
+
+      case "updateQuota": {
+        const [address, quotaUpdate, minQuota] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(token: ${this.tokenSymbol(
+          address,
+        )}, quotaUpdate: ${this.formatAmount(
+          quotaUpdate,
+        )}, minQuota: ${this.formatAmount(minQuota)})`;
       }
 
       case "revertIfReceivedLessThan": {

@@ -116,8 +116,12 @@ export class TxParser {
   public static addCreditFacade(
     creditFacade: string,
     underlying: SupportedToken,
+    version: number,
   ) {
-    TxParser._addParser(creditFacade, new CreditFacadeParser(underlying));
+    TxParser._addParser(
+      creditFacade,
+      new CreditFacadeParser(underlying, version),
+    );
   }
 
   public static addTokens(network: NetworkType) {
