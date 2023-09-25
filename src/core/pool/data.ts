@@ -33,6 +33,8 @@ export class PoolData {
   readonly version: number;
   readonly poolQuotaKeeper: string;
   readonly gauge: string;
+  readonly name: string;
+  readonly symbol: string;
 
   // Information
   readonly expectedLiquidity: bigint;
@@ -66,6 +68,8 @@ export class PoolData {
     this.version = payload.version.toNumber();
     this.poolQuotaKeeper = payload.poolQuotaKeeper.toLowerCase();
     this.gauge = payload.gauge.toLowerCase();
+    this.name = payload.name;
+    this.symbol = payload.symbol;
 
     this.expectedLiquidity = toBigInt(payload.expectedLiquidity);
     this.availableLiquidity = toBigInt(payload.availableLiquidity);
