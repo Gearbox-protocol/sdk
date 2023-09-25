@@ -106,7 +106,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     "creditAccountsLen()": FunctionFragment;
     "creditConfigurator()": FunctionFragment;
     "creditFacade()": FunctionFragment;
-    "description()": FunctionFragment;
     "enabledTokensMaskOf(address)": FunctionFragment;
     "execute(bytes)": FunctionFragment;
     "fees()": FunctionFragment;
@@ -121,7 +120,8 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     "ltParams(address)": FunctionFragment;
     "manageDebt(address,uint256,uint256,uint8)": FunctionFragment;
     "maxEnabledTokens()": FunctionFragment;
-    "openCreditAccount(uint256,address)": FunctionFragment;
+    "name()": FunctionFragment;
+    "openCreditAccount(address)": FunctionFragment;
     "pool()": FunctionFragment;
     "poolQuotaKeeper()": FunctionFragment;
     "priceOracle()": FunctionFragment;
@@ -165,7 +165,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "creditAccountsLen"
       | "creditConfigurator"
       | "creditFacade"
-      | "description"
       | "enabledTokensMaskOf"
       | "execute"
       | "fees"
@@ -180,6 +179,7 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "ltParams"
       | "manageDebt"
       | "maxEnabledTokens"
+      | "name"
       | "openCreditAccount"
       | "pool"
       | "poolQuotaKeeper"
@@ -294,10 +294,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "description",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "enabledTokensMaskOf",
     values: [PromiseOrValue<string>]
   ): string;
@@ -360,9 +356,10 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     functionFragment: "maxEnabledTokens",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "pool", values?: undefined): string;
   encodeFunctionData(
@@ -536,10 +533,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "description",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "enabledTokensMaskOf",
     data: BytesLike
   ): Result;
@@ -580,6 +573,7 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     functionFragment: "maxEnabledTokens",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "openCreditAccount",
     data: BytesLike
@@ -784,7 +778,7 @@ export interface ICreditManagerV3 extends BaseContract {
         quotaFees: BigNumber;
         enabledTokensMask: BigNumber;
         flags: number;
-        since: BigNumber;
+        lastDebtUpdate: BigNumber;
         borrower: string;
       }
     >;
@@ -802,8 +796,6 @@ export interface ICreditManagerV3 extends BaseContract {
     creditConfigurator(overrides?: CallOverrides): Promise<[string]>;
 
     creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
-    description(overrides?: CallOverrides): Promise<[string]>;
 
     enabledTokensMaskOf(
       creditAccount: PromiseOrValue<string>,
@@ -892,8 +884,9 @@ export interface ICreditManagerV3 extends BaseContract {
 
     maxEnabledTokens(overrides?: CallOverrides): Promise<[number]>;
 
+    name(overrides?: CallOverrides): Promise<[string]>;
+
     openCreditAccount(
-      debt: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -1084,7 +1077,7 @@ export interface ICreditManagerV3 extends BaseContract {
       quotaFees: BigNumber;
       enabledTokensMask: BigNumber;
       flags: number;
-      since: BigNumber;
+      lastDebtUpdate: BigNumber;
       borrower: string;
     }
   >;
@@ -1102,8 +1095,6 @@ export interface ICreditManagerV3 extends BaseContract {
   creditConfigurator(overrides?: CallOverrides): Promise<string>;
 
   creditFacade(overrides?: CallOverrides): Promise<string>;
-
-  description(overrides?: CallOverrides): Promise<string>;
 
   enabledTokensMaskOf(
     creditAccount: PromiseOrValue<string>,
@@ -1190,8 +1181,9 @@ export interface ICreditManagerV3 extends BaseContract {
 
   maxEnabledTokens(overrides?: CallOverrides): Promise<number>;
 
+  name(overrides?: CallOverrides): Promise<string>;
+
   openCreditAccount(
-    debt: PromiseOrValue<BigNumberish>,
     onBehalfOf: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -1384,7 +1376,7 @@ export interface ICreditManagerV3 extends BaseContract {
         quotaFees: BigNumber;
         enabledTokensMask: BigNumber;
         flags: number;
-        since: BigNumber;
+        lastDebtUpdate: BigNumber;
         borrower: string;
       }
     >;
@@ -1402,8 +1394,6 @@ export interface ICreditManagerV3 extends BaseContract {
     creditConfigurator(overrides?: CallOverrides): Promise<string>;
 
     creditFacade(overrides?: CallOverrides): Promise<string>;
-
-    description(overrides?: CallOverrides): Promise<string>;
 
     enabledTokensMaskOf(
       creditAccount: PromiseOrValue<string>,
@@ -1496,8 +1486,9 @@ export interface ICreditManagerV3 extends BaseContract {
 
     maxEnabledTokens(overrides?: CallOverrides): Promise<number>;
 
+    name(overrides?: CallOverrides): Promise<string>;
+
     openCreditAccount(
-      debt: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -1700,8 +1691,6 @@ export interface ICreditManagerV3 extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
 
-    description(overrides?: CallOverrides): Promise<BigNumber>;
-
     enabledTokensMaskOf(
       creditAccount: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -1772,8 +1761,9 @@ export interface ICreditManagerV3 extends BaseContract {
 
     maxEnabledTokens(overrides?: CallOverrides): Promise<BigNumber>;
 
+    name(overrides?: CallOverrides): Promise<BigNumber>;
+
     openCreditAccount(
-      debt: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1968,8 +1958,6 @@ export interface ICreditManagerV3 extends BaseContract {
 
     creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     enabledTokensMaskOf(
       creditAccount: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -2040,8 +2028,9 @@ export interface ICreditManagerV3 extends BaseContract {
 
     maxEnabledTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     openCreditAccount(
-      debt: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
