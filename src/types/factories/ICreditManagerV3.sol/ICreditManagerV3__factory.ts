@@ -482,7 +482,7 @@ const _abi = [
       },
       {
         internalType: "uint64",
-        name: "since",
+        name: "lastDebtUpdate",
         type: "uint64",
       },
       {
@@ -565,19 +565,6 @@ const _abi = [
         internalType: "address",
         name: "",
         type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "description",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
       },
     ],
     stateMutability: "view",
@@ -912,12 +899,20 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "name",
+    outputs: [
       {
-        internalType: "uint256",
-        name: "debt",
-        type: "uint256",
+        internalType: "string",
+        name: "",
+        type: "string",
       },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
       {
         internalType: "address",
         name: "onBehalfOf",

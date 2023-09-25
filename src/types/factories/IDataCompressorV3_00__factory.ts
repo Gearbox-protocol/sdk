@@ -65,6 +65,11 @@ const _abi = [
             type: "address",
           },
           {
+            internalType: "string",
+            name: "cmDescription",
+            type: "string",
+          },
+          {
             internalType: "address",
             name: "creditFacade",
             type: "address",
@@ -300,6 +305,11 @@ const _abi = [
             internalType: "address",
             name: "creditManager",
             type: "address",
+          },
+          {
+            internalType: "string",
+            name: "cmDescription",
+            type: "string",
           },
           {
             internalType: "address",
@@ -539,6 +549,11 @@ const _abi = [
             type: "address",
           },
           {
+            internalType: "string",
+            name: "cmDescription",
+            type: "string",
+          },
+          {
             internalType: "address",
             name: "creditFacade",
             type: "address",
@@ -737,6 +752,11 @@ const _abi = [
             internalType: "address",
             name: "addr",
             type: "address",
+          },
+          {
+            internalType: "string",
+            name: "description",
+            type: "string",
           },
           {
             internalType: "uint256",
@@ -978,6 +998,11 @@ const _abi = [
             internalType: "address",
             name: "addr",
             type: "address",
+          },
+          {
+            internalType: "string",
+            name: "description",
+            type: "string",
           },
           {
             internalType: "uint256",
@@ -1237,6 +1262,16 @@ const _abi = [
             type: "address",
           },
           {
+            internalType: "string",
+            name: "symbol",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
+          },
+          {
             internalType: "uint256",
             name: "linearCumulativeIndex",
             type: "uint256",
@@ -1483,6 +1518,16 @@ const _abi = [
             internalType: "address",
             name: "dieselToken",
             type: "address",
+          },
+          {
+            internalType: "string",
+            name: "symbol",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
           },
           {
             internalType: "uint256",

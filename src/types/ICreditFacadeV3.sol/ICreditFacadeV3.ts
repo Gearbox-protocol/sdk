@@ -57,7 +57,7 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "maxDebtPerBlockMultiplier()": FunctionFragment;
     "maxQuotaMultiplier()": FunctionFragment;
     "multicall(address,(address,bytes)[])": FunctionFragment;
-    "openCreditAccount(uint256,address,(address,bytes)[],uint16)": FunctionFragment;
+    "openCreditAccount(address,(address,bytes)[],uint16)": FunctionFragment;
     "setBotList(address)": FunctionFragment;
     "setBotPermissions(address,address,uint192,uint72,uint72)": FunctionFragment;
     "setCumulativeLossParams(uint128,bool)": FunctionFragment;
@@ -176,7 +176,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "openCreditAccount",
     values: [
-      PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
       MultiCallStruct[],
       PromiseOrValue<BigNumberish>
@@ -321,7 +320,7 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "FinishMultiCall()": EventFragment;
     "IncreaseDebt(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,address,address,uint8,uint256)": EventFragment;
-    "OpenCreditAccount(address,address,address,uint256,uint16)": EventFragment;
+    "OpenCreditAccount(address,address,address,uint16)": EventFragment;
     "SetEnabledTokensMask(address,uint256)": EventFragment;
     "StartMultiCall(address,address)": EventFragment;
   };
@@ -418,11 +417,10 @@ export interface OpenCreditAccountEventObject {
   creditAccount: string;
   onBehalfOf: string;
   caller: string;
-  debt: BigNumber;
   referralCode: number;
 }
 export type OpenCreditAccountEvent = TypedEvent<
-  [string, string, string, BigNumber, number],
+  [string, string, string, number],
   OpenCreditAccountEventObject
 >;
 
@@ -554,7 +552,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     ): Promise<ContractTransaction>;
 
     openCreditAccount(
-      debt: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       calls: MultiCallStruct[],
       referralCode: PromiseOrValue<BigNumberish>,
@@ -687,7 +684,6 @@ export interface ICreditFacadeV3 extends BaseContract {
   ): Promise<ContractTransaction>;
 
   openCreditAccount(
-    debt: PromiseOrValue<BigNumberish>,
     onBehalfOf: PromiseOrValue<string>,
     calls: MultiCallStruct[],
     referralCode: PromiseOrValue<BigNumberish>,
@@ -820,7 +816,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     ): Promise<void>;
 
     openCreditAccount(
-      debt: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       calls: MultiCallStruct[],
       referralCode: PromiseOrValue<BigNumberish>,
@@ -948,18 +943,16 @@ export interface ICreditFacadeV3 extends BaseContract {
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
-    "OpenCreditAccount(address,address,address,uint256,uint16)"(
+    "OpenCreditAccount(address,address,address,uint16)"(
       creditAccount?: PromiseOrValue<string> | null,
       onBehalfOf?: PromiseOrValue<string> | null,
       caller?: PromiseOrValue<string> | null,
-      debt?: null,
       referralCode?: null
     ): OpenCreditAccountEventFilter;
     OpenCreditAccount(
       creditAccount?: PromiseOrValue<string> | null,
       onBehalfOf?: PromiseOrValue<string> | null,
       caller?: PromiseOrValue<string> | null,
-      debt?: null,
       referralCode?: null
     ): OpenCreditAccountEventFilter;
 
@@ -1047,7 +1040,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     ): Promise<BigNumber>;
 
     openCreditAccount(
-      debt: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       calls: MultiCallStruct[],
       referralCode: PromiseOrValue<BigNumberish>,
@@ -1176,7 +1168,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     openCreditAccount(
-      debt: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       calls: MultiCallStruct[],
       referralCode: PromiseOrValue<BigNumberish>,

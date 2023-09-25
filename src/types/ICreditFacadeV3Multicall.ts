@@ -46,6 +46,7 @@ export type RevocationPairStructOutput = [string, string] & {
 export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   functions: {
     "addCollateral(address,uint256)": FunctionFragment;
+    "addCollateralWithPermit(address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "decreaseDebt(uint256)": FunctionFragment;
     "disableToken(address)": FunctionFragment;
     "enableToken(address)": FunctionFragment;
@@ -62,6 +63,7 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "addCollateral"
+      | "addCollateralWithPermit"
       | "decreaseDebt"
       | "disableToken"
       | "enableToken"
@@ -78,6 +80,17 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "addCollateral",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addCollateralWithPermit",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseDebt",
@@ -130,6 +143,10 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "addCollateral",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addCollateralWithPermit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -210,6 +227,16 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    addCollateralWithPermit(
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     decreaseDebt(
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -277,6 +304,16 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  addCollateralWithPermit(
+    token: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    deadline: PromiseOrValue<BigNumberish>,
+    v: PromiseOrValue<BigNumberish>,
+    r: PromiseOrValue<BytesLike>,
+    s: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   decreaseDebt(
     amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -341,6 +378,16 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     addCollateral(
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addCollateralWithPermit(
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -414,6 +461,16 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    addCollateralWithPermit(
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     decreaseDebt(
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -479,6 +536,16 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     addCollateral(
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addCollateralWithPermit(
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -43,6 +43,7 @@ export { IDataCompressorV2_10__factory } from "./IDataCompressorV2_10__factory";
 export { IDataCompressorV3_00__factory } from "./IDataCompressorV3_00__factory";
 export { IERC20__factory } from "./IERC20__factory";
 export { IERC20Metadata__factory } from "./IERC20Metadata__factory";
+export { IERC20Permit__factory } from "./IERC20Permit__factory";
 export { IERC4626__factory } from "./IERC4626__factory";
 export { IInterestRateModel__factory } from "./IInterestRateModel__factory";
 export { IOffchainOracle__factory } from "./IOffchainOracle__factory";

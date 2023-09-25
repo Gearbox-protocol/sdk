@@ -69,6 +69,7 @@ export type CreditAccountDataStruct = {
   addr: PromiseOrValue<string>;
   borrower: PromiseOrValue<string>;
   creditManager: PromiseOrValue<string>;
+  cmDescription: PromiseOrValue<string>;
   creditFacade: PromiseOrValue<string>;
   underlying: PromiseOrValue<string>;
   debt: PromiseOrValue<BigNumberish>;
@@ -102,6 +103,7 @@ export type CreditAccountDataStructOutput = [
   string,
   string,
   string,
+  string,
   BigNumber,
   BigNumber,
   BigNumber,
@@ -129,6 +131,7 @@ export type CreditAccountDataStructOutput = [
   addr: string;
   borrower: string;
   creditManager: string;
+  cmDescription: string;
   creditFacade: string;
   underlying: string;
   debt: BigNumber;
@@ -228,6 +231,7 @@ export type LinearModelStructOutput = [
 
 export type CreditManagerDataStruct = {
   addr: PromiseOrValue<string>;
+  description: PromiseOrValue<string>;
   cfVersion: PromiseOrValue<BigNumberish>;
   creditFacade: PromiseOrValue<string>;
   creditConfigurator: PromiseOrValue<string>;
@@ -258,6 +262,7 @@ export type CreditManagerDataStruct = {
 
 export type CreditManagerDataStructOutput = [
   string,
+  string,
   BigNumber,
   string,
   string,
@@ -286,6 +291,7 @@ export type CreditManagerDataStructOutput = [
   boolean
 ] & {
   addr: string;
+  description: string;
   cfVersion: BigNumber;
   creditFacade: string;
   creditConfigurator: string;
@@ -347,6 +353,8 @@ export type PoolDataStruct = {
   addr: PromiseOrValue<string>;
   underlying: PromiseOrValue<string>;
   dieselToken: PromiseOrValue<string>;
+  symbol: PromiseOrValue<string>;
+  name: PromiseOrValue<string>;
   linearCumulativeIndex: PromiseOrValue<BigNumberish>;
   availableLiquidity: PromiseOrValue<BigNumberish>;
   expectedLiquidity: PromiseOrValue<BigNumberish>;
@@ -371,6 +379,8 @@ export type PoolDataStruct = {
 };
 
 export type PoolDataStructOutput = [
+  string,
+  string,
   string,
   string,
   string,
@@ -399,6 +409,8 @@ export type PoolDataStructOutput = [
   addr: string;
   underlying: string;
   dieselToken: string;
+  symbol: string;
+  name: string;
   linearCumulativeIndex: BigNumber;
   availableLiquidity: BigNumber;
   expectedLiquidity: BigNumber;

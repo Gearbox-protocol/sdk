@@ -67,6 +67,7 @@ export type { IDataCompressorV2_10 } from "./IDataCompressorV2_10";
 export type { IDataCompressorV3_00 } from "./IDataCompressorV3_00";
 export type { IERC20 } from "./IERC20";
 export type { IERC20Metadata } from "./IERC20Metadata";
+export type { IERC20Permit } from "./IERC20Permit";
 export type { IERC4626 } from "./IERC4626";
 export type { IInterestRateModel } from "./IInterestRateModel";
 export type { IOffchainOracle } from "./IOffchainOracle";
@@ -158,6 +159,7 @@ export type { IDegenDistributorEvents } from "./IDegenDistributor.sol/IDegenDist
 export { IDegenDistributorEvents__factory } from "./factories/IDegenDistributor.sol/IDegenDistributorEvents__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { IERC20Metadata__factory } from "./factories/IERC20Metadata__factory";
+export { IERC20Permit__factory } from "./factories/IERC20Permit__factory";
 export { IERC4626__factory } from "./factories/IERC4626__factory";
 export { IInterestRateModel__factory } from "./factories/IInterestRateModel__factory";
 export type { ILidoV1Adapter } from "./ILidoV1Adapter.sol/ILidoV1Adapter";

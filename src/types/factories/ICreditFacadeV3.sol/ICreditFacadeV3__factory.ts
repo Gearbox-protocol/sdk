@@ -189,12 +189,6 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint256",
-        name: "debt",
-        type: "uint256",
-      },
-      {
-        indexed: false,
         internalType: "uint16",
         name: "referralCode",
         type: "uint16",
@@ -583,11 +577,6 @@ const _abi = [
   },
   {
     inputs: [
-      {
-        internalType: "uint256",
-        name: "debt",
-        type: "uint256",
-      },
       {
         internalType: "address",
         name: "onBehalfOf",

@@ -48,6 +48,7 @@ export class CreditAccountData {
   readonly since: number;
   readonly expirationDate: number;
   readonly version: number;
+  readonly cmDescription: string;
 
   readonly enabledTokenMask: bigint;
   readonly healthFactor: number;
@@ -89,6 +90,7 @@ export class CreditAccountData {
     this.since = Number(toBigInt(payload.since));
     this.expirationDate = Number(toBigInt(payload.expirationDate));
     this.version = payload.cfVersion?.toNumber();
+    this.cmDescription = payload.cmDescription;
 
     this.healthFactor = Number(toBigInt(payload.healthFactor));
     this.enabledTokenMask = toBigInt(payload.enabledTokensMask);

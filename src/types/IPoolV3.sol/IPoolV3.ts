@@ -29,6 +29,7 @@ import type {
 
 export interface IPoolV3Interface extends utils.Interface {
   functions: {
+    "DOMAIN_SEPARATOR()": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
@@ -60,6 +61,8 @@ export interface IPoolV3Interface extends utils.Interface {
     "mint(uint256,address)": FunctionFragment;
     "mintWithReferral(uint256,address,uint16)": FunctionFragment;
     "name()": FunctionFragment;
+    "nonces(address)": FunctionFragment;
+    "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "poolQuotaKeeper()": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewMint(uint256)": FunctionFragment;
@@ -92,6 +95,7 @@ export interface IPoolV3Interface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "DOMAIN_SEPARATOR"
       | "addressProvider"
       | "allowance"
       | "approve"
@@ -123,6 +127,8 @@ export interface IPoolV3Interface extends utils.Interface {
       | "mint"
       | "mintWithReferral"
       | "name"
+      | "nonces"
+      | "permit"
       | "poolQuotaKeeper"
       | "previewDeposit"
       | "previewMint"
@@ -153,6 +159,10 @@ export interface IPoolV3Interface extends utils.Interface {
       | "withdrawFee"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "DOMAIN_SEPARATOR",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
     values?: undefined
@@ -277,6 +287,22 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "nonces",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "permit",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "poolQuotaKeeper",
     values?: undefined
   ): string;
@@ -397,6 +423,10 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "DOMAIN_SEPARATOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "addressProvider",
     data: BytesLike
   ): Result;
@@ -487,6 +517,8 @@ export interface IPoolV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "poolQuotaKeeper",
     data: BytesLike
@@ -805,6 +837,8 @@ export interface IPoolV3 extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
+
     addressProvider(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
@@ -929,6 +963,22 @@ export interface IPoolV3 extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
+    nonces(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     poolQuotaKeeper(overrides?: CallOverrides): Promise<[string]>;
 
     previewDeposit(
@@ -1045,6 +1095,8 @@ export interface IPoolV3 extends BaseContract {
 
     withdrawFee(overrides?: CallOverrides): Promise<[number]>;
   };
+
+  DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
 
   addressProvider(overrides?: CallOverrides): Promise<string>;
 
@@ -1168,6 +1220,22 @@ export interface IPoolV3 extends BaseContract {
 
   name(overrides?: CallOverrides): Promise<string>;
 
+  nonces(
+    owner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  permit(
+    owner: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    value: PromiseOrValue<BigNumberish>,
+    deadline: PromiseOrValue<BigNumberish>,
+    v: PromiseOrValue<BigNumberish>,
+    r: PromiseOrValue<BytesLike>,
+    s: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   poolQuotaKeeper(overrides?: CallOverrides): Promise<string>;
 
   previewDeposit(
@@ -1283,6 +1351,8 @@ export interface IPoolV3 extends BaseContract {
   withdrawFee(overrides?: CallOverrides): Promise<number>;
 
   callStatic: {
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
+
     addressProvider(overrides?: CallOverrides): Promise<string>;
 
     allowance(
@@ -1404,6 +1474,22 @@ export interface IPoolV3 extends BaseContract {
     ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<string>;
+
+    nonces(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     poolQuotaKeeper(overrides?: CallOverrides): Promise<string>;
 
@@ -1653,6 +1739,8 @@ export interface IPoolV3 extends BaseContract {
   };
 
   estimateGas: {
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<BigNumber>;
+
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
@@ -1775,6 +1863,22 @@ export interface IPoolV3 extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
+    nonces(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     poolQuotaKeeper(overrides?: CallOverrides): Promise<BigNumber>;
 
     previewDeposit(
@@ -1891,6 +1995,8 @@ export interface IPoolV3 extends BaseContract {
   };
 
   populateTransaction: {
+    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
@@ -2022,6 +2128,22 @@ export interface IPoolV3 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    nonces(
+      owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    permit(
+      owner: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      value: PromiseOrValue<BigNumberish>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
     poolQuotaKeeper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

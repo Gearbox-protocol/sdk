@@ -32,6 +32,7 @@ export interface IWETHZapperInterface extends utils.Interface {
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
+    "redeemWithPermit(uint256,address,address,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "tokenOut()": FunctionFragment;
     "unwrappedToken()": FunctionFragment;
     "wrappedToken()": FunctionFragment;
@@ -45,6 +46,7 @@ export interface IWETHZapperInterface extends utils.Interface {
       | "previewDeposit"
       | "previewRedeem"
       | "redeem"
+      | "redeemWithPermit"
       | "tokenOut"
       | "unwrappedToken"
       | "wrappedToken"
@@ -75,6 +77,18 @@ export interface IWETHZapperInterface extends utils.Interface {
       PromiseOrValue<string>
     ]
   ): string;
+  encodeFunctionData(
+    functionFragment: "redeemWithPermit",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>
+    ]
+  ): string;
   encodeFunctionData(functionFragment: "tokenOut", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "unwrappedToken",
@@ -100,6 +114,10 @@ export interface IWETHZapperInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "redeemWithPermit",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "tokenOut", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unwrappedToken",
@@ -170,6 +188,17 @@ export interface IWETHZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    redeemWithPermit(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     tokenOut(overrides?: CallOverrides): Promise<[string]>;
 
     unwrappedToken(overrides?: CallOverrides): Promise<[string]>;
@@ -207,6 +236,17 @@ export interface IWETHZapper extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  redeemWithPermit(
+    shares: PromiseOrValue<BigNumberish>,
+    receiver: PromiseOrValue<string>,
+    owner: PromiseOrValue<string>,
+    deadline: PromiseOrValue<BigNumberish>,
+    v: PromiseOrValue<BigNumberish>,
+    r: PromiseOrValue<BytesLike>,
+    s: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   tokenOut(overrides?: CallOverrides): Promise<string>;
 
   unwrappedToken(overrides?: CallOverrides): Promise<string>;
@@ -241,6 +281,17 @@ export interface IWETHZapper extends BaseContract {
       shares: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    redeemWithPermit(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -284,6 +335,17 @@ export interface IWETHZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    redeemWithPermit(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     tokenOut(overrides?: CallOverrides): Promise<BigNumber>;
 
     unwrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
@@ -319,6 +381,17 @@ export interface IWETHZapper extends BaseContract {
       shares: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    redeemWithPermit(
+      shares: PromiseOrValue<BigNumberish>,
+      receiver: PromiseOrValue<string>,
+      owner: PromiseOrValue<string>,
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
