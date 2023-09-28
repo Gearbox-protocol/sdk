@@ -164,15 +164,6 @@ export class CreditAccountData {
     this.isDeleting = d;
   }
 
-  balancesSorted(
-    prices: Record<string, bigint>,
-    tokens: Record<string, TokenData>,
-  ): Array<Asset> {
-    return CreditAccountData.sortBalances(this.balances, prices, tokens).map(
-      ([token, balance]) => ({ token, balance }),
-    );
-  }
-
   static sortBalances(
     balances: Record<string, bigint>,
     prices: Record<string, bigint>,

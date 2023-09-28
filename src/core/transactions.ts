@@ -7,6 +7,8 @@ import {
 
 import { getContractName } from "../contracts/contractsRegister";
 import { formatBN } from "../utils/formatter";
+import { BigIntMath } from "../utils/math";
+import { Asset } from "./assets";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
 
 export interface TxSerialized {
@@ -25,7 +27,8 @@ export interface TxSerialized {
     | "TxClaimReward"
     | "TxClaimNFT"
     | "TxClaimGearRewards"
-    | "TxEnableTokens";
+    | "TxEnableTokens"
+    | "TxUpdateQuota";
   content: string;
 }
 
@@ -66,9 +69,10 @@ export class TxSerializer {
           return new TxClaimNFT(params);
         case "TxClaimGearRewards":
           return new TxClaimGearRewards(params);
-
         case "TxEnableTokens":
           return new TxEnableTokens(params);
+        case "TxUpdateQuota":
+          return new TxUpdateQuota(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -682,6 +686,57 @@ export class TxEnableTokens extends EVMTx {
     return `Credit account ${getContractName(
       this.creditManager,
     )}: ${currentSentences.join("; ")}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxEnableTokens",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxUpdateQuotaProps extends EVMTxProps {
+  updatedQuotas: Array<Asset>;
+  underlyingToken: string;
+  creditManager: string;
+}
+
+export class TxUpdateQuota extends EVMTx {
+  readonly updatedQuotas: Array<Asset>;
+  readonly underlyingToken: string;
+  readonly creditManager: string;
+
+  constructor(opts: TxUpdateQuotaProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+    this.updatedQuotas = opts.updatedQuotas;
+    this.creditManager = opts.creditManager;
+    this.underlyingToken = opts.underlyingToken;
+  }
+
+  toString(): string {
+    const [, underlyingDecimals] = extractTokenData(this.underlyingToken);
+
+    const quota = this.updatedQuotas.map(({ token, balance }) => {
+      const [tokenSymbol] = extractTokenData(token);
+
+      const sign = balance < 0 ? "-" : "";
+      const amountString = formatBN(
+        BigIntMath.abs(balance),
+        underlyingDecimals || 18,
+      );
+
+      return `${tokenSymbol} by ${sign}${amountString}`;
+    });
+
+    return `Credit account ${getContractName(
+      this.creditManager,
+    )} quota updated: ${quota.join("; ")}`;
   }
 
   serialize(): TxSerialized {
