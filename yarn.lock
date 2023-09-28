@@ -1210,10 +1210,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.15.tgz#3234121887e1297b601a9e74723234cc1fec57b4"
   integrity sha512-rV4QpztBtqU95wn+KqFqM9IklsuYl2HO9qDbwsT4MkLbwVdAV9lBBg043ZwhWJq1Q3FLZu1lLrKC+sYXO/BakA==
 
-"@gearbox-protocol/core-v3@^1.40.0":
-  version "1.40.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.40.0.tgz#4e3c23f6d4bfc1d2892cb6a224e6925f37512007"
-  integrity sha512-goyi6UyIiWvc+i2iZ9A0dxo8+6Xnm5VDJTNbuCc+4zgLC06rMo3rjHDQ3mfdmBLJCnOg5aTxS1MZXsl9q3Zi/g==
+"@gearbox-protocol/core-v3@^1.40.2":
+  version "1.40.2"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.40.2.tgz#c4410e44f679825edcc06185af6f9e7ae63bc80d"
+  integrity sha512-agw1vHX+DyujCtrBHMUxaGUSYJ0cKVp7609JNaIyOnVofn048Lr5DbDHEb/Ely2U9Mb3GmGucBdYeglTo1Vv8g==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1242,10 +1242,10 @@
   dependencies:
     redstone-protocol "^1.0.5"
 
-"@gearbox-protocol/periphery-v3@^1.2.6":
-  version "1.2.6"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.2.6.tgz#63ce1b0a683d7dbc80472892d4393357347f32e9"
-  integrity sha512-Xvlh2xiv6Xj6VREqILlKPaJj3rELptEQVMazBb0KIqqosirNMcw+JcqV9AHa2v/mPGoWTMhroZ3pAPgog0GEeQ==
+"@gearbox-protocol/periphery-v3@^1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.2.11.tgz#3aa1d4a292fadff2dda3d30c0a97fffbc0e7c550"
+  integrity sha512-rT5ilvwFO/iRPhBx7czSylPsUpW0WBPzf4N7Qs2b2zsK784Wltd5PEUGQiDXTfjh6AmOMj4F31a2TUbt4WJanA==
   dependencies:
     husky "^8.0.3"
     lint-staged "^13.0.3"
