@@ -508,7 +508,7 @@ const _abi = [
           },
           {
             internalType: "string",
-            name: "description",
+            name: "name",
             type: "string",
           },
           {
@@ -754,7 +754,7 @@ const _abi = [
           },
           {
             internalType: "string",
-            name: "description",
+            name: "name",
             type: "string",
           },
           {
@@ -1172,12 +1172,17 @@ const _abi = [
             components: [
               {
                 internalType: "address",
-                name: "tokenFrom",
+                name: "zapper",
                 type: "address",
               },
               {
                 internalType: "address",
-                name: "zapper",
+                name: "tokenIn",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "tokenOut",
                 type: "address",
               },
             ],
@@ -1430,12 +1435,17 @@ const _abi = [
             components: [
               {
                 internalType: "address",
-                name: "tokenFrom",
+                name: "zapper",
                 type: "address",
               },
               {
                 internalType: "address",
-                name: "zapper",
+                name: "tokenIn",
+                type: "address",
+              },
+              {
+                internalType: "address",
+                name: "tokenOut",
                 type: "address",
               },
             ],

@@ -231,7 +231,7 @@ export type LinearModelStructOutput = [
 
 export type CreditManagerDataStruct = {
   addr: PromiseOrValue<string>;
-  description: PromiseOrValue<string>;
+  name: PromiseOrValue<string>;
   cfVersion: PromiseOrValue<BigNumberish>;
   creditFacade: PromiseOrValue<string>;
   creditConfigurator: PromiseOrValue<string>;
@@ -291,7 +291,7 @@ export type CreditManagerDataStructOutput = [
   boolean
 ] & {
   addr: string;
-  description: string;
+  name: string;
   cfVersion: BigNumber;
   creditFacade: string;
   creditConfigurator: string;
@@ -340,13 +340,15 @@ export type CreditManagerDebtParamsStructOutput = [
 };
 
 export type ZapperInfoStruct = {
-  tokenFrom: PromiseOrValue<string>;
   zapper: PromiseOrValue<string>;
+  tokenIn: PromiseOrValue<string>;
+  tokenOut: PromiseOrValue<string>;
 };
 
-export type ZapperInfoStructOutput = [string, string] & {
-  tokenFrom: string;
+export type ZapperInfoStructOutput = [string, string, string] & {
   zapper: string;
+  tokenIn: string;
+  tokenOut: string;
 };
 
 export type PoolDataStruct = {
