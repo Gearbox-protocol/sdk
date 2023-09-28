@@ -111,11 +111,12 @@ export class PoolData {
     );
     this.zappers = Object.fromEntries(
       payload.zappers.map(z => {
-        const tokenFrom = z.tokenFrom.toLowerCase();
+        const tokenIn = z.tokenIn.toLowerCase();
         return [
-          tokenFrom,
+          tokenIn,
           {
-            tokenFrom,
+            tokenIn,
+            tokenOut: z.tokenOut.toLowerCase(),
             zapper: z.zapper.toLowerCase(),
           },
         ];
