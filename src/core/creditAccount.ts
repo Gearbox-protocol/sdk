@@ -1,5 +1,6 @@
 import {
   decimals,
+  extractTokenData,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
@@ -17,6 +18,7 @@ import {
 } from "../payload/creditAccount";
 import { TokenData } from "../tokens/tokenData";
 import { rayToNumber, toSignificant } from "../utils/formatter";
+import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { Asset } from "./assets";
 
@@ -33,6 +35,8 @@ export interface CalcOverallAPYProps {
 
 export interface CalcHealthFactorProps {
   assets: Array<Asset>;
+  quotas: Record<string, Asset>;
+
   prices: Record<string, bigint>;
   liquidationThresholds: Record<string, bigint>;
   underlyingToken: string;
@@ -238,7 +242,8 @@ export class CreditAccountData {
     const result =
       (borrowAmountPlusInterest * BigInt(healthFactor - minHf)) /
       BigInt(minHf - underlyingLT);
-    return result < 0 ? 0n : result;
+
+    return BigIntMath.max(0n, result);
   }
 
   static calcOverallAPY({
@@ -313,20 +318,42 @@ export class CreditAccountData {
 
   static calcHealthFactor({
     assets,
-    prices,
+    quotas,
+
     liquidationThresholds,
     underlyingToken,
     borrowed,
+
+    prices,
   }: CalcHealthFactorProps): number {
+    const [, underlyingDecimals] = extractTokenData(underlyingToken);
+    const underlyingPrice = prices[underlyingToken];
+
     const assetLTMoney = assets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
-        const tokenSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
-        const tokenDecimals: number | undefined = decimals[tokenSymbol];
+        const [, tokenDecimals] = extractTokenData(tokenAddress);
 
-        const lt = liquidationThresholds[tokenAddress.toLowerCase()] || 0n;
-        const price = prices[tokenAddress.toLowerCase()] || 0n;
+        const lt = liquidationThresholds[tokenAddress] || 0n;
+        const price = prices[tokenAddress] || 0n;
 
-        const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
+        const tokenMoney = PriceUtils.calcTotalPrice(
+          price,
+          amount,
+          tokenDecimals,
+        );
+
+        const quota = quotas[tokenAddress];
+        const quotaMoney = PriceUtils.calcTotalPrice(
+          underlyingPrice,
+          quota?.balance || 0n,
+          underlyingDecimals,
+        );
+
+        // if quota is undefined, then it is not a quoted token
+        const money = quota
+          ? BigIntMath.min(quotaMoney, tokenMoney)
+          : tokenMoney;
+
         const ltMoney = money * lt;
 
         return acc + ltMoney;
@@ -334,15 +361,8 @@ export class CreditAccountData {
       0n,
     );
 
-    const underlyingSymbol =
-      tokenSymbolByAddress[underlyingToken.toLowerCase()];
-    const underlyingDecimals: number | undefined = decimals[underlyingSymbol];
-
-    const underlyingPrice =
-      prices[underlyingToken.toLowerCase()] || PRICE_DECIMALS;
-
     const borrowedMoney = PriceUtils.calcTotalPrice(
-      underlyingPrice,
+      underlyingPrice || PRICE_DECIMALS,
       borrowed,
       underlyingDecimals,
     );
