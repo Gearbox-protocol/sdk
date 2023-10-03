@@ -35,7 +35,7 @@ export class CreditManagerData {
   readonly maxEnabledTokensLength: number;
   readonly name: string;
 
-  readonly borrowRate: number;
+  readonly baseBorrowRate: number;
 
   readonly minDebt: bigint;
   readonly maxDebt: bigint;
@@ -70,7 +70,7 @@ export class CreditManagerData {
     this.maxEnabledTokensLength = payload.maxEnabledTokensLength;
     this.name = payload.name;
 
-    this.borrowRate = Number(
+    this.baseBorrowRate = Number(
       (toBigInt(payload.baseBorrowRate) *
         (toBigInt(payload.feeInterest) + PERCENTAGE_FACTOR) *
         PERCENTAGE_DECIMALS) /

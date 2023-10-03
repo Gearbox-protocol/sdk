@@ -16,6 +16,7 @@ import {
   CreditAccountDataPayload,
   ScheduledWithdrawal,
 } from "../payload/creditAccount";
+import { QuotaInfo } from "../payload/creditManager";
 import { TokenData } from "../tokens/tokenData";
 import { rayToNumber, toSignificant } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
@@ -25,11 +26,15 @@ import { Asset } from "./assets";
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
   lpAPY: LpTokensAPY | undefined;
+
+  quotas: Record<string, Asset>;
+  quotaRates: Record<string, Pick<QuotaInfo, "rate">>;
+
   prices: Record<string, bigint>;
 
   totalValue: bigint | undefined;
   debt: bigint | undefined;
-  borrowRate: number;
+  baseBorrowRate: number;
   underlyingToken: string;
 }
 
@@ -250,10 +255,12 @@ export class CreditAccountData {
     caAssets,
     lpAPY,
     prices,
+    quotas,
+    quotaRates,
 
     totalValue,
     debt,
-    borrowRate,
+    baseBorrowRate,
     underlyingToken,
   }: CalcOverallAPYProps): number | undefined {
     if (
@@ -264,6 +271,12 @@ export class CreditAccountData {
       totalValue <= debt
     )
       return undefined;
+
+    const underlyingTokenAddressLC = underlyingToken.toLowerCase();
+    const underlyingTokenSymbol =
+      tokenSymbolByAddress[underlyingTokenAddressLC] || "";
+    const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
+    const underlyingPrice = prices[underlyingTokenAddressLC];
 
     const assetAPYMoney = caAssets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
@@ -278,25 +291,30 @@ export class CreditAccountData {
         const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
         const apyMoney = money * BigInt(apy);
 
-        return acc + apyMoney;
+        const { balance: quotaAmount = 0n } = quotas[tokenAddressLC] || {};
+        const quotaMoney = PriceUtils.calcTotalPrice(
+          underlyingPrice || 0n,
+          quotaAmount,
+          underlyingTokenDecimals,
+        );
+
+        const { rate: quotaAPY = 0 } = quotaRates[tokenAddressLC];
+        const quotaAPYMoney = quotaMoney * BigInt(quotaAPY);
+
+        return acc + apyMoney - quotaAPYMoney;
       },
       0n,
     );
 
-    const underlyingTokenAddressLC = underlyingToken.toLowerCase();
-    const underlyingTokenSymbol =
-      tokenSymbolByAddress[underlyingTokenAddressLC] || "";
-    const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
-    const underlyingPrice = prices[underlyingTokenAddressLC] || PRICE_DECIMALS;
     const assetAPYAmountInUnderlying = PriceUtils.convertByPrice(
       assetAPYMoney,
       {
-        price: underlyingPrice,
+        price: underlyingPrice || PRICE_DECIMALS,
         decimals: underlyingTokenDecimals,
       },
     );
 
-    const debtAPY = debt * BigInt(borrowRate);
+    const debtAPY = debt * BigInt(baseBorrowRate);
 
     const yourAssets = totalValue - debt;
 
