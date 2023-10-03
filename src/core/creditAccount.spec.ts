@@ -9,7 +9,11 @@ import { LpTokensAPY } from "../apy";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetUtils } from "./assets";
-import { CalcOverallAPYProps, CreditAccountData } from "./creditAccount";
+import {
+  CalcOverallAPYProps,
+  CalcQuotaUpdateProps,
+  CreditAccountData,
+} from "./creditAccount";
 
 interface CATestInfo {
   assets: Array<Asset>;
@@ -309,7 +313,7 @@ const defaultCA: CAHfTestInfo = {
   },
 };
 
-describe("CreditManager calcHealthFactor test", () => {
+describe("CreditAccount calcHealthFactor test", () => {
   it("health factor is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
       quotas: {},
@@ -458,5 +462,379 @@ describe("CreditManager calcHealthFactor test", () => {
     });
 
     expect(result).to.be.eq(9300);
+  });
+});
+
+const cmQuotas: CalcQuotaUpdateProps["quotas"] = {
+  [tokenDataByNetwork.Mainnet.DAI]: {
+    token: tokenDataByNetwork.Mainnet.DAI,
+    isActive: true,
+  },
+  [tokenDataByNetwork.Mainnet.WETH]: {
+    token: tokenDataByNetwork.Mainnet.WETH,
+    isActive: true,
+  },
+  [tokenDataByNetwork.Mainnet.STETH]: {
+    token: tokenDataByNetwork.Mainnet.STETH,
+    isActive: true,
+  },
+};
+
+const caQuota: CalcQuotaUpdateProps["initialQuotas"] = {
+  [tokenDataByNetwork.Mainnet.DAI]: {
+    quota: 5n,
+  },
+  [tokenDataByNetwork.Mainnet.WETH]: {
+    quota: 10n,
+  },
+};
+
+describe("CreditAccount calcQuotaUpdate test", () => {
+  it("open account should buy quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: {},
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 20n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      {
+        balance: 20n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 20n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("add collateral should buy quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("add collateral should add additional quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("add collateral shouldn't add additional quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap should buy quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      { balance: -10n, token: tokenDataByNetwork.Mainnet.WETH },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap should add additional quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: -10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap shouldn't add additional quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.DAI]: {} },
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: -5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("shouldn't change quota if disallowed", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {},
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
   });
 });

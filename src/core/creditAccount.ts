@@ -22,7 +22,6 @@ import { rayToNumber, toSignificant } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetWithAmountInTarget } from "./assets";
-import { CreditManagerData } from "./creditManager";
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
@@ -49,8 +48,8 @@ export interface CalcHealthFactorProps {
   borrowed: bigint;
 }
 
-interface CalcQuotaUpdateProps {
-  quotas: CreditManagerData["quotas"];
+export interface CalcQuotaUpdateProps {
+  quotas: Record<string, Pick<QuotaInfo, "isActive" | "token">>;
   initialQuotas: Record<string, Pick<CaTokenBalance, "quota">>;
   assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
 
