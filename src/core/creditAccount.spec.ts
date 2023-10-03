@@ -9,7 +9,7 @@ import { LpTokensAPY } from "../apy";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetUtils } from "./assets";
-import { CreditAccountData } from "./creditAccount";
+import { CalcOverallAPYProps, CreditAccountData } from "./creditAccount";
 
 interface CATestInfo {
   assets: Array<Asset>;
@@ -17,6 +17,8 @@ interface CATestInfo {
   debt: bigint;
   borrowRate: number;
   underlyingToken: string;
+  quotas: Record<string, Asset>;
+  rates: CalcOverallAPYProps["quotaRates"];
 }
 
 const prices = {
@@ -51,6 +53,17 @@ const caWithoutLP: CATestInfo = {
   debt: toBN("54780", decimals.DAI),
   borrowRate: 7712,
   underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+  quotas: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+      balance: toBN("173811.830000", decimals.WETH),
+      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+    },
+  },
+  rates: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+      rate: 38434,
+    },
+  },
 };
 
 const caWithLP: CATestInfo = {
@@ -68,6 +81,20 @@ const caWithLP: CATestInfo = {
   debt: toBN("90.000000000000000000", decimals.WETH),
   borrowRate: 5736,
   underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+  quotas: {
+    [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+      balance: toBN(
+        String((1703.87588096 * 119.9999999999999) / 1738.1183),
+        decimals.WETH,
+      ),
+      token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
+    },
+  },
+  rates: {
+    [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+      rate: 38434,
+    },
+  },
 };
 
 describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
@@ -173,6 +200,45 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
     expect(result).to.be.eq(undefined);
   });
+  it("overall APY calculation for caWithLP with sufficient quota is correct", () => {
+    const result = CreditAccountData.calcOverallAPY({
+      caAssets: caWithLP.assets,
+      totalValue: caWithLP.totalValue,
+      debt: caWithLP.debt,
+      baseBorrowRate: caWithLP.borrowRate,
+      underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: caWithLP.rates,
+      quotas: caWithLP.quotas,
+
+      lpAPY,
+      prices,
+    });
+
+    expect(result).to.be.eq(-1.86801);
+  });
+  it("overall APY calculation for caWithLP with insufficient quota is correct", () => {
+    const result = CreditAccountData.calcOverallAPY({
+      caAssets: caWithLP.assets,
+      totalValue: caWithLP.totalValue,
+      debt: caWithLP.debt,
+      baseBorrowRate: caWithLP.borrowRate,
+      underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: caWithLP.rates,
+      quotas: {
+        [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
+        },
+      },
+
+      lpAPY,
+      prices,
+    });
+
+    expect(result).to.be.eq(14.4919);
+  });
 });
 
 describe("CreditAccount calcMaxIncreaseBorrow test", () => {
@@ -237,7 +303,7 @@ const defaultCA: CAHfTestInfo = {
   underlyingDecimals: decimals.DAI,
   quotas: {
     [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
-      balance: toBN("173811.830000", decimals.WETH),
+      balance: toBN(String(1750 * 10), decimals.DAI),
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
     },
   },

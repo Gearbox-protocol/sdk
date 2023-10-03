@@ -10,7 +10,7 @@ import {
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
 
-import { isTokenWithAPY, LpTokensAPY } from "../apy";
+import { LpTokensAPY, TokensWithAPY } from "../apy";
 import {
   CaTokenBalance,
   CreditAccountDataPayload,
@@ -297,10 +297,9 @@ export class CreditAccountData {
     const assetAPYMoney = caAssets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
         const tokenAddressLC = tokenAddress.toLowerCase();
-        const symbol = tokenSymbolByAddress[tokenAddressLC];
-        if (!isTokenWithAPY(symbol)) return acc;
+        const symbol = tokenSymbolByAddress[tokenAddressLC] || "";
 
-        const apy = lpAPY[symbol] || 0;
+        const apy = lpAPY[symbol as TokensWithAPY] || 0;
         const price = prices[tokenAddressLC] || 0n;
         const tokenDecimals = decimals[symbol];
 
