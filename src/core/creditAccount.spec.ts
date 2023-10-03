@@ -9,7 +9,11 @@ import { LpTokensAPY } from "../apy";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetUtils } from "./assets";
-import { CreditAccountData } from "./creditAccount";
+import {
+  CalcOverallAPYProps,
+  CalcQuotaUpdateProps,
+  CreditAccountData,
+} from "./creditAccount";
 
 interface CATestInfo {
   assets: Array<Asset>;
@@ -17,6 +21,8 @@ interface CATestInfo {
   debt: bigint;
   borrowRate: number;
   underlyingToken: string;
+  quotas: Record<string, Asset>;
+  rates: CalcOverallAPYProps["quotaRates"];
 }
 
 const prices = {
@@ -51,6 +57,17 @@ const caWithoutLP: CATestInfo = {
   debt: toBN("54780", decimals.DAI),
   borrowRate: 7712,
   underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+  quotas: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+      balance: toBN("173811.830000", decimals.WETH),
+      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+    },
+  },
+  rates: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+      rate: 38434,
+    },
+  },
 };
 
 const caWithLP: CATestInfo = {
@@ -68,6 +85,20 @@ const caWithLP: CATestInfo = {
   debt: toBN("90.000000000000000000", decimals.WETH),
   borrowRate: 5736,
   underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+  quotas: {
+    [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+      balance: toBN(
+        String((1703.87588096 * 119.9999999999999) / 1738.1183),
+        decimals.WETH,
+      ),
+      token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
+    },
+  },
+  rates: {
+    [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+      rate: 38434,
+    },
+  },
 };
 
 describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
@@ -76,8 +107,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithoutLP.assets,
       totalValue: caWithoutLP.totalValue,
       debt: caWithoutLP.debt,
-      borrowRate: caWithoutLP.borrowRate,
+      baseBorrowRate: caWithoutLP.borrowRate,
       underlyingToken: caWithoutLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -90,8 +124,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -104,8 +141,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY: undefined,
       prices,
@@ -118,8 +158,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: undefined,
       debt: caWithLP.debt,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -132,8 +175,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: undefined,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -146,14 +192,56 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: 0n,
       debt: undefined,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
     });
 
     expect(result).to.be.eq(undefined);
+  });
+  it("overall APY calculation for caWithLP with sufficient quota is correct", () => {
+    const result = CreditAccountData.calcOverallAPY({
+      caAssets: caWithLP.assets,
+      totalValue: caWithLP.totalValue,
+      debt: caWithLP.debt,
+      baseBorrowRate: caWithLP.borrowRate,
+      underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: caWithLP.rates,
+      quotas: caWithLP.quotas,
+
+      lpAPY,
+      prices,
+    });
+
+    expect(result).to.be.eq(-1.86801);
+  });
+  it("overall APY calculation for caWithLP with insufficient quota is correct", () => {
+    const result = CreditAccountData.calcOverallAPY({
+      caAssets: caWithLP.assets,
+      totalValue: caWithLP.totalValue,
+      debt: caWithLP.debt,
+      baseBorrowRate: caWithLP.borrowRate,
+      underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: caWithLP.rates,
+      quotas: {
+        [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
+        },
+      },
+
+      lpAPY,
+      prices,
+    });
+
+    expect(result).to.be.eq(14.4919);
   });
 });
 
@@ -199,6 +287,7 @@ interface CAHfTestInfo {
   underlyingToken: string;
   healthFactor: number;
   underlyingDecimals: number;
+  quotas: Record<string, Asset>;
 }
 
 const defaultCA: CAHfTestInfo = {
@@ -216,11 +305,18 @@ const defaultCA: CAHfTestInfo = {
   healthFactor: 10244,
   underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
   underlyingDecimals: decimals.DAI,
+  quotas: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+      balance: toBN(String(1750 * 10), decimals.DAI),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+    },
+  },
 };
 
-describe("CreditManager calcHealthFactor test", () => {
-  it("health factor calculation is calculated correctly", () => {
+describe("CreditAccount calcHealthFactor test", () => {
+  it("health factor is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: defaultCA.assets,
       prices,
       liquidationThresholds,
@@ -232,6 +328,7 @@ describe("CreditManager calcHealthFactor test", () => {
   });
   it("health factor calculation has no division by zero error", () => {
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: [],
       prices: {},
       liquidationThresholds: {},
@@ -249,6 +346,7 @@ describe("CreditManager calcHealthFactor test", () => {
 
     const afterAdd = AssetUtils.sumAssets(defaultCA.assets, [collateral]);
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: afterAdd,
       prices,
       liquidationThresholds,
@@ -269,6 +367,7 @@ describe("CreditManager calcHealthFactor test", () => {
       debtDecrease,
     ]);
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: afterDecrease,
       prices,
       liquidationThresholds,
@@ -289,6 +388,7 @@ describe("CreditManager calcHealthFactor test", () => {
       debtIncrease,
     ]);
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: afterIncrease,
       prices,
       liquidationThresholds,
@@ -324,6 +424,7 @@ describe("CreditManager calcHealthFactor test", () => {
     const afterSwap = AssetUtils.sumAssets(afterSub, [getAsset]);
 
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: afterSwap,
       prices,
       liquidationThresholds,
@@ -332,5 +433,408 @@ describe("CreditManager calcHealthFactor test", () => {
     });
 
     expect(result).to.be.eq(9444);
+  });
+  it("health factor with sufficient quotas is calculated correctly", () => {
+    const result = CreditAccountData.calcHealthFactor({
+      quotas: defaultCA.quotas,
+      assets: defaultCA.assets,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt,
+    });
+
+    expect(result).to.be.eq(defaultCA.healthFactor);
+  });
+  it("health factor with insufficient quotas is calculated correctly", () => {
+    const result = CreditAccountData.calcHealthFactor({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+        },
+      },
+      assets: defaultCA.assets,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt,
+    });
+
+    expect(result).to.be.eq(9300);
+  });
+});
+
+const cmQuotas: CalcQuotaUpdateProps["quotas"] = {
+  [tokenDataByNetwork.Mainnet.DAI]: {
+    token: tokenDataByNetwork.Mainnet.DAI,
+    isActive: true,
+  },
+  [tokenDataByNetwork.Mainnet.WETH]: {
+    token: tokenDataByNetwork.Mainnet.WETH,
+    isActive: true,
+  },
+  [tokenDataByNetwork.Mainnet.STETH]: {
+    token: tokenDataByNetwork.Mainnet.STETH,
+    isActive: true,
+  },
+};
+
+const caQuota: CalcQuotaUpdateProps["initialQuotas"] = {
+  [tokenDataByNetwork.Mainnet.DAI]: {
+    quota: 5n,
+  },
+  [tokenDataByNetwork.Mainnet.WETH]: {
+    quota: 10n,
+  },
+};
+
+describe("CreditAccount calcQuotaUpdate test", () => {
+  it("open account should buy quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: {},
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 20n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      {
+        balance: 20n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 20n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("add collateral should buy quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("add collateral should add additional quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("add collateral shouldn't add additional quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap should buy quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      { balance: -10n, token: tokenDataByNetwork.Mainnet.WETH },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap should add additional quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: -10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap shouldn't add additional quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.DAI]: {} },
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: -5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("shouldn't change quota if disallowed", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {},
+      allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
   });
 });

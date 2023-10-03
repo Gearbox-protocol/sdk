@@ -1,5 +1,6 @@
 import {
   decimals,
+  extractTokenData,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
@@ -9,34 +10,57 @@ import {
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
 
-import { isTokenWithAPY, LpTokensAPY } from "../apy";
+import { LpTokensAPY, TokensWithAPY } from "../apy";
 import {
   CaTokenBalance,
   CreditAccountDataPayload,
   ScheduledWithdrawal,
 } from "../payload/creditAccount";
+import { QuotaInfo } from "../payload/creditManager";
 import { TokenData } from "../tokens/tokenData";
 import { rayToNumber, toSignificant } from "../utils/formatter";
+import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
-import { Asset } from "./assets";
+import { Asset, AssetWithAmountInTarget } from "./assets";
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
   lpAPY: LpTokensAPY | undefined;
+
+  quotas: Record<string, Asset>;
+  quotaRates: Record<string, Pick<QuotaInfo, "rate">>;
+
   prices: Record<string, bigint>;
 
   totalValue: bigint | undefined;
   debt: bigint | undefined;
-  borrowRate: number;
+  baseBorrowRate: number;
   underlyingToken: string;
 }
 
 export interface CalcHealthFactorProps {
   assets: Array<Asset>;
+  quotas: Record<string, Asset>;
+
   prices: Record<string, bigint>;
   liquidationThresholds: Record<string, bigint>;
   underlyingToken: string;
   borrowed: bigint;
+}
+
+export interface CalcQuotaUpdateProps {
+  quotas: Record<string, Pick<QuotaInfo, "isActive" | "token">>;
+  initialQuotas: Record<string, Pick<CaTokenBalance, "quota">>;
+  assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
+
+  allowedToSpend: Record<string, {}>;
+  allowedToObtain: Record<string, {}>;
+}
+
+interface CalcQuotaUpdateReturnType {
+  desiredQuota: Record<string, Asset>;
+  quotaIncrease: Array<Asset>;
+  quotaDecrease: Array<Asset>;
 }
 
 export class CreditAccountData {
@@ -238,17 +262,20 @@ export class CreditAccountData {
     const result =
       (borrowAmountPlusInterest * BigInt(healthFactor - minHf)) /
       BigInt(minHf - underlyingLT);
-    return result < 0 ? 0n : result;
+
+    return BigIntMath.max(0n, result);
   }
 
   static calcOverallAPY({
     caAssets,
     lpAPY,
     prices,
+    quotas,
+    quotaRates,
 
     totalValue,
     debt,
-    borrowRate,
+    baseBorrowRate,
     underlyingToken,
   }: CalcOverallAPYProps): number | undefined {
     if (
@@ -260,38 +287,48 @@ export class CreditAccountData {
     )
       return undefined;
 
+    const underlyingTokenAddressLC = underlyingToken.toLowerCase();
+    const underlyingTokenSymbol =
+      tokenSymbolByAddress[underlyingTokenAddressLC] || "";
+    const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
+    const underlyingPrice = prices[underlyingTokenAddressLC];
+
     const assetAPYMoney = caAssets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
         const tokenAddressLC = tokenAddress.toLowerCase();
-        const symbol = tokenSymbolByAddress[tokenAddressLC];
-        if (!isTokenWithAPY(symbol)) return acc;
+        const symbol = tokenSymbolByAddress[tokenAddressLC] || "";
 
-        const apy = lpAPY[symbol] || 0;
+        const apy = lpAPY[symbol as TokensWithAPY] || 0;
         const price = prices[tokenAddressLC] || 0n;
         const tokenDecimals = decimals[symbol];
 
         const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
         const apyMoney = money * BigInt(apy);
 
-        return acc + apyMoney;
+        const { balance: quotaAmount = 0n } = quotas[tokenAddressLC] || {};
+        const quotaMoney = PriceUtils.calcTotalPrice(
+          underlyingPrice || 0n,
+          quotaAmount,
+          underlyingTokenDecimals,
+        );
+
+        const { rate: quotaAPY = 0 } = quotaRates[tokenAddressLC] || {};
+        const quotaAPYMoney = quotaMoney * BigInt(quotaAPY);
+
+        return acc + apyMoney - quotaAPYMoney;
       },
       0n,
     );
 
-    const underlyingTokenAddressLC = underlyingToken.toLowerCase();
-    const underlyingTokenSymbol =
-      tokenSymbolByAddress[underlyingTokenAddressLC] || "";
-    const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
-    const underlyingPrice = prices[underlyingTokenAddressLC] || PRICE_DECIMALS;
     const assetAPYAmountInUnderlying = PriceUtils.convertByPrice(
       assetAPYMoney,
       {
-        price: underlyingPrice,
+        price: underlyingPrice || PRICE_DECIMALS,
         decimals: underlyingTokenDecimals,
       },
     );
 
-    const debtAPY = debt * BigInt(borrowRate);
+    const debtAPY = debt * BigInt(baseBorrowRate);
 
     const yourAssets = totalValue - debt;
 
@@ -313,20 +350,42 @@ export class CreditAccountData {
 
   static calcHealthFactor({
     assets,
-    prices,
+    quotas,
+
     liquidationThresholds,
     underlyingToken,
     borrowed,
+
+    prices,
   }: CalcHealthFactorProps): number {
+    const [, underlyingDecimals] = extractTokenData(underlyingToken);
+    const underlyingPrice = prices[underlyingToken];
+
     const assetLTMoney = assets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
-        const tokenSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
-        const tokenDecimals: number | undefined = decimals[tokenSymbol];
+        const [, tokenDecimals] = extractTokenData(tokenAddress);
 
-        const lt = liquidationThresholds[tokenAddress.toLowerCase()] || 0n;
-        const price = prices[tokenAddress.toLowerCase()] || 0n;
+        const lt = liquidationThresholds[tokenAddress] || 0n;
+        const price = prices[tokenAddress] || 0n;
 
-        const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
+        const tokenMoney = PriceUtils.calcTotalPrice(
+          price,
+          amount,
+          tokenDecimals,
+        );
+
+        const quota = quotas[tokenAddress];
+        const quotaMoney = PriceUtils.calcTotalPrice(
+          underlyingPrice,
+          quota?.balance || 0n,
+          underlyingDecimals,
+        );
+
+        // if quota is undefined, then it is not a quoted token
+        const money = quota
+          ? BigIntMath.min(quotaMoney, tokenMoney)
+          : tokenMoney;
+
         const ltMoney = money * lt;
 
         return acc + ltMoney;
@@ -334,15 +393,8 @@ export class CreditAccountData {
       0n,
     );
 
-    const underlyingSymbol =
-      tokenSymbolByAddress[underlyingToken.toLowerCase()];
-    const underlyingDecimals: number | undefined = decimals[underlyingSymbol];
-
-    const underlyingPrice =
-      prices[underlyingToken.toLowerCase()] || PRICE_DECIMALS;
-
     const borrowedMoney = PriceUtils.calcTotalPrice(
-      underlyingPrice,
+      underlyingPrice || PRICE_DECIMALS,
       borrowed,
       underlyingDecimals,
     );
@@ -350,5 +402,62 @@ export class CreditAccountData {
     const hfInPercent = borrowedMoney > 0n ? assetLTMoney / borrowedMoney : 0n;
 
     return Number(hfInPercent);
+  }
+
+  static calcQuotaUpdate({
+    quotas,
+    initialQuotas,
+    assetsAfterUpdate,
+
+    allowedToSpend,
+    allowedToObtain,
+  }: CalcQuotaUpdateProps) {
+    const r = Object.values(quotas).reduce<CalcQuotaUpdateReturnType>(
+      (acc, cmQuota) => {
+        const { token } = cmQuota;
+
+        const { quota: initialQuota = 0n } = initialQuotas[token] || {};
+
+        const after = assetsAfterUpdate[token];
+        const { amountInTarget = 0n } = after || {};
+
+        const desiredQuota = (amountInTarget * 101n) / 100n;
+        const quotaChange = desiredQuota - initialQuota;
+
+        const correctIncrease =
+          after && allowedToObtain[token] && quotaChange > 0;
+        const correctDecrease =
+          after && allowedToSpend[token] && quotaChange < 0;
+
+        if (correctIncrease || correctDecrease) {
+          acc.desiredQuota[token] = {
+            balance: desiredQuota,
+            token,
+          };
+        } else {
+          acc.desiredQuota[token] = {
+            balance: initialQuota,
+            token,
+          };
+        }
+
+        if (correctIncrease) {
+          acc.quotaIncrease.push({
+            balance: quotaChange,
+            token,
+          });
+        }
+        if (correctDecrease) {
+          acc.quotaDecrease.push({
+            balance: quotaChange,
+            token,
+          });
+        }
+
+        return acc;
+      },
+      { desiredQuota: {}, quotaIncrease: [], quotaDecrease: [] },
+    );
+    return r;
   }
 }

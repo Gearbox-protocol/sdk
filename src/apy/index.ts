@@ -1,4 +1,9 @@
-import { LPTokens, lpTokens, SupportedToken } from "@gearbox-protocol/sdk-gov";
+import {
+  LPTokens,
+  lpTokens,
+  PartialRecord,
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
 
 export type AdditionalTokenWithAPY = Extract<SupportedToken, "STETH">;
 export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {
@@ -6,7 +11,7 @@ export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {
 };
 
 export type TokensWithAPY = LPTokens | Extract<SupportedToken, "STETH">;
-export type LpTokensAPY = Record<TokensWithAPY, number>;
+export type LpTokensAPY = PartialRecord<TokensWithAPY, number>;
 
 export const isTokenWithAPY = (t: unknown): t is TokensWithAPY =>
   typeof t === "string" &&

@@ -131,7 +131,7 @@ export class AssetUtils {
 
   /**
    * Sums the the second assets list into the first assets list
-   * Creates new assets.
+   * Balances cant be negative; Creates new assets.
    */
   static sumAssets<A extends Asset, B extends Asset>(
     a: Array<A>,
@@ -159,7 +159,7 @@ export class AssetUtils {
 
   /**
    * Subtracts the the second assets list from the first assets list
-   * Balance cant be negative; doesn't create new assets.
+   * Balances cant be negative; doesn't create new assets.
    */
   static subAssets<A extends Asset, B extends Asset>(
     a: Array<A>,
