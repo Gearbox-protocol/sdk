@@ -21,7 +21,8 @@ import { TokenData } from "../tokens/tokenData";
 import { rayToNumber, toSignificant } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
-import { Asset } from "./assets";
+import { Asset, AssetWithAmountInTarget } from "./assets";
+import { CreditManagerData } from "./creditManager";
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
@@ -46,6 +47,21 @@ export interface CalcHealthFactorProps {
   liquidationThresholds: Record<string, bigint>;
   underlyingToken: string;
   borrowed: bigint;
+}
+
+interface CalcQuotaUpdateProps {
+  quotas: CreditManagerData["quotas"];
+  initialQuotas: Record<string, Pick<CaTokenBalance, "quota">>;
+  assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
+
+  allowedToSpend: Record<string, {}>;
+  allowedToObtain: Record<string, {}>;
+}
+
+interface CalcQuotaUpdateReturnType {
+  desiredQuota: Record<string, Asset>;
+  quotaIncrease: Array<Asset>;
+  quotaDecrease: Array<Asset>;
 }
 
 export class CreditAccountData {
@@ -388,5 +404,62 @@ export class CreditAccountData {
     const hfInPercent = borrowedMoney > 0n ? assetLTMoney / borrowedMoney : 0n;
 
     return Number(hfInPercent);
+  }
+
+  static calcQuotaUpdate({
+    quotas,
+    initialQuotas,
+    assetsAfterUpdate,
+
+    allowedToSpend,
+    allowedToObtain,
+  }: CalcQuotaUpdateProps) {
+    const r = Object.values(quotas).reduce<CalcQuotaUpdateReturnType>(
+      (acc, cmQuota) => {
+        const { token } = cmQuota;
+
+        const { quota: initialQuota = 0n } = initialQuotas[token] || {};
+
+        const after = assetsAfterUpdate[token];
+        const { amountInTarget = 0n } = after || {};
+
+        const desiredQuota = (amountInTarget * 101n) / 100n;
+        const quotaChange = desiredQuota - initialQuota;
+
+        const correctIncrease =
+          after && allowedToObtain[token] && quotaChange > 0;
+        const correctDecrease =
+          after && allowedToSpend[token] && quotaChange < 0;
+
+        if (correctIncrease || correctDecrease) {
+          acc.desiredQuota[token] = {
+            balance: desiredQuota,
+            token,
+          };
+        } else {
+          acc.desiredQuota[token] = {
+            balance: initialQuota,
+            token,
+          };
+        }
+
+        if (correctIncrease) {
+          acc.quotaIncrease.push({
+            balance: quotaChange,
+            token,
+          });
+        }
+        if (correctDecrease) {
+          acc.quotaDecrease.push({
+            balance: quotaChange,
+            token,
+          });
+        }
+
+        return acc;
+      },
+      { desiredQuota: {}, quotaIncrease: [], quotaDecrease: [] },
+    );
+    return r;
   }
 }
