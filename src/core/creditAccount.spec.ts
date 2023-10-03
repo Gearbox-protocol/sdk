@@ -76,8 +76,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithoutLP.assets,
       totalValue: caWithoutLP.totalValue,
       debt: caWithoutLP.debt,
-      borrowRate: caWithoutLP.borrowRate,
+      baseBorrowRate: caWithoutLP.borrowRate,
       underlyingToken: caWithoutLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -90,8 +93,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -104,8 +110,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY: undefined,
       prices,
@@ -118,8 +127,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: undefined,
       debt: caWithLP.debt,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -132,8 +144,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: undefined,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -146,8 +161,11 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: 0n,
       debt: undefined,
-      borrowRate: caWithLP.borrowRate,
+      baseBorrowRate: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
+
+      quotaRates: {},
+      quotas: {},
 
       lpAPY,
       prices,
@@ -221,6 +239,7 @@ const defaultCA: CAHfTestInfo = {
 describe("CreditManager calcHealthFactor test", () => {
   it("health factor calculation is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: defaultCA.assets,
       prices,
       liquidationThresholds,
@@ -232,6 +251,7 @@ describe("CreditManager calcHealthFactor test", () => {
   });
   it("health factor calculation has no division by zero error", () => {
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: [],
       prices: {},
       liquidationThresholds: {},
@@ -249,6 +269,7 @@ describe("CreditManager calcHealthFactor test", () => {
 
     const afterAdd = AssetUtils.sumAssets(defaultCA.assets, [collateral]);
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: afterAdd,
       prices,
       liquidationThresholds,
@@ -269,6 +290,7 @@ describe("CreditManager calcHealthFactor test", () => {
       debtDecrease,
     ]);
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: afterDecrease,
       prices,
       liquidationThresholds,
@@ -289,6 +311,7 @@ describe("CreditManager calcHealthFactor test", () => {
       debtIncrease,
     ]);
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: afterIncrease,
       prices,
       liquidationThresholds,
@@ -324,6 +347,7 @@ describe("CreditManager calcHealthFactor test", () => {
     const afterSwap = AssetUtils.sumAssets(afterSub, [getAsset]);
 
     const result = CreditAccountData.calcHealthFactor({
+      quotas: {},
       assets: afterSwap,
       prices,
       liquidationThresholds,

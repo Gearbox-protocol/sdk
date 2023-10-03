@@ -314,7 +314,7 @@ export class CreditAccountData {
           underlyingTokenDecimals,
         );
 
-        const { rate: quotaAPY = 0 } = quotaRates[tokenAddressLC];
+        const { rate: quotaAPY = 0 } = quotaRates[tokenAddressLC] || {};
         const quotaAPYMoney = quotaMoney * BigInt(quotaAPY);
 
         return acc + apyMoney - quotaAPYMoney;
