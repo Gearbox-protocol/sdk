@@ -217,6 +217,7 @@ interface CAHfTestInfo {
   underlyingToken: string;
   healthFactor: number;
   underlyingDecimals: number;
+  quotas: Record<string, Asset>;
 }
 
 const defaultCA: CAHfTestInfo = {
@@ -234,10 +235,16 @@ const defaultCA: CAHfTestInfo = {
   healthFactor: 10244,
   underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
   underlyingDecimals: decimals.DAI,
+  quotas: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+      balance: toBN("173811.830000", decimals.WETH),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+    },
+  },
 };
 
 describe("CreditManager calcHealthFactor test", () => {
-  it("health factor calculation is calculated correctly", () => {
+  it("health factor is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
       quotas: {},
       assets: defaultCA.assets,
@@ -356,5 +363,34 @@ describe("CreditManager calcHealthFactor test", () => {
     });
 
     expect(result).to.be.eq(9444);
+  });
+  it("health factor with sufficient quotas is calculated correctly", () => {
+    const result = CreditAccountData.calcHealthFactor({
+      quotas: defaultCA.quotas,
+      assets: defaultCA.assets,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt,
+    });
+
+    expect(result).to.be.eq(defaultCA.healthFactor);
+  });
+  it("health factor with insufficient quotas is calculated correctly", () => {
+    const result = CreditAccountData.calcHealthFactor({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+        },
+      },
+      assets: defaultCA.assets,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt,
+    });
+
+    expect(result).to.be.eq(9300);
   });
 });
