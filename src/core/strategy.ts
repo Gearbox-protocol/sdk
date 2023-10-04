@@ -132,8 +132,8 @@ export class Strategy {
     });
 
     const sorted = ltByCM.sort(([, ltA], [, ltB]) => {
-      if (ltA > ltB) return 1;
-      if (ltB > ltA) return -1;
+      if (ltA > ltB) return -1;
+      if (ltB > ltA) return 1;
       return 0;
     });
 
