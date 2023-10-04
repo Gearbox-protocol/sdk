@@ -5,7 +5,7 @@ import {
   ScheduledWithdrawalStructOutput,
   TokenBalanceStructOutput,
 } from "../types/IDataCompressorV3_00";
-import { BigintifyProps } from "../utils/types";
+import { BigintifyProps, PartialKeys } from "../utils/types";
 
 export type CaTokenBalance = BigintifyProps<
   ExcludeArrayProps<TokenBalanceStructOutput>
@@ -15,5 +15,7 @@ export type ScheduledWithdrawal = BigintifyProps<
   ExcludeArrayProps<ScheduledWithdrawalStructOutput>
 >;
 
-export type CreditAccountDataPayload =
-  ExcludeArrayProps<CreditAccountDataStructOutput>;
+export type CreditAccountDataPayload = PartialKeys<
+  ExcludeArrayProps<CreditAccountDataStructOutput>,
+  "accruedInterest" | "accruedFees" | "healthFactor" | "totalValue"
+>;
