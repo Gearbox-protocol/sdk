@@ -838,3 +838,102 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
 });
+
+describe("CreditAccount calcQuotaBorrowRate test", () => {
+  it("should calculate quota rate (same amounts, different rates)", () => {
+    const result = CreditAccountData.calcQuotaBorrowRate({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          token: tokenDataByNetwork.Mainnet.DAI,
+          balance: 10n,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          token: tokenDataByNetwork.Mainnet.WETH,
+          balance: 10n,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          token: tokenDataByNetwork.Mainnet.STETH,
+          balance: 10n,
+        },
+      },
+      quotaRates: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          rate: 5,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          rate: 10,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          rate: 15,
+        },
+      },
+      borrowAmount: 30n,
+    });
+
+    expect(result).to.be.eq(10);
+  });
+  it("should calculate quota rate (same rates, different amounts)", () => {
+    const result = CreditAccountData.calcQuotaBorrowRate({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          token: tokenDataByNetwork.Mainnet.DAI,
+          balance: 5n,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          token: tokenDataByNetwork.Mainnet.WETH,
+          balance: 10n,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          token: tokenDataByNetwork.Mainnet.STETH,
+          balance: 15n,
+        },
+      },
+      quotaRates: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          rate: 10,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          rate: 10,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          rate: 10,
+        },
+      },
+      borrowAmount: 30n,
+    });
+
+    expect(result).to.be.eq(10);
+  });
+  it("should calculate quota rate (borrow amount)", () => {
+    const result = CreditAccountData.calcQuotaBorrowRate({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          token: tokenDataByNetwork.Mainnet.DAI,
+          balance: 5n,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          token: tokenDataByNetwork.Mainnet.WETH,
+          balance: 10n,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          token: tokenDataByNetwork.Mainnet.STETH,
+          balance: 15n,
+        },
+      },
+      quotaRates: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          rate: 10,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          rate: 10,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          rate: 10,
+        },
+      },
+      borrowAmount: 60n,
+    });
+
+    expect(result).to.be.eq(5);
+  });
+});

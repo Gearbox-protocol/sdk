@@ -63,6 +63,12 @@ interface CalcQuotaUpdateReturnType {
   quotaDecrease: Array<Asset>;
 }
 
+export interface CalcQuotaBorrowRateProps {
+  quotas: Record<string, Asset>;
+  quotaRates: Record<string, Pick<QuotaInfo, "rate">>;
+  borrowAmount: bigint;
+}
+
 export class CreditAccountData {
   readonly addr: string;
   readonly borrower: string;
@@ -459,5 +465,26 @@ export class CreditAccountData {
       { desiredQuota: {}, quotaIncrease: [], quotaDecrease: [] },
     );
     return r;
+  }
+
+  static calcQuotaBorrowRate({
+    quotas,
+    quotaRates,
+    borrowAmount,
+  }: CalcQuotaBorrowRateProps) {
+    if (borrowAmount <= 0) return 0;
+    const totalRateBalance = Object.values(quotas).reduce(
+      (acc, { token, balance }) => {
+        const { rate = 0 } = quotaRates[token] || {};
+
+        const rateBalance = balance * BigInt(rate);
+
+        return acc + rateBalance;
+      },
+      0n,
+    );
+
+    const quotaBorrowRate = Number(totalRateBalance / borrowAmount);
+    return quotaBorrowRate;
   }
 }
