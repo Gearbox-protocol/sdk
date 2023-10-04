@@ -70,6 +70,8 @@ export interface CalcQuotaBorrowRateProps {
 }
 
 export class CreditAccountData {
+  readonly isSuccessful: boolean;
+
   readonly addr: string;
   readonly borrower: string;
   readonly creditManager: string;
@@ -112,6 +114,8 @@ export class CreditAccountData {
   readonly schedultedWithdrawals: Array<ScheduledWithdrawal>;
 
   constructor(payload: CreditAccountDataPayload) {
+    this.isSuccessful = payload.isSuccessful;
+
     this.addr = payload.addr.toLowerCase();
     this.borrower = payload.borrower.toLowerCase();
     this.creditManager = payload.creditManager.toLowerCase();
@@ -122,17 +126,17 @@ export class CreditAccountData {
     this.version = payload.cfVersion?.toNumber();
     this.cmDescription = payload.cmDescription;
 
-    this.healthFactor = Number(toBigInt(payload.healthFactor));
+    this.healthFactor = Number(toBigInt(payload.healthFactor || 0n));
     this.enabledTokenMask = toBigInt(payload.enabledTokensMask);
     this.isDeleting = false;
 
     this.borrowedAmount = toBigInt(payload.debt);
-    this.accruedInterest = toBigInt(payload.accruedInterest);
-    this.accruedFees = toBigInt(payload.accruedFees);
+    this.accruedInterest = toBigInt(payload.accruedInterest || 0n);
+    this.accruedFees = toBigInt(payload.accruedFees || 0n);
     this.borrowedAmountPlusInterestAndFees =
       this.borrowedAmount + this.accruedInterest + this.accruedFees;
     this.totalDebtUSD = toBigInt(payload.totalDebtUSD);
-    this.totalValue = toBigInt(payload.totalValue);
+    this.totalValue = toBigInt(payload.totalValue || 0n);
     this.totalValueUSD = toBigInt(payload.totalValueUSD);
     this.twvUSD = toBigInt(payload.twvUSD);
 
