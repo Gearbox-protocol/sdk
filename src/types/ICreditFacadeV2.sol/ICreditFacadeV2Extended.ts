@@ -36,7 +36,7 @@ export type BalanceStructOutput = [string, BigNumber] & {
 
 export interface ICreditFacadeV2ExtendedInterface extends utils.Interface {
   functions: {
-    "addCollateral(address,address,uint256)": FunctionFragment;
+    "addCollateral(address,uint256)": FunctionFragment;
     "decreaseDebt(uint256)": FunctionFragment;
     "disableToken(address)": FunctionFragment;
     "enableToken(address)": FunctionFragment;
@@ -56,11 +56,7 @@ export interface ICreditFacadeV2ExtendedInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "addCollateral",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseDebt",
@@ -139,7 +135,6 @@ export interface ICreditFacadeV2Extended extends BaseContract {
 
   functions: {
     addCollateral(
-      onBehalfOf: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -172,7 +167,6 @@ export interface ICreditFacadeV2Extended extends BaseContract {
   };
 
   addCollateral(
-    onBehalfOf: PromiseOrValue<string>,
     token: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -205,7 +199,6 @@ export interface ICreditFacadeV2Extended extends BaseContract {
 
   callStatic: {
     addCollateral(
-      onBehalfOf: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -241,7 +234,6 @@ export interface ICreditFacadeV2Extended extends BaseContract {
 
   estimateGas: {
     addCollateral(
-      onBehalfOf: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -275,7 +267,6 @@ export interface ICreditFacadeV2Extended extends BaseContract {
 
   populateTransaction: {
     addCollateral(
-      onBehalfOf: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
