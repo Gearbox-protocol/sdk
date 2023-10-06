@@ -1,6 +1,7 @@
 import {
   contractParams,
   decimals,
+  formatBN,
   isSupportedContract,
   SupportedContract,
   tokenSymbolByAddress,
@@ -9,7 +10,6 @@ import {
 
 import { TxParser } from "../parsers/txParser";
 import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
-import { formatBN } from "../utils/formatter";
 import { CreditManagerData } from "./creditManager";
 
 interface Info {

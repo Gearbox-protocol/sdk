@@ -1,7 +1,6 @@
-import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { formatBN, SupportedContract } from "@gearbox-protocol/sdk-gov";
 
 import { IUniswapV3Adapter__factory } from "../types";
-import { formatBN } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

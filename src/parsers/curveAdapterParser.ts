@@ -1,6 +1,7 @@
 import {
   contractParams,
   CurveParams,
+  formatBN,
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
@@ -11,7 +12,6 @@ import {
   ICurveV1_3AssetsAdapter__factory,
   ICurveV1_4AssetsAdapter__factory,
 } from "../types";
-import { formatBN } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

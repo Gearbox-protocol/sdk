@@ -189,9 +189,9 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint16",
+        internalType: "uint256",
         name: "referralCode",
-        type: "uint16",
+        type: "uint256",
       },
     ],
     name: "OpenCreditAccount",

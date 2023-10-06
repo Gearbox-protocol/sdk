@@ -1,12 +1,12 @@
 import {
   contractParams,
   extractTokenData,
+  formatBN,
   LEVERAGE_DECIMALS,
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
 
 import { getContractName } from "../contracts/contractsRegister";
-import { formatBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { Asset } from "./assets";
 import { EVMTx, EVMTxProps } from "./eventOrTx";

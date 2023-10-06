@@ -625,9 +625,9 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "uint16",
+        internalType: "uint256",
         name: "referralCode",
-        type: "uint16",
+        type: "uint256",
       },
     ],
     name: "depositWithReferral",
@@ -837,9 +837,9 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "uint16",
+        internalType: "uint256",
         name: "referralCode",
-        type: "uint16",
+        type: "uint256",
       },
     ],
     name: "mintWithReferral",
