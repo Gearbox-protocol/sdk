@@ -7,27 +7,9 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   ILidoV1Adapter,
   ILidoV1AdapterInterface,
-} from "../../ILidoV1Adapter.sol/ILidoV1Adapter";
+} from "../ILidoV1Adapter";
 
 const _abi = [
-  {
-    inputs: [],
-    name: "LimitIsOverException",
-    type: "error",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "_limit",
-        type: "uint256",
-      },
-    ],
-    name: "SetLimit",
-    type: "event",
-  },
   {
     inputs: [],
     name: "_gearboxAdapterType",
@@ -78,32 +60,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "limit",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_limit",
-        type: "uint256",
-      },
-    ],
-    name: "setLimit",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {

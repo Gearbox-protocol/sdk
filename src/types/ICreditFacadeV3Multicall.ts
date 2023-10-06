@@ -23,14 +23,14 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export type BalanceStruct = {
+export type BalanceDeltaStruct = {
   token: PromiseOrValue<string>;
-  balance: PromiseOrValue<BigNumberish>;
+  amount: PromiseOrValue<BigNumberish>;
 };
 
-export type BalanceStructOutput = [string, BigNumber] & {
+export type BalanceDeltaStructOutput = [string, BigNumber] & {
   token: string;
-  balance: BigNumber;
+  amount: BigNumber;
 };
 
 export type RevocationPairStruct = {
@@ -53,7 +53,7 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     "increaseDebt(uint256)": FunctionFragment;
     "onDemandPriceUpdate(address,bytes)": FunctionFragment;
     "payBot(uint72)": FunctionFragment;
-    "revertIfReceivedLessThan((address,uint256)[])": FunctionFragment;
+    "revertIfReceivedLessThan((address,int256)[])": FunctionFragment;
     "revokeAdapterAllowances((address,address)[])": FunctionFragment;
     "scheduleWithdrawal(address,uint256)": FunctionFragment;
     "setFullCheckParams(uint256[],uint16)": FunctionFragment;
@@ -118,7 +118,7 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "revertIfReceivedLessThan",
-    values: [BalanceStruct[]]
+    values: [BalanceDeltaStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "revokeAdapterAllowances",
@@ -269,7 +269,7 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     ): Promise<ContractTransaction>;
 
     revertIfReceivedLessThan(
-      balanceDeltas: BalanceStruct[],
+      balanceDeltas: BalanceDeltaStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -346,7 +346,7 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
   ): Promise<ContractTransaction>;
 
   revertIfReceivedLessThan(
-    balanceDeltas: BalanceStruct[],
+    balanceDeltas: BalanceDeltaStruct[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -423,7 +423,7 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     ): Promise<void>;
 
     revertIfReceivedLessThan(
-      balanceDeltas: BalanceStruct[],
+      balanceDeltas: BalanceDeltaStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -503,7 +503,7 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     ): Promise<BigNumber>;
 
     revertIfReceivedLessThan(
-      balanceDeltas: BalanceStruct[],
+      balanceDeltas: BalanceDeltaStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -581,7 +581,7 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     revertIfReceivedLessThan(
-      balanceDeltas: BalanceStruct[],
+      balanceDeltas: BalanceDeltaStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

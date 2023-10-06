@@ -13,11 +13,7 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -25,7 +21,7 @@ import type {
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../common";
+} from "./common";
 
 export interface ILidoV1AdapterInterface extends utils.Interface {
   functions: {
@@ -33,8 +29,6 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     "_gearboxAdapterVersion()": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "creditManager()": FunctionFragment;
-    "limit()": FunctionFragment;
-    "setLimit(uint256)": FunctionFragment;
     "stETH()": FunctionFragment;
     "stETHTokenMask()": FunctionFragment;
     "submit(uint256)": FunctionFragment;
@@ -51,8 +45,6 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
       | "_gearboxAdapterVersion"
       | "addressProvider"
       | "creditManager"
-      | "limit"
-      | "setLimit"
       | "stETH"
       | "stETHTokenMask"
       | "submit"
@@ -78,11 +70,6 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "creditManager",
     values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "limit", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "setLimit",
-    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(functionFragment: "stETH", values?: undefined): string;
   encodeFunctionData(
@@ -121,8 +108,6 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     functionFragment: "creditManager",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "limit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setLimit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "stETH", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "stETHTokenMask",
@@ -141,19 +126,8 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {
-    "SetLimit(uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "SetLimit"): EventFragment;
+  events: {};
 }
-
-export interface SetLimitEventObject {
-  _limit: BigNumber;
-}
-export type SetLimitEvent = TypedEvent<[BigNumber], SetLimitEventObject>;
-
-export type SetLimitEventFilter = TypedEventFilter<SetLimitEvent>;
 
 export interface ILidoV1Adapter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -190,13 +164,6 @@ export interface ILidoV1Adapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    limit(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    setLimit(
-      _limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     stETH(overrides?: CallOverrides): Promise<[string]>;
 
     stETHTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -227,13 +194,6 @@ export interface ILidoV1Adapter extends BaseContract {
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  limit(overrides?: CallOverrides): Promise<BigNumber>;
-
-  setLimit(
-    _limit: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   stETH(overrides?: CallOverrides): Promise<string>;
 
   stETHTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
@@ -263,13 +223,6 @@ export interface ILidoV1Adapter extends BaseContract {
     addressProvider(overrides?: CallOverrides): Promise<string>;
 
     creditManager(overrides?: CallOverrides): Promise<string>;
-
-    limit(overrides?: CallOverrides): Promise<BigNumber>;
-
-    setLimit(
-      _limit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     stETH(overrides?: CallOverrides): Promise<string>;
 
@@ -303,10 +256,7 @@ export interface ILidoV1Adapter extends BaseContract {
     wethTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
-  filters: {
-    "SetLimit(uint256)"(_limit?: null): SetLimitEventFilter;
-    SetLimit(_limit?: null): SetLimitEventFilter;
-  };
+  filters: {};
 
   estimateGas: {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
@@ -316,13 +266,6 @@ export interface ILidoV1Adapter extends BaseContract {
     addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    limit(overrides?: CallOverrides): Promise<BigNumber>;
-
-    setLimit(
-      _limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
 
     stETH(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -358,13 +301,6 @@ export interface ILidoV1Adapter extends BaseContract {
     addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    limit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    setLimit(
-      _limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
 
     stETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

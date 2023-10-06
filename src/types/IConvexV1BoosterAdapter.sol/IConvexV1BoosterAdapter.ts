@@ -13,7 +13,11 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -21,7 +25,7 @@ import type {
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "./common";
+} from "../common";
 
 export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
   functions: {
@@ -138,8 +142,24 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "SetPidToPhantomToken(uint256,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "SetPidToPhantomToken"): EventFragment;
 }
+
+export interface SetPidToPhantomTokenEventObject {
+  pid: BigNumber;
+  phantomToken: string;
+}
+export type SetPidToPhantomTokenEvent = TypedEvent<
+  [BigNumber, string],
+  SetPidToPhantomTokenEventObject
+>;
+
+export type SetPidToPhantomTokenEventFilter =
+  TypedEventFilter<SetPidToPhantomTokenEvent>;
 
 export interface IConvexV1BoosterAdapter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -318,7 +338,16 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
     >;
   };
 
-  filters: {};
+  filters: {
+    "SetPidToPhantomToken(uint256,address)"(
+      pid?: PromiseOrValue<BigNumberish> | null,
+      phantomToken?: PromiseOrValue<string> | null
+    ): SetPidToPhantomTokenEventFilter;
+    SetPidToPhantomToken(
+      pid?: PromiseOrValue<BigNumberish> | null,
+      phantomToken?: PromiseOrValue<string> | null
+    ): SetPidToPhantomTokenEventFilter;
+  };
 
   estimateGas: {
     _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;

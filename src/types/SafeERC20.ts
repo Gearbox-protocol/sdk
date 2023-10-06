@@ -9,20 +9,20 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../common";
+} from "./common";
 
-export interface ILidoV1AdapterExceptionsInterface extends utils.Interface {
+export interface SafeERC20Interface extends utils.Interface {
   functions: {};
 
   events: {};
 }
 
-export interface ILidoV1AdapterExceptions extends BaseContract {
+export interface SafeERC20 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: ILidoV1AdapterExceptionsInterface;
+  interface: SafeERC20Interface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,

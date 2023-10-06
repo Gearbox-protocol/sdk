@@ -27,7 +27,7 @@ import type {
 export interface IWETHZapperInterface extends utils.Interface {
   functions: {
     "deposit(address)": FunctionFragment;
-    "depositWithReferral(address,uint16)": FunctionFragment;
+    "depositWithReferral(address,uint256)": FunctionFragment;
     "pool()": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;

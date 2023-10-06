@@ -23,7 +23,7 @@ export interface ICreditFacadeV3EventsInterface extends utils.Interface {
     "FinishMultiCall()": EventFragment;
     "IncreaseDebt(address,uint256)": EventFragment;
     "LiquidateCreditAccount(address,address,address,address,uint8,uint256)": EventFragment;
-    "OpenCreditAccount(address,address,address,uint16)": EventFragment;
+    "OpenCreditAccount(address,address,address,uint256)": EventFragment;
     "SetEnabledTokensMask(address,uint256)": EventFragment;
     "StartMultiCall(address,address)": EventFragment;
   };
@@ -120,10 +120,10 @@ export interface OpenCreditAccountEventObject {
   creditAccount: string;
   onBehalfOf: string;
   caller: string;
-  referralCode: number;
+  referralCode: BigNumber;
 }
 export type OpenCreditAccountEvent = TypedEvent<
-  [string, string, string, number],
+  [string, string, string, BigNumber],
   OpenCreditAccountEventObject
 >;
 
@@ -253,7 +253,7 @@ export interface ICreditFacadeV3Events extends BaseContract {
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
-    "OpenCreditAccount(address,address,address,uint16)"(
+    "OpenCreditAccount(address,address,address,uint256)"(
       creditAccount?: PromiseOrValue<string> | null,
       onBehalfOf?: PromiseOrValue<string> | null,
       caller?: PromiseOrValue<string> | null,

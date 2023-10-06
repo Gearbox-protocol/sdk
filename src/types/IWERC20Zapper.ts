@@ -26,7 +26,7 @@ import type {
 export interface IWERC20ZapperInterface extends utils.Interface {
   functions: {
     "deposit(uint256,address)": FunctionFragment;
-    "depositWithReferral(uint256,address,uint16)": FunctionFragment;
+    "depositWithReferral(uint256,address,uint256)": FunctionFragment;
     "pool()": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;

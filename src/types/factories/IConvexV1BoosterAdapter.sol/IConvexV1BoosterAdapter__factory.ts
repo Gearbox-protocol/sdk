@@ -7,9 +7,28 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IConvexV1BoosterAdapter,
   IConvexV1BoosterAdapterInterface,
-} from "../IConvexV1BoosterAdapter";
+} from "../../IConvexV1BoosterAdapter.sol/IConvexV1BoosterAdapter";
 
 const _abi = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "pid",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "phantomToken",
+        type: "address",
+      },
+    ],
+    name: "SetPidToPhantomToken",
+    type: "event",
+  },
   {
     inputs: [],
     name: "_gearboxAdapterType",

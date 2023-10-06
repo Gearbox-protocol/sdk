@@ -47,7 +47,7 @@ export interface IPoolV3Interface extends utils.Interface {
     "creditManagers()": FunctionFragment;
     "decimals()": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
-    "depositWithReferral(uint256,address,uint16)": FunctionFragment;
+    "depositWithReferral(uint256,address,uint256)": FunctionFragment;
     "expectedLiquidity()": FunctionFragment;
     "expectedLiquidityLU()": FunctionFragment;
     "interestRateModel()": FunctionFragment;
@@ -59,7 +59,7 @@ export interface IPoolV3Interface extends utils.Interface {
     "maxRedeem(address)": FunctionFragment;
     "maxWithdraw(address)": FunctionFragment;
     "mint(uint256,address)": FunctionFragment;
-    "mintWithReferral(uint256,address,uint16)": FunctionFragment;
+    "mintWithReferral(uint256,address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
