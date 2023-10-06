@@ -158,17 +158,13 @@ export class CreditManagerData {
     return !!this.quotas[token];
   }
 
-  encodeAddCollateralV2(
-    account: string,
-    tokenAddress: string,
-    amount: bigint,
-  ): MultiCall {
+  encodeAddCollateralV2(tokenAddress: string, amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
       callData:
         ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
           "addCollateral",
-          [account, tokenAddress, amount],
+          [tokenAddress, amount],
         ),
     };
   }
