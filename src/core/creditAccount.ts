@@ -369,7 +369,7 @@ export class CreditAccountData {
     prices,
   }: CalcHealthFactorProps): number {
     const [, underlyingDecimals] = extractTokenData(underlyingToken);
-    const underlyingPrice = prices[underlyingToken];
+    const underlyingPrice = prices[underlyingToken] || 0n;
 
     const assetLTMoney = assets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
