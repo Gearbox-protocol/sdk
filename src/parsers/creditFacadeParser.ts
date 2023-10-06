@@ -28,11 +28,10 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       case "addCollateral": {
         const r = this.decodeFunctionData(functionFragment, calldata);
 
-        const onBehalf = this.version === 300 ? "none" : r[0];
-        const token = this.version === 300 ? r[0] : r[1];
-        const amount = this.version === 300 ? r[1] : r[2];
+        const token = r[0];
+        const amount = r[1];
 
-        return `${functionName}(onBehalf: ${onBehalf}, token: ${this.tokenSymbol(
+        return `${functionName}(token: ${this.tokenSymbol(
           token,
         )}, amount: ${this.formatAmount(amount)})`;
       }

@@ -1,8 +1,4 @@
-import {
-  DUMB_ADDRESS,
-  tokenDataByNetwork,
-  WAD,
-} from "@gearbox-protocol/sdk-gov";
+import { tokenDataByNetwork, WAD } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
 import { ICreditFacadeV2Extended__factory } from "../types";
@@ -16,13 +12,12 @@ describe("CreditFacadeParser test", () => {
 
     let parsed = parser.parse(
       ifc.encodeFunctionData("addCollateral", [
-        DUMB_ADDRESS,
         tokenDataByNetwork.Mainnet.WBTC,
         (WAD * 444n) / 10n,
       ]),
     );
     expect(parsed).to.be.eq(
-      "CreditFacade[DAI].addCollateral(onBehalf: 0xC4375B7De8af5a38a93548eb8453a498222C4fF2, token: WBTC, amount: 44.40 [44400000000000000000])",
+      "CreditFacade[DAI].addCollateral(token: WBTC, amount: 44.40 [44400000000000000000])",
       "Incorrect parse addCollateral",
     );
 
