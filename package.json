@@ -31,6 +31,7 @@
     "types": "yarn types:clean && yarn types:build && yarn types:generate"
   },
   "dependencies": {
+    "@gearbox-protocol/sdk-gov": "^1.10.3",
     "@types/deep-eql": "^4.0.0",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
