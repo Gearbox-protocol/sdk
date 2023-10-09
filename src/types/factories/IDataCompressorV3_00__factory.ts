@@ -1238,6 +1238,124 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "staker",
+        type: "address",
+      },
+    ],
+    name: "getGaugesV3Data",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "addr",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "pool",
+            type: "address",
+          },
+          {
+            internalType: "string",
+            name: "symbol",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
+          },
+          {
+            internalType: "uint16",
+            name: "currentEpoch",
+            type: "uint16",
+          },
+          {
+            internalType: "bool",
+            name: "epochFrozen",
+            type: "bool",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint16",
+                name: "minRate",
+                type: "uint16",
+              },
+              {
+                internalType: "uint16",
+                name: "maxRate",
+                type: "uint16",
+              },
+              {
+                internalType: "uint96",
+                name: "totalVotesLpSide",
+                type: "uint96",
+              },
+              {
+                internalType: "uint96",
+                name: "totalVotesCaSide",
+                type: "uint96",
+              },
+              {
+                internalType: "uint16",
+                name: "rate",
+                type: "uint16",
+              },
+              {
+                internalType: "uint16",
+                name: "quotaIncreaseFee",
+                type: "uint16",
+              },
+              {
+                internalType: "uint96",
+                name: "totalQuoted",
+                type: "uint96",
+              },
+              {
+                internalType: "uint96",
+                name: "limit",
+                type: "uint96",
+              },
+              {
+                internalType: "bool",
+                name: "isActive",
+                type: "bool",
+              },
+              {
+                internalType: "uint96",
+                name: "stakerVotesLpSide",
+                type: "uint96",
+              },
+              {
+                internalType: "uint96",
+                name: "stakerVotesCaSide",
+                type: "uint96",
+              },
+            ],
+            internalType: "struct GaugeQuotaParams[]",
+            name: "quotaParams",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct GaugeInfo[]",
+        name: "result",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "_pool",
         type: "address",
       },

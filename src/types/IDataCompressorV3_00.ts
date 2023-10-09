@@ -332,6 +332,77 @@ export type CreditManagerDataStructOutput = [
   isPaused: boolean;
 };
 
+export type GaugeQuotaParamsStruct = {
+  token: PromiseOrValue<string>;
+  minRate: PromiseOrValue<BigNumberish>;
+  maxRate: PromiseOrValue<BigNumberish>;
+  totalVotesLpSide: PromiseOrValue<BigNumberish>;
+  totalVotesCaSide: PromiseOrValue<BigNumberish>;
+  rate: PromiseOrValue<BigNumberish>;
+  quotaIncreaseFee: PromiseOrValue<BigNumberish>;
+  totalQuoted: PromiseOrValue<BigNumberish>;
+  limit: PromiseOrValue<BigNumberish>;
+  isActive: PromiseOrValue<boolean>;
+  stakerVotesLpSide: PromiseOrValue<BigNumberish>;
+  stakerVotesCaSide: PromiseOrValue<BigNumberish>;
+};
+
+export type GaugeQuotaParamsStructOutput = [
+  string,
+  number,
+  number,
+  BigNumber,
+  BigNumber,
+  number,
+  number,
+  BigNumber,
+  BigNumber,
+  boolean,
+  BigNumber,
+  BigNumber
+] & {
+  token: string;
+  minRate: number;
+  maxRate: number;
+  totalVotesLpSide: BigNumber;
+  totalVotesCaSide: BigNumber;
+  rate: number;
+  quotaIncreaseFee: number;
+  totalQuoted: BigNumber;
+  limit: BigNumber;
+  isActive: boolean;
+  stakerVotesLpSide: BigNumber;
+  stakerVotesCaSide: BigNumber;
+};
+
+export type GaugeInfoStruct = {
+  addr: PromiseOrValue<string>;
+  pool: PromiseOrValue<string>;
+  symbol: PromiseOrValue<string>;
+  name: PromiseOrValue<string>;
+  currentEpoch: PromiseOrValue<BigNumberish>;
+  epochFrozen: PromiseOrValue<boolean>;
+  quotaParams: GaugeQuotaParamsStruct[];
+};
+
+export type GaugeInfoStructOutput = [
+  string,
+  string,
+  string,
+  string,
+  number,
+  boolean,
+  GaugeQuotaParamsStructOutput[]
+] & {
+  addr: string;
+  pool: string;
+  symbol: string;
+  name: string;
+  currentEpoch: number;
+  epochFrozen: boolean;
+  quotaParams: GaugeQuotaParamsStructOutput[];
+};
+
 export type CreditManagerDebtParamsStruct = {
   creditManager: PromiseOrValue<string>;
   borrowed: PromiseOrValue<BigNumberish>;
@@ -455,6 +526,7 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
     "getCreditAccountsByCreditManager(address,(address,bytes)[])": FunctionFragment;
     "getCreditManagerData(address)": FunctionFragment;
     "getCreditManagersV3List()": FunctionFragment;
+    "getGaugesV3Data(address)": FunctionFragment;
     "getPoolData(address)": FunctionFragment;
     "getPoolsV3List()": FunctionFragment;
     "version()": FunctionFragment;
@@ -467,6 +539,7 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
       | "getCreditAccountsByCreditManager"
       | "getCreditManagerData"
       | "getCreditManagersV3List"
+      | "getGaugesV3Data"
       | "getPoolData"
       | "getPoolsV3List"
       | "version"
@@ -491,6 +564,10 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getCreditManagersV3List",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getGaugesV3Data",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolData",
@@ -520,6 +597,10 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditManagersV3List",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getGaugesV3Data",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -589,6 +670,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[CreditManagerDataStructOutput[]]>;
 
+    getGaugesV3Data(
+      staker: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[GaugeInfoStructOutput[]] & { result: GaugeInfoStructOutput[] }>;
+
     getPoolData(
       _pool: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -628,6 +714,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<CreditManagerDataStructOutput[]>;
 
+  getGaugesV3Data(
+    staker: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<GaugeInfoStructOutput[]>;
+
   getPoolData(
     _pool: PromiseOrValue<string>,
     overrides?: CallOverrides
@@ -664,6 +755,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
     getCreditManagersV3List(
       overrides?: CallOverrides
     ): Promise<CreditManagerDataStructOutput[]>;
+
+    getGaugesV3Data(
+      staker: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<GaugeInfoStructOutput[]>;
 
     getPoolData(
       _pool: PromiseOrValue<string>,
@@ -703,6 +799,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
 
     getCreditManagersV3List(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getGaugesV3Data(
+      staker: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getPoolData(
       _pool: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -738,6 +839,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getCreditManagersV3List(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getGaugesV3Data(
+      staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
