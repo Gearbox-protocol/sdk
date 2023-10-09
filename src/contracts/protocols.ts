@@ -1,12 +1,1 @@
-export enum Protocols {
-  Uniswap,
-  Sushiswap,
-  Curve,
-  Yearn,
-  Convex,
-  Lido,
-  Gearbox,
-  Balancer,
-  AaveV2,
-  CompoundV2,
-}
+export * from "@gearbox-protocol/sdk-gov/lib/contracts/protocols";
