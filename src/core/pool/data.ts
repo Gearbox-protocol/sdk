@@ -51,7 +51,7 @@ export class PoolData {
   readonly totalAssets: bigint;
   readonly totalSupply: bigint;
 
-  readonly borrowAPY7D: number;
+  readonly borrowAPY7D: number | undefined;
   readonly depositAPY: number;
   readonly borrowAPY: number;
 
