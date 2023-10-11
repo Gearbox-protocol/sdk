@@ -5,25 +5,22 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
-import {
-  CreditManagerDebtParams,
-  QuotaInfo,
-} from "../../payload/creditManager";
+import { CreditManagerDebtParams, QuotaInfo } from "../payload/creditManager";
 import {
   ChartsPoolDataPayload,
   LinearModel,
   PoolDataPayload,
   PoolZapper,
   UserPoolPayload,
-} from "../../payload/pool";
+} from "../payload/pool";
 import {
   IInterestRateModel__factory,
   IPoolService,
   IPoolService__factory,
   IPoolV3,
   IPoolV3__factory,
-} from "../../types";
-import { rayToNumber } from "../../utils/formatter";
+} from "../types";
+import { rayToNumber } from "../utils/formatter";
 
 export class PoolData {
   readonly address: string;
