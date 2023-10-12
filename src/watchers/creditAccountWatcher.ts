@@ -37,7 +37,7 @@ interface BatchCreditAccountLoadOptions {
   chunkSize?: number;
 }
 
-export class CreditAccountWatcher {
+export class CreditAccountWatcherV2 {
   static IERC20 = IERC20__factory.createInterface();
 
   static creditManagerInterface = ICreditManagerV2__factory.createInterface();
@@ -57,9 +57,7 @@ export class CreditAccountWatcher {
     provider: providers.Provider,
     toBlock?: number,
   ): Promise<Array<CreditAccountHash>> {
-    if (!(creditManager.version === 2 || creditManager.version === 210)) {
-      throw new Error("Works for V2 only");
-    }
+    CreditAccountWatcherV2.assertCMSupported(creditManager);
 
     const eventsByDate: Array<CMEvent> = [];
 
@@ -163,7 +161,7 @@ export class CreditAccountWatcher {
 
   static async batchCreditAccountLoad(
     accs: Array<CreditAccountHash>,
-    dataCompressor: string,
+    dataCompressor210: string,
     signer: Signer | providers.Provider,
     options?: BatchCreditAccountLoadOptions | number,
   ): Promise<Array<CreditAccountData>> {
@@ -178,7 +176,7 @@ export class CreditAccountWatcher {
 
     const dcInterface = IDataCompressorV2_10__factory.createInterface();
 
-    const dcmc = new MultiCallContract(dataCompressor, dcInterface, signer);
+    const dcmc = new MultiCallContract(dataCompressor210, dcInterface, signer);
 
     const calls: Array<Array<CallData<typeof dcInterface>>> = [];
 
@@ -213,7 +211,10 @@ export class CreditAccountWatcher {
     logs: Array<providers.Log>,
     creditManagers: Array<CreditManagerData>,
   ): CreditManagerUpdate {
-    const cms = creditManagers.map(c => c.address.toLowerCase());
+    const cms = creditManagers.map(cm => {
+      CreditAccountWatcherV2.assertCMSupported(cm);
+      return cm.address.toLowerCase();
+    });
     const cfToCm: Record<string, string> = {};
     const ccToCm: Record<string, string> = {};
 
@@ -233,7 +234,7 @@ export class CreditAccountWatcher {
 
       if (cms.includes(logAddr)) {
         const { name, args } =
-          CreditAccountWatcher.creditManagerInterface.parseLog(log);
+          CreditAccountWatcherV2.creditManagerInterface.parseLog(log);
 
         if (name === "ExecuteOrder") {
           const { borrower } = args;
@@ -249,14 +250,14 @@ export class CreditAccountWatcher {
         }
       } else if (logAddr in ccToCm) {
         const { name, args } =
-          CreditAccountWatcher.creditConfiguratorInterface.parseLog(log);
+          CreditAccountWatcherV2.creditConfiguratorInterface.parseLog(log);
         if (name === "CreditFacadeUpgraded") {
           const newCreditFacade = args.newCreditFacade.toLowerCase();
           cfToCm[newCreditFacade] = ccToCm[logAddr];
         }
       } else if (logAddr in cfToCm) {
         const { name, args } =
-          CreditAccountWatcher.creditFacadeInterface.parseLog(log);
+          CreditAccountWatcherV2.creditFacadeInterface.parseLog(log);
 
         switch (name) {
           case "OpenCreditAccount":
@@ -337,7 +338,7 @@ export class CreditAccountWatcher {
 
     for (let log of freshLogs) {
       if (tkns.includes(log.address.toLocaleLowerCase())) {
-        const { name, args } = CreditAccountWatcher.IERC20.parseLog(log);
+        const { name, args } = CreditAccountWatcherV2.IERC20.parseLog(log);
         if (
           name === "Transfer" &&
           accAddresses.includes(args.to.toLowerCase())
@@ -347,5 +348,13 @@ export class CreditAccountWatcher {
       }
     }
     return Array.from(modified);
+  }
+
+  private static assertCMSupported(cm: CreditManagerData): void {
+    if (cm.version < 2 || cm.version > 299) {
+      throw new Error(
+        `CreditAccountWatcherV2 does not support credit manager version ${cm.version}`,
+      );
+    }
   }
 }
