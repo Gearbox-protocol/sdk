@@ -21,8 +21,11 @@ import {
   ICreditFacadeV3Multicall__factory,
 } from "../types";
 
+type PoolType = "universal" | "trade" | "farm";
+
 export class CreditManagerData {
   readonly address: string;
+  readonly type: PoolType;
   readonly underlyingToken: string;
   readonly pool: string;
   readonly creditFacade: string; // V2 only: address of creditFacade
@@ -59,6 +62,8 @@ export class CreditManagerData {
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
+    this.type = CreditManagerData.getCMType(payload.name || "");
+    this.name = payload.name;
     this.pool = payload.pool.toLowerCase();
     this.creditFacade = payload.creditFacade.toLowerCase();
     this.creditConfigurator = payload.creditConfigurator.toLowerCase();
@@ -68,7 +73,6 @@ export class CreditManagerData {
     this.isPaused = payload.isPaused;
     this.forbiddenTokenMask = toBigInt(payload.forbiddenTokenMask);
     this.maxEnabledTokensLength = payload.maxEnabledTokensLength;
-    this.name = payload.name;
 
     this.baseBorrowRate = Number(
       (toBigInt(payload.baseBorrowRate) *
@@ -116,7 +120,7 @@ export class CreditManagerData {
         q.token.toLowerCase(),
         {
           token: q.token.toLowerCase(),
-          rate: q.rate,
+          rate: Number(toBigInt(q.rate) * PERCENTAGE_DECIMALS),
           quotaIncreaseFee: q.quotaIncreaseFee,
           totalQuoted: toBigInt(q.totalQuoted),
           limit: toBigInt(q.limit),
@@ -152,6 +156,20 @@ export class CreditManagerData {
         })),
       );
     }
+  }
+
+  get id(): string {
+    return this.address;
+  }
+
+  static getCMType(name: string): PoolType {
+    const [identity = ""] = name.split(" ") || [];
+    const lc = identity.toLowerCase();
+
+    if (lc === "farm") return "farm";
+    if (lc === "trade") return "trade";
+
+    return "universal";
   }
 
   isQuoted(token: string) {
@@ -290,10 +308,6 @@ export class CreditManagerData {
           [claim],
         ),
     };
-  }
-
-  get id(): string {
-    return this.address;
   }
 }
 

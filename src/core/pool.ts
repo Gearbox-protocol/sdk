@@ -98,7 +98,7 @@ export class PoolData {
           token,
           {
             token,
-            rate: q.rate,
+            rate: Number(toBigInt(q.rate) * PERCENTAGE_DECIMALS),
             quotaIncreaseFee: q.quotaIncreaseFee,
             totalQuoted: toBigInt(q.totalQuoted),
             limit: toBigInt(q.limit),
