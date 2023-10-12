@@ -117,7 +117,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       prices,
     });
 
-    expect(result).to.be.eq(-694841);
+    expect(result).to.be.eq(-69484n);
   });
   it("overall APY calculation for caWithLP is correct", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -134,7 +134,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       prices,
     });
 
-    expect(result).to.be.eq(144919);
+    expect(result).to.be.eq(144919n);
   });
   it("overall APY is undefined when !lpAPY", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -219,7 +219,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       prices,
     });
 
-    expect(result).to.be.eq(-186801);
+    expect(result).to.be.eq(-18680n);
   });
   it("overall APY calculation for caWithLP with insufficient quota is correct", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -241,7 +241,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       prices,
     });
 
-    expect(result).to.be.eq(144919);
+    expect(result).to.be.eq(144919n);
   });
 });
 
