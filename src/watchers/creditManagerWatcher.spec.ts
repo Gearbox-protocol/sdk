@@ -6,6 +6,7 @@ import { CreditManagerData } from "../core/creditManager";
 import {
   ICreditConfiguratorV2__factory,
   ICreditManagerV2__factory,
+  ICreditManagerV3__factory,
 } from "../types";
 import { CreditManagerWatcher } from "./creditManagerWatcher";
 
@@ -40,11 +41,11 @@ const makeLog = (
 };
 
 describe("CreditManagerTracker test", () => {
-  it("detects CreditManager events correctly", () => {
-    const creditManagerInterface = ICreditManagerV2__factory.createInterface();
+  it("detects CreditManagerV2 events correctly", () => {
+    const cmV2Interface = ICreditManagerV2__factory.createInterface();
 
     let log = makeLog(CREDIT_MANAGER_ADDRESS, [
-      creditManagerInterface.getEventTopic("NewConfigurator"),
+      cmV2Interface.getEventTopic("NewConfigurator"),
       encode("address", DUMB_ADDRESS),
     ]);
 
@@ -53,7 +54,7 @@ describe("CreditManagerTracker test", () => {
     );
 
     log = makeLog(CREDIT_MANAGER_ADDRESS, [
-      creditManagerInterface.getEventTopic("ExecuteOrder"),
+      cmV2Interface.getEventTopic("ExecuteOrder"),
       encode("address", DUMB_ADDRESS),
       encode("address", DUMB_ADDRESS),
     ]);
@@ -62,6 +63,20 @@ describe("CreditManagerTracker test", () => {
       false,
     );
   });
+
+  it("detects CreditManagerV3 events correctly", () => {
+    const cmV3Interface = ICreditManagerV3__factory.createInterface();
+
+    let log = makeLog(CREDIT_MANAGER_ADDRESS, [
+      cmV3Interface.getEventTopic("SetCreditConfigurator"),
+      encode("address", DUMB_ADDRESS),
+    ]);
+
+    expect(CreditManagerWatcher.detectConfigChanges([log], [cmDumb])).to.be.eq(
+      true,
+    );
+  });
+
   it("detects CreditConfigurator events correctly", () => {
     const ccInterface = ICreditConfiguratorV2__factory.createInterface();
 
