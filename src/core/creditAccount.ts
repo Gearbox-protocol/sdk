@@ -168,6 +168,7 @@ export class CreditAccountData {
         isQuoted: b.isQuoted,
         quota: toBigInt(b.quota),
         quotaRate: Number(toBigInt(b.quotaRate) * PERCENTAGE_DECIMALS),
+        quotaCumulativeIndexLU: toBigInt(b.quotaCumulativeIndexLU),
       };
 
       if (!b.isForbidden) {
