@@ -1,37 +1,80 @@
-import { toBigInt } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
+import { formatBytes32String } from "ethers/lib/utils";
 
 import { CreditManagerData } from "../core/creditManager";
 import {
-  ICreditConfiguratorV2__factory,
+  IAddressProviderV3__factory,
   ICreditManagerV2__factory,
+  ICreditManagerV3__factory,
   IDataCompressorV2_10__factory,
+  IDataCompressorV3_00__factory,
 } from "../types";
 
 export class CreditManagerWatcher {
-  static creditManagerInterface = ICreditManagerV2__factory.createInterface();
-  static creditConfiguratorInterface =
-    ICreditConfiguratorV2__factory.createInterface();
+  private static newConfiguratorV2Topic =
+    ICreditManagerV2__factory.createInterface().getEventTopic(
+      "NewConfigurator",
+    );
+  private static newConfiguratorV3Topic =
+    ICreditManagerV3__factory.createInterface().getEventTopic(
+      "SetCreditConfigurator",
+    );
+
+  static async getAllCreditManagers(
+    addressProvider: string,
+    signer: Signer | providers.Provider,
+    atBlock?: number,
+  ): Promise<Record<string, CreditManagerData>> {
+    const ap = IAddressProviderV3__factory.connect(addressProvider, signer);
+    const [dc210, dc300] = await Promise.all([
+      ap.getAddressOrRevert(formatBytes32String("DATA_COMPRESSOR"), 210, {
+        blockTag: atBlock,
+      }),
+      ap.getAddressOrRevert(formatBytes32String("DATA_COMPRESSOR"), 300, {
+        blockTag: atBlock,
+      }),
+    ]);
+    const [cms2, cms3] = await Promise.all([
+      CreditManagerWatcher.getV2CreditManagers(dc210, signer, atBlock),
+      CreditManagerWatcher.getV3CreditManagers(dc300, signer, atBlock),
+    ]);
+    return { ...cms2, ...cms3 };
+  }
 
   static async getV2CreditManagers(
-    dataCompressor: string,
+    dataCompressorV210: string,
     signer: Signer | providers.Provider,
     atBlock?: number,
   ): Promise<Record<string, CreditManagerData>> {
     const creditManagers: Record<string, CreditManagerData> = {};
 
     const creditManagersPayload = await IDataCompressorV2_10__factory.connect(
-      dataCompressor,
+      dataCompressorV210,
       signer,
     ).getCreditManagersV2List({ blockTag: atBlock });
 
-    creditManagersPayload
-      .filter(
-        c => toBigInt(c.cfVersion) === 2n || toBigInt(c.cfVersion) === 210n,
-      )
-      .forEach(c => {
-        creditManagers[c.addr.toLowerCase()] = new CreditManagerData(c);
-      });
+    creditManagersPayload.forEach(c => {
+      creditManagers[c.addr.toLowerCase()] = new CreditManagerData(c);
+    });
+
+    return creditManagers;
+  }
+
+  static async getV3CreditManagers(
+    dataCompressorV300: string,
+    signer: Signer | providers.Provider,
+    atBlock?: number,
+  ): Promise<Record<string, CreditManagerData>> {
+    const creditManagers: Record<string, CreditManagerData> = {};
+
+    const creditManagersPayload = await IDataCompressorV3_00__factory.connect(
+      dataCompressorV300,
+      signer,
+    ).getCreditManagersV3List({ blockTag: atBlock });
+
+    creditManagersPayload.forEach(c => {
+      creditManagers[c.addr.toLowerCase()] = new CreditManagerData(c);
+    });
 
     return creditManagers;
   }
@@ -45,10 +88,10 @@ export class CreditManagerWatcher {
 
     for (let log of freshLogs) {
       if (cms.includes(log.address.toLowerCase())) {
-        const { name } =
-          CreditManagerWatcher.creditManagerInterface.parseLog(log);
-
-        if (name === "NewConfigurator") {
+        if (
+          log.topics[0] === CreditManagerWatcher.newConfiguratorV2Topic ||
+          log.topics[0] === CreditManagerWatcher.newConfiguratorV3Topic
+        ) {
           return true;
         }
       }
