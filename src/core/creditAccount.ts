@@ -169,7 +169,7 @@ export class CreditAccountData {
         isEnabled: b.isEnabled,
         isQuoted: b.isQuoted,
         quota: toBigInt(b.quota),
-        quotaRate: b.quotaRate,
+        quotaRate: Number(toBigInt(b.quotaRate) * PERCENTAGE_DECIMALS),
       };
 
       if (!b.isForbidden) {

@@ -1,4 +1,4 @@
-import { toBigInt } from "@gearbox-protocol/sdk-gov";
+import { PERCENTAGE_DECIMALS, toBigInt } from "@gearbox-protocol/sdk-gov";
 
 import { GaugeDataPayload, GaugeQuotaParams } from "../payload/gauge";
 
@@ -30,9 +30,9 @@ export class GaugeData {
 
           isActive: q.isActive,
 
-          rate: q.rate,
-          minRate: q.minRate,
-          maxRate: q.maxRate,
+          rate: Number(toBigInt(q.rate) * PERCENTAGE_DECIMALS),
+          minRate: Number(toBigInt(q.minRate) * PERCENTAGE_DECIMALS),
+          maxRate: Number(toBigInt(q.maxRate) * PERCENTAGE_DECIMALS),
 
           quotaIncreaseFee: q.quotaIncreaseFee,
           totalQuoted: toBigInt(q.totalQuoted),
