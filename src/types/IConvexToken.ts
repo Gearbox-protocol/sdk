@@ -29,6 +29,7 @@ import type {
 
 export interface IConvexTokenInterface extends utils.Interface {
   functions: {
+    "EMISSIONS_MAX_SUPPLY()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
@@ -44,6 +45,7 @@ export interface IConvexTokenInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "EMISSIONS_MAX_SUPPLY"
       | "allowance"
       | "approve"
       | "balanceOf"
@@ -57,6 +59,10 @@ export interface IConvexTokenInterface extends utils.Interface {
       | "vecrvProxy"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "EMISSIONS_MAX_SUPPLY",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "allowance",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
@@ -100,6 +106,10 @@ export interface IConvexTokenInterface extends utils.Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "EMISSIONS_MAX_SUPPLY",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
@@ -184,6 +194,8 @@ export interface IConvexToken extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    EMISSIONS_MAX_SUPPLY(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     allowance(
       owner: PromiseOrValue<string>,
       spender: PromiseOrValue<string>,
@@ -226,6 +238,8 @@ export interface IConvexToken extends BaseContract {
 
     vecrvProxy(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  EMISSIONS_MAX_SUPPLY(overrides?: CallOverrides): Promise<BigNumber>;
 
   allowance(
     owner: PromiseOrValue<string>,
@@ -270,6 +284,8 @@ export interface IConvexToken extends BaseContract {
   vecrvProxy(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    EMISSIONS_MAX_SUPPLY(overrides?: CallOverrides): Promise<BigNumber>;
+
     allowance(
       owner: PromiseOrValue<string>,
       spender: PromiseOrValue<string>,
@@ -338,6 +354,8 @@ export interface IConvexToken extends BaseContract {
   };
 
   estimateGas: {
+    EMISSIONS_MAX_SUPPLY(overrides?: CallOverrides): Promise<BigNumber>;
+
     allowance(
       owner: PromiseOrValue<string>,
       spender: PromiseOrValue<string>,
@@ -382,6 +400,10 @@ export interface IConvexToken extends BaseContract {
   };
 
   populateTransaction: {
+    EMISSIONS_MAX_SUPPLY(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     allowance(
       owner: PromiseOrValue<string>,
       spender: PromiseOrValue<string>,

@@ -37,7 +37,7 @@ export class PoolData {
   readonly expectedLiquidity: bigint;
   readonly expectedLiquidityLimit: bigint;
   readonly availableLiquidity: bigint;
-  readonly linearCumulativeIndex: bigint;
+  readonly baseInterestIndex: bigint;
 
   readonly totalBorrowed: bigint;
   readonly totalDebtLimit: bigint;
@@ -56,7 +56,7 @@ export class PoolData {
   readonly dieselRate: number;
   readonly dieselRateRay: bigint;
   readonly withdrawFee: number;
-  readonly cumulativeIndex_RAY: bigint;
+  readonly lastBaseInterestUpdate: bigint;
 
   constructor(payload: PoolDataPayload) {
     this.address = payload.addr.toLowerCase();
@@ -73,7 +73,7 @@ export class PoolData {
     this.availableLiquidity = toBigInt(payload.availableLiquidity);
     this.expectedLiquidityLimit =
       this.expectedLiquidity + this.availableLiquidity;
-    this.linearCumulativeIndex = toBigInt(payload.linearCumulativeIndex);
+    this.baseInterestIndex = toBigInt(payload.baseInterestIndex);
 
     this.totalBorrowed = toBigInt(payload.totalBorrowed);
     this.totalDebtLimit = toBigInt(payload.totalDebtLimit);
@@ -145,7 +145,7 @@ export class PoolData {
     };
     this.dieselRate = rayToNumber(payload.dieselRate_RAY);
     this.dieselRateRay = toBigInt(payload.dieselRate_RAY);
-    this.cumulativeIndex_RAY = toBigInt(payload.cumulativeIndex_RAY);
+    this.lastBaseInterestUpdate = toBigInt(payload.lastBaseInterestUpdate);
     this.withdrawFee =
       Number(toBigInt(payload.withdrawFee)) / Number(PERCENTAGE_DECIMALS);
   }

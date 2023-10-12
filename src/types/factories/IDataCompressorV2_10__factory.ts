@@ -198,6 +198,11 @@ const _abi = [
                 name: "quotaRate",
                 type: "uint16",
               },
+              {
+                internalType: "uint256",
+                name: "quotaCumulativeIndexLU",
+                type: "uint256",
+              },
             ],
             internalType: "struct TokenBalance[]",
             name: "balances",
@@ -422,6 +427,11 @@ const _abi = [
                 internalType: "uint16",
                 name: "quotaRate",
                 type: "uint16",
+              },
+              {
+                internalType: "uint256",
+                name: "quotaCumulativeIndexLU",
+                type: "uint256",
               },
             ],
             internalType: "struct TokenBalance[]",
@@ -1026,7 +1036,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "linearCumulativeIndex",
+            name: "baseInterestIndex",
             type: "uint256",
           },
           {
@@ -1108,7 +1118,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "cumulativeIndex_RAY",
+            name: "lastBaseInterestUpdate",
             type: "uint256",
           },
           {
@@ -1289,7 +1299,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "linearCumulativeIndex",
+            name: "baseInterestIndex",
             type: "uint256",
           },
           {
@@ -1371,7 +1381,7 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "cumulativeIndex_RAY",
+            name: "lastBaseInterestUpdate",
             type: "uint256",
           },
           {

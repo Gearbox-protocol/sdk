@@ -29,6 +29,7 @@ export type TokenBalanceStruct = {
   isQuoted: PromiseOrValue<boolean>;
   quota: PromiseOrValue<BigNumberish>;
   quotaRate: PromiseOrValue<BigNumberish>;
+  quotaCumulativeIndexLU: PromiseOrValue<BigNumberish>;
 };
 
 export type TokenBalanceStructOutput = [
@@ -38,7 +39,8 @@ export type TokenBalanceStructOutput = [
   boolean,
   boolean,
   BigNumber,
-  number
+  number,
+  BigNumber
 ] & {
   token: string;
   balance: BigNumber;
@@ -47,6 +49,7 @@ export type TokenBalanceStructOutput = [
   isQuoted: boolean;
   quota: BigNumber;
   quotaRate: number;
+  quotaCumulativeIndexLU: BigNumber;
 };
 
 export type ScheduledWithdrawalStruct = {
@@ -357,7 +360,7 @@ export type PoolDataStruct = {
   dieselToken: PromiseOrValue<string>;
   symbol: PromiseOrValue<string>;
   name: PromiseOrValue<string>;
-  linearCumulativeIndex: PromiseOrValue<BigNumberish>;
+  baseInterestIndex: PromiseOrValue<BigNumberish>;
   availableLiquidity: PromiseOrValue<BigNumberish>;
   expectedLiquidity: PromiseOrValue<BigNumberish>;
   totalBorrowed: PromiseOrValue<BigNumberish>;
@@ -369,7 +372,7 @@ export type PoolDataStruct = {
   baseInterestRate: PromiseOrValue<BigNumberish>;
   dieselRate_RAY: PromiseOrValue<BigNumberish>;
   withdrawFee: PromiseOrValue<BigNumberish>;
-  cumulativeIndex_RAY: PromiseOrValue<BigNumberish>;
+  lastBaseInterestUpdate: PromiseOrValue<BigNumberish>;
   baseInterestIndexLU: PromiseOrValue<BigNumberish>;
   version: PromiseOrValue<BigNumberish>;
   poolQuotaKeeper: PromiseOrValue<string>;
@@ -413,7 +416,7 @@ export type PoolDataStructOutput = [
   dieselToken: string;
   symbol: string;
   name: string;
-  linearCumulativeIndex: BigNumber;
+  baseInterestIndex: BigNumber;
   availableLiquidity: BigNumber;
   expectedLiquidity: BigNumber;
   totalBorrowed: BigNumber;
@@ -425,7 +428,7 @@ export type PoolDataStructOutput = [
   baseInterestRate: BigNumber;
   dieselRate_RAY: BigNumber;
   withdrawFee: BigNumber;
-  cumulativeIndex_RAY: BigNumber;
+  lastBaseInterestUpdate: BigNumber;
   baseInterestIndexLU: BigNumber;
   version: BigNumber;
   poolQuotaKeeper: string;

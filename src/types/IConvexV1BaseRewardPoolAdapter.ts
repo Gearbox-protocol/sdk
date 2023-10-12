@@ -32,6 +32,8 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     "creditManager()": FunctionFragment;
     "curveLPTokenMask()": FunctionFragment;
     "curveLPtoken()": FunctionFragment;
+    "extraReward1()": FunctionFragment;
+    "extraReward2()": FunctionFragment;
     "getReward()": FunctionFragment;
     "rewardTokensMask()": FunctionFragment;
     "stake(uint256)": FunctionFragment;
@@ -55,6 +57,8 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
       | "creditManager"
       | "curveLPTokenMask"
       | "curveLPtoken"
+      | "extraReward1"
+      | "extraReward2"
       | "getReward"
       | "rewardTokensMask"
       | "stake"
@@ -92,6 +96,14 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
   ): string;
   encodeFunctionData(
     functionFragment: "curveLPtoken",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "extraReward1",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "extraReward2",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "getReward", values?: undefined): string;
@@ -163,6 +175,14 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
   ): Result;
   decodeFunctionResult(
     functionFragment: "curveLPtoken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "extraReward1",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "extraReward2",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getReward", data: BytesLike): Result;
@@ -248,6 +268,10 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     curveLPtoken(overrides?: CallOverrides): Promise<[string]>;
 
+    extraReward1(overrides?: CallOverrides): Promise<[string]>;
+
+    extraReward2(overrides?: CallOverrides): Promise<[string]>;
+
     getReward(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -308,6 +332,10 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
   curveLPtoken(overrides?: CallOverrides): Promise<string>;
 
+  extraReward1(overrides?: CallOverrides): Promise<string>;
+
+  extraReward2(overrides?: CallOverrides): Promise<string>;
+
   getReward(
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -367,6 +395,10 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
     curveLPTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
 
     curveLPtoken(overrides?: CallOverrides): Promise<string>;
+
+    extraReward1(overrides?: CallOverrides): Promise<string>;
+
+    extraReward2(overrides?: CallOverrides): Promise<string>;
 
     getReward(
       overrides?: CallOverrides
@@ -466,6 +498,10 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
 
     curveLPtoken(overrides?: CallOverrides): Promise<BigNumber>;
 
+    extraReward1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    extraReward2(overrides?: CallOverrides): Promise<BigNumber>;
+
     getReward(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -530,6 +566,10 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
     curveLPTokenMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     curveLPtoken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    extraReward1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    extraReward2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getReward(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
