@@ -1370,6 +1370,248 @@ const _abi = [
   {
     inputs: [
       {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "bytes",
+            name: "callData",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct PriceOnDemand[]",
+        name: "priceUpdates",
+        type: "tuple[]",
+      },
+    ],
+    name: "getLiquidatableCreditAccounts",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bool",
+            name: "isSuccessful",
+            type: "bool",
+          },
+          {
+            internalType: "address[]",
+            name: "priceFeedsNeeded",
+            type: "address[]",
+          },
+          {
+            internalType: "address",
+            name: "addr",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "borrower",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "creditManager",
+            type: "address",
+          },
+          {
+            internalType: "string",
+            name: "cmDescription",
+            type: "string",
+          },
+          {
+            internalType: "address",
+            name: "creditFacade",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "underlying",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "debt",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "cumulativeIndexNow",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "cumulativeIndexLastUpdate",
+            type: "uint256",
+          },
+          {
+            internalType: "uint128",
+            name: "cumulativeQuotaInterest",
+            type: "uint128",
+          },
+          {
+            internalType: "uint256",
+            name: "accruedInterest",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "accruedFees",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalDebtUSD",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValueUSD",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "twvUSD",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "enabledTokensMask",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "healthFactor",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "baseBorrowRate",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "aggregatedBorrowRate",
+            type: "uint256",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "balance",
+                type: "uint256",
+              },
+              {
+                internalType: "bool",
+                name: "isForbidden",
+                type: "bool",
+              },
+              {
+                internalType: "bool",
+                name: "isEnabled",
+                type: "bool",
+              },
+              {
+                internalType: "bool",
+                name: "isQuoted",
+                type: "bool",
+              },
+              {
+                internalType: "uint256",
+                name: "quota",
+                type: "uint256",
+              },
+              {
+                internalType: "uint16",
+                name: "quotaRate",
+                type: "uint16",
+              },
+              {
+                internalType: "uint256",
+                name: "quotaCumulativeIndexLU",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct TokenBalance[]",
+            name: "balances",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint64",
+            name: "since",
+            type: "uint64",
+          },
+          {
+            internalType: "uint256",
+            name: "cfVersion",
+            type: "uint256",
+          },
+          {
+            internalType: "uint40",
+            name: "expirationDate",
+            type: "uint40",
+          },
+          {
+            internalType: "address[]",
+            name: "activeBots",
+            type: "address[]",
+          },
+          {
+            internalType: "uint256",
+            name: "maxApprovedBots",
+            type: "uint256",
+          },
+          {
+            components: [
+              {
+                internalType: "uint8",
+                name: "tokenIndex",
+                type: "uint8",
+              },
+              {
+                internalType: "uint40",
+                name: "maturity",
+                type: "uint40",
+              },
+              {
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct ScheduledWithdrawal[2]",
+            name: "schedultedWithdrawals",
+            type: "tuple[2]",
+          },
+        ],
+        internalType: "struct CreditAccountData[]",
+        name: "result",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "_pool",
         type: "address",

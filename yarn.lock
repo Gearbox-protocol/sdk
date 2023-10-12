@@ -1242,10 +1242,10 @@
   dependencies:
     redstone-protocol "^1.0.5"
 
-"@gearbox-protocol/periphery-v3@^1.3.3":
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.3.3.tgz#9526eee626956f5702a38047f5d572307680db8b"
-  integrity sha512-vhnLuSTxcMGZAbyCqVOz2a8NqYYrPDTdNYyEkfWBOh63Vjlmmd3Akig2RsK+nG6L9AvbXl58/qOBRBXocUWPJQ==
+"@gearbox-protocol/periphery-v3@^1.3.4":
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.3.4.tgz#bd3459436fe150674e1f81dd71344c0d84f200b0"
+  integrity sha512-lProxMt24H7pHPrDfkBVbmjAHOQcqqQQR1XC18Mf2C8ywnODCZ/PF7eaLXldKZ5sJ4/mc8X4BEGZSbVVb3eQYA==
   dependencies:
     husky "^8.0.3"
     lint-staged "^13.0.3"

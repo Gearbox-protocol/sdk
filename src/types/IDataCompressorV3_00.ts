@@ -530,6 +530,7 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
     "getCreditManagerData(address)": FunctionFragment;
     "getCreditManagersV3List()": FunctionFragment;
     "getGaugesV3Data(address)": FunctionFragment;
+    "getLiquidatableCreditAccounts((address,bytes)[])": FunctionFragment;
     "getPoolData(address)": FunctionFragment;
     "getPoolsV3List()": FunctionFragment;
     "version()": FunctionFragment;
@@ -543,6 +544,7 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
       | "getCreditManagerData"
       | "getCreditManagersV3List"
       | "getGaugesV3Data"
+      | "getLiquidatableCreditAccounts"
       | "getPoolData"
       | "getPoolsV3List"
       | "version"
@@ -571,6 +573,10 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getGaugesV3Data",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLiquidatableCreditAccounts",
+    values: [PriceOnDemandStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolData",
@@ -604,6 +610,10 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getGaugesV3Data",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLiquidatableCreditAccounts",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -678,6 +688,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[GaugeInfoStructOutput[]] & { result: GaugeInfoStructOutput[] }>;
 
+    getLiquidatableCreditAccounts(
+      priceUpdates: PriceOnDemandStruct[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     getPoolData(
       _pool: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -722,6 +737,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<GaugeInfoStructOutput[]>;
 
+  getLiquidatableCreditAccounts(
+    priceUpdates: PriceOnDemandStruct[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   getPoolData(
     _pool: PromiseOrValue<string>,
     overrides?: CallOverrides
@@ -763,6 +783,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<GaugeInfoStructOutput[]>;
+
+    getLiquidatableCreditAccounts(
+      priceUpdates: PriceOnDemandStruct[],
+      overrides?: CallOverrides
+    ): Promise<CreditAccountDataStructOutput[]>;
 
     getPoolData(
       _pool: PromiseOrValue<string>,
@@ -807,6 +832,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getLiquidatableCreditAccounts(
+      priceUpdates: PriceOnDemandStruct[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     getPoolData(
       _pool: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -848,6 +878,11 @@ export interface IDataCompressorV3_00 extends BaseContract {
     getGaugesV3Data(
       staker: PromiseOrValue<string>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getLiquidatableCreditAccounts(
+      priceUpdates: PriceOnDemandStruct[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getPoolData(
