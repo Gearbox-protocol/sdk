@@ -6,8 +6,6 @@ import {
   PRICE_DECIMALS,
   toBigInt,
   tokenSymbolByAddress,
-  WAD,
-  WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
 
 import { LpTokensAPY, TokensWithAPY } from "../apy";
@@ -18,7 +16,7 @@ import {
 } from "../payload/creditAccount";
 import { QuotaInfo } from "../payload/creditManager";
 import { TokenData } from "../tokens/tokenData";
-import { rayToNumber, toSignificant } from "../utils/formatter";
+import { rayToNumber } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetWithAmountInTarget } from "./assets";
@@ -287,7 +285,7 @@ export class CreditAccountData {
     debt,
     baseBorrowRate,
     underlyingToken,
-  }: CalcOverallAPYProps): number | undefined {
+  }: CalcOverallAPYProps): bigint | undefined {
     if (
       !lpAPY ||
       !totalValue ||
@@ -342,12 +340,9 @@ export class CreditAccountData {
 
     const yourAssets = totalValue - debt;
 
-    const apyInPercent =
-      ((assetAPYAmountInUnderlying - debtAPY) * WAD) /
-      yourAssets /
-      PERCENTAGE_FACTOR;
+    const apyInPercent = (assetAPYAmountInUnderlying - debtAPY) / yourAssets;
 
-    return Number(toSignificant(apyInPercent, WAD_DECIMALS_POW));
+    return apyInPercent;
   }
 
   hash(): string {
