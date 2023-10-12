@@ -8,7 +8,7 @@ import {
   ICreditFacadeV2__factory,
   ICreditManagerV2__factory,
 } from "../types";
-import { CreditAccountWatcher } from "./creditAccountWatcher";
+import { CreditAccountWatcherV2 } from "./creditAccountWatcher";
 
 const CREDIT_MANAGER_ADDRESS = DUMB_ADDRESS;
 const CREDIT_FACADE_ADDRESS = "0xcb9a588a47dd0393af3d0d5f86e6f1c8fd252c48";
@@ -92,12 +92,12 @@ const newConfiguratorLog = (
 
 describe("CreditAccountTracker test", () => {
   it("detects update events correctly", () => {
-    expect(CreditAccountWatcher.detectChanges([openLog()], [cmDumb])).to.be.eql(
-      {
-        updated: [expectedHash],
-        deleted: [],
-      },
-    );
+    expect(
+      CreditAccountWatcherV2.detectChanges([openLog()], [cmDumb]),
+    ).to.be.eql({
+      updated: [expectedHash],
+      deleted: [],
+    });
 
     let log = makeLog(
       CREDIT_FACADE_ADDRESS,
@@ -108,7 +108,7 @@ describe("CreditAccountTracker test", () => {
       utils.defaultAbiCoder.encode(["uint256"], [10]),
     );
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [expectedHash],
       deleted: [],
     });
@@ -122,7 +122,7 @@ describe("CreditAccountTracker test", () => {
       utils.defaultAbiCoder.encode(["uint256"], [10]),
     );
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [expectedHash],
       deleted: [],
     });
@@ -137,7 +137,7 @@ describe("CreditAccountTracker test", () => {
       utils.defaultAbiCoder.encode(["uint256"], [10]),
     );
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [expectedHash],
       deleted: [],
     });
@@ -147,7 +147,7 @@ describe("CreditAccountTracker test", () => {
       encode("address", BORROWER),
     ]);
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [expectedHash],
       deleted: [],
     });
@@ -158,7 +158,7 @@ describe("CreditAccountTracker test", () => {
       encode("address", DUMB_ADDRESS),
     ]);
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [expectedHash],
       deleted: [],
     });
@@ -169,7 +169,7 @@ describe("CreditAccountTracker test", () => {
       encode("address", DUMB_ADDRESS),
     ]);
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [expectedHash],
       deleted: [],
     });
@@ -180,7 +180,7 @@ describe("CreditAccountTracker test", () => {
       encode("address", DUMB_ADDRESS),
     ]);
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [expectedHash],
       deleted: [],
     });
@@ -191,7 +191,7 @@ describe("CreditAccountTracker test", () => {
   //
   it("detects delete events correctly", () => {
     expect(
-      CreditAccountWatcher.detectChanges([closeLog()], [cmDumb]),
+      CreditAccountWatcherV2.detectChanges([closeLog()], [cmDumb]),
     ).to.be.eql({
       updated: [],
       deleted: [expectedHash],
@@ -209,7 +209,7 @@ describe("CreditAccountTracker test", () => {
       utils.defaultAbiCoder.encode(["uint256"], [10]),
     );
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [],
       deleted: [expectedHash],
     });
@@ -226,14 +226,14 @@ describe("CreditAccountTracker test", () => {
       utils.defaultAbiCoder.encode(["uint256"], [10]),
     );
 
-    expect(CreditAccountWatcher.detectChanges([log], [cmDumb])).to.be.eql({
+    expect(CreditAccountWatcherV2.detectChanges([log], [cmDumb])).to.be.eql({
       updated: [],
       deleted: [expectedHash],
     });
   });
   it("doesn't make duplicated", () => {
     expect(
-      CreditAccountWatcher.detectChanges(
+      CreditAccountWatcherV2.detectChanges(
         [openLog(), openLog(), openLog()],
         [cmDumb],
       ),
@@ -243,7 +243,7 @@ describe("CreditAccountTracker test", () => {
     });
 
     expect(
-      CreditAccountWatcher.detectChanges(
+      CreditAccountWatcherV2.detectChanges(
         [closeLog(), closeLog(), closeLog()],
         [cmDumb],
       ),
@@ -255,14 +255,14 @@ describe("CreditAccountTracker test", () => {
 
   it("updates accounts were created and deleted in the batch", () => {
     expect(
-      CreditAccountWatcher.detectChanges([openLog(), closeLog()], [cmDumb]),
+      CreditAccountWatcherV2.detectChanges([openLog(), closeLog()], [cmDumb]),
     ).to.be.eql({
       updated: [],
       deleted: [expectedHash],
     });
 
     expect(
-      CreditAccountWatcher.detectChanges(
+      CreditAccountWatcherV2.detectChanges(
         [openLog(), closeLog(), openLog()],
         [cmDumb],
       ),
@@ -280,7 +280,7 @@ describe("CreditAccountTracker test", () => {
     ]);
 
     expect(
-      CreditAccountWatcher.detectChanges([openLog(), transferLog], [cmDumb]),
+      CreditAccountWatcherV2.detectChanges([openLog(), transferLog], [cmDumb]),
     ).to.be.eql({
       updated: [
         `${CREDIT_MANAGER_ADDRESS.toLowerCase()}:${DUMB_ADDRESS.toLowerCase()}`,
@@ -291,7 +291,7 @@ describe("CreditAccountTracker test", () => {
 
   it("correctly handles credit configurator change", () => {
     expect(
-      CreditAccountWatcher.detectChanges(
+      CreditAccountWatcherV2.detectChanges(
         [
           openLog(), // open CA in old CF
           newConfiguratorLog(), // set new configurator
@@ -306,7 +306,7 @@ describe("CreditAccountTracker test", () => {
     });
 
     expect(
-      CreditAccountWatcher.detectChanges(
+      CreditAccountWatcherV2.detectChanges(
         [
           openLog(),
           closeLog(),
