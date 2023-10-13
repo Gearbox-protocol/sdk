@@ -25,7 +25,7 @@ import type {
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "./common";
+} from "../common";
 
 export type SwapTaskStruct = {
   swapOperation: PromiseOrValue<BigNumberish>;
@@ -109,6 +109,7 @@ export interface IRouterInterface extends utils.Interface {
     "findBestClosePath(address,address[],uint256,(address,uint8,uint8)[],uint256,bool)": FunctionFragment;
     "findOneTokenPath(address,uint256,address,address,address[],uint256)": FunctionFragment;
     "findOpenStrategyPath(address,(address,uint256)[],address,address[],uint256)": FunctionFragment;
+    "getGasPriceTokenOutRAY(address)": FunctionFragment;
     "isRouterConfigurator(address)": FunctionFragment;
     "tokenTypes(address)": FunctionFragment;
     "version()": FunctionFragment;
@@ -121,6 +122,7 @@ export interface IRouterInterface extends utils.Interface {
       | "findBestClosePath"
       | "findOneTokenPath"
       | "findOpenStrategyPath"
+      | "getGasPriceTokenOutRAY"
       | "isRouterConfigurator"
       | "tokenTypes"
       | "version"
@@ -167,6 +169,10 @@ export interface IRouterInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "getGasPriceTokenOutRAY",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "isRouterConfigurator",
     values: [PromiseOrValue<string>]
   ): string;
@@ -194,6 +200,10 @@ export interface IRouterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "findOpenStrategyPath",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getGasPriceTokenOutRAY",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -315,6 +325,11 @@ export interface IRouter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    getGasPriceTokenOutRAY(
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { gasPrice: BigNumber }>;
+
     isRouterConfigurator(
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -366,6 +381,11 @@ export interface IRouter extends BaseContract {
     slippage: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+
+  getGasPriceTokenOutRAY(
+    token: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   isRouterConfigurator(
     account: PromiseOrValue<string>,
@@ -423,6 +443,11 @@ export interface IRouter extends BaseContract {
       slippage: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], RouterResultStructOutput]>;
+
+    getGasPriceTokenOutRAY(
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isRouterConfigurator(
       account: PromiseOrValue<string>,
@@ -508,6 +533,11 @@ export interface IRouter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    getGasPriceTokenOutRAY(
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     isRouterConfigurator(
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -559,6 +589,11 @@ export interface IRouter extends BaseContract {
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getGasPriceTokenOutRAY(
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isRouterConfigurator(

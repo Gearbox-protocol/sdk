@@ -4,7 +4,7 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IRouter, IRouterInterface } from "../IRouter";
+import type { IRouter, IRouterInterface } from "../../interfaces/IRouter";
 
 const _abi = [
   {
@@ -442,6 +442,25 @@ const _abi = [
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "getGasPriceTokenOutRAY",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "gasPrice",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
