@@ -12,7 +12,7 @@ export type PoolDataPayload = Omit<
   "zappers"
 > & {
   zappers: Array<PoolZapper>;
-  borrowAPY7D: number | undefined;
+  supplyAPY7D: number | undefined;
 };
 
 export type LinearModel = Omit<
