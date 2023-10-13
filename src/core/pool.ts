@@ -48,7 +48,7 @@ export class PoolData {
   readonly totalAssets: bigint;
   readonly totalSupply: bigint;
 
-  readonly borrowAPY7D: number | undefined;
+  readonly supplyAPY7D: number | undefined;
   readonly depositAPY: number;
   readonly borrowAPY: number;
 
@@ -130,7 +130,7 @@ export class PoolData {
     this.borrowAPY = rayToNumber(
       toBigInt(payload.baseInterestRate) * PERCENTAGE_DECIMALS,
     );
-    this.borrowAPY7D = payload.borrowAPY7D;
+    this.supplyAPY7D = payload.supplyAPY7D;
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
