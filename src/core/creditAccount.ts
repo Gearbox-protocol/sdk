@@ -26,7 +26,7 @@ export interface CalcOverallAPYProps {
   lpAPY: LpTokensAPY | undefined;
 
   quotas: Record<string, Asset>;
-  quotaRates: Record<string, Pick<QuotaInfo, "rate">>;
+  quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
 
   prices: Record<string, bigint>;
 
@@ -39,6 +39,7 @@ export interface CalcOverallAPYProps {
 export interface CalcHealthFactorProps {
   assets: Array<Asset>;
   quotas: Record<string, Asset>;
+  quotasInfo: Record<string, Pick<QuotaInfo, "isActive">>;
 
   prices: Record<string, bigint>;
   liquidationThresholds: Record<string, bigint>;
@@ -63,7 +64,7 @@ interface CalcQuotaUpdateReturnType {
 
 export interface CalcQuotaBorrowRateProps {
   quotas: Record<string, Asset>;
-  quotaRates: Record<string, Pick<QuotaInfo, "rate">>;
+  quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
   borrowAmount: bigint;
 }
 
@@ -314,14 +315,17 @@ export class CreditAccountData {
         const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
         const apyMoney = money * BigInt(apy);
 
-        const { balance: quotaAmount = 0n } = quotas[tokenAddressLC] || {};
+        const { rate: quotaAPY = 0, isActive = false } =
+          quotaRates?.[tokenAddressLC] || {};
+        const { balance: quotaBalance = 0n } = quotas[tokenAddressLC] || {};
+
+        const quotaAmount = isActive ? quotaBalance : 0n;
         const quotaMoney = PriceUtils.calcTotalPrice(
           underlyingPrice || 0n,
           quotaAmount,
           underlyingTokenDecimals,
         );
 
-        const { rate: quotaAPY = 0 } = quotaRates[tokenAddressLC] || {};
         const quotaAPYMoney = quotaMoney * BigInt(quotaAPY);
 
         return acc + apyMoney - quotaAPYMoney;
@@ -357,6 +361,7 @@ export class CreditAccountData {
   static calcHealthFactor({
     assets,
     quotas,
+    quotasInfo,
 
     liquidationThresholds,
     underlyingToken,
@@ -380,10 +385,12 @@ export class CreditAccountData {
           tokenDecimals,
         );
 
+        const { isActive = false } = quotasInfo?.[tokenAddress] || {};
         const quota = quotas[tokenAddress];
+        const quotaBalance = isActive ? quota?.balance || 0n : 0n;
         const quotaMoney = PriceUtils.calcTotalPrice(
           underlyingPrice,
-          quota?.balance || 0n,
+          quotaBalance,
           underlyingDecimals,
         );
 
@@ -420,9 +427,16 @@ export class CreditAccountData {
   }: CalcQuotaUpdateProps) {
     const r = Object.values(quotas).reduce<CalcQuotaUpdateReturnType>(
       (acc, cmQuota) => {
-        const { token } = cmQuota;
-
+        const { token, isActive } = cmQuota;
         const { quota: initialQuota = 0n } = initialQuotas[token] || {};
+
+        if (!isActive) {
+          acc.desiredQuota[token] = {
+            balance: initialQuota,
+            token,
+          };
+          return acc;
+        }
 
         const after = assetsAfterUpdate[token];
         const { amountInTarget = 0n } = after || {};
@@ -475,9 +489,10 @@ export class CreditAccountData {
     if (borrowAmount <= 0) return 0;
     const totalRateBalance = Object.values(quotas).reduce(
       (acc, { token, balance }) => {
-        const { rate = 0 } = quotaRates[token] || {};
+        const { rate = 0, isActive = false } = quotaRates?.[token] || {};
 
-        const rateBalance = balance * BigInt(rate);
+        const quotaBalance = isActive ? balance : 0n;
+        const rateBalance = quotaBalance * BigInt(rate);
 
         return acc + rateBalance;
       },
