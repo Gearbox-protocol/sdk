@@ -10,6 +10,7 @@ import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetUtils } from "./assets";
 import {
+  CalcHealthFactorProps,
   CalcOverallAPYProps,
   CalcQuotaUpdateProps,
   CreditAccountData,
@@ -66,6 +67,7 @@ const caWithoutLP: CATestInfo = {
   rates: {
     [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
       rate: 38434,
+      isActive: true,
     },
   },
 };
@@ -97,6 +99,7 @@ const caWithLP: CATestInfo = {
   rates: {
     [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
       rate: 38434,
+      isActive: true,
     },
   },
 };
@@ -288,6 +291,7 @@ interface CAHfTestInfo {
   healthFactor: number;
   underlyingDecimals: number;
   quotas: Record<string, Asset>;
+  quotasInfo: CalcHealthFactorProps["quotasInfo"];
 }
 
 const defaultCA: CAHfTestInfo = {
@@ -311,12 +315,18 @@ const defaultCA: CAHfTestInfo = {
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
     },
   },
+  quotasInfo: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+      isActive: true,
+    },
+  },
 };
 
 describe("CreditAccount calcHealthFactor test", () => {
   it("health factor is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
       quotas: {},
+      quotasInfo: {},
       assets: defaultCA.assets,
       prices,
       liquidationThresholds,
@@ -329,6 +339,7 @@ describe("CreditAccount calcHealthFactor test", () => {
   it("health factor calculation has no division by zero error", () => {
     const result = CreditAccountData.calcHealthFactor({
       quotas: {},
+      quotasInfo: {},
       assets: [],
       prices: {},
       liquidationThresholds: {},
@@ -347,6 +358,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     const afterAdd = AssetUtils.sumAssets(defaultCA.assets, [collateral]);
     const result = CreditAccountData.calcHealthFactor({
       quotas: {},
+      quotasInfo: {},
       assets: afterAdd,
       prices,
       liquidationThresholds,
@@ -368,6 +380,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     ]);
     const result = CreditAccountData.calcHealthFactor({
       quotas: {},
+      quotasInfo: {},
       assets: afterDecrease,
       prices,
       liquidationThresholds,
@@ -389,6 +402,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     ]);
     const result = CreditAccountData.calcHealthFactor({
       quotas: {},
+      quotasInfo: {},
       assets: afterIncrease,
       prices,
       liquidationThresholds,
@@ -425,6 +439,7 @@ describe("CreditAccount calcHealthFactor test", () => {
 
     const result = CreditAccountData.calcHealthFactor({
       quotas: {},
+      quotasInfo: {},
       assets: afterSwap,
       prices,
       liquidationThresholds,
@@ -437,6 +452,7 @@ describe("CreditAccount calcHealthFactor test", () => {
   it("health factor with sufficient quotas is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
       quotas: defaultCA.quotas,
+      quotasInfo: defaultCA.quotasInfo,
       assets: defaultCA.assets,
       prices,
       liquidationThresholds,
@@ -452,6 +468,24 @@ describe("CreditAccount calcHealthFactor test", () => {
         [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+        },
+      },
+      quotasInfo: defaultCA.quotasInfo,
+      assets: defaultCA.assets,
+      prices,
+      liquidationThresholds,
+      underlyingToken: defaultCA.underlyingToken,
+      borrowed: defaultCA.debt,
+    });
+
+    expect(result).to.be.eq(9300);
+  });
+  it("health factor with disabled quota is calculated correctly", () => {
+    const result = CreditAccountData.calcHealthFactor({
+      quotas: defaultCA.quotas,
+      quotasInfo: {
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+          isActive: false,
         },
       },
       assets: defaultCA.assets,
@@ -804,20 +838,75 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
           amountInTarget: 10n,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: tokenDataByNetwork.Mainnet.DAI,
         },
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [tokenDataByNetwork.Mainnet.WETH]: {
           amountInTarget: 0n,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: tokenDataByNetwork.Mainnet.WETH,
         },
       },
 
       allowedToObtain: {},
       allowedToSpend: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("shouldn't change quota if it is disabled", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          token: tokenDataByNetwork.Mainnet.DAI,
+          isActive: false,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          token: tokenDataByNetwork.Mainnet.WETH,
+          isActive: false,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          token: tokenDataByNetwork.Mainnet.STETH,
+          isActive: false,
+        },
+      },
+      initialQuotas: caQuota,
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
@@ -859,12 +948,15 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
       quotaRates: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           rate: 5,
+          isActive: true,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
           rate: 10,
+          isActive: true,
         },
         [tokenDataByNetwork.Mainnet.STETH]: {
           rate: 15,
+          isActive: true,
         },
       },
       borrowAmount: 30n,
@@ -891,12 +983,15 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
       quotaRates: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           rate: 10,
+          isActive: true,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
           rate: 10,
+          isActive: true,
         },
         [tokenDataByNetwork.Mainnet.STETH]: {
           rate: 10,
+          isActive: true,
         },
       },
       borrowAmount: 30n,
@@ -923,17 +1018,55 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
       quotaRates: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           rate: 10,
+          isActive: true,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
           rate: 10,
+          isActive: true,
         },
         [tokenDataByNetwork.Mainnet.STETH]: {
           rate: 10,
+          isActive: true,
         },
       },
       borrowAmount: 60n,
     });
 
     expect(result).to.be.eq(5);
+  });
+  it("should calculate quota rate (disabled quota)", () => {
+    const result = CreditAccountData.calcQuotaBorrowRate({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          token: tokenDataByNetwork.Mainnet.DAI,
+          balance: 5n,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          token: tokenDataByNetwork.Mainnet.WETH,
+          balance: 10n,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          token: tokenDataByNetwork.Mainnet.STETH,
+          balance: 15n,
+        },
+      },
+      quotaRates: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          rate: 10,
+          isActive: true,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          rate: 10,
+          isActive: false,
+        },
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          rate: 10,
+          isActive: true,
+        },
+      },
+      borrowAmount: 50n,
+    });
+
+    expect(result).to.be.eq(4);
   });
 });

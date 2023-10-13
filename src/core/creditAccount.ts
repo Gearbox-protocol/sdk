@@ -428,9 +428,15 @@ export class CreditAccountData {
     const r = Object.values(quotas).reduce<CalcQuotaUpdateReturnType>(
       (acc, cmQuota) => {
         const { token, isActive } = cmQuota;
-        if (!isActive) return acc;
-
         const { quota: initialQuota = 0n } = initialQuotas[token] || {};
+
+        if (!isActive) {
+          acc.desiredQuota[token] = {
+            balance: initialQuota,
+            token,
+          };
+          return acc;
+        }
 
         const after = assetsAfterUpdate[token];
         const { amountInTarget = 0n } = after || {};
