@@ -6,6 +6,7 @@ import {
   ICreditFacadeV3Multicall__factory,
 } from "../types";
 import { BalanceStructOutput } from "../types/ICreditFacadeV2.sol/ICreditFacadeV2Extended";
+import { BalanceDeltaStructOutput } from "../types/ICreditFacadeV3Multicall";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -61,13 +62,14 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       case "revertIfReceivedLessThan": {
         const [balances] = this.decodeFunctionData(functionFragment, calldata);
 
-        const balancesStr = (balances as BalanceStructOutput[])
+        const balancesStr = (
+          balances as Array<BalanceDeltaStructOutput | BalanceStructOutput>
+        )
           .map(b => {
-            const symbol = this.tokenSymbol((b as BalanceStructOutput).token);
-            return `${symbol}: ${this.formatBN(
-              (b as BalanceStructOutput).balance,
-              symbol,
-            )}`;
+            const balance = "balance" in b ? b.balance : b.amount;
+            const symbol = this.tokenSymbol(b.token);
+
+            return `${symbol}: ${this.formatBN(balance, symbol)}`;
           })
           .join(", ");
 

@@ -38,7 +38,7 @@ export class PathFinder {
   public static connectors: Array<SupportedToken> = [
     "USDC",
     "WETH",
-    "DAI",
+    "USDT",
     "FRAX",
   ];
   protected readonly _connectors: Array<string>;
