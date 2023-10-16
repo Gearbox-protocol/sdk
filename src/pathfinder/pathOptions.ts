@@ -1,10 +1,13 @@
 import {
+  BalancerLPToken,
+  balancerLpTokens,
   contractParams,
   ConvexLPToken,
   convexTokens,
   CurveLPToken,
   CurveParams,
   curveTokens,
+  isBalancerLPToken,
   NetworkType,
   toBigInt,
   tokenDataByNetwork,
@@ -30,12 +33,12 @@ export class PathOptionFactory {
     balances: Record<string, BalanceInterface>,
     loopsInTx: number,
   ): Array<PathOptionSerie> {
-    const curvePools: Array<CurveLPToken> =
-      PathOptionFactory.getCurvePools(balances);
+    const curvePools = PathOptionFactory.getCurvePools(balances);
+    const balancerPools = PathOptionFactory.getBalancerPools(balances);
 
     const network = PathOptionFactory.detectNetwork(Object.keys(balances)[0]);
 
-    const initPO: PathOptionSerie = curvePools.map(symbol => {
+    const curveInitPO: PathOptionSerie = curvePools.map(symbol => {
       return {
         target: tokenDataByNetwork[network][symbol],
         option: 0,
@@ -43,6 +46,14 @@ export class PathOptionFactory {
           .tokens.length,
       };
     });
+    const balancerInitPO: PathOptionSerie = balancerPools.map(symbol => {
+      return {
+        target: tokenDataByNetwork[network][symbol],
+        option: 0,
+        totalOptions: balancerLpTokens[symbol].underlying.length,
+      };
+    });
+    const initPO = [...curveInitPO, ...balancerInitPO];
 
     const totalLoops = initPO.reduce<number>(
       (acc, item) => acc * item.totalOptions,
@@ -105,6 +116,19 @@ export class PathOptionFactory {
       ...curvePoolsFromConvex,
     ]);
     return Array.from(curveSet.values());
+  }
+
+  static getBalancerPools(
+    balances: Record<string, BalanceInterface>,
+  ): Array<BalancerLPToken> {
+    const result: Array<BalancerLPToken> = [];
+    for (const [token, { balance }] of Object.entries(balances)) {
+      const symbol = tokenSymbolByAddress[token.toLowerCase()];
+      if (isBalancerLPToken(symbol) && toBigInt(balance) > 1) {
+        result.push(symbol);
+      }
+    }
+    return result;
   }
 
   static next(path: PathOptionSerie): PathOptionSerie {
