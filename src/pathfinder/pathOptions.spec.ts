@@ -74,7 +74,7 @@ describe("PathOptionFactory test", () => {
       [tokenDataByNetwork.Mainnet["3Crv"]]: { balance: 200n },
       [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
       [tokenDataByNetwork.Mainnet.FRAX3CRV]: { balance: 200n },
-      [tokenDataByNetwork.Mainnet.LUSD3CRV]: { balance: 200n },
+      [tokenDataByNetwork.Mainnet["50OHM_50DAI"]]: { balance: 200n },
     };
 
     const result = PathOptionFactory.generatePathOptions(balances, 4);
@@ -91,7 +91,7 @@ describe("PathOptionFactory test", () => {
         totalOptions: 2,
       },
       {
-        target: tokenDataByNetwork.Mainnet.LUSD3CRV,
+        target: tokenDataByNetwork.Mainnet["50OHM_50DAI"],
         option: 0,
         totalOptions: 2,
       },
