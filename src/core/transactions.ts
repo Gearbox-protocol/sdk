@@ -1,5 +1,6 @@
 import {
   contractParams,
+  decimals as decimalList,
   extractTokenData,
   formatBN,
   LEVERAGE_DECIMALS,
@@ -28,7 +29,8 @@ export interface TxSerialized {
     | "TxClaimNFT"
     | "TxClaimGearRewards"
     | "TxEnableTokens"
-    | "TxUpdateQuota";
+    | "TxUpdateQuota"
+    | "TxGaugeStake";
   content: string;
 }
 
@@ -73,6 +75,9 @@ export class TxSerializer {
           return new TxEnableTokens(params);
         case "TxUpdateQuota":
           return new TxUpdateQuota(params);
+        case "TxGaugeStake":
+          return new TxGaugeStake(params);
+
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -741,7 +746,39 @@ export class TxUpdateQuota extends EVMTx {
 
   serialize(): TxSerialized {
     return {
-      type: "TxEnableTokens",
+      type: "TxUpdateQuota",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxGaugeStakeProps extends EVMTxProps {
+  amount: bigint;
+}
+
+export class TxGaugeStake extends EVMTx {
+  readonly amount: bigint;
+
+  constructor(opts: TxGaugeStakeProps) {
+    super({
+      block: opts.block,
+      txHash: opts.txHash,
+      txStatus: opts.txStatus,
+      timestamp: opts.timestamp,
+    });
+    this.amount = opts.amount;
+  }
+
+  toString(): string {
+    const tokenDecimals = decimalList.GEAR;
+    const amountString = formatBN(BigIntMath.abs(this.amount), tokenDecimals);
+
+    return `Gauge tokens staked: ${amountString} GEAR`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxGaugeStake",
       content: JSON.stringify(this),
     };
   }
