@@ -1,6 +1,11 @@
 import { PERCENTAGE_DECIMALS, toBigInt } from "@gearbox-protocol/sdk-gov";
 
-import { GaugeDataPayload, GaugeQuotaParams } from "../payload/gauge";
+import {
+  GaugeDataPayload,
+  GaugeQuotaParams,
+  GaugeStakingDataPayload,
+} from "../payload/gauge";
+import { BigintifyProps } from "../utils/types";
 
 export class GaugeData {
   readonly address: string;
@@ -46,5 +51,29 @@ export class GaugeData {
         },
       ]),
     );
+  }
+}
+
+export class GaugeStakingData {
+  readonly availableBalance: bigint;
+  readonly totalBalance: bigint;
+  readonly epoch: number;
+
+  readonly withdrawableNow: bigint;
+  readonly withdrawableInEpochs: BigintifyProps<
+    GaugeStakingDataPayload["withdrawableAmounts"]["withdrawableInEpochs"]
+  >;
+
+  constructor(payload: GaugeStakingDataPayload) {
+    this.availableBalance = toBigInt(payload.availableBalance);
+    this.totalBalance = toBigInt(payload.totalBalance);
+    this.epoch = payload.epoch;
+    this.withdrawableNow = toBigInt(
+      payload.withdrawableAmounts.withdrawableNow,
+    );
+    this.withdrawableInEpochs =
+      payload.withdrawableAmounts.withdrawableInEpochs.map(a =>
+        toBigInt(a),
+      ) as GaugeStakingData["withdrawableInEpochs"];
   }
 }
