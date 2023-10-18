@@ -60,6 +60,7 @@ export class GaugeStakingData {
   readonly epoch: number;
 
   readonly withdrawableNow: bigint;
+  readonly withdrawableInEpochsTotal: bigint;
   readonly withdrawableInEpochs: BigintifyProps<
     GaugeStakingDataPayload["withdrawableAmounts"]["withdrawableInEpochs"]
   >;
@@ -71,9 +72,23 @@ export class GaugeStakingData {
     this.withdrawableNow = toBigInt(
       payload.withdrawableAmounts.withdrawableNow,
     );
+
+    const { total, list } =
+      payload.withdrawableAmounts.withdrawableInEpochs.reduce<{
+        total: bigint;
+        list: Array<bigint>;
+      }>(
+        ({ total, list }, a) => {
+          const bn = toBigInt(a);
+          list.push(bn);
+
+          return { total: total + bn, list };
+        },
+        { total: 0n, list: [] },
+      );
+
+    this.withdrawableInEpochsTotal = total;
     this.withdrawableInEpochs =
-      payload.withdrawableAmounts.withdrawableInEpochs.map(a =>
-        toBigInt(a),
-      ) as GaugeStakingData["withdrawableInEpochs"];
+      list as GaugeStakingData["withdrawableInEpochs"];
   }
 }
