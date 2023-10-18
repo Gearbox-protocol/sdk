@@ -30,7 +30,8 @@ export interface TxSerialized {
     | "TxClaimGearRewards"
     | "TxEnableTokens"
     | "TxUpdateQuota"
-    | "TxGaugeStake";
+    | "TxGaugeStake"
+    | "TxGaugeUnstake";
   content: string;
 }
 
@@ -77,6 +78,8 @@ export class TxSerializer {
           return new TxUpdateQuota(params);
         case "TxGaugeStake":
           return new TxGaugeStake(params);
+        case "TxGaugeUnstake":
+          return new TxGaugeUnstake(params);
 
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
@@ -97,12 +100,7 @@ export class TxAddLiquidity extends EVMTx {
   readonly pool: string;
 
   constructor(opts: AddLiquidityProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.pool = opts.pool;
@@ -139,12 +137,7 @@ export class TxRemoveLiquidity extends EVMTx {
   readonly pool: string;
 
   constructor(opts: RemoveLiquidityProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = opts.amount;
     this.dieselToken = opts.dieselToken;
     this.pool = opts.pool;
@@ -187,12 +180,7 @@ export class TXSwap extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: SwapProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.protocol = opts.protocol;
     this.operation = opts.operation;
     this.amountFrom = opts.amountFrom;
@@ -240,12 +228,7 @@ export class TxAddCollateral extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: AddCollateralProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = opts.amount;
     this.addedToken = opts.addedToken;
     this.creditManager = opts.creditManager;
@@ -282,12 +265,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: IncreaseBorrowAmountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
@@ -324,12 +302,7 @@ export class TxDecreaseBorrowAmount extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: DecreaseBorrowAmountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
@@ -368,12 +341,7 @@ export class TxOpenAccount extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: OpenAccountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.leverage = opts.leverage;
@@ -419,12 +387,7 @@ export class TxOpenMultitokenAccount extends EVMTx {
   readonly assets: Array<string>;
 
   constructor(opts: TxOpenMultitokenAccountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.borrowedAmount = opts.borrowedAmount;
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
@@ -467,12 +430,7 @@ export class TxClaimReward extends EVMTx {
   readonly contracts: Array<SupportedContract>;
 
   constructor(opts: TxClaimRewardProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.contracts = opts.contracts;
   }
 
@@ -493,18 +451,7 @@ export class TxClaimReward extends EVMTx {
   }
 }
 
-type TxClaimNFTProps = EVMTxProps;
-
 export class TxClaimNFT extends EVMTx {
-  constructor(opts: TxClaimNFTProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
-  }
-
   toString(): string {
     return `NFT claimed`;
   }
@@ -527,12 +474,7 @@ export class TxClaimGearRewards extends EVMTx {
   readonly amount: bigint;
 
   constructor(opts: TxClaimGearRewardsProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
 
     this.amount = opts.amount;
     this.token = opts.token;
@@ -563,12 +505,7 @@ export class TxRepayAccount extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: RepayAccountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
   }
 
@@ -594,12 +531,7 @@ export class TxCloseAccount extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: CloseAccountProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.creditManager = opts.creditManager;
   }
 
@@ -625,12 +557,7 @@ export class TxApprove extends EVMTx {
   readonly token: string;
 
   constructor(opts: ApproveProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.token = opts.token;
   }
 
@@ -659,12 +586,7 @@ export class TxEnableTokens extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: TxEnableTokensProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.enabledTokens = opts.enabledTokens;
     this.disabledTokens = opts.disabledTokens;
     this.creditManager = opts.creditManager;
@@ -713,12 +635,7 @@ export class TxUpdateQuota extends EVMTx {
   readonly creditManager: string;
 
   constructor(opts: TxUpdateQuotaProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.updatedQuotas = opts.updatedQuotas;
     this.creditManager = opts.creditManager;
     this.underlyingToken = opts.underlyingToken;
@@ -760,12 +677,7 @@ export class TxGaugeStake extends EVMTx {
   readonly amount: bigint;
 
   constructor(opts: TxGaugeStakeProps) {
-    super({
-      block: opts.block,
-      txHash: opts.txHash,
-      txStatus: opts.txStatus,
-      timestamp: opts.timestamp,
-    });
+    super(opts);
     this.amount = opts.amount;
   }
 
@@ -773,12 +685,39 @@ export class TxGaugeStake extends EVMTx {
     const tokenDecimals = decimalList.GEAR;
     const amountString = formatBN(BigIntMath.abs(this.amount), tokenDecimals);
 
-    return `Gauge tokens staked: ${amountString} GEAR`;
+    return `Gauge: staked ${amountString} GEAR`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxGaugeStake",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxGaugeUnstakeProps extends EVMTxProps {
+  amount: bigint;
+}
+
+export class TxGaugeUnstake extends EVMTx {
+  readonly amount: bigint;
+
+  constructor(opts: TxGaugeUnstakeProps) {
+    super(opts);
+    this.amount = opts.amount;
+  }
+
+  toString(): string {
+    const tokenDecimals = decimalList.GEAR;
+    const amountString = formatBN(BigIntMath.abs(this.amount), tokenDecimals);
+
+    return `Gauge: unstaked ${amountString} GEAR`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxGaugeUnstake",
       content: JSON.stringify(this),
     };
   }
