@@ -20,8 +20,7 @@ import {
   ICreditFacadeV2Extended__factory,
   ICreditFacadeV3Multicall__factory,
 } from "../types";
-
-type PoolType = "universal" | "trade" | "farm";
+import { PoolData, PoolType } from "./pool";
 
 export class CreditManagerData {
   readonly address: string;
@@ -62,7 +61,7 @@ export class CreditManagerData {
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
-    this.type = CreditManagerData.getCMType(payload.name || "");
+    this.type = PoolData.getPoolType(payload.name || "");
     this.name = payload.name;
     this.pool = payload.pool.toLowerCase();
     this.creditFacade = payload.creditFacade.toLowerCase();
@@ -160,16 +159,6 @@ export class CreditManagerData {
 
   get id(): string {
     return this.address;
-  }
-
-  static getCMType(name: string): PoolType {
-    const [identity = ""] = name.split(" ") || [];
-    const lc = identity.toLowerCase();
-
-    if (lc === "farm") return "farm";
-    if (lc === "trade") return "trade";
-
-    return "universal";
   }
 
   isQuoted(token: string) {

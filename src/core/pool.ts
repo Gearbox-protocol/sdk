@@ -22,8 +22,11 @@ import {
 } from "../types";
 import { rayToNumber } from "../utils/formatter";
 
+export type PoolType = "universal" | "trade" | "farm";
+
 export class PoolData {
   readonly address: string;
+  readonly type: PoolType;
   readonly underlyingToken: string;
   readonly dieselToken: string;
   readonly isPaused: boolean;
@@ -60,6 +63,7 @@ export class PoolData {
 
   constructor(payload: PoolDataPayload) {
     this.address = payload.addr.toLowerCase();
+    this.type = PoolData.getPoolType(payload.name || "");
     this.underlyingToken = payload.underlying.toLowerCase();
     this.dieselToken = payload.dieselToken.toLowerCase();
     this.isPaused = payload.isPaused;
@@ -167,6 +171,16 @@ export class PoolData {
       provider,
     );
     return model.calcBorrowRate(expectedLiquidity, availableLiquidity);
+  }
+
+  static getPoolType(name: string): PoolType {
+    const [identity = ""] = name.split(" ") || [];
+    const lc = identity.toLowerCase();
+
+    if (lc === "farm") return "farm";
+    if (lc === "trade") return "trade";
+
+    return "universal";
   }
 }
 
