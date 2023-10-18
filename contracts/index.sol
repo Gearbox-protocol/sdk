@@ -15,6 +15,8 @@ import {ICreditConfiguratorV2} from "@gearbox-protocol/core-v2/contracts/interfa
 import {IWERC20Zapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IWERC20Zapper.sol";
 import {IWETHZapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IWETHZapper.sol";
 
+import {IGearStakingV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IGearStakingV3.sol";
+
 // Adapters
 import {ILidoV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/lido/ILidoV1Adapter.sol";
 import {IBaseRewardPool} from "@gearbox-protocol/integrations-v3/contracts/integrations/convex/IBaseRewardPool.sol";
@@ -48,4 +50,4 @@ import {ICurveV1_4AssetsAdapter} from
 import {IRouter} from
     "@gearbox-protocol/router-v3/contracts/interfaces/IRouter.sol";
 
-import {IOffchainOracle} from "./IOffchainOracle.sol";
+ 

@@ -16,6 +16,7 @@ export * as iCurvePool2Sol from "./ICurvePool_2.sol";
 export * as iCurvePool3Sol from "./ICurvePool_3.sol";
 export * as iCurvePool4Sol from "./ICurvePool_4.sol";
 export * as iDegenDistributorSol from "./IDegenDistributor.sol";
+export * as iGearStakingV3Sol from "./IGearStakingV3.sol";
 export * as iPoolServiceSol from "./IPoolService.sol";
 export * as iPoolV3Sol from "./IPoolV3.sol";
 export * as iUniswapV2AdapterSol from "./IUniswapV2Adapter.sol";

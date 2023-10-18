@@ -1210,10 +1210,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.17.tgz#1cb409fcaf866de194f9f7253d2e6ce0de5bcf7d"
   integrity sha512-jPE32s/8Ihj0i7zPuXB4NbtoeWkG819+axGDH2a4RLE+BQ2+Dh+mhhgvTTDahFVrllVkDTUW6maHGWhDnGmNAg==
 
-"@gearbox-protocol/core-v3@^1.41.1":
-  version "1.41.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.41.1.tgz#fab54b29f2fe1d6fa8c5e2661ef7c1973e6abdbb"
-  integrity sha512-pVlcY9I9MuAoJco95xSR2sABHWOGcdUj5xEhRPunyatvy/hO0BJUhoGUe1A7S3pb5JJP13ZhWpGHF8ld9O/h7A==
+"@gearbox-protocol/core-v3@^1.41.2":
+  version "1.41.2"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.41.2.tgz#25b8ce0160150dcccaebde9ba94cbec529bf67dd"
+  integrity sha512-oEqTDRnqM87S2qtzhjkea4dmCb3G7njpGpaU0SwPO7vIDpCOJng6A4K2N+mxVeQgxm9VU2EcfRdaEyKZBkFeeQ==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1235,10 +1235,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/integration-types/-/integration-types-1.4.0.tgz#82064ffc46465cb1e42a3a4703749bfdcad4d92f"
   integrity sha512-OtdmeY2BTxMRxml1WOwhNHLMtDRNm+5m+PZmIqulVVaanv8hXiSJhO3zdPQjkHMHqeb9WPzL/lMwOwwQ5T0LEw==
 
-"@gearbox-protocol/integrations-v3@^1.19.0":
-  version "1.19.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.19.0.tgz#b65ec4b1b99ab1774abb165b9cf324f96d2f9fd2"
-  integrity sha512-iAwwfEm9aHH8ShnLDN75VGfYZsFGympdmquefXXsXkDHfDRGhPxHNFH7HGDjFFcpXCn1B+jjhPQ+zmN9lnO14w==
+"@gearbox-protocol/integrations-v3@^1.19.4":
+  version "1.19.4"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.19.4.tgz#ed10d20dccea6a6df7548803a5a97de96e828cd2"
+  integrity sha512-2gLStPnL8C9tXCarvds0u4Ce6diI0YYjtkhOhDwhkki9bS6cc47URHuEFsEf1n5toifw2oNDn/feHpFVBJJghQ==
 
 "@gearbox-protocol/oracles-v3@^1.7.6":
   version "1.7.6"
