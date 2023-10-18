@@ -31,7 +31,8 @@ export interface TxSerialized {
     | "TxEnableTokens"
     | "TxUpdateQuota"
     | "TxGaugeStake"
-    | "TxGaugeUnstake";
+    | "TxGaugeUnstake"
+    | "TxGaugeClaim";
   content: string;
 }
 
@@ -80,6 +81,8 @@ export class TxSerializer {
           return new TxGaugeStake(params);
         case "TxGaugeUnstake":
           return new TxGaugeUnstake(params);
+        case "TxGaugeClaim":
+          return new TxGaugeClaim(params);
 
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
@@ -718,6 +721,19 @@ export class TxGaugeUnstake extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxGaugeUnstake",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+export class TxGaugeClaim extends EVMTx {
+  toString(): string {
+    return `Gauge: withdrawals claimed`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxGaugeClaim",
       content: JSON.stringify(this),
     };
   }
