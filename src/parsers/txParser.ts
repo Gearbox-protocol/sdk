@@ -46,7 +46,12 @@ export class TxParser {
 
   public static parse(address: string, calldata: string): string {
     const parser = TxParser.getParser(address);
-    return parser.parse(calldata);
+    try {
+      return parser.parse(calldata);
+    } catch (e) {
+      console.error(`Error while parsing ${address}`, parser, e);
+      return "Parsing error";
+    }
   }
 
   public static parseToObject(address: string, calldata: string) {
