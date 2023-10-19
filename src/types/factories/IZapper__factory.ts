@@ -4,14 +4,65 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IERC20Zapper, IERC20ZapperInterface } from "../IERC20Zapper";
+import type { IZapper, IZapperInterface } from "../IZapper";
 
 const _abi = [
   {
+    inputs: [],
+    name: "pool",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
         name: "tokenInAmount",
+        type: "uint256",
+      },
+    ],
+    name: "previewDeposit",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "tokenOutAmount",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenOutAmount",
+        type: "uint256",
+      },
+    ],
+    name: "previewRedeem",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "tokenInAmount",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenOutAmount",
         type: "uint256",
       },
       {
@@ -19,12 +70,17 @@ const _abi = [
         name: "receiver",
         type: "address",
       },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
     ],
-    name: "deposit",
+    name: "redeem",
     outputs: [
       {
         internalType: "uint256",
-        name: "tokenOutAmount",
+        name: "tokenInAmount",
         type: "uint256",
       },
     ],
@@ -35,12 +91,17 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "tokenInAmount",
+        name: "tokenOutAmount",
         type: "uint256",
       },
       {
         internalType: "address",
         name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "owner",
         type: "address",
       },
       {
@@ -64,11 +125,11 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    name: "depositWithPermit",
+    name: "redeemWithPermit",
     outputs: [
       {
         internalType: "uint256",
-        name: "tokenOutAmount",
+        name: "tokenInAmount",
         type: "uint256",
       },
     ],
@@ -76,94 +137,55 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenInAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "receiver",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "referralCode",
-        type: "uint256",
-      },
-    ],
-    name: "depositWithReferral",
+    inputs: [],
+    name: "tokenIn",
     outputs: [
       {
-        internalType: "uint256",
-        name: "tokenOutAmount",
-        type: "uint256",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenInAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "receiver",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "referralCode",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "deadline",
-        type: "uint256",
-      },
-      {
-        internalType: "uint8",
-        name: "v",
-        type: "uint8",
-      },
-      {
-        internalType: "bytes32",
-        name: "r",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes32",
-        name: "s",
-        type: "bytes32",
-      },
-    ],
-    name: "depositWithReferralAndPermit",
+    inputs: [],
+    name: "tokenOut",
     outputs: [
       {
-        internalType: "uint256",
-        name: "tokenOutAmount",
-        type: "uint256",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "underlying",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
 ] as const;
 
-export class IERC20Zapper__factory {
+export class IZapper__factory {
   static readonly abi = _abi;
-  static createInterface(): IERC20ZapperInterface {
-    return new utils.Interface(_abi) as IERC20ZapperInterface;
+  static createInterface(): IZapperInterface {
+    return new utils.Interface(_abi) as IZapperInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IERC20Zapper {
-    return new Contract(address, _abi, signerOrProvider) as IERC20Zapper;
+  ): IZapper {
+    return new Contract(address, _abi, signerOrProvider) as IZapper;
   }
 }

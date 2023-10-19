@@ -12,8 +12,7 @@ import {ICreditFacadeV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IC
 import {IPoolService} from "@gearbox-protocol/core-v2/contracts/interfaces/IPoolService.sol";
 import {ICreditFacadeV2} from "@gearbox-protocol/core-v2/contracts/interfaces/ICreditFacadeV2.sol";
 import {ICreditConfiguratorV2} from "@gearbox-protocol/core-v2/contracts/interfaces/ICreditConfiguratorV2.sol";
-import {IERC20Zapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IERC20Zapper.sol";
-import {IETHZapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IETHZapper.sol";
+import {IZapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IZapper.sol";
 
 import {IGearStakingV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IGearStakingV3.sol";
 
