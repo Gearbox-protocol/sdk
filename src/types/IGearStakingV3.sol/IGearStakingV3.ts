@@ -49,6 +49,7 @@ export interface IGearStakingV3Interface extends utils.Interface {
     "claimWithdrawals(address)": FunctionFragment;
     "deposit(uint96,(address,uint96,bool,bytes)[])": FunctionFragment;
     "depositOnMigration(uint96,address,(address,uint96,bool,bytes)[])": FunctionFragment;
+    "depositWithPermit(uint96,(address,uint96,bool,bytes)[],uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "firstEpochTimestamp()": FunctionFragment;
     "gear()": FunctionFragment;
     "getCurrentEpoch()": FunctionFragment;
@@ -72,6 +73,7 @@ export interface IGearStakingV3Interface extends utils.Interface {
       | "claimWithdrawals"
       | "deposit"
       | "depositOnMigration"
+      | "depositWithPermit"
       | "firstEpochTimestamp"
       | "gear"
       | "getCurrentEpoch"
@@ -113,6 +115,17 @@ export interface IGearStakingV3Interface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
       MultiVoteStruct[]
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "depositWithPermit",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      MultiVoteStruct[],
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BytesLike>,
+      PromiseOrValue<BytesLike>
     ]
   ): string;
   encodeFunctionData(
@@ -176,6 +189,10 @@ export interface IGearStakingV3Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "depositOnMigration",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "depositWithPermit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -363,6 +380,16 @@ export interface IGearStakingV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    depositWithPermit(
+      amount: PromiseOrValue<BigNumberish>,
+      votes: MultiVoteStruct[],
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     firstEpochTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     gear(overrides?: CallOverrides): Promise<[string]>;
@@ -454,6 +481,16 @@ export interface IGearStakingV3 extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  depositWithPermit(
+    amount: PromiseOrValue<BigNumberish>,
+    votes: MultiVoteStruct[],
+    deadline: PromiseOrValue<BigNumberish>,
+    v: PromiseOrValue<BigNumberish>,
+    r: PromiseOrValue<BytesLike>,
+    s: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   firstEpochTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
   gear(overrides?: CallOverrides): Promise<string>;
@@ -542,6 +579,16 @@ export interface IGearStakingV3 extends BaseContract {
       amount: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       votes: MultiVoteStruct[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    depositWithPermit(
+      amount: PromiseOrValue<BigNumberish>,
+      votes: MultiVoteStruct[],
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -702,6 +749,16 @@ export interface IGearStakingV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    depositWithPermit(
+      amount: PromiseOrValue<BigNumberish>,
+      votes: MultiVoteStruct[],
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     firstEpochTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     gear(overrides?: CallOverrides): Promise<BigNumber>;
@@ -786,6 +843,16 @@ export interface IGearStakingV3 extends BaseContract {
       amount: PromiseOrValue<BigNumberish>,
       onBehalfOf: PromiseOrValue<string>,
       votes: MultiVoteStruct[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    depositWithPermit(
+      amount: PromiseOrValue<BigNumberish>,
+      votes: MultiVoteStruct[],
+      deadline: PromiseOrValue<BigNumberish>,
+      v: PromiseOrValue<BigNumberish>,
+      r: PromiseOrValue<BytesLike>,
+      s: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

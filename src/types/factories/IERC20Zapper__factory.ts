@@ -4,14 +4,14 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IWERC20Zapper, IWERC20ZapperInterface } from "../IWERC20Zapper";
+import type { IERC20Zapper, IERC20ZapperInterface } from "../IERC20Zapper";
 
 const _abi = [
   {
     inputs: [
       {
         internalType: "uint256",
-        name: "amount",
+        name: "tokenInAmount",
         type: "uint256",
       },
       {
@@ -24,7 +24,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "shares",
+        name: "tokenOutAmount",
         type: "uint256",
       },
     ],
@@ -35,126 +35,12 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "amount",
+        name: "tokenInAmount",
         type: "uint256",
       },
       {
         internalType: "address",
         name: "receiver",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "referralCode",
-        type: "uint256",
-      },
-    ],
-    name: "depositWithReferral",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "shares",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "pool",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "previewDeposit",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "shares",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "shares",
-        type: "uint256",
-      },
-    ],
-    name: "previewRedeem",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "shares",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "receiver",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-    ],
-    name: "redeem",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "shares",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "receiver",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "owner",
         type: "address",
       },
       {
@@ -178,11 +64,11 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    name: "redeemWithPermit",
+    name: "depositWithPermit",
     outputs: [
       {
         internalType: "uint256",
-        name: "amount",
+        name: "tokenOutAmount",
         type: "uint256",
       },
     ],
@@ -190,55 +76,94 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "tokenOut",
-    outputs: [
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenInAmount",
+        type: "uint256",
+      },
       {
         internalType: "address",
-        name: "",
+        name: "receiver",
         type: "address",
       },
+      {
+        internalType: "uint256",
+        name: "referralCode",
+        type: "uint256",
+      },
     ],
-    stateMutability: "view",
+    name: "depositWithReferral",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "tokenOutAmount",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
-    inputs: [],
-    name: "unwrappedToken",
-    outputs: [
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenInAmount",
+        type: "uint256",
+      },
       {
         internalType: "address",
-        name: "",
+        name: "receiver",
         type: "address",
       },
+      {
+        internalType: "uint256",
+        name: "referralCode",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+      {
+        internalType: "uint8",
+        name: "v",
+        type: "uint8",
+      },
+      {
+        internalType: "bytes32",
+        name: "r",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "s",
+        type: "bytes32",
+      },
     ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "wrappedToken",
+    name: "depositWithReferralAndPermit",
     outputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        internalType: "uint256",
+        name: "tokenOutAmount",
+        type: "uint256",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "nonpayable",
     type: "function",
   },
 ] as const;
 
-export class IWERC20Zapper__factory {
+export class IERC20Zapper__factory {
   static readonly abi = _abi;
-  static createInterface(): IWERC20ZapperInterface {
-    return new utils.Interface(_abi) as IWERC20ZapperInterface;
+  static createInterface(): IERC20ZapperInterface {
+    return new utils.Interface(_abi) as IERC20ZapperInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IWERC20Zapper {
-    return new Contract(address, _abi, signerOrProvider) as IWERC20Zapper;
+  ): IERC20Zapper {
+    return new Contract(address, _abi, signerOrProvider) as IERC20Zapper;
   }
 }
