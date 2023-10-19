@@ -20,6 +20,7 @@ import {
   ICreditFacadeV2Extended__factory,
   ICreditFacadeV3Multicall__factory,
 } from "../types";
+import { Asset } from "./assets";
 import { PoolData, PoolType } from "./pool";
 
 export class CreditManagerData {
@@ -266,6 +267,27 @@ export class CreditManagerData {
         ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
           "disableToken",
           [token],
+        ),
+    };
+  }
+
+  encodeRevertIfReceivedLessThanV2(assets: Array<Asset>): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
+          "revertIfReceivedLessThan",
+          [assets],
+        ),
+    };
+  }
+  encodeRevertIfReceivedLessThanV3(assets: Array<Asset>): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "revertIfReceivedLessThan",
+          [assets.map(a => ({ token: a.token, amount: a.balance }))],
         ),
     };
   }
