@@ -1261,10 +1261,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/prettier-config/-/prettier-config-1.5.0.tgz#4df8e9fd2305fee6ab8c1417a02e31343836932a"
   integrity sha512-FUoprSsBdZyBjgxXCKL6mTkbeUJytaLzPJqIOoQpDmBRTX0seCc2o5I9PI9tySoRIlNnd/XXnKCXq1xHDEGbxw==
 
-"@gearbox-protocol/router-v3@^1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.3.0.tgz#b906d0b057da448b20439de188438caf1c085b92"
-  integrity sha512-lFFrqcZ3Toq1ySiFIu8VC0bmrvvZeeAONn2xDCMdCH7oUT/uTOgTu4DMpCakNBqeA72OkfGkhZKO+XPZCnO4EQ==
+"@gearbox-protocol/router-v3@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.4.0.tgz#1fe81a73ce03c0afcd1d5c686bc712d2d132cf9f"
+  integrity sha512-4IjbNkUY/TIv3mUC4yMB1VzA3fKjT6XRLEv0zqiy6+WkNVEpLu0NR99ex5Dp8VRcnZ1diBCgkaw/9A8D2Y66jQ==
   dependencies:
     "@gearbox-protocol/integration-types" "^1.4.0"
 
