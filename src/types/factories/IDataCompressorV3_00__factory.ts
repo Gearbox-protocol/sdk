@@ -66,7 +66,7 @@ const _abi = [
           },
           {
             internalType: "string",
-            name: "cmDescription",
+            name: "cmName",
             type: "string",
           },
           {
@@ -82,11 +82,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "debt",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "cumulativeIndexNow",
             type: "uint256",
           },
           {
@@ -313,7 +308,7 @@ const _abi = [
           },
           {
             internalType: "string",
-            name: "cmDescription",
+            name: "cmName",
             type: "string",
           },
           {
@@ -329,11 +324,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "debt",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "cumulativeIndexNow",
             type: "uint256",
           },
           {
@@ -560,7 +550,7 @@ const _abi = [
           },
           {
             internalType: "string",
-            name: "cmDescription",
+            name: "cmName",
             type: "string",
           },
           {
@@ -576,11 +566,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "debt",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "cumulativeIndexNow",
             type: "uint256",
           },
           {
@@ -1282,6 +1267,11 @@ const _abi = [
             type: "string",
           },
           {
+            internalType: "address",
+            name: "underlying",
+            type: "address",
+          },
+          {
             internalType: "uint16",
             name: "currentEpoch",
             type: "uint16",
@@ -1418,7 +1408,7 @@ const _abi = [
           },
           {
             internalType: "string",
-            name: "cmDescription",
+            name: "cmName",
             type: "string",
           },
           {
@@ -1434,11 +1424,6 @@ const _abi = [
           {
             internalType: "uint256",
             name: "debt",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "cumulativeIndexNow",
             type: "uint256",
           },
           {

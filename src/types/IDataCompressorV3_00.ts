@@ -84,11 +84,10 @@ export type CreditAccountDataStruct = {
   addr: PromiseOrValue<string>;
   borrower: PromiseOrValue<string>;
   creditManager: PromiseOrValue<string>;
-  cmDescription: PromiseOrValue<string>;
+  cmName: PromiseOrValue<string>;
   creditFacade: PromiseOrValue<string>;
   underlying: PromiseOrValue<string>;
   debt: PromiseOrValue<BigNumberish>;
-  cumulativeIndexNow: PromiseOrValue<BigNumberish>;
   cumulativeIndexLastUpdate: PromiseOrValue<BigNumberish>;
   cumulativeQuotaInterest: PromiseOrValue<BigNumberish>;
   accruedInterest: PromiseOrValue<BigNumberish>;
@@ -132,7 +131,6 @@ export type CreditAccountDataStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
-  BigNumber,
   TokenBalanceStructOutput[],
   BigNumber,
   BigNumber,
@@ -146,11 +144,10 @@ export type CreditAccountDataStructOutput = [
   addr: string;
   borrower: string;
   creditManager: string;
-  cmDescription: string;
+  cmName: string;
   creditFacade: string;
   underlying: string;
   debt: BigNumber;
-  cumulativeIndexNow: BigNumber;
   cumulativeIndexLastUpdate: BigNumber;
   cumulativeQuotaInterest: BigNumber;
   accruedInterest: BigNumber;
@@ -383,12 +380,14 @@ export type GaugeInfoStruct = {
   pool: PromiseOrValue<string>;
   symbol: PromiseOrValue<string>;
   name: PromiseOrValue<string>;
+  underlying: PromiseOrValue<string>;
   currentEpoch: PromiseOrValue<BigNumberish>;
   epochFrozen: PromiseOrValue<boolean>;
   quotaParams: GaugeQuotaParamsStruct[];
 };
 
 export type GaugeInfoStructOutput = [
+  string,
   string,
   string,
   string,
@@ -401,6 +400,7 @@ export type GaugeInfoStructOutput = [
   pool: string;
   symbol: string;
   name: string;
+  underlying: string;
   currentEpoch: number;
   epochFrozen: boolean;
   quotaParams: GaugeQuotaParamsStructOutput[];

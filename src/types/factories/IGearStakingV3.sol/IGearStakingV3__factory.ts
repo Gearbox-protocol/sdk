@@ -299,6 +299,66 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint96",
+        name: "amount",
+        type: "uint96",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "votingContract",
+            type: "address",
+          },
+          {
+            internalType: "uint96",
+            name: "voteAmount",
+            type: "uint96",
+          },
+          {
+            internalType: "bool",
+            name: "isIncrease",
+            type: "bool",
+          },
+          {
+            internalType: "bytes",
+            name: "extraData",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct MultiVote[]",
+        name: "votes",
+        type: "tuple[]",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+      {
+        internalType: "uint8",
+        name: "v",
+        type: "uint8",
+      },
+      {
+        internalType: "bytes32",
+        name: "r",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "s",
+        type: "bytes32",
+      },
+    ],
+    name: "depositWithPermit",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "firstEpochTimestamp",
     outputs: [

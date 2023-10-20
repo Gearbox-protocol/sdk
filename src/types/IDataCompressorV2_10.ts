@@ -72,11 +72,10 @@ export type CreditAccountDataStruct = {
   addr: PromiseOrValue<string>;
   borrower: PromiseOrValue<string>;
   creditManager: PromiseOrValue<string>;
-  cmDescription: PromiseOrValue<string>;
+  cmName: PromiseOrValue<string>;
   creditFacade: PromiseOrValue<string>;
   underlying: PromiseOrValue<string>;
   debt: PromiseOrValue<BigNumberish>;
-  cumulativeIndexNow: PromiseOrValue<BigNumberish>;
   cumulativeIndexLastUpdate: PromiseOrValue<BigNumberish>;
   cumulativeQuotaInterest: PromiseOrValue<BigNumberish>;
   accruedInterest: PromiseOrValue<BigNumberish>;
@@ -120,7 +119,6 @@ export type CreditAccountDataStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
-  BigNumber,
   TokenBalanceStructOutput[],
   BigNumber,
   BigNumber,
@@ -134,11 +132,10 @@ export type CreditAccountDataStructOutput = [
   addr: string;
   borrower: string;
   creditManager: string;
-  cmDescription: string;
+  cmName: string;
   creditFacade: string;
   underlying: string;
   debt: BigNumber;
-  cumulativeIndexNow: BigNumber;
   cumulativeIndexLastUpdate: BigNumber;
   cumulativeQuotaInterest: BigNumber;
   accruedInterest: BigNumber;

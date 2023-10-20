@@ -30,9 +30,9 @@ export interface IZapperInterface extends utils.Interface {
     "previewRedeem(uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
     "redeemWithPermit(uint256,address,address,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "tokenIn()": FunctionFragment;
     "tokenOut()": FunctionFragment;
-    "unwrappedToken()": FunctionFragment;
-    "wrappedToken()": FunctionFragment;
+    "underlying()": FunctionFragment;
   };
 
   getFunction(
@@ -42,9 +42,9 @@ export interface IZapperInterface extends utils.Interface {
       | "previewRedeem"
       | "redeem"
       | "redeemWithPermit"
+      | "tokenIn"
       | "tokenOut"
-      | "unwrappedToken"
-      | "wrappedToken"
+      | "underlying"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "pool", values?: undefined): string;
@@ -76,13 +76,10 @@ export interface IZapperInterface extends utils.Interface {
       PromiseOrValue<BytesLike>
     ]
   ): string;
+  encodeFunctionData(functionFragment: "tokenIn", values?: undefined): string;
   encodeFunctionData(functionFragment: "tokenOut", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "unwrappedToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "wrappedToken",
+    functionFragment: "underlying",
     values?: undefined
   ): string;
 
@@ -100,15 +97,9 @@ export interface IZapperInterface extends utils.Interface {
     functionFragment: "redeemWithPermit",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "tokenIn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "tokenOut", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "unwrappedToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "wrappedToken",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
 
   events: {};
 }
@@ -143,24 +134,24 @@ export interface IZapper extends BaseContract {
     pool(overrides?: CallOverrides): Promise<[string]>;
 
     previewDeposit(
-      amount: PromiseOrValue<BigNumberish>,
+      tokenInAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber] & { shares: BigNumber }>;
+    ): Promise<[BigNumber] & { tokenOutAmount: BigNumber }>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber] & { amount: BigNumber }>;
+    ): Promise<[BigNumber] & { tokenInAmount: BigNumber }>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     redeemWithPermit(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       deadline: PromiseOrValue<BigNumberish>,
@@ -170,34 +161,34 @@ export interface IZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    tokenIn(overrides?: CallOverrides): Promise<[string]>;
+
     tokenOut(overrides?: CallOverrides): Promise<[string]>;
 
-    unwrappedToken(overrides?: CallOverrides): Promise<[string]>;
-
-    wrappedToken(overrides?: CallOverrides): Promise<[string]>;
+    underlying(overrides?: CallOverrides): Promise<[string]>;
   };
 
   pool(overrides?: CallOverrides): Promise<string>;
 
   previewDeposit(
-    amount: PromiseOrValue<BigNumberish>,
+    tokenInAmount: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   previewRedeem(
-    shares: PromiseOrValue<BigNumberish>,
+    tokenOutAmount: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   redeem(
-    shares: PromiseOrValue<BigNumberish>,
+    tokenOutAmount: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
     owner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   redeemWithPermit(
-    shares: PromiseOrValue<BigNumberish>,
+    tokenOutAmount: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
     owner: PromiseOrValue<string>,
     deadline: PromiseOrValue<BigNumberish>,
@@ -207,34 +198,34 @@ export interface IZapper extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  tokenIn(overrides?: CallOverrides): Promise<string>;
+
   tokenOut(overrides?: CallOverrides): Promise<string>;
 
-  unwrappedToken(overrides?: CallOverrides): Promise<string>;
-
-  wrappedToken(overrides?: CallOverrides): Promise<string>;
+  underlying(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     pool(overrides?: CallOverrides): Promise<string>;
 
     previewDeposit(
-      amount: PromiseOrValue<BigNumberish>,
+      tokenInAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     redeemWithPermit(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       deadline: PromiseOrValue<BigNumberish>,
@@ -244,11 +235,11 @@ export interface IZapper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    tokenIn(overrides?: CallOverrides): Promise<string>;
+
     tokenOut(overrides?: CallOverrides): Promise<string>;
 
-    unwrappedToken(overrides?: CallOverrides): Promise<string>;
-
-    wrappedToken(overrides?: CallOverrides): Promise<string>;
+    underlying(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
@@ -257,24 +248,24 @@ export interface IZapper extends BaseContract {
     pool(overrides?: CallOverrides): Promise<BigNumber>;
 
     previewDeposit(
-      amount: PromiseOrValue<BigNumberish>,
+      tokenInAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     redeemWithPermit(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       deadline: PromiseOrValue<BigNumberish>,
@@ -284,35 +275,35 @@ export interface IZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    tokenIn(overrides?: CallOverrides): Promise<BigNumber>;
+
     tokenOut(overrides?: CallOverrides): Promise<BigNumber>;
 
-    unwrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    wrappedToken(overrides?: CallOverrides): Promise<BigNumber>;
+    underlying(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     previewDeposit(
-      amount: PromiseOrValue<BigNumberish>,
+      tokenInAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     redeemWithPermit(
-      shares: PromiseOrValue<BigNumberish>,
+      tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       deadline: PromiseOrValue<BigNumberish>,
@@ -322,10 +313,10 @@ export interface IZapper extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    tokenIn(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     tokenOut(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    unwrappedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    wrappedToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

@@ -24,7 +24,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "amount",
+        name: "tokenInAmount",
         type: "uint256",
       },
     ],
@@ -32,7 +32,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "shares",
+        name: "tokenOutAmount",
         type: "uint256",
       },
     ],
@@ -43,7 +43,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "shares",
+        name: "tokenOutAmount",
         type: "uint256",
       },
     ],
@@ -51,7 +51,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "amount",
+        name: "tokenInAmount",
         type: "uint256",
       },
     ],
@@ -62,7 +62,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "shares",
+        name: "tokenOutAmount",
         type: "uint256",
       },
       {
@@ -80,7 +80,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "amount",
+        name: "tokenInAmount",
         type: "uint256",
       },
     ],
@@ -91,7 +91,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "shares",
+        name: "tokenOutAmount",
         type: "uint256",
       },
       {
@@ -129,11 +129,24 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "amount",
+        name: "tokenInAmount",
         type: "uint256",
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "tokenIn",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -151,20 +164,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "unwrappedToken",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "wrappedToken",
+    name: "underlying",
     outputs: [
       {
         internalType: "address",

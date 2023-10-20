@@ -10,6 +10,7 @@ import { BigintifyProps } from "../utils/types";
 export class GaugeData {
   readonly address: string;
   readonly pool: string;
+  readonly poolUnderlying: string;
   readonly name: string;
   readonly symbol: string;
 
@@ -21,6 +22,7 @@ export class GaugeData {
   constructor(payload: GaugeDataPayload) {
     this.address = payload.addr.toLowerCase();
     this.pool = payload.pool.toLowerCase();
+    this.poolUnderlying = payload.underlying.toLowerCase();
     this.name = payload.name;
     this.symbol = payload.symbol;
 
