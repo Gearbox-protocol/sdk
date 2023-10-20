@@ -79,7 +79,7 @@ export class CreditAccountData {
   readonly since: number;
   readonly expirationDate: number;
   readonly version: number;
-  readonly cmDescription: string;
+  readonly cmName: string;
 
   readonly enabledTokenMask: bigint;
   readonly healthFactor: number;
@@ -97,7 +97,6 @@ export class CreditAccountData {
   readonly totalValueUSD: bigint;
   readonly twvUSD: bigint;
 
-  readonly cumulativeIndexNow: bigint;
   readonly cumulativeIndexLastUpdate: bigint;
   readonly cumulativeQuotaInterest: bigint;
 
@@ -123,7 +122,7 @@ export class CreditAccountData {
     this.since = Number(toBigInt(payload.since));
     this.expirationDate = Number(toBigInt(payload.expirationDate));
     this.version = payload.cfVersion?.toNumber();
-    this.cmDescription = payload.cmDescription;
+    this.cmName = payload.cmName;
 
     this.healthFactor = Number(toBigInt(payload.healthFactor || 0n));
     this.enabledTokenMask = toBigInt(payload.enabledTokensMask);
@@ -150,7 +149,6 @@ export class CreditAccountData {
         PERCENTAGE_FACTOR,
     );
 
-    this.cumulativeIndexNow = toBigInt(payload.cumulativeIndexNow);
     this.cumulativeIndexLastUpdate = toBigInt(
       payload.cumulativeIndexLastUpdate,
     );
