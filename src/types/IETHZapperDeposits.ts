@@ -23,7 +23,7 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export interface IETHZapperInterface extends utils.Interface {
+export interface IETHZapperDepositsInterface extends utils.Interface {
   functions: {
     "deposit(address)": FunctionFragment;
     "depositWithReferral(address,uint256)": FunctionFragment;
@@ -51,12 +51,12 @@ export interface IETHZapperInterface extends utils.Interface {
   events: {};
 }
 
-export interface IETHZapper extends BaseContract {
+export interface IETHZapperDeposits extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IETHZapperInterface;
+  interface: IETHZapperDepositsInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,

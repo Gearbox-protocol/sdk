@@ -23,7 +23,7 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export interface IERC20ZapperInterface extends utils.Interface {
+export interface IERC20ZapperDepositsInterface extends utils.Interface {
   functions: {
     "deposit(uint256,address)": FunctionFragment;
     "depositWithPermit(uint256,address,uint256,uint8,bytes32,bytes32)": FunctionFragment;
@@ -92,12 +92,12 @@ export interface IERC20ZapperInterface extends utils.Interface {
   events: {};
 }
 
-export interface IERC20Zapper extends BaseContract {
+export interface IERC20ZapperDeposits extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IERC20ZapperInterface;
+  interface: IERC20ZapperDepositsInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,

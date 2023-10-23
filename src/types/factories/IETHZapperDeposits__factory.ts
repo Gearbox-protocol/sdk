@@ -4,7 +4,10 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IETHZapper, IETHZapperInterface } from "../IETHZapper";
+import type {
+  IETHZapperDeposits,
+  IETHZapperDepositsInterface,
+} from "../IETHZapperDeposits";
 
 const _abi = [
   {
@@ -52,15 +55,15 @@ const _abi = [
   },
 ] as const;
 
-export class IETHZapper__factory {
+export class IETHZapperDeposits__factory {
   static readonly abi = _abi;
-  static createInterface(): IETHZapperInterface {
-    return new utils.Interface(_abi) as IETHZapperInterface;
+  static createInterface(): IETHZapperDepositsInterface {
+    return new utils.Interface(_abi) as IETHZapperDepositsInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IETHZapper {
-    return new Contract(address, _abi, signerOrProvider) as IETHZapper;
+  ): IETHZapperDeposits {
+    return new Contract(address, _abi, signerOrProvider) as IETHZapperDeposits;
   }
 }

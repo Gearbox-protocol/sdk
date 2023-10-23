@@ -4,7 +4,10 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IERC20Zapper, IERC20ZapperInterface } from "../IERC20Zapper";
+import type {
+  IERC20ZapperDeposits,
+  IERC20ZapperDepositsInterface,
+} from "../IERC20ZapperDeposits";
 
 const _abi = [
   {
@@ -155,15 +158,19 @@ const _abi = [
   },
 ] as const;
 
-export class IERC20Zapper__factory {
+export class IERC20ZapperDeposits__factory {
   static readonly abi = _abi;
-  static createInterface(): IERC20ZapperInterface {
-    return new utils.Interface(_abi) as IERC20ZapperInterface;
+  static createInterface(): IERC20ZapperDepositsInterface {
+    return new utils.Interface(_abi) as IERC20ZapperDepositsInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IERC20Zapper {
-    return new Contract(address, _abi, signerOrProvider) as IERC20Zapper;
+  ): IERC20ZapperDeposits {
+    return new Contract(
+      address,
+      _abi,
+      signerOrProvider
+    ) as IERC20ZapperDeposits;
   }
 }
