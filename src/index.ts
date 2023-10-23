@@ -8,6 +8,7 @@ export * from "./core/errors";
 export * from "./core/eventOrTx";
 export * from "./core/events";
 export * from "./core/gauge";
+export * from "./core/gaugeVotes";
 export * from "./core/pool";
 export * from "./core/rewardClaimer";
 export * from "./core/strategy";

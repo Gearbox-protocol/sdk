@@ -17,22 +17,22 @@ export interface Vote {
 export interface SingleVoteState {
   available: bigint;
 
-  vote?: Vote;
+  vote?: BaseVote;
   voteCalls: Array<Vote>;
 }
 
 export interface VoteProps {
-  state: SingleVoteState;
+  state: Omit<SingleVoteState, "voteCalls">;
   change?: Vote;
 }
 
 interface AddProps {
-  state: SingleVoteState;
+  state: Omit<SingleVoteState, "voteCalls">;
   change: BaseVote;
 }
 
 interface RemoveProps {
-  state: SingleVoteState;
+  state: Omit<SingleVoteState, "voteCalls">;
   change: Vote;
 }
 
