@@ -32,7 +32,8 @@ export interface TxSerialized {
     | "TxUpdateQuota"
     | "TxGaugeStake"
     | "TxGaugeUnstake"
-    | "TxGaugeClaim";
+    | "TxGaugeClaim"
+    | "TxGaugeVote";
   content: string;
 }
 
@@ -83,6 +84,8 @@ export class TxSerializer {
           return new TxGaugeUnstake(params);
         case "TxGaugeClaim":
           return new TxGaugeClaim(params);
+        case "TxGaugeVote":
+          return new TxGaugeVote(params);
 
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
@@ -734,6 +737,35 @@ export class TxGaugeClaim extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxGaugeClaim",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxGaugeVoteProps extends EVMTxProps {
+  tokens: Array<{ token: string }>;
+}
+
+export class TxGaugeVote extends EVMTx {
+  readonly tokens: Array<{ token: string }>;
+
+  constructor(opts: TxGaugeVoteProps) {
+    super(opts);
+    this.tokens = opts.tokens;
+  }
+
+  toString(): string {
+    const votes = this.tokens.map(({ token }) => {
+      const [tokenSymbol] = extractTokenData(token);
+      return tokenSymbol;
+    });
+
+    return `Gauge: voted for ${votes.join(", ")}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxGaugeVote",
       content: JSON.stringify(this),
     };
   }
