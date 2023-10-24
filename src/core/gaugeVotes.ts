@@ -30,7 +30,7 @@ interface UnvoteProps {
   initialVote?: BaseVote;
 
   balanceAfter: bigint;
-  nextVoteType?: BaseVoteType;
+  nextVoteType: BaseVoteType;
   votesAfter?: Omit<SingleVoteState, "available">;
 }
 
@@ -108,7 +108,7 @@ export class VoteMath {
   }: UnvoteProps): bigint | undefined {
     // on vote type change unvote previous vote
     const prevUnvoted =
-      !initialVote || !nextVoteType || initialVote.type === nextVoteType
+      !initialVote || initialVote.type === nextVoteType
         ? balanceAfter
         : balanceAfter + initialVote.amount;
 

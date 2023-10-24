@@ -142,6 +142,7 @@ describe("VoteMath test", () => {
 
     const r = VoteMath.revertVote({
       balanceAfter: initialBalance,
+      nextVoteType: "lower",
     });
 
     expect(r).to.be.eql(initialBalance);
@@ -157,9 +158,26 @@ describe("VoteMath test", () => {
     const r = VoteMath.revertVote({
       balanceAfter: initialBalance,
       initialVote,
+      nextVoteType: "lower",
     });
 
     expect(r).to.be.eql(initialBalance);
+  });
+  it("revertVote: if no vote after, should return initial amount", () => {
+    const initialBalance = 27n;
+
+    const initialVote: BaseVote = {
+      type: "lower",
+      amount: 99n,
+    };
+
+    const r = VoteMath.revertVote({
+      balanceAfter: initialBalance,
+      initialVote,
+      nextVoteType: "raise",
+    });
+
+    expect(r).to.be.eql(initialBalance + initialVote.amount);
   });
   it("revertVote: if no vote before, should return amount with reverted vote after", () => {
     const initialBalance = 26n;
