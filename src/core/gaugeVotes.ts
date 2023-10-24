@@ -27,10 +27,10 @@ export interface VoteProps {
 }
 
 interface UnvoteProps {
-  initialBalance: bigint;
   initialVote?: BaseVote;
 
-  nextVoteType: BaseVoteType;
+  balanceAfter: bigint;
+  nextVoteType?: BaseVoteType;
   votesAfter?: Omit<SingleVoteState, "available">;
 }
 
@@ -100,7 +100,7 @@ export class VoteMath {
   }
 
   static revertVote({
-    initialBalance,
+    balanceAfter,
     initialVote,
 
     nextVoteType,
@@ -108,9 +108,9 @@ export class VoteMath {
   }: UnvoteProps): bigint | undefined {
     // on vote type change unvote previous vote
     const prevUnvoted =
-      !initialVote || initialVote.type === nextVoteType
-        ? initialBalance
-        : initialBalance + initialVote.amount;
+      !initialVote || !nextVoteType || initialVote.type === nextVoteType
+        ? balanceAfter
+        : balanceAfter + initialVote.amount;
 
     if (!votesAfter) return prevUnvoted;
 
