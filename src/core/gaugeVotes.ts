@@ -26,6 +26,14 @@ export interface VoteProps {
   change?: Vote;
 }
 
+interface UnvoteProps {
+  initialBalance: bigint;
+  initialVote?: BaseVote;
+
+  nextVoteType: BaseVoteType;
+  votesAfter?: Omit<SingleVoteState, "available">;
+}
+
 interface AddProps {
   state: Omit<SingleVoteState, "voteCalls">;
   change: BaseVote;
@@ -89,6 +97,30 @@ export class VoteMath {
       vote: { ...vote, amount: afterVote },
       voteCalls: [{ ...change, amount: safeChange }],
     };
+  }
+
+  static revertVote({
+    initialBalance,
+    initialVote,
+
+    nextVoteType,
+    votesAfter,
+  }: UnvoteProps): bigint | undefined {
+    // on vote type change unvote previous vote
+    const prevUnvoted =
+      !initialVote || initialVote.type === nextVoteType
+        ? initialBalance
+        : initialBalance + initialVote.amount;
+
+    if (!votesAfter) return prevUnvoted;
+
+    // change call is always last, remove is always first
+    const [first, last = first] = votesAfter.voteCalls;
+    const removePart = first?.type === "remove" ? first?.amount || 0n : 0n;
+    const addPart = last?.type !== "remove" ? last?.amount || 0n : 0n;
+
+    // revert current changes
+    return prevUnvoted + addPart - removePart;
   }
 
   static getBaseVote = (v: GaugeQuotaParams): BaseVote | undefined => {
