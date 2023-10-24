@@ -31,7 +31,7 @@ interface UnvoteProps {
 
   balanceAfter: bigint;
   nextVoteType: BaseVoteType;
-  votesAfter?: Omit<SingleVoteState, "available">;
+  voteAfter?: Omit<SingleVoteState, "available">;
 }
 
 interface AddProps {
@@ -104,7 +104,7 @@ export class VoteMath {
     initialVote,
 
     nextVoteType,
-    votesAfter,
+    voteAfter,
   }: UnvoteProps): bigint | undefined {
     // on vote type change unvote previous vote
     const prevUnvoted =
@@ -112,10 +112,10 @@ export class VoteMath {
         ? balanceAfter
         : balanceAfter + initialVote.amount;
 
-    if (!votesAfter) return prevUnvoted;
+    if (!voteAfter) return prevUnvoted;
 
     // change call is always last, remove is always first
-    const [first, last = first] = votesAfter.voteCalls;
+    const [first, last = first] = voteAfter.voteCalls;
     const removePart = first?.type === "remove" ? first?.amount || 0n : 0n;
     const addPart = last?.type !== "remove" ? last?.amount || 0n : 0n;
 

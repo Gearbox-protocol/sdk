@@ -183,20 +183,20 @@ describe("VoteMath test", () => {
     const initialBalance = 26n;
     const voteBy = 5n;
 
-    const votesAfter: SingleVoteState = {
+    const voteAfter: SingleVoteState = {
       available: initialBalance - voteBy,
       vote: { type: "lower", amount: voteBy },
       voteCalls: [{ type: "lower", amount: voteBy }],
     };
-    const balanceAfter = votesAfter.available;
+    const balanceAfter = voteAfter.available;
 
     const r = VoteMath.revertVote({
       balanceAfter,
       nextVoteType: "lower",
-      votesAfter: votesAfter,
+      voteAfter: voteAfter,
     });
 
-    expect(r).to.be.eql(votesAfter.available + voteBy);
+    expect(r).to.be.eql(voteAfter.available + voteBy);
   });
   it("revertVote: if vote before type matches vote after type, should return amount with reverted vote after", () => {
     const initialBalance = 10n;
@@ -206,21 +206,21 @@ describe("VoteMath test", () => {
       type: "lower",
       amount: 20n,
     };
-    const votesAfter: SingleVoteState = {
+    const voteAfter: SingleVoteState = {
       available: initialBalance - voteBy,
       vote: { type: "lower", amount: voteBy },
       voteCalls: [{ type: "lower", amount: voteBy }],
     };
-    const balanceAfter = votesAfter.available;
+    const balanceAfter = voteAfter.available;
 
     const r = VoteMath.revertVote({
       initialVote,
       balanceAfter,
       nextVoteType: "lower",
-      votesAfter: votesAfter,
+      voteAfter: voteAfter,
     });
 
-    expect(r).to.be.eql(votesAfter.available + voteBy);
+    expect(r).to.be.eql(voteAfter.available + voteBy);
   });
   it("revertVote: if vote before type doesn't match vote after type, should revert vote before", () => {
     const initialBalance = 10n;
@@ -230,7 +230,7 @@ describe("VoteMath test", () => {
       type: "raise",
       amount: 61n,
     };
-    const votesAfter: SingleVoteState = {
+    const voteAfter: SingleVoteState = {
       available: initialBalance + initialVote.amount - voteBy,
       vote: { type: "lower", amount: voteBy },
       voteCalls: [
@@ -241,11 +241,11 @@ describe("VoteMath test", () => {
 
     const r = VoteMath.revertVote({
       initialVote,
-      balanceAfter: votesAfter.available,
+      balanceAfter: voteAfter.available,
       nextVoteType: "lower",
-      votesAfter: votesAfter,
+      voteAfter: voteAfter,
     });
 
-    expect(r).to.be.eql(votesAfter.available + voteBy);
+    expect(r).to.be.eql(voteAfter.available + voteBy);
   });
 });
