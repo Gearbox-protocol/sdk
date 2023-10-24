@@ -147,7 +147,8 @@ describe("VoteMath test", () => {
 
     expect(r).to.be.eql(initialBalance);
   });
-  it("revertVote: if no vote after, should return initial amount", () => {
+
+  it("revertVote: if no vote after and next expected type is not changed, should return initial amount", () => {
     const initialBalance = 27n;
 
     const initialVote: BaseVote = {
@@ -163,7 +164,7 @@ describe("VoteMath test", () => {
 
     expect(r).to.be.eql(initialBalance);
   });
-  it("revertVote: if no vote after, should return initial amount", () => {
+  it("revertVote: if no vote after and next expected type is changed, should revert initial vote", () => {
     const initialBalance = 27n;
 
     const initialVote: BaseVote = {
@@ -179,7 +180,8 @@ describe("VoteMath test", () => {
 
     expect(r).to.be.eql(initialBalance + initialVote.amount);
   });
-  it("revertVote: if no vote before, should return amount with reverted vote after", () => {
+
+  it("revertVote: if no vote before, should revert vote after", () => {
     const initialBalance = 26n;
     const voteBy = 5n;
 
@@ -196,9 +198,10 @@ describe("VoteMath test", () => {
       voteAfter: voteAfter,
     });
 
-    expect(r).to.be.eql(voteAfter.available + voteBy);
+    expect(r).to.be.eql(initialBalance);
   });
-  it("revertVote: if vote before type matches vote after type, should return amount with reverted vote after", () => {
+
+  it("revertVote: if vote before type matches expected type, should revert vote after", () => {
     const initialBalance = 10n;
     const voteBy = 6n;
 
@@ -208,7 +211,7 @@ describe("VoteMath test", () => {
     };
     const voteAfter: SingleVoteState = {
       available: initialBalance - voteBy,
-      vote: { type: "lower", amount: voteBy },
+      vote: { type: "lower", amount: initialVote.amount + voteBy },
       voteCalls: [{ type: "lower", amount: voteBy }],
     };
     const balanceAfter = voteAfter.available;
@@ -220,9 +223,9 @@ describe("VoteMath test", () => {
       voteAfter: voteAfter,
     });
 
-    expect(r).to.be.eql(voteAfter.available + voteBy);
+    expect(r).to.be.eql(initialBalance);
   });
-  it("revertVote: if vote before type doesn't match vote after type, should revert vote before", () => {
+  it("revertVote: if vote before type doesn't match expected type, should revert vote before", () => {
     const initialBalance = 10n;
     const voteBy = 20n;
 
@@ -246,6 +249,53 @@ describe("VoteMath test", () => {
       voteAfter: voteAfter,
     });
 
-    expect(r).to.be.eql(voteAfter.available + voteBy);
+    expect(r).to.be.eql(initialBalance + initialVote.amount);
+  });
+
+  it("revertVote: on remove, if vote before type matches expected type, should revert removal", () => {
+    const initialBalance = 100n;
+    const voteBy = 13n;
+
+    const initialVote: BaseVote = {
+      type: "lower",
+      amount: 30n,
+    };
+    const voteAfter: SingleVoteState = {
+      available: initialBalance + voteBy,
+      vote: { type: "lower", amount: initialVote.amount - voteBy },
+      voteCalls: [{ type: "remove", amount: voteBy }],
+    };
+
+    const r = VoteMath.revertVote({
+      initialVote,
+      balanceAfter: voteAfter.available,
+      nextVoteType: "lower",
+      voteAfter: voteAfter,
+    });
+
+    expect(r).to.be.eql(initialBalance);
+  });
+  it("revertVote: on remove, if vote before type doesn't match expected type, should revert vote before", () => {
+    const initialBalance = 100n;
+    const voteBy = 13n;
+
+    const initialVote: BaseVote = {
+      type: "raise",
+      amount: 30n,
+    };
+    const voteAfter: SingleVoteState = {
+      available: initialBalance + voteBy,
+      vote: { type: "raise", amount: initialVote.amount - voteBy },
+      voteCalls: [{ type: "remove", amount: voteBy }],
+    };
+
+    const r = VoteMath.revertVote({
+      initialVote,
+      balanceAfter: voteAfter.available,
+      nextVoteType: "lower",
+      voteAfter: voteAfter,
+    });
+
+    expect(r).to.be.eql(initialBalance + initialVote.amount);
   });
 });
