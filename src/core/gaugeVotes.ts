@@ -1,3 +1,5 @@
+import { toBigInt } from "@gearbox-protocol/sdk-gov";
+
 import { GaugeQuotaParams } from "../payload/gauge";
 import { BigIntMath } from "../utils/math";
 
@@ -42,6 +44,12 @@ interface AddProps {
 interface RemoveProps {
   state: Omit<SingleVoteState, "voteCalls">;
   change: Vote;
+}
+
+interface GetGaugeApyProps {
+  quota: GaugeQuotaParams | undefined;
+  vote: BaseVote | undefined;
+  voteAfter: Omit<SingleVoteState, "available"> | undefined;
 }
 
 export class GaugeMath {
@@ -137,4 +145,40 @@ export class GaugeMath {
     }
     return undefined;
   };
+
+  // rate = (minRate *(votesFormin + yourvotesformin) +maxRate*(votesFormax +yourvotesformax)/( votesForMin + votesForMax+yourvotes)
+
+  static getGaugeApy({ quota, voteAfter, vote }: GetGaugeApyProps) {
+    if (!quota) return null;
+
+    const first = voteAfter?.voteCalls?.[0];
+    const last = voteAfter?.voteCalls?.[1] || first;
+
+    const isRemove = first?.type === "remove";
+    const removeCaPart =
+      isRemove && vote?.type === "lower" ? first?.amount || 0n : 0n;
+    const removeLpPart =
+      isRemove && vote?.type === "raise" ? first?.amount || 0n : 0n;
+
+    const caPart = last?.type !== "lower" ? last?.amount || 0n : 0n;
+    const lpPart = last?.type !== "raise" ? last?.amount || 0n : 0n;
+
+    const caImpact =
+      toBigInt(quota.minRate) *
+      (quota.totalVotesCaSide + caPart - removeCaPart);
+    const lpImpact =
+      toBigInt(quota.maxRate) *
+      (quota.totalVotesLpSide + lpPart - removeLpPart);
+    const total =
+      quota.totalVotesCaSide +
+      quota.totalVotesLpSide +
+      caPart +
+      lpPart -
+      removeCaPart -
+      removeLpPart;
+
+    const r = (caImpact + lpImpact) / total;
+
+    return Number(r);
+  }
 }
