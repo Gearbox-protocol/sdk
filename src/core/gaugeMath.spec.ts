@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { BaseVote, GaugeMath, SingleVoteState, VoteProps } from "./gaugeVotes";
+import { BaseVote, GaugeMath, SingleVoteState, VoteProps } from "./gaugeMath";
 
 describe("GaugeMath test", () => {
   it("vote: with empty state and with no changes", () => {
