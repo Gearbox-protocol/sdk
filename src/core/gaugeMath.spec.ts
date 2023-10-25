@@ -324,6 +324,22 @@ describe("GaugeMath getGaugeApy() test", () => {
 
     expect(r).to.be.eql(null);
   });
+  it("should return min rate if total is zero", () => {
+    const quota: GetGaugeApyProps["quota"] = {
+      totalVotesCaSide: 0n,
+      totalVotesLpSide: 0n,
+      stakerVotesCaSide: 0n,
+      stakerVotesLpSide: 0n,
+      minRate: 12,
+      maxRate: 12345,
+    };
+
+    const r = GaugeMath.getGaugeApy({
+      quota,
+    });
+
+    expect(r).to.be.eql(12);
+  });
   it("should calculate quota without votes", () => {
     const quota: GetGaugeApyProps["quota"] = {
       totalVotesCaSide: 100n,

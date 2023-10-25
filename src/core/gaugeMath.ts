@@ -187,8 +187,9 @@ export class GaugeMath {
       removeCaPart -
       removeLpPart;
 
-    const r = (caImpact + lpImpact) / total;
+    if (total === 0n) return quota.minRate;
 
+    const r = (caImpact + lpImpact) / total;
     return Number(r);
   }
 }
