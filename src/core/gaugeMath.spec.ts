@@ -2,8 +2,8 @@ import { expect } from "chai";
 
 import { BaseVote, GaugeMath, SingleVoteState, VoteProps } from "./gaugeMath";
 
-describe("GaugeMath test", () => {
-  it("vote: with empty state and with no changes", () => {
+describe("GaugeMath vote() test", () => {
+  it("with empty state and with no changes", () => {
     const s: SingleVoteState = { available: 0n, voteCalls: [] };
     const v: VoteProps = { state: s };
     const r = GaugeMath.vote(v);
@@ -12,7 +12,7 @@ describe("GaugeMath test", () => {
     expect(r).to.be.eql(res);
   });
 
-  it("vote: remove with no prev vote", () => {
+  it("remove with no prev vote", () => {
     const s: SingleVoteState = { available: 0n, voteCalls: [] };
     const v: VoteProps = { state: s, change: { type: "remove", amount: 10n } };
     const r = GaugeMath.vote(v);
@@ -20,7 +20,7 @@ describe("GaugeMath test", () => {
     const res: SingleVoteState = { ...s, voteCalls: [] };
     expect(r).to.be.eql(res);
   });
-  it("vote: remove with prev vote - more than available", () => {
+  it("remove with prev vote - more than available", () => {
     const s: SingleVoteState = {
       available: 0n,
       vote: { type: "lower", amount: 5n },
@@ -36,7 +36,7 @@ describe("GaugeMath test", () => {
     };
     expect(r).to.be.eql(res);
   });
-  it("vote: remove with prev vote - eq than available", () => {
+  it("remove with prev vote - eq than available", () => {
     const s: SingleVoteState = {
       available: 0n,
       vote: { type: "lower", amount: 5n },
@@ -52,7 +52,7 @@ describe("GaugeMath test", () => {
     };
     expect(r).to.be.eql(res);
   });
-  it("vote: remove with prev vote - more than available", () => {
+  it("remove with prev vote - more than available", () => {
     const s: SingleVoteState = {
       available: 0n,
       vote: { type: "lower", amount: 10n },
@@ -69,7 +69,7 @@ describe("GaugeMath test", () => {
     expect(r).to.be.eql(res);
   });
 
-  it("vote: add to zero", () => {
+  it("add to zero", () => {
     const s: SingleVoteState = { available: 10n, voteCalls: [] };
     const v: VoteProps = { state: s, change: { type: "lower", amount: 10n } };
     const r = GaugeMath.vote(v);
@@ -81,7 +81,7 @@ describe("GaugeMath test", () => {
     };
     expect(r).to.be.eql(res);
   });
-  it("vote: add to same type", () => {
+  it("add to same type", () => {
     const s: SingleVoteState = {
       available: 10n,
       vote: { type: "lower", amount: 5n },
@@ -97,7 +97,7 @@ describe("GaugeMath test", () => {
     };
     expect(r).to.be.eql(res);
   });
-  it("vote: add different type", () => {
+  it("add different type", () => {
     const s: SingleVoteState = {
       available: 10n,
       vote: { type: "lower", amount: 10n },
@@ -117,7 +117,7 @@ describe("GaugeMath test", () => {
     expect(r).to.be.eql(res);
   });
 
-  it("vote: available can be negative after add", () => {
+  it("available can be negative after add", () => {
     const s: SingleVoteState = {
       available: 5n,
       vote: { type: "lower", amount: 5n },
@@ -136,8 +136,10 @@ describe("GaugeMath test", () => {
     };
     expect(r).to.be.eql(res);
   });
+});
 
-  it("revertVote: if no votes before & after, should return initial amount", () => {
+describe("GaugeMath revertVote() test", () => {
+  it("if no votes before & after, should return initial amount", () => {
     const initialBalance = 21n;
 
     const r = GaugeMath.revertVote({
@@ -148,7 +150,7 @@ describe("GaugeMath test", () => {
     expect(r).to.be.eql(initialBalance);
   });
 
-  it("revertVote: if no vote after and next expected type is not changed, should return initial amount", () => {
+  it("if no vote after and next expected type is not changed, should return initial amount", () => {
     const initialBalance = 27n;
 
     const initialVote: BaseVote = {
@@ -164,7 +166,7 @@ describe("GaugeMath test", () => {
 
     expect(r).to.be.eql(initialBalance);
   });
-  it("revertVote: if no vote after and next expected type is changed, should revert initial vote", () => {
+  it("if no vote after and next expected type is changed, should revert initial vote", () => {
     const initialBalance = 27n;
 
     const initialVote: BaseVote = {
@@ -181,7 +183,7 @@ describe("GaugeMath test", () => {
     expect(r).to.be.eql(initialBalance + initialVote.amount);
   });
 
-  it("revertVote: if no vote before, should revert vote after", () => {
+  it("if no vote before, should revert vote after", () => {
     const initialBalance = 26n;
     const voteBy = 5n;
 
@@ -201,7 +203,7 @@ describe("GaugeMath test", () => {
     expect(r).to.be.eql(initialBalance);
   });
 
-  it("revertVote: if vote before type matches expected type, should revert vote after", () => {
+  it("if vote before type matches expected type, should revert vote after", () => {
     const initialBalance = 10n;
     const voteBy = 6n;
 
@@ -225,7 +227,7 @@ describe("GaugeMath test", () => {
 
     expect(r).to.be.eql(initialBalance);
   });
-  it("revertVote: if vote before type doesn't match expected type, should revert vote before", () => {
+  it("if vote before type doesn't match expected type, should revert vote before", () => {
     const initialBalance = 10n;
     const voteBy = 20n;
 
@@ -252,7 +254,7 @@ describe("GaugeMath test", () => {
     expect(r).to.be.eql(initialBalance + initialVote.amount);
   });
 
-  it("revertVote: on remove, if vote before type matches expected type, should revert removal", () => {
+  it("on remove, if vote before type matches expected type, should revert removal", () => {
     const initialBalance = 100n;
     const voteBy = 13n;
 
@@ -275,7 +277,7 @@ describe("GaugeMath test", () => {
 
     expect(r).to.be.eql(initialBalance);
   });
-  it("revertVote: on remove, if vote before type doesn't match expected type, should revert vote before", () => {
+  it("on remove, if vote before type doesn't match expected type, should revert vote before", () => {
     const initialBalance = 100n;
     const voteBy = 13n;
 
