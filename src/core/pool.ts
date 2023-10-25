@@ -46,7 +46,7 @@ export class PoolData {
   readonly totalDebtLimit: bigint;
   readonly creditManagerDebtParams: Record<string, CreditManagerDebtParams>;
   readonly quotas: Record<string, QuotaInfo>;
-  readonly zappers: Record<string, PoolZapper>;
+  readonly zappers: Record<string, Record<string, PoolZapper>>;
 
   readonly totalAssets: bigint;
   readonly totalSupply: bigint;
@@ -111,19 +111,20 @@ export class PoolData {
         ];
       }),
     );
-    this.zappers = Object.fromEntries(
-      payload.zappers.map(z => {
-        const tokenIn = z.tokenIn.toLowerCase();
-        return [
-          tokenIn,
-          {
-            tokenIn,
-            tokenOut: z.tokenOut.toLowerCase(),
-            zapper: z.zapper.toLowerCase(),
-          },
-        ];
-      }),
-    );
+
+    this.zappers = payload.zappers.reduce<PoolData["zappers"]>((acc, z) => {
+      const tokenIn = z.tokenIn.toLowerCase();
+      const tokenOut = z.tokenOut.toLowerCase();
+      const old = acc[tokenIn] || {};
+
+      return {
+        ...acc,
+        [tokenIn]: {
+          ...old,
+          [tokenOut]: { tokenIn, tokenOut, zapper: z.zapper.toLowerCase() },
+        },
+      };
+    }, {});
 
     this.totalAssets = toBigInt(payload.totalAssets);
     this.totalSupply = toBigInt(payload.totalSupply);
