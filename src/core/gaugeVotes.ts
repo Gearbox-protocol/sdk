@@ -44,7 +44,7 @@ interface RemoveProps {
   change: Vote;
 }
 
-export class VoteMath {
+export class GaugeMath {
   static vote({ change, ...rest }: VoteProps): SingleVoteState | undefined {
     if (change?.type === "remove") {
       return this.removeVotes({ ...rest, change });

@@ -1,12 +1,12 @@
 import { expect } from "chai";
 
-import { BaseVote, SingleVoteState, VoteMath, VoteProps } from "./gaugeVotes";
+import { BaseVote, GaugeMath, SingleVoteState, VoteProps } from "./gaugeVotes";
 
-describe("VoteMath test", () => {
+describe("GaugeMath test", () => {
   it("vote: with empty state and with no changes", () => {
     const s: SingleVoteState = { available: 0n, voteCalls: [] };
     const v: VoteProps = { state: s };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = { ...s, voteCalls: [] };
     expect(r).to.be.eql(res);
@@ -15,7 +15,7 @@ describe("VoteMath test", () => {
   it("vote: remove with no prev vote", () => {
     const s: SingleVoteState = { available: 0n, voteCalls: [] };
     const v: VoteProps = { state: s, change: { type: "remove", amount: 10n } };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = { ...s, voteCalls: [] };
     expect(r).to.be.eql(res);
@@ -27,7 +27,7 @@ describe("VoteMath test", () => {
       voteCalls: [],
     };
     const v: VoteProps = { state: s, change: { type: "remove", amount: 10n } };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = {
       available: 5n,
@@ -43,7 +43,7 @@ describe("VoteMath test", () => {
       voteCalls: [],
     };
     const v: VoteProps = { state: s, change: { type: "remove", amount: 5n } };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = {
       available: 5n,
@@ -59,7 +59,7 @@ describe("VoteMath test", () => {
       voteCalls: [],
     };
     const v: VoteProps = { state: s, change: { type: "remove", amount: 5n } };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = {
       available: 5n,
@@ -72,7 +72,7 @@ describe("VoteMath test", () => {
   it("vote: add to zero", () => {
     const s: SingleVoteState = { available: 10n, voteCalls: [] };
     const v: VoteProps = { state: s, change: { type: "lower", amount: 10n } };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = {
       available: 0n,
@@ -88,7 +88,7 @@ describe("VoteMath test", () => {
       voteCalls: [],
     };
     const v: VoteProps = { state: s, change: { type: "lower", amount: 10n } };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = {
       available: 0n,
@@ -104,7 +104,7 @@ describe("VoteMath test", () => {
       voteCalls: [],
     };
     const v: VoteProps = { state: s, change: { type: "raise", amount: 5n } };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = {
       available: 15n,
@@ -124,7 +124,7 @@ describe("VoteMath test", () => {
       voteCalls: [],
     };
     const v: VoteProps = { state: s, change: { type: "raise", amount: 15n } };
-    const r = VoteMath.vote(v);
+    const r = GaugeMath.vote(v);
 
     const res: SingleVoteState = {
       available: -5n,
@@ -140,7 +140,7 @@ describe("VoteMath test", () => {
   it("revertVote: if no votes before & after, should return initial amount", () => {
     const initialBalance = 21n;
 
-    const r = VoteMath.revertVote({
+    const r = GaugeMath.revertVote({
       balanceAfter: initialBalance,
       nextVoteType: "lower",
     });
@@ -156,7 +156,7 @@ describe("VoteMath test", () => {
       amount: 99n,
     };
 
-    const r = VoteMath.revertVote({
+    const r = GaugeMath.revertVote({
       balanceAfter: initialBalance,
       initialVote,
       nextVoteType: "lower",
@@ -172,7 +172,7 @@ describe("VoteMath test", () => {
       amount: 99n,
     };
 
-    const r = VoteMath.revertVote({
+    const r = GaugeMath.revertVote({
       balanceAfter: initialBalance,
       initialVote,
       nextVoteType: "raise",
@@ -192,7 +192,7 @@ describe("VoteMath test", () => {
     };
     const balanceAfter = voteAfter.available;
 
-    const r = VoteMath.revertVote({
+    const r = GaugeMath.revertVote({
       balanceAfter,
       nextVoteType: "lower",
       voteAfter: voteAfter,
@@ -216,7 +216,7 @@ describe("VoteMath test", () => {
     };
     const balanceAfter = voteAfter.available;
 
-    const r = VoteMath.revertVote({
+    const r = GaugeMath.revertVote({
       initialVote,
       balanceAfter,
       nextVoteType: "lower",
@@ -242,7 +242,7 @@ describe("VoteMath test", () => {
       ],
     };
 
-    const r = VoteMath.revertVote({
+    const r = GaugeMath.revertVote({
       initialVote,
       balanceAfter: voteAfter.available,
       nextVoteType: "lower",
@@ -266,7 +266,7 @@ describe("VoteMath test", () => {
       voteCalls: [{ type: "remove", amount: voteBy }],
     };
 
-    const r = VoteMath.revertVote({
+    const r = GaugeMath.revertVote({
       initialVote,
       balanceAfter: voteAfter.available,
       nextVoteType: "lower",
@@ -289,7 +289,7 @@ describe("VoteMath test", () => {
       voteCalls: [{ type: "remove", amount: voteBy }],
     };
 
-    const r = VoteMath.revertVote({
+    const r = GaugeMath.revertVote({
       initialVote,
       balanceAfter: voteAfter.available,
       nextVoteType: "lower",
