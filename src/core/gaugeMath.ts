@@ -46,10 +46,20 @@ interface RemoveProps {
   change: Vote;
 }
 
-interface GetGaugeApyProps {
-  quota: GaugeQuotaParams | undefined;
-  vote: BaseVote | undefined;
-  voteAfter: Omit<SingleVoteState, "available"> | undefined;
+export interface GetGaugeApyProps {
+  quota:
+    | Pick<
+        GaugeQuotaParams,
+        | "totalVotesCaSide"
+        | "totalVotesLpSide"
+        | "stakerVotesCaSide"
+        | "stakerVotesLpSide"
+        | "minRate"
+        | "maxRate"
+      >
+    | undefined;
+  vote?: BaseVote;
+  voteAfter?: Omit<SingleVoteState, "available">;
 }
 
 export class GaugeMath {
@@ -160,8 +170,8 @@ export class GaugeMath {
     const removeLpPart =
       isRemove && vote?.type === "raise" ? first?.amount || 0n : 0n;
 
-    const caPart = last?.type !== "lower" ? last?.amount || 0n : 0n;
-    const lpPart = last?.type !== "raise" ? last?.amount || 0n : 0n;
+    const caPart = last?.type === "lower" ? last?.amount || 0n : 0n;
+    const lpPart = last?.type === "raise" ? last?.amount || 0n : 0n;
 
     const caImpact =
       toBigInt(quota.minRate) *

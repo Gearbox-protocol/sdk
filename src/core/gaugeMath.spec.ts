@@ -1,6 +1,12 @@
 import { expect } from "chai";
 
-import { BaseVote, GaugeMath, SingleVoteState, VoteProps } from "./gaugeMath";
+import {
+  BaseVote,
+  GaugeMath,
+  GetGaugeApyProps,
+  SingleVoteState,
+  VoteProps,
+} from "./gaugeMath";
 
 describe("GaugeMath vote() test", () => {
   it("with empty state and with no changes", () => {
@@ -299,5 +305,129 @@ describe("GaugeMath revertVote() test", () => {
     });
 
     expect(r).to.be.eql(initialBalance + initialVote.amount);
+  });
+});
+
+describe("GaugeMath getGaugeApy() test", () => {
+  it("should return null if no quota", () => {
+    const vote: GetGaugeApyProps["vote"] = { amount: 0n, type: "lower" };
+    const voteAfter: GetGaugeApyProps["voteAfter"] = {
+      vote: { amount: 5n, type: "lower" },
+      voteCalls: [{ amount: 5n, type: "lower" }],
+    };
+
+    const r = GaugeMath.getGaugeApy({
+      quota: undefined,
+      vote,
+      voteAfter,
+    });
+
+    expect(r).to.be.eql(null);
+  });
+  it("should calculate quota without votes", () => {
+    const quota: GetGaugeApyProps["quota"] = {
+      totalVotesCaSide: 100n,
+      totalVotesLpSide: 100n,
+      stakerVotesCaSide: 10n,
+      stakerVotesLpSide: 0n,
+      minRate: 0,
+      maxRate: 10000,
+    };
+
+    const r = GaugeMath.getGaugeApy({
+      quota,
+    });
+
+    expect(r).to.be.eql(5000);
+  });
+  it("should calculate quota with prev vote", () => {
+    const quota: GetGaugeApyProps["quota"] = {
+      totalVotesCaSide: 100n,
+      totalVotesLpSide: 100n,
+      stakerVotesCaSide: 10n,
+      stakerVotesLpSide: 0n,
+      minRate: 0,
+      maxRate: 10000,
+    };
+    const vote: GetGaugeApyProps["vote"] = { amount: 10n, type: "lower" };
+
+    const r = GaugeMath.getGaugeApy({
+      quota,
+      vote,
+    });
+
+    expect(r).to.be.eql(5000);
+  });
+  it("should calculate quota with same vote increase", () => {
+    const quota: GetGaugeApyProps["quota"] = {
+      totalVotesCaSide: 100n,
+      totalVotesLpSide: 100n,
+      stakerVotesCaSide: 10n,
+      stakerVotesLpSide: 0n,
+      minRate: 0,
+      maxRate: 10000,
+    };
+    const vote: GetGaugeApyProps["vote"] = { amount: 10n, type: "lower" };
+    const voteAfter: GetGaugeApyProps["voteAfter"] = {
+      vote: { amount: 20n, type: "lower" },
+      voteCalls: [{ amount: 10n, type: "lower" }],
+    };
+
+    const r = GaugeMath.getGaugeApy({
+      quota,
+      vote,
+      voteAfter,
+    });
+
+    expect(r).to.be.eql(4761);
+  });
+  it("should calculate quota with different vote increase", () => {
+    const quota: GetGaugeApyProps["quota"] = {
+      totalVotesCaSide: 100n,
+      totalVotesLpSide: 100n,
+      stakerVotesCaSide: 20n,
+      stakerVotesLpSide: 0n,
+      minRate: 0,
+      maxRate: 10000,
+    };
+    const vote: GetGaugeApyProps["vote"] = { amount: 30n, type: "lower" };
+    const voteAfter: GetGaugeApyProps["voteAfter"] = {
+      vote: { amount: 20n, type: "raise" },
+      voteCalls: [
+        { amount: 30n, type: "remove" },
+        { amount: 20n, type: "raise" },
+      ],
+    };
+
+    const r = GaugeMath.getGaugeApy({
+      quota,
+      vote,
+      voteAfter,
+    });
+
+    expect(r).to.be.eql(6315);
+  });
+  it("should calculate quota with vote remove", () => {
+    const quota: GetGaugeApyProps["quota"] = {
+      totalVotesCaSide: 100n,
+      totalVotesLpSide: 100n,
+      stakerVotesCaSide: 20n,
+      stakerVotesLpSide: 0n,
+      minRate: 0,
+      maxRate: 10000,
+    };
+    const vote: GetGaugeApyProps["vote"] = { amount: 20n, type: "lower" };
+    const voteAfter: GetGaugeApyProps["voteAfter"] = {
+      vote: { amount: 0n, type: "lower" },
+      voteCalls: [{ amount: 20n, type: "remove" }],
+    };
+
+    const r = GaugeMath.getGaugeApy({
+      quota,
+      vote,
+      voteAfter,
+    });
+
+    expect(r).to.be.eql(5555);
   });
 });
