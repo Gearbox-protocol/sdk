@@ -1268,10 +1268,10 @@
   dependencies:
     "@gearbox-protocol/integration-types" "^1.4.0"
 
-"@gearbox-protocol/sdk-gov@^1.11.5":
-  version "1.11.5"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.11.5.tgz#c00bce126f6ea6ccd85f46a9d4d18c4201dad142"
-  integrity sha512-wXF9wwhKNq4gB4X/OzvGe4tvh/ct+YC+2kAdWNsXppsqR/d30KcbKn+h1HMBFsxeIcCFv2JOSgMSBOfWnuqfAg==
+"@gearbox-protocol/sdk-gov@^1.13.0":
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.13.0.tgz#9fea908e6f0b2d5644396dd37a7fbfc41e308f41"
+  integrity sha512-PnZ4laK8nO+Ton/uJN7/GJCGZyhTJLNWx+yw7dYy7+FkupK0OnTPa9Gh2IjMvlswZM2M+9lspsj+D/7jNYVIHA==
   dependencies:
     "@types/yaml" "^1.9.7"
     add "^2.0.6"
