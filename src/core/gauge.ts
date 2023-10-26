@@ -5,7 +5,6 @@ import {
   GaugeQuotaParams,
   GaugeStakingDataPayload,
 } from "../payload/gauge";
-import { BigintifyProps } from "../utils/types";
 
 export class GaugeData {
   readonly address: string;
@@ -56,6 +55,11 @@ export class GaugeData {
   }
 }
 
+interface WithDrawableGaugeItem {
+  amount: bigint;
+  epochsLeft: number;
+}
+
 export class GaugeStakingData {
   readonly availableBalance: bigint;
   readonly totalBalance: bigint;
@@ -63,9 +67,7 @@ export class GaugeStakingData {
 
   readonly withdrawableNow: bigint;
   readonly withdrawableInEpochsTotal: bigint;
-  readonly withdrawableInEpochs: BigintifyProps<
-    GaugeStakingDataPayload["withdrawableAmounts"]["withdrawableInEpochs"]
-  >;
+  readonly withdrawableInEpochs: Array<WithDrawableGaugeItem>;
 
   constructor(payload: GaugeStakingDataPayload) {
     this.availableBalance = toBigInt(payload.availableBalance);
@@ -78,11 +80,11 @@ export class GaugeStakingData {
     const { total, list } =
       payload.withdrawableAmounts.withdrawableInEpochs.reduce<{
         total: bigint;
-        list: Array<bigint>;
+        list: Array<WithDrawableGaugeItem>;
       }>(
-        ({ total, list }, a) => {
+        ({ total, list }, a, i) => {
           const bn = toBigInt(a);
-          list.push(bn);
+          list.push({ amount: bn, epochsLeft: i + 1 });
 
           return { total: total + bn, list };
         },
@@ -90,7 +92,6 @@ export class GaugeStakingData {
       );
 
     this.withdrawableInEpochsTotal = total;
-    this.withdrawableInEpochs =
-      list as GaugeStakingData["withdrawableInEpochs"];
+    this.withdrawableInEpochs = list;
   }
 }
