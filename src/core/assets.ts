@@ -89,13 +89,14 @@ export class AssetUtils {
       const assetsRecord = AssetUtils.constructAssetRecord(assets);
 
       const unwrapped = assetsRecord[unwrappedAddress];
-      const { balance: unwrappedAmount = 0n } = unwrapped || {};
 
       const wrapped = assetsRecord[wrappedAddress];
       const { balance: wrappedAmount = 0n } = wrapped || {};
 
       // if there unwrapped token
       if (unwrapped) {
+        const { balance: unwrappedAmount = 0n } = unwrapped || {};
+
         const unwrappedToken = tokensList[unwrappedAddress];
         const unwrappedPrice = prices[unwrappedAddress] || 0n;
 
@@ -126,7 +127,7 @@ export class AssetUtils {
         return [Object.values(assetsRecord), unwrappedInWrapped, wrappedAmount];
       }
       // else no actions needed
-      return [Object.values(assetsRecord), unwrappedAmount, wrappedAmount];
+      return [Object.values(assetsRecord), 0n, wrappedAmount];
     };
 
   /**
