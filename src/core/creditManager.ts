@@ -187,6 +187,24 @@ export class CreditManagerData {
     };
   }
 
+  encodeAddCollateralWithPermitV3(
+    tokenAddress: string,
+    amount: bigint,
+    deadline: bigint,
+    v: bigint | number,
+    r: string,
+    s: string,
+  ): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "addCollateralWithPermit",
+          [tokenAddress, amount, deadline, v, r, s],
+        ),
+    };
+  }
+
   encodeIncreaseDebtV2(amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
