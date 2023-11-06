@@ -11,7 +11,7 @@ import { BigNumber, BigNumberish, providers, Signer } from "ethers";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { IRouter, IRouter__factory } from "../types";
-import { BalanceStruct } from "../types/interfaces/IRouter";
+import { BalanceStruct } from "../types/IRouter";
 import {
   MultiCall,
   PathFinderCloseResult,
