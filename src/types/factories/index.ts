@@ -22,6 +22,7 @@ export * as iGearStakingV3Sol from "./IGearStakingV3.sol";
 export * as iPoolQuotaKeeperV3Sol from "./IPoolQuotaKeeperV3.sol";
 export * as iPoolServiceSol from "./IPoolService.sol";
 export * as iPoolV3Sol from "./IPoolV3.sol";
+export * as iPriceFeedSol from "./IPriceFeed.sol";
 export * as iPriceOracleSol from "./IPriceOracle.sol";
 export * as iPriceOracleV3Sol from "./IPriceOracleV3.sol";
 export * as iUniswapV2AdapterSol from "./IUniswapV2Adapter.sol";
