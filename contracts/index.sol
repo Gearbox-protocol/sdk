@@ -42,6 +42,8 @@ import {IwstETHV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/inte
 import {IstETH} from "@gearbox-protocol/integrations-v3/contracts/integrations/lido/IstETH.sol";
 import {IwstETH} from "@gearbox-protocol/integrations-v3/contracts/integrations/lido/IwstETH.sol";
 import {IPriceOracleBase} from "@gearbox-protocol/core-v2/contracts/interfaces/IPriceOracleBase.sol";
+import {IPriceOracleV2} from "@gearbox-protocol/core-v2/contracts/interfaces/IPriceOracle.sol";
+import {IPriceOracleV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IPriceOracleV3.sol";
 
 import {ICurveV1_2AssetsAdapter} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_2AssetsAdapter.sol";
