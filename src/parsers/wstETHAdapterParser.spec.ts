@@ -10,16 +10,18 @@ describe("WstETHAdapterParser test", () => {
 
     const ifc = IwstETHV1Adapter__factory.createInterface();
 
-    let parsed = parser.parse(ifc.encodeFunctionData("wrapAll"));
+    let parsed = parser.parse(
+      ifc.encodeFunctionData("wrapDiff", [WAD * 1020n]),
+    );
     expect(parsed).to.be.eq(
-      "wstETHAdapter[LIDO_WSTETH].wrapAll()",
-      "Incorrect parse wrapAll()",
+      "wstETHAdapter[LIDO_WSTETH].wrapDiff(leftoverAmount: 1.02K [1020000000000000000000])",
+      "Incorrect parse wrapDiff()",
     );
 
-    parsed = parser.parse(ifc.encodeFunctionData("unwrapAll"));
+    parsed = parser.parse(ifc.encodeFunctionData("unwrapDiff", [WAD * 1020n]));
     expect(parsed).to.be.eq(
-      "wstETHAdapter[LIDO_WSTETH].unwrapAll()",
-      "Incorrect parse unwrapAll()",
+      "wstETHAdapter[LIDO_WSTETH].unwrapDiff(leftoverAmount: 1.02K [1020000000000000000000])",
+      "Incorrect parse unwrapDiff()",
     );
 
     parser = new WstETHAdapterParser("LIDO_WSTETH", true);

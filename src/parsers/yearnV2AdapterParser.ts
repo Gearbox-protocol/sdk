@@ -3,14 +3,14 @@ import {
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
 
-import { IYVault__factory } from "../types";
+import { IYearnV2Adapter__factory } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class YearnV2AdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IYVault__factory.createInterface();
+    this.ifc = IYearnV2Adapter__factory.createInterface();
     if (!isContract) this.adapterName = "YearnV2Adapter";
   }
   parse(calldata: string): string {
@@ -19,8 +19,6 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
     switch (functionFragment.name) {
       case "deposit":
       case "withdraw":
-      case "deposit(uint256)":
-      case "withdraw(uint256)":
       case "withdraw(uint256,address,uint256)": {
         const [amount, address, maxLoss] = this.decodeFunctionData(
           functionFragment,
@@ -38,6 +36,36 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
         const maxLossStr = maxLoss ? `, maxLoss: ${maxLoss}` : "";
 
         return `${functionName}(${amountStr}${addressStr}${maxLossStr})`;
+      }
+
+      case "depositDiff": {
+        const [leftoverAmount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+
+        const yvSym = this.tokenSymbol(
+          contractsByNetwork.Mainnet[this.contract as SupportedContract],
+        );
+
+        const leftoverAmountStr = this.formatBN(leftoverAmount, yvSym);
+
+        return `${functionName}(leftoverAmount: ${leftoverAmountStr})`;
+      }
+
+      case "withdrawDiff": {
+        const [leftoverAmount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+
+        const yvSym = this.tokenSymbol(
+          contractsByNetwork.Mainnet[this.contract as SupportedContract],
+        );
+
+        const leftoverAmountStr = this.formatBN(leftoverAmount, yvSym);
+
+        return `${functionName}(leftoverAmount: ${leftoverAmountStr})`;
       }
 
       case "pricePerShare": {

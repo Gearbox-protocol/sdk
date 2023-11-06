@@ -10,10 +10,12 @@ describe("YearnV2AdapterParser test", () => {
 
     const ifc = IYearnV2Adapter__factory.createInterface();
 
-    let parsed = parser.parse(ifc.encodeFunctionData("deposit()"));
+    let parsed = parser.parse(
+      ifc.encodeFunctionData("depositDiff", [WAD * 19000n]),
+    );
     expect(parsed).to.be.eq(
-      "YearnV2Adapter[YEARN_CURVE_STETH_VAULT].deposit()",
-      "Incorrect parse deposit()",
+      "YearnV2Adapter[YEARN_CURVE_STETH_VAULT].depositDiff(leftoverAmount: 19.00K [19000000000000000000000])",
+      "Incorrect parse depositDiff",
     );
 
     parsed = parser.parse(
@@ -35,10 +37,12 @@ describe("YearnV2AdapterParser test", () => {
       "Incorrect parse deposit(amount,address)",
     );
 
-    parsed = parser.parse(ifc.encodeFunctionData("withdraw()"));
+    parsed = parser.parse(
+      ifc.encodeFunctionData("withdrawDiff", [WAD * 19000n]),
+    );
     expect(parsed).to.be.eq(
-      "YearnV2Adapter[YEARN_CURVE_STETH_VAULT].withdraw()",
-      "Incorrect parse withdraw()",
+      "YearnV2Adapter[YEARN_CURVE_STETH_VAULT].withdrawDiff(leftoverAmount: 19.00K [19000000000000000000000])",
+      "Incorrect parse withdrawDiff",
     );
 
     parsed = parser.parse(

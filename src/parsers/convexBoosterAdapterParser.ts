@@ -32,12 +32,17 @@ export class ConvexBoosterAdapterParser
         )}, amount: ${this.formatAmount(amount, pid)}, stake: ${stake})`;
       }
 
-      case "depositAll": {
-        const [pid, stake] = this.decodeFunctionData(
+      case "depositDiff": {
+        const [pid, leftoverAmount, stake] = this.decodeFunctionData(
           functionFragment,
           calldata,
         );
-        return `${functionName}(pid: ${this.formatPid(pid)}, stake: ${stake})`;
+        return `${functionName}(pid: ${this.formatPid(
+          pid,
+        )}, leftoverAmount: ${this.formatAmount(
+          leftoverAmount,
+          pid,
+        )}, stake: ${stake})`;
       }
 
       case "withdraw": {
@@ -50,9 +55,14 @@ export class ConvexBoosterAdapterParser
         )}, amount: ${this.formatAmount(amount, pid)})`;
       }
 
-      case "withdrawAll": {
-        const [pid] = this.decodeFunctionData(functionFragment, calldata);
-        return `${functionName}(pid: ${this.formatPid(pid)})`;
+      case "withdrawDiff": {
+        const [pid, leftoverAmount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(pid: ${this.formatPid(
+          pid,
+        )}, leftoverAmount: ${this.formatAmount(leftoverAmount, pid)})`;
       }
 
       default:

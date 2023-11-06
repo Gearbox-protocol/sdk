@@ -116,8 +116,14 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "deposit",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+    ],
+    name: "depositDiff",
     outputs: [
       {
         internalType: "uint256",
@@ -226,7 +232,23 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "maxShares",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "maxLoss",
+        type: "uint256",
+      },
+    ],
     name: "withdraw",
     outputs: [
       {
@@ -247,21 +269,11 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "maxShares",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "maxLoss",
+        name: "leftoverAmount",
         type: "uint256",
       },
     ],
-    name: "withdraw",
+    name: "withdrawDiff",
     outputs: [
       {
         internalType: "uint256",

@@ -70,27 +70,27 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
         )}, min_dy: ${this.formatBN(min_dy, jSym)})`;
       }
 
-      case "exchange_all":
-      case "exchange_all_underlying": {
-        const [i, j, rateMinRAY] = this.decodeFunctionData(
+      case "exchange_diff":
+      case "exchange_diff_underlying": {
+        const [i, j, leftoverAmount, rateMinRAY] = this.decodeFunctionData(
           functionFragment,
           calldata,
         );
 
         const iSym =
-          functionFragment.name === "exchange_all_underlying"
+          functionFragment.name === "exchange_diff_underlying"
             ? this.getUnderlyingTokenByIndex(i)
             : this.getTokenByIndex(i);
 
         const jSym =
-          functionFragment.name === "exchange_all_underlying"
+          functionFragment.name === "exchange_diff_underlying"
             ? this.getUnderlyingTokenByIndex(j)
             : this.getTokenByIndex(j);
 
-        return `${functionName}(i: ${iSym}, j: ${jSym}, rateMinRAY: ${formatBN(
-          rateMinRAY,
-          27,
-        )}`;
+        return `${functionName}(i: ${iSym}, j: ${jSym}, leftoverAmount: ${this.formatBN(
+          leftoverAmount,
+          iSym,
+        )}, rateMinRAY: ${formatBN(rateMinRAY, 27)}`;
       }
 
       case "add_liquidity_one_coin": {
@@ -107,16 +107,20 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
         )}, i: ${iSym}, minAmount: ${this.formatBN(minAmount, this.lpToken)})`;
       }
 
-      case "add_all_liquidity_one_coin":
-      case "remove_all_liquidity_one_coin": {
-        const [i, rateMinRAY] = this.decodeFunctionData(
+      case "add_diff_liquidity_one_coin":
+      case "remove_diff_liquidity_one_coin": {
+        const [leftoverAmount, i, rateMinRAY] = this.decodeFunctionData(
           functionFragment,
           calldata,
         );
 
-        return `${functionName}(i: ${this.getTokenByIndex(
+        return `${functionName}(leftoverAmount: ${this.formatBN(
+          leftoverAmount,
           i,
-        )}, rateMinRAY: ${formatBN(rateMinRAY, 27)})`;
+        )}, i: ${this.getTokenByIndex(i)}, rateMinRAY: ${formatBN(
+          rateMinRAY,
+          27,
+        )})`;
       }
 
       case "add_liquidity": {

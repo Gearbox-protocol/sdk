@@ -18,10 +18,12 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
       "Incorrect parse deposit",
     );
 
-    parsed = parser.parse(ifc.encodeFunctionData("depositAll", [32, true]));
+    parsed = parser.parse(
+      ifc.encodeFunctionData("depositDiff", [32, WAD * 19999n, true]),
+    );
     expect(parsed).to.be.eq(
-      "ConvexV1BoosterAdapter[CONVEX_BOOSTER].depositAll(pid: 32 [CONVEX_FRAX3CRV_POOL], stake: true)",
-      "Incorrect parse depositAll",
+      "ConvexV1BoosterAdapter[CONVEX_BOOSTER].depositDiff(pid: 32 [CONVEX_FRAX3CRV_POOL], leftoverAmount: 19.99K [19999000000000000000000], stake: true)",
+      "Incorrect parse depositDiff",
     );
 
     parsed = parser.parse(
@@ -32,10 +34,12 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
       "Incorrect parse withdraw",
     );
 
-    parsed = parser.parse(ifc.encodeFunctionData("withdrawAll", [32]));
+    parsed = parser.parse(
+      ifc.encodeFunctionData("withdrawDiff", [32, (WAD * 555n) / 10n]),
+    );
     expect(parsed).to.be.eq(
-      "ConvexV1BoosterAdapter[CONVEX_BOOSTER].withdrawAll(pid: 32 [CONVEX_FRAX3CRV_POOL])",
-      "Incorrect parse withdrawAll",
+      "ConvexV1BoosterAdapter[CONVEX_BOOSTER].withdrawDiff(pid: 32 [CONVEX_FRAX3CRV_POOL], leftoverAmount: 55.50 [55500000000000000000])",
+      "Incorrect parse withdrawDiff",
     );
   });
 });

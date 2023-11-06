@@ -17,10 +17,10 @@ describe("LidoAdapterParser test", () => {
     );
 
     parser = new LidoAdapterParser("LIDO_STETH_GATEWAY", true);
-    parsed = parser.parse(ifc.encodeFunctionData("submitAll"));
+    parsed = parser.parse(ifc.encodeFunctionData("submitDiff", [WAD * 1020n]));
     expect(parsed).to.be.eq(
-      "Contract[LIDO_STETH_GATEWAY].submitAll()",
-      "Incorrect parse submitAll()",
+      "Contract[LIDO_STETH_GATEWAY].submitDiff(leftoverAmount: 1.02K [1020000000000000000000])",
+      "Incorrect parse submitDiff(leftoverAmount)",
     );
   });
 });

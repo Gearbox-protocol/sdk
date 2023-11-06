@@ -114,16 +114,21 @@ const _abi = [
           },
           {
             internalType: "uint256",
+            name: "leftoverAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
             name: "rateMinRAY",
             type: "uint256",
           },
         ],
-        internalType: "struct IUniswapV3AdapterTypes.ExactAllInputParams",
+        internalType: "struct IUniswapV3AdapterTypes.ExactDiffInputParams",
         name: "params",
         type: "tuple",
       },
     ],
-    name: "exactAllInput",
+    name: "exactDiffInput",
     outputs: [
       {
         internalType: "uint256",
@@ -165,6 +170,11 @@ const _abi = [
           },
           {
             internalType: "uint256",
+            name: "leftoverAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
             name: "rateMinRAY",
             type: "uint256",
           },
@@ -174,12 +184,13 @@ const _abi = [
             type: "uint160",
           },
         ],
-        internalType: "struct IUniswapV3AdapterTypes.ExactAllInputSingleParams",
+        internalType:
+          "struct IUniswapV3AdapterTypes.ExactDiffInputSingleParams",
         name: "params",
         type: "tuple",
       },
     ],
-    name: "exactAllInputSingle",
+    name: "exactDiffInputSingle",
     outputs: [
       {
         internalType: "uint256",

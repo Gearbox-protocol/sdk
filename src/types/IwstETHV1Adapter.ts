@@ -33,9 +33,9 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
     "stETHTokenMask()": FunctionFragment;
     "targetContract()": FunctionFragment;
     "unwrap(uint256)": FunctionFragment;
-    "unwrapAll()": FunctionFragment;
+    "unwrapDiff(uint256)": FunctionFragment;
     "wrap(uint256)": FunctionFragment;
-    "wrapAll()": FunctionFragment;
+    "wrapDiff(uint256)": FunctionFragment;
     "wstETHTokenMask()": FunctionFragment;
   };
 
@@ -49,9 +49,9 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
       | "stETHTokenMask"
       | "targetContract"
       | "unwrap"
-      | "unwrapAll"
+      | "unwrapDiff"
       | "wrap"
-      | "wrapAll"
+      | "wrapDiff"
       | "wstETHTokenMask"
   ): FunctionFragment;
 
@@ -84,12 +84,18 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
     functionFragment: "unwrap",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(functionFragment: "unwrapAll", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "unwrapDiff",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(
     functionFragment: "wrap",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(functionFragment: "wrapAll", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "wrapDiff",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(
     functionFragment: "wstETHTokenMask",
     values?: undefined
@@ -121,9 +127,9 @@ export interface IwstETHV1AdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unwrap", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "unwrapAll", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "unwrapDiff", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "wrap", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "wrapAll", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "wrapDiff", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "wstETHTokenMask",
     data: BytesLike
@@ -178,7 +184,8 @@ export interface IwstETHV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    unwrapAll(
+    unwrapDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -187,7 +194,8 @@ export interface IwstETHV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    wrapAll(
+    wrapDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -213,7 +221,8 @@ export interface IwstETHV1Adapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  unwrapAll(
+  unwrapDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -222,7 +231,8 @@ export interface IwstETHV1Adapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  wrapAll(
+  wrapDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -253,7 +263,8 @@ export interface IwstETHV1Adapter extends BaseContract {
       }
     >;
 
-    unwrapAll(
+    unwrapDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -272,7 +283,8 @@ export interface IwstETHV1Adapter extends BaseContract {
       }
     >;
 
-    wrapAll(
+    wrapDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -306,7 +318,8 @@ export interface IwstETHV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    unwrapAll(
+    unwrapDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -315,7 +328,8 @@ export interface IwstETHV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    wrapAll(
+    wrapDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -346,7 +360,8 @@ export interface IwstETHV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    unwrapAll(
+    unwrapDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -355,7 +370,8 @@ export interface IwstETHV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    wrapAll(
+    wrapDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

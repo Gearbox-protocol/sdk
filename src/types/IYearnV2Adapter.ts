@@ -31,14 +31,14 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
     "creditManager()": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
     "deposit(uint256)": FunctionFragment;
-    "deposit()": FunctionFragment;
+    "depositDiff(uint256)": FunctionFragment;
     "targetContract()": FunctionFragment;
     "token()": FunctionFragment;
     "tokenMask()": FunctionFragment;
     "withdraw(uint256,address)": FunctionFragment;
     "withdraw(uint256)": FunctionFragment;
-    "withdraw()": FunctionFragment;
     "withdraw(uint256,address,uint256)": FunctionFragment;
+    "withdrawDiff(uint256)": FunctionFragment;
     "yTokenMask()": FunctionFragment;
   };
 
@@ -50,14 +50,14 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
       | "creditManager"
       | "deposit(uint256,address)"
       | "deposit(uint256)"
-      | "deposit()"
+      | "depositDiff"
       | "targetContract"
       | "token"
       | "tokenMask"
       | "withdraw(uint256,address)"
       | "withdraw(uint256)"
-      | "withdraw()"
       | "withdraw(uint256,address,uint256)"
+      | "withdrawDiff"
       | "yTokenMask"
   ): FunctionFragment;
 
@@ -85,7 +85,10 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
     functionFragment: "deposit(uint256)",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(functionFragment: "deposit()", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "depositDiff",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
     values?: undefined
@@ -101,16 +104,16 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdraw()",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "withdraw(uint256,address,uint256)",
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawDiff",
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "yTokenMask",
@@ -141,7 +144,10 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
     functionFragment: "deposit(uint256)",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "deposit()", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "depositDiff",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
     data: BytesLike
@@ -156,9 +162,12 @@ export interface IYearnV2AdapterInterface extends utils.Interface {
     functionFragment: "withdraw(uint256)",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "withdraw()", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdraw(uint256,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawDiff",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "yTokenMask", data: BytesLike): Result;
@@ -212,7 +221,8 @@ export interface IYearnV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "deposit()"(
+    depositDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -233,14 +243,15 @@ export interface IYearnV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "withdraw()"(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     "withdraw(uint256,address,uint256)"(
       maxShares: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
       maxLoss: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -266,7 +277,8 @@ export interface IYearnV2Adapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  "deposit()"(
+  depositDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -287,14 +299,15 @@ export interface IYearnV2Adapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  "withdraw()"(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   "withdraw(uint256,address,uint256)"(
     maxShares: PromiseOrValue<BigNumberish>,
     arg1: PromiseOrValue<string>,
     maxLoss: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -330,7 +343,8 @@ export interface IYearnV2Adapter extends BaseContract {
       }
     >;
 
-    "deposit()"(
+    depositDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -366,7 +380,10 @@ export interface IYearnV2Adapter extends BaseContract {
       }
     >;
 
-    "withdraw()"(
+    "withdraw(uint256,address,uint256)"(
+      maxShares: PromiseOrValue<BigNumberish>,
+      arg1: PromiseOrValue<string>,
+      maxLoss: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -375,10 +392,8 @@ export interface IYearnV2Adapter extends BaseContract {
       }
     >;
 
-    "withdraw(uint256,address,uint256)"(
-      maxShares: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<string>,
-      maxLoss: PromiseOrValue<BigNumberish>,
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -412,7 +427,8 @@ export interface IYearnV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    "deposit()"(
+    depositDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -433,14 +449,15 @@ export interface IYearnV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    "withdraw()"(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     "withdraw(uint256,address,uint256)"(
       maxShares: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
       maxLoss: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -471,7 +488,8 @@ export interface IYearnV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    "deposit()"(
+    depositDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -492,14 +510,15 @@ export interface IYearnV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    "withdraw()"(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     "withdraw(uint256,address,uint256)"(
       maxShares: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
       maxLoss: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

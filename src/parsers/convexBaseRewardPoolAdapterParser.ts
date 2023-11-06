@@ -22,11 +22,19 @@ export class ConvexBaseRewardPoolAdapterParser
     const { functionFragment, functionName } = this.parseSelector(calldata);
 
     switch (functionFragment.name) {
-      case "stake":
-      case "stakeAll": {
+      case "stake": {
         const [amount] = this.decodeFunctionData(functionFragment, calldata);
-        const amountStr = amount ? `amount: ${this.formatAmount(amount)}` : "";
-        return `${functionName}(${amountStr})`;
+        return `${functionName}(amount: ${this.formatAmount(amount)})`;
+      }
+
+      case "stakeDiff": {
+        const [leftoverAmount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(leftoverAmount: ${this.formatAmount(
+          leftoverAmount,
+        )})`;
       }
 
       case "withdraw":
@@ -39,10 +47,15 @@ export class ConvexBaseRewardPoolAdapterParser
           amount,
         )}, claim: ${claim})`;
       }
-      case "withdrawAll":
-      case "withdrawAllAndUnwrap": {
-        const [claim] = this.decodeFunctionData(functionFragment, calldata);
-        return `${functionName}(claim: ${claim})`;
+      case "withdrawDiff":
+      case "withdrawDiffAndUnwrap": {
+        const [leftoverAmount, claim] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(leftoverAmount: ${this.formatAmount(
+          leftoverAmount,
+        )}, claim: ${claim})`;
       }
 
       case "rewardRate":

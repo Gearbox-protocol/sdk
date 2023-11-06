@@ -170,8 +170,14 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "stakeAll",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+    ],
+    name: "stakeDiff",
     outputs: [
       {
         internalType: "uint256",
@@ -284,54 +290,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bool",
-        name: "claim",
-        type: "bool",
-      },
-    ],
-    name: "withdrawAll",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bool",
-        name: "claim",
-        type: "bool",
-      },
-    ],
-    name: "withdrawAllAndUnwrap",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "uint256",
         name: "",
         type: "uint256",
@@ -343,6 +301,64 @@ const _abi = [
       },
     ],
     name: "withdrawAndUnwrap",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "tokensToEnable",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "tokensToDisable",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "claim",
+        type: "bool",
+      },
+    ],
+    name: "withdrawDiff",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "tokensToEnable",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "tokensToDisable",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "claim",
+        type: "bool",
+      },
+    ],
+    name: "withdrawDiffAndUnwrap",
     outputs: [
       {
         internalType: "uint256",

@@ -43,11 +43,15 @@ describe("CurveAdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("add_all_liquidity_one_coin", [0, RAY * 912n]),
+      ifc.encodeFunctionData("add_diff_liquidity_one_coin", [
+        WAD * 3n,
+        0,
+        RAY * 912n,
+      ]),
     );
     expect(parsed).to.be.eq(
-      "Curve2AssetsAdapter[CURVE_FRAX_POOL].add_all_liquidity_one_coin(i: FRAX, rateMinRAY: 912.00)",
-      "Curve2AssetsAdapter: Incorrect parse add_all_liquidity_one_coin",
+      "Curve2AssetsAdapter[CURVE_FRAX_POOL].add_diff_liquidity_one_coin(leftoverAmount: 3.00 [3000000000000000000], i: FRAX, rateMinRAY: 912.00)",
+      "Curve2AssetsAdapter: Incorrect parse add_diff_liquidity_one_coin",
     );
 
     parsed = parser.parse(

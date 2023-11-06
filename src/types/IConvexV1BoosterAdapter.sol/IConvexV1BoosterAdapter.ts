@@ -34,12 +34,12 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     "addressProvider()": FunctionFragment;
     "creditManager()": FunctionFragment;
     "deposit(uint256,uint256,bool)": FunctionFragment;
-    "depositAll(uint256,bool)": FunctionFragment;
+    "depositDiff(uint256,uint256,bool)": FunctionFragment;
     "pidToPhantomToken(uint256)": FunctionFragment;
     "targetContract()": FunctionFragment;
     "updateStakedPhantomTokensMap()": FunctionFragment;
     "withdraw(uint256,uint256)": FunctionFragment;
-    "withdrawAll(uint256)": FunctionFragment;
+    "withdrawDiff(uint256,uint256)": FunctionFragment;
   };
 
   getFunction(
@@ -49,12 +49,12 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
       | "addressProvider"
       | "creditManager"
       | "deposit"
-      | "depositAll"
+      | "depositDiff"
       | "pidToPhantomToken"
       | "targetContract"
       | "updateStakedPhantomTokensMap"
       | "withdraw"
-      | "withdrawAll"
+      | "withdrawDiff"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -82,8 +82,12 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "depositAll",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+    functionFragment: "depositDiff",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "pidToPhantomToken",
@@ -102,8 +106,8 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawAll",
-    values: [PromiseOrValue<BigNumberish>]
+    functionFragment: "withdrawDiff",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(
@@ -123,7 +127,10 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "depositAll", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "depositDiff",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "pidToPhantomToken",
     data: BytesLike
@@ -138,7 +145,7 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawAll",
+    functionFragment: "withdrawDiff",
     data: BytesLike
   ): Result;
 
@@ -203,7 +210,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    depositAll(
+    depositDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       _pid: PromiseOrValue<BigNumberish>,
       _stake: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -226,7 +234,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    withdrawAll(
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       _pid: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -247,7 +256,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  depositAll(
+  depositDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     _pid: PromiseOrValue<BigNumberish>,
     _stake: PromiseOrValue<boolean>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -270,7 +280,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  withdrawAll(
+  withdrawDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     _pid: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -296,7 +307,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       }
     >;
 
-    depositAll(
+    depositDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       _pid: PromiseOrValue<BigNumberish>,
       _stake: PromiseOrValue<boolean>,
       overrides?: CallOverrides
@@ -327,7 +339,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       }
     >;
 
-    withdrawAll(
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       _pid: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
@@ -365,7 +378,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    depositAll(
+    depositDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       _pid: PromiseOrValue<BigNumberish>,
       _stake: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -388,7 +402,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    withdrawAll(
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       _pid: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -414,7 +429,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    depositAll(
+    depositDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       _pid: PromiseOrValue<BigNumberish>,
       _stake: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -437,7 +453,8 @@ export interface IConvexV1BoosterAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdrawAll(
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       _pid: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

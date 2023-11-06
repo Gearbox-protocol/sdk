@@ -54,7 +54,8 @@ describe("UniswapV2AdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("swapAllTokensForTokens", [
+      ifc.encodeFunctionData("swapDiffTokensForTokens", [
+        BigInt(1e6) * 234500n,
         RAY * 3240n,
         [
           tokenDataByNetwork.Mainnet.USDC,
@@ -66,8 +67,8 @@ describe("UniswapV2AdapterParser test", () => {
     );
 
     expect(parsed).to.be.eq(
-      "UniswapV2Adapter[UNISWAP_V2_ROUTER].swapAllTokensForTokens(rate: 3.24K, path: [USDC => DAI => FRAX])",
-      "Incorrect parse swapAllTokensForTokens",
+      "UniswapV2Adapter[UNISWAP_V2_ROUTER].swapDiffTokensForTokens(leftoverAmount: 234.50K [234500000000], rate: 3.24K, path: [USDC => DAI => FRAX])",
+      "Incorrect parse swapDiffTokensForTokens",
     );
   });
 });
