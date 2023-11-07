@@ -7,12 +7,16 @@ pragma solidity ^0.8.10;
 import {IDataCompressorV2_10} from "@gearbox-protocol/periphery-v3/contracts/interfaces/IDataCompressorV2_10.sol";
 import {IDataCompressorV3_00} from "@gearbox-protocol/periphery-v3/contracts/interfaces/IDataCompressorV3_00.sol";
 import {IAddressProviderV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IAddressProviderV3.sol";
+import {IContractsRegister} from "@gearbox-protocol/core-v2/contracts/interfaces/IContractsRegister.sol";
 import {IPoolV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IPoolV3.sol";
+import {IPoolQuotaKeeperV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IPoolQuotaKeeperV3.sol";
+import {IGaugeV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IGaugeV3.sol";
 import {ICreditFacadeV3} from "@gearbox-protocol/core-v3/contracts/interfaces/ICreditFacadeV3.sol";
 import {IPoolService} from "@gearbox-protocol/core-v2/contracts/interfaces/IPoolService.sol";
 import {ICreditFacadeV2} from "@gearbox-protocol/core-v2/contracts/interfaces/ICreditFacadeV2.sol";
 import {ICreditConfiguratorV2} from "@gearbox-protocol/core-v2/contracts/interfaces/ICreditConfiguratorV2.sol";
-import {IERC20ZapperDeposits} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IERC20ZapperDeposits.sol";
+import {IERC20ZapperDeposits} from
+    "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IERC20ZapperDeposits.sol";
 import {IETHZapperDeposits} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IETHZapperDeposits.sol";
 import {IZapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IZapper.sol";
 
@@ -43,6 +47,9 @@ import {IwstETHV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/inte
 import {IstETH} from "@gearbox-protocol/integrations-v3/contracts/integrations/lido/IstETH.sol";
 import {IwstETH} from "@gearbox-protocol/integrations-v3/contracts/integrations/lido/IwstETH.sol";
 import {IPriceOracleBase} from "@gearbox-protocol/core-v2/contracts/interfaces/IPriceOracleBase.sol";
+import {IPriceOracleV2} from "@gearbox-protocol/core-v2/contracts/interfaces/IPriceOracle.sol";
+import {IPriceOracleV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IPriceOracleV3.sol";
+import {IPriceFeed} from "@gearbox-protocol/core-v2/contracts/interfaces/IPriceFeed.sol";
 
 import {ICurveV1_2AssetsAdapter} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_2AssetsAdapter.sol";
@@ -53,7 +60,4 @@ import {ICurveV1_3AssetsAdapter} from
 import {ICurveV1_4AssetsAdapter} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_4AssetsAdapter.sol";
 
-import {IRouter} from
-    "@gearbox-protocol/router-v3/contracts/interfaces/IRouter.sol";
-
- 
+import {IRouter} from "@gearbox-protocol/router-v3/contracts/interfaces/IRouter.sol";

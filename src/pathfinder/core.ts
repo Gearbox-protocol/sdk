@@ -1,9 +1,6 @@
 import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 
-import {
-  MultiCallStructOutput,
-  SwapTaskStructOutput,
-} from "../types/interfaces/IRouter";
+import { MultiCallStructOutput, SwapTaskStructOutput } from "../types/IRouter";
 
 export enum SwapOperation {
   EXACT_INPUT,
