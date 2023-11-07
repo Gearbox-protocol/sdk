@@ -51,13 +51,12 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     "disableToken(address)": FunctionFragment;
     "enableToken(address)": FunctionFragment;
     "increaseDebt(uint256)": FunctionFragment;
-    "onDemandPriceUpdate(address,bytes)": FunctionFragment;
-    "payBot(uint72)": FunctionFragment;
+    "onDemandPriceUpdate(address,bool,bytes)": FunctionFragment;
     "revertIfReceivedLessThan((address,int256)[])": FunctionFragment;
     "revokeAdapterAllowances((address,address)[])": FunctionFragment;
-    "scheduleWithdrawal(address,uint256)": FunctionFragment;
     "setFullCheckParams(uint256[],uint16)": FunctionFragment;
     "updateQuota(address,int96,uint96)": FunctionFragment;
+    "withdrawCollateral(address,uint256,address)": FunctionFragment;
   };
 
   getFunction(
@@ -69,12 +68,11 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
       | "enableToken"
       | "increaseDebt"
       | "onDemandPriceUpdate"
-      | "payBot"
       | "revertIfReceivedLessThan"
       | "revokeAdapterAllowances"
-      | "scheduleWithdrawal"
       | "setFullCheckParams"
       | "updateQuota"
+      | "withdrawCollateral"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -110,11 +108,11 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "onDemandPriceUpdate",
-    values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "payBot",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<boolean>,
+      PromiseOrValue<BytesLike>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "revertIfReceivedLessThan",
@@ -123,10 +121,6 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "revokeAdapterAllowances",
     values: [RevocationPairStruct[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "scheduleWithdrawal",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "setFullCheckParams",
@@ -138,6 +132,14 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawCollateral",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
     ]
   ): string;
 
@@ -169,7 +171,6 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     functionFragment: "onDemandPriceUpdate",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "payBot", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "revertIfReceivedLessThan",
     data: BytesLike
@@ -179,15 +180,15 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "scheduleWithdrawal",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setFullCheckParams",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "updateQuota",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawCollateral",
     data: BytesLike
   ): Result;
 
@@ -259,12 +260,8 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
 
     onDemandPriceUpdate(
       token: PromiseOrValue<string>,
+      reserve: PromiseOrValue<boolean>,
       data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    payBot(
-      paymentAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -278,12 +275,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    scheduleWithdrawal(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     setFullCheckParams(
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
@@ -294,6 +285,13 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       token: PromiseOrValue<string>,
       quotaChange: PromiseOrValue<BigNumberish>,
       minQuota: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawCollateral(
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
@@ -336,12 +334,8 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
 
   onDemandPriceUpdate(
     token: PromiseOrValue<string>,
+    reserve: PromiseOrValue<boolean>,
     data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  payBot(
-    paymentAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -355,12 +349,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  scheduleWithdrawal(
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   setFullCheckParams(
     collateralHints: PromiseOrValue<BigNumberish>[],
     minHealthFactor: PromiseOrValue<BigNumberish>,
@@ -371,6 +359,13 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     token: PromiseOrValue<string>,
     quotaChange: PromiseOrValue<BigNumberish>,
     minQuota: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawCollateral(
+    token: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    to: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -413,12 +408,8 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
 
     onDemandPriceUpdate(
       token: PromiseOrValue<string>,
+      reserve: PromiseOrValue<boolean>,
       data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    payBot(
-      paymentAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -432,12 +423,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    scheduleWithdrawal(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setFullCheckParams(
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
@@ -448,6 +433,13 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       token: PromiseOrValue<string>,
       quotaChange: PromiseOrValue<BigNumberish>,
       minQuota: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawCollateral(
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -493,12 +485,8 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
 
     onDemandPriceUpdate(
       token: PromiseOrValue<string>,
+      reserve: PromiseOrValue<boolean>,
       data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    payBot(
-      paymentAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -512,12 +500,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    scheduleWithdrawal(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     setFullCheckParams(
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
@@ -528,6 +510,13 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       token: PromiseOrValue<string>,
       quotaChange: PromiseOrValue<BigNumberish>,
       minQuota: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawCollateral(
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
@@ -571,12 +560,8 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
 
     onDemandPriceUpdate(
       token: PromiseOrValue<string>,
+      reserve: PromiseOrValue<boolean>,
       data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    payBot(
-      paymentAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -590,12 +575,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    scheduleWithdrawal(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     setFullCheckParams(
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
@@ -606,6 +585,13 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       token: PromiseOrValue<string>,
       quotaChange: PromiseOrValue<BigNumberish>,
       minQuota: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawCollateral(
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

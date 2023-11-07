@@ -64,20 +64,6 @@ export type TokenBalanceStructOutput = [
   quotaCumulativeIndexLU: BigNumber;
 };
 
-export type ScheduledWithdrawalStruct = {
-  tokenIndex: PromiseOrValue<BigNumberish>;
-  maturity: PromiseOrValue<BigNumberish>;
-  token: PromiseOrValue<string>;
-  amount: PromiseOrValue<BigNumberish>;
-};
-
-export type ScheduledWithdrawalStructOutput = [
-  number,
-  number,
-  string,
-  BigNumber
-] & { tokenIndex: number; maturity: number; token: string; amount: BigNumber };
-
 export type CreditAccountDataStruct = {
   isSuccessful: PromiseOrValue<boolean>;
   priceFeedsNeeded: PromiseOrValue<string>[];
@@ -106,7 +92,6 @@ export type CreditAccountDataStruct = {
   expirationDate: PromiseOrValue<BigNumberish>;
   activeBots: PromiseOrValue<string>[];
   maxApprovedBots: PromiseOrValue<BigNumberish>;
-  schedultedWithdrawals: [ScheduledWithdrawalStruct, ScheduledWithdrawalStruct];
 };
 
 export type CreditAccountDataStructOutput = [
@@ -136,8 +121,7 @@ export type CreditAccountDataStructOutput = [
   BigNumber,
   number,
   string[],
-  BigNumber,
-  [ScheduledWithdrawalStructOutput, ScheduledWithdrawalStructOutput]
+  BigNumber
 ] & {
   isSuccessful: boolean;
   priceFeedsNeeded: string[];
@@ -166,10 +150,6 @@ export type CreditAccountDataStructOutput = [
   expirationDate: number;
   activeBots: string[];
   maxApprovedBots: BigNumber;
-  schedultedWithdrawals: [
-    ScheduledWithdrawalStructOutput,
-    ScheduledWithdrawalStructOutput
-  ];
 };
 
 export type ContractAdapterStruct = {

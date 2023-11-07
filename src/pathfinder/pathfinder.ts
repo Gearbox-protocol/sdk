@@ -6,12 +6,12 @@ import {
   toBigInt,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber, BigNumberish, providers, Signer } from "ethers";
+import { BigNumberish, providers, Signer } from "ethers";
 
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { IRouter, IRouter__factory } from "../types";
-import { BalanceStruct } from "../types/IRouter";
+import { BalanceStruct } from "../types/interfaces/IRouter";
 import {
   MultiCall,
   PathFinderCloseResult,
@@ -60,9 +60,10 @@ export class PathFinder {
   async findAllSwaps(
     creditAccount: CreditAccountData,
     swapOperation: SwapOperation,
-    tokenIn: SupportedToken | string,
-    tokenOut: SupportedToken | string,
+    tokenIn: string,
+    tokenOut: string,
     amount: BigNumberish,
+    leftoverAmount: BigNumberish,
     slippage: number,
   ): Promise<Array<PathFinderResult>> {
     const connectors = this.getAvailableConnectors(creditAccount.balances);
@@ -70,20 +71,20 @@ export class PathFinder {
     const swapTask: SwapTask = {
       swapOperation: swapOperation,
       creditAccount: creditAccount.addr,
-      tokenIn:
-        tokenDataByNetwork[this.network][tokenIn as SupportedToken] || tokenIn,
-      tokenOut:
-        tokenDataByNetwork[this.network][tokenOut as SupportedToken] ||
-        tokenOut,
+      tokenIn,
+      tokenOut,
       connectors,
-      amount: BigNumber.from(amount),
-      slippage: BigNumber.from(slippage),
-      externalSlippage: false,
+      amount,
+      leftoverAmount,
     };
 
-    const results = await this.pathFinder.callStatic.findAllSwaps(swapTask, {
-      gasLimit: GAS_PER_BLOCK,
-    });
+    const results = await this.pathFinder.callStatic.findAllSwaps(
+      swapTask,
+      slippage,
+      {
+        gasLimit: GAS_PER_BLOCK,
+      },
+    );
 
     const unique: Record<string, PathFinderResult> = {};
 
@@ -94,6 +95,8 @@ export class PathFinder {
 
       unique[key] = {
         amount: toBigInt(r.amount),
+        minAmount: toBigInt(r.amount),
+        gasUsage: toBigInt(r.amount),
         calls: r.calls,
       };
     });
@@ -103,20 +106,17 @@ export class PathFinder {
 
   async findOneTokenPath(
     creditAccount: CreditAccountData,
-    tokenIn: SupportedToken | string,
-    tokenOut: SupportedToken | string,
+    tokenIn: string,
+    tokenOut: string,
     amount: BigNumberish,
     slippage: number,
   ): Promise<PathFinderResult> {
-    const tokenInAddr =
-      tokenDataByNetwork[this.network][tokenIn as SupportedToken] || tokenIn;
-
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
     const result = await this.pathFinder.callStatic.findOneTokenPath(
-      tokenInAddr,
+      tokenIn,
       amount,
-      tokenDataByNetwork[this.network][tokenOut as SupportedToken] || tokenOut,
+      tokenOut,
       creditAccount.addr,
       connectors,
       slippage,
@@ -127,6 +127,8 @@ export class PathFinder {
 
     return {
       amount: toBigInt(result.amount),
+      minAmount: toBigInt(result.minAmount),
+      gasUsage: toBigInt(result.gasUsage),
       calls: result.calls,
     };
   }
@@ -145,33 +147,28 @@ export class PathFinder {
 
   async findOpenStrategyPath(
     cm: CreditManagerData,
-    expectedBalances: Record<SupportedToken | string, BigNumberish>,
-    target: SupportedToken | string,
+    expectedBalances: Record<string, BigNumberish>,
+    leftoverBalances: Record<string, BigNumberish>,
+    target: string,
     slippage: number,
   ): Promise<PathFinderOpenStrategyResult> {
-    const targetAddr =
-      tokenDataByNetwork[this.network][target as SupportedToken] || target;
-
-    const expectedBalancesAddr = Object.entries(expectedBalances).reduce<
-      Record<string, BigNumberish>
-    >((acc, [token, balance]) => {
-      const tokenAddr =
-        tokenDataByNetwork[this.network][token as SupportedToken] || token;
-      acc[tokenAddr.toLowerCase()] = balance;
-      return acc;
-    }, {});
-
-    const balances: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
+    const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: expectedBalancesAddr[token] || 0,
+      balance: expectedBalances[token] || 0,
+    }));
+
+    const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
+      token,
+      balance: leftoverBalances[token] || 0,
     }));
 
     const connectors = this.getAvailableConnectors(cm.supportedTokens);
 
     const result = await this.pathFinder.callStatic.findOpenStrategyPath(
       cm.address,
-      balances,
-      targetAddr,
+      expected,
+      leftover,
+      target,
       connectors,
       slippage,
       {
@@ -201,6 +198,9 @@ export class PathFinder {
    */
   async findBestClosePath(
     creditAccount: CreditAccountData,
+    cm: CreditManagerData,
+    expectedBalances: Record<string, BigNumberish>,
+    leftoverBalances: Record<string, BigNumberish>,
     slippage: number,
     noConcurency = false,
   ): Promise<PathFinderCloseResult> {
@@ -209,6 +209,16 @@ export class PathFinder {
       creditAccount.allBalances,
       loopsPerTx,
     );
+
+    const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
+      token,
+      balance: expectedBalances[token] || 0,
+    }));
+
+    const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
+      token,
+      balance: leftoverBalances[token] || 0,
+    }));
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
@@ -219,6 +229,8 @@ export class PathFinder {
         results.push(
           await this.pathFinder.callStatic.findBestClosePath(
             creditAccount.addr,
+            expected,
+            leftover,
             connectors,
             slippage,
             po,
@@ -234,6 +246,8 @@ export class PathFinder {
       const requests = pathOptions.map(po =>
         this.pathFinder.callStatic.findBestClosePath(
           creditAccount.addr,
+          expected,
+          leftover,
           connectors,
           slippage,
           po,

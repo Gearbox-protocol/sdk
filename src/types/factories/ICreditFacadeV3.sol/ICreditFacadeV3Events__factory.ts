@@ -28,7 +28,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "value",
+        name: "amount",
         type: "uint256",
       },
     ],
@@ -48,12 +48,6 @@ const _abi = [
         indexed: true,
         internalType: "address",
         name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
         type: "address",
       },
     ],
@@ -152,12 +146,6 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "enum ClosureAction",
-        name: "closureAction",
-        type: "uint8",
-      },
-      {
-        indexed: false,
         internalType: "uint256",
         name: "remainingFunds",
         type: "uint256",
@@ -207,13 +195,13 @@ const _abi = [
         type: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "enabledTokensMask",
-        type: "uint256",
+        indexed: true,
+        internalType: "address",
+        name: "caller",
+        type: "address",
       },
     ],
-    name: "SetEnabledTokensMask",
+    name: "StartMultiCall",
     type: "event",
   },
   {
@@ -228,11 +216,17 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "caller",
+        name: "token",
         type: "address",
       },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
     ],
-    name: "StartMultiCall",
+    name: "WithdrawCollateral",
     type: "event",
   },
 ] as const;

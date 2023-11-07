@@ -37,6 +37,12 @@ const _abi = [
         name: "skipCheck",
         type: "bool",
       },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "trusted",
+        type: "bool",
+      },
     ],
     name: "SetPriceFeed",
     type: "event",

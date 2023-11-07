@@ -1,6 +1,11 @@
 import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 
-import { MultiCallStructOutput, SwapTaskStructOutput } from "../types/IRouter";
+import {
+  MultiCallStructOutput,
+  RouterResultStructOutput,
+  SwapTaskStruct,
+} from "../types/interfaces/IRouter";
+import { BigintifyProps } from "../utils/types";
 
 export enum SwapOperation {
   EXACT_INPUT,
@@ -9,12 +14,13 @@ export enum SwapOperation {
 }
 
 export type MultiCall = ExcludeArrayProps<MultiCallStructOutput>;
-export type SwapTask = ExcludeArrayProps<SwapTaskStructOutput>;
+export type SwapTask = ExcludeArrayProps<SwapTaskStruct>;
 
-export interface PathFinderResult {
-  amount: bigint;
-  calls: Array<MultiCall>;
-}
+export type PathFinderResult = BigintifyProps<
+  ExcludeArrayProps<RouterResultStructOutput>
+> & {
+  calls: BigintifyProps<ExcludeArrayProps<RouterResultStructOutput["calls"]>>;
+};
 
 export interface PathFinderOpenStrategyResult {
   balances: Record<string, bigint>;

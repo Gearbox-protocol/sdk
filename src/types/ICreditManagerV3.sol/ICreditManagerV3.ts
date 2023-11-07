@@ -94,9 +94,9 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     "addToken(address)": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "approveCreditAccount(address,uint256)": FunctionFragment;
+    "approveToken(address,address,address,uint256)": FunctionFragment;
     "calcDebtAndCollateral(address,uint8)": FunctionFragment;
-    "claimWithdrawals(address,address,uint8)": FunctionFragment;
-    "closeCreditAccount(address,uint8,(uint256,uint256,uint256,uint128,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,address[],address),address,address,uint256,bool)": FunctionFragment;
+    "closeCreditAccount(address)": FunctionFragment;
     "collateralTokenByMask(uint256)": FunctionFragment;
     "collateralTokensCount()": FunctionFragment;
     "contractToAdapter(address)": FunctionFragment;
@@ -108,14 +108,16 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     "creditFacade()": FunctionFragment;
     "enabledTokensMaskOf(address)": FunctionFragment;
     "execute(bytes)": FunctionFragment;
+    "externalCall(address,address,bytes)": FunctionFragment;
     "fees()": FunctionFragment;
     "flagsOf(address)": FunctionFragment;
-    "fullCollateralCheck(address,uint256,uint256[],uint16)": FunctionFragment;
+    "fullCollateralCheck(address,uint256,uint256[],uint16,bool)": FunctionFragment;
     "getActiveCreditAccountOrRevert()": FunctionFragment;
     "getBorrowerOrRevert(address)": FunctionFragment;
     "getTokenByMask(uint256)": FunctionFragment;
     "getTokenMaskOrRevert(address)": FunctionFragment;
     "isLiquidatable(address,uint16)": FunctionFragment;
+    "liquidateCreditAccount(address,(uint256,uint256,uint256,uint128,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,address[],address),address,bool)": FunctionFragment;
     "liquidationThresholds(address)": FunctionFragment;
     "ltParams(address)": FunctionFragment;
     "manageDebt(address,uint256,uint256,uint8)": FunctionFragment;
@@ -127,7 +129,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     "priceOracle()": FunctionFragment;
     "quotedTokensMask()": FunctionFragment;
     "revokeAdapterAllowances(address,(address,address)[])": FunctionFragment;
-    "scheduleWithdrawal(address,address,uint256)": FunctionFragment;
     "setActiveCreditAccount(address)": FunctionFragment;
     "setCollateralTokenData(address,uint16,uint16,uint40,uint24)": FunctionFragment;
     "setContractAllowance(address,address)": FunctionFragment;
@@ -142,7 +143,7 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     "updateQuota(address,address,int96,uint96,uint96)": FunctionFragment;
     "version()": FunctionFragment;
     "weth()": FunctionFragment;
-    "withdrawalManager()": FunctionFragment;
+    "withdrawCollateral(address,address,uint256,address)": FunctionFragment;
   };
 
   getFunction(
@@ -153,8 +154,8 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "addToken"
       | "addressProvider"
       | "approveCreditAccount"
+      | "approveToken"
       | "calcDebtAndCollateral"
-      | "claimWithdrawals"
       | "closeCreditAccount"
       | "collateralTokenByMask"
       | "collateralTokensCount"
@@ -167,6 +168,7 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "creditFacade"
       | "enabledTokensMaskOf"
       | "execute"
+      | "externalCall"
       | "fees"
       | "flagsOf"
       | "fullCollateralCheck"
@@ -175,6 +177,7 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "getTokenByMask"
       | "getTokenMaskOrRevert"
       | "isLiquidatable"
+      | "liquidateCreditAccount"
       | "liquidationThresholds"
       | "ltParams"
       | "manageDebt"
@@ -186,7 +189,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "priceOracle"
       | "quotedTokensMask"
       | "revokeAdapterAllowances"
-      | "scheduleWithdrawal"
       | "setActiveCreditAccount"
       | "setCollateralTokenData"
       | "setContractAllowance"
@@ -201,7 +203,7 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "updateQuota"
       | "version"
       | "weth"
-      | "withdrawalManager"
+      | "withdrawCollateral"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -234,28 +236,21 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "calcDebtAndCollateral",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "claimWithdrawals",
+    functionFragment: "approveToken",
     values: [
+      PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "calcDebtAndCollateral",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "closeCreditAccount",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      CollateralDebtDataStruct,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
-    ]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "collateralTokenByMask",
@@ -301,6 +296,14 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     functionFragment: "execute",
     values: [PromiseOrValue<BytesLike>]
   ): string;
+  encodeFunctionData(
+    functionFragment: "externalCall",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BytesLike>
+    ]
+  ): string;
   encodeFunctionData(functionFragment: "fees", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "flagsOf",
@@ -312,7 +315,8 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
     ]
   ): string;
   encodeFunctionData(
@@ -334,6 +338,15 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "isLiquidatable",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "liquidateCreditAccount",
+    values: [
+      PromiseOrValue<string>,
+      CollateralDebtDataStruct,
+      PromiseOrValue<string>,
+      PromiseOrValue<boolean>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidationThresholds",
@@ -377,14 +390,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "revokeAdapterAllowances",
     values: [PromiseOrValue<string>, RevocationPairStruct[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "scheduleWithdrawal",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
   ): string;
   encodeFunctionData(
     functionFragment: "setActiveCreditAccount",
@@ -459,8 +464,13 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(functionFragment: "weth", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "withdrawalManager",
-    values?: undefined
+    functionFragment: "withdrawCollateral",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
 
   decodeFunctionResult(
@@ -485,11 +495,11 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "calcDebtAndCollateral",
+    functionFragment: "approveToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "claimWithdrawals",
+    functionFragment: "calcDebtAndCollateral",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -537,6 +547,10 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "externalCall",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "fees", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "flagsOf", data: BytesLike): Result;
   decodeFunctionResult(
@@ -561,6 +575,10 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "isLiquidatable",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidateCreditAccount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -593,10 +611,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "revokeAdapterAllowances",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "scheduleWithdrawal",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -641,7 +655,7 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawalManager",
+    functionFragment: "withdrawCollateral",
     data: BytesLike
   ): Result;
 
@@ -718,6 +732,14 @@ export interface ICreditManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    approveToken(
+      creditAccount: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     calcDebtAndCollateral(
       creditAccount: PromiseOrValue<string>,
       task: PromiseOrValue<BigNumberish>,
@@ -726,21 +748,8 @@ export interface ICreditManagerV3 extends BaseContract {
       [CollateralDebtDataStructOutput] & { cdd: CollateralDebtDataStructOutput }
     >;
 
-    claimWithdrawals(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      action: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     closeCreditAccount(
       creditAccount: PromiseOrValue<string>,
-      closureAction: PromiseOrValue<BigNumberish>,
-      collateralDebtData: CollateralDebtDataStruct,
-      payer: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokensMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -807,6 +816,13 @@ export interface ICreditManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    externalCall(
+      creditAccount: PromiseOrValue<string>,
+      target: PromiseOrValue<string>,
+      callData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     fees(
       overrides?: CallOverrides
     ): Promise<
@@ -829,6 +845,7 @@ export interface ICreditManagerV3 extends BaseContract {
       enabledTokensMask: PromiseOrValue<BigNumberish>,
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
+      useSafePrices: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -856,6 +873,14 @@ export interface ICreditManagerV3 extends BaseContract {
       minHealthFactor: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    liquidateCreditAccount(
+      creditAccount: PromiseOrValue<string>,
+      collateralDebtData: CollateralDebtDataStruct,
+      to: PromiseOrValue<string>,
+      isExpired: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
     liquidationThresholds(
       token: PromiseOrValue<string>,
@@ -902,13 +927,6 @@ export interface ICreditManagerV3 extends BaseContract {
     revokeAdapterAllowances(
       creditAccount: PromiseOrValue<string>,
       revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    scheduleWithdrawal(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -988,7 +1006,13 @@ export interface ICreditManagerV3 extends BaseContract {
 
     weth(overrides?: CallOverrides): Promise<[string]>;
 
-    withdrawalManager(overrides?: CallOverrides): Promise<[string]>;
+    withdrawCollateral(
+      creditAccount: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
   };
 
   accountFactory(overrides?: CallOverrides): Promise<string>;
@@ -1019,27 +1043,22 @@ export interface ICreditManagerV3 extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  approveToken(
+    creditAccount: PromiseOrValue<string>,
+    token: PromiseOrValue<string>,
+    spender: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   calcDebtAndCollateral(
     creditAccount: PromiseOrValue<string>,
     task: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<CollateralDebtDataStructOutput>;
 
-  claimWithdrawals(
-    creditAccount: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    action: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   closeCreditAccount(
     creditAccount: PromiseOrValue<string>,
-    closureAction: PromiseOrValue<BigNumberish>,
-    collateralDebtData: CollateralDebtDataStruct,
-    payer: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    skipTokensMask: PromiseOrValue<BigNumberish>,
-    convertToETH: PromiseOrValue<boolean>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1106,6 +1125,13 @@ export interface ICreditManagerV3 extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  externalCall(
+    creditAccount: PromiseOrValue<string>,
+    target: PromiseOrValue<string>,
+    callData: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   fees(
     overrides?: CallOverrides
   ): Promise<
@@ -1128,6 +1154,7 @@ export interface ICreditManagerV3 extends BaseContract {
     enabledTokensMask: PromiseOrValue<BigNumberish>,
     collateralHints: PromiseOrValue<BigNumberish>[],
     minHealthFactor: PromiseOrValue<BigNumberish>,
+    useSafePrices: PromiseOrValue<boolean>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1153,6 +1180,14 @@ export interface ICreditManagerV3 extends BaseContract {
     minHealthFactor: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  liquidateCreditAccount(
+    creditAccount: PromiseOrValue<string>,
+    collateralDebtData: CollateralDebtDataStruct,
+    to: PromiseOrValue<string>,
+    isExpired: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   liquidationThresholds(
     token: PromiseOrValue<string>,
@@ -1199,13 +1234,6 @@ export interface ICreditManagerV3 extends BaseContract {
   revokeAdapterAllowances(
     creditAccount: PromiseOrValue<string>,
     revocations: RevocationPairStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  scheduleWithdrawal(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1285,7 +1313,13 @@ export interface ICreditManagerV3 extends BaseContract {
 
   weth(overrides?: CallOverrides): Promise<string>;
 
-  withdrawalManager(overrides?: CallOverrides): Promise<string>;
+  withdrawCollateral(
+    creditAccount: PromiseOrValue<string>,
+    token: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    to: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     accountFactory(overrides?: CallOverrides): Promise<string>;
@@ -1316,31 +1350,24 @@ export interface ICreditManagerV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    approveToken(
+      creditAccount: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     calcDebtAndCollateral(
       creditAccount: PromiseOrValue<string>,
       task: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<CollateralDebtDataStructOutput>;
 
-    claimWithdrawals(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      action: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     closeCreditAccount(
       creditAccount: PromiseOrValue<string>,
-      closureAction: PromiseOrValue<BigNumberish>,
-      collateralDebtData: CollateralDebtDataStruct,
-      payer: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokensMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { remainingFunds: BigNumber; loss: BigNumber }
-    >;
+    ): Promise<void>;
 
     collateralTokenByMask(
       tokenMask: PromiseOrValue<BigNumberish>,
@@ -1405,6 +1432,13 @@ export interface ICreditManagerV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    externalCall(
+      creditAccount: PromiseOrValue<string>,
+      target: PromiseOrValue<string>,
+      callData: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     fees(
       overrides?: CallOverrides
     ): Promise<
@@ -1427,6 +1461,7 @@ export interface ICreditManagerV3 extends BaseContract {
       enabledTokensMask: PromiseOrValue<BigNumberish>,
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
+      useSafePrices: PromiseOrValue<boolean>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1452,6 +1487,16 @@ export interface ICreditManagerV3 extends BaseContract {
       minHealthFactor: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    liquidateCreditAccount(
+      creditAccount: PromiseOrValue<string>,
+      collateralDebtData: CollateralDebtDataStruct,
+      to: PromiseOrValue<string>,
+      isExpired: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { remainingFunds: BigNumber; loss: BigNumber }
+    >;
 
     liquidationThresholds(
       token: PromiseOrValue<string>,
@@ -1506,13 +1551,6 @@ export interface ICreditManagerV3 extends BaseContract {
       revocations: RevocationPairStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
-
-    scheduleWithdrawal(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     setActiveCreditAccount(
       creditAccount: PromiseOrValue<string>,
@@ -1595,7 +1633,13 @@ export interface ICreditManagerV3 extends BaseContract {
 
     weth(overrides?: CallOverrides): Promise<string>;
 
-    withdrawalManager(overrides?: CallOverrides): Promise<string>;
+    withdrawCollateral(
+      creditAccount: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   filters: {
@@ -1636,27 +1680,22 @@ export interface ICreditManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    approveToken(
+      creditAccount: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     calcDebtAndCollateral(
       creditAccount: PromiseOrValue<string>,
       task: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    claimWithdrawals(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      action: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     closeCreditAccount(
       creditAccount: PromiseOrValue<string>,
-      closureAction: PromiseOrValue<BigNumberish>,
-      collateralDebtData: CollateralDebtDataStruct,
-      payer: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokensMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1701,6 +1740,13 @@ export interface ICreditManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    externalCall(
+      creditAccount: PromiseOrValue<string>,
+      target: PromiseOrValue<string>,
+      callData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     fees(overrides?: CallOverrides): Promise<BigNumber>;
 
     flagsOf(
@@ -1713,6 +1759,7 @@ export interface ICreditManagerV3 extends BaseContract {
       enabledTokensMask: PromiseOrValue<BigNumberish>,
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
+      useSafePrices: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1739,6 +1786,14 @@ export interface ICreditManagerV3 extends BaseContract {
       creditAccount: PromiseOrValue<string>,
       minHealthFactor: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    liquidateCreditAccount(
+      creditAccount: PromiseOrValue<string>,
+      collateralDebtData: CollateralDebtDataStruct,
+      to: PromiseOrValue<string>,
+      isExpired: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     liquidationThresholds(
@@ -1779,13 +1834,6 @@ export interface ICreditManagerV3 extends BaseContract {
     revokeAdapterAllowances(
       creditAccount: PromiseOrValue<string>,
       revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    scheduleWithdrawal(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1865,7 +1913,13 @@ export interface ICreditManagerV3 extends BaseContract {
 
     weth(overrides?: CallOverrides): Promise<BigNumber>;
 
-    withdrawalManager(overrides?: CallOverrides): Promise<BigNumber>;
+    withdrawCollateral(
+      creditAccount: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1897,27 +1951,22 @@ export interface ICreditManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    approveToken(
+      creditAccount: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      spender: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     calcDebtAndCollateral(
       creditAccount: PromiseOrValue<string>,
       task: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    claimWithdrawals(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      action: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     closeCreditAccount(
       creditAccount: PromiseOrValue<string>,
-      closureAction: PromiseOrValue<BigNumberish>,
-      collateralDebtData: CollateralDebtDataStruct,
-      payer: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokensMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1968,6 +2017,13 @@ export interface ICreditManagerV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    externalCall(
+      creditAccount: PromiseOrValue<string>,
+      target: PromiseOrValue<string>,
+      callData: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     fees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     flagsOf(
@@ -1980,6 +2036,7 @@ export interface ICreditManagerV3 extends BaseContract {
       enabledTokensMask: PromiseOrValue<BigNumberish>,
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
+      useSafePrices: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2006,6 +2063,14 @@ export interface ICreditManagerV3 extends BaseContract {
       creditAccount: PromiseOrValue<string>,
       minHealthFactor: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    liquidateCreditAccount(
+      creditAccount: PromiseOrValue<string>,
+      collateralDebtData: CollateralDebtDataStruct,
+      to: PromiseOrValue<string>,
+      isExpired: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     liquidationThresholds(
@@ -2046,13 +2111,6 @@ export interface ICreditManagerV3 extends BaseContract {
     revokeAdapterAllowances(
       creditAccount: PromiseOrValue<string>,
       revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    scheduleWithdrawal(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2132,6 +2190,12 @@ export interface ICreditManagerV3 extends BaseContract {
 
     weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    withdrawalManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    withdrawCollateral(
+      creditAccount: PromiseOrValue<string>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

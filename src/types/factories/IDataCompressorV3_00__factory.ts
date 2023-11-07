@@ -216,33 +216,6 @@ const _abi = [
             name: "maxApprovedBots",
             type: "uint256",
           },
-          {
-            components: [
-              {
-                internalType: "uint8",
-                name: "tokenIndex",
-                type: "uint8",
-              },
-              {
-                internalType: "uint40",
-                name: "maturity",
-                type: "uint40",
-              },
-              {
-                internalType: "address",
-                name: "token",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-              },
-            ],
-            internalType: "struct ScheduledWithdrawal[2]",
-            name: "schedultedWithdrawals",
-            type: "tuple[2]",
-          },
         ],
         internalType: "struct CreditAccountData",
         name: "",
@@ -458,33 +431,6 @@ const _abi = [
             name: "maxApprovedBots",
             type: "uint256",
           },
-          {
-            components: [
-              {
-                internalType: "uint8",
-                name: "tokenIndex",
-                type: "uint8",
-              },
-              {
-                internalType: "uint40",
-                name: "maturity",
-                type: "uint40",
-              },
-              {
-                internalType: "address",
-                name: "token",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-              },
-            ],
-            internalType: "struct ScheduledWithdrawal[2]",
-            name: "schedultedWithdrawals",
-            type: "tuple[2]",
-          },
         ],
         internalType: "struct CreditAccountData[]",
         name: "",
@@ -699,33 +645,6 @@ const _abi = [
             internalType: "uint256",
             name: "maxApprovedBots",
             type: "uint256",
-          },
-          {
-            components: [
-              {
-                internalType: "uint8",
-                name: "tokenIndex",
-                type: "uint8",
-              },
-              {
-                internalType: "uint40",
-                name: "maturity",
-                type: "uint40",
-              },
-              {
-                internalType: "address",
-                name: "token",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-              },
-            ],
-            internalType: "struct ScheduledWithdrawal[2]",
-            name: "schedultedWithdrawals",
-            type: "tuple[2]",
           },
         ],
         internalType: "struct CreditAccountData[]",
@@ -1557,33 +1476,6 @@ const _abi = [
             internalType: "uint256",
             name: "maxApprovedBots",
             type: "uint256",
-          },
-          {
-            components: [
-              {
-                internalType: "uint8",
-                name: "tokenIndex",
-                type: "uint8",
-              },
-              {
-                internalType: "uint40",
-                name: "maturity",
-                type: "uint40",
-              },
-              {
-                internalType: "address",
-                name: "token",
-                type: "address",
-              },
-              {
-                internalType: "uint256",
-                name: "amount",
-                type: "uint256",
-              },
-            ],
-            internalType: "struct ScheduledWithdrawal[2]",
-            name: "schedultedWithdrawals",
-            type: "tuple[2]",
           },
         ],
         internalType: "struct CreditAccountData[]",

@@ -126,25 +126,17 @@ const _abi = [
         type: "address",
       },
       {
+        internalType: "bool",
+        name: "reserve",
+        type: "bool",
+      },
+      {
         internalType: "bytes",
         name: "data",
         type: "bytes",
       },
     ],
     name: "onDemandPriceUpdate",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint72",
-        name: "paymentAmount",
-        type: "uint72",
-      },
-    ],
-    name: "payBot",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -202,24 +194,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "scheduleWithdrawal",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "uint256[]",
         name: "collateralHints",
         type: "uint256[]",
@@ -254,6 +228,29 @@ const _abi = [
       },
     ],
     name: "updateQuota",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "withdrawCollateral",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

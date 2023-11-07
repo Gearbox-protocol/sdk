@@ -4,7 +4,7 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IRouter, IRouterInterface } from "../IRouter";
+import type { IRouter, IRouterInterface } from "../../interfaces/IRouter";
 
 const _abi = [
   {
@@ -125,18 +125,18 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "slippage",
+            name: "leftoverAmount",
             type: "uint256",
-          },
-          {
-            internalType: "bool",
-            name: "externalSlippage",
-            type: "bool",
           },
         ],
         internalType: "struct SwapTask",
         name: "swapTask",
         type: "tuple",
+      },
+      {
+        internalType: "uint256",
+        name: "slippage",
+        type: "uint256",
       },
     ],
     name: "findAllSwaps",
@@ -146,6 +146,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "minAmount",
             type: "uint256",
           },
           {
@@ -185,6 +190,40 @@ const _abi = [
         internalType: "address",
         name: "creditAccount",
         type: "address",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "balance",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Balance[]",
+        name: "expectedBalances",
+        type: "tuple[]",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "balance",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Balance[]",
+        name: "leftoverBalances",
+        type: "tuple[]",
       },
       {
         internalType: "address[]",
@@ -236,6 +275,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "minAmount",
             type: "uint256",
           },
           {
@@ -318,6 +362,11 @@ const _abi = [
           },
           {
             internalType: "uint256",
+            name: "minAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
             name: "gasUsage",
             type: "uint256",
           },
@@ -372,6 +421,23 @@ const _abi = [
         type: "tuple[]",
       },
       {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "balance",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Balance[]",
+        name: "leftoverBalances",
+        type: "tuple[]",
+      },
+      {
         internalType: "address",
         name: "target",
         type: "address",
@@ -411,6 +477,11 @@ const _abi = [
           {
             internalType: "uint256",
             name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "minAmount",
             type: "uint256",
           },
           {

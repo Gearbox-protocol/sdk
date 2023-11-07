@@ -82,7 +82,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "tokenMask",
+        name: "tokensToEnable",
         type: "uint256",
       },
     ],
@@ -129,6 +129,34 @@ const _abi = [
       },
     ],
     name: "approveCreditAccount",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "spender",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "approveToken",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -236,151 +264,9 @@ const _abi = [
         name: "creditAccount",
         type: "address",
       },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "enum ClaimAction",
-        name: "action",
-        type: "uint8",
-      },
-    ],
-    name: "claimWithdrawals",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        internalType: "enum ClosureAction",
-        name: "closureAction",
-        type: "uint8",
-      },
-      {
-        components: [
-          {
-            internalType: "uint256",
-            name: "debt",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "cumulativeIndexNow",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "cumulativeIndexLastUpdate",
-            type: "uint256",
-          },
-          {
-            internalType: "uint128",
-            name: "cumulativeQuotaInterest",
-            type: "uint128",
-          },
-          {
-            internalType: "uint256",
-            name: "accruedInterest",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "accruedFees",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "totalDebtUSD",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "totalValue",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "totalValueUSD",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "twvUSD",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "enabledTokensMask",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "quotedTokensMask",
-            type: "uint256",
-          },
-          {
-            internalType: "address[]",
-            name: "quotedTokens",
-            type: "address[]",
-          },
-          {
-            internalType: "address",
-            name: "_poolQuotaKeeper",
-            type: "address",
-          },
-        ],
-        internalType: "struct CollateralDebtData",
-        name: "collateralDebtData",
-        type: "tuple",
-      },
-      {
-        internalType: "address",
-        name: "payer",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "skipTokensMask",
-        type: "uint256",
-      },
-      {
-        internalType: "bool",
-        name: "convertToETH",
-        type: "bool",
-      },
     ],
     name: "closeCreditAccount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "remainingFunds",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "loss",
-        type: "uint256",
-      },
-    ],
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
@@ -609,6 +495,35 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "target",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "callData",
+        type: "bytes",
+      },
+    ],
+    name: "externalCall",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "result",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "fees",
     outputs: [
@@ -681,6 +596,11 @@ const _abi = [
         internalType: "uint16",
         name: "minHealthFactor",
         type: "uint16",
+      },
+      {
+        internalType: "bool",
+        name: "useSafePrices",
+        type: "bool",
       },
     ],
     name: "fullCollateralCheck",
@@ -786,6 +706,117 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "debt",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "cumulativeIndexNow",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "cumulativeIndexLastUpdate",
+            type: "uint256",
+          },
+          {
+            internalType: "uint128",
+            name: "cumulativeQuotaInterest",
+            type: "uint128",
+          },
+          {
+            internalType: "uint256",
+            name: "accruedInterest",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "accruedFees",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalDebtUSD",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValueUSD",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "twvUSD",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "enabledTokensMask",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "quotedTokensMask",
+            type: "uint256",
+          },
+          {
+            internalType: "address[]",
+            name: "quotedTokens",
+            type: "address[]",
+          },
+          {
+            internalType: "address",
+            name: "_poolQuotaKeeper",
+            type: "address",
+          },
+        ],
+        internalType: "struct CollateralDebtData",
+        name: "collateralDebtData",
+        type: "tuple",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "isExpired",
+        type: "bool",
+      },
+    ],
+    name: "liquidateCreditAccount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "remainingFunds",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "loss",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1009,35 +1040,6 @@ const _abi = [
     ],
     name: "revokeAdapterAllowances",
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "scheduleWithdrawal",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
     stateMutability: "nonpayable",
     type: "function",
   },
@@ -1310,16 +1312,37 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "withdrawalManager",
-    outputs: [
+    inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "creditAccount",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "to",
         type: "address",
       },
     ],
-    stateMutability: "view",
+    name: "withdrawCollateral",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "tokensToDisable",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ] as const;
