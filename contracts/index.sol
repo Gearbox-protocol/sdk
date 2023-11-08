@@ -19,6 +19,7 @@ import {IERC20ZapperDeposits} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IERC20ZapperDeposits.sol";
 import {IETHZapperDeposits} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IETHZapperDeposits.sol";
 import {IZapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IZapper.sol";
+import {IDegenNFTV2} from "@gearbox-protocol/core-v2/contracts/interfaces/IDegenNFTV2.sol";
 
 import {IGearStakingV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IGearStakingV3.sol";
 
