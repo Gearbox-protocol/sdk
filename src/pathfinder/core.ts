@@ -19,7 +19,7 @@ export type SwapTask = ExcludeArrayProps<SwapTaskStruct>;
 export type PathFinderResult = BigintifyProps<
   ExcludeArrayProps<RouterResultStructOutput>
 > & {
-  calls: BigintifyProps<ExcludeArrayProps<RouterResultStructOutput["calls"]>>;
+  calls: Array<MultiCall>;
 };
 
 export interface PathFinderOpenStrategyResult {
@@ -27,7 +27,6 @@ export interface PathFinderOpenStrategyResult {
   calls: Array<MultiCall>;
 }
 
-export interface PathFinderCloseResult {
+export interface PathFinderCloseResult extends PathFinderResult {
   underlyingBalance: bigint;
-  calls: Array<MultiCall>;
 }

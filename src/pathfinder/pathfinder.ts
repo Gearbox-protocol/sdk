@@ -13,7 +13,6 @@ import { CreditManagerData } from "../core/creditManager";
 import { IRouter, IRouter__factory } from "../types";
 import { BalanceStruct } from "../types/interfaces/IRouter";
 import {
-  MultiCall,
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,
   PathFinderResult,
@@ -24,12 +23,6 @@ import { PathOptionFactory } from "./pathOptions";
 
 const MAX_GAS_PER_ROUTE = 200e6;
 const GAS_PER_BLOCK = 400e6;
-
-export interface CloseResult {
-  amount: bigint;
-  calls: Array<MultiCall>;
-  gasUsage: bigint;
-}
 
 interface FindAllSwapsProps {
   creditAccount: CreditAccountData;
@@ -47,6 +40,15 @@ interface FindOneTokenPathProps {
   tokenOut: string;
   amount: BigNumberish;
   slippage: number;
+}
+
+interface FindBestClosePathProps {
+  creditAccount: CreditAccountData;
+  creditManager: CreditManagerData;
+  expectedBalances: Record<string, BigNumberish>;
+  leftoverBalances: Record<string, BigNumberish>;
+  slippage: number;
+  noConcurrency?: boolean;
 }
 
 export class PathFinder {
@@ -107,14 +109,14 @@ export class PathFinder {
     const unique: Record<string, PathFinderResult> = {};
 
     results.forEach(r => {
-      const key = `${r.amount.toHexString()}${r.calls
+      const key = `${r.minAmount.toHexString()}${r.calls
         .map(c => `${c.target.toLowerCase()}${c.callData}`)
         .join("-")}`;
 
       unique[key] = {
         amount: toBigInt(r.amount),
-        minAmount: toBigInt(r.amount),
-        gasUsage: toBigInt(r.amount),
+        minAmount: toBigInt(r.minAmount),
+        gasUsage: toBigInt(r.gasUsage),
         calls: r.calls,
       };
     });
@@ -214,14 +216,14 @@ export class PathFinder {
    *          - underlyingBalance - total balance of underlying token
    *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
    */
-  async findBestClosePath(
-    creditAccount: CreditAccountData,
-    cm: CreditManagerData,
-    expectedBalances: Record<string, BigNumberish>,
-    leftoverBalances: Record<string, BigNumberish>,
-    slippage: number,
-    noConcurency = false,
-  ): Promise<PathFinderCloseResult> {
+  async findBestClosePath({
+    creditAccount,
+    creditManager: cm,
+    expectedBalances,
+    leftoverBalances,
+    slippage,
+    noConcurrency = false,
+  }: FindBestClosePathProps): Promise<PathFinderCloseResult> {
     const loopsPerTx = Math.floor(GAS_PER_BLOCK / MAX_GAS_PER_ROUTE);
     const pathOptions = PathOptionFactory.generatePathOptions(
       creditAccount.allBalances,
@@ -242,7 +244,7 @@ export class PathFinder {
 
     let results: Array<AwaitedRes<IRouter["callStatic"]["findBestClosePath"]>> =
       [];
-    if (noConcurency) {
+    if (noConcurrency) {
       for (const po of pathOptions) {
         results.push(
           await this.pathFinder.callStatic.findBestClosePath(
@@ -279,40 +281,44 @@ export class PathFinder {
       results = await Promise.all(requests);
     }
 
-    const bestResult = results.reduce<CloseResult>(
+    const bestResult = results.reduce<PathFinderResult>(
       (best, [pathFinderResult, gasPriceRAY]) =>
         PathFinder.compare(
           best,
           {
             calls: pathFinderResult.calls,
             amount: toBigInt(pathFinderResult.amount),
+            minAmount: toBigInt(pathFinderResult.minAmount),
             gasUsage: toBigInt(pathFinderResult.gasUsage),
           },
           toBigInt(gasPriceRAY),
         ),
       {
         amount: 0n,
+        minAmount: 0n,
         gasUsage: 0n,
         calls: [],
       },
     );
 
     return {
+      ...bestResult,
       underlyingBalance:
-        bestResult.amount +
+        bestResult.minAmount +
         creditAccount.allBalances[creditAccount.underlyingToken.toLowerCase()]
           .balance,
-      calls: bestResult.calls,
     };
   }
 
   static compare(
-    r1: CloseResult,
-    r2: CloseResult,
+    r1: PathFinderResult,
+    r2: PathFinderResult,
     gasPriceRAY: bigint,
-  ): CloseResult {
-    const comparator = ({ amount, gasUsage }: CloseResult, gasPrice: bigint) =>
-      amount - (gasUsage * gasPrice) / RAY;
+  ): PathFinderResult {
+    const comparator = (
+      { minAmount, gasUsage }: PathFinderResult,
+      gasPrice: bigint,
+    ) => minAmount - (gasUsage * gasPrice) / RAY;
     return comparator(r1, gasPriceRAY) > comparator(r2, gasPriceRAY) ? r1 : r2;
   }
 

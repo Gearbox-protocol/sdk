@@ -2,18 +2,21 @@ import { RAY, tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 import { providers } from "ethers";
 
-import { CloseResult, PathFinder } from "./pathfinder";
+import { PathFinderResult } from "./core";
+import { PathFinder } from "./pathfinder";
 
 describe("PathFinder test", () => {
   it("compare works correctly", () => {
-    const r1: CloseResult = {
-      amount: 2000n,
+    const r1: PathFinderResult = {
+      minAmount: 2000n,
+      amount: 20000n,
       gasUsage: 1000n,
       calls: [],
     };
 
-    const r2: CloseResult = {
-      amount: 3000n,
+    const r2: PathFinderResult = {
+      minAmount: 3000n,
+      amount: 30000n,
       gasUsage: 2000n,
       calls: [],
     };
