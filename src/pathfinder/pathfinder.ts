@@ -31,6 +31,16 @@ export interface CloseResult {
   gasUsage: bigint;
 }
 
+interface FindAllSwapsProps {
+  creditAccount: CreditAccountData;
+  swapOperation: SwapOperation;
+  tokenIn: string;
+  tokenOut: string;
+  amount: BigNumberish;
+  leftoverAmount: BigNumberish;
+  slippage: number;
+}
+
 export class PathFinder {
   pathFinder: IRouter;
   network: NetworkType;
@@ -57,15 +67,15 @@ export class PathFinder {
       .filter(t => !!t);
   }
 
-  async findAllSwaps(
-    creditAccount: CreditAccountData,
-    swapOperation: SwapOperation,
-    tokenIn: string,
-    tokenOut: string,
-    amount: BigNumberish,
-    leftoverAmount: BigNumberish,
-    slippage: number,
-  ): Promise<Array<PathFinderResult>> {
+  async findAllSwaps({
+    creditAccount,
+    swapOperation,
+    tokenIn,
+    tokenOut,
+    amount,
+    leftoverAmount,
+    slippage,
+  }: FindAllSwapsProps): Promise<Array<PathFinderResult>> {
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
     const swapTask: SwapTask = {
