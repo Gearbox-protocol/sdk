@@ -22,9 +22,9 @@ export type PathFinderResult = BigintifyProps<
   calls: Array<MultiCall>;
 };
 
-export interface PathFinderOpenStrategyResult {
+export interface PathFinderOpenStrategyResult extends PathFinderResult {
   balances: Record<string, bigint>;
-  calls: Array<MultiCall>;
+  minBalances: Record<string, bigint>;
 }
 
 export interface PathFinderCloseResult extends PathFinderResult {

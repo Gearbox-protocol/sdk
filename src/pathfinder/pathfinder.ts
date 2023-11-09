@@ -51,6 +51,14 @@ interface FindBestClosePathProps {
   noConcurrency?: boolean;
 }
 
+interface FindOpenStrategyPathProps {
+  creditManager: CreditManagerData;
+  expectedBalances: Record<string, BigNumberish>;
+  leftoverBalances: Record<string, BigNumberish>;
+  target: string;
+  slippage: number;
+}
+
 export class PathFinder {
   pathFinder: IRouter;
   network: NetworkType;
@@ -165,13 +173,13 @@ export class PathFinder {
    * @returns PathFinderOpenStrategyResult which
    */
 
-  async findOpenStrategyPath(
-    cm: CreditManagerData,
-    expectedBalances: Record<string, BigNumberish>,
-    leftoverBalances: Record<string, BigNumberish>,
-    target: string,
-    slippage: number,
-  ): Promise<PathFinderOpenStrategyResult> {
+  async findOpenStrategyPath({
+    creditManager: cm,
+    expectedBalances,
+    leftoverBalances,
+    target,
+    slippage,
+  }: FindOpenStrategyPathProps): Promise<PathFinderOpenStrategyResult> {
     const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
       balance: expectedBalances[token] || 0,
@@ -179,31 +187,39 @@ export class PathFinder {
 
     const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: leftoverBalances[token] || 0,
+      balance: leftoverBalances[token] || 1,
     }));
 
     const connectors = this.getAvailableConnectors(cm.supportedTokens);
 
-    const result = await this.pathFinder.callStatic.findOpenStrategyPath(
-      cm.address,
-      expected,
-      leftover,
-      target,
-      connectors,
-      slippage,
-      {
-        gasLimit: GAS_PER_BLOCK,
+    const [outBalances, result] =
+      await this.pathFinder.callStatic.findOpenStrategyPath(
+        cm.address,
+        expected,
+        leftover,
+        target,
+        connectors,
+        slippage,
+        {
+          gasLimit: GAS_PER_BLOCK,
+        },
+      );
+
+    const balancesAfter = outBalances.reduce<Record<string, bigint>>(
+      (acc, b) => {
+        acc[b.token.toLowerCase()] = toBigInt(b.balance);
+        return acc;
       },
+      {},
     );
 
-    const balancesAfter = result[0].reduce<Record<string, bigint>>((acc, b) => {
-      acc[b.token.toLowerCase()] = toBigInt(b.balance);
-      return acc;
-    }, {});
-
     return {
-      balances: balancesAfter,
-      calls: result[1].calls,
+      balances: { ...balancesAfter, [target]: toBigInt(result.amount) },
+      minBalances: { ...balancesAfter, [target]: toBigInt(result.minAmount) },
+      calls: result.calls,
+      minAmount: toBigInt(result.minAmount),
+      amount: toBigInt(result.amount),
+      gasUsage: toBigInt(result.gasUsage),
     };
   }
 
@@ -237,7 +253,7 @@ export class PathFinder {
 
     const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: leftoverBalances[token] || 0,
+      balance: leftoverBalances[token] || 1,
     }));
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
