@@ -24,6 +24,10 @@ import {IDegenNFTV2} from "@gearbox-protocol/core-v2/contracts/interfaces/IDegen
 import {IGearStakingV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IGearStakingV3.sol";
 
 // Adapters
+import {IAaveV2_LendingPoolAdapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/aave/IAaveV2_LendingPoolAdapter.sol";
+import {IAaveV2_WrappedATokenAdapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/aave/IAaveV2_WrappedATokenAdapter.sol";
+import {IBalancerV2VaultAdapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/balancer/IBalancerV2VaultAdapter.sol";
+import {ICompoundV2_CTokenAdapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/compound/ICompoundV2_CTokenAdapter.sol";
 import {ILidoV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/lido/ILidoV1Adapter.sol";
 import {IBaseRewardPool} from "@gearbox-protocol/integrations-v3/contracts/integrations/convex/IBaseRewardPool.sol";
 import {IConvexToken} from "@gearbox-protocol/integrations-v3/contracts/integrations/convex/IConvexToken.sol";
@@ -32,6 +36,7 @@ import {IConvexV1BaseRewardPoolAdapter} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/convex/IConvexV1BaseRewardPoolAdapter.sol";
 import {IConvexV1BoosterAdapter} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/convex/IConvexV1BoosterAdapter.sol";
+import {IERC4626Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/erc4626/IERC4626Adapter.sol";
 
 import {IInterestRateModel} from "@gearbox-protocol/core-v2/contracts/interfaces/IInterestRateModel.sol";
 import {IUniswapV2Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/uniswap/IUniswapV2Adapter.sol";

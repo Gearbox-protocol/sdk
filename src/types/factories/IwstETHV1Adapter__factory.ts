@@ -126,8 +126,14 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "unwrapAll",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+    ],
+    name: "unwrapDiff",
     outputs: [
       {
         internalType: "uint256",
@@ -168,8 +174,14 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "wrapAll",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+    ],
+    name: "wrapDiff",
     outputs: [
       {
         internalType: "uint256",

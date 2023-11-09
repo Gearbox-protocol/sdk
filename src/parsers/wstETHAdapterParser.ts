@@ -20,16 +20,30 @@ export class WstETHAdapterParser extends AbstractParser implements IParser {
         const [amount] = this.decodeFunctionData(functionFragment, calldata);
         return `${functionName}(amount: ${this.formatBN(amount, "STETH")})`;
       }
-      case "wrapAll": {
-        return `${functionName}()`;
+      case "wrapDiff": {
+        const [leftoverAmount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(leftoverAmount: ${this.formatBN(
+          leftoverAmount,
+          "STETH",
+        )})`;
       }
 
       case "unwrap": {
         const [amount] = this.decodeFunctionData(functionFragment, calldata);
         return `${functionName}(amount: ${this.formatBN(amount, "wstETH")})`;
       }
-      case "unwrapAll": {
-        return `${functionName}()`;
+      case "unwrapDiff": {
+        const [leftoverAmount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(leftoverAmount: ${this.formatBN(
+          leftoverAmount,
+          "STETH",
+        )})`;
       }
 
       case "balanceOf": {

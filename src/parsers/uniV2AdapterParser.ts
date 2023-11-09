@@ -52,15 +52,18 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
         return `${functionName}(amountOut: ${amountOutStr}, amountInMax: ${amountInMaxStr}, path: [${pathStr}])`;
       }
 
-      case "swapAllTokensForTokens": {
-        const [rateMinRAY, path] = this.decodeFunctionData(
+      case "swapDiffTokensForTokens": {
+        const [leftoverAmount, rateMinRAY, path] = this.decodeFunctionData(
           functionFragment,
           calldata,
         );
 
-        return `${functionName}(rate: ${formatBN(rateMinRAY, 27)}, path: [${(
-          path as Array<string>
-        )
+        const tokenIn = this.tokenSymbol(path[0]);
+
+        return `${functionName}(leftoverAmount: ${this.formatBN(
+          leftoverAmount,
+          tokenIn,
+        )}, rate: ${formatBN(rateMinRAY, 27)}, path: [${(path as Array<string>)
           .map(r => this.tokenSymbol(r))
           .join(" => ")}])`;
       }

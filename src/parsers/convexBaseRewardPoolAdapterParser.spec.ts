@@ -21,10 +21,12 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
       "Incorrect parse stake",
     );
 
-    parsed = parser.parse(ifc.encodeFunctionData("stakeAll"));
+    parsed = parser.parse(
+      ifc.encodeFunctionData("stakeDiff", [(WAD * 199n) / 10n]),
+    );
     expect(parsed).to.be.eq(
-      "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].stakeAll()",
-      "Incorrect parse stakeAll",
+      "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].stakeDiff(leftoverAmount: 19.90 [19900000000000000000])",
+      "Incorrect parse stakeDiff",
     );
 
     parsed = parser.parse(
@@ -43,18 +45,23 @@ describe("ConvexV1BaseRewardPoolAdapterParser test", () => {
       "Incorrect parse withdrawAndUnwrap",
     );
 
-    parsed = parser.parse(ifc.encodeFunctionData("withdrawAll", [false]));
+    parsed = parser.parse(
+      ifc.encodeFunctionData("withdrawDiff", [(WAD * 2n) / 1000n, false]),
+    );
     expect(parsed).to.be.eq(
-      "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].withdrawAll(claim: false)",
-      "Incorrect parse withdrawAll",
+      "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].withdrawDiff(leftoverAmount: 0.002 [2000000000000000], claim: false)",
+      "Incorrect parse withdrawDiff",
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("withdrawAllAndUnwrap", [true]),
+      ifc.encodeFunctionData("withdrawDiffAndUnwrap", [
+        (WAD * 2n) / 1000n,
+        true,
+      ]),
     );
     expect(parsed).to.be.eq(
-      "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].withdrawAllAndUnwrap(claim: true)",
-      "Incorrect parse withdrawAllAndUnwrap",
+      "ConvexV1BaseRewardPoolAdapter[CONVEX_FRAX3CRV_POOL].withdrawDiffAndUnwrap(leftoverAmount: 0.002 [2000000000000000], claim: true)",
+      "Incorrect parse withdrawDiffAndUnwrap",
     );
   });
 });

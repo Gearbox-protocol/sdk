@@ -94,13 +94,14 @@ describe("UniswapV3AdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("exactAllInput", [
+      ifc.encodeFunctionData("exactDiffInput", [
         {
           path: pathToUniV3Path([
             tokenDataByNetwork.Mainnet.AAVE,
             tokenDataByNetwork.Mainnet.LINK,
             tokenDataByNetwork.Mainnet.USDC,
           ]),
+          leftoverAmount: WAD * 12399n,
           rateMinRAY: RAY * 1200n,
           deadline: 1232131,
         },
@@ -108,7 +109,7 @@ describe("UniswapV3AdapterParser test", () => {
     );
 
     expect(parsed).to.be.eq(
-      "UniswapV3Adapter[UNISWAP_V3_ROUTER].exactAllInput(rate: 1.20K,  path: AAVE ==(fee: 3000)==> LINK ==(fee: 3000)==> USDC",
+      "UniswapV3Adapter[UNISWAP_V3_ROUTER].exactDiffInput(leftoverAmount: 12.39K [12399000000000000000000], rate: 1.20K,  path: AAVE ==(fee: 3000)==> LINK ==(fee: 3000)==> USDC",
       "Incorrect parse swapExactTokensForTokens",
     );
 

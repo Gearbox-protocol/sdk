@@ -47,7 +47,7 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
     "creditManager()": FunctionFragment;
     "isPairAllowed(address,address)": FunctionFragment;
     "setPairStatusBatch((address,address,bool)[])": FunctionFragment;
-    "swapAllTokensForTokens(uint256,address[],uint256)": FunctionFragment;
+    "swapDiffTokensForTokens(uint256,uint256,address[],uint256)": FunctionFragment;
     "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)": FunctionFragment;
     "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)": FunctionFragment;
     "targetContract()": FunctionFragment;
@@ -61,7 +61,7 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
       | "creditManager"
       | "isPairAllowed"
       | "setPairStatusBatch"
-      | "swapAllTokensForTokens"
+      | "swapDiffTokensForTokens"
       | "swapExactTokensForTokens"
       | "swapTokensForExactTokens"
       | "targetContract"
@@ -92,8 +92,9 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
     values: [UniswapV2PairStatusStruct[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "swapAllTokensForTokens",
+    functionFragment: "swapDiffTokensForTokens",
     values: [
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>[],
       PromiseOrValue<BigNumberish>
@@ -149,7 +150,7 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "swapAllTokensForTokens",
+    functionFragment: "swapDiffTokensForTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -230,7 +231,8 @@ export interface IUniswapV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    swapAllTokensForTokens(
+    swapDiffTokensForTokens(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       rateMinRAY: PromiseOrValue<BigNumberish>,
       path: PromiseOrValue<string>[],
       deadline: PromiseOrValue<BigNumberish>,
@@ -277,7 +279,8 @@ export interface IUniswapV2Adapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  swapAllTokensForTokens(
+  swapDiffTokensForTokens(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     rateMinRAY: PromiseOrValue<BigNumberish>,
     path: PromiseOrValue<string>[],
     deadline: PromiseOrValue<BigNumberish>,
@@ -324,7 +327,8 @@ export interface IUniswapV2Adapter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    swapAllTokensForTokens(
+    swapDiffTokensForTokens(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       rateMinRAY: PromiseOrValue<BigNumberish>,
       path: PromiseOrValue<string>[],
       deadline: PromiseOrValue<BigNumberish>,
@@ -400,7 +404,8 @@ export interface IUniswapV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    swapAllTokensForTokens(
+    swapDiffTokensForTokens(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       rateMinRAY: PromiseOrValue<BigNumberish>,
       path: PromiseOrValue<string>[],
       deadline: PromiseOrValue<BigNumberish>,
@@ -452,7 +457,8 @@ export interface IUniswapV2Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    swapAllTokensForTokens(
+    swapDiffTokensForTokens(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       rateMinRAY: PromiseOrValue<BigNumberish>,
       path: PromiseOrValue<string>[],
       deadline: PromiseOrValue<BigNumberish>,

@@ -32,7 +32,7 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     "stETH()": FunctionFragment;
     "stETHTokenMask()": FunctionFragment;
     "submit(uint256)": FunctionFragment;
-    "submitAll()": FunctionFragment;
+    "submitDiff(uint256)": FunctionFragment;
     "targetContract()": FunctionFragment;
     "treasury()": FunctionFragment;
     "weth()": FunctionFragment;
@@ -48,7 +48,7 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
       | "stETH"
       | "stETHTokenMask"
       | "submit"
-      | "submitAll"
+      | "submitDiff"
       | "targetContract"
       | "treasury"
       | "weth"
@@ -80,7 +80,10 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     functionFragment: "submit",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(functionFragment: "submitAll", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "submitDiff",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
     values?: undefined
@@ -114,7 +117,7 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "submit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "submitAll", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "submitDiff", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "targetContract",
     data: BytesLike
@@ -173,7 +176,8 @@ export interface ILidoV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    submitAll(
+    submitDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -203,7 +207,8 @@ export interface ILidoV1Adapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  submitAll(
+  submitDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -238,7 +243,8 @@ export interface ILidoV1Adapter extends BaseContract {
       }
     >;
 
-    submitAll(
+    submitDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -276,7 +282,8 @@ export interface ILidoV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    submitAll(
+    submitDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -311,7 +318,8 @@ export interface ILidoV1Adapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    submitAll(
+    submitDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

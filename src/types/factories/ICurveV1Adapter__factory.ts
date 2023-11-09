@@ -40,6 +40,11 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
         name: "i",
         type: "uint256",
       },
@@ -49,7 +54,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "add_all_liquidity_one_coin",
+    name: "add_diff_liquidity_one_coin",
     outputs: [
       {
         internalType: "uint256",
@@ -241,37 +246,8 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "rateMinRAY",
+        name: "leftoverAmount",
         type: "uint256",
-      },
-    ],
-    name: "exchange_all",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "int128",
-        name: "i",
-        type: "int128",
-      },
-      {
-        internalType: "int128",
-        name: "j",
-        type: "int128",
       },
       {
         internalType: "uint256",
@@ -279,41 +255,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "exchange_all",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "int128",
-        name: "i",
-        type: "int128",
-      },
-      {
-        internalType: "int128",
-        name: "j",
-        type: "int128",
-      },
-      {
-        internalType: "uint256",
-        name: "rateMinRAY",
-        type: "uint256",
-      },
-    ],
-    name: "exchange_all_underlying",
+    name: "exchange_diff",
     outputs: [
       {
         internalType: "uint256",
@@ -343,11 +285,16 @@ const _abi = [
       },
       {
         internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
         name: "rateMinRAY",
         type: "uint256",
       },
     ],
-    name: "exchange_all_underlying",
+    name: "exchange_diff_underlying",
     outputs: [
       {
         internalType: "uint256",
@@ -496,34 +443,10 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "int128",
-        name: "i",
-        type: "int128",
-      },
-      {
         internalType: "uint256",
-        name: "rateMinRAY",
+        name: "leftoverAmount",
         type: "uint256",
       },
-    ],
-    name: "remove_all_liquidity_one_coin",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
       {
         internalType: "uint256",
         name: "i",
@@ -535,7 +458,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "remove_all_liquidity_one_coin",
+    name: "remove_diff_liquidity_one_coin",
     outputs: [
       {
         internalType: "uint256",

@@ -150,6 +150,11 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
         name: "rateMinRAY",
         type: "uint256",
       },
@@ -164,7 +169,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "swapAllTokensForTokens",
+    name: "swapDiffTokensForTokens",
     outputs: [
       {
         internalType: "uint256",

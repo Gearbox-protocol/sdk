@@ -16,7 +16,7 @@ export interface IPriceOracleV3EventsInterface extends utils.Interface {
   functions: {};
 
   events: {
-    "SetPriceFeed(address,address,uint32,bool)": EventFragment;
+    "SetPriceFeed(address,address,uint32,bool,bool)": EventFragment;
     "SetReservePriceFeed(address,address,uint32,bool)": EventFragment;
     "SetReservePriceFeedStatus(address,bool)": EventFragment;
   };
@@ -31,9 +31,10 @@ export interface SetPriceFeedEventObject {
   priceFeed: string;
   stalenessPeriod: number;
   skipCheck: boolean;
+  trusted: boolean;
 }
 export type SetPriceFeedEvent = TypedEvent<
-  [string, string, number, boolean],
+  [string, string, number, boolean, boolean],
   SetPriceFeedEventObject
 >;
 
@@ -96,17 +97,19 @@ export interface IPriceOracleV3Events extends BaseContract {
   callStatic: {};
 
   filters: {
-    "SetPriceFeed(address,address,uint32,bool)"(
+    "SetPriceFeed(address,address,uint32,bool,bool)"(
       token?: PromiseOrValue<string> | null,
       priceFeed?: PromiseOrValue<string> | null,
       stalenessPeriod?: null,
-      skipCheck?: null
+      skipCheck?: null,
+      trusted?: null
     ): SetPriceFeedEventFilter;
     SetPriceFeed(
       token?: PromiseOrValue<string> | null,
       priceFeed?: PromiseOrValue<string> | null,
       stalenessPeriod?: null,
-      skipCheck?: null
+      skipCheck?: null,
+      trusted?: null
     ): SetPriceFeedEventFilter;
 
     "SetReservePriceFeed(address,address,uint32,bool)"(

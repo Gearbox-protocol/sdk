@@ -119,6 +119,11 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
         name: "_pid",
         type: "uint256",
       },
@@ -128,7 +133,7 @@ const _abi = [
         type: "bool",
       },
     ],
-    name: "depositAll",
+    name: "depositDiff",
     outputs: [
       {
         internalType: "uint256",
@@ -216,11 +221,16 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
         name: "_pid",
         type: "uint256",
       },
     ],
-    name: "withdrawAll",
+    name: "withdrawDiff",
     outputs: [
       {
         internalType: "uint256",

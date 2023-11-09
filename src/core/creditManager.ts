@@ -333,8 +333,8 @@ export class CreditManagerData {
       target: address,
       callData:
         IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
-          "withdrawAllAndUnwrap",
-          [claim],
+          "withdrawDiffAndUnwrap",
+          [1, claim],
         ),
     };
   }

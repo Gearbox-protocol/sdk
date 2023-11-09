@@ -37,16 +37,16 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     "getReward()": FunctionFragment;
     "rewardTokensMask()": FunctionFragment;
     "stake(uint256)": FunctionFragment;
-    "stakeAll()": FunctionFragment;
+    "stakeDiff(uint256)": FunctionFragment;
     "stakedPhantomToken()": FunctionFragment;
     "stakedTokenMask()": FunctionFragment;
     "stakingToken()": FunctionFragment;
     "stakingTokenMask()": FunctionFragment;
     "targetContract()": FunctionFragment;
     "withdraw(uint256,bool)": FunctionFragment;
-    "withdrawAll(bool)": FunctionFragment;
-    "withdrawAllAndUnwrap(bool)": FunctionFragment;
     "withdrawAndUnwrap(uint256,bool)": FunctionFragment;
+    "withdrawDiff(uint256,bool)": FunctionFragment;
+    "withdrawDiffAndUnwrap(uint256,bool)": FunctionFragment;
   };
 
   getFunction(
@@ -62,16 +62,16 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
       | "getReward"
       | "rewardTokensMask"
       | "stake"
-      | "stakeAll"
+      | "stakeDiff"
       | "stakedPhantomToken"
       | "stakedTokenMask"
       | "stakingToken"
       | "stakingTokenMask"
       | "targetContract"
       | "withdraw"
-      | "withdrawAll"
-      | "withdrawAllAndUnwrap"
       | "withdrawAndUnwrap"
+      | "withdrawDiff"
+      | "withdrawDiffAndUnwrap"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -115,7 +115,10 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     functionFragment: "stake",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(functionFragment: "stakeAll", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "stakeDiff",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(
     functionFragment: "stakedPhantomToken",
     values?: undefined
@@ -141,15 +144,15 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawAll",
-    values: [PromiseOrValue<boolean>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawAllAndUnwrap",
-    values: [PromiseOrValue<boolean>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "withdrawAndUnwrap",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawDiff",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawDiffAndUnwrap",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
   ): string;
 
@@ -191,7 +194,7 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "stakeAll", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "stakeDiff", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "stakedPhantomToken",
     data: BytesLike
@@ -214,15 +217,15 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawAllAndUnwrap",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "withdrawAndUnwrap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawDiff",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawDiffAndUnwrap",
     data: BytesLike
   ): Result;
 
@@ -283,7 +286,8 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    stakeAll(
+    stakeDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -303,18 +307,20 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    withdrawAll(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawAllAndUnwrap(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     withdrawAndUnwrap(
       arg0: PromiseOrValue<BigNumberish>,
+      claim: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
+      claim: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawDiffAndUnwrap(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       claim: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -347,7 +353,8 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  stakeAll(
+  stakeDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -367,18 +374,20 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  withdrawAll(
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawAllAndUnwrap(
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   withdrawAndUnwrap(
     arg0: PromiseOrValue<BigNumberish>,
+    claim: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawDiff(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
+    claim: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawDiffAndUnwrap(
+    leftoverAmount: PromiseOrValue<BigNumberish>,
     claim: PromiseOrValue<boolean>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -421,7 +430,8 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       }
     >;
 
-    stakeAll(
+    stakeDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -451,28 +461,30 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       }
     >;
 
-    withdrawAll(
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    withdrawAllAndUnwrap(
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
     withdrawAndUnwrap(
       arg0: PromiseOrValue<BigNumberish>,
+      claim: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & {
+        tokensToEnable: BigNumber;
+        tokensToDisable: BigNumber;
+      }
+    >;
+
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
+      claim: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & {
+        tokensToEnable: BigNumber;
+        tokensToDisable: BigNumber;
+      }
+    >;
+
+    withdrawDiffAndUnwrap(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       claim: PromiseOrValue<boolean>,
       overrides?: CallOverrides
     ): Promise<
@@ -513,7 +525,8 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    stakeAll(
+    stakeDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -533,18 +546,20 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    withdrawAll(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawAllAndUnwrap(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     withdrawAndUnwrap(
       arg0: PromiseOrValue<BigNumberish>,
+      claim: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
+      claim: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawDiffAndUnwrap(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       claim: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -582,7 +597,8 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    stakeAll(
+    stakeDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -604,18 +620,20 @@ export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdrawAll(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawAllAndUnwrap(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     withdrawAndUnwrap(
       arg0: PromiseOrValue<BigNumberish>,
+      claim: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawDiff(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
+      claim: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawDiffAndUnwrap(
+      leftoverAmount: PromiseOrValue<BigNumberish>,
       claim: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

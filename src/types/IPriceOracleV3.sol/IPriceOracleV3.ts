@@ -34,10 +34,12 @@ export interface IPriceOracleV3Interface extends utils.Interface {
     "convertToUSD(uint256,address)": FunctionFragment;
     "getPrice(address)": FunctionFragment;
     "getPriceRaw(address,bool)": FunctionFragment;
+    "getPriceSafe(address)": FunctionFragment;
     "priceFeedParams(address)": FunctionFragment;
     "priceFeeds(address)": FunctionFragment;
     "priceFeedsRaw(address,bool)": FunctionFragment;
-    "setPriceFeed(address,address,uint32)": FunctionFragment;
+    "safeConvertToUSD(uint256,address)": FunctionFragment;
+    "setPriceFeed(address,address,uint32,bool)": FunctionFragment;
     "setReservePriceFeed(address,address,uint32)": FunctionFragment;
     "setReservePriceFeedStatus(address,bool)": FunctionFragment;
     "version()": FunctionFragment;
@@ -50,9 +52,11 @@ export interface IPriceOracleV3Interface extends utils.Interface {
       | "convertToUSD"
       | "getPrice"
       | "getPriceRaw"
+      | "getPriceSafe"
       | "priceFeedParams"
       | "priceFeeds"
       | "priceFeedsRaw"
+      | "safeConvertToUSD"
       | "setPriceFeed"
       | "setReservePriceFeed"
       | "setReservePriceFeedStatus"
@@ -84,6 +88,10 @@ export interface IPriceOracleV3Interface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
+    functionFragment: "getPriceSafe",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "priceFeedParams",
     values: [PromiseOrValue<string>]
   ): string;
@@ -96,11 +104,16 @@ export interface IPriceOracleV3Interface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
+    functionFragment: "safeConvertToUSD",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setPriceFeed",
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<boolean>
     ]
   ): string;
   encodeFunctionData(
@@ -132,12 +145,20 @@ export interface IPriceOracleV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getPriceSafe",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "priceFeedParams",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "priceFeeds", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "priceFeedsRaw",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "safeConvertToUSD",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -155,7 +176,7 @@ export interface IPriceOracleV3Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
-    "SetPriceFeed(address,address,uint32,bool)": EventFragment;
+    "SetPriceFeed(address,address,uint32,bool,bool)": EventFragment;
     "SetReservePriceFeed(address,address,uint32,bool)": EventFragment;
     "SetReservePriceFeedStatus(address,bool)": EventFragment;
   };
@@ -170,9 +191,10 @@ export interface SetPriceFeedEventObject {
   priceFeed: string;
   stalenessPeriod: number;
   skipCheck: boolean;
+  trusted: boolean;
 }
 export type SetPriceFeedEvent = TypedEvent<
-  [string, string, number, boolean],
+  [string, string, number, boolean, boolean],
   SetPriceFeedEventObject
 >;
 
@@ -261,15 +283,21 @@ export interface IPriceOracleV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getPriceSafe(
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     priceFeedParams(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
-      [string, number, boolean, number] & {
+      [string, number, boolean, number, boolean] & {
         priceFeed: string;
         stalenessPeriod: number;
         skipCheck: boolean;
         decimals: number;
+        trusted: boolean;
       }
     >;
 
@@ -284,10 +312,17 @@ export interface IPriceOracleV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    safeConvertToUSD(
+      amount: PromiseOrValue<BigNumberish>,
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     setPriceFeed(
       token: PromiseOrValue<string>,
       priceFeed: PromiseOrValue<string>,
       stalenessPeriod: PromiseOrValue<BigNumberish>,
+      trusted: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -337,15 +372,21 @@ export interface IPriceOracleV3 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getPriceSafe(
+    token: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   priceFeedParams(
     token: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<
-    [string, number, boolean, number] & {
+    [string, number, boolean, number, boolean] & {
       priceFeed: string;
       stalenessPeriod: number;
       skipCheck: boolean;
       decimals: number;
+      trusted: boolean;
     }
   >;
 
@@ -360,10 +401,17 @@ export interface IPriceOracleV3 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  safeConvertToUSD(
+    amount: PromiseOrValue<BigNumberish>,
+    token: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   setPriceFeed(
     token: PromiseOrValue<string>,
     priceFeed: PromiseOrValue<string>,
     stalenessPeriod: PromiseOrValue<BigNumberish>,
+    trusted: PromiseOrValue<boolean>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -413,15 +461,21 @@ export interface IPriceOracleV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getPriceSafe(
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     priceFeedParams(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
-      [string, number, boolean, number] & {
+      [string, number, boolean, number, boolean] & {
         priceFeed: string;
         stalenessPeriod: number;
         skipCheck: boolean;
         decimals: number;
+        trusted: boolean;
       }
     >;
 
@@ -436,10 +490,17 @@ export interface IPriceOracleV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    safeConvertToUSD(
+      amount: PromiseOrValue<BigNumberish>,
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     setPriceFeed(
       token: PromiseOrValue<string>,
       priceFeed: PromiseOrValue<string>,
       stalenessPeriod: PromiseOrValue<BigNumberish>,
+      trusted: PromiseOrValue<boolean>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -460,17 +521,19 @@ export interface IPriceOracleV3 extends BaseContract {
   };
 
   filters: {
-    "SetPriceFeed(address,address,uint32,bool)"(
+    "SetPriceFeed(address,address,uint32,bool,bool)"(
       token?: PromiseOrValue<string> | null,
       priceFeed?: PromiseOrValue<string> | null,
       stalenessPeriod?: null,
-      skipCheck?: null
+      skipCheck?: null,
+      trusted?: null
     ): SetPriceFeedEventFilter;
     SetPriceFeed(
       token?: PromiseOrValue<string> | null,
       priceFeed?: PromiseOrValue<string> | null,
       stalenessPeriod?: null,
-      skipCheck?: null
+      skipCheck?: null,
+      trusted?: null
     ): SetPriceFeedEventFilter;
 
     "SetReservePriceFeed(address,address,uint32,bool)"(
@@ -527,6 +590,11 @@ export interface IPriceOracleV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getPriceSafe(
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     priceFeedParams(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -543,10 +611,17 @@ export interface IPriceOracleV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    safeConvertToUSD(
+      amount: PromiseOrValue<BigNumberish>,
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     setPriceFeed(
       token: PromiseOrValue<string>,
       priceFeed: PromiseOrValue<string>,
       stalenessPeriod: PromiseOrValue<BigNumberish>,
+      trusted: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -597,6 +672,11 @@ export interface IPriceOracleV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getPriceSafe(
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     priceFeedParams(
       token: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -613,10 +693,17 @@ export interface IPriceOracleV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    safeConvertToUSD(
+      amount: PromiseOrValue<BigNumberish>,
+      token: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     setPriceFeed(
       token: PromiseOrValue<string>,
       priceFeed: PromiseOrValue<string>,
       stalenessPeriod: PromiseOrValue<BigNumberish>,
+      trusted: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

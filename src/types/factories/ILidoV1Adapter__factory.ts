@@ -113,8 +113,14 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "submitAll",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "leftoverAmount",
+        type: "uint256",
+      },
+    ],
+    name: "submitDiff",
     outputs: [
       {
         internalType: "uint256",

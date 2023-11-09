@@ -18,8 +18,15 @@ export class LidoAdapterParser extends AbstractParser implements IParser {
         const [amount] = this.decodeFunctionData(functionFragment, calldata);
         return `${functionName}(amount: ${this.formatBN(amount, "STETH")})`;
       }
-      case "submitAll": {
-        return `${functionName}()`;
+      case "submitDiff": {
+        const [leftoverAmount] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+        return `${functionName}(leftoverAmount: ${this.formatBN(
+          leftoverAmount,
+          "STETH",
+        )})`;
       }
 
       default:

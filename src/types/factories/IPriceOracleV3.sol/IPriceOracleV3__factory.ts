@@ -37,6 +37,12 @@ const _abi = [
         name: "skipCheck",
         type: "bool",
       },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "trusted",
+        type: "bool",
+      },
     ],
     name: "SetPriceFeed",
     type: "event",
@@ -219,6 +225,25 @@ const _abi = [
         type: "address",
       },
     ],
+    name: "getPriceSafe",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
     name: "priceFeedParams",
     outputs: [
       {
@@ -240,6 +265,11 @@ const _abi = [
         internalType: "uint8",
         name: "decimals",
         type: "uint8",
+      },
+      {
+        internalType: "bool",
+        name: "trusted",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -291,6 +321,30 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "safeConvertToUSD",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "token",
         type: "address",
@@ -304,6 +358,11 @@ const _abi = [
         internalType: "uint32",
         name: "stalenessPeriod",
         type: "uint32",
+      },
+      {
+        internalType: "bool",
+        name: "trusted",
+        type: "bool",
       },
     ],
     name: "setPriceFeed",

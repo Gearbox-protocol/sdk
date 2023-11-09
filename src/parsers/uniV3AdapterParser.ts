@@ -25,14 +25,15 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
 
         return `${functionName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
       }
-      case "exactAllInputSingle": {
+      case "exactDiffInputSingle": {
         const {
-          params: { tokenIn, tokenOut, fee, rateMinRAY },
+          params: { tokenIn, tokenOut, fee, leftoverAmount, rateMinRAY },
         } = this.decodeFunctionData(functionFragment, calldata);
         const tokenInSym = this.tokenSymbol(tokenIn);
         const tokenOutSym = this.tokenSymbol(tokenOut);
 
-        return `${functionName}(rate: ${formatBN(
+        const leftoverAmountStr = this.formatBN(leftoverAmount, tokenIn);
+        return `${functionName}(leftoverAmount: ${leftoverAmountStr}, rate: ${formatBN(
           rateMinRAY,
           27,
         )},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
@@ -55,14 +56,19 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
 
         return `${functionName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${pathStr}`;
       }
-      case "exactAllInput": {
+      case "exactDiffInput": {
         const {
-          params: { rateMinRAY, path },
+          params: { leftoverAmount, rateMinRAY, path },
         } = this.decodeFunctionData(functionFragment, calldata);
+
+        const leftoverAmountStr = this.formatBN(
+          leftoverAmount,
+          this.tokenSymbol(`0x${path.replace("0x", "").slice(0, 40)}`),
+        );
 
         const pathStr = this.trackInputPath(path);
 
-        return `${functionName}(rate: ${formatBN(
+        return `${functionName}(leftoverAmount: ${leftoverAmountStr}, rate: ${formatBN(
           rateMinRAY,
           27,
         )},  path: ${pathStr}`;

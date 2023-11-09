@@ -12,7 +12,6 @@ import { LpTokensAPY, TokensWithAPY } from "../apy";
 import {
   CaTokenBalance,
   CreditAccountDataPayload,
-  ScheduledWithdrawal,
 } from "../payload/creditAccount";
 import { QuotaInfo } from "../payload/creditManager";
 import { TokenData } from "../tokens/tokenData";
@@ -109,8 +108,6 @@ export class CreditAccountData {
   readonly forbiddenTokens: Record<string, true> = {};
   readonly quotedTokens: Record<string, true> = {};
 
-  readonly schedultedWithdrawals: Array<ScheduledWithdrawal>;
-
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
 
@@ -183,13 +180,6 @@ export class CreditAccountData {
 
       this.allBalances[token] = balance;
     });
-
-    this.schedultedWithdrawals = payload.schedultedWithdrawals.map(w => ({
-      tokenIndex: w.tokenIndex,
-      maturity: w.maturity,
-      token: w.token.toLowerCase(),
-      amount: toBigInt(w.amount),
-    }));
   }
 
   setDeleteInProgress(d: boolean) {

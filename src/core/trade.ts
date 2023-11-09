@@ -22,26 +22,28 @@ interface TradeProps {
   adapter: Info;
   tradePath: PathFinderResult;
 
-  tokenFrom: string;
-  tokenTo: string;
+  tokenIn: string;
+  tokenOut: string;
   sourceAmount: bigint;
-  expectedAmount: bigint;
-  swapType: SwapOperation;
+  minExpectedAmount: bigint;
+  averageExpectedAmount: bigint;
+  swapOperation: SwapOperation;
   swapName: TradeOperations;
 }
 
 export type TradeOperations = "farmWithdraw" | "farmDeposit" | "swap";
 
 export interface GetTradesProps {
-  from: string;
-  to: string;
+  tokenIn: string;
+  tokenOut: string;
+
   amount: bigint;
   results: Array<PathFinderResult>;
 
   creditManager: CreditManagerData;
   currentContracts: Record<SupportedContract, string>;
 
-  swapType: SwapOperation;
+  swapOperation: SwapOperation;
   swapName: TradeOperations;
 }
 
@@ -49,24 +51,26 @@ export class Trade {
   readonly helper: Info;
   readonly tradePath: PathFinderResult;
 
-  readonly swapType: SwapOperation;
+  readonly swapOperation: SwapOperation;
   readonly sourceAmount: bigint;
-  readonly expectedAmount: bigint;
+  readonly minExpectedAmount: bigint;
+  readonly averageExpectedAmount: bigint;
   readonly rate: bigint;
-  readonly tokenFrom: string;
-  readonly tokenTo: string;
+  readonly tokenIn: string;
+  readonly tokenOut: string;
   readonly operationName: TradeOperations;
 
   private constructor(props: TradeProps) {
     this.helper = props.adapter;
     this.tradePath = props.tradePath;
 
-    this.swapType = props.swapType;
+    this.swapOperation = props.swapOperation;
     this.sourceAmount = props.sourceAmount;
-    this.expectedAmount = props.expectedAmount;
-    this.rate = (WAD * props.expectedAmount) / props.sourceAmount;
-    this.tokenFrom = props.tokenFrom;
-    this.tokenTo = props.tokenTo;
+    this.minExpectedAmount = props.minExpectedAmount;
+    this.averageExpectedAmount = props.averageExpectedAmount;
+    this.rate = (WAD * props.minExpectedAmount) / props.sourceAmount;
+    this.tokenIn = props.tokenIn;
+    this.tokenOut = props.tokenOut;
     this.operationName = props.swapName;
   }
 
@@ -75,10 +79,10 @@ export class Trade {
   }
 
   toString(): string {
-    const symbolFrom = tokenSymbolByAddress[this.tokenFrom.toLowerCase()];
-    const symbolTo = tokenSymbolByAddress[this.tokenTo.toLowerCase()];
-    if (!symbolFrom) throw new Error(`Unknown token: ${this.tokenFrom}`);
-    if (!symbolTo) throw new Error(`Unknown token: ${this.tokenTo}`);
+    const symbolFrom = tokenSymbolByAddress[this.tokenIn.toLowerCase()];
+    const symbolTo = tokenSymbolByAddress[this.tokenOut.toLowerCase()];
+    if (!symbolFrom) throw new Error(`Unknown token: ${this.tokenIn}`);
+    if (!symbolTo) throw new Error(`Unknown token: ${this.tokenOut}`);
 
     const decimalsFrom = decimals[symbolFrom];
     const decimalsTo = decimals[symbolTo];
@@ -87,21 +91,21 @@ export class Trade {
       this.sourceAmount,
       decimalsFrom,
     )} ${symbolFrom} ⇒ ${formatBN(
-      this.expectedAmount,
+      this.minExpectedAmount,
       decimalsTo,
     )} ${symbolTo} on ${this.helper.name}`;
   }
 
   static getTrades({
-    from,
-    to,
+    tokenIn,
+    tokenOut,
     amount,
     results,
 
     creditManager,
     currentContracts,
 
-    swapType,
+    swapOperation,
     swapName,
   }: GetTradesProps) {
     const trades = results.reduce<Array<Trade>>((acc, tradePath) => {
@@ -115,11 +119,12 @@ export class Trade {
       const trade = new Trade({
         tradePath,
         adapter: callInfo[0],
-        swapType,
+        swapOperation,
         sourceAmount: amount,
-        expectedAmount: tradePath.amount,
-        tokenFrom: from,
-        tokenTo: to,
+        minExpectedAmount: tradePath.minAmount,
+        averageExpectedAmount: tradePath.amount,
+        tokenIn,
+        tokenOut,
         swapName,
       });
 
@@ -167,7 +172,7 @@ export class Trade {
   static sortTrades(trades: Array<Trade>, swapStrategy: string) {
     if (trades.length === 0) return [];
 
-    const { swapType } = trades[0];
+    const { swapOperation } = trades[0];
 
     const sorted = [...trades].sort((a, b) => {
       const aSelected =
@@ -176,8 +181,8 @@ export class Trade {
         b.getName().toLowerCase().search(swapStrategy.toLowerCase()) >= 0;
 
       if ((aSelected && bSelected) || (!aSelected && !bSelected)) {
-        const sign = a.expectedAmount > b.expectedAmount ? -1 : 1;
-        return swapType === SwapOperation.EXACT_INPUT ? sign : -sign;
+        const sign = a.minExpectedAmount > b.minExpectedAmount ? -1 : 1;
+        return swapOperation === SwapOperation.EXACT_INPUT ? sign : -sign;
       }
 
       return aSelected ? -1 : 1;

@@ -43,15 +43,14 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "botList()": FunctionFragment;
     "botMulticall(address,(address,bytes)[])": FunctionFragment;
     "canLiquidateWhilePaused(address)": FunctionFragment;
-    "claimWithdrawals(address,address)": FunctionFragment;
-    "closeCreditAccount(address,address,uint256,bool,(address,bytes)[])": FunctionFragment;
+    "closeCreditAccount(address,(address,bytes)[])": FunctionFragment;
     "creditManager()": FunctionFragment;
     "debtLimits()": FunctionFragment;
     "degenNFT()": FunctionFragment;
     "expirable()": FunctionFragment;
     "expirationDate()": FunctionFragment;
     "forbiddenTokenMask()": FunctionFragment;
-    "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])": FunctionFragment;
+    "liquidateCreditAccount(address,address,(address,bytes)[])": FunctionFragment;
     "lossParams()": FunctionFragment;
     "maxApprovedBots()": FunctionFragment;
     "maxDebtPerBlockMultiplier()": FunctionFragment;
@@ -59,7 +58,7 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "multicall(address,(address,bytes)[])": FunctionFragment;
     "openCreditAccount(address,(address,bytes)[],uint256)": FunctionFragment;
     "setBotList(address)": FunctionFragment;
-    "setBotPermissions(address,address,uint192,uint72,uint72)": FunctionFragment;
+    "setBotPermissions(address,address,uint192)": FunctionFragment;
     "setCumulativeLossParams(uint128,bool)": FunctionFragment;
     "setDebtLimits(uint128,uint128,uint8)": FunctionFragment;
     "setEmergencyLiquidator(address,uint8)": FunctionFragment;
@@ -67,7 +66,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "setTokenAllowance(address,uint8)": FunctionFragment;
     "version()": FunctionFragment;
     "weth()": FunctionFragment;
-    "withdrawalManager()": FunctionFragment;
   };
 
   getFunction(
@@ -75,7 +73,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
       | "botList"
       | "botMulticall"
       | "canLiquidateWhilePaused"
-      | "claimWithdrawals"
       | "closeCreditAccount"
       | "creditManager"
       | "debtLimits"
@@ -99,7 +96,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
       | "setTokenAllowance"
       | "version"
       | "weth"
-      | "withdrawalManager"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "botList", values?: undefined): string;
@@ -112,18 +108,8 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "claimWithdrawals",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "closeCreditAccount",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>,
-      MultiCallStruct[]
-    ]
+    values: [PromiseOrValue<string>, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
@@ -145,13 +131,7 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>,
-      MultiCallStruct[]
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "lossParams",
@@ -190,8 +170,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>
     ]
   ): string;
@@ -221,10 +199,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(functionFragment: "weth", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "withdrawalManager",
-    values?: undefined
-  ): string;
 
   decodeFunctionResult(functionFragment: "botList", data: BytesLike): Result;
   decodeFunctionResult(
@@ -233,10 +207,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "canLiquidateWhilePaused",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "claimWithdrawals",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -307,22 +277,18 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawalManager",
-    data: BytesLike
-  ): Result;
 
   events: {
     "AddCollateral(address,address,uint256)": EventFragment;
-    "CloseCreditAccount(address,address,address)": EventFragment;
+    "CloseCreditAccount(address,address)": EventFragment;
     "DecreaseDebt(address,uint256)": EventFragment;
     "Execute(address,address)": EventFragment;
     "FinishMultiCall()": EventFragment;
     "IncreaseDebt(address,uint256)": EventFragment;
-    "LiquidateCreditAccount(address,address,address,address,uint8,uint256)": EventFragment;
+    "LiquidateCreditAccount(address,address,address,address,uint256)": EventFragment;
     "OpenCreditAccount(address,address,address,uint256)": EventFragment;
-    "SetEnabledTokensMask(address,uint256)": EventFragment;
     "StartMultiCall(address,address)": EventFragment;
+    "WithdrawCollateral(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddCollateral"): EventFragment;
@@ -333,14 +299,14 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "IncreaseDebt"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetEnabledTokensMask"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "StartMultiCall"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WithdrawCollateral"): EventFragment;
 }
 
 export interface AddCollateralEventObject {
   creditAccount: string;
   token: string;
-  value: BigNumber;
+  amount: BigNumber;
 }
 export type AddCollateralEvent = TypedEvent<
   [string, string, BigNumber],
@@ -352,10 +318,9 @@ export type AddCollateralEventFilter = TypedEventFilter<AddCollateralEvent>;
 export interface CloseCreditAccountEventObject {
   creditAccount: string;
   borrower: string;
-  to: string;
 }
 export type CloseCreditAccountEvent = TypedEvent<
-  [string, string, string],
+  [string, string],
   CloseCreditAccountEventObject
 >;
 
@@ -402,11 +367,10 @@ export interface LiquidateCreditAccountEventObject {
   borrower: string;
   liquidator: string;
   to: string;
-  closureAction: number;
   remainingFunds: BigNumber;
 }
 export type LiquidateCreditAccountEvent = TypedEvent<
-  [string, string, string, string, number, BigNumber],
+  [string, string, string, string, BigNumber],
   LiquidateCreditAccountEventObject
 >;
 
@@ -427,18 +391,6 @@ export type OpenCreditAccountEvent = TypedEvent<
 export type OpenCreditAccountEventFilter =
   TypedEventFilter<OpenCreditAccountEvent>;
 
-export interface SetEnabledTokensMaskEventObject {
-  creditAccount: string;
-  enabledTokensMask: BigNumber;
-}
-export type SetEnabledTokensMaskEvent = TypedEvent<
-  [string, BigNumber],
-  SetEnabledTokensMaskEventObject
->;
-
-export type SetEnabledTokensMaskEventFilter =
-  TypedEventFilter<SetEnabledTokensMaskEvent>;
-
 export interface StartMultiCallEventObject {
   creditAccount: string;
   caller: string;
@@ -449,6 +401,19 @@ export type StartMultiCallEvent = TypedEvent<
 >;
 
 export type StartMultiCallEventFilter = TypedEventFilter<StartMultiCallEvent>;
+
+export interface WithdrawCollateralEventObject {
+  creditAccount: string;
+  token: string;
+  amount: BigNumber;
+}
+export type WithdrawCollateralEvent = TypedEvent<
+  [string, string, BigNumber],
+  WithdrawCollateralEventObject
+>;
+
+export type WithdrawCollateralEventFilter =
+  TypedEventFilter<WithdrawCollateralEvent>;
 
 export interface ICreditFacadeV3 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -490,17 +455,8 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    claimWithdrawals(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     closeCreditAccount(
       creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       calls: MultiCallStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -524,8 +480,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     liquidateCreditAccount(
       creditAccount: PromiseOrValue<string>,
       to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       calls: MultiCallStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -567,8 +521,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       creditAccount: PromiseOrValue<string>,
       bot: PromiseOrValue<string>,
       permissions: PromiseOrValue<BigNumberish>,
-      fundingAmount: PromiseOrValue<BigNumberish>,
-      weeklyFundingAllowance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -605,8 +557,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     weth(overrides?: CallOverrides): Promise<[string]>;
-
-    withdrawalManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
   botList(overrides?: CallOverrides): Promise<string>;
@@ -622,17 +572,8 @@ export interface ICreditFacadeV3 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  claimWithdrawals(
-    creditAccount: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   closeCreditAccount(
     creditAccount: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    skipTokenMask: PromiseOrValue<BigNumberish>,
-    convertToETH: PromiseOrValue<boolean>,
     calls: MultiCallStruct[],
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -656,8 +597,6 @@ export interface ICreditFacadeV3 extends BaseContract {
   liquidateCreditAccount(
     creditAccount: PromiseOrValue<string>,
     to: PromiseOrValue<string>,
-    skipTokenMask: PromiseOrValue<BigNumberish>,
-    convertToETH: PromiseOrValue<boolean>,
     calls: MultiCallStruct[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -699,8 +638,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     creditAccount: PromiseOrValue<string>,
     bot: PromiseOrValue<string>,
     permissions: PromiseOrValue<BigNumberish>,
-    fundingAmount: PromiseOrValue<BigNumberish>,
-    weeklyFundingAllowance: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -738,8 +675,6 @@ export interface ICreditFacadeV3 extends BaseContract {
 
   weth(overrides?: CallOverrides): Promise<string>;
 
-  withdrawalManager(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
     botList(overrides?: CallOverrides): Promise<string>;
 
@@ -754,17 +689,8 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    claimWithdrawals(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     closeCreditAccount(
       creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       calls: MultiCallStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
@@ -788,8 +714,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     liquidateCreditAccount(
       creditAccount: PromiseOrValue<string>,
       to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       calls: MultiCallStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
@@ -831,8 +755,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       creditAccount: PromiseOrValue<string>,
       bot: PromiseOrValue<string>,
       permissions: PromiseOrValue<BigNumberish>,
-      fundingAmount: PromiseOrValue<BigNumberish>,
-      weeklyFundingAllowance: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -869,31 +791,27 @@ export interface ICreditFacadeV3 extends BaseContract {
     version(overrides?: CallOverrides): Promise<BigNumber>;
 
     weth(overrides?: CallOverrides): Promise<string>;
-
-    withdrawalManager(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
     "AddCollateral(address,address,uint256)"(
       creditAccount?: PromiseOrValue<string> | null,
       token?: PromiseOrValue<string> | null,
-      value?: null
+      amount?: null
     ): AddCollateralEventFilter;
     AddCollateral(
       creditAccount?: PromiseOrValue<string> | null,
       token?: PromiseOrValue<string> | null,
-      value?: null
+      amount?: null
     ): AddCollateralEventFilter;
 
-    "CloseCreditAccount(address,address,address)"(
+    "CloseCreditAccount(address,address)"(
       creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
+      borrower?: PromiseOrValue<string> | null
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
       creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
+      borrower?: PromiseOrValue<string> | null
     ): CloseCreditAccountEventFilter;
 
     "DecreaseDebt(address,uint256)"(
@@ -926,12 +844,11 @@ export interface ICreditFacadeV3 extends BaseContract {
       amount?: null
     ): IncreaseDebtEventFilter;
 
-    "LiquidateCreditAccount(address,address,address,address,uint8,uint256)"(
+    "LiquidateCreditAccount(address,address,address,address,uint256)"(
       creditAccount?: PromiseOrValue<string> | null,
       borrower?: PromiseOrValue<string> | null,
       liquidator?: PromiseOrValue<string> | null,
       to?: null,
-      closureAction?: null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
@@ -939,7 +856,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       borrower?: PromiseOrValue<string> | null,
       liquidator?: PromiseOrValue<string> | null,
       to?: null,
-      closureAction?: null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
@@ -956,15 +872,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       referralCode?: null
     ): OpenCreditAccountEventFilter;
 
-    "SetEnabledTokensMask(address,uint256)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      enabledTokensMask?: null
-    ): SetEnabledTokensMaskEventFilter;
-    SetEnabledTokensMask(
-      creditAccount?: PromiseOrValue<string> | null,
-      enabledTokensMask?: null
-    ): SetEnabledTokensMaskEventFilter;
-
     "StartMultiCall(address,address)"(
       creditAccount?: PromiseOrValue<string> | null,
       caller?: PromiseOrValue<string> | null
@@ -973,6 +880,17 @@ export interface ICreditFacadeV3 extends BaseContract {
       creditAccount?: PromiseOrValue<string> | null,
       caller?: PromiseOrValue<string> | null
     ): StartMultiCallEventFilter;
+
+    "WithdrawCollateral(address,address,uint256)"(
+      creditAccount?: PromiseOrValue<string> | null,
+      token?: PromiseOrValue<string> | null,
+      amount?: null
+    ): WithdrawCollateralEventFilter;
+    WithdrawCollateral(
+      creditAccount?: PromiseOrValue<string> | null,
+      token?: PromiseOrValue<string> | null,
+      amount?: null
+    ): WithdrawCollateralEventFilter;
   };
 
   estimateGas: {
@@ -989,17 +907,8 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    claimWithdrawals(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     closeCreditAccount(
       creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       calls: MultiCallStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1019,8 +928,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     liquidateCreditAccount(
       creditAccount: PromiseOrValue<string>,
       to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       calls: MultiCallStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1055,8 +962,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       creditAccount: PromiseOrValue<string>,
       bot: PromiseOrValue<string>,
       permissions: PromiseOrValue<BigNumberish>,
-      fundingAmount: PromiseOrValue<BigNumberish>,
-      weeklyFundingAllowance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1093,8 +998,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     version(overrides?: CallOverrides): Promise<BigNumber>;
 
     weth(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdrawalManager(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1111,17 +1014,8 @@ export interface ICreditFacadeV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    claimWithdrawals(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     closeCreditAccount(
       creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       calls: MultiCallStruct[],
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -1143,8 +1037,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     liquidateCreditAccount(
       creditAccount: PromiseOrValue<string>,
       to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertToETH: PromiseOrValue<boolean>,
       calls: MultiCallStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -1183,8 +1075,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       creditAccount: PromiseOrValue<string>,
       bot: PromiseOrValue<string>,
       permissions: PromiseOrValue<BigNumberish>,
-      fundingAmount: PromiseOrValue<BigNumberish>,
-      weeklyFundingAllowance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1221,7 +1111,5 @@ export interface ICreditFacadeV3 extends BaseContract {
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdrawalManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

@@ -42,31 +42,40 @@ export type UniswapV3PoolStatusStructOutput = [
 ] & { token0: string; token1: string; fee: number; allowed: boolean };
 
 export declare namespace IUniswapV3AdapterTypes {
-  export type ExactAllInputParamsStruct = {
+  export type ExactDiffInputParamsStruct = {
     path: PromiseOrValue<BytesLike>;
     deadline: PromiseOrValue<BigNumberish>;
+    leftoverAmount: PromiseOrValue<BigNumberish>;
     rateMinRAY: PromiseOrValue<BigNumberish>;
   };
 
-  export type ExactAllInputParamsStructOutput = [
+  export type ExactDiffInputParamsStructOutput = [
     string,
     BigNumber,
+    BigNumber,
     BigNumber
-  ] & { path: string; deadline: BigNumber; rateMinRAY: BigNumber };
+  ] & {
+    path: string;
+    deadline: BigNumber;
+    leftoverAmount: BigNumber;
+    rateMinRAY: BigNumber;
+  };
 
-  export type ExactAllInputSingleParamsStruct = {
+  export type ExactDiffInputSingleParamsStruct = {
     tokenIn: PromiseOrValue<string>;
     tokenOut: PromiseOrValue<string>;
     fee: PromiseOrValue<BigNumberish>;
     deadline: PromiseOrValue<BigNumberish>;
+    leftoverAmount: PromiseOrValue<BigNumberish>;
     rateMinRAY: PromiseOrValue<BigNumberish>;
     sqrtPriceLimitX96: PromiseOrValue<BigNumberish>;
   };
 
-  export type ExactAllInputSingleParamsStructOutput = [
+  export type ExactDiffInputSingleParamsStructOutput = [
     string,
     string,
     number,
+    BigNumber,
     BigNumber,
     BigNumber,
     BigNumber
@@ -75,6 +84,7 @@ export declare namespace IUniswapV3AdapterTypes {
     tokenOut: string;
     fee: number;
     deadline: BigNumber;
+    leftoverAmount: BigNumber;
     rateMinRAY: BigNumber;
     sqrtPriceLimitX96: BigNumber;
   };
@@ -194,8 +204,8 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
     "_gearboxAdapterVersion()": FunctionFragment;
     "addressProvider()": FunctionFragment;
     "creditManager()": FunctionFragment;
-    "exactAllInput((bytes,uint256,uint256))": FunctionFragment;
-    "exactAllInputSingle((address,address,uint24,uint256,uint256,uint160))": FunctionFragment;
+    "exactDiffInput((bytes,uint256,uint256,uint256))": FunctionFragment;
+    "exactDiffInputSingle((address,address,uint24,uint256,uint256,uint256,uint160))": FunctionFragment;
     "exactInput((bytes,address,uint256,uint256,uint256))": FunctionFragment;
     "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))": FunctionFragment;
     "exactOutput((bytes,address,uint256,uint256,uint256))": FunctionFragment;
@@ -211,8 +221,8 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
       | "_gearboxAdapterVersion"
       | "addressProvider"
       | "creditManager"
-      | "exactAllInput"
-      | "exactAllInputSingle"
+      | "exactDiffInput"
+      | "exactDiffInputSingle"
       | "exactInput"
       | "exactInputSingle"
       | "exactOutput"
@@ -239,12 +249,12 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "exactAllInput",
-    values: [IUniswapV3AdapterTypes.ExactAllInputParamsStruct]
+    functionFragment: "exactDiffInput",
+    values: [IUniswapV3AdapterTypes.ExactDiffInputParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "exactAllInputSingle",
-    values: [IUniswapV3AdapterTypes.ExactAllInputSingleParamsStruct]
+    functionFragment: "exactDiffInputSingle",
+    values: [IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "exactInput",
@@ -296,11 +306,11 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "exactAllInput",
+    functionFragment: "exactDiffInput",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "exactAllInputSingle",
+    functionFragment: "exactDiffInputSingle",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "exactInput", data: BytesLike): Result;
@@ -384,13 +394,13 @@ export interface IUniswapV3Adapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<[string]>;
 
-    exactAllInput(
-      params: IUniswapV3AdapterTypes.ExactAllInputParamsStruct,
+    exactDiffInput(
+      params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    exactAllInputSingle(
-      params: IUniswapV3AdapterTypes.ExactAllInputSingleParamsStruct,
+    exactDiffInputSingle(
+      params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -437,13 +447,13 @@ export interface IUniswapV3Adapter extends BaseContract {
 
   creditManager(overrides?: CallOverrides): Promise<string>;
 
-  exactAllInput(
-    params: IUniswapV3AdapterTypes.ExactAllInputParamsStruct,
+  exactDiffInput(
+    params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  exactAllInputSingle(
-    params: IUniswapV3AdapterTypes.ExactAllInputSingleParamsStruct,
+  exactDiffInputSingle(
+    params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -490,8 +500,8 @@ export interface IUniswapV3Adapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<string>;
 
-    exactAllInput(
-      params: IUniswapV3AdapterTypes.ExactAllInputParamsStruct,
+    exactDiffInput(
+      params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -500,8 +510,8 @@ export interface IUniswapV3Adapter extends BaseContract {
       }
     >;
 
-    exactAllInputSingle(
-      params: IUniswapV3AdapterTypes.ExactAllInputSingleParamsStruct,
+    exactDiffInputSingle(
+      params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -589,13 +599,13 @@ export interface IUniswapV3Adapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<BigNumber>;
 
-    exactAllInput(
-      params: IUniswapV3AdapterTypes.ExactAllInputParamsStruct,
+    exactDiffInput(
+      params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    exactAllInputSingle(
-      params: IUniswapV3AdapterTypes.ExactAllInputSingleParamsStruct,
+    exactDiffInputSingle(
+      params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -647,13 +657,13 @@ export interface IUniswapV3Adapter extends BaseContract {
 
     creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    exactAllInput(
-      params: IUniswapV3AdapterTypes.ExactAllInputParamsStruct,
+    exactDiffInput(
+      params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    exactAllInputSingle(
-      params: IUniswapV3AdapterTypes.ExactAllInputSingleParamsStruct,
+    exactDiffInputSingle(
+      params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

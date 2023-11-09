@@ -25,7 +25,7 @@ import type {
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "./common";
+} from "../common";
 
 export type SwapTaskStruct = {
   swapOperation: PromiseOrValue<BigNumberish>;
@@ -34,8 +34,7 @@ export type SwapTaskStruct = {
   tokenOut: PromiseOrValue<string>;
   connectors: PromiseOrValue<string>[];
   amount: PromiseOrValue<BigNumberish>;
-  slippage: PromiseOrValue<BigNumberish>;
-  externalSlippage: PromiseOrValue<boolean>;
+  leftoverAmount: PromiseOrValue<BigNumberish>;
 };
 
 export type SwapTaskStructOutput = [
@@ -45,8 +44,7 @@ export type SwapTaskStructOutput = [
   string,
   string[],
   BigNumber,
-  BigNumber,
-  boolean
+  BigNumber
 ] & {
   swapOperation: number;
   creditAccount: string;
@@ -54,8 +52,7 @@ export type SwapTaskStructOutput = [
   tokenOut: string;
   connectors: string[];
   amount: BigNumber;
-  slippage: BigNumber;
-  externalSlippage: boolean;
+  leftoverAmount: BigNumber;
 };
 
 export type MultiCallStruct = {
@@ -70,6 +67,7 @@ export type MultiCallStructOutput = [string, string] & {
 
 export type RouterResultStruct = {
   amount: PromiseOrValue<BigNumberish>;
+  minAmount: PromiseOrValue<BigNumberish>;
   gasUsage: PromiseOrValue<BigNumberish>;
   calls: MultiCallStruct[];
 };
@@ -77,8 +75,24 @@ export type RouterResultStruct = {
 export type RouterResultStructOutput = [
   BigNumber,
   BigNumber,
+  BigNumber,
   MultiCallStructOutput[]
-] & { amount: BigNumber; gasUsage: BigNumber; calls: MultiCallStructOutput[] };
+] & {
+  amount: BigNumber;
+  minAmount: BigNumber;
+  gasUsage: BigNumber;
+  calls: MultiCallStructOutput[];
+};
+
+export type BalanceStruct = {
+  token: PromiseOrValue<string>;
+  balance: PromiseOrValue<BigNumberish>;
+};
+
+export type BalanceStructOutput = [string, BigNumber] & {
+  token: string;
+  balance: BigNumber;
+};
 
 export type PathOptionStruct = {
   target: PromiseOrValue<string>;
@@ -92,23 +106,13 @@ export type PathOptionStructOutput = [string, number, number] & {
   totalOptions: number;
 };
 
-export type BalanceStruct = {
-  token: PromiseOrValue<string>;
-  balance: PromiseOrValue<BigNumberish>;
-};
-
-export type BalanceStructOutput = [string, BigNumber] & {
-  token: string;
-  balance: BigNumber;
-};
-
 export interface IRouterInterface extends utils.Interface {
   functions: {
     "componentAddressById(uint8)": FunctionFragment;
-    "findAllSwaps((uint8,address,address,address,address[],uint256,uint256,bool))": FunctionFragment;
-    "findBestClosePath(address,address[],uint256,(address,uint8,uint8)[],uint256,bool)": FunctionFragment;
+    "findAllSwaps((uint8,address,address,address,address[],uint256,uint256),uint256)": FunctionFragment;
+    "findBestClosePath(address,(address,uint256)[],(address,uint256)[],address[],uint256,(address,uint8,uint8)[],uint256,bool)": FunctionFragment;
     "findOneTokenPath(address,uint256,address,address,address[],uint256)": FunctionFragment;
-    "findOpenStrategyPath(address,(address,uint256)[],address,address[],uint256)": FunctionFragment;
+    "findOpenStrategyPath(address,(address,uint256)[],(address,uint256)[],address,address[],uint256)": FunctionFragment;
     "getGasPriceTokenOutRAY(address)": FunctionFragment;
     "isRouterConfigurator(address)": FunctionFragment;
     "tokenTypes(address)": FunctionFragment;
@@ -134,12 +138,14 @@ export interface IRouterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "findAllSwaps",
-    values: [SwapTaskStruct]
+    values: [SwapTaskStruct, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "findBestClosePath",
     values: [
       PromiseOrValue<string>,
+      BalanceStruct[],
+      BalanceStruct[],
       PromiseOrValue<string>[],
       PromiseOrValue<BigNumberish>,
       PathOptionStruct[],
@@ -162,6 +168,7 @@ export interface IRouterInterface extends utils.Interface {
     functionFragment: "findOpenStrategyPath",
     values: [
       PromiseOrValue<string>,
+      BalanceStruct[],
       BalanceStruct[],
       PromiseOrValue<string>,
       PromiseOrValue<string>[],
@@ -293,11 +300,14 @@ export interface IRouter extends BaseContract {
 
     findAllSwaps(
       swapTask: SwapTaskStruct,
+      slippage: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     findBestClosePath(
       creditAccount: PromiseOrValue<string>,
+      expectedBalances: BalanceStruct[],
+      leftoverBalances: BalanceStruct[],
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,
       pathOptions: PathOptionStruct[],
@@ -319,6 +329,7 @@ export interface IRouter extends BaseContract {
     findOpenStrategyPath(
       creditManager: PromiseOrValue<string>,
       balances: BalanceStruct[],
+      leftoverBalances: BalanceStruct[],
       target: PromiseOrValue<string>,
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,
@@ -350,11 +361,14 @@ export interface IRouter extends BaseContract {
 
   findAllSwaps(
     swapTask: SwapTaskStruct,
+    slippage: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   findBestClosePath(
     creditAccount: PromiseOrValue<string>,
+    expectedBalances: BalanceStruct[],
+    leftoverBalances: BalanceStruct[],
     connectors: PromiseOrValue<string>[],
     slippage: PromiseOrValue<BigNumberish>,
     pathOptions: PathOptionStruct[],
@@ -376,6 +390,7 @@ export interface IRouter extends BaseContract {
   findOpenStrategyPath(
     creditManager: PromiseOrValue<string>,
     balances: BalanceStruct[],
+    leftoverBalances: BalanceStruct[],
     target: PromiseOrValue<string>,
     connectors: PromiseOrValue<string>[],
     slippage: PromiseOrValue<BigNumberish>,
@@ -407,11 +422,14 @@ export interface IRouter extends BaseContract {
 
     findAllSwaps(
       swapTask: SwapTaskStruct,
+      slippage: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<RouterResultStructOutput[]>;
 
     findBestClosePath(
       creditAccount: PromiseOrValue<string>,
+      expectedBalances: BalanceStruct[],
+      leftoverBalances: BalanceStruct[],
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,
       pathOptions: PathOptionStruct[],
@@ -438,6 +456,7 @@ export interface IRouter extends BaseContract {
     findOpenStrategyPath(
       creditManager: PromiseOrValue<string>,
       balances: BalanceStruct[],
+      leftoverBalances: BalanceStruct[],
       target: PromiseOrValue<string>,
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,
@@ -501,11 +520,14 @@ export interface IRouter extends BaseContract {
 
     findAllSwaps(
       swapTask: SwapTaskStruct,
+      slippage: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     findBestClosePath(
       creditAccount: PromiseOrValue<string>,
+      expectedBalances: BalanceStruct[],
+      leftoverBalances: BalanceStruct[],
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,
       pathOptions: PathOptionStruct[],
@@ -527,6 +549,7 @@ export interface IRouter extends BaseContract {
     findOpenStrategyPath(
       creditManager: PromiseOrValue<string>,
       balances: BalanceStruct[],
+      leftoverBalances: BalanceStruct[],
       target: PromiseOrValue<string>,
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,
@@ -559,11 +582,14 @@ export interface IRouter extends BaseContract {
 
     findAllSwaps(
       swapTask: SwapTaskStruct,
+      slippage: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     findBestClosePath(
       creditAccount: PromiseOrValue<string>,
+      expectedBalances: BalanceStruct[],
+      leftoverBalances: BalanceStruct[],
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,
       pathOptions: PathOptionStruct[],
@@ -585,6 +611,7 @@ export interface IRouter extends BaseContract {
     findOpenStrategyPath(
       creditManager: PromiseOrValue<string>,
       balances: BalanceStruct[],
+      leftoverBalances: BalanceStruct[],
       target: PromiseOrValue<string>,
       connectors: PromiseOrValue<string>[],
       slippage: PromiseOrValue<BigNumberish>,

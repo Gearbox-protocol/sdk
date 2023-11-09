@@ -17,15 +17,15 @@ export interface ICreditFacadeV3EventsInterface extends utils.Interface {
 
   events: {
     "AddCollateral(address,address,uint256)": EventFragment;
-    "CloseCreditAccount(address,address,address)": EventFragment;
+    "CloseCreditAccount(address,address)": EventFragment;
     "DecreaseDebt(address,uint256)": EventFragment;
     "Execute(address,address)": EventFragment;
     "FinishMultiCall()": EventFragment;
     "IncreaseDebt(address,uint256)": EventFragment;
-    "LiquidateCreditAccount(address,address,address,address,uint8,uint256)": EventFragment;
+    "LiquidateCreditAccount(address,address,address,address,uint256)": EventFragment;
     "OpenCreditAccount(address,address,address,uint256)": EventFragment;
-    "SetEnabledTokensMask(address,uint256)": EventFragment;
     "StartMultiCall(address,address)": EventFragment;
+    "WithdrawCollateral(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddCollateral"): EventFragment;
@@ -36,14 +36,14 @@ export interface ICreditFacadeV3EventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "IncreaseDebt"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetEnabledTokensMask"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "StartMultiCall"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WithdrawCollateral"): EventFragment;
 }
 
 export interface AddCollateralEventObject {
   creditAccount: string;
   token: string;
-  value: BigNumber;
+  amount: BigNumber;
 }
 export type AddCollateralEvent = TypedEvent<
   [string, string, BigNumber],
@@ -55,10 +55,9 @@ export type AddCollateralEventFilter = TypedEventFilter<AddCollateralEvent>;
 export interface CloseCreditAccountEventObject {
   creditAccount: string;
   borrower: string;
-  to: string;
 }
 export type CloseCreditAccountEvent = TypedEvent<
-  [string, string, string],
+  [string, string],
   CloseCreditAccountEventObject
 >;
 
@@ -105,11 +104,10 @@ export interface LiquidateCreditAccountEventObject {
   borrower: string;
   liquidator: string;
   to: string;
-  closureAction: number;
   remainingFunds: BigNumber;
 }
 export type LiquidateCreditAccountEvent = TypedEvent<
-  [string, string, string, string, number, BigNumber],
+  [string, string, string, string, BigNumber],
   LiquidateCreditAccountEventObject
 >;
 
@@ -130,18 +128,6 @@ export type OpenCreditAccountEvent = TypedEvent<
 export type OpenCreditAccountEventFilter =
   TypedEventFilter<OpenCreditAccountEvent>;
 
-export interface SetEnabledTokensMaskEventObject {
-  creditAccount: string;
-  enabledTokensMask: BigNumber;
-}
-export type SetEnabledTokensMaskEvent = TypedEvent<
-  [string, BigNumber],
-  SetEnabledTokensMaskEventObject
->;
-
-export type SetEnabledTokensMaskEventFilter =
-  TypedEventFilter<SetEnabledTokensMaskEvent>;
-
 export interface StartMultiCallEventObject {
   creditAccount: string;
   caller: string;
@@ -152,6 +138,19 @@ export type StartMultiCallEvent = TypedEvent<
 >;
 
 export type StartMultiCallEventFilter = TypedEventFilter<StartMultiCallEvent>;
+
+export interface WithdrawCollateralEventObject {
+  creditAccount: string;
+  token: string;
+  amount: BigNumber;
+}
+export type WithdrawCollateralEvent = TypedEvent<
+  [string, string, BigNumber],
+  WithdrawCollateralEventObject
+>;
+
+export type WithdrawCollateralEventFilter =
+  TypedEventFilter<WithdrawCollateralEvent>;
 
 export interface ICreditFacadeV3Events extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -187,23 +186,21 @@ export interface ICreditFacadeV3Events extends BaseContract {
     "AddCollateral(address,address,uint256)"(
       creditAccount?: PromiseOrValue<string> | null,
       token?: PromiseOrValue<string> | null,
-      value?: null
+      amount?: null
     ): AddCollateralEventFilter;
     AddCollateral(
       creditAccount?: PromiseOrValue<string> | null,
       token?: PromiseOrValue<string> | null,
-      value?: null
+      amount?: null
     ): AddCollateralEventFilter;
 
-    "CloseCreditAccount(address,address,address)"(
+    "CloseCreditAccount(address,address)"(
       creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
+      borrower?: PromiseOrValue<string> | null
     ): CloseCreditAccountEventFilter;
     CloseCreditAccount(
       creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
+      borrower?: PromiseOrValue<string> | null
     ): CloseCreditAccountEventFilter;
 
     "DecreaseDebt(address,uint256)"(
@@ -236,12 +233,11 @@ export interface ICreditFacadeV3Events extends BaseContract {
       amount?: null
     ): IncreaseDebtEventFilter;
 
-    "LiquidateCreditAccount(address,address,address,address,uint8,uint256)"(
+    "LiquidateCreditAccount(address,address,address,address,uint256)"(
       creditAccount?: PromiseOrValue<string> | null,
       borrower?: PromiseOrValue<string> | null,
       liquidator?: PromiseOrValue<string> | null,
       to?: null,
-      closureAction?: null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
@@ -249,7 +245,6 @@ export interface ICreditFacadeV3Events extends BaseContract {
       borrower?: PromiseOrValue<string> | null,
       liquidator?: PromiseOrValue<string> | null,
       to?: null,
-      closureAction?: null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
 
@@ -266,15 +261,6 @@ export interface ICreditFacadeV3Events extends BaseContract {
       referralCode?: null
     ): OpenCreditAccountEventFilter;
 
-    "SetEnabledTokensMask(address,uint256)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      enabledTokensMask?: null
-    ): SetEnabledTokensMaskEventFilter;
-    SetEnabledTokensMask(
-      creditAccount?: PromiseOrValue<string> | null,
-      enabledTokensMask?: null
-    ): SetEnabledTokensMaskEventFilter;
-
     "StartMultiCall(address,address)"(
       creditAccount?: PromiseOrValue<string> | null,
       caller?: PromiseOrValue<string> | null
@@ -283,6 +269,17 @@ export interface ICreditFacadeV3Events extends BaseContract {
       creditAccount?: PromiseOrValue<string> | null,
       caller?: PromiseOrValue<string> | null
     ): StartMultiCallEventFilter;
+
+    "WithdrawCollateral(address,address,uint256)"(
+      creditAccount?: PromiseOrValue<string> | null,
+      token?: PromiseOrValue<string> | null,
+      amount?: null
+    ): WithdrawCollateralEventFilter;
+    WithdrawCollateral(
+      creditAccount?: PromiseOrValue<string> | null,
+      token?: PromiseOrValue<string> | null,
+      amount?: null
+    ): WithdrawCollateralEventFilter;
   };
 
   estimateGas: {};
