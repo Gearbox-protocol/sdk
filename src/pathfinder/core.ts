@@ -16,8 +16,9 @@ export enum SwapOperation {
 export type MultiCall = ExcludeArrayProps<MultiCallStructOutput>;
 export type SwapTask = ExcludeArrayProps<SwapTaskStruct>;
 
-export type PathFinderResult = BigintifyProps<
-  ExcludeArrayProps<RouterResultStructOutput>
+export type PathFinderResult = Omit<
+  BigintifyProps<ExcludeArrayProps<RouterResultStructOutput>>,
+  "calls"
 > & {
   calls: Array<MultiCall>;
 };
