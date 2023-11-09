@@ -33,7 +33,8 @@ export interface TxSerialized {
     | "TxGaugeStake"
     | "TxGaugeUnstake"
     | "TxGaugeClaim"
-    | "TxGaugeVote";
+    | "TxGaugeVote"
+    | "TxWithdrawCollateral";
   content: string;
 }
 
@@ -86,6 +87,8 @@ export class TxSerializer {
           return new TxGaugeClaim(params);
         case "TxGaugeVote":
           return new TxGaugeVote(params);
+        case "TxWithdrawCollateral":
+          return new TxWithdrawCollateral(params);
 
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
@@ -766,6 +769,46 @@ export class TxGaugeVote extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxGaugeVote",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface WithdrawCollateralProps extends EVMTxProps {
+  amount: bigint;
+  token: string;
+  to: string;
+  creditManager: string;
+}
+
+export class TxWithdrawCollateral extends EVMTx {
+  readonly amount: bigint;
+  readonly token: string;
+  readonly to: string;
+  readonly creditManager: string;
+
+  constructor(opts: WithdrawCollateralProps) {
+    super(opts);
+    this.amount = opts.amount;
+    this.token = opts.token;
+    this.to = opts.to;
+    this.creditManager = opts.creditManager;
+  }
+
+  toString(): string {
+    const [addedSymbol, addedDecimals] = extractTokenData(this.token);
+
+    return `Credit account ${getContractName(
+      this.creditManager,
+    )}: Removed ${formatBN(
+      this.amount,
+      addedDecimals || 18,
+    )} ${addedSymbol} as collateral`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxWithdrawCollateral",
       content: JSON.stringify(this),
     };
   }
