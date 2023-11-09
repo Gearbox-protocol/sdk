@@ -325,6 +325,21 @@ export class CreditManagerData {
     };
   }
 
+  encodeWithdrawCollateralV3(
+    token: string,
+    amount: bigint,
+    to: string,
+  ): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "withdrawCollateral",
+          [token, amount, to],
+        ),
+    };
+  }
+
   static withdrawAllAndUnwrap_Convex(
     address: string,
     claim: boolean,
