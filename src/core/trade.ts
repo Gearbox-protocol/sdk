@@ -22,10 +22,11 @@ interface TradeProps {
   adapter: Info;
   tradePath: PathFinderResult;
 
-  tokenFrom: string;
-  tokenTo: string;
+  tokenIn: string;
+  tokenOut: string;
   sourceAmount: bigint;
-  expectedAmount: bigint;
+  minExpectedAmount: bigint;
+  averageExpectedAmount: bigint;
   swapType: SwapOperation;
   swapName: TradeOperations;
 }
@@ -33,8 +34,9 @@ interface TradeProps {
 export type TradeOperations = "farmWithdraw" | "farmDeposit" | "swap";
 
 export interface GetTradesProps {
-  from: string;
-  to: string;
+  tokenIn: string;
+  tokenOut: string;
+
   amount: bigint;
   results: Array<PathFinderResult>;
 
@@ -51,10 +53,11 @@ export class Trade {
 
   readonly swapType: SwapOperation;
   readonly sourceAmount: bigint;
-  readonly expectedAmount: bigint;
+  readonly minExpectedAmount: bigint;
+  readonly averageExpectedAmount: bigint;
   readonly rate: bigint;
-  readonly tokenFrom: string;
-  readonly tokenTo: string;
+  readonly tokenIn: string;
+  readonly tokenOut: string;
   readonly operationName: TradeOperations;
 
   private constructor(props: TradeProps) {
@@ -63,10 +66,11 @@ export class Trade {
 
     this.swapType = props.swapType;
     this.sourceAmount = props.sourceAmount;
-    this.expectedAmount = props.expectedAmount;
-    this.rate = (WAD * props.expectedAmount) / props.sourceAmount;
-    this.tokenFrom = props.tokenFrom;
-    this.tokenTo = props.tokenTo;
+    this.minExpectedAmount = props.minExpectedAmount;
+    this.averageExpectedAmount = props.averageExpectedAmount;
+    this.rate = (WAD * props.minExpectedAmount) / props.sourceAmount;
+    this.tokenIn = props.tokenIn;
+    this.tokenOut = props.tokenOut;
     this.operationName = props.swapName;
   }
 
@@ -75,10 +79,10 @@ export class Trade {
   }
 
   toString(): string {
-    const symbolFrom = tokenSymbolByAddress[this.tokenFrom.toLowerCase()];
-    const symbolTo = tokenSymbolByAddress[this.tokenTo.toLowerCase()];
-    if (!symbolFrom) throw new Error(`Unknown token: ${this.tokenFrom}`);
-    if (!symbolTo) throw new Error(`Unknown token: ${this.tokenTo}`);
+    const symbolFrom = tokenSymbolByAddress[this.tokenIn.toLowerCase()];
+    const symbolTo = tokenSymbolByAddress[this.tokenOut.toLowerCase()];
+    if (!symbolFrom) throw new Error(`Unknown token: ${this.tokenIn}`);
+    if (!symbolTo) throw new Error(`Unknown token: ${this.tokenOut}`);
 
     const decimalsFrom = decimals[symbolFrom];
     const decimalsTo = decimals[symbolTo];
@@ -87,14 +91,14 @@ export class Trade {
       this.sourceAmount,
       decimalsFrom,
     )} ${symbolFrom} ⇒ ${formatBN(
-      this.expectedAmount,
+      this.minExpectedAmount,
       decimalsTo,
     )} ${symbolTo} on ${this.helper.name}`;
   }
 
   static getTrades({
-    from,
-    to,
+    tokenIn,
+    tokenOut,
     amount,
     results,
 
@@ -117,9 +121,10 @@ export class Trade {
         adapter: callInfo[0],
         swapType,
         sourceAmount: amount,
-        expectedAmount: tradePath.amount,
-        tokenFrom: from,
-        tokenTo: to,
+        minExpectedAmount: tradePath.minAmount,
+        averageExpectedAmount: tradePath.amount,
+        tokenIn,
+        tokenOut,
         swapName,
       });
 
@@ -176,7 +181,7 @@ export class Trade {
         b.getName().toLowerCase().search(swapStrategy.toLowerCase()) >= 0;
 
       if ((aSelected && bSelected) || (!aSelected && !bSelected)) {
-        const sign = a.expectedAmount > b.expectedAmount ? -1 : 1;
+        const sign = a.minExpectedAmount > b.minExpectedAmount ? -1 : 1;
         return swapType === SwapOperation.EXACT_INPUT ? sign : -sign;
       }
 

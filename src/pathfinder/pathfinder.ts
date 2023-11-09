@@ -6,7 +6,7 @@ import {
   toBigInt,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish, providers, Signer } from "ethers";
+import { providers, Signer } from "ethers";
 
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
@@ -29,8 +29,8 @@ interface FindAllSwapsProps {
   swapOperation: SwapOperation;
   tokenIn: string;
   tokenOut: string;
-  amount: BigNumberish;
-  leftoverAmount: BigNumberish;
+  amount: bigint;
+  leftoverAmount: bigint;
   slippage: number;
 }
 
@@ -38,23 +38,23 @@ interface FindOneTokenPathProps {
   creditAccount: CreditAccountData;
   tokenIn: string;
   tokenOut: string;
-  amount: BigNumberish;
+  amount: bigint;
   slippage: number;
 }
 
 interface FindBestClosePathProps {
   creditAccount: CreditAccountData;
   creditManager: CreditManagerData;
-  expectedBalances: Record<string, BigNumberish>;
-  leftoverBalances: Record<string, BigNumberish>;
+  expectedBalances: Record<string, bigint>;
+  leftoverBalances: Record<string, bigint>;
   slippage: number;
   noConcurrency?: boolean;
 }
 
 interface FindOpenStrategyPathProps {
   creditManager: CreditManagerData;
-  expectedBalances: Record<string, BigNumberish>;
-  leftoverBalances: Record<string, BigNumberish>;
+  expectedBalances: Record<string, bigint>;
+  leftoverBalances: Record<string, bigint>;
   target: string;
   slippage: number;
 }
