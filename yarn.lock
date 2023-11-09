@@ -1235,10 +1235,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/integration-types/-/integration-types-1.4.0.tgz#82064ffc46465cb1e42a3a4703749bfdcad4d92f"
   integrity sha512-OtdmeY2BTxMRxml1WOwhNHLMtDRNm+5m+PZmIqulVVaanv8hXiSJhO3zdPQjkHMHqeb9WPzL/lMwOwwQ5T0LEw==
 
-"@gearbox-protocol/integrations-v3@^1.23.1":
-  version "1.23.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.23.1.tgz#883c61e74ad3734bbe06f0700752821ed75bce1d"
-  integrity sha512-l220eYoQRADuDPNaE+oXVTp1MseLdfnhT2Fp1QJ3ZY3zZQ+S1xqVNRcbs8OOwzwaI3H4xMnF/g2cvyjD7qq7jQ==
+"@gearbox-protocol/integrations-v3@^1.24.0":
+  version "1.24.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.24.0.tgz#c5a049c9128ad52fa62eeb2d1825a0a161093a9a"
+  integrity sha512-XG0m/j4/Z2s/rpGkcRlTN/Pj7/SvbmvyKaaqXGc9VLylUqHjCMR/71dsFj440oB1fo7OO9FG1I+L7WcVDYCtWw==
 
 "@gearbox-protocol/oracles-v3@^1.8.1":
   version "1.8.1"
