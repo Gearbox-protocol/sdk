@@ -41,6 +41,14 @@ interface FindAllSwapsProps {
   slippage: number;
 }
 
+interface FindOneTokenPathProps {
+  creditAccount: CreditAccountData;
+  tokenIn: string;
+  tokenOut: string;
+  amount: BigNumberish;
+  slippage: number;
+}
+
 export class PathFinder {
   pathFinder: IRouter;
   network: NetworkType;
@@ -114,13 +122,13 @@ export class PathFinder {
     return Object.values(unique);
   }
 
-  async findOneTokenPath(
-    creditAccount: CreditAccountData,
-    tokenIn: string,
-    tokenOut: string,
-    amount: BigNumberish,
-    slippage: number,
-  ): Promise<PathFinderResult> {
+  async findOneTokenPath({
+    creditAccount,
+    tokenIn,
+    tokenOut,
+    amount,
+    slippage,
+  }: FindOneTokenPathProps): Promise<PathFinderResult> {
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
     const result = await this.pathFinder.callStatic.findOneTokenPath(
