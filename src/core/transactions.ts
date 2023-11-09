@@ -796,14 +796,11 @@ export class TxWithdrawCollateral extends EVMTx {
   }
 
   toString(): string {
-    const [addedSymbol, addedDecimals] = extractTokenData(this.token);
+    const [symbol, decimals] = extractTokenData(this.token);
 
     return `Credit account ${getContractName(
       this.creditManager,
-    )}: Removed ${formatBN(
-      this.amount,
-      addedDecimals || 18,
-    )} ${addedSymbol} as collateral`;
+    )}: withdrawn ${formatBN(this.amount, decimals || 18)} ${symbol}`;
   }
 
   serialize(): TxSerialized {
