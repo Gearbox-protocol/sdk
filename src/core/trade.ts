@@ -27,7 +27,7 @@ interface TradeProps {
   sourceAmount: bigint;
   minExpectedAmount: bigint;
   averageExpectedAmount: bigint;
-  swapType: SwapOperation;
+  swapOperation: SwapOperation;
   swapName: TradeOperations;
 }
 
@@ -43,7 +43,7 @@ export interface GetTradesProps {
   creditManager: CreditManagerData;
   currentContracts: Record<SupportedContract, string>;
 
-  swapType: SwapOperation;
+  swapOperation: SwapOperation;
   swapName: TradeOperations;
 }
 
@@ -51,7 +51,7 @@ export class Trade {
   readonly helper: Info;
   readonly tradePath: PathFinderResult;
 
-  readonly swapType: SwapOperation;
+  readonly swapOperation: SwapOperation;
   readonly sourceAmount: bigint;
   readonly minExpectedAmount: bigint;
   readonly averageExpectedAmount: bigint;
@@ -64,7 +64,7 @@ export class Trade {
     this.helper = props.adapter;
     this.tradePath = props.tradePath;
 
-    this.swapType = props.swapType;
+    this.swapOperation = props.swapOperation;
     this.sourceAmount = props.sourceAmount;
     this.minExpectedAmount = props.minExpectedAmount;
     this.averageExpectedAmount = props.averageExpectedAmount;
@@ -105,7 +105,7 @@ export class Trade {
     creditManager,
     currentContracts,
 
-    swapType,
+    swapOperation,
     swapName,
   }: GetTradesProps) {
     const trades = results.reduce<Array<Trade>>((acc, tradePath) => {
@@ -119,7 +119,7 @@ export class Trade {
       const trade = new Trade({
         tradePath,
         adapter: callInfo[0],
-        swapType,
+        swapOperation,
         sourceAmount: amount,
         minExpectedAmount: tradePath.minAmount,
         averageExpectedAmount: tradePath.amount,
@@ -172,7 +172,7 @@ export class Trade {
   static sortTrades(trades: Array<Trade>, swapStrategy: string) {
     if (trades.length === 0) return [];
 
-    const { swapType } = trades[0];
+    const { swapOperation } = trades[0];
 
     const sorted = [...trades].sort((a, b) => {
       const aSelected =
@@ -182,7 +182,7 @@ export class Trade {
 
       if ((aSelected && bSelected) || (!aSelected && !bSelected)) {
         const sign = a.minExpectedAmount > b.minExpectedAmount ? -1 : 1;
-        return swapType === SwapOperation.EXACT_INPUT ? sign : -sign;
+        return swapOperation === SwapOperation.EXACT_INPUT ? sign : -sign;
       }
 
       return aSelected ? -1 : 1;
