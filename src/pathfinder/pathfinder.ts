@@ -8,6 +8,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
+import { Asset } from "../core/assets";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { IRouter, IRouter__factory } from "../types";
@@ -45,16 +46,16 @@ interface FindOneTokenPathProps {
 interface FindBestClosePathProps {
   creditAccount: CreditAccountData;
   creditManager: CreditManagerData;
-  expectedBalances: Record<string, bigint>;
-  leftoverBalances: Record<string, bigint>;
+  expectedBalances: Record<string, Asset>;
+  leftoverBalances: Record<string, Asset>;
   slippage: number;
   noConcurrency?: boolean;
 }
 
 interface FindOpenStrategyPathProps {
   creditManager: CreditManagerData;
-  expectedBalances: Record<string, bigint>;
-  leftoverBalances: Record<string, bigint>;
+  expectedBalances: Record<string, Asset>;
+  leftoverBalances: Record<string, Asset>;
   target: string;
   slippage: number;
 }
@@ -182,12 +183,12 @@ export class PathFinder {
   }: FindOpenStrategyPathProps): Promise<PathFinderOpenStrategyResult> {
     const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: expectedBalances[token] || 0,
+      balance: expectedBalances[token]?.balance || 0n,
     }));
 
     const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: leftoverBalances[token] || 1,
+      balance: leftoverBalances[token]?.balance || 1n,
     }));
 
     const connectors = this.getAvailableConnectors(cm.supportedTokens);
@@ -248,12 +249,12 @@ export class PathFinder {
 
     const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: expectedBalances[token] || 0,
+      balance: expectedBalances[token]?.balance || 0n,
     }));
 
     const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: leftoverBalances[token] || 1,
+      balance: leftoverBalances[token]?.balance || 1n,
     }));
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
