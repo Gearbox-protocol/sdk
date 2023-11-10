@@ -76,6 +76,19 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
         return `${functionName}(${balancesStr})`;
       }
 
+      case "withdrawCollateral": {
+        const [token, amount, to] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+
+        return `${functionName}(token: ${this.tokenSymbol(
+          token,
+        )}, withdraw: ${this.formatAmount(amount)}, to: ${this.formatAmount(
+          to,
+        )})`;
+      }
+
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
     }

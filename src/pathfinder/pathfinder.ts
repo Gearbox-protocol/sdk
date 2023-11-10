@@ -183,12 +183,12 @@ export class PathFinder {
   }: FindOpenStrategyPathProps): Promise<PathFinderOpenStrategyResult> {
     const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: expectedBalances[token]?.balance || 0,
+      balance: expectedBalances[token]?.balance || 0n,
     }));
 
     const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: leftoverBalances[token]?.balance || 1,
+      balance: leftoverBalances[token]?.balance || 1n,
     }));
 
     const connectors = this.getAvailableConnectors(cm.supportedTokens);
@@ -249,12 +249,12 @@ export class PathFinder {
 
     const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: expectedBalances[token]?.balance || 0,
+      balance: expectedBalances[token]?.balance || 0n,
     }));
 
     const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
-      balance: leftoverBalances[token]?.balance || 1,
+      balance: leftoverBalances[token]?.balance || 1n,
     }));
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);

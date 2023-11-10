@@ -118,7 +118,11 @@ export class Trade {
 
       const trade = new Trade({
         tradePath,
-        adapter: callInfo[0],
+        adapter: callInfo[0] || {
+          name: "unknown",
+          contractAddress: calls[0]?.target || "",
+          creditManager: creditManager.address,
+        },
         swapOperation,
         sourceAmount: amount,
         minExpectedAmount: tradePath.minAmount,
@@ -143,7 +147,10 @@ export class Trade {
   ) {
     const callAdapters = calls.reduce<Array<Info>>((acc, call) => {
       const contractSymbol = this.getContractSymbol(call.target.toLowerCase());
-      if (!isSupportedContract(contractSymbol)) return acc;
+
+      if (!isSupportedContract(contractSymbol)) {
+        return acc;
+      }
 
       const { name } = contractParams[contractSymbol];
       const contractAddress = currentContracts[contractSymbol];
