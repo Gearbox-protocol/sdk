@@ -25,7 +25,7 @@ export interface ICreditFacadeV3EventsInterface extends utils.Interface {
     "LiquidateCreditAccount(address,address,address,address,uint256)": EventFragment;
     "OpenCreditAccount(address,address,address,uint256)": EventFragment;
     "StartMultiCall(address,address)": EventFragment;
-    "WithdrawCollateral(address,address,uint256)": EventFragment;
+    "WithdrawCollateral(address,address,uint256,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddCollateral"): EventFragment;
@@ -143,9 +143,10 @@ export interface WithdrawCollateralEventObject {
   creditAccount: string;
   token: string;
   amount: BigNumber;
+  to: string;
 }
 export type WithdrawCollateralEvent = TypedEvent<
-  [string, string, BigNumber],
+  [string, string, BigNumber, string],
   WithdrawCollateralEventObject
 >;
 
@@ -270,15 +271,17 @@ export interface ICreditFacadeV3Events extends BaseContract {
       caller?: PromiseOrValue<string> | null
     ): StartMultiCallEventFilter;
 
-    "WithdrawCollateral(address,address,uint256)"(
+    "WithdrawCollateral(address,address,uint256,address)"(
       creditAccount?: PromiseOrValue<string> | null,
       token?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
+      to?: null
     ): WithdrawCollateralEventFilter;
     WithdrawCollateral(
       creditAccount?: PromiseOrValue<string> | null,
       token?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
+      to?: null
     ): WithdrawCollateralEventFilter;
   };
 

@@ -70,11 +70,6 @@ const _abi = [
         name: "receiver",
         type: "address",
       },
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
     ],
     name: "redeem",
     outputs: [
@@ -97,11 +92,6 @@ const _abi = [
       {
         internalType: "address",
         name: "receiver",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "owner",
         type: "address",
       },
       {

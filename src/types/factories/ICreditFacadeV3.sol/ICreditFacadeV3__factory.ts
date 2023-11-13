@@ -225,6 +225,12 @@ const _abi = [
         name: "amount",
         type: "uint256",
       },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
     ],
     name: "WithdrawCollateral",
     type: "event",
