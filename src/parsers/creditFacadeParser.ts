@@ -34,7 +34,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
 
         return `${functionName}(token: ${this.tokenSymbol(
           token,
-        )}, amount: ${this.formatAmount(amount)})`;
+        )}, amount: ${this.formatBN(amount, this.tokenSymbol(token))})`;
       }
       case "increaseDebt":
       case "decreaseDebt": {
@@ -84,9 +84,22 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
 
         return `${functionName}(token: ${this.tokenSymbol(
           token,
-        )}, withdraw: ${this.formatAmount(amount)}, to: ${this.formatAmount(
-          to,
-        )})`;
+        )}, withdraw: ${this.formatBN(
+          amount,
+          this.tokenSymbol(token),
+        )}, to: ${to})`;
+      }
+
+      case "addCollateralWithPermit": {
+        const [tokenAddress, amount, deadline, v, r, s] =
+          this.decodeFunctionData(functionFragment, calldata);
+
+        return `${functionName}(token: ${this.tokenSymbol(
+          tokenAddress,
+        )}, amount: ${this.formatBN(
+          amount,
+          this.tokenSymbol(tokenAddress),
+        )}, ${[deadline, v, r, s].join(", ")})`;
       }
 
       default:
