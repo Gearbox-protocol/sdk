@@ -299,16 +299,16 @@ export class CreditManagerData {
         ),
     };
   }
-  encodeRevertIfReceivedLessThanV3(assets: Array<Asset>): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "revertIfReceivedLessThan",
-          [assets.map(a => ({ token: a.token, amount: a.balance }))],
-        ),
-    };
-  }
+  // encodeRevertIfReceivedLessThanV3(assets: Array<Asset>): MultiCall {
+  //   return {
+  //     target: this.creditFacade,
+  //     callData:
+  //       ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+  //         "revertIfReceivedLessThan",
+  //         [assets.map(a => ({ token: a.token, amount: a.balance }))],
+  //       ),
+  //   };
+  // }
 
   encodeUpdateQuotaV3(
     token: string,

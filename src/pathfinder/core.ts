@@ -4,7 +4,7 @@ import {
   MultiCallStructOutput,
   RouterResultStructOutput,
   SwapTaskStruct,
-} from "../types/IRouter";
+} from "../types/interfaces/IRouter";
 import { BigintifyProps } from "../utils/types";
 
 export enum SwapOperation {

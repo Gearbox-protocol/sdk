@@ -12,7 +12,7 @@ import { Asset } from "../core/assets";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
 import { IRouter, IRouter__factory } from "../types";
-import { BalanceStruct } from "../types/IRouter";
+import { BalanceStruct } from "../types/interfaces/IRouter";
 import {
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,
