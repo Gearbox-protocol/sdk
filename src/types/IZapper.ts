@@ -28,8 +28,8 @@ export interface IZapperInterface extends utils.Interface {
     "pool()": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
-    "redeem(uint256,address,address)": FunctionFragment;
-    "redeemWithPermit(uint256,address,address,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "redeem(uint256,address)": FunctionFragment;
+    "redeemWithPermit(uint256,address,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "tokenIn()": FunctionFragment;
     "tokenOut()": FunctionFragment;
     "underlying()": FunctionFragment;
@@ -58,17 +58,12 @@ export interface IZapperInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "redeem",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "redeemWithPermit",
     values: [
       PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
@@ -146,14 +141,12 @@ export interface IZapper extends BaseContract {
     redeem(
       tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     redeemWithPermit(
       tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
       deadline: PromiseOrValue<BigNumberish>,
       v: PromiseOrValue<BigNumberish>,
       r: PromiseOrValue<BytesLike>,
@@ -183,14 +176,12 @@ export interface IZapper extends BaseContract {
   redeem(
     tokenOutAmount: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   redeemWithPermit(
     tokenOutAmount: PromiseOrValue<BigNumberish>,
     receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
     deadline: PromiseOrValue<BigNumberish>,
     v: PromiseOrValue<BigNumberish>,
     r: PromiseOrValue<BytesLike>,
@@ -220,14 +211,12 @@ export interface IZapper extends BaseContract {
     redeem(
       tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     redeemWithPermit(
       tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
       deadline: PromiseOrValue<BigNumberish>,
       v: PromiseOrValue<BigNumberish>,
       r: PromiseOrValue<BytesLike>,
@@ -260,14 +249,12 @@ export interface IZapper extends BaseContract {
     redeem(
       tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     redeemWithPermit(
       tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
       deadline: PromiseOrValue<BigNumberish>,
       v: PromiseOrValue<BigNumberish>,
       r: PromiseOrValue<BytesLike>,
@@ -298,14 +285,12 @@ export interface IZapper extends BaseContract {
     redeem(
       tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     redeemWithPermit(
       tokenOutAmount: PromiseOrValue<BigNumberish>,
       receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
       deadline: PromiseOrValue<BigNumberish>,
       v: PromiseOrValue<BigNumberish>,
       r: PromiseOrValue<BytesLike>,

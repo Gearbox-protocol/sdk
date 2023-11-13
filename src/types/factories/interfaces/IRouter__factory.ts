@@ -4,7 +4,7 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IRouter, IRouterInterface } from "../IRouter";
+import type { IRouter, IRouterInterface } from "../../interfaces/IRouter";
 
 const _abi = [
   {

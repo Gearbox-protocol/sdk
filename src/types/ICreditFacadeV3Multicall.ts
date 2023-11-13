@@ -23,16 +23,6 @@ import type {
   PromiseOrValue,
 } from "./common";
 
-export type BalanceDeltaStruct = {
-  token: PromiseOrValue<string>;
-  amount: PromiseOrValue<BigNumberish>;
-};
-
-export type BalanceDeltaStructOutput = [string, BigNumber] & {
-  token: string;
-  amount: BigNumber;
-};
-
 export type RevocationPairStruct = {
   spender: PromiseOrValue<string>;
   token: PromiseOrValue<string>;
@@ -43,18 +33,29 @@ export type RevocationPairStructOutput = [string, string] & {
   token: string;
 };
 
+export type BalanceDeltaStruct = {
+  token: PromiseOrValue<string>;
+  amount: PromiseOrValue<BigNumberish>;
+};
+
+export type BalanceDeltaStructOutput = [string, BigNumber] & {
+  token: string;
+  amount: BigNumber;
+};
+
 export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   functions: {
     "addCollateral(address,uint256)": FunctionFragment;
     "addCollateralWithPermit(address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "compareBalances()": FunctionFragment;
     "decreaseDebt(uint256)": FunctionFragment;
     "disableToken(address)": FunctionFragment;
     "enableToken(address)": FunctionFragment;
     "increaseDebt(uint256)": FunctionFragment;
     "onDemandPriceUpdate(address,bool,bytes)": FunctionFragment;
-    "revertIfReceivedLessThan((address,int256)[])": FunctionFragment;
     "revokeAdapterAllowances((address,address)[])": FunctionFragment;
     "setFullCheckParams(uint256[],uint16)": FunctionFragment;
+    "storeExpectedBalances((address,int256)[])": FunctionFragment;
     "updateQuota(address,int96,uint96)": FunctionFragment;
     "withdrawCollateral(address,uint256,address)": FunctionFragment;
   };
@@ -63,14 +64,15 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "addCollateral"
       | "addCollateralWithPermit"
+      | "compareBalances"
       | "decreaseDebt"
       | "disableToken"
       | "enableToken"
       | "increaseDebt"
       | "onDemandPriceUpdate"
-      | "revertIfReceivedLessThan"
       | "revokeAdapterAllowances"
       | "setFullCheckParams"
+      | "storeExpectedBalances"
       | "updateQuota"
       | "withdrawCollateral"
   ): FunctionFragment;
@@ -89,6 +91,10 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
       PromiseOrValue<BytesLike>,
       PromiseOrValue<BytesLike>
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "compareBalances",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseDebt",
@@ -115,16 +121,16 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "revertIfReceivedLessThan",
-    values: [BalanceDeltaStruct[]]
-  ): string;
-  encodeFunctionData(
     functionFragment: "revokeAdapterAllowances",
     values: [RevocationPairStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "setFullCheckParams",
     values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "storeExpectedBalances",
+    values: [BalanceDeltaStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "updateQuota",
@@ -152,6 +158,10 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "compareBalances",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "decreaseDebt",
     data: BytesLike
   ): Result;
@@ -172,15 +182,15 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "revertIfReceivedLessThan",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "revokeAdapterAllowances",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "setFullCheckParams",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "storeExpectedBalances",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -238,6 +248,10 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    compareBalances(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     decreaseDebt(
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -265,11 +279,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    revertIfReceivedLessThan(
-      balanceDeltas: BalanceDeltaStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     revokeAdapterAllowances(
       revocations: RevocationPairStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -278,6 +287,11 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     setFullCheckParams(
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    storeExpectedBalances(
+      balanceDeltas: BalanceDeltaStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -312,6 +326,10 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  compareBalances(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   decreaseDebt(
     amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -339,11 +357,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  revertIfReceivedLessThan(
-    balanceDeltas: BalanceDeltaStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   revokeAdapterAllowances(
     revocations: RevocationPairStruct[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -352,6 +365,11 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
   setFullCheckParams(
     collateralHints: PromiseOrValue<BigNumberish>[],
     minHealthFactor: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  storeExpectedBalances(
+    balanceDeltas: BalanceDeltaStruct[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -386,6 +404,8 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    compareBalances(overrides?: CallOverrides): Promise<void>;
+
     decreaseDebt(
       amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -413,11 +433,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    revertIfReceivedLessThan(
-      balanceDeltas: BalanceDeltaStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     revokeAdapterAllowances(
       revocations: RevocationPairStruct[],
       overrides?: CallOverrides
@@ -426,6 +441,11 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     setFullCheckParams(
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    storeExpectedBalances(
+      balanceDeltas: BalanceDeltaStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -463,6 +483,10 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    compareBalances(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     decreaseDebt(
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -490,11 +514,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    revertIfReceivedLessThan(
-      balanceDeltas: BalanceDeltaStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     revokeAdapterAllowances(
       revocations: RevocationPairStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -503,6 +522,11 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     setFullCheckParams(
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    storeExpectedBalances(
+      balanceDeltas: BalanceDeltaStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -538,6 +562,10 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    compareBalances(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     decreaseDebt(
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -565,11 +593,6 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    revertIfReceivedLessThan(
-      balanceDeltas: BalanceDeltaStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     revokeAdapterAllowances(
       revocations: RevocationPairStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -578,6 +601,11 @@ export interface ICreditFacadeV3Multicall extends BaseContract {
     setFullCheckParams(
       collateralHints: PromiseOrValue<BigNumberish>[],
       minHealthFactor: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    storeExpectedBalances(
+      balanceDeltas: BalanceDeltaStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

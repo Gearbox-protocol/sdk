@@ -67,6 +67,13 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "compareBalances",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -147,31 +154,6 @@ const _abi = [
         components: [
           {
             internalType: "address",
-            name: "token",
-            type: "address",
-          },
-          {
-            internalType: "int256",
-            name: "amount",
-            type: "int256",
-          },
-        ],
-        internalType: "struct BalanceDelta[]",
-        name: "balanceDeltas",
-        type: "tuple[]",
-      },
-    ],
-    name: "revertIfReceivedLessThan",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: "address",
             name: "spender",
             type: "address",
           },
@@ -205,6 +187,31 @@ const _abi = [
       },
     ],
     name: "setFullCheckParams",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "int256",
+            name: "amount",
+            type: "int256",
+          },
+        ],
+        internalType: "struct BalanceDelta[]",
+        name: "balanceDeltas",
+        type: "tuple[]",
+      },
+    ],
+    name: "storeExpectedBalances",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
