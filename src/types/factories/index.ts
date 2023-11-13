@@ -23,6 +23,7 @@ export * as iDegenDistributorSol from "./IDegenDistributor.sol";
 export * as iDegenNftv2Sol from "./IDegenNFTV2.sol";
 export * as iGaugeV3Sol from "./IGaugeV3.sol";
 export * as iGearStakingV3Sol from "./IGearStakingV3.sol";
+export * as ilpPriceFeedSol from "./ILPPriceFeed.sol";
 export * as iPoolQuotaKeeperV3Sol from "./IPoolQuotaKeeperV3.sol";
 export * as iPoolServiceSol from "./IPoolService.sol";
 export * as iPoolV3Sol from "./IPoolV3.sol";
