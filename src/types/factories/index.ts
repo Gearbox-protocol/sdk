@@ -79,6 +79,7 @@ export { IWETHGateway__factory } from "./IWETHGateway__factory";
 export { IYVault__factory } from "./IYVault__factory";
 export { IYearnV2Adapter__factory } from "./IYearnV2Adapter__factory";
 export { IZapper__factory } from "./IZapper__factory";
+export { IZapperRegister__factory } from "./IZapperRegister__factory";
 export { IwstETHV1Adapter__factory } from "./IwstETHV1Adapter__factory";
 export { Ownable__factory } from "./Ownable__factory";
 export { SafeERC20__factory } from "./SafeERC20__factory";
