@@ -22,6 +22,7 @@ import {IETHZapperDeposits} from "@gearbox-protocol/integrations-v3/contracts/in
 import {IZapper} from "@gearbox-protocol/integrations-v3/contracts/interfaces/zappers/IZapper.sol";
 import {IZapperRegister} from "@gearbox-protocol/periphery-v3/contracts/interfaces/IZapperRegister.sol";
 import {IDegenNFTV2} from "@gearbox-protocol/core-v2/contracts/interfaces/IDegenNFTV2.sol";
+import {IBotListV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IBotListV3.sol";
 
 import {IGearStakingV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IGearStakingV3.sol";
 

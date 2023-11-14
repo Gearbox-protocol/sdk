@@ -7,6 +7,7 @@ export * as iAddressProviderV3Sol from "./IAddressProviderV3.sol";
 export * as iAirdropDistributorSol from "./IAirdropDistributor.sol";
 export * as iBalancerV2VaultSol from "./IBalancerV2Vault.sol";
 export * as iBalancerV2VaultAdapterSol from "./IBalancerV2VaultAdapter.sol";
+export * as iBotListV3Sol from "./IBotListV3.sol";
 export * as iCompoundV2CTokenAdapterSol from "./ICompoundV2_CTokenAdapter.sol";
 export * as iContractsRegisterSol from "./IContractsRegister.sol";
 export * as iConvexV1BoosterAdapterSol from "./IConvexV1BoosterAdapter.sol";
