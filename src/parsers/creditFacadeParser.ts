@@ -102,6 +102,38 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
         )}, ${[deadline, v, r, s].join(", ")})`;
       }
 
+      case "compareBalances": {
+        return `${functionName}()`;
+      }
+
+      case "setFullCheckParams": {
+        const [collateralHints, minHealthFactor] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+
+        return `${functionName}(token: ${collateralHints
+          .map((a: BigNumberish) => this.formatAmount(a))
+          .join(", ")}, minHealthFactor: ${minHealthFactor})`;
+      }
+
+      case "storeExpectedBalances": {
+        const [balanceDeltas] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+
+        return `${functionName}(balanceDeltas: ${balanceDeltas
+          .map(
+            (b: BalanceDeltaStructOutput) =>
+              `${this.tokenSymbol(b.token)}: ${this.formatBN(
+                b.amount,
+                this.tokenSymbol(b.token),
+              )}`,
+          )
+          .join(", ")})`;
+      }
+
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
     }
