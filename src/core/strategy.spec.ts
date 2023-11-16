@@ -71,20 +71,100 @@ describe("Strategy test", () => {
 
     expect(result).to.be.eq(284143);
   });
-  it("liquidationPrice calculation is correct", () => {
+
+  it("liquidationPrice: calculation is correct", () => {
     const result = Strategy.liquidationPrice({
       liquidationThresholds,
       prices,
+
       borrowed: toBN("350", decimals.WETH),
       underlyingToken: tokenDataByNetwork.Mainnet.WETH,
-      lpAmount: toBN("400", decimals.STETH),
-      lpToken: tokenDataByNetwork.Mainnet.STETH,
+      targetToken: tokenDataByNetwork.Mainnet.STETH,
+      assets: {
+        [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+          balance: toBN("400", decimals.STETH),
+          token: tokenDataByNetwork.Mainnet.STETH,
+        },
+      },
     });
 
     expect(Number(toSignificant(result, WAD_DECIMALS_POW)).toFixed(3)).to.be.eq(
       "0.992",
     );
   });
+  it("liquidationPrice: zero result when debt is compensated", () => {
+    const result = Strategy.liquidationPrice({
+      liquidationThresholds,
+      prices,
+
+      borrowed: toBN("350", decimals.WETH),
+      underlyingToken: tokenDataByNetwork.Mainnet.WETH,
+      targetToken: tokenDataByNetwork.Mainnet.STETH,
+      assets: {
+        [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+          balance: toBN("400", decimals.STETH),
+          token: tokenDataByNetwork.Mainnet.STETH,
+        },
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+          balance: toBN("350", decimals.WETH),
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+    });
+
+    expect(Number(toSignificant(result, WAD_DECIMALS_POW)).toFixed(3)).to.be.eq(
+      "0.000",
+    );
+  });
+  it("liquidationPrice: zero result when debt is overcompensated", () => {
+    const result = Strategy.liquidationPrice({
+      liquidationThresholds,
+      prices,
+
+      borrowed: toBN("350", decimals.WETH),
+      underlyingToken: tokenDataByNetwork.Mainnet.WETH,
+      targetToken: tokenDataByNetwork.Mainnet.STETH,
+      assets: {
+        [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+          balance: toBN("400", decimals.STETH),
+          token: tokenDataByNetwork.Mainnet.STETH,
+        },
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+          balance: toBN("450", decimals.WETH),
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+    });
+
+    expect(Number(toSignificant(result, WAD_DECIMALS_POW)).toFixed(3)).to.be.eq(
+      "0.000",
+    );
+  });
+  it("liquidationPrice: zero result when debt is not compensated", () => {
+    const result = Strategy.liquidationPrice({
+      liquidationThresholds,
+      prices,
+
+      borrowed: toBN("450", decimals.WETH),
+      underlyingToken: tokenDataByNetwork.Mainnet.WETH,
+      targetToken: tokenDataByNetwork.Mainnet.STETH,
+      assets: {
+        [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+          balance: toBN("400", decimals.STETH),
+          token: tokenDataByNetwork.Mainnet.STETH,
+        },
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+          balance: toBN("100", decimals.WETH),
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+    });
+
+    expect(Number(toSignificant(result, WAD_DECIMALS_POW)).toFixed(3)).to.be.eq(
+      "0.992",
+    );
+  });
+
   it("maxLeverage is correct", () => {
     const result = Strategy.maxLeverage(tokenDataByNetwork.Mainnet.STETH, [
       { address: "0x1", liquidationThresholds },

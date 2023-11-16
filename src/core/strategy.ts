@@ -6,6 +6,7 @@ import {
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 
+import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { Asset } from "./assets";
 import { CreditManagerData } from "./creditManager";
@@ -93,7 +94,7 @@ export class Strategy {
     const underlyingPrice = prices[underlyingTokenLC] || PRICE_DECIMALS;
     const borrowedMoney = PriceUtils.calcTotalPrice(
       underlyingPrice,
-      borrowed - underlyingBalance,
+      BigIntMath.max(0n, borrowed - underlyingBalance),
       underlyingDecimals,
     );
 
