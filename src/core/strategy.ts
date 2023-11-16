@@ -1,13 +1,14 @@
 import {
-  decimals,
+  extractTokenData,
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
-  tokenSymbolByAddress,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 
+import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
+import { Asset } from "./assets";
 import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {
@@ -28,9 +29,8 @@ interface LiquidationPriceProps {
 
   borrowed: bigint;
   underlyingToken: string;
-
-  lpAmount: bigint;
-  lpToken: string;
+  targetToken: string;
+  assets: Record<string, Asset>;
 }
 
 export class Strategy {
@@ -84,32 +84,30 @@ export class Strategy {
 
     borrowed,
     underlyingToken,
-
-    lpAmount,
-    lpToken,
+    targetToken,
+    assets,
   }: LiquidationPriceProps) {
-    const underlyingTokenAddressLC = underlyingToken.toLowerCase();
-    const underlyingTokenSymbol =
-      tokenSymbolByAddress[underlyingTokenAddressLC];
-    const underlyingTokenDecimals = decimals[underlyingTokenSymbol];
+    const underlyingTokenLC = underlyingToken.toLowerCase();
+    const [, underlyingDecimals = 18] = extractTokenData(underlyingTokenLC);
+    const { balance: underlyingBalance = 0n } = assets[underlyingTokenLC] || {};
 
-    const underlyingPrice = prices[underlyingTokenAddressLC] || PRICE_DECIMALS;
+    const underlyingPrice = prices[underlyingTokenLC] || PRICE_DECIMALS;
     const borrowedMoney = PriceUtils.calcTotalPrice(
       underlyingPrice,
-      borrowed,
-      underlyingTokenDecimals,
+      BigIntMath.max(0n, borrowed - underlyingBalance),
+      underlyingDecimals,
     );
 
-    const lpTokenAddressLC = lpToken.toLowerCase();
-    const lpTokenSymbol = tokenSymbolByAddress[lpTokenAddressLC];
-    const lpTokenDecimals = decimals[lpTokenSymbol];
-    const lpLT = liquidationThresholds[lpTokenAddressLC] || 0n;
+    const targetTokenLC = targetToken.toLowerCase();
+    const [, targetDecimals = 18] = extractTokenData(targetTokenLC);
+    const { balance: targetBalance = 0n } = assets[targetTokenLC] || {};
+    const lpLT = liquidationThresholds[targetTokenLC] || 0n;
 
-    const lpPrice = prices[lpTokenAddressLC] || PRICE_DECIMALS;
+    const lpPrice = prices[targetTokenLC] || PRICE_DECIMALS;
     const lpMoney = PriceUtils.calcTotalPrice(
       lpPrice,
-      lpAmount,
-      lpTokenDecimals,
+      targetBalance,
+      targetDecimals,
     );
     const lpLTMoney = (lpMoney * lpLT) / PERCENTAGE_FACTOR;
 
