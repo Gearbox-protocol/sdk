@@ -181,7 +181,7 @@ export class PathFinder {
     target,
     slippage,
   }: FindOpenStrategyPathProps): Promise<PathFinderOpenStrategyResult> {
-    const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
+    const input: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
       balance: expectedBalances[token]?.balance || 0n,
     }));
@@ -196,7 +196,7 @@ export class PathFinder {
     const [outBalances, result] =
       await this.pathFinder.callStatic.findOpenStrategyPath(
         cm.address,
-        expected,
+        input,
         leftover,
         target,
         connectors,
@@ -215,8 +215,17 @@ export class PathFinder {
     );
 
     return {
-      balances: { ...balancesAfter, [target]: toBigInt(result.amount) },
-      minBalances: { ...balancesAfter, [target]: toBigInt(result.minAmount) },
+      balances: {
+        ...balancesAfter,
+        [target]:
+          (expectedBalances[target]?.balance || 0n) + toBigInt(result.amount),
+      },
+      minBalances: {
+        ...balancesAfter,
+        [target]:
+          (expectedBalances[target]?.balance || 0n) +
+          toBigInt(result.minAmount),
+      },
       calls: result.calls,
       minAmount: toBigInt(result.minAmount),
       amount: toBigInt(result.amount),
