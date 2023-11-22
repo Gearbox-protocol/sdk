@@ -10,6 +10,7 @@ export * as iBalancerV2VaultAdapterSol from "./IBalancerV2VaultAdapter.sol";
 export * as iBotListV3Sol from "./IBotListV3.sol";
 export * as iCompoundV2CTokenAdapterSol from "./ICompoundV2_CTokenAdapter.sol";
 export * as iContractsRegisterSol from "./IContractsRegister.sol";
+export * as iControllerTimelockV3Sol from "./IControllerTimelockV3.sol";
 export * as iConvexV1BoosterAdapterSol from "./IConvexV1BoosterAdapter.sol";
 export * as iCreditConfiguratorV2Sol from "./ICreditConfiguratorV2.sol";
 export * as iCreditConfiguratorV3Sol from "./ICreditConfiguratorV3.sol";

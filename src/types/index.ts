@@ -19,6 +19,8 @@ import type * as iCompoundV2CTokenAdapterSol from "./ICompoundV2_CTokenAdapter.s
 export type { iCompoundV2CTokenAdapterSol };
 import type * as iContractsRegisterSol from "./IContractsRegister.sol";
 export type { iContractsRegisterSol };
+import type * as iControllerTimelockV3Sol from "./IControllerTimelockV3.sol";
+export type { iControllerTimelockV3Sol };
 import type * as iConvexV1BoosterAdapterSol from "./IConvexV1BoosterAdapter.sol";
 export type { iConvexV1BoosterAdapterSol };
 import type * as iCreditConfiguratorV2Sol from "./ICreditConfiguratorV2.sol";
@@ -165,6 +167,10 @@ export type { IContractsRegister } from "./IContractsRegister.sol/IContractsRegi
 export { IContractsRegister__factory } from "./factories/IContractsRegister.sol/IContractsRegister__factory";
 export type { IContractsRegisterEvents } from "./IContractsRegister.sol/IContractsRegisterEvents";
 export { IContractsRegisterEvents__factory } from "./factories/IContractsRegister.sol/IContractsRegisterEvents__factory";
+export type { IControllerTimelockV3 } from "./IControllerTimelockV3.sol/IControllerTimelockV3";
+export { IControllerTimelockV3__factory } from "./factories/IControllerTimelockV3.sol/IControllerTimelockV3__factory";
+export type { IControllerTimelockV3Events } from "./IControllerTimelockV3.sol/IControllerTimelockV3Events";
+export { IControllerTimelockV3Events__factory } from "./factories/IControllerTimelockV3.sol/IControllerTimelockV3Events__factory";
 export { IConvexToken__factory } from "./factories/IConvexToken__factory";
 export { IConvexV1BaseRewardPoolAdapter__factory } from "./factories/IConvexV1BaseRewardPoolAdapter__factory";
 export type { IConvexV1BoosterAdapter } from "./IConvexV1BoosterAdapter.sol/IConvexV1BoosterAdapter";

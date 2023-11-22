@@ -25,6 +25,7 @@ import {IDegenNFTV2} from "@gearbox-protocol/core-v2/contracts/interfaces/IDegen
 import {IBotListV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IBotListV3.sol";
 
 import {IGearStakingV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IGearStakingV3.sol";
+import {IControllerTimelockV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IControllerTimelockV3.sol";
 
 // Adapters
 import {IAaveV2_LendingPoolAdapter} from
