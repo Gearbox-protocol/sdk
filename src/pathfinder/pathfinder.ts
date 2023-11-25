@@ -11,8 +11,8 @@ import { providers, Signer } from "ethers";
 import { Asset } from "../core/assets";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
-import { IRouter, IRouter__factory } from "../types";
-import { BalanceStruct } from "../types/interfaces/IRouter";
+import { IRouterV3, IRouterV3__factory } from "../types";
+import { BalanceStruct } from "../types/IRouterV3";
 import {
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,
@@ -61,7 +61,7 @@ interface FindOpenStrategyPathProps {
 }
 
 export class PathFinder {
-  pathFinder: IRouter;
+  pathFinder: IRouterV3;
   network: NetworkType;
 
   public static connectors: Array<SupportedToken> = [
@@ -78,7 +78,7 @@ export class PathFinder {
     network: NetworkType = "Mainnet",
     connectors = PathFinder.connectors,
   ) {
-    this.pathFinder = IRouter__factory.connect(address, provider);
+    this.pathFinder = IRouterV3__factory.connect(address, provider);
     this.network = network;
 
     this._connectors = connectors
@@ -268,8 +268,9 @@ export class PathFinder {
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    let results: Array<AwaitedRes<IRouter["callStatic"]["findBestClosePath"]>> =
-      [];
+    let results: Array<
+      AwaitedRes<IRouterV3["callStatic"]["findBestClosePath"]>
+    > = [];
     if (noConcurrency) {
       for (const po of pathOptions) {
         results.push(

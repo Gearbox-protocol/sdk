@@ -4,7 +4,7 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IRouter, IRouterInterface } from "../../interfaces/IRouter";
+import type { IRouterV3, IRouterV3Interface } from "../IRouterV3";
 
 const _abi = [
   {
@@ -587,15 +587,15 @@ const _abi = [
   },
 ] as const;
 
-export class IRouter__factory {
+export class IRouterV3__factory {
   static readonly abi = _abi;
-  static createInterface(): IRouterInterface {
-    return new utils.Interface(_abi) as IRouterInterface;
+  static createInterface(): IRouterV3Interface {
+    return new utils.Interface(_abi) as IRouterV3Interface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IRouter {
-    return new Contract(address, _abi, signerOrProvider) as IRouter;
+  ): IRouterV3 {
+    return new Contract(address, _abi, signerOrProvider) as IRouterV3;
   }
 }

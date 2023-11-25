@@ -38,7 +38,6 @@ export * as iUniswapV3AdapterSol from "./IUniswapV3Adapter.sol";
 export * as istEthSol from "./IstETH.sol";
 export * as iwstEthSol from "./IwstETH.sol";
 export * as iwstEthGatewaySol from "./IwstETHGateway.sol";
-export * as interfaces from "./interfaces";
 export { AddressProvider__factory } from "./AddressProvider__factory";
 export { Claimable__factory } from "./Claimable__factory";
 export { Errors__factory } from "./Errors__factory";
@@ -74,6 +73,7 @@ export { ILinearInterestRateModelV3__factory } from "./ILinearInterestRateModelV
 export { IOffchainOracle__factory } from "./IOffchainOracle__factory";
 export { IPermit2__factory } from "./IPermit2__factory";
 export { IPriceOracleBase__factory } from "./IPriceOracleBase__factory";
+export { IRouterV3__factory } from "./IRouterV3__factory";
 export { IVersion__factory } from "./IVersion__factory";
 export { IVotingContractV3__factory } from "./IVotingContractV3__factory";
 export { IWETH__factory } from "./IWETH__factory";

@@ -22,7 +22,7 @@ export interface ICreditFacadeV3EventsInterface extends utils.Interface {
     "Execute(address,address)": EventFragment;
     "FinishMultiCall()": EventFragment;
     "IncreaseDebt(address,uint256)": EventFragment;
-    "LiquidateCreditAccount(address,address,address,address,uint256)": EventFragment;
+    "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
     "OpenCreditAccount(address,address,address,uint256)": EventFragment;
     "StartMultiCall(address,address)": EventFragment;
     "WithdrawCollateral(address,address,uint256,address)": EventFragment;
@@ -101,13 +101,12 @@ export type IncreaseDebtEventFilter = TypedEventFilter<IncreaseDebtEvent>;
 
 export interface LiquidateCreditAccountEventObject {
   creditAccount: string;
-  borrower: string;
   liquidator: string;
   to: string;
   remainingFunds: BigNumber;
 }
 export type LiquidateCreditAccountEvent = TypedEvent<
-  [string, string, string, string, BigNumber],
+  [string, string, string, BigNumber],
   LiquidateCreditAccountEventObject
 >;
 
@@ -234,16 +233,14 @@ export interface ICreditFacadeV3Events extends BaseContract {
       amount?: null
     ): IncreaseDebtEventFilter;
 
-    "LiquidateCreditAccount(address,address,address,address,uint256)"(
+    "LiquidateCreditAccount(address,address,address,uint256)"(
       creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null,
       liquidator?: PromiseOrValue<string> | null,
       to?: null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
       creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null,
       liquidator?: PromiseOrValue<string> | null,
       to?: null,
       remainingFunds?: null
