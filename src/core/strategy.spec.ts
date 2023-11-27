@@ -63,7 +63,7 @@ const liquidationThresholds = {
 
 describe("Strategy test", () => {
   it("maxAPY calculation is correct", () => {
-    const result = lidoStrategy.maxAPY(
+    const result = Strategy.maxAPY(
       53203,
       10 * Number(LEVERAGE_DECIMALS),
       pools["0x1"].borrowRate,

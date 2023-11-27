@@ -70,7 +70,7 @@ export class Strategy {
     return Number(maxLeverage - LEVERAGE_DECIMALS);
   }
 
-  maxAPY(baseAPY: number, maxLeverage: number, borrowAPY: number) {
+  static maxAPY(baseAPY: number, maxLeverage: number, borrowAPY: number) {
     return (
       baseAPY +
       ((baseAPY - borrowAPY) * (maxLeverage - Number(LEVERAGE_DECIMALS))) /
