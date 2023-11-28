@@ -52,7 +52,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "forbiddenTokenMask()": FunctionFragment;
     "liquidateCreditAccount(address,address,(address,bytes)[])": FunctionFragment;
     "lossParams()": FunctionFragment;
-    "maxApprovedBots()": FunctionFragment;
     "maxDebtPerBlockMultiplier()": FunctionFragment;
     "maxQuotaMultiplier()": FunctionFragment;
     "multicall(address,(address,bytes)[])": FunctionFragment;
@@ -82,7 +81,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
       | "forbiddenTokenMask"
       | "liquidateCreditAccount"
       | "lossParams"
-      | "maxApprovedBots"
       | "maxDebtPerBlockMultiplier"
       | "maxQuotaMultiplier"
       | "multicall"
@@ -135,10 +133,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "lossParams",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxApprovedBots",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -233,10 +227,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "lossParams", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "maxApprovedBots",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "maxDebtPerBlockMultiplier",
     data: BytesLike
@@ -493,8 +483,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       }
     >;
 
-    maxApprovedBots(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<[number]>;
 
     maxQuotaMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -610,8 +598,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     }
   >;
 
-  maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
-
   maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<number>;
 
   maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
@@ -726,8 +712,6 @@ export interface ICreditFacadeV3 extends BaseContract {
         maxCumulativeLoss: BigNumber;
       }
     >;
-
-    maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<number>;
 
@@ -934,8 +918,6 @@ export interface ICreditFacadeV3 extends BaseContract {
 
     lossParams(overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
-
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1042,8 +1024,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     lossParams(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    maxApprovedBots(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     maxDebtPerBlockMultiplier(
       overrides?: CallOverrides

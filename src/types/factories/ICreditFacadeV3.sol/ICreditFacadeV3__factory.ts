@@ -459,19 +459,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "maxApprovedBots",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "maxDebtPerBlockMultiplier",
     outputs: [
       {

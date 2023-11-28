@@ -1246,10 +1246,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.17.tgz#1cb409fcaf866de194f9f7253d2e6ce0de5bcf7d"
   integrity sha512-jPE32s/8Ihj0i7zPuXB4NbtoeWkG819+axGDH2a4RLE+BQ2+Dh+mhhgvTTDahFVrllVkDTUW6maHGWhDnGmNAg==
 
-"@gearbox-protocol/core-v3@^1.45.1":
-  version "1.45.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.45.1.tgz#700e4888c909168216370beb2950fcc3a4ae5cb1"
-  integrity sha512-OOanvjPku+qemS01AAM+qCST0Ie0DR/0WDWixhFoQcbGDl1C8SfAAzRN7RUgh7oZ9ExE8UCzQzkQWtHzduBomA==
+"@gearbox-protocol/core-v3@^1.45.2":
+  version "1.45.2"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.45.2.tgz#12dc303f2a2d9c666427aaa183ded27d638d578b"
+  integrity sha512-d3EqrUNkQhSXNwW5zpi8Rnub0xoZzNvnYEy6yh5yTUQ4eR+llS1ov+4eL+DfUfRTkozUOxJGBTJRnQzHLyvElA==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1276,10 +1276,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.25.1.tgz#9aad6f6a2dad61b02d57b0fdae752513ab777cbc"
   integrity sha512-v8apZRGkjU6LFJXeZoaZDVIAqk1EeT+oxGKtbdaAOzUPlh4jvHqCoqrtmvkOu/UGNnP7T3UUbjbWU8YLEzc2qA==
 
-"@gearbox-protocol/oracles-v3@^1.8.1":
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/oracles-v3/-/oracles-v3-1.8.1.tgz#ef92b2abbfa61b8807775cb849a25080d7cb13c6"
-  integrity sha512-4sCGNJAzyu26RCILym4dUJB+o5lP5yH1xvtc+mTNP+KuJwmJS4rX7tkP4Cis4S6lGRKJHweU6069vQgbSTr5wg==
+"@gearbox-protocol/oracles-v3@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/oracles-v3/-/oracles-v3-1.9.0.tgz#e057a958bf3e5e3f58a7b2af4f0e1faf4f0db72a"
+  integrity sha512-c84BIt91AYCKAg3+5QoRnX+3GQ1w3TMQsDmHkPd7gouDIViO6UAMSKSnwvPL0BIm9E2imFCmVCuNdZ6RPPEq5A==
   dependencies:
     redstone-protocol "^1.0.5"
 

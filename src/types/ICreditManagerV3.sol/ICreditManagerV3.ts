@@ -142,7 +142,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     "underlying()": FunctionFragment;
     "updateQuota(address,address,int96,uint96,uint96)": FunctionFragment;
     "version()": FunctionFragment;
-    "weth()": FunctionFragment;
     "withdrawCollateral(address,address,uint256,address)": FunctionFragment;
   };
 
@@ -202,7 +201,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "underlying"
       | "updateQuota"
       | "version"
-      | "weth"
       | "withdrawCollateral"
   ): FunctionFragment;
 
@@ -462,7 +460,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
-  encodeFunctionData(functionFragment: "weth", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdrawCollateral",
     values: [
@@ -653,7 +650,6 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawCollateral",
     data: BytesLike
@@ -1004,8 +1000,6 @@ export interface ICreditManagerV3 extends BaseContract {
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    weth(overrides?: CallOverrides): Promise<[string]>;
-
     withdrawCollateral(
       creditAccount: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
@@ -1310,8 +1304,6 @@ export interface ICreditManagerV3 extends BaseContract {
   ): Promise<ContractTransaction>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  weth(overrides?: CallOverrides): Promise<string>;
 
   withdrawCollateral(
     creditAccount: PromiseOrValue<string>,
@@ -1631,8 +1623,6 @@ export interface ICreditManagerV3 extends BaseContract {
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
 
-    weth(overrides?: CallOverrides): Promise<string>;
-
     withdrawCollateral(
       creditAccount: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
@@ -1911,8 +1901,6 @@ export interface ICreditManagerV3 extends BaseContract {
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
 
-    weth(overrides?: CallOverrides): Promise<BigNumber>;
-
     withdrawCollateral(
       creditAccount: PromiseOrValue<string>,
       token: PromiseOrValue<string>,
@@ -2187,8 +2175,6 @@ export interface ICreditManagerV3 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdrawCollateral(
       creditAccount: PromiseOrValue<string>,
