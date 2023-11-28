@@ -7,29 +7,8 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { creditManagerByNetwork } from "../contracts/contractsRegister";
 import { toBN, toSignificant } from "../utils/formatter";
-import { Strategy, StrategyPayload } from "./strategy";
-
-const lidoPayload: StrategyPayload = {
-  name: "Lido",
-  lpToken: tokenDataByNetwork.Mainnet.STETH,
-
-  apy: 38434,
-
-  creditManagers: [creditManagerByNetwork.Mainnet.WETH_V2],
-
-  unleveragableCollateral: [
-    tokenDataByNetwork.Mainnet.USDC,
-    tokenDataByNetwork.Mainnet.DAI,
-    tokenDataByNetwork.Mainnet.WBTC,
-  ],
-  leveragableCollateral: [],
-
-  baseAssets: [tokenDataByNetwork.Mainnet.WETH],
-};
-
-const lidoStrategy = new Strategy(lidoPayload);
+import { Strategy } from "./strategy";
 
 const pools = {
   "0x1": {
@@ -63,7 +42,7 @@ const liquidationThresholds = {
 
 describe("Strategy test", () => {
   it("maxAPY calculation is correct", () => {
-    const result = lidoStrategy.maxAPY(
+    const result = Strategy.maxAPY(
       53203,
       10 * Number(LEVERAGE_DECIMALS),
       pools["0x1"].borrowRate,
