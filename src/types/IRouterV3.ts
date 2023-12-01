@@ -25,7 +25,7 @@ import type {
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../common";
+} from "./common";
 
 export type SwapTaskStruct = {
   swapOperation: PromiseOrValue<BigNumberish>;
@@ -106,7 +106,7 @@ export type PathOptionStructOutput = [string, number, number] & {
   totalOptions: number;
 };
 
-export interface IRouterInterface extends utils.Interface {
+export interface IRouterV3Interface extends utils.Interface {
   functions: {
     "componentAddressById(uint8)": FunctionFragment;
     "findAllSwaps((uint8,address,address,address,address[],uint256,uint256),uint256)": FunctionFragment;
@@ -266,12 +266,12 @@ export type TokenTypeUpdateEvent = TypedEvent<
 
 export type TokenTypeUpdateEventFilter = TypedEventFilter<TokenTypeUpdateEvent>;
 
-export interface IRouter extends BaseContract {
+export interface IRouterV3 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IRouterInterface;
+  interface: IRouterV3Interface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,

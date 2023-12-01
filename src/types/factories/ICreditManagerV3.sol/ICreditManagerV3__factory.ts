@@ -1299,19 +1299,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "weth",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "address",

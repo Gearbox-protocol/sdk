@@ -11,8 +11,8 @@ import { providers, Signer } from "ethers";
 import { Asset } from "../core/assets";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
-import { IRouter, IRouter__factory } from "../types";
-import { BalanceStruct } from "../types/interfaces/IRouter";
+import { IRouterV3, IRouterV3__factory } from "../types";
+import { BalanceStruct } from "../types/IRouterV3";
 import {
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,
@@ -61,7 +61,7 @@ interface FindOpenStrategyPathProps {
 }
 
 export class PathFinder {
-  pathFinder: IRouter;
+  pathFinder: IRouterV3;
   network: NetworkType;
 
   public static connectors: Array<SupportedToken> = [
@@ -78,7 +78,7 @@ export class PathFinder {
     network: NetworkType = "Mainnet",
     connectors = PathFinder.connectors,
   ) {
-    this.pathFinder = IRouter__factory.connect(address, provider);
+    this.pathFinder = IRouterV3__factory.connect(address, provider);
     this.network = network;
 
     this._connectors = connectors
@@ -163,10 +163,10 @@ export class PathFinder {
   }
 
   /**
-   * @dev Finds the best path for opening credit account and converting all NORMAL tokens and LP token in the way to TARGET
-   * @param cm CreditManagerData which represents credit manager you want to use to open credit account
+   * @dev Finds the best path for opening Credit Account and converting all NORMAL tokens and LP token in the way to TARGET
+   * @param cm CreditManagerData which represents credit manager you want to use to open Credit Account
    * @param expectedBalances Expected balances which would be on account accounting also debt. For example,
-   *    if you open an USDC credit account, borrow 50_000 USDC and provide 10 WETH and 10_USDC as collateral
+   *    if you open an USDC Credit Account, borrow 50_000 USDC and provide 10 WETH and 10_USDC as collateral
    *    from your own funds, expectedBalances should be: { "USDC": 60_000 * (10**6), "<address of WETH>": WAD.mul(10) }
    *
    * @param target Address of symbol of desired token
@@ -235,7 +235,7 @@ export class PathFinder {
 
   /**
    * @dev Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
-   *   Can bu used for closing credit account and for liquidations as well.
+   *   Can bu used for closing Credit Account and for liquidations as well.
    * @param creditAccount CreditAccountData object used for close path computation
    * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
    * @return The best option in PathFinderCloseResult format, which
@@ -268,8 +268,9 @@ export class PathFinder {
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    let results: Array<AwaitedRes<IRouter["callStatic"]["findBestClosePath"]>> =
-      [];
+    let results: Array<
+      AwaitedRes<IRouterV3["callStatic"]["findBestClosePath"]>
+    > = [];
     if (noConcurrency) {
       for (const po of pathOptions) {
         results.push(

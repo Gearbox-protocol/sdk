@@ -129,12 +129,6 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
         name: "liquidator",
         type: "address",
       },
@@ -458,19 +452,6 @@ const _abi = [
         internalType: "uint128",
         name: "maxCumulativeLoss",
         type: "uint128",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "maxApprovedBots",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
       },
     ],
     stateMutability: "view",

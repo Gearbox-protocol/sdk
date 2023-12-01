@@ -52,7 +52,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "forbiddenTokenMask()": FunctionFragment;
     "liquidateCreditAccount(address,address,(address,bytes)[])": FunctionFragment;
     "lossParams()": FunctionFragment;
-    "maxApprovedBots()": FunctionFragment;
     "maxDebtPerBlockMultiplier()": FunctionFragment;
     "maxQuotaMultiplier()": FunctionFragment;
     "multicall(address,(address,bytes)[])": FunctionFragment;
@@ -82,7 +81,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
       | "forbiddenTokenMask"
       | "liquidateCreditAccount"
       | "lossParams"
-      | "maxApprovedBots"
       | "maxDebtPerBlockMultiplier"
       | "maxQuotaMultiplier"
       | "multicall"
@@ -135,10 +133,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "lossParams",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxApprovedBots",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -234,10 +228,6 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "lossParams", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "maxApprovedBots",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "maxDebtPerBlockMultiplier",
     data: BytesLike
   ): Result;
@@ -285,7 +275,7 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
     "Execute(address,address)": EventFragment;
     "FinishMultiCall()": EventFragment;
     "IncreaseDebt(address,uint256)": EventFragment;
-    "LiquidateCreditAccount(address,address,address,address,uint256)": EventFragment;
+    "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
     "OpenCreditAccount(address,address,address,uint256)": EventFragment;
     "StartMultiCall(address,address)": EventFragment;
     "WithdrawCollateral(address,address,uint256,address)": EventFragment;
@@ -364,13 +354,12 @@ export type IncreaseDebtEventFilter = TypedEventFilter<IncreaseDebtEvent>;
 
 export interface LiquidateCreditAccountEventObject {
   creditAccount: string;
-  borrower: string;
   liquidator: string;
   to: string;
   remainingFunds: BigNumber;
 }
 export type LiquidateCreditAccountEvent = TypedEvent<
-  [string, string, string, string, BigNumber],
+  [string, string, string, BigNumber],
   LiquidateCreditAccountEventObject
 >;
 
@@ -494,8 +483,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       }
     >;
 
-    maxApprovedBots(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<[number]>;
 
     maxQuotaMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -610,8 +597,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       maxCumulativeLoss: BigNumber;
     }
   >;
-
-  maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
 
   maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<number>;
 
@@ -728,8 +713,6 @@ export interface ICreditFacadeV3 extends BaseContract {
       }
     >;
 
-    maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
-
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<number>;
 
     maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
@@ -845,16 +828,14 @@ export interface ICreditFacadeV3 extends BaseContract {
       amount?: null
     ): IncreaseDebtEventFilter;
 
-    "LiquidateCreditAccount(address,address,address,address,uint256)"(
+    "LiquidateCreditAccount(address,address,address,uint256)"(
       creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null,
       liquidator?: PromiseOrValue<string> | null,
       to?: null,
       remainingFunds?: null
     ): LiquidateCreditAccountEventFilter;
     LiquidateCreditAccount(
       creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null,
       liquidator?: PromiseOrValue<string> | null,
       to?: null,
       remainingFunds?: null
@@ -936,8 +917,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     ): Promise<BigNumber>;
 
     lossParams(overrides?: CallOverrides): Promise<BigNumber>;
-
-    maxApprovedBots(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1045,8 +1024,6 @@ export interface ICreditFacadeV3 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     lossParams(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    maxApprovedBots(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     maxDebtPerBlockMultiplier(
       overrides?: CallOverrides

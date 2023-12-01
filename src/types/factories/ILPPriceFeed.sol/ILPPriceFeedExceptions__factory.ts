@@ -17,6 +17,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "LowerBoundCantBeZeroException",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "ReserveFeedMustNotBeSelfException",
     type: "error",
   },

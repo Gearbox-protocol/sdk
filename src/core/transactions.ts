@@ -209,7 +209,7 @@ export class TXSwap extends EVMTx {
 
     const [fromSymbol, fromDecimals] = extractTokenData(this.tokenFrom);
 
-    return `Credit account ${getContractName(this.creditManager)}: ${
+    return `Credit Account ${getContractName(this.creditManager)}: ${
       this.operation
     } ${formatBN(
       this.amountFrom,
@@ -246,7 +246,7 @@ export class TxAddCollateral extends EVMTx {
   toString(): string {
     const [addedSymbol, addedDecimals] = extractTokenData(this.addedToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: Added ${formatBN(
       this.amount,
@@ -283,7 +283,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   toString(): string {
     const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: Borrowed amount was increased for ${formatBN(
       this.amount,
@@ -320,7 +320,7 @@ export class TxDecreaseBorrowAmount extends EVMTx {
   toString(): string {
     const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: Borrowed amount was decreased for ${formatBN(
       this.amount,
@@ -360,7 +360,7 @@ export class TxOpenAccount extends EVMTx {
   toString(): string {
     const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: opening ${formatBN(
       this.amount,
@@ -415,7 +415,7 @@ export class TxOpenMultitokenAccount extends EVMTx {
 
     const [symbol, underlyingDecimals] = extractTokenData(this.underlyingToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: opening. Borrowed amount: ${formatBN(
       this.borrowedAmount,
@@ -519,7 +519,7 @@ export class TxRepayAccount extends EVMTx {
   }
 
   toString(): string {
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: Repaying account`;
   }
@@ -545,7 +545,7 @@ export class TxCloseAccount extends EVMTx {
   }
 
   toString(): string {
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: Closing account`;
   }
@@ -619,7 +619,7 @@ export class TxEnableTokens extends EVMTx {
         : "",
     ].filter(s => !!s);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: ${currentSentences.join("; ")}`;
   }
@@ -665,7 +665,7 @@ export class TxUpdateQuota extends EVMTx {
       return `${tokenSymbol} by ${sign}${amountString}`;
     });
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )} quota updated: ${quota.join("; ")}`;
   }
@@ -798,7 +798,7 @@ export class TxWithdrawCollateral extends EVMTx {
   toString(): string {
     const [symbol, decimals] = extractTokenData(this.token);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: withdrawn ${formatBN(this.amount, decimals || 18)} ${symbol}`;
   }

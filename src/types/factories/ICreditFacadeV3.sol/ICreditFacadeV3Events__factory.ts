@@ -129,12 +129,6 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
         name: "liquidator",
         type: "address",
       },
