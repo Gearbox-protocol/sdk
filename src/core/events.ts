@@ -257,7 +257,7 @@ export class EventOpenCreditAccount extends EVMEvent {
   toString(): string {
     const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: opened with debt ${formatBN(this.amount, decimals)} ${symbol}`;
   }
@@ -279,7 +279,7 @@ export class EventCloseCreditAccount extends EVMEvent {
   }
 
   toString(): string {
-    return `Credit account ${getContractName(this.creditManager)}: was closed`;
+    return `Credit Account ${getContractName(this.creditManager)}: was closed`;
   }
 }
 
@@ -304,7 +304,7 @@ export class EventLiquidateCreditAccount extends EVMEvent {
   toString(): string {
     const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: was liquidated. ${formatBN(
       this.amount,
@@ -329,7 +329,7 @@ export class EventRepayCreditAccount extends EVMEvent {
   }
 
   toString(): string {
-    return `Credit account ${getContractName(this.creditManager)}: was repaid`;
+    return `Credit Account ${getContractName(this.creditManager)}: was repaid`;
   }
 }
 
@@ -355,7 +355,7 @@ export class EventAddCollateral extends EVMEvent {
   toString(): string {
     const [symbol, decimals = 18] = extractTokenData(this.addedToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: added ${formatBN(this.amount, decimals)} ${symbol} as collateral`;
   }
@@ -382,7 +382,7 @@ export class EventIncreaseBorrowAmount extends EVMEvent {
   toString(): string {
     const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: borrowed amount was increased for ${formatBN(
       this.amount,
@@ -412,7 +412,7 @@ export class EventDecreaseBorrowAmount extends EVMEvent {
   toString(): string {
     const [symbol, decimals = 18] = extractTokenData(this.underlyingToken);
 
-    return `Credit account ${getContractName(
+    return `Credit Account ${getContractName(
       this.creditManager,
     )}: borrowed amount was decreased for ${formatBN(
       this.amount,
