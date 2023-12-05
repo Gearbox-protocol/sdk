@@ -223,11 +223,6 @@ const _abi = [
             name: "activeBots",
             type: "address[]",
           },
-          {
-            internalType: "uint256",
-            name: "maxApprovedBots",
-            type: "uint256",
-          },
         ],
         internalType: "struct CreditAccountData",
         name: "",
@@ -420,11 +415,6 @@ const _abi = [
             internalType: "address[]",
             name: "activeBots",
             type: "address[]",
-          },
-          {
-            internalType: "uint256",
-            name: "maxApprovedBots",
-            type: "uint256",
           },
         ],
         internalType: "struct CreditAccountData[]",

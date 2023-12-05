@@ -91,7 +91,6 @@ export type CreditAccountDataStruct = {
   cfVersion: PromiseOrValue<BigNumberish>;
   expirationDate: PromiseOrValue<BigNumberish>;
   activeBots: PromiseOrValue<string>[];
-  maxApprovedBots: PromiseOrValue<BigNumberish>;
 };
 
 export type CreditAccountDataStructOutput = [
@@ -120,8 +119,7 @@ export type CreditAccountDataStructOutput = [
   BigNumber,
   BigNumber,
   number,
-  string[],
-  BigNumber
+  string[]
 ] & {
   isSuccessful: boolean;
   priceFeedsNeeded: string[];
@@ -149,7 +147,6 @@ export type CreditAccountDataStructOutput = [
   cfVersion: BigNumber;
   expirationDate: number;
   activeBots: string[];
-  maxApprovedBots: BigNumber;
 };
 
 export type ContractAdapterStruct = {
