@@ -134,6 +134,17 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
           .join(", ")})`;
       }
 
+      case "onDemandPriceUpdate": {
+        const [token, reserve, data] = this.decodeFunctionData(
+          functionFragment,
+          calldata,
+        );
+
+        return `${functionName}(token: ${this.tokenSymbol(
+          token,
+        )}, reserve: ${reserve}, data: ${data})`;
+      }
+
       default:
         return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
     }
