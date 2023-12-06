@@ -1312,10 +1312,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/integration-types/-/integration-types-1.4.0.tgz#82064ffc46465cb1e42a3a4703749bfdcad4d92f"
   integrity sha512-OtdmeY2BTxMRxml1WOwhNHLMtDRNm+5m+PZmIqulVVaanv8hXiSJhO3zdPQjkHMHqeb9WPzL/lMwOwwQ5T0LEw==
 
-"@gearbox-protocol/integrations-v3@^1.26.0":
-  version "1.26.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.26.0.tgz#bb9758548b00cfd7fd5eb6bf338acdbed883ecf5"
-  integrity sha512-mgiP4mEyTZz9Nn+KhO62ql7/3er4Vajgvw63uz1INM4Z+fBJ/dtoKWH3Q6AIkVFZncIYLMPJjt6FQOb3zj8+EA==
+"@gearbox-protocol/integrations-v3@^1.26.1":
+  version "1.26.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.26.1.tgz#c5262bfeb19980cadbbfdc116257b0885945631a"
+  integrity sha512-v/xg5z9+EJrfe6j24NA4X/hq4cyv7N2zDqY2lMHsR/r0V5uMC51B4q76FJhVik9YlZFSUuQBV3ECz3UR8Oq2Zw==
 
 "@gearbox-protocol/oracles-v3@^1.9.0":
   version "1.9.0"
@@ -1324,10 +1324,10 @@
   dependencies:
     redstone-protocol "^1.0.5"
 
-"@gearbox-protocol/periphery-v3@^1.3.11":
-  version "1.3.11"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.3.11.tgz#6b7f36b69887f350de2b2d463e782bbd2bf1d1af"
-  integrity sha512-5R8pB18L/+oKsGgd6jFjusYBU4y+AWH1VxUQv7Dqp6wP7i378AmuEmKLaubwXz8xbNvWfE3MHuCt1W95bGgFYw==
+"@gearbox-protocol/periphery-v3@^1.3.12":
+  version "1.3.12"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.3.12.tgz#511f1ad660e87e770d9f2c7c5947f15c92975e51"
+  integrity sha512-Nt5ruTec9906sYdxku6zzX2C1j0a1Vyp4OnjIstiFX3EO/7ERz/OZyjALy5Ei5W1FjDKxu6SkSAGfoBOohhyKg==
   dependencies:
     husky "^8.0.3"
     lint-staged "^13.0.3"
