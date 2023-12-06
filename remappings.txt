@@ -2,3 +2,4 @@
 @1inch/=node_modules/@1inch/
 @chainlink/=node_modules/@chainlink/
 @openzeppelin/=node_modules/@openzeppelin/
+@redstone-finance/=node_modules/@redstone-finance/
