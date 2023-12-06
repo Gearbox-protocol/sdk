@@ -100,7 +100,6 @@ export class CreditAccountData {
   readonly cumulativeQuotaInterest: bigint;
 
   readonly activeBots: string[];
-  readonly maxApprovedBots: bigint;
 
   readonly balances: Record<string, bigint> = {};
   readonly collateralTokens: Array<string> = [];
@@ -152,7 +151,6 @@ export class CreditAccountData {
     this.cumulativeQuotaInterest = toBigInt(payload.cumulativeQuotaInterest);
 
     this.activeBots = payload.activeBots.map(b => b.toLowerCase());
-    this.maxApprovedBots = toBigInt(payload.maxApprovedBots);
 
     payload.balances.forEach(b => {
       const token = b.token.toLowerCase();
