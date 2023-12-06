@@ -344,7 +344,7 @@ export class CreditManagerData {
     };
   }
 
-  onDemandPriceUpdateV3(
+  encodeOnDemandPriceUpdateV3(
     token: string,
     reserve: boolean,
     data: string,
