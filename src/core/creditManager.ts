@@ -343,6 +343,21 @@ export class CreditManagerData {
         ),
     };
   }
+
+  onDemandPriceUpdateV3(
+    token: string,
+    reserve: boolean,
+    data: string,
+  ): MultiCall {
+    return {
+      target: this.creditFacade,
+      callData:
+        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
+          "onDemandPriceUpdate",
+          [token, reserve, data],
+        ),
+    };
+  }
 }
 
 export class ChartsCreditManagerData {
