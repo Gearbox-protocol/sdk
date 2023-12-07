@@ -11,6 +11,7 @@ export type PoolDataPayload = Omit<
   ExcludeArrayProps<PoolDataStructOutput>,
   "zappers"
 > & {
+  stakedDieselToken: Array<string>;
   zappers: Array<PoolZapper>;
   supplyAPY7D: number | undefined;
 };
