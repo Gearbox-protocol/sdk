@@ -29,6 +29,7 @@ export class PoolData {
   readonly type: PoolType;
   readonly underlyingToken: string;
   readonly dieselToken: string;
+  readonly stakedDieselToken: Array<string>;
   readonly isPaused: boolean;
   readonly version: number;
   readonly poolQuotaKeeper: string;
@@ -66,6 +67,9 @@ export class PoolData {
     this.type = PoolData.getPoolType(payload.name || "");
     this.underlyingToken = payload.underlying.toLowerCase();
     this.dieselToken = payload.dieselToken.toLowerCase();
+    this.stakedDieselToken = (payload.stakedDieselToken || []).map(t =>
+      t.toLowerCase(),
+    );
     this.isPaused = payload.isPaused;
     this.version = payload.version.toNumber();
     this.poolQuotaKeeper = payload.poolQuotaKeeper.toLowerCase();
