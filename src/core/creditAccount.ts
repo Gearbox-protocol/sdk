@@ -53,6 +53,8 @@ export interface CalcQuotaUpdateProps {
 
   allowedToSpend: Record<string, {}>;
   allowedToObtain: Record<string, {}>;
+
+  quotaReserve: bigint;
 }
 
 interface CalcQuotaUpdateReturnType {
@@ -410,6 +412,8 @@ export class CreditAccountData {
 
     allowedToSpend,
     allowedToObtain,
+
+    quotaReserve,
   }: CalcQuotaUpdateProps) {
     const r = Object.values(quotas).reduce<CalcQuotaUpdateReturnType>(
       (acc, cmQuota) => {
@@ -427,7 +431,9 @@ export class CreditAccountData {
         const after = assetsAfterUpdate[token];
         const { amountInTarget = 0n } = after || {};
 
-        const desiredQuota = (amountInTarget * 101n) / 100n;
+        const desiredQuota =
+          (amountInTarget * (PERCENTAGE_FACTOR + quotaReserve)) /
+          PERCENTAGE_FACTOR;
         const quotaChange = desiredQuota - initialQuota;
 
         const correctIncrease =
