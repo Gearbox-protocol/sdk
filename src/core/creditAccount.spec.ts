@@ -26,6 +26,8 @@ interface CATestInfo {
   rates: CalcOverallAPYProps["quotaRates"];
 }
 
+const QUOTA_RESERVE = 100n;
+
 const prices = {
   [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: toBN(
     "1738.11830000",
@@ -526,6 +528,7 @@ const caQuota: CalcQuotaUpdateProps["initialQuotas"] = {
 describe("CreditAccount calcQuotaUpdate test", () => {
   it("open account should buy quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {},
       assetsAfterUpdate: {
@@ -576,6 +579,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("add collateral should buy quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
@@ -616,6 +620,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("add collateral should add additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
@@ -656,6 +661,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("add collateral shouldn't add additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
@@ -691,6 +697,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("swap should buy quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
@@ -738,6 +745,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("swap should add additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
@@ -790,6 +798,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("swap shouldn't add additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
@@ -835,6 +844,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("shouldn't change quota if disallowed", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
@@ -873,6 +883,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("shouldn't change quota if it is disabled", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
