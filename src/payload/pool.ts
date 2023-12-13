@@ -30,6 +30,8 @@ export interface ChartsPoolDataPayload {
   dieselToken: string;
   underlyingToken: string;
   isWETH: boolean;
+  version: number;
+  name: string;
 
   borrowAPY_RAY: BigNumberish;
   depositAPY_RAY: BigNumberish;
