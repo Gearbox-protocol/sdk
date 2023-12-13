@@ -361,11 +361,11 @@ export class CreditManagerData {
 }
 
 export class ChartsCreditManagerData {
-  readonly id: string;
   readonly address: string;
   readonly underlyingToken: string;
   readonly pool: string;
-  readonly isWETH: boolean;
+  readonly version: number;
+  readonly name: string;
 
   readonly borrowRate: number;
   readonly borrowRateOld: number;
@@ -375,7 +375,6 @@ export class ChartsCreditManagerData {
   readonly maxAmount: bigint;
   readonly maxLeverageFactor: number; // for V1 only
   readonly availableLiquidity: bigint;
-  readonly version: number;
 
   readonly feeInterest: number;
   readonly feeLiquidation: number;
@@ -412,12 +411,11 @@ export class ChartsCreditManagerData {
   readonly liquidationThresholds: Record<string, bigint>;
 
   constructor(payload: ChartsCreditManagerPayload) {
-    this.id = (payload.addr || "").toLowerCase();
     this.address = (payload.addr || "").toLowerCase();
     this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
     this.pool = (payload.poolAddress || "").toLowerCase();
     this.version = payload.version || 2;
-    this.isWETH = payload.isWeth || false;
+    this.name = payload.name || "";
 
     this.borrowRate = Number(
       (toBigInt(payload.borrowRate || 0) *

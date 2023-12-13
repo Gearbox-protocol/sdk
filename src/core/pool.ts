@@ -196,11 +196,12 @@ interface CalculateBorrowRateProps {
 }
 
 export class ChartsPoolData {
-  readonly id: string;
   readonly address: string;
   readonly underlyingToken: string;
   readonly dieselToken: string;
-  readonly isWETH: boolean;
+  readonly type: PoolType;
+  readonly version: number;
+  readonly name: string;
 
   readonly addLiqCount: number;
   readonly addedLiquidity: number;
@@ -260,11 +261,12 @@ export class ChartsPoolData {
   readonly uniqueLPsChange: number;
 
   constructor(payload: ChartsPoolDataPayload) {
-    this.id = (payload.addr || "").toLowerCase();
     this.address = (payload.addr || "").toLowerCase();
     this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
     this.dieselToken = (payload.dieselToken || "").toLowerCase();
-    this.isWETH = payload.isWETH || false;
+    this.type = PoolData.getPoolType(payload.name || "");
+    this.version = payload.version || 1;
+    this.name = payload.name || "";
 
     this.earned7D = payload.earned7D || 0;
     this.earned7DInUSD = payload.earned7DInUSD || 0;

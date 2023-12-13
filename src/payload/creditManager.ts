@@ -34,6 +34,7 @@ export interface ChartsCreditManagerPayload {
   underlyingToken: string;
   isWeth: boolean;
   poolAddress: string;
+  name: string;
 
   maxAmount: BigNumberish;
   minAmount: BigNumberish;
