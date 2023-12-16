@@ -1287,10 +1287,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.17.tgz#1cb409fcaf866de194f9f7253d2e6ce0de5bcf7d"
   integrity sha512-jPE32s/8Ihj0i7zPuXB4NbtoeWkG819+axGDH2a4RLE+BQ2+Dh+mhhgvTTDahFVrllVkDTUW6maHGWhDnGmNAg==
 
-"@gearbox-protocol/core-v3@^1.45.5":
-  version "1.45.5"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.45.5.tgz#fddc246dc2942f7655f4c27ba02df26c15e89537"
-  integrity sha512-q34W5EO48lD5iGRi51KD476RPHqF/cl+/cTMAMpp9OV3qNSk6lpnwjcq1NtoxjX8R1s0hns487GEaXbPsOTcww==
+"@gearbox-protocol/core-v3@^1.45.8":
+  version "1.45.8"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.45.8.tgz#fe4b0beac62ba3cab7eff1ea27ac612ed88245fb"
+  integrity sha512-mtO0haAPjCOpjY6c1Xi5JRiB9x5AnXjGa4PFzt8fRaB+z892AZxtKY/N/4Xmk/YOEn24rvvSWbiqIakfOZ4BJA==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1312,10 +1312,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/integration-types/-/integration-types-1.4.0.tgz#82064ffc46465cb1e42a3a4703749bfdcad4d92f"
   integrity sha512-OtdmeY2BTxMRxml1WOwhNHLMtDRNm+5m+PZmIqulVVaanv8hXiSJhO3zdPQjkHMHqeb9WPzL/lMwOwwQ5T0LEw==
 
-"@gearbox-protocol/integrations-v3@^1.26.1":
-  version "1.26.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.26.1.tgz#c5262bfeb19980cadbbfdc116257b0885945631a"
-  integrity sha512-v/xg5z9+EJrfe6j24NA4X/hq4cyv7N2zDqY2lMHsR/r0V5uMC51B4q76FJhVik9YlZFSUuQBV3ECz3UR8Oq2Zw==
+"@gearbox-protocol/integrations-v3@^1.27.2":
+  version "1.27.2"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.27.2.tgz#94fc6603a387b9e8d9bb2a8378f10fe2e0b45258"
+  integrity sha512-IKAbFhR5SV4BOdvUbJZUNfDhRtSXc/5HD0DI5cZ5pjkbdIsWg5NIJ2VcYAj2u6PLubh3NClpOC+PtPRoQHmwvQ==
 
 "@gearbox-protocol/oracles-v3@^1.9.0":
   version "1.9.0"
@@ -1338,17 +1338,17 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/prettier-config/-/prettier-config-1.5.0.tgz#4df8e9fd2305fee6ab8c1417a02e31343836932a"
   integrity sha512-FUoprSsBdZyBjgxXCKL6mTkbeUJytaLzPJqIOoQpDmBRTX0seCc2o5I9PI9tySoRIlNnd/XXnKCXq1xHDEGbxw==
 
-"@gearbox-protocol/router-v3@^1.8.1":
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.8.1.tgz#f22259befb0ab32c3f05209d7ffeba905b64289f"
-  integrity sha512-GejqHftyuPT8h6QZFEXaEk+dFlPL0Q/0aj79yPzbUMdPRED/2bWVKMoNCyw7igv07v2u+wYyRYEknz5Fkr26CA==
+"@gearbox-protocol/router-v3@^1.8.2":
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.8.2.tgz#89a9a88d39b7c34bac83826fc29f31f987c62aa2"
+  integrity sha512-9DA2TBXaew9Oml0mcQ+fccL3BqMR3OMBDrXM89uoUfjDLr0YzP59IJpkNuWinK8gnbeJn0RJkDzNHQ2sggNV3g==
   dependencies:
     "@gearbox-protocol/integration-types" "^1.4.0"
 
-"@gearbox-protocol/sdk-gov@^1.15.12":
-  version "1.15.12"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.15.12.tgz#44e6436df70436a90d5a7e03d41b65304ecf1f6d"
-  integrity sha512-TZ3n5ll8k+K5l1Oh5eoPF+dL80xUrR+eaeh9+uWw4hy+KFDq3nsRnrp5/r9IGig8AH272Suij8+XpNb46hpaww==
+"@gearbox-protocol/sdk-gov@^1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.16.0.tgz#0a4795333175f93afa43331fc1d52c9a73c79e7e"
+  integrity sha512-qr4NkARfjqvN6WHu29Y5zzxoYouMvNdv31flaZ3SyfwNKBOGiokmgh3cFZstN9Qq/mk2u+wW9/R5ooK+D73g9g==
   dependencies:
     "@types/yaml" "^1.9.7"
     add "^2.0.6"
