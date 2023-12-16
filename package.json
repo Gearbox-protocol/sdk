@@ -27,7 +27,7 @@
     "lint": "eslint \"**/*.ts\" --fix",
     "lint:ci": "eslint \"**/*.ts\"",
     "typecheck:ci": "tsc --noEmit",
-    "test": "npx mocha -r ts-node/register -r dotenv/config src/**/*.spec.ts"
+    "test": "npx mocha -r ts-node/register -r dotenv/config 'src/**/*.spec.ts'"
   },
   "dependencies": {
     "@gearbox-protocol/sdk-gov": "^1.16.0",
@@ -48,6 +48,7 @@
     "@gearbox-protocol/oracles-v3": "^1.9.0",
     "@gearbox-protocol/periphery-v3": "^1.3.12",
     "@gearbox-protocol/prettier-config": "^1.4.1",
+    "@gearbox-protocol/router": "^1.5.5",
     "@gearbox-protocol/router-v3": "^1.8.2",
     "@openzeppelin/contracts": "^4.9.3",
     "@redstone-finance/evm-connector": "^0.3.6",

@@ -1287,6 +1287,13 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.17.tgz#1cb409fcaf866de194f9f7253d2e6ce0de5bcf7d"
   integrity sha512-jPE32s/8Ihj0i7zPuXB4NbtoeWkG819+axGDH2a4RLE+BQ2+Dh+mhhgvTTDahFVrllVkDTUW6maHGWhDnGmNAg==
 
+"@gearbox-protocol/core-v2@^1.16.2", "@gearbox-protocol/core-v2@^1.21.1":
+  version "1.21.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.21.1.tgz#7d01207a6b5ef2e3941dee970e993e4a38f9a97f"
+  integrity sha512-pEIXRnmkdbPiR8j7d+l80OdOpVcRjeNE2ZfnUL2sfDq5lx7aTUNUNxAPfKT3S5vD+8NISL3ojmxQwiAFTwAFEw==
+  dependencies:
+    "@typechain/ethers-v5" "^10.2.1"
+
 "@gearbox-protocol/core-v3@^1.45.8":
   version "1.45.8"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.45.8.tgz#fe4b0beac62ba3cab7eff1ea27ac612ed88245fb"
@@ -1307,10 +1314,19 @@
     eslint-plugin-simple-import-sort "^7.0.0"
     eslint-plugin-unused-imports "^2.0.0"
 
-"@gearbox-protocol/integration-types@^1.4.0":
+"@gearbox-protocol/integration-types@^1.2.0", "@gearbox-protocol/integration-types@^1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/integration-types/-/integration-types-1.4.0.tgz#82064ffc46465cb1e42a3a4703749bfdcad4d92f"
   integrity sha512-OtdmeY2BTxMRxml1WOwhNHLMtDRNm+5m+PZmIqulVVaanv8hXiSJhO3zdPQjkHMHqeb9WPzL/lMwOwwQ5T0LEw==
+
+"@gearbox-protocol/integrations-v3@1.7.0-legacy.4":
+  version "1.7.0-legacy.4"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.7.0-legacy.4.tgz#99ad44901d3296706029b3174302ce4d2e156e59"
+  integrity sha512-9vTJng2zqZkJIhAmWXXz9Z3eQTINuu9mCRE1eVjB2FHCk5oJNy6g790e2tqskGU4C/5WSpUhvImYLaUUufSuQA==
+  dependencies:
+    "@gearbox-protocol/core-v2" "^1.16.2"
+    "@gearbox-protocol/sdk" "^1.22.0"
+    axios "^1.1.3"
 
 "@gearbox-protocol/integrations-v3@^1.27.2":
   version "1.27.2"
@@ -1345,7 +1361,17 @@
   dependencies:
     "@gearbox-protocol/integration-types" "^1.4.0"
 
-"@gearbox-protocol/sdk-gov@^1.16.0":
+"@gearbox-protocol/router@^1.5.5":
+  version "1.5.5"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router/-/router-1.5.5.tgz#b1ea372136583a13eba031beb149fc25fbd83d57"
+  integrity sha512-A96wlMcVA2re1nZlSwBdevbsdj5j03oO1AU4gTcGqof4Y2zC9ynXwaXqKotXzUQzxQt5zluf57l9Ag7fzTF2aA==
+  dependencies:
+    "@gearbox-protocol/core-v2" "^1.21.1"
+    "@gearbox-protocol/integration-types" "^1.2.0"
+    "@gearbox-protocol/integrations-v3" "1.7.0-legacy.4"
+    "@gearbox-protocol/sdk-gov" "^1.10.3"
+
+"@gearbox-protocol/sdk-gov@^1.10.3", "@gearbox-protocol/sdk-gov@^1.16.0":
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.16.0.tgz#0a4795333175f93afa43331fc1d52c9a73c79e7e"
   integrity sha512-qr4NkARfjqvN6WHu29Y5zzxoYouMvNdv31flaZ3SyfwNKBOGiokmgh3cFZstN9Qq/mk2u+wW9/R5ooK+D73g9g==
@@ -1358,6 +1384,17 @@
     yaml "^2.3.2"
     yarn "^1.22.19"
     zod "^3.22.2"
+
+"@gearbox-protocol/sdk@^1.22.0":
+  version "1.27.12"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk/-/sdk-1.27.12.tgz#f5a04f38d58329364fe8434c49e2e8ed384a107b"
+  integrity sha512-oSSFppG3ybzFL5l9POIKvi34e9+DL6SQC5Uc1sHSQAzygdN6NcpZjhnOS1BM+T41bxxgYGArSoPo88NtZVRFbg==
+  dependencies:
+    "@types/deep-eql" "^4.0.0"
+    axios "^1.2.6"
+    decimal.js-light "^2.5.1"
+    deep-eql "^4.1.0"
+    moment "^2.29.4"
 
 "@humanwhocodes/config-array@^0.11.11":
   version "0.11.11"
@@ -1877,7 +1914,7 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.4.tgz#0b92dcc0cc1c81f6f306a381f28e31b1a56536e9"
   integrity sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==
 
-"@typechain/ethers-v5@^10.1.0":
+"@typechain/ethers-v5@^10.1.0", "@typechain/ethers-v5@^10.2.1":
   version "10.2.1"
   resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-10.2.1.tgz#50241e6957683281ecfa03fb5a6724d8a3ce2391"
   integrity sha512-n3tQmCZjRE6IU4h6lqUGiQ1j866n5MTCBJreNEHHVWXa2u9GJTaeYyU1/k+1qLutkyw+sS6VAN+AbeiTqsxd/A==
@@ -2449,19 +2486,19 @@ axios@^0.21.1:
   dependencies:
     follow-redirects "^1.14.0"
 
-axios@^1.2.6:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.5.0.tgz#f02e4af823e2e46a9768cfc74691fdd0517ea267"
-  integrity sha512-D4DdjDo5CY50Qms0qGQTTw6Q44jl7zRwY7bthds06pUGfChBCTcQs+N743eFWGEd6pRTMd6A+I87aWyFV5wiZQ==
+axios@^1.1.3, axios@^1.5.1:
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.2.tgz#de67d42c755b571d3e698df1b6504cde9b0ee9f2"
+  integrity sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==
   dependencies:
     follow-redirects "^1.15.0"
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
-axios@^1.5.1:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.2.tgz#de67d42c755b571d3e698df1b6504cde9b0ee9f2"
-  integrity sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==
+axios@^1.2.6:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.5.0.tgz#f02e4af823e2e46a9768cfc74691fdd0517ea267"
+  integrity sha512-D4DdjDo5CY50Qms0qGQTTw6Q44jl7zRwY7bthds06pUGfChBCTcQs+N743eFWGEd6pRTMd6A+I87aWyFV5wiZQ==
   dependencies:
     follow-redirects "^1.15.0"
     form-data "^4.0.0"

@@ -72,8 +72,6 @@ import {ICurveV1_4AssetsAdapter} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_4AssetsAdapter.sol";
 
 import {IRouterV3} from "@gearbox-protocol/router-v3/contracts/interfaces/IRouterV3.sol";
+import {IRouter} from "@gearbox-protocol/router/contracts/interfaces/IRouter.sol";
 
 import {IFarmingPool} from "@1inch/farming/contracts/interfaces/IFarmingPool.sol";
-
-import {IFarmingPool} from "@1inch/farming/contracts/interfaces/IFarmingPool.sol";
-

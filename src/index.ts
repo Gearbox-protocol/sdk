@@ -19,6 +19,7 @@ export * from "./core/transactions";
 export * from "./parsers/txParser";
 export * from "./pathfinder/core";
 export * from "./pathfinder/pathfinder";
+export * from "./pathfinder/v1/pathfinderv1";
 export * from "./payload/creditAccount";
 export * from "./payload/creditManager";
 export * from "./payload/creditSession";
