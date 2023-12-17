@@ -6,7 +6,7 @@ type ChartsPriceSource = "chainlink" | "spot";
 
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [CHAINS.Mainnet]: "https://mainnet.gearbox.foundation",
-  [CHAINS.Local]: "https://mainnet.gearbox.foundation/v2",
+  [CHAINS.Local]: "https://mainnet.gearbox.foundation",
   [GEARBOX_RPC_CHAIN_ID]: "https://testnet.gearbox.foundation",
 };
 
