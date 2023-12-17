@@ -37,6 +37,7 @@ export class CreditManagerData {
   readonly forbiddenTokenMask: bigint; // V2 only: mask which forbids some particular tokens
   readonly maxEnabledTokensLength: number;
   readonly name: string;
+  readonly tier: number;
 
   readonly baseBorrowRate: number;
 
@@ -65,6 +66,7 @@ export class CreditManagerData {
     this.type = PoolData.getPoolType(payload.name || "");
     this.name = payload.name;
     this.pool = payload.pool.toLowerCase();
+    this.tier = CreditManagerData.getPoolTier(payload.name);
     this.creditFacade = payload.creditFacade.toLowerCase();
     this.creditConfigurator = payload.creditConfigurator.toLowerCase();
     this.degenNFT = payload.degenNFT.toLowerCase();
@@ -357,6 +359,19 @@ export class CreditManagerData {
           [token, reserve, data],
         ),
     };
+  }
+
+  static getPoolTier(name: string): number {
+    const DEFAULT_TIER = 99;
+    const l = name.split(" ") || [];
+    const [word, number] = l.slice(-2);
+
+    if (word.toLowerCase() === "tier") {
+      const n = Number(number || DEFAULT_TIER);
+      return Number.isNaN(n) ? DEFAULT_TIER : n;
+    }
+
+    return DEFAULT_TIER;
   }
 }
 
