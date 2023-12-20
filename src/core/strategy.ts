@@ -111,12 +111,7 @@ export class Strategy {
     );
     const lpLTMoney = (lpMoney * lpLT) / PERCENTAGE_FACTOR;
 
-    if (lpLTMoney > 0) {
-      const lqPrice = (borrowedMoney * WAD) / lpLTMoney;
-      return lqPrice >= 0 ? lqPrice : 0n;
-    }
-
-    return 0n;
+    return lpLTMoney > 0n ? (borrowedMoney * WAD) / lpLTMoney : 0n;
   }
 
   protected static maxLeverageThreshold(
