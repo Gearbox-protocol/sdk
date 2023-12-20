@@ -16,6 +16,7 @@ interface Info {
   name: string;
   contractAddress: string;
   creditManager: string;
+  creditManagerName: string;
 }
 
 interface TradeProps {
@@ -114,6 +115,7 @@ export class Trade {
         calls,
         creditManager.address,
         currentContracts,
+        creditManager.name,
       );
 
       const trade = new Trade({
@@ -122,6 +124,7 @@ export class Trade {
           name: "unknown",
           contractAddress: calls[0]?.target || "",
           creditManager: creditManager.address,
+          creditManagerName: creditManager.name,
         },
         swapOperation,
         sourceAmount: amount,
@@ -144,6 +147,7 @@ export class Trade {
     calls: Array<MultiCall>,
     creditManager: string,
     currentContracts: Record<SupportedContract, string>,
+    creditManagerName: string,
   ) {
     const callAdapters = calls.reduce<Array<Info>>((acc, call) => {
       const contractSymbol = this.getContractSymbol(call.target.toLowerCase());
@@ -159,6 +163,7 @@ export class Trade {
         name,
         contractAddress,
         creditManager,
+        creditManagerName,
       });
 
       return acc;
