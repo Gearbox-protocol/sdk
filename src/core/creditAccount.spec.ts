@@ -941,7 +941,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
 describe("CreditAccount calcQuotaBorrowRate test", () => {
   it("should calculate quota rate (same amounts, different rates)", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData.calcAvgQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -976,7 +976,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
     expect(result).to.be.eq(10);
   });
   it("should calculate quota rate (same rates, different amounts)", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData.calcAvgQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1011,7 +1011,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
     expect(result).to.be.eq(10);
   });
   it("should calculate quota rate (borrow amount)", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData.calcAvgQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1046,7 +1046,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
     expect(result).to.be.eq(5);
   });
   it("should calculate quota rate (disabled quota)", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData.calcAvgQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,

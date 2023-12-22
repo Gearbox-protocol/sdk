@@ -66,6 +66,18 @@ interface CalcQuotaUpdateReturnType {
 export interface CalcQuotaBorrowRateProps {
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
+}
+
+export interface CalcRelativeBaseBorrowRateProps {
+  debt: bigint;
+  baseRateWithFee: number;
+  assetAmount: bigint;
+  totalValue: bigint;
+}
+
+export interface CalcAvgQuotaBorrowRateProps {
+  quotas: Record<string, Asset>;
+  quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
   borrowAmount: bigint;
 }
 
@@ -86,8 +98,8 @@ export class CreditAccountData {
   readonly healthFactor: number;
   isDeleting: boolean;
 
-  readonly baseBorrowRate: number;
-  readonly borrowRate: number;
+  readonly baseBorrowRateWithoutFee: number;
+  readonly borrowRateWithoutFee: number;
 
   readonly borrowedAmount: bigint;
   readonly accruedInterest: bigint;
@@ -136,12 +148,12 @@ export class CreditAccountData {
     this.totalValueUSD = toBigInt(payload.totalValueUSD);
     this.twvUSD = toBigInt(payload.twvUSD);
 
-    this.baseBorrowRate = rayToNumber(
+    this.baseBorrowRateWithoutFee = rayToNumber(
       toBigInt(payload.baseBorrowRate) *
         PERCENTAGE_DECIMALS *
         PERCENTAGE_FACTOR,
     );
-    this.borrowRate = rayToNumber(
+    this.borrowRateWithoutFee = rayToNumber(
       toBigInt(payload.aggregatedBorrowRate) *
         PERCENTAGE_DECIMALS *
         PERCENTAGE_FACTOR,
@@ -473,12 +485,7 @@ export class CreditAccountData {
     return r;
   }
 
-  static calcQuotaBorrowRate({
-    quotas,
-    quotaRates,
-    borrowAmount,
-  }: CalcQuotaBorrowRateProps) {
-    if (borrowAmount <= 0) return 0;
+  static calcQuotaBorrowRate({ quotas, quotaRates }: CalcQuotaBorrowRateProps) {
     const totalRateBalance = Object.values(quotas).reduce(
       (acc, { token, balance }) => {
         const { rate = 0, isActive = false } = quotaRates?.[token] || {};
@@ -490,6 +497,28 @@ export class CreditAccountData {
       },
       0n,
     );
+    return totalRateBalance;
+  }
+  static calcRelativeBaseBorrowRate({
+    debt,
+    baseRateWithFee,
+    assetAmount,
+    totalValue,
+  }: CalcRelativeBaseBorrowRateProps) {
+    if (totalValue === 0n) return 0n;
+    return (debt * BigInt(baseRateWithFee) * assetAmount) / totalValue;
+  }
+
+  static calcAvgQuotaBorrowRate({
+    quotas,
+    quotaRates,
+    borrowAmount,
+  }: CalcAvgQuotaBorrowRateProps) {
+    if (borrowAmount <= 0) return 0;
+    const totalRateBalance = this.calcQuotaBorrowRate({
+      quotas,
+      quotaRates,
+    });
 
     const quotaBorrowRate = Number(totalRateBalance / borrowAmount);
     return quotaBorrowRate;
