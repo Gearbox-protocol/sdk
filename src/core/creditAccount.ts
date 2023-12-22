@@ -71,7 +71,7 @@ export interface CalcQuotaBorrowRateProps {
 export interface CalcRelativeBaseBorrowRateProps {
   debt: bigint;
   baseRateWithFee: number;
-  assetAmount: bigint;
+  assetAmountInUnderlying: bigint;
   totalValue: bigint;
 }
 
@@ -502,11 +502,13 @@ export class CreditAccountData {
   static calcRelativeBaseBorrowRate({
     debt,
     baseRateWithFee,
-    assetAmount,
+    assetAmountInUnderlying,
     totalValue,
   }: CalcRelativeBaseBorrowRateProps) {
     if (totalValue === 0n) return 0n;
-    return (debt * BigInt(baseRateWithFee) * assetAmount) / totalValue;
+    return (
+      (debt * BigInt(baseRateWithFee) * assetAmountInUnderlying) / totalValue
+    );
   }
 
   static calcAvgQuotaBorrowRate({

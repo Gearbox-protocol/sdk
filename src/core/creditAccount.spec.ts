@@ -939,7 +939,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
 });
 
-describe("CreditAccount calcQuotaBorrowRate test", () => {
+describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
   it("should calculate quota rate (same amounts, different rates)", () => {
     const result = CreditAccountData.calcAvgQuotaBorrowRate({
       quotas: {
@@ -1079,5 +1079,77 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
     });
 
     expect(result).to.be.eq(4);
+  });
+});
+
+describe("CreditAccount calcQuotaBorrowRate test", () => {
+  it("should calculate quota borrow rate", () => {
+    const result = CreditAccountData.calcQuotaBorrowRate({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          token: tokenDataByNetwork.Mainnet.DAI,
+          balance: 10n,
+        },
+      },
+      quotaRates: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          rate: 5,
+          isActive: true,
+        },
+      },
+    });
+
+    expect(result).to.be.eq(50n);
+  });
+  it("should calculate quota borrow rate when no balance", () => {
+    const result = CreditAccountData.calcQuotaBorrowRate({
+      quotas: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          token: tokenDataByNetwork.Mainnet.DAI,
+          balance: 1n,
+        },
+      },
+      quotaRates: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          rate: 5,
+          isActive: true,
+        },
+      },
+    });
+
+    expect(result).to.be.eq(5n);
+  });
+});
+
+describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
+  it("should calculate relative borrow rate", () => {
+    const result = CreditAccountData.calcRelativeBaseBorrowRate({
+      debt: 200n,
+      baseRateWithFee: 250,
+      assetAmountInUnderlying: 200n,
+      totalValue: 400n,
+    });
+
+    expect(result).to.be.eq(25000n);
+  });
+  it("should calculate relative borrow rate if position asset === 0", () => {
+    const result = CreditAccountData.calcRelativeBaseBorrowRate({
+      debt: 200n,
+      baseRateWithFee: 250,
+      assetAmountInUnderlying: 1n,
+      totalValue: 400n,
+    });
+
+    expect(result).to.be.eq(125n);
+  });
+  it("should calculate relative borrow rate if position === 0", () => {
+    const result = CreditAccountData.calcRelativeBaseBorrowRate({
+      debt: 1n,
+      baseRateWithFee: 250,
+      assetAmountInUnderlying: 1n,
+      totalValue: 1n,
+    });
+
+    expect(result).to.be.eq(250n);
   });
 });
