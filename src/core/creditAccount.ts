@@ -43,7 +43,7 @@ export interface CalcHealthFactorProps {
   prices: Record<string, bigint>;
   liquidationThresholds: Record<string, bigint>;
   underlyingToken: string;
-  borrowed: bigint;
+  debt: bigint;
 }
 
 export interface CalcQuotaUpdateProps {
@@ -78,7 +78,7 @@ export interface CalcRelativeBaseBorrowRateProps {
 export interface CalcAvgQuotaBorrowRateProps {
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
-  borrowAmount: bigint;
+  debt: bigint;
 }
 
 export class CreditAccountData {
@@ -261,13 +261,12 @@ export class CreditAccountData {
 
   static calcMaxDebtIncrease(
     healthFactor: number,
-    borrowAmountPlusInterest: bigint,
+    debt: bigint,
     underlyingLT: number,
     minHf = Number(PERCENTAGE_FACTOR),
   ): bigint {
     const result =
-      (borrowAmountPlusInterest * BigInt(healthFactor - minHf)) /
-      BigInt(minHf - underlyingLT);
+      (debt * BigInt(healthFactor - minHf)) / BigInt(minHf - underlyingLT);
 
     return BigIntMath.max(0n, result);
   }
@@ -361,7 +360,7 @@ export class CreditAccountData {
 
     liquidationThresholds,
     underlyingToken,
-    borrowed,
+    debt,
 
     prices,
   }: CalcHealthFactorProps): number {
@@ -404,7 +403,7 @@ export class CreditAccountData {
 
     const borrowedMoney = PriceUtils.calcTotalPrice(
       underlyingPrice || PRICE_DECIMALS,
-      borrowed,
+      debt,
       underlyingDecimals,
     );
 
@@ -510,15 +509,15 @@ export class CreditAccountData {
   static calcAvgQuotaBorrowRate({
     quotas,
     quotaRates,
-    borrowAmount,
+    debt,
   }: CalcAvgQuotaBorrowRateProps) {
-    if (borrowAmount <= 0) return 0;
+    if (debt <= 0) return 0;
     const totalRateBalance = this.calcQuotaBorrowRate({
       quotas,
       quotaRates,
     });
 
-    const quotaBorrowRate = Number(totalRateBalance / borrowAmount);
+    const quotaBorrowRate = Number(totalRateBalance / debt);
     return quotaBorrowRate;
   }
 }
