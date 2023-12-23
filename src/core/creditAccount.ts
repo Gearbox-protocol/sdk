@@ -78,7 +78,7 @@ export interface CalcRelativeBaseBorrowRateProps {
 export interface CalcAvgQuotaBorrowRateProps {
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
-  debt: bigint;
+  totalValue: bigint;
 }
 
 export class CreditAccountData {
@@ -504,20 +504,5 @@ export class CreditAccountData {
     return (
       (debt * BigInt(baseRateWithFee) * assetAmountInUnderlying) / totalValue
     );
-  }
-
-  static calcAvgQuotaBorrowRate({
-    quotas,
-    quotaRates,
-    debt,
-  }: CalcAvgQuotaBorrowRateProps) {
-    if (debt <= 0) return 0;
-    const totalRateBalance = this.calcQuotaBorrowRate({
-      quotas,
-      quotaRates,
-    });
-
-    const quotaBorrowRate = Number(totalRateBalance / debt);
-    return quotaBorrowRate;
   }
 }
