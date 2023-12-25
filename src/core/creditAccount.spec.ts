@@ -112,11 +112,12 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithoutLP.assets,
       totalValue: caWithoutLP.totalValue,
       debt: caWithoutLP.debt,
-      baseBorrowRate: caWithoutLP.borrowRate,
+      baseRateWithFee: caWithoutLP.borrowRate,
       underlyingToken: caWithoutLP.underlyingToken,
 
       quotaRates: {},
       quotas: {},
+      feeInterest: 0,
 
       lpAPY,
       prices,
@@ -129,11 +130,12 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
-      baseBorrowRate: caWithLP.borrowRate,
+      baseRateWithFee: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
 
       quotaRates: {},
       quotas: {},
+      feeInterest: 0,
 
       lpAPY,
       prices,
@@ -146,11 +148,12 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
-      baseBorrowRate: caWithLP.borrowRate,
+      baseRateWithFee: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
 
       quotaRates: {},
       quotas: {},
+      feeInterest: 0,
 
       lpAPY: undefined,
       prices,
@@ -163,11 +166,12 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: undefined,
       debt: caWithLP.debt,
-      baseBorrowRate: caWithLP.borrowRate,
+      baseRateWithFee: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
 
       quotaRates: {},
       quotas: {},
+      feeInterest: 0,
 
       lpAPY,
       prices,
@@ -180,11 +184,12 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: undefined,
-      baseBorrowRate: caWithLP.borrowRate,
+      baseRateWithFee: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
 
       quotaRates: {},
       quotas: {},
+      feeInterest: 0,
 
       lpAPY,
       prices,
@@ -197,11 +202,12 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: 0n,
       debt: undefined,
-      baseBorrowRate: caWithLP.borrowRate,
+      baseRateWithFee: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
 
       quotaRates: {},
       quotas: {},
+      feeInterest: 0,
 
       lpAPY,
       prices,
@@ -214,11 +220,12 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
-      baseBorrowRate: caWithLP.borrowRate,
+      baseRateWithFee: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
 
       quotaRates: caWithLP.rates,
       quotas: caWithLP.quotas,
+      feeInterest: 0,
 
       lpAPY,
       prices,
@@ -231,7 +238,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
-      baseBorrowRate: caWithLP.borrowRate,
+      baseRateWithFee: caWithLP.borrowRate,
       underlyingToken: caWithLP.underlyingToken,
 
       quotaRates: caWithLP.rates,
@@ -241,6 +248,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
           token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
         },
       },
+      feeInterest: 0,
 
       lpAPY,
       prices,
@@ -333,7 +341,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt,
+      debt: defaultCA.debt,
     });
 
     expect(result).to.be.eq(defaultCA.healthFactor);
@@ -346,7 +354,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices: {},
       liquidationThresholds: {},
       underlyingToken: "",
-      borrowed: 0n,
+      debt: 0n,
     });
 
     expect(result).to.be.eq(0);
@@ -365,7 +373,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt,
+      debt: defaultCA.debt,
     });
 
     expect(result).to.be.eq(11188);
@@ -387,7 +395,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt - amountDecrease,
+      debt: defaultCA.debt - amountDecrease,
     });
 
     expect(result).to.be.eq(10308);
@@ -409,7 +417,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt + amountIncrease,
+      debt: defaultCA.debt + amountIncrease,
     });
 
     expect(result).to.be.eq(10137);
@@ -446,7 +454,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt,
+      debt: defaultCA.debt,
     });
 
     expect(result).to.be.eq(9444);
@@ -459,7 +467,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt,
+      debt: defaultCA.debt,
     });
 
     expect(result).to.be.eq(defaultCA.healthFactor);
@@ -477,7 +485,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt,
+      debt: defaultCA.debt,
     });
 
     expect(result).to.be.eq(9300);
@@ -494,7 +502,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       prices,
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
-      borrowed: defaultCA.debt,
+      debt: defaultCA.debt,
     });
 
     expect(result).to.be.eq(9300);
@@ -941,7 +949,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
 describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
   it("should calculate quota rate (same amounts, different rates)", () => {
-    const result = CreditAccountData.calcAvgQuotaBorrowRate({
+    const result = CreditAccountData.calcQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -970,13 +978,12 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
           isActive: true,
         },
       },
-      borrowAmount: 30n,
     });
 
-    expect(result).to.be.eq(10);
+    expect(result).to.be.eq(300n);
   });
   it("should calculate quota rate (same rates, different amounts)", () => {
-    const result = CreditAccountData.calcAvgQuotaBorrowRate({
+    const result = CreditAccountData.calcQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1005,48 +1012,12 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
           isActive: true,
         },
       },
-      borrowAmount: 30n,
     });
 
-    expect(result).to.be.eq(10);
-  });
-  it("should calculate quota rate (borrow amount)", () => {
-    const result = CreditAccountData.calcAvgQuotaBorrowRate({
-      quotas: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
-          token: tokenDataByNetwork.Mainnet.DAI,
-          balance: 5n,
-        },
-        [tokenDataByNetwork.Mainnet.WETH]: {
-          token: tokenDataByNetwork.Mainnet.WETH,
-          balance: 10n,
-        },
-        [tokenDataByNetwork.Mainnet.STETH]: {
-          token: tokenDataByNetwork.Mainnet.STETH,
-          balance: 15n,
-        },
-      },
-      quotaRates: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
-          rate: 10,
-          isActive: true,
-        },
-        [tokenDataByNetwork.Mainnet.WETH]: {
-          rate: 10,
-          isActive: true,
-        },
-        [tokenDataByNetwork.Mainnet.STETH]: {
-          rate: 10,
-          isActive: true,
-        },
-      },
-      borrowAmount: 60n,
-    });
-
-    expect(result).to.be.eq(5);
+    expect(result).to.be.eq(300n);
   });
   it("should calculate quota rate (disabled quota)", () => {
-    const result = CreditAccountData.calcAvgQuotaBorrowRate({
+    const result = CreditAccountData.calcQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1075,10 +1046,9 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
           isActive: true,
         },
       },
-      borrowAmount: 50n,
     });
 
-    expect(result).to.be.eq(4);
+    expect(result).to.be.eq(200n);
   });
 });
 
