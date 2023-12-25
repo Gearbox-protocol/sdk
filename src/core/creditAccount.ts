@@ -26,12 +26,13 @@ export interface CalcOverallAPYProps {
 
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
+  feeInterest: number;
 
   prices: Record<string, bigint>;
 
   totalValue: bigint | undefined;
   debt: bigint | undefined;
-  baseBorrowRate: number;
+  baseRateWithFee: number;
   underlyingToken: string;
 }
 
@@ -277,10 +278,11 @@ export class CreditAccountData {
     prices,
     quotas,
     quotaRates,
+    feeInterest,
 
     totalValue,
     debt,
-    baseBorrowRate,
+    baseRateWithFee,
     underlyingToken,
   }: CalcOverallAPYProps): bigint | undefined {
     if (
@@ -321,7 +323,11 @@ export class CreditAccountData {
           underlyingTokenDecimals,
         );
 
-        const quotaAPYMoney = quotaMoney * BigInt(quotaAPY);
+        const quotaRate =
+          (toBigInt(quotaAPY) * (BigInt(feeInterest) + PERCENTAGE_FACTOR)) /
+          PERCENTAGE_FACTOR;
+
+        const quotaAPYMoney = quotaMoney * quotaRate;
 
         return acc + apyMoney - quotaAPYMoney;
       },
@@ -336,7 +342,7 @@ export class CreditAccountData {
       },
     );
 
-    const debtAPY = debt * BigInt(baseBorrowRate);
+    const debtAPY = debt * BigInt(baseRateWithFee);
 
     const yourAssets = totalValue - debt;
 
