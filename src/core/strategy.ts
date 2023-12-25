@@ -33,6 +33,13 @@ interface LiquidationPriceProps {
   assets: Record<string, Asset>;
 }
 
+interface CalculateMaxAPYProps {
+  apy: number;
+  leverage: number;
+  baseRateWithFee: number;
+  quotaRateWithFee: number;
+}
+
 export class Strategy {
   apy: number | undefined;
   name: string;
@@ -70,12 +77,20 @@ export class Strategy {
     return Number(maxLeverage - LEVERAGE_DECIMALS);
   }
 
-  static maxAPY(baseAPY: number, maxLeverage: number, borrowAPY: number) {
-    return (
-      baseAPY +
-      ((baseAPY - borrowAPY) * (maxLeverage - Number(LEVERAGE_DECIMALS))) /
-        Number(LEVERAGE_DECIMALS)
-    );
+  static maxAPY({
+    apy,
+    leverage,
+    baseRateWithFee,
+    quotaRateWithFee,
+  }: CalculateMaxAPYProps) {
+    const collateralTerm = apy - quotaRateWithFee;
+
+    const debtTerm =
+      ((apy - baseRateWithFee - quotaRateWithFee) *
+        (leverage - Number(LEVERAGE_DECIMALS))) /
+      Number(LEVERAGE_DECIMALS);
+
+    return collateralTerm + Math.floor(debtTerm);
   }
 
   static liquidationPrice({
