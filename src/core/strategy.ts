@@ -27,10 +27,17 @@ interface LiquidationPriceProps {
   prices: Record<string, bigint>;
   liquidationThresholds: Record<string, bigint>;
 
-  borrowed: bigint;
+  debt: bigint;
   underlyingToken: string;
   targetToken: string;
   assets: Record<string, Asset>;
+}
+
+interface CalculateMaxAPYProps {
+  apy: number;
+  leverage: number;
+  baseRateWithFee: number;
+  quotaRateWithFee: number;
 }
 
 export class Strategy {
@@ -70,19 +77,27 @@ export class Strategy {
     return Number(maxLeverage - LEVERAGE_DECIMALS);
   }
 
-  static maxAPY(baseAPY: number, maxLeverage: number, borrowAPY: number) {
-    return (
-      baseAPY +
-      ((baseAPY - borrowAPY) * (maxLeverage - Number(LEVERAGE_DECIMALS))) /
-        Number(LEVERAGE_DECIMALS)
-    );
+  static maxAPY({
+    apy,
+    leverage,
+    baseRateWithFee,
+    quotaRateWithFee,
+  }: CalculateMaxAPYProps) {
+    const collateralTerm = apy - quotaRateWithFee;
+
+    const debtTerm =
+      ((apy - baseRateWithFee - quotaRateWithFee) *
+        (leverage - Number(LEVERAGE_DECIMALS))) /
+      Number(LEVERAGE_DECIMALS);
+
+    return collateralTerm + Math.floor(debtTerm);
   }
 
   static liquidationPrice({
     prices,
     liquidationThresholds,
 
-    borrowed,
+    debt,
     underlyingToken,
     targetToken,
     assets,
@@ -94,7 +109,7 @@ export class Strategy {
     const underlyingPrice = prices[underlyingTokenLC] || PRICE_DECIMALS;
     const borrowedMoney = PriceUtils.calcTotalPrice(
       underlyingPrice,
-      BigIntMath.max(0n, borrowed - underlyingBalance),
+      BigIntMath.max(0n, debt - underlyingBalance),
       underlyingDecimals,
     );
 

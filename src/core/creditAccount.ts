@@ -26,12 +26,13 @@ export interface CalcOverallAPYProps {
 
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
+  feeInterest: number;
 
   prices: Record<string, bigint>;
 
   totalValue: bigint | undefined;
   debt: bigint | undefined;
-  baseBorrowRate: number;
+  baseRateWithFee: number;
   underlyingToken: string;
 }
 
@@ -43,7 +44,7 @@ export interface CalcHealthFactorProps {
   prices: Record<string, bigint>;
   liquidationThresholds: Record<string, bigint>;
   underlyingToken: string;
-  borrowed: bigint;
+  debt: bigint;
 }
 
 export interface CalcQuotaUpdateProps {
@@ -66,7 +67,19 @@ interface CalcQuotaUpdateReturnType {
 export interface CalcQuotaBorrowRateProps {
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
-  borrowAmount: bigint;
+}
+
+export interface CalcRelativeBaseBorrowRateProps {
+  debt: bigint;
+  baseRateWithFee: number;
+  assetAmountInUnderlying: bigint;
+  totalValue: bigint;
+}
+
+export interface CalcAvgQuotaBorrowRateProps {
+  quotas: Record<string, Asset>;
+  quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
+  totalValue: bigint;
 }
 
 export class CreditAccountData {
@@ -86,8 +99,8 @@ export class CreditAccountData {
   readonly healthFactor: number;
   isDeleting: boolean;
 
-  readonly baseBorrowRate: number;
-  readonly borrowRate: number;
+  readonly baseBorrowRateWithoutFee: number;
+  readonly borrowRateWithoutFee: number;
 
   readonly borrowedAmount: bigint;
   readonly accruedInterest: bigint;
@@ -136,12 +149,12 @@ export class CreditAccountData {
     this.totalValueUSD = toBigInt(payload.totalValueUSD);
     this.twvUSD = toBigInt(payload.twvUSD);
 
-    this.baseBorrowRate = rayToNumber(
+    this.baseBorrowRateWithoutFee = rayToNumber(
       toBigInt(payload.baseBorrowRate) *
         PERCENTAGE_DECIMALS *
         PERCENTAGE_FACTOR,
     );
-    this.borrowRate = rayToNumber(
+    this.borrowRateWithoutFee = rayToNumber(
       toBigInt(payload.aggregatedBorrowRate) *
         PERCENTAGE_DECIMALS *
         PERCENTAGE_FACTOR,
@@ -249,13 +262,12 @@ export class CreditAccountData {
 
   static calcMaxDebtIncrease(
     healthFactor: number,
-    borrowAmountPlusInterest: bigint,
+    debt: bigint,
     underlyingLT: number,
     minHf = Number(PERCENTAGE_FACTOR),
   ): bigint {
     const result =
-      (borrowAmountPlusInterest * BigInt(healthFactor - minHf)) /
-      BigInt(minHf - underlyingLT);
+      (debt * BigInt(healthFactor - minHf)) / BigInt(minHf - underlyingLT);
 
     return BigIntMath.max(0n, result);
   }
@@ -266,10 +278,11 @@ export class CreditAccountData {
     prices,
     quotas,
     quotaRates,
+    feeInterest,
 
     totalValue,
     debt,
-    baseBorrowRate,
+    baseRateWithFee,
     underlyingToken,
   }: CalcOverallAPYProps): bigint | undefined {
     if (
@@ -310,7 +323,11 @@ export class CreditAccountData {
           underlyingTokenDecimals,
         );
 
-        const quotaAPYMoney = quotaMoney * BigInt(quotaAPY);
+        const quotaRate =
+          (toBigInt(quotaAPY) * (BigInt(feeInterest) + PERCENTAGE_FACTOR)) /
+          PERCENTAGE_FACTOR;
+
+        const quotaAPYMoney = quotaMoney * quotaRate;
 
         return acc + apyMoney - quotaAPYMoney;
       },
@@ -325,7 +342,7 @@ export class CreditAccountData {
       },
     );
 
-    const debtAPY = debt * BigInt(baseBorrowRate);
+    const debtAPY = debt * BigInt(baseRateWithFee);
 
     const yourAssets = totalValue - debt;
 
@@ -349,7 +366,7 @@ export class CreditAccountData {
 
     liquidationThresholds,
     underlyingToken,
-    borrowed,
+    debt,
 
     prices,
   }: CalcHealthFactorProps): number {
@@ -392,7 +409,7 @@ export class CreditAccountData {
 
     const borrowedMoney = PriceUtils.calcTotalPrice(
       underlyingPrice || PRICE_DECIMALS,
-      borrowed,
+      debt,
       underlyingDecimals,
     );
 
@@ -469,12 +486,7 @@ export class CreditAccountData {
     return r;
   }
 
-  static calcQuotaBorrowRate({
-    quotas,
-    quotaRates,
-    borrowAmount,
-  }: CalcQuotaBorrowRateProps) {
-    if (borrowAmount <= 0) return 0;
+  static calcQuotaBorrowRate({ quotas, quotaRates }: CalcQuotaBorrowRateProps) {
     const totalRateBalance = Object.values(quotas).reduce(
       (acc, { token, balance }) => {
         const { rate = 0, isActive = false } = quotaRates?.[token] || {};
@@ -486,8 +498,17 @@ export class CreditAccountData {
       },
       0n,
     );
-
-    const quotaBorrowRate = Number(totalRateBalance / borrowAmount);
-    return quotaBorrowRate;
+    return totalRateBalance;
+  }
+  static calcRelativeBaseBorrowRate({
+    debt,
+    baseRateWithFee,
+    assetAmountInUnderlying,
+    totalValue,
+  }: CalcRelativeBaseBorrowRateProps) {
+    if (totalValue === 0n) return 0n;
+    return (
+      (debt * BigInt(baseRateWithFee) * assetAmountInUnderlying) / totalValue
+    );
   }
 }

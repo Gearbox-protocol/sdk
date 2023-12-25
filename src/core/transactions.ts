@@ -215,7 +215,7 @@ export class TXSwap extends EVMTx implements CMEvent {
     this.tokenFrom = opts.tokenFrom;
     this.tokenTo = opts.tokenTo;
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
   }
 
   toString(): string {
@@ -262,7 +262,7 @@ export class TxAddCollateral extends EVMTx implements CMEvent {
     this.amount = opts.amount;
     this.addedToken = opts.addedToken;
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
   }
 
   toString(): string {
@@ -302,7 +302,7 @@ export class TxIncreaseBorrowAmount extends EVMTx implements CMEvent {
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
   }
 
   toString(): string {
@@ -342,7 +342,7 @@ export class TxDecreaseBorrowAmount extends EVMTx implements CMEvent {
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
   }
 
   toString(): string {
@@ -385,7 +385,7 @@ export class TxOpenAccount extends EVMTx implements CMEvent {
     this.underlyingToken = opts.underlyingToken;
     this.leverage = opts.leverage;
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
   }
 
   toString(): string {
@@ -433,7 +433,7 @@ export class TxOpenMultitokenAccount extends EVMTx implements CMEvent {
     this.borrowedAmount = opts.borrowedAmount;
     this.underlyingToken = opts.underlyingToken;
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
     this.assets = opts.assets;
   }
 
@@ -552,7 +552,7 @@ export class TxRepayAccount extends EVMTx implements CMEvent {
   constructor(opts: RepayAccountProps) {
     super(opts);
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
   }
 
   toString(): string {
@@ -581,7 +581,7 @@ export class TxCloseAccount extends EVMTx implements CMEvent {
   constructor(opts: CloseAccountProps) {
     super(opts);
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
   }
 
   toString(): string {
@@ -641,7 +641,7 @@ export class TxEnableTokens extends EVMTx implements CMEvent {
     this.enabledTokens = opts.enabledTokens;
     this.disabledTokens = opts.disabledTokens;
     this.creditManager = opts.creditManager;
-    this.creditManagerName = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
   }
 
   toString(): string {

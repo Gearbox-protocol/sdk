@@ -42,11 +42,12 @@ const liquidationThresholds = {
 
 describe("Strategy test", () => {
   it("maxAPY calculation is correct", () => {
-    const result = Strategy.maxAPY(
-      53203,
-      10 * Number(LEVERAGE_DECIMALS),
-      pools["0x1"].borrowRate,
-    );
+    const result = Strategy.maxAPY({
+      apy: 53203,
+      leverage: 10 * Number(LEVERAGE_DECIMALS),
+      baseRateWithFee: pools["0x1"].borrowRate,
+      quotaRateWithFee: 0,
+    });
 
     expect(result).to.be.eq(284143);
   });
@@ -56,7 +57,7 @@ describe("Strategy test", () => {
       liquidationThresholds,
       prices,
 
-      borrowed: toBN("350", decimals.WETH),
+      debt: toBN("350", decimals.WETH),
       underlyingToken: tokenDataByNetwork.Mainnet.WETH,
       targetToken: tokenDataByNetwork.Mainnet.STETH,
       assets: {
@@ -76,7 +77,7 @@ describe("Strategy test", () => {
       liquidationThresholds,
       prices,
 
-      borrowed: toBN("350", decimals.WETH),
+      debt: toBN("350", decimals.WETH),
       underlyingToken: tokenDataByNetwork.Mainnet.WETH,
       targetToken: tokenDataByNetwork.Mainnet.STETH,
       assets: {
@@ -100,7 +101,7 @@ describe("Strategy test", () => {
       liquidationThresholds,
       prices,
 
-      borrowed: toBN("350", decimals.WETH),
+      debt: toBN("350", decimals.WETH),
       underlyingToken: tokenDataByNetwork.Mainnet.WETH,
       targetToken: tokenDataByNetwork.Mainnet.STETH,
       assets: {
@@ -124,7 +125,7 @@ describe("Strategy test", () => {
       liquidationThresholds,
       prices,
 
-      borrowed: toBN("450", decimals.WETH),
+      debt: toBN("450", decimals.WETH),
       underlyingToken: tokenDataByNetwork.Mainnet.WETH,
       targetToken: tokenDataByNetwork.Mainnet.STETH,
       assets: {
