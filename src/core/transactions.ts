@@ -586,7 +586,7 @@ export class TxCloseAccount extends EVMTx implements CMEvent {
 
   toString(): string {
     return `Credit Account ${
-      this.creditManager || getContractName(this.creditManager)
+      this.creditManagerName || getContractName(this.creditManager)
     }: Closing account`;
   }
 
