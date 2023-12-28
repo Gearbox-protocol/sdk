@@ -1,14 +1,8 @@
 import {
-  extractTokenData,
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
-  PRICE_DECIMALS,
-  WAD,
 } from "@gearbox-protocol/sdk-gov";
 
-import { BigIntMath } from "../utils/math";
-import { PriceUtils } from "../utils/price";
-import { Asset } from "./assets";
 import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {
@@ -21,16 +15,6 @@ export interface StrategyPayload {
   baseAssets: Array<string>;
   unleveragableCollateral: Array<string>;
   leveragableCollateral: Array<string>;
-}
-
-interface LiquidationPriceProps {
-  prices: Record<string, bigint>;
-  liquidationThresholds: Record<string, bigint>;
-
-  debt: bigint;
-  underlyingToken: string;
-  targetToken: string;
-  assets: Record<string, Asset>;
 }
 
 interface CalculateMaxAPYProps {
@@ -91,42 +75,6 @@ export class Strategy {
       Number(LEVERAGE_DECIMALS);
 
     return collateralTerm + Math.floor(debtTerm);
-  }
-
-  static liquidationPrice({
-    prices,
-    liquidationThresholds,
-
-    debt,
-    underlyingToken,
-    targetToken,
-    assets,
-  }: LiquidationPriceProps) {
-    const underlyingTokenLC = underlyingToken.toLowerCase();
-    const [, underlyingDecimals = 18] = extractTokenData(underlyingTokenLC);
-    const { balance: underlyingBalance = 0n } = assets[underlyingTokenLC] || {};
-
-    const underlyingPrice = prices[underlyingTokenLC] || PRICE_DECIMALS;
-    const borrowedMoney = PriceUtils.calcTotalPrice(
-      underlyingPrice,
-      BigIntMath.max(0n, debt - underlyingBalance),
-      underlyingDecimals,
-    );
-
-    const targetTokenLC = targetToken.toLowerCase();
-    const [, targetDecimals = 18] = extractTokenData(targetTokenLC);
-    const { balance: targetBalance = 0n } = assets[targetTokenLC] || {};
-    const lpLT = liquidationThresholds[targetTokenLC] || 0n;
-
-    const lpPrice = prices[targetTokenLC] || PRICE_DECIMALS;
-    const lpMoney = PriceUtils.calcTotalPrice(
-      lpPrice,
-      targetBalance,
-      targetDecimals,
-    );
-    const lpLTMoney = (lpMoney * lpLT) / PERCENTAGE_FACTOR;
-
-    return lpLTMoney > 0n ? (borrowedMoney * WAD) / lpLTMoney : 0n;
   }
 
   protected static maxLeverageThreshold(
