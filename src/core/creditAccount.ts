@@ -6,6 +6,7 @@ import {
   PRICE_DECIMALS,
   toBigInt,
   tokenSymbolByAddress,
+  WAD,
 } from "@gearbox-protocol/sdk-gov";
 
 import { LpTokensAPY, TokensWithAPY } from "../apy";
@@ -80,6 +81,15 @@ export interface CalcAvgQuotaBorrowRateProps {
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
   totalValue: bigint;
+}
+
+interface LiquidationPriceProps {
+  liquidationThresholds: Record<string, bigint>;
+
+  debt: bigint;
+  underlyingToken: string;
+  targetToken: string;
+  assets: Record<string, Asset>;
 }
 
 export class CreditAccountData {
@@ -509,6 +519,38 @@ export class CreditAccountData {
     if (totalValue === 0n) return 0n;
     return (
       (debt * BigInt(baseRateWithFee) * assetAmountInUnderlying) / totalValue
+    );
+  }
+
+  static liquidationPrice({
+    liquidationThresholds,
+
+    debt,
+    underlyingToken,
+    targetToken,
+    assets,
+  }: LiquidationPriceProps) {
+    const underlyingTokenLC = underlyingToken.toLowerCase();
+    const [, underlyingDecimals = 18] = extractTokenData(underlyingTokenLC);
+    const { balance: underlyingBalance = 0n } = assets[underlyingTokenLC] || {};
+
+    const effectiveDebt =
+      ((debt - underlyingBalance) * WAD) / 10n ** BigInt(underlyingDecimals);
+
+    const targetTokenLC = targetToken.toLowerCase();
+    const [, targetDecimals = 18] = extractTokenData(targetTokenLC);
+    const { balance: targetBalance = 0n } = assets[targetTokenLC] || {};
+    const effectiveTargetBalance =
+      (targetBalance * WAD) / 10n ** BigInt(targetDecimals);
+
+    const lpLT = liquidationThresholds[targetTokenLC] || 0n;
+
+    if (targetBalance <= 0n || lpLT <= 0n) return 0n;
+
+    return (
+      (effectiveDebt * PRICE_DECIMALS * PERCENTAGE_FACTOR) /
+      effectiveTargetBalance /
+      lpLT
     );
   }
 }
