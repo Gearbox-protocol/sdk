@@ -383,7 +383,7 @@ export class CreditAccountData {
     const [, underlyingDecimals] = extractTokenData(underlyingToken);
     const underlyingPrice = prices[underlyingToken] || 0n;
 
-    const assetLTMoney = assets.reduce(
+    const assetMoney = assets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
         const [, tokenDecimals] = extractTokenData(tokenAddress);
 
@@ -395,6 +395,7 @@ export class CreditAccountData {
           amount,
           tokenDecimals,
         );
+        const tokenLtMoney = (tokenMoney * lt) / PERCENTAGE_FACTOR;
 
         const { isActive = false } = quotasInfo?.[tokenAddress] || {};
         const quota = quotas[tokenAddress];
@@ -407,12 +408,10 @@ export class CreditAccountData {
 
         // if quota is undefined, then it is not a quoted token
         const money = quota
-          ? BigIntMath.min(quotaMoney, tokenMoney)
-          : tokenMoney;
+          ? BigIntMath.min(quotaMoney, tokenLtMoney)
+          : tokenLtMoney;
 
-        const ltMoney = money * lt;
-
-        return acc + ltMoney;
+        return acc + money;
       },
       0n,
     );
@@ -423,7 +422,10 @@ export class CreditAccountData {
       underlyingDecimals,
     );
 
-    const hfInPercent = borrowedMoney > 0n ? assetLTMoney / borrowedMoney : 0n;
+    const hfInPercent =
+      borrowedMoney > 0n
+        ? (assetMoney * PERCENTAGE_FACTOR) / borrowedMoney
+        : 0n;
 
     return Number(hfInPercent);
   }
