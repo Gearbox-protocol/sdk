@@ -9,6 +9,7 @@ import {
   CreditSessionFilteredPayload,
   CreditSessionPayload,
   CreditSessionsAggregatedStatsPayload,
+  SecondaryStatus,
   UserCreditSessionsAggregatedStatsPayload,
 } from "../payload/creditSession";
 import { AssetWithView } from "./assets";
@@ -63,13 +64,18 @@ export class CreditSession {
   readonly currentBlock: number;
   readonly currentTimestamp: number;
 
+  readonly baseBorrowAPY7DAverage: number;
+  readonly baseBorrowAPY_RAY: bigint;
+  readonly baseToken: string;
+  readonly pool: string;
+
   readonly entryPrice: number;
   readonly closePrice: number;
   readonly quoteToken: string;
   readonly tradingToken: string;
 
-  // sinceTimestamp: number;
-  // closedAtTimestamp: number;
+  readonly sinceTimestamp: number;
+  readonly closedAtTimestamp: number;
 
   readonly borrowAPY_RAY: bigint;
   readonly borrowAPY7DAverage: number;
@@ -87,9 +93,11 @@ export class CreditSession {
   readonly balances: Array<AssetWithView> = [];
   readonly forbiddenTokens: Record<string, true> = {};
   readonly disabledTokens: Record<string, true> = {};
+  readonly teritaryStatus: SecondaryStatus;
 
   constructor(payload: CreditSessionPayload) {
     this.id = (payload.id || "").toLowerCase();
+    this.teritaryStatus = payload.teritaryStatus || { secStatus: [] };
     this.status = CREDIT_SESSION_STATUS_BY_ID[payload.status || 0];
     this.borrower = (payload.borrower || "").toLowerCase();
     this.creditManager = (payload.creditManager || "").toLowerCase();
@@ -110,11 +118,18 @@ export class CreditSession {
     this.closedAtDate = moment((payload.closedAtTimestamp || 0) * 1000).format(
       "Do MMM YYYY",
     );
+    this.sinceTimestamp = payload.sinceTimestamp || 0;
+    this.closedAtTimestamp = payload.closedAtTimestamp || 0;
 
     this.profitInUSD = payload.profitInUSD || 0;
     this.profitInUnderlying = payload.profitInUnderlying || 0;
     this.collateralInUSD = payload.collateralInUSD || 0;
     this.collateralInUnderlying = payload.collateralInUnderlying || 0;
+
+    this.baseBorrowAPY7DAverage = payload.baseBorrowAPY7DAverage || 0;
+    this.baseBorrowAPY_RAY = toBigInt(payload.baseBorrowAPY_RAY || 0);
+    this.baseToken = (payload.tradingToken || "").toLowerCase();
+    this.pool = (payload.tradingToken || "").toLowerCase();
 
     this.entryPrice = payload.entryPrice || 0;
     this.closePrice = payload.closePrice || 0;
@@ -182,6 +197,9 @@ export class CreditSessionFiltered {
   readonly closedAt: number;
   readonly closedAtDate: string;
 
+  readonly sinceTimestamp: number;
+  readonly closedAtTimestamp: number;
+
   readonly healthFactor: number;
   readonly leverage: number;
 
@@ -196,6 +214,7 @@ export class CreditSessionFiltered {
   readonly tfIndex: number;
 
   readonly balances: Array<AssetWithView>;
+  readonly teritaryStatus: SecondaryStatus;
 
   constructor(payload: CreditSessionFilteredPayload) {
     this.id = (payload.id || "").toLowerCase();
@@ -204,6 +223,7 @@ export class CreditSessionFiltered {
     this.creditManager = (payload.creditManager || "").toLowerCase();
     this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
 
+    this.teritaryStatus = payload.teritaryStatus || { secStatus: [] };
     this.status = CREDIT_SESSION_STATUS_BY_ID[payload.status || 0];
     this.since = payload.since || 0;
     this.closedAt = payload.closedAt || 0;
@@ -211,6 +231,8 @@ export class CreditSessionFiltered {
     this.closedAtDate = moment((payload.closedAt || 0) * 1000).format(
       "Do MMM YYYY",
     );
+    this.sinceTimestamp = payload.sinceTimestamp || 0;
+    this.closedAtTimestamp = payload.closedAtTimestamp || 0;
 
     this.healthFactor = Number(toBigInt(payload.healthFactor || 0));
     this.leverage = payload.leverage || 0;

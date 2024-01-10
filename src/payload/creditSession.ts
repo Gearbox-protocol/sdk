@@ -15,6 +15,10 @@ interface CreditSessionReward {
   symbol: string;
 }
 
+export interface SecondaryStatus {
+  secStatus: Array<[block: number, status: number]>;
+}
+
 export interface CreditSessionPayload {
   id: string;
   status: number;
@@ -67,6 +71,13 @@ export interface CreditSessionPayload {
 
   cvxUnclaimedRewards: Record<string, CreditSessionReward>;
   balances: Record<string, CreditSessionBalancePayload>;
+
+  baseBorrowAPY7DAverage: number;
+  baseBorrowAPY_RAY: string;
+  baseToken: string;
+  pool: string;
+
+  teritaryStatus: null | SecondaryStatus;
 }
 
 export interface CreditSessionFilteredPayload {
@@ -93,6 +104,10 @@ export interface CreditSessionFilteredPayload {
   pnlUSD: number;
 
   tfIndex: number;
+
+  closedAtTimestamp: number;
+  sinceTimestamp: number;
+  teritaryStatus: null | SecondaryStatus;
 }
 
 export interface CreditSessionsAggregatedStatsPayload {
