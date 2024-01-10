@@ -32,6 +32,9 @@ export type CreditManagerDataPayload =
 export interface ChartsCreditManagerPayload {
   addr: string;
   underlyingToken: string;
+  configurator: string;
+  creditFacade: string;
+
   isWeth: boolean;
   poolAddress: string;
   name: string;

@@ -378,6 +378,8 @@ export class CreditManagerData {
 export class ChartsCreditManagerData {
   readonly address: string;
   readonly underlyingToken: string;
+  readonly configurator: string;
+  readonly creditFacade: string;
   readonly pool: string;
   readonly version: number;
   readonly name: string;
@@ -428,6 +430,8 @@ export class ChartsCreditManagerData {
   constructor(payload: ChartsCreditManagerPayload) {
     this.address = (payload.addr || "").toLowerCase();
     this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.configurator = (payload.configurator || "").toLowerCase();
+    this.creditFacade = (payload.creditFacade || "").toLowerCase();
     this.pool = (payload.poolAddress || "").toLowerCase();
     this.version = payload.version || 2;
     this.name = payload.name || "";
