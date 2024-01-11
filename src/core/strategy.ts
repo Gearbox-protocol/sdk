@@ -1,6 +1,7 @@
 import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
+  Protocols,
 } from "@gearbox-protocol/sdk-gov";
 
 import { CreditManagerData } from "./creditManager";
@@ -10,6 +11,8 @@ export interface StrategyPayload {
 
   name: string;
   lpToken: string;
+  protocol: Protocols;
+
   creditManagers: Array<string>;
 
   baseAssets: Array<string>;
@@ -26,20 +29,22 @@ interface CalculateMaxAPYProps {
 
 export class Strategy {
   apy: number | undefined;
-  name: string;
-  lpToken: string;
+  readonly name: string;
+  readonly lpToken: string;
+  readonly protocol: Protocols;
 
-  baseAssets: Array<string>;
-  unleveragableCollateral: Array<string>;
-  leveragableCollateral: Array<string>;
+  readonly baseAssets: Array<string>;
+  readonly unleveragableCollateral: Array<string>;
+  readonly leveragableCollateral: Array<string>;
 
-  creditManagers: Array<string>;
+  readonly creditManagers: Array<string>;
 
   constructor(payload: StrategyPayload) {
     this.apy = payload.apy;
 
     this.name = payload.name;
     this.lpToken = payload.lpToken.toLowerCase();
+    this.protocol = payload.protocol;
     this.creditManagers = payload.creditManagers.map(addr =>
       addr.toLowerCase(),
     );
