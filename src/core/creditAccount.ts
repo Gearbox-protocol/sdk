@@ -51,6 +51,8 @@ export interface CalcHealthFactorProps {
 export interface CalcQuotaUpdateProps {
   quotas: Record<string, Pick<QuotaInfo, "isActive" | "token">>;
   initialQuotas: Record<string, Pick<CaTokenBalance, "quota">>;
+  liquidationThresholds: Record<string, bigint>;
+  debt: bigint;
   assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
 
   allowedToSpend: Record<string, {}>;
@@ -435,6 +437,9 @@ export class CreditAccountData {
     initialQuotas,
     assetsAfterUpdate,
 
+    liquidationThresholds,
+    debt,
+
     allowedToSpend,
     allowedToObtain,
 
@@ -453,11 +458,18 @@ export class CreditAccountData {
           return acc;
         }
 
+        // min(debt,assetAmountInUnderlying*LT)*(1+buffer)
         const after = assetsAfterUpdate[token];
         const { amountInTarget = 0n } = after || {};
+        const lt = liquidationThresholds[token] || 0n;
+
+        const desiredBaseQuota = BigIntMath.min(
+          debt,
+          (amountInTarget * lt) / PERCENTAGE_FACTOR,
+        );
 
         const desiredQuota =
-          (amountInTarget * (PERCENTAGE_FACTOR + quotaReserve)) /
+          (desiredBaseQuota * (PERCENTAGE_FACTOR + quotaReserve)) /
           PERCENTAGE_FACTOR;
         const quotaChange = desiredQuota - initialQuota;
 
