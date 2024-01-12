@@ -48,11 +48,23 @@ export interface CalcHealthFactorProps {
   debt: bigint;
 }
 
+export interface CalcDefaultQuotaProps {
+  amount: bigint;
+  lt: bigint;
+  quotaReserve: bigint;
+}
+
+export interface CalcRecommendedQuotaProps {
+  amount: bigint;
+  debt: bigint;
+  lt: bigint;
+  quotaReserve: bigint;
+}
+
 export interface CalcQuotaUpdateProps {
   quotas: Record<string, Pick<QuotaInfo, "isActive" | "token">>;
   initialQuotas: Record<string, Pick<CaTokenBalance, "quota">>;
   liquidationThresholds: Record<string, bigint>;
-  debt: bigint;
   assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
 
   allowedToSpend: Record<string, {}>;
@@ -432,13 +444,39 @@ export class CreditAccountData {
     return Number(hfInPercent);
   }
 
+  static calcRecommendedQuota({
+    amount,
+    debt,
+    lt,
+    quotaReserve,
+  }: CalcRecommendedQuotaProps) {
+    const recommendedBaseQuota = BigIntMath.min(
+      debt,
+      (amount * lt) / PERCENTAGE_FACTOR,
+    );
+
+    const recommendedQuota =
+      (recommendedBaseQuota * (PERCENTAGE_FACTOR + quotaReserve)) /
+      PERCENTAGE_FACTOR;
+
+    return recommendedQuota;
+  }
+
+  static calcDefaultQuota({ amount, lt, quotaReserve }: CalcDefaultQuotaProps) {
+    const recommendedBaseQuota = (amount * lt) / PERCENTAGE_FACTOR;
+    const recommendedQuota =
+      (recommendedBaseQuota * (PERCENTAGE_FACTOR + quotaReserve)) /
+      PERCENTAGE_FACTOR;
+
+    return recommendedQuota;
+  }
+
   static calcQuotaUpdate({
     quotas,
     initialQuotas,
     assetsAfterUpdate,
 
     liquidationThresholds,
-    debt,
 
     allowedToSpend,
     allowedToObtain,
@@ -463,14 +501,12 @@ export class CreditAccountData {
         const { amountInTarget = 0n } = after || {};
         const lt = liquidationThresholds[token] || 0n;
 
-        const desiredBaseQuota = BigIntMath.min(
-          debt,
-          (amountInTarget * lt) / PERCENTAGE_FACTOR,
-        );
+        const desiredQuota = this.calcDefaultQuota({
+          lt,
+          quotaReserve,
+          amount: amountInTarget,
+        });
 
-        const desiredQuota =
-          (desiredBaseQuota * (PERCENTAGE_FACTOR + quotaReserve)) /
-          PERCENTAGE_FACTOR;
         const quotaChange = desiredQuota - initialQuota;
 
         const correctIncrease =
