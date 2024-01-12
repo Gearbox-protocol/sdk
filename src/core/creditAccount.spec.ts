@@ -1,5 +1,6 @@
 import {
   decimals,
+  PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
@@ -25,8 +26,6 @@ interface CATestInfo {
   quotas: Record<string, Asset>;
   rates: CalcOverallAPYProps["quotaRates"];
 }
-
-const QUOTA_RESERVE = 100n;
 
 const prices = {
   [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: toBN(
@@ -533,6 +532,13 @@ const caQuota: CalcQuotaUpdateProps["initialQuotas"] = {
   },
 };
 
+const QUOTA_RESERVE = 100n;
+const DEFAULT_LT = {
+  [tokenDataByNetwork.Mainnet.DAI]: PERCENTAGE_FACTOR,
+  [tokenDataByNetwork.Mainnet.WETH]: PERCENTAGE_FACTOR,
+  [tokenDataByNetwork.Mainnet.STETH]: PERCENTAGE_FACTOR,
+};
+
 describe("CreditAccount calcQuotaUpdate test", () => {
   it("open account should buy quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
@@ -557,6 +563,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -602,6 +610,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.STETH]: {},
       },
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -643,6 +653,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.DAI]: {},
       },
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -684,6 +696,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
@@ -725,6 +739,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.STETH]: {},
       },
       allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -775,6 +791,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       allowedToSpend: {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -826,6 +844,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
       allowedToSpend: { [tokenDataByNetwork.Mainnet.DAI]: {} },
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
@@ -870,6 +890,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
       allowedToObtain: {},
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
@@ -926,6 +948,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       allowedToSpend: {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
+
+      liquidationThresholds: DEFAULT_LT,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
@@ -941,6 +965,163 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
         balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap shouldn't buy quota if no lt", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          quota: 5n,
+        },
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 5n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+
+      liquidationThresholds: {},
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      { balance: -10n, token: tokenDataByNetwork.Mainnet.WETH },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap should buy quota with respect to lt", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [tokenDataByNetwork.Mainnet.STETH]: { quota: 5n },
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 20n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 5n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+
+      liquidationThresholds: {
+        ...DEFAULT_LT,
+        [tokenDataByNetwork.Mainnet.STETH]: 5000n,
+      },
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      { balance: -5n, token: tokenDataByNetwork.Mainnet.WETH },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap shouldn't buy quota with respect to lt", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [tokenDataByNetwork.Mainnet.STETH]: { quota: 5n },
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 10n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 5n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+
+      liquidationThresholds: {
+        ...DEFAULT_LT,
+        [tokenDataByNetwork.Mainnet.STETH]: 5000n,
+      },
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      { balance: -5n, token: tokenDataByNetwork.Mainnet.WETH },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 5n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 5n,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
