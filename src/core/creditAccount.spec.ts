@@ -1,5 +1,6 @@
 import {
   decimals,
+  PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
@@ -25,8 +26,6 @@ interface CATestInfo {
   quotas: Record<string, Asset>;
   rates: CalcOverallAPYProps["quotaRates"];
 }
-
-const QUOTA_RESERVE = 100n;
 
 const prices = {
   [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: toBN(
@@ -533,6 +532,13 @@ const caQuota: CalcQuotaUpdateProps["initialQuotas"] = {
   },
 };
 
+const QUOTA_RESERVE = 100n;
+const DEFAULT_LT = {
+  [tokenDataByNetwork.Mainnet.DAI]: PERCENTAGE_FACTOR,
+  [tokenDataByNetwork.Mainnet.WETH]: PERCENTAGE_FACTOR,
+  [tokenDataByNetwork.Mainnet.STETH]: PERCENTAGE_FACTOR,
+};
+
 describe("CreditAccount calcQuotaUpdate test", () => {
   it("open account should buy quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
@@ -557,6 +563,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -602,6 +611,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.STETH]: {},
       },
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -643,6 +655,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.DAI]: {},
       },
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -684,6 +699,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
@@ -725,6 +743,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.STETH]: {},
       },
       allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -775,6 +796,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       allowedToSpend: {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([
@@ -826,6 +850,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
       allowedToSpend: { [tokenDataByNetwork.Mainnet.DAI]: {} },
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
@@ -870,6 +897,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
       allowedToObtain: {},
       allowedToSpend: {},
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
@@ -926,6 +956,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       allowedToSpend: {
         [tokenDataByNetwork.Mainnet.WETH]: {},
       },
+
+      liquidationThresholds: DEFAULT_LT,
+      debt: 9999n,
     });
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
