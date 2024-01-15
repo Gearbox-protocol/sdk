@@ -3,8 +3,6 @@ import {
   ERC4626Params,
   ERC4626VaultContract,
   NetworkType,
-  PERCENTAGE_DECIMALS,
-  RAY,
   toBigInt,
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
