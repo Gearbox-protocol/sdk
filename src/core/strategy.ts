@@ -2,6 +2,7 @@ import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   Protocols,
+  SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 
 import { CreditManagerData } from "./creditManager";
@@ -15,9 +16,8 @@ export interface StrategyPayload {
 
   creditManagers: Array<string>;
 
-  baseAssets: Array<string>;
-  unleveragableCollateral: Array<string>;
-  leveragableCollateral: Array<string>;
+  collateralTokens: Array<SupportedToken>;
+  liquidationTokens: Array<SupportedToken>;
 }
 
 interface CalculateMaxAPYProps {
@@ -33,9 +33,8 @@ export class Strategy {
   readonly lpToken: string;
   readonly protocol: Protocols;
 
-  readonly baseAssets: Array<string>;
-  readonly unleveragableCollateral: Array<string>;
-  readonly leveragableCollateral: Array<string>;
+  readonly collateralTokens: Array<SupportedToken>;
+  readonly liquidationTokens: Array<SupportedToken>;
 
   readonly creditManagers: Array<string>;
 
@@ -48,13 +47,8 @@ export class Strategy {
     this.creditManagers = payload.creditManagers.map(addr =>
       addr.toLowerCase(),
     );
-    this.baseAssets = payload.baseAssets.map(addr => addr.toLowerCase());
-    this.unleveragableCollateral = payload.unleveragableCollateral.map(addr =>
-      addr.toLowerCase(),
-    );
-    this.leveragableCollateral = payload.leveragableCollateral.map(addr =>
-      addr.toLowerCase(),
-    );
+    this.collateralTokens = payload.collateralTokens;
+    this.liquidationTokens = payload.liquidationTokens;
   }
 
   static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
