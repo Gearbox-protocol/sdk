@@ -15,11 +15,15 @@ export function formatRAY(num = 0n): string {
   return toSignificant(num, 27);
 }
 
-export function toSignificant(num: bigint, decimals: number): string {
+export function toSignificant(
+  num: bigint,
+  decimals: number,
+  precision = 6,
+): string {
   if (num === 1n) return "0";
   const divider = new Decimal(10).toPower(decimals);
   const number = new Decimal(num.toString()).div(divider);
-  return number.toSignificantDigits(6, 4).toString();
+  return number.toSignificantDigits(precision, 4).toString();
 }
 
 export function toBN(num: string, decimals: number): bigint {
