@@ -47,12 +47,8 @@ export class Strategy {
     this.creditManagers = payload.creditManagers.map(addr =>
       addr.toLowerCase(),
     );
-    this.collateralTokens = payload.collateralTokens.map(addr =>
-      addr.toLowerCase(),
-    );
-    this.liquidationTokens = payload.liquidationTokens.map(addr =>
-      addr.toLowerCase(),
-    );
+    this.collateralTokens = payload.collateralTokens;
+    this.liquidationTokens = payload.liquidationTokens;
   }
 
   static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
