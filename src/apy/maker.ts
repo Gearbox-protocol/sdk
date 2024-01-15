@@ -1,13 +1,17 @@
 import {
   contractParams,
-  contractsByNetwork,
   ERC4626Params,
   ERC4626VaultContract,
   NetworkType,
+  PERCENTAGE_DECIMALS,
+  RAY,
   toBigInt,
+  WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
 import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
+
+import { toBN, toSignificant } from "../utils/formatter";
 
 export const MAKER_VAULT_ABI = [
   {
@@ -32,6 +36,18 @@ export type MakerPoolContract = Extract<
   "MAKER_DSR_VAULT"
 >;
 
+const MAKER_BY_NETWORK: Record<
+  NetworkType,
+  Record<MakerPoolContract, string>
+> = {
+  Mainnet: {
+    MAKER_DSR_VAULT: "0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7",
+  },
+  Arbitrum: {
+    MAKER_DSR_VAULT: "",
+  },
+};
+
 interface PoolInfo {
   pool: ERC4626Params;
   poolAddress: string;
@@ -47,10 +63,8 @@ export function getMakerAPYBulkCalls({
   networkType,
 }: GetMakerAPYBulkCallsProps) {
   const poolsInfo = pools.map((pool): PoolInfo => {
-    const contractsList = contractsByNetwork[networkType];
-
     const poolParams = contractParams[pool] as ERC4626Params;
-    const basePoolAddress = contractsList[pool];
+    const basePoolAddress = MAKER_BY_NETWORK[networkType][pool];
 
     return {
       pool: poolParams,
@@ -88,13 +102,16 @@ export function getMakerAPYBulk(props: GetMakerAPYBulkProps) {
   return apyList;
 }
 
+const POW = 3600 * 24 * 365;
+
 interface CalculateMakerAPYProps {
   baseApy: bigint;
   poolInfo: PoolInfo;
 }
 
 function calculateMakerAPY(props: CalculateMakerAPYProps) {
-  console.log(props.baseApy);
+  const rateFloat = Number(toSignificant(props.baseApy, 27, 27));
+  const rate = Math.max(0, rateFloat ** POW - 1);
 
-  return 0n;
+  return toBN(rate.toString(), WAD_DECIMALS_POW);
 }
