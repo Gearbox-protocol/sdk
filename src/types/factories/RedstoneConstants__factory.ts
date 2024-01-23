@@ -11,61 +11,61 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "error",
     name: "CalldataMustHaveValidPayload",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "CalldataOverOrUnderFlow",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "EachSignerMustProvideTheSameValue",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "EmptyCalldataPointersArr",
-    type: "error",
-  },
-  {
     inputs: [],
-    name: "IncorrectUnsignedMetadataSize",
-    type: "error",
   },
   {
+    type: "error",
+    name: "IncorrectUnsignedMetadataSize",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InsufficientNumberOfUniqueSigners",
     inputs: [
       {
-        internalType: "uint256",
         name: "receivedSignersCount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "requiredSignersCount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "InsufficientNumberOfUniqueSigners",
-    type: "error",
   },
   {
-    inputs: [],
+    type: "error",
     name: "InvalidCalldataPointer",
-    type: "error",
+    inputs: [],
   },
   {
+    type: "error",
+    name: "SignerNotAuthorised",
     inputs: [
       {
-        internalType: "address",
         name: "receivedSigner",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "SignerNotAuthorised",
-    type: "error",
   },
 ] as const;
 

@@ -11,91 +11,91 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "SetPriceFeed",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "token",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "priceFeed",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint32",
         name: "stalenessPeriod",
         type: "uint32",
+        indexed: false,
+        internalType: "uint32",
       },
       {
-        indexed: false,
-        internalType: "bool",
         name: "skipCheck",
         type: "bool",
-      },
-      {
         indexed: false,
         internalType: "bool",
+      },
+      {
         name: "trusted",
         type: "bool",
+        indexed: false,
+        internalType: "bool",
       },
     ],
-    name: "SetPriceFeed",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "SetReservePriceFeed",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "token",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "priceFeed",
         type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint32",
-        name: "stalenessPeriod",
-        type: "uint32",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "skipCheck",
-        type: "bool",
-      },
-    ],
-    name: "SetReservePriceFeed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
-        name: "token",
-        type: "address",
       },
       {
+        name: "stalenessPeriod",
+        type: "uint32",
+        indexed: false,
+        internalType: "uint32",
+      },
+      {
+        name: "skipCheck",
+        type: "bool",
         indexed: false,
         internalType: "bool",
-        name: "active",
-        type: "bool",
       },
     ],
-    name: "SetReservePriceFeedStatus",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "SetReservePriceFeedStatus",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "active",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

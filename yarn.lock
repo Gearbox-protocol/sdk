@@ -1294,10 +1294,10 @@
   dependencies:
     "@typechain/ethers-v5" "^10.2.1"
 
-"@gearbox-protocol/core-v3@^1.45.8":
-  version "1.45.8"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.45.8.tgz#fe4b0beac62ba3cab7eff1ea27ac612ed88245fb"
-  integrity sha512-mtO0haAPjCOpjY6c1Xi5JRiB9x5AnXjGa4PFzt8fRaB+z892AZxtKY/N/4Xmk/YOEn24rvvSWbiqIakfOZ4BJA==
+"@gearbox-protocol/core-v3@^1.46.1":
+  version "1.46.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.46.1.tgz#4c587c7200ac489978e890401301a0e20e6694cc"
+  integrity sha512-tdokI0Tm1PbTCt/Sg/zRg1ArtMFQGE6s1cvGxlJNpnTe6nH/QK87aVIGOKG5+FR4xEV2jvqbLG3Y5hFFSdESpA==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1328,10 +1328,10 @@
     "@gearbox-protocol/sdk" "^1.22.0"
     axios "^1.1.3"
 
-"@gearbox-protocol/integrations-v3@^1.27.2":
-  version "1.27.2"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.27.2.tgz#94fc6603a387b9e8d9bb2a8378f10fe2e0b45258"
-  integrity sha512-IKAbFhR5SV4BOdvUbJZUNfDhRtSXc/5HD0DI5cZ5pjkbdIsWg5NIJ2VcYAj2u6PLubh3NClpOC+PtPRoQHmwvQ==
+"@gearbox-protocol/integrations-v3@^1.30.0":
+  version "1.30.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.30.0.tgz#c573aa53de35f57350c300537824a0e1b5250c84"
+  integrity sha512-BkhCgIl4TW/bxU/97/BWc3EG4QeUxPFBij2Lg2avY38T946fHBl2URD7AQtpaktOqVuKizyxSfCu+bE3Hjk4IQ==
 
 "@gearbox-protocol/oracles-v3@^1.9.0":
   version "1.9.0"
@@ -1354,10 +1354,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/prettier-config/-/prettier-config-1.5.0.tgz#4df8e9fd2305fee6ab8c1417a02e31343836932a"
   integrity sha512-FUoprSsBdZyBjgxXCKL6mTkbeUJytaLzPJqIOoQpDmBRTX0seCc2o5I9PI9tySoRIlNnd/XXnKCXq1xHDEGbxw==
 
-"@gearbox-protocol/router-v3@^1.8.2":
-  version "1.8.2"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.8.2.tgz#89a9a88d39b7c34bac83826fc29f31f987c62aa2"
-  integrity sha512-9DA2TBXaew9Oml0mcQ+fccL3BqMR3OMBDrXM89uoUfjDLr0YzP59IJpkNuWinK8gnbeJn0RJkDzNHQ2sggNV3g==
+"@gearbox-protocol/router-v3@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.9.0.tgz#e87da4c7c3b85dfd4453f7475fca2e58be6452f6"
+  integrity sha512-qXbPM+PbA3q2p3AkXOKKE0m9uOOxZ9BB+qIfR7Vm0miZtcBHHTY1nqw+ON9MZzyLWKcM6P2Yl8QuGHdq7S1DbA==
   dependencies:
     "@gearbox-protocol/integration-types" "^1.4.0"
 

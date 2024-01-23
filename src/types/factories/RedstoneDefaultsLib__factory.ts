@@ -11,36 +11,36 @@ import type {
 
 const _abi = [
   {
+    type: "error",
+    name: "TimestampFromTooLongFuture",
     inputs: [
       {
-        internalType: "uint256",
         name: "receivedTimestampSeconds",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "blockTimestamp",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "TimestampFromTooLongFuture",
-    type: "error",
   },
   {
+    type: "error",
+    name: "TimestampIsTooOld",
     inputs: [
       {
-        internalType: "uint256",
         name: "receivedTimestampSeconds",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "blockTimestamp",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "TimestampIsTooOld",
-    type: "error",
   },
 ] as const;
 

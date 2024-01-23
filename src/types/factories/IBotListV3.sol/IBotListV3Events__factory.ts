@@ -11,123 +11,123 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "EraseBot",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "bot",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "creditManager",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "creditAccount",
         type: "address",
-      },
-    ],
-    name: "EraseBot",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetBotForbiddenStatus",
+    inputs: [
+      {
         name: "bot",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "bool",
         name: "forbidden",
         type: "bool",
-      },
-    ],
-    name: "SetBotForbiddenStatus",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "bot",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint192",
-        name: "permissions",
-        type: "uint192",
-      },
-    ],
-    name: "SetBotPermissions",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "bot",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint192",
-        name: "permissions",
-        type: "uint192",
-      },
-    ],
-    name: "SetBotSpecialPermissions",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
         indexed: false,
         internalType: "bool",
-        name: "approved",
-        type: "bool",
       },
     ],
-    name: "SetCreditManagerApprovedStatus",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "SetBotPermissions",
+    inputs: [
+      {
+        name: "bot",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditAccount",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "permissions",
+        type: "uint192",
+        indexed: false,
+        internalType: "uint192",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetBotSpecialPermissions",
+    inputs: [
+      {
+        name: "bot",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "permissions",
+        type: "uint192",
+        indexed: false,
+        internalType: "uint192",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetCreditManagerApprovedStatus",
+    inputs: [
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "approved",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

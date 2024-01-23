@@ -11,27 +11,27 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "function",
     name: "params",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint128",
         name: "maxBorrowedAmountPerBlock",
         type: "uint128",
+        internalType: "uint128",
       },
       {
-        internalType: "bool",
         name: "isIncreaseDebtForbidden",
         type: "bool",
+        internalType: "bool",
       },
       {
-        internalType: "uint40",
         name: "expirationDate",
         type: "uint40",
+        internalType: "uint40",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

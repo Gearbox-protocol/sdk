@@ -11,23 +11,23 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "AddressSet",
     inputs: [
       {
-        indexed: true,
-        internalType: "bytes32",
         name: "service",
         type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
       },
       {
-        indexed: true,
-        internalType: "address",
         name: "newAddress",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "AddressSet",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

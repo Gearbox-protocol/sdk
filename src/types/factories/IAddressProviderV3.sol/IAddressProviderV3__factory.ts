@@ -11,113 +11,113 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "function",
+    name: "addresses",
     inputs: [
       {
-        indexed: true,
-        internalType: "bytes32",
         name: "key",
         type: "bytes32",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "value",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "version",
-        type: "uint256",
-      },
-    ],
-    name: "SetAddress",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
         internalType: "bytes32",
-        name: "key",
-        type: "bytes32",
       },
       {
-        internalType: "uint256",
         name: "_version",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "addresses",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getAddressOrRevert",
     inputs: [
       {
-        internalType: "bytes32",
         name: "key",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "uint256",
         name: "_version",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "getAddressOrRevert",
     outputs: [
       {
-        internalType: "address",
         name: "result",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setAddress",
     inputs: [
       {
-        internalType: "bytes32",
         name: "key",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "address",
         name: "value",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "saveVersion",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "setAddress",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "SetAddress",
+    inputs: [
+      {
+        name: "key",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "value",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "version",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

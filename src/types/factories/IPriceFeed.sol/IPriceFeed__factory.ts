@@ -11,102 +11,102 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "function",
     name: "decimals",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "description",
+    inputs: [],
     outputs: [
       {
-        internalType: "string",
         name: "",
         type: "string",
+        internalType: "string",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "latestRoundData",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint80",
         name: "",
         type: "uint80",
+        internalType: "uint80",
       },
       {
-        internalType: "int256",
         name: "answer",
         type: "int256",
+        internalType: "int256",
       },
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "updatedAt",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint80",
         name: "",
         type: "uint80",
+        internalType: "uint80",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "priceFeedType",
+    inputs: [],
     outputs: [
       {
-        internalType: "enum PriceFeedType",
         name: "",
         type: "uint8",
+        internalType: "enum PriceFeedType",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "skipPriceCheck",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

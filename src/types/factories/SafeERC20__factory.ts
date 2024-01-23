@@ -8,39 +8,39 @@ import type { SafeERC20, SafeERC20Interface } from "../SafeERC20";
 
 const _abi = [
   {
-    inputs: [],
+    type: "error",
     name: "ForceApproveFailed",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "Permit2TransferAmountTooHigh",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "SafeDecreaseAllowanceFailed",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "SafeIncreaseAllowanceFailed",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "SafePermitBadLength",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "SafeTransferFailed",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
-    name: "SafeTransferFromFailed",
     type: "error",
+    name: "SafeTransferFromFailed",
+    inputs: [],
   },
 ] as const;
 

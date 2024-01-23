@@ -11,188 +11,188 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "AddCreditManager",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditManager",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "AddCreditManager",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "Borrow",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditManager",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "creditAccount",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
-      },
-    ],
-    name: "Borrow",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
         indexed: false,
         internalType: "uint256",
-        name: "loss",
-        type: "uint256",
       },
     ],
-    name: "IncurUncoveredLoss",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "IncurUncoveredLoss",
     inputs: [
       {
+        name: "creditManager",
+        type: "address",
         indexed: true,
         internalType: "address",
+      },
+      {
+        name: "loss",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "Refer",
+    inputs: [
+      {
         name: "onBehalfOf",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: true,
-        internalType: "uint256",
         name: "referralCode",
         type: "uint256",
+        indexed: true,
+        internalType: "uint256",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
-      },
-    ],
-    name: "Refer",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
         indexed: false,
         internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "Repay",
+    inputs: [
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
         name: "borrowedAmount",
         type: "uint256",
-      },
-      {
         indexed: false,
         internalType: "uint256",
+      },
+      {
         name: "profit",
         type: "uint256",
-      },
-      {
         indexed: false,
         internalType: "uint256",
+      },
+      {
         name: "loss",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "Repay",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "SetCreditManagerDebtLimit",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditManager",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "newLimit",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "SetCreditManagerDebtLimit",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "SetInterestRateModel",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "newInterestRateModel",
         type: "address",
-      },
-    ],
-    name: "SetInterestRateModel",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetPoolQuotaKeeper",
+    inputs: [
+      {
         name: "newPoolQuotaKeeper",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "SetPoolQuotaKeeper",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "SetTotalDebtLimit",
     inputs: [
       {
-        indexed: false,
-        internalType: "uint256",
         name: "limit",
         type: "uint256",
-      },
-    ],
-    name: "SetTotalDebtLimit",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: false,
         internalType: "uint256",
-        name: "fee",
-        type: "uint256",
       },
     ],
-    name: "SetWithdrawFee",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "SetWithdrawFee",
+    inputs: [
+      {
+        name: "fee",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

@@ -8,68 +8,68 @@ import type { IWETHGateway, IWETHGatewayInterface } from "../IWETHGateway";
 
 const _abi = [
   {
+    type: "function",
+    name: "addLiquidityETH",
     inputs: [
       {
-        internalType: "address",
         name: "pool",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "onBehalfOf",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint16",
         name: "referralCode",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
-    name: "addLiquidityETH",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "removeLiquidityETH",
     inputs: [
       {
-        internalType: "address",
         name: "pool",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address payable",
         name: "to",
         type: "address",
+        internalType: "address payable",
       },
     ],
-    name: "removeLiquidityETH",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "unwrapWETH",
     inputs: [
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "unwrapWETH",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
 ] as const;
 

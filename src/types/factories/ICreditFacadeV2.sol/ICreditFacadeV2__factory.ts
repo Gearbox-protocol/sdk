@@ -11,1148 +11,1148 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "AccountTransferNotAllowedException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ActionProhibitedWithForbiddenTokensException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "AdaptersOrCreditFacadeOnlyException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "AllowanceFailedException",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "BalanceLessThanMinimumDesiredException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "BorrowAmountOutOfLimitsException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "BorrowedBlockLimitException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CantLiquidateNonExpiredException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CantLiquidateWithSuchHealthFactorException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CantTransferLiquidatableAccountException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CreditConfiguratorOnlyException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CreditFacadeOnlyException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ExpectedBalancesAlreadySetException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ForbiddenDuringClosureException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "HasNoOpenedAccountException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IncorrectCallDataException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IncreaseAndDecreaseForbiddenInOneCallException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IncreaseDebtForbiddenException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "LiquiditySanityCheckException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotAllowedForBlacklistedAddressException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotAllowedInWhitelistedMode",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotAllowedWhenNotExpirableException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotEnoughCollateralException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "OpenAccountNotAllowedAfterExpirationException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ReentrancyLockException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TargetContractNotAllowedException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TokenAlreadyAddedException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TokenNotAllowedException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TooManyEnabledTokensException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TooManyTokensException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "UnknownMethodException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ZeroAddressOrUserAlreadyHasAccountException",
-    type: "error",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "onBehalfOf",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "value",
-        type: "uint256",
-      },
-    ],
-    name: "AddCollateral",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "blacklistHelper",
-        type: "address",
-      },
-    ],
-    name: "BlacklistHelperSet",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-    ],
-    name: "CloseCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "DecreaseBorrowedAmount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "IncreaseBorrowedAmount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "loss",
-        type: "uint256",
-      },
-    ],
-    name: "IncurLossOnLiquidation",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "liquidator",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "remainingFunds",
-        type: "uint256",
-      },
-    ],
-    name: "LiquidateCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "liquidator",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "remainingFunds",
-        type: "uint256",
-      },
-    ],
-    name: "LiquidateExpiredCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [],
-    name: "MultiCallFinished",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-    ],
-    name: "MultiCallStarted",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "onBehalfOf",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "borrowAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint16",
-        name: "referralCode",
-        type: "uint16",
-      },
-    ],
-    name: "OpenCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "TokenDisabled",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "TokenEnabled",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "oldOwner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "TransferAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "state",
-        type: "bool",
-      },
-    ],
-    name: "TransferAccountAllowed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "UnderlyingSentToBlacklistHelper",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "onBehalfOf",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "addCollateral",
+    inputs: [
+      {
+        name: "onBehalfOf",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "approveAccountTransfer",
     inputs: [
       {
-        internalType: "address",
         name: "from",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "state",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "approveAccountTransfer",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "blacklistHelper",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "calcCreditAccountHealthFactor",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "calcCreditAccountHealthFactor",
     outputs: [
       {
-        internalType: "uint256",
         name: "hf",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "calcTotalValue",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "calcTotalValue",
     outputs: [
       {
-        internalType: "uint256",
         name: "total",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "twv",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "closeCreditAccount",
     inputs: [
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "skipTokenMask",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        components: [
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "callData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct MultiCall[]",
         name: "calls",
         type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          {
+            name: "target",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "callData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
     ],
-    name: "closeCreditAccount",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "closeCreditAccount",
     inputs: [
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "skipTokenMask",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bool",
         name: "convertWETH",
         type: "bool",
+        internalType: "bool",
       },
       {
-        components: [
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "callData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct MultiCall[]",
         name: "calls",
         type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          {
+            name: "target",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "callData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
     ],
-    name: "closeCreditAccount",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "creditManager",
-    outputs: [
-      {
-        internalType: "contract ICreditManagerV2",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "degenNFT",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "contract ICreditManagerV2",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "degenNFT",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "hasOpenedCreditAccount",
     inputs: [
       {
-        internalType: "address",
         name: "borrower",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "hasOpenedCreditAccount",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "isBlacklistableUnderlying",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "isTokenAllowed",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "isTokenAllowed",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "limits",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint128",
         name: "minBorrowedAmount",
         type: "uint128",
+        internalType: "uint128",
       },
       {
-        internalType: "uint128",
         name: "maxBorrowedAmount",
         type: "uint128",
+        internalType: "uint128",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "liquidateCreditAccount",
     inputs: [
       {
-        internalType: "address",
         name: "borrower",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "skipTokenMask",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        components: [
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "callData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct MultiCall[]",
         name: "calls",
         type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          {
+            name: "target",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "callData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
     ],
-    name: "liquidateCreditAccount",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "liquidateCreditAccount",
     inputs: [
       {
-        internalType: "address",
         name: "borrower",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "skipTokenMask",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bool",
         name: "convertWETH",
         type: "bool",
-      },
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "callData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct MultiCall[]",
-        name: "calls",
-        type: "tuple[]",
-      },
-    ],
-    name: "liquidateCreditAccount",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "skipTokenMask",
-        type: "uint256",
-      },
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "callData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct MultiCall[]",
-        name: "calls",
-        type: "tuple[]",
-      },
-    ],
-    name: "liquidateExpiredCreditAccount",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "skipTokenMask",
-        type: "uint256",
-      },
-      {
         internalType: "bool",
+      },
+      {
+        name: "calls",
+        type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          {
+            name: "target",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "callData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "payable",
+  },
+  {
+    type: "function",
+    name: "liquidateExpiredCreditAccount",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "skipTokenMask",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "calls",
+        type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          {
+            name: "target",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "callData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "payable",
+  },
+  {
+    type: "function",
+    name: "liquidateExpiredCreditAccount",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "skipTokenMask",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
         name: "convertWETH",
         type: "bool",
+        internalType: "bool",
       },
       {
-        components: [
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "callData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct MultiCall[]",
         name: "calls",
         type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          {
+            name: "target",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "callData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
     ],
-    name: "liquidateExpiredCreditAccount",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "lossParams",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint128",
         name: "currentCumulativeLoss",
         type: "uint128",
+        internalType: "uint128",
       },
       {
-        internalType: "uint128",
         name: "maxCumulativeLoss",
         type: "uint128",
+        internalType: "uint128",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "multicall",
     inputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "callData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct MultiCall[]",
         name: "calls",
         type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          {
+            name: "target",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "callData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
     ],
-    name: "multicall",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "openCreditAccount",
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "onBehalfOf",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint16",
         name: "leverageFactor",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "referralCode",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
-    name: "openCreditAccount",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "openCreditAccountMulticall",
     inputs: [
       {
-        internalType: "uint256",
         name: "borrowedAmount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "onBehalfOf",
         type: "address",
+        internalType: "address",
       },
       {
-        components: [
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "callData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct MultiCall[]",
         name: "calls",
         type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          {
+            name: "target",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "callData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
       {
-        internalType: "uint16",
         name: "referralCode",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
-    name: "openCreditAccountMulticall",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "params",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint128",
         name: "maxBorrowedAmountPerBlock",
         type: "uint128",
+        internalType: "uint128",
       },
       {
-        internalType: "bool",
         name: "isIncreaseDebtForbidden",
         type: "bool",
+        internalType: "bool",
       },
       {
-        internalType: "uint40",
         name: "expirationDate",
         type: "uint40",
+        internalType: "uint40",
       },
       {
-        internalType: "uint16",
         name: "emergencyLiquidationDiscount",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "totalDebt",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint128",
         name: "currentTotalDebt",
         type: "uint128",
+        internalType: "uint128",
       },
       {
-        internalType: "uint128",
         name: "totalDebtLimit",
         type: "uint128",
+        internalType: "uint128",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "transferAccountOwnership",
     inputs: [
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "transferAccountOwnership",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "transfersAllowed",
     inputs: [
       {
-        internalType: "address",
         name: "from",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "transfersAllowed",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "AddCollateral",
+    inputs: [
+      {
+        name: "onBehalfOf",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "value",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "BlacklistHelperSet",
+    inputs: [
+      {
+        name: "blacklistHelper",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "CloseCreditAccount",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DecreaseBorrowedAmount",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "IncreaseBorrowedAmount",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "IncurLossOnLiquidation",
+    inputs: [
+      {
+        name: "loss",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "LiquidateCreditAccount",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "liquidator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "remainingFunds",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "LiquidateExpiredCreditAccount",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "liquidator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "remainingFunds",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MultiCallFinished",
+    inputs: [],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MultiCallStarted",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "OpenCreditAccount",
+    inputs: [
+      {
+        name: "onBehalfOf",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditAccount",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "borrowAmount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "referralCode",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TokenDisabled",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TokenEnabled",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TransferAccount",
+    inputs: [
+      {
+        name: "oldOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "newOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TransferAccountAllowed",
+    inputs: [
+      {
+        name: "from",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "state",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "UnderlyingSentToBlacklistHelper",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "AccountTransferNotAllowedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ActionProhibitedWithForbiddenTokensException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "AdaptersOrCreditFacadeOnlyException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "AllowanceFailedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "BalanceLessThanMinimumDesiredException",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "BorrowAmountOutOfLimitsException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "BorrowedBlockLimitException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CantLiquidateNonExpiredException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CantLiquidateWithSuchHealthFactorException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CantTransferLiquidatableAccountException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CreditConfiguratorOnlyException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CreditFacadeOnlyException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ExpectedBalancesAlreadySetException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ForbiddenDuringClosureException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "HasNoOpenedAccountException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncorrectCallDataException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncreaseAndDecreaseForbiddenInOneCallException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncreaseDebtForbiddenException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "LiquiditySanityCheckException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotAllowedForBlacklistedAddressException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotAllowedInWhitelistedMode",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotAllowedWhenNotExpirableException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotEnoughCollateralException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "OpenAccountNotAllowedAfterExpirationException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ReentrancyLockException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TargetContractNotAllowedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TokenAlreadyAddedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TokenNotAllowedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TooManyEnabledTokensException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TooManyTokensException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "UnknownMethodException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ZeroAddressOrUserAlreadyHasAccountException",
+    inputs: [],
   },
 ] as const;
 

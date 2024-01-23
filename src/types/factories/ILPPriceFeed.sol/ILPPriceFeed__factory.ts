@@ -11,329 +11,329 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "ExchangeRateOutOfBoundsException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "LowerBoundCantBeZeroException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ReserveFeedMustNotBeSelfException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "UpdateBoundsBeforeCooldownException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "UpdateBoundsNotAllowedException",
-    type: "error",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "lowerBound",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "upperBound",
-        type: "uint256",
-      },
-    ],
-    name: "SetBounds",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "allowed",
-        type: "bool",
-      },
-    ],
-    name: "SetUpdateBoundsAllowed",
-    type: "event",
-  },
-  {
-    inputs: [],
+    type: "function",
     name: "allowBoundsUpdate",
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "decimals",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "description",
+    inputs: [],
     outputs: [
       {
-        internalType: "string",
         name: "",
         type: "string",
+        internalType: "string",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "forbidBoundsUpdate",
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "getAggregatePrice",
+    inputs: [],
     outputs: [
       {
-        internalType: "int256",
         name: "answer",
         type: "int256",
+        internalType: "int256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "getLPExchangeRate",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "exchangeRate",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "getScale",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "scale",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "lastBoundsUpdate",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint40",
         name: "",
         type: "uint40",
+        internalType: "uint40",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "latestRoundData",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint80",
         name: "",
         type: "uint80",
+        internalType: "uint80",
       },
       {
-        internalType: "int256",
         name: "answer",
         type: "int256",
+        internalType: "int256",
       },
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "updatedAt",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint80",
         name: "",
         type: "uint80",
+        internalType: "uint80",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "lowerBound",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "lpContract",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "lpToken",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "priceFeedType",
+    inputs: [],
     outputs: [
       {
-        internalType: "enum PriceFeedType",
         name: "",
         type: "uint8",
+        internalType: "enum PriceFeedType",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "priceOracle",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setLimiter",
     inputs: [
       {
-        internalType: "uint256",
         name: "newLowerBound",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "setLimiter",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "skipPriceCheck",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "updateBounds",
     inputs: [
       {
-        internalType: "bytes",
         name: "updateData",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "updateBounds",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "updateBoundsAllowed",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "upperBound",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "SetBounds",
+    inputs: [
+      {
+        name: "lowerBound",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "upperBound",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetUpdateBoundsAllowed",
+    inputs: [
+      {
+        name: "allowed",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "ExchangeRateOutOfBoundsException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "LowerBoundCantBeZeroException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ReserveFeedMustNotBeSelfException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "UpdateBoundsBeforeCooldownException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "UpdateBoundsNotAllowedException",
+    inputs: [],
   },
 ] as const;
 

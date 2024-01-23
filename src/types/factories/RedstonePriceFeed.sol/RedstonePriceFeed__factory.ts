@@ -19,551 +19,551 @@ import type {
 
 const _abi = [
   {
+    type: "constructor",
     inputs: [
       {
-        internalType: "address",
         name: "_token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bytes32",
         name: "_dataFeedId",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "address[10]",
         name: "_signers",
         type: "address[10]",
+        internalType: "address[10]",
       },
       {
-        internalType: "uint8",
         name: "signersThreshold",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "nonpayable",
-    type: "constructor",
   },
   {
-    inputs: [],
-    name: "CalldataMustHaveValidPayload",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CalldataOverOrUnderFlow",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CanNotPickMedianOfEmptyArray",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DataPackageTimestampIncorrect",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DataPackageTimestampMustNotBeZero",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DataPackageTimestampsMustBeEqual",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DuplicateSignersException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "EachSignerMustProvideTheSameValue",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "EmptyCalldataPointersArr",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "GetDataServiceIdNotImplemented",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IncorrectPriceException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IncorrectSignersThresholdException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IncorrectUnsignedMetadataSize",
-    type: "error",
-  },
-  {
+    type: "function",
+    name: "aggregateValues",
     inputs: [
       {
-        internalType: "uint256",
-        name: "receivedSignersCount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "requiredSignersCount",
-        type: "uint256",
-      },
-    ],
-    name: "InsufficientNumberOfUniqueSigners",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "InvalidCalldataPointer",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotEnoughSignersException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "RedstonePayloadMustHaveAtLeastOneDataPackage",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "RedstonePayloadTimestampIncorrect",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "receivedSigner",
-        type: "address",
-      },
-    ],
-    name: "SignerNotAuthorised",
-    type: "error",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "price",
-        type: "uint256",
-      },
-    ],
-    name: "UpdatePrice",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256[]",
         name: "values",
         type: "uint256[]",
+        internalType: "uint256[]",
       },
     ],
-    name: "aggregateValues",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "dataFeedId",
+    inputs: [],
     outputs: [
       {
-        internalType: "bytes32",
         name: "",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "decimals",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "description",
+    inputs: [],
     outputs: [
       {
-        internalType: "string",
         name: "",
         type: "string",
+        internalType: "string",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "extractTimestampsAndAssertAllAreEqual",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "extractedTimestamp",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "pure",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getAuthorisedSignerIndex",
     inputs: [
       {
-        internalType: "address",
         name: "signerAddress",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getAuthorisedSignerIndex",
     outputs: [
       {
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "getDataServiceId",
+    inputs: [],
     outputs: [
       {
-        internalType: "string",
         name: "",
         type: "string",
+        internalType: "string",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "getUniqueSignersThreshold",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "lastPayloadTimestamp",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint40",
         name: "",
         type: "uint40",
+        internalType: "uint40",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "lastPrice",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint128",
         name: "",
         type: "uint128",
+        internalType: "uint128",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "latestRoundData",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint80",
         name: "",
         type: "uint80",
+        internalType: "uint80",
       },
       {
-        internalType: "int256",
         name: "",
         type: "int256",
+        internalType: "int256",
       },
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint80",
         name: "",
         type: "uint80",
+        internalType: "uint80",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "priceFeedType",
+    inputs: [],
     outputs: [
       {
-        internalType: "enum PriceFeedType",
         name: "",
         type: "uint8",
+        internalType: "enum PriceFeedType",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress0",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress1",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress2",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress3",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress4",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress5",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress6",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress7",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress8",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "signerAddress9",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "skipPriceCheck",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "updatable",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "updatePrice",
     inputs: [
       {
-        internalType: "bytes",
         name: "data",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "updatePrice",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "validateTimestamp",
     inputs: [
       {
-        internalType: "uint256",
         name: "receivedTimestampMilliseconds",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "validateTimestamp",
     outputs: [],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "UpdatePrice",
+    inputs: [
+      {
+        name: "price",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "CalldataMustHaveValidPayload",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CalldataOverOrUnderFlow",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CanNotPickMedianOfEmptyArray",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "DataPackageTimestampIncorrect",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "DataPackageTimestampMustNotBeZero",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "DataPackageTimestampsMustBeEqual",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "DuplicateSignersException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "EachSignerMustProvideTheSameValue",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "EmptyCalldataPointersArr",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "GetDataServiceIdNotImplemented",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncorrectPriceException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncorrectSignersThresholdException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncorrectUnsignedMetadataSize",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InsufficientNumberOfUniqueSigners",
+    inputs: [
+      {
+        name: "receivedSignersCount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "requiredSignersCount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "InvalidCalldataPointer",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotEnoughSignersException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "RedstonePayloadMustHaveAtLeastOneDataPackage",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "RedstonePayloadTimestampIncorrect",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SignerNotAuthorised",
+    inputs: [
+      {
+        name: "receivedSigner",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
 ] as const;
 

@@ -11,29 +11,29 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "error",
     name: "DataPackageTimestampIncorrect",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "DuplicateSignersException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "IncorrectSignersThresholdException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "NotEnoughSignersException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
-    name: "RedstonePayloadTimestampIncorrect",
     type: "error",
+    name: "RedstonePayloadTimestampIncorrect",
+    inputs: [],
   },
 ] as const;
 

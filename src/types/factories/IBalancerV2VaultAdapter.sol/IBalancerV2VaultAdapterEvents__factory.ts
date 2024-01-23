@@ -11,23 +11,23 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "SetPoolStatus",
     inputs: [
       {
-        indexed: true,
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
       },
       {
-        indexed: false,
-        internalType: "enum PoolStatus",
         name: "newStatus",
         type: "uint8",
+        indexed: false,
+        internalType: "enum PoolStatus",
       },
     ],
-    name: "SetPoolStatus",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

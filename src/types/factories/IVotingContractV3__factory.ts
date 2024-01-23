@@ -11,50 +11,50 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "unvote",
     inputs: [
       {
-        internalType: "address",
         name: "user",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint96",
         name: "votes",
         type: "uint96",
+        internalType: "uint96",
       },
       {
-        internalType: "bytes",
         name: "extraData",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "unvote",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "vote",
     inputs: [
       {
-        internalType: "address",
         name: "user",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint96",
         name: "votes",
         type: "uint96",
+        internalType: "uint96",
       },
       {
-        internalType: "bytes",
         name: "extraData",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "vote",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
 ] as const;
 

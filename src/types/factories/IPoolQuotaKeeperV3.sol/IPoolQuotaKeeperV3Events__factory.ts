@@ -11,125 +11,125 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "AddCreditManager",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditManager",
         type: "address",
-      },
-    ],
-    name: "AddCreditManager",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "AddQuotaToken",
+    inputs: [
+      {
         name: "token",
         type: "address",
-      },
-    ],
-    name: "AddQuotaToken",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetGauge",
+    inputs: [
+      {
         name: "newGauge",
         type: "address",
-      },
-    ],
-    name: "SetGauge",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetQuotaIncreaseFee",
+    inputs: [
+      {
         name: "token",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint16",
         name: "fee",
         type: "uint16",
-      },
-    ],
-    name: "SetQuotaIncreaseFee",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint96",
-        name: "limit",
-        type: "uint96",
-      },
-    ],
-    name: "SetTokenLimit",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "int96",
-        name: "quotaChange",
-        type: "int96",
-      },
-    ],
-    name: "UpdateQuota",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
         indexed: false,
         internalType: "uint16",
-        name: "rate",
-        type: "uint16",
       },
     ],
-    name: "UpdateTokenQuotaRate",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "SetTokenLimit",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "limit",
+        type: "uint96",
+        indexed: false,
+        internalType: "uint96",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "UpdateQuota",
+    inputs: [
+      {
+        name: "creditAccount",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "quotaChange",
+        type: "int96",
+        indexed: false,
+        internalType: "int96",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "UpdateTokenQuotaRate",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "rate",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

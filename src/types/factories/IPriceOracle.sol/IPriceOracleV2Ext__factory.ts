@@ -11,252 +11,252 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "ChainPriceStaleException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "PriceOracleNotExistsException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ZeroPriceException",
-    type: "error",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "priceFeed",
-        type: "address",
-      },
-    ],
-    name: "NewPriceFeed",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "priceFeed",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "addPriceFeed",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "priceFeed",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "convert",
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "tokenFrom",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "tokenTo",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "convert",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "convertFromUSD",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "convertToUSD",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "convertToUSD",
     inputs: [
       {
+        name: "amount",
+        type: "uint256",
         internalType: "uint256",
+      },
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "fastCheck",
+    inputs: [
+      {
         name: "amountFrom",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "tokenFrom",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amountTo",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "tokenTo",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "fastCheck",
     outputs: [
       {
-        internalType: "uint256",
         name: "collateralFrom",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "collateralTo",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getPrice",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getPrice",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "priceFeeds",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "address",
         name: "priceFeed",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "priceFeedsWithFlags",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "priceFeedsWithFlags",
     outputs: [
       {
-        internalType: "address",
         name: "priceFeed",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "skipCheck",
         type: "bool",
+        internalType: "bool",
       },
       {
-        internalType: "uint256",
         name: "decimals",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "NewPriceFeed",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "priceFeed",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "ChainPriceStaleException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "PriceOracleNotExistsException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ZeroPriceException",
+    inputs: [],
   },
 ] as const;
 

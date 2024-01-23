@@ -11,9 +11,9 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "InvalidPathException",
     type: "error",
+    name: "InvalidPathException",
+    inputs: [],
   },
 ] as const;
 

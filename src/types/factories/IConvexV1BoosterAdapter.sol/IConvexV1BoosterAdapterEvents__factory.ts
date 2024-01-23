@@ -11,23 +11,23 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "SetPidToPhantomToken",
     inputs: [
       {
-        indexed: true,
-        internalType: "uint256",
         name: "pid",
         type: "uint256",
+        indexed: true,
+        internalType: "uint256",
       },
       {
-        indexed: true,
-        internalType: "address",
         name: "phantomToken",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "SetPidToPhantomToken",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

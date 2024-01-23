@@ -11,511 +11,511 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "InvalidPathException",
-    type: "error",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token0",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token1",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint24",
-        name: "fee",
-        type: "uint24",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "allowed",
-        type: "bool",
-      },
-    ],
-    name: "SetPoolStatus",
-    type: "event",
-  },
-  {
-    inputs: [],
+    type: "function",
     name: "_gearboxAdapterType",
+    inputs: [],
     outputs: [
       {
-        internalType: "enum AdapterType",
         name: "",
         type: "uint8",
+        internalType: "enum AdapterType",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "_gearboxAdapterVersion",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint16",
         name: "",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "addressProvider",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "creditManager",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "exactDiffInput",
     inputs: [
       {
-        components: [
-          {
-            internalType: "bytes",
-            name: "path",
-            type: "bytes",
-          },
-          {
-            internalType: "uint256",
-            name: "deadline",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "leftoverAmount",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "rateMinRAY",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct IUniswapV3AdapterTypes.ExactDiffInputParams",
         name: "params",
         type: "tuple",
+        internalType: "struct IUniswapV3AdapterTypes.ExactDiffInputParams",
+        components: [
+          {
+            name: "path",
+            type: "bytes",
+            internalType: "bytes",
+          },
+          {
+            name: "deadline",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "leftoverAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "rateMinRAY",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
       },
     ],
-    name: "exactDiffInput",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "exactDiffInputSingle",
     inputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "tokenIn",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "tokenOut",
-            type: "address",
-          },
-          {
-            internalType: "uint24",
-            name: "fee",
-            type: "uint24",
-          },
-          {
-            internalType: "uint256",
-            name: "deadline",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "leftoverAmount",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "rateMinRAY",
-            type: "uint256",
-          },
-          {
-            internalType: "uint160",
-            name: "sqrtPriceLimitX96",
-            type: "uint160",
-          },
-        ],
+        name: "params",
+        type: "tuple",
         internalType:
           "struct IUniswapV3AdapterTypes.ExactDiffInputSingleParams",
-        name: "params",
-        type: "tuple",
+        components: [
+          {
+            name: "tokenIn",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "tokenOut",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "fee",
+            type: "uint24",
+            internalType: "uint24",
+          },
+          {
+            name: "deadline",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "leftoverAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "rateMinRAY",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "sqrtPriceLimitX96",
+            type: "uint160",
+            internalType: "uint160",
+          },
+        ],
       },
     ],
-    name: "exactDiffInputSingle",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: "bytes",
-            name: "path",
-            type: "bytes",
-          },
-          {
-            internalType: "address",
-            name: "recipient",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "deadline",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "amountIn",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "amountOutMinimum",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct ISwapRouter.ExactInputParams",
-        name: "params",
-        type: "tuple",
-      },
-    ],
+    type: "function",
     name: "exactInput",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "tokenIn",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "tokenOut",
-            type: "address",
-          },
-          {
-            internalType: "uint24",
-            name: "fee",
-            type: "uint24",
-          },
-          {
-            internalType: "address",
-            name: "recipient",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "deadline",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "amountIn",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "amountOutMinimum",
-            type: "uint256",
-          },
-          {
-            internalType: "uint160",
-            name: "sqrtPriceLimitX96",
-            type: "uint160",
-          },
-        ],
-        internalType: "struct ISwapRouter.ExactInputSingleParams",
         name: "params",
         type: "tuple",
-      },
-    ],
-    name: "exactInputSingle",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
+        internalType: "struct ISwapRouter.ExactInputParams",
         components: [
           {
-            internalType: "bytes",
             name: "path",
             type: "bytes",
+            internalType: "bytes",
           },
           {
-            internalType: "address",
             name: "recipient",
             type: "address",
+            internalType: "address",
           },
           {
-            internalType: "uint256",
             name: "deadline",
             type: "uint256",
+            internalType: "uint256",
           },
           {
-            internalType: "uint256",
-            name: "amountOut",
+            name: "amountIn",
             type: "uint256",
+            internalType: "uint256",
           },
           {
-            internalType: "uint256",
-            name: "amountInMaximum",
+            name: "amountOutMinimum",
             type: "uint256",
+            internalType: "uint256",
           },
         ],
-        internalType: "struct ISwapRouter.ExactOutputParams",
-        name: "params",
-        type: "tuple",
       },
     ],
-    name: "exactOutput",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "exactInputSingle",
     inputs: [
       {
+        name: "params",
+        type: "tuple",
+        internalType: "struct ISwapRouter.ExactInputSingleParams",
         components: [
           {
-            internalType: "address",
             name: "tokenIn",
             type: "address",
+            internalType: "address",
           },
           {
-            internalType: "address",
             name: "tokenOut",
             type: "address",
+            internalType: "address",
           },
           {
-            internalType: "uint24",
             name: "fee",
             type: "uint24",
+            internalType: "uint24",
           },
           {
-            internalType: "address",
             name: "recipient",
             type: "address",
+            internalType: "address",
           },
           {
-            internalType: "uint256",
             name: "deadline",
             type: "uint256",
-          },
-          {
             internalType: "uint256",
-            name: "amountOut",
-            type: "uint256",
           },
           {
+            name: "amountIn",
+            type: "uint256",
             internalType: "uint256",
-            name: "amountInMaximum",
-            type: "uint256",
           },
           {
-            internalType: "uint160",
+            name: "amountOutMinimum",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "sqrtPriceLimitX96",
             type: "uint160",
+            internalType: "uint160",
           },
         ],
-        internalType: "struct ISwapRouter.ExactOutputSingleParams",
-        name: "params",
-        type: "tuple",
       },
     ],
-    name: "exactOutputSingle",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "exactOutput",
     inputs: [
       {
-        internalType: "address",
+        name: "params",
+        type: "tuple",
+        internalType: "struct ISwapRouter.ExactOutputParams",
+        components: [
+          {
+            name: "path",
+            type: "bytes",
+            internalType: "bytes",
+          },
+          {
+            name: "recipient",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "deadline",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountOut",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountInMaximum",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "exactOutputSingle",
+    inputs: [
+      {
+        name: "params",
+        type: "tuple",
+        internalType: "struct ISwapRouter.ExactOutputSingleParams",
+        components: [
+          {
+            name: "tokenIn",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "tokenOut",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "fee",
+            type: "uint24",
+            internalType: "uint24",
+          },
+          {
+            name: "recipient",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "deadline",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountOut",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountInMaximum",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "sqrtPriceLimitX96",
+            type: "uint160",
+            internalType: "uint160",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "isPoolAllowed",
+    inputs: [
+      {
         name: "token0",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token1",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint24",
         name: "fee",
         type: "uint24",
+        internalType: "uint24",
       },
     ],
-    name: "isPoolAllowed",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setPoolStatusBatch",
     inputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "token0",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "token1",
-            type: "address",
-          },
-          {
-            internalType: "uint24",
-            name: "fee",
-            type: "uint24",
-          },
-          {
-            internalType: "bool",
-            name: "allowed",
-            type: "bool",
-          },
-        ],
-        internalType: "struct UniswapV3PoolStatus[]",
         name: "pools",
         type: "tuple[]",
+        internalType: "struct UniswapV3PoolStatus[]",
+        components: [
+          {
+            name: "token0",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "token1",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "fee",
+            type: "uint24",
+            internalType: "uint24",
+          },
+          {
+            name: "allowed",
+            type: "bool",
+            internalType: "bool",
+          },
+        ],
       },
     ],
-    name: "setPoolStatusBatch",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "targetContract",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "SetPoolStatus",
+    inputs: [
+      {
+        name: "token0",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token1",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "fee",
+        type: "uint24",
+        indexed: true,
+        internalType: "uint24",
+      },
+      {
+        name: "allowed",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "InvalidPathException",
+    inputs: [],
   },
 ] as const;
 

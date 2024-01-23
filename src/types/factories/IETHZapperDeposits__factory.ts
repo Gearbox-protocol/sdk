@@ -11,47 +11,47 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "deposit",
     inputs: [
       {
-        internalType: "address",
         name: "receiver",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "deposit",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokenOutAmount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "payable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "depositWithReferral",
     inputs: [
       {
-        internalType: "address",
         name: "receiver",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "referralCode",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "depositWithReferral",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokenOutAmount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "payable",
-    type: "function",
   },
 ] as const;
 

@@ -11,56 +11,56 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "NonRegisterPoolException",
-    type: "error",
-  },
-  {
+    type: "function",
+    name: "addLiquidity",
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "onBehalfOf",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "referralCode",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "addLiquidity",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "removeLiquidity",
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "removeLiquidity",
     outputs: [
       {
-        internalType: "uint256",
         name: "amountGet",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
+  },
+  {
+    type: "error",
+    name: "NonRegisterPoolException",
+    inputs: [],
   },
 ] as const;
 

@@ -11,9 +11,9 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "PoolNotSupportedException",
     type: "error",
+    name: "PoolNotSupportedException",
+    inputs: [],
   },
 ] as const;
 

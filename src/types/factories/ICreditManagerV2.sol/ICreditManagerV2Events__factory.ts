@@ -11,36 +11,36 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "ExecuteOrder",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "borrower",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "target",
         type: "address",
-      },
-    ],
-    name: "ExecuteOrder",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
-        name: "newConfigurator",
-        type: "address",
       },
     ],
-    name: "NewConfigurator",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "NewConfigurator",
+    inputs: [
+      {
+        name: "newConfigurator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

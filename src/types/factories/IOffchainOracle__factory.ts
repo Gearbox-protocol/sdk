@@ -11,57 +11,57 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "getRate",
     inputs: [
       {
-        internalType: "address",
         name: "srcToken",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "dstToken",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "useWrappers",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "getRate",
     outputs: [
       {
-        internalType: "uint256",
         name: "weightedRate",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getRateToEth",
     inputs: [
       {
-        internalType: "address",
         name: "srcToken",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "useSrcWrappers",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "getRateToEth",
     outputs: [
       {
-        internalType: "uint256",
         name: "weightedRate",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

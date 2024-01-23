@@ -11,49 +11,49 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "function",
+    name: "zappers",
     inputs: [
       {
-        indexed: false,
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "AddZapper",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "RemoveZapper",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
         name: "pool",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "zappers",
     outputs: [
       {
-        internalType: "address[]",
         name: "",
         type: "address[]",
+        internalType: "address[]",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "AddZapper",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "RemoveZapper",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

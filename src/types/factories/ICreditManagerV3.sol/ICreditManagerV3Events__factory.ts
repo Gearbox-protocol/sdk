@@ -11,17 +11,17 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "SetCreditConfigurator",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "newConfigurator",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "SetCreditConfigurator",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

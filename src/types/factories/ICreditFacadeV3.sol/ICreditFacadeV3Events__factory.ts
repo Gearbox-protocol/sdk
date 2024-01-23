@@ -11,223 +11,223 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "AddCollateral",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditAccount",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "token",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "AddCollateral",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "CloseCreditAccount",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditAccount",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "borrower",
         type: "address",
-      },
-    ],
-    name: "CloseCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DecreaseDebt",
+    inputs: [
+      {
         name: "creditAccount",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "DecreaseDebt",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "Execute",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditAccount",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "targetContract",
         type: "address",
-      },
-    ],
-    name: "Execute",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [],
-    name: "FinishMultiCall",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "FinishMultiCall",
+    inputs: [],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "IncreaseDebt",
+    inputs: [
+      {
         name: "creditAccount",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "IncreaseDebt",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "LiquidateCreditAccount",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditAccount",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "liquidator",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "address",
         name: "to",
         type: "address",
+        indexed: false,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "remainingFunds",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "LiquidateCreditAccount",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "OpenCreditAccount",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "creditAccount",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "onBehalfOf",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
-        name: "caller",
-        type: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
+        name: "caller",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
         name: "referralCode",
         type: "uint256",
-      },
-    ],
-    name: "OpenCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "caller",
-        type: "address",
-      },
-    ],
-    name: "StartMultiCall",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
         indexed: false,
         internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "to",
-        type: "address",
       },
     ],
-    name: "WithdrawCollateral",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "StartMultiCall",
+    inputs: [
+      {
+        name: "creditAccount",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "caller",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "WithdrawCollateral",
+    inputs: [
+      {
+        name: "creditAccount",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

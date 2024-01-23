@@ -11,418 +11,418 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "function",
+    name: "convert",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "priceFeed",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint32",
-        name: "stalenessPeriod",
-        type: "uint32",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "skipCheck",
-        type: "bool",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "trusted",
-        type: "bool",
-      },
-    ],
-    name: "SetPriceFeed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "priceFeed",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint32",
-        name: "stalenessPeriod",
-        type: "uint32",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "skipCheck",
-        type: "bool",
-      },
-    ],
-    name: "SetReservePriceFeed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "active",
-        type: "bool",
-      },
-    ],
-    name: "SetReservePriceFeedStatus",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "tokenFrom",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "tokenTo",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "convert",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "convertFromUSD",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "convertToUSD",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "getPrice",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getPriceRaw",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "reserve",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "getPriceRaw",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "getPriceSafe",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "priceFeedParams",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "priceFeedParams",
     outputs: [
       {
-        internalType: "address",
         name: "priceFeed",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint32",
         name: "stalenessPeriod",
         type: "uint32",
+        internalType: "uint32",
       },
       {
-        internalType: "bool",
         name: "skipCheck",
         type: "bool",
+        internalType: "bool",
       },
       {
-        internalType: "uint8",
         name: "decimals",
         type: "uint8",
+        internalType: "uint8",
       },
       {
-        internalType: "bool",
         name: "trusted",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "priceFeeds",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "priceFeeds",
     outputs: [
       {
-        internalType: "address",
         name: "priceFeed",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "priceFeedsRaw",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "reserve",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "priceFeedsRaw",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "safeConvertToUSD",
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "safeConvertToUSD",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setPriceFeed",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "priceFeed",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint32",
         name: "stalenessPeriod",
         type: "uint32",
+        internalType: "uint32",
       },
       {
-        internalType: "bool",
         name: "trusted",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "setPriceFeed",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setReservePriceFeed",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "priceFeed",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint32",
         name: "stalenessPeriod",
         type: "uint32",
+        internalType: "uint32",
       },
     ],
-    name: "setReservePriceFeed",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setReservePriceFeedStatus",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "active",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "setReservePriceFeedStatus",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "SetPriceFeed",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "priceFeed",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "stalenessPeriod",
+        type: "uint32",
+        indexed: false,
+        internalType: "uint32",
+      },
+      {
+        name: "skipCheck",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+      {
+        name: "trusted",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetReservePriceFeed",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "priceFeed",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "stalenessPeriod",
+        type: "uint32",
+        indexed: false,
+        internalType: "uint32",
+      },
+      {
+        name: "skipCheck",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetReservePriceFeedStatus",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "active",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

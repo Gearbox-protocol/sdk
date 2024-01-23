@@ -11,89 +11,89 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "CalldataMustHaveValidPayload",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CalldataOverOrUnderFlow",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DataPackageTimestampMustNotBeZero",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DataPackageTimestampsMustBeEqual",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "EachSignerMustProvideTheSameValue",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "EmptyCalldataPointersArr",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IncorrectUnsignedMetadataSize",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "receivedSignersCount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "requiredSignersCount",
-        type: "uint256",
-      },
-    ],
-    name: "InsufficientNumberOfUniqueSigners",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "InvalidCalldataPointer",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "RedstonePayloadMustHaveAtLeastOneDataPackage",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "receivedSigner",
-        type: "address",
-      },
-    ],
-    name: "SignerNotAuthorised",
-    type: "error",
-  },
-  {
-    inputs: [],
+    type: "function",
     name: "extractTimestampsAndAssertAllAreEqual",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "extractedTimestamp",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "pure",
-    type: "function",
+  },
+  {
+    type: "error",
+    name: "CalldataMustHaveValidPayload",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CalldataOverOrUnderFlow",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "DataPackageTimestampMustNotBeZero",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "DataPackageTimestampsMustBeEqual",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "EachSignerMustProvideTheSameValue",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "EmptyCalldataPointersArr",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncorrectUnsignedMetadataSize",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InsufficientNumberOfUniqueSigners",
+    inputs: [
+      {
+        name: "receivedSignersCount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "requiredSignersCount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "InvalidCalldataPointer",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "RedstonePayloadMustHaveAtLeastOneDataPackage",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SignerNotAuthorised",
+    inputs: [
+      {
+        name: "receivedSigner",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
 ] as const;
 

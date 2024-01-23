@@ -11,19 +11,19 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "error",
     name: "AmountTooLarge",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "DurationTooLarge",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
-    name: "ZeroDuration",
     type: "error",
+    name: "ZeroDuration",
+    inputs: [],
   },
 ] as const;
 

@@ -11,121 +11,121 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "availableToBorrow",
     inputs: [
       {
-        internalType: "uint256",
         name: "expectedLiquidity",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "availableLiquidity",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "availableToBorrow",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "calcBorrowRate",
     inputs: [
       {
-        internalType: "uint256",
         name: "expectedLiquidity",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "availableLiquidity",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bool",
         name: "checkOptimalBorrowing",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "calcBorrowRate",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "getModelParameters",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint16",
         name: "U_1",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "U_2",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "R_base",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "R_slope1",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "R_slope2",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "R_slope3",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "isBorrowingMoreU2Forbidden",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

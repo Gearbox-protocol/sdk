@@ -11,35 +11,35 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "SetPoolStatus",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "token0",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "token1",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: true,
-        internalType: "uint24",
         name: "fee",
         type: "uint24",
+        indexed: true,
+        internalType: "uint24",
       },
       {
-        indexed: false,
-        internalType: "bool",
         name: "allowed",
         type: "bool",
+        indexed: false,
+        internalType: "bool",
       },
     ],
-    name: "SetPoolStatus",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

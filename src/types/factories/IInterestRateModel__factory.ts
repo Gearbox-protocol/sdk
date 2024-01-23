@@ -11,41 +11,41 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "calcBorrowRate",
     inputs: [
       {
-        internalType: "uint256",
         name: "expectedLiquidity",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "availableLiquidity",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "calcBorrowRate",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 
