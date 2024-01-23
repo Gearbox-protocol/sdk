@@ -69,4 +69,12 @@ export class AbstractParser {
       args,
     };
   }
+
+  reportUnknownFragment(
+    functionName: string,
+    functionFragment: FunctionFragment,
+    calldata: string,
+  ) {
+    return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
+  }
 }

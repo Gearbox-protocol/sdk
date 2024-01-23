@@ -85,7 +85,11 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
       }
 
       default:
-        return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
+        return this.reportUnknownFragment(
+          functionName,
+          functionFragment,
+          calldata,
+        );
     }
   }
 }

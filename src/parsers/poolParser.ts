@@ -12,7 +12,11 @@ export class PoolParser extends AbstractParser implements IParser {
 
     switch (functionFragment.name) {
       default:
-        return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
+        return this.reportUnknownFragment(
+          functionName,
+          functionFragment,
+          calldata,
+        );
     }
   }
 }

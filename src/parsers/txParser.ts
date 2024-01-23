@@ -245,6 +245,11 @@ export class TxParser {
           new WstETHAdapterParser(contract, isContract),
         );
         break;
+
+      case "AAVE_V2_LENDING_POOL":
+      case "AAVE_V2_WRAPPED_ATOKEN":
+      default:
+        console.log(AdapterInterface[adapterType]);
     }
   }
 
