@@ -1,3 +1,4 @@
+import { toBigInt } from "@gearbox-protocol/sdk-gov";
 import { providers } from "ethers";
 
 import { ParsedObject } from "../parsers/abstractParser";
@@ -24,6 +25,7 @@ type KnownFeeTypes =
 export class PathFinderUtils {
   static findPathFees(calls: Array<MultiCall>, provider: providers.Provider) {
     const o = TxParser.parseToObjectMultiCall(calls);
+    const s = TxParser.parseMultiCall(calls);
 
     const res = o.map(pathSegment => {
       if (!pathSegment) return null;
@@ -62,7 +64,7 @@ export class PathFinderUtils {
         // 0.3%
         return {
           type: "uniswap_v2",
-          value: 30n,
+          value: 3000n,
         };
       default:
         return null;
@@ -75,14 +77,15 @@ export class PathFinderUtils {
     switch (name) {
       case "exactInputSingle":
       case "exactDiffInputSingle":
-      case "exactInput":
-      case "exactDiffInput":
-      case "exactOutput":
-      case "exactOutputSingle":
+      case "exactOutputSingle": {
+        const { params } = callObject.args || {};
+        const { fee = 0 } = params || {};
+
         return {
           type: "uniswap_v3",
-          value: 0n,
+          value: toBigInt(fee),
         };
+      }
       default:
         return null;
     }
