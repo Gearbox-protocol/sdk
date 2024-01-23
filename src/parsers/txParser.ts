@@ -44,19 +44,28 @@ interface ParseData {
 export class TxParser {
   protected static parsers: Record<string, IParser & AbstractParser> = {};
 
-  public static parse(address: string, calldata: string): string {
-    const parser = TxParser.getParser(address);
+  public static parse(address: string, calldata: string) {
+    let parser: (IParser & AbstractParser) | undefined;
     try {
-      return parser.parse(calldata);
+      parser = TxParser.getParser(address);
+      const callStr = parser.parse(calldata);
+      return callStr;
     } catch (e) {
       console.error(`Error while parsing ${address}`, parser, e);
-      return "Parsing error";
+      return null;
     }
   }
 
   public static parseToObject(address: string, calldata: string) {
-    const parser = TxParser.getParser(address);
-    return parser.parseToObject(address, calldata);
+    let parser: (IParser & AbstractParser) | undefined;
+    try {
+      parser = TxParser.getParser(address);
+      const callObj = parser.parseToObject(address, calldata);
+      return callObj;
+    } catch (e) {
+      console.error(`Error while parsing ${address}`, parser, e);
+      return null;
+    }
   }
 
   public static getParseData(address: string): ParseData {
@@ -64,7 +73,7 @@ export class TxParser {
     return { contract: parser.contract, adapterName: parser.adapterName };
   }
 
-  public static parseMultiCall(calls: Array<MultiCall>): Array<string> {
+  public static parseMultiCall(calls: Array<MultiCall>) {
     return calls.map(call =>
       TxParser.parse(call.target, call.callData.toString()),
     );
