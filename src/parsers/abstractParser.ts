@@ -13,6 +13,12 @@ interface ParseSelectorResult {
   functionName: string;
 }
 
+export interface ParsedObject {
+  address: string;
+  functionFragment: FunctionFragment;
+  args: Result;
+}
+
 export class AbstractParser {
   public readonly contract: string;
   protected ifc!: utils.Interface;
@@ -58,7 +64,7 @@ export class AbstractParser {
     ).toString()}]`;
   }
 
-  parseToObject(address: string, calldata: string) {
+  parseToObject(address: string, calldata: string): ParsedObject {
     const { functionFragment } = this.parseSelector(calldata);
 
     const args = this.decodeFunctionData(functionFragment, calldata);

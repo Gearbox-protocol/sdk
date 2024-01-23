@@ -65,8 +65,8 @@ export class TxParser {
     let parser: (IParser & AbstractParser) | undefined;
     try {
       parser = TxParser.getParser(address);
-      const callObj = parser.parseToObject(address, calldata);
-      return callObj;
+      const callObject = parser.parseToObject(address, calldata);
+      return { callObject, parser };
     } catch (e) {
       console.error(`Error while parsing ${address}`, parser, e);
       return null;
@@ -205,6 +205,7 @@ export class TxParser {
           new UniswapV3AdapterParser(contract, isContract),
         );
         break;
+
       case "CURVE_V1_EXCHANGE_ONLY":
       case "CURVE_V1_2ASSETS":
       case "CURVE_V1_3ASSETS":
@@ -216,6 +217,7 @@ export class TxParser {
           new CurveAdapterParser(contract, isContract),
         );
         break;
+
       case "YEARN_V2":
         TxParser._addParser(
           addressLC,
@@ -236,14 +238,17 @@ export class TxParser {
           new ConvexBoosterAdapterParser(contract, isContract),
         );
         break;
+
       case "CONVEX_V1_CLAIM_ZAP":
         break;
+
       case "LIDO_V1":
         TxParser._addParser(
           addressLC,
           new LidoAdapterParser(contract, isContract),
         );
         break;
+
       case "LIDO_WSTETH_V1":
         TxParser._addParser(
           addressLC,
