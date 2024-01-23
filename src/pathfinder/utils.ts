@@ -4,7 +4,7 @@ import {
   safeMulticall,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber, providers } from "ethers";
+import { BigNumber, providers, utils } from "ethers";
 import { Interface } from "ethers/lib/utils";
 
 import { ParsedObject } from "../parsers/abstractParser";
@@ -43,6 +43,25 @@ type KnownFeeTypes =
   | "balancer";
 
 const CURVE_FEE_DECIMALS = 100000000n;
+const BALANCER_FEE_DECIMALS = 10000000000000000n;
+
+export const BALANCER_VAULT_ABI = [
+  {
+    inputs: [],
+    name: "getSwapFeePercentage",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+];
+
+export const BALANCER_VAULT_INTERFACE = new Interface(BALANCER_VAULT_ABI);
 
 interface FindPathFeesProps {
   calls: Array<MultiCall>;
@@ -89,10 +108,7 @@ export class PathFinderUtils {
           }
 
           case parser instanceof BalancerV2VaultParser: {
-            const call = this.getBalancerFeeCall(
-              callObject,
-              contractsByAdapter,
-            );
+            const call = this.getBalancerFeeCall(callObject);
             if (call) acc.balancer.push(call);
             break;
           }
@@ -122,9 +138,6 @@ export class PathFinderUtils {
     const balancerFees = balancerResponse.map(r => this.getBalancerFee(r));
 
     const fees = [...simpleFees, ...curveFees, ...balancerFees];
-
-    const s = TxParser.parseMultiCall(calls);
-    console.log(s, fees);
 
     return fees;
   }
@@ -201,15 +214,30 @@ export class PathFinderUtils {
     };
   }
 
-  static getBalancerFeeCall(
-    callObject: ParsedObject,
-    contractsByAdapter: Record<string, string>,
-  ): MCall<Interface> | null {
+  static getBalancerFeeCall(callObject: ParsedObject): MCall<Interface> | null {
     const { name } = callObject.functionFragment;
 
-    console.log(contractsByAdapter, name);
+    switch (name) {
+      case "swapDiff":
+      case "swap": {
+        const { poolId = "" } = callObject.args?.[0] || {};
+        // !&
+        const [contract] = utils.defaultAbiCoder.decode(
+          ["address", "unit16"],
+          poolId,
+        );
 
-    return null;
+        return contract
+          ? {
+              address: contract,
+              interface: BALANCER_VAULT_INTERFACE,
+              method: "getSwapFeePercentage()",
+            }
+          : null;
+      }
+      default:
+        return null;
+    }
   }
 
   static getBalancerFee({ value }: FeeResponse): FeeInfo {
@@ -217,7 +245,7 @@ export class PathFinderUtils {
 
     return {
       type: "balancer",
-      value: feeOriginal,
+      value: (feeOriginal * PERCENTAGE_FACTOR) / BALANCER_FEE_DECIMALS,
     };
   }
 

@@ -93,6 +93,7 @@ export class TxParser {
   public static addAdapters(adapters: Array<AdapterForParser>) {
     for (let a of adapters) {
       const contract = contractsByAddress[a.contract.toLowerCase()];
+
       if (contract && contractParams[contract]) {
         TxParser.chooseContractParser(
           a.adapter,
@@ -291,9 +292,6 @@ export class TxParser {
           new ERC4626AdapterParser(contract, isContract),
         );
         break;
-
-      default:
-        console.log(AdapterInterface[adapterType]);
     }
   }
 
