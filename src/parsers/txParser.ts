@@ -12,8 +12,12 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 
 import { MultiCall } from "../pathfinder/core";
+import { AaveV2LendingPoolAdapterParser } from "./aaveV2LendingPoolAdapterParser";
+import { AaveV2WrappedATokenAdapterParser } from "./aaveV2WrappedATokenAdapterParser";
 import { AbstractParser } from "./abstractParser";
 import { AddressProviderParser } from "./addressProviderParser";
+import { BalancerV2VaultParser } from "./balancerV2VaultParser";
+import { CompoundV2CTokenAdapterParser } from "./compoundV2CTokenAdapterParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
 import { ConvexBoosterAdapterParser } from "./convexBoosterAdapterParser";
 import { ConvexRewardPoolParser } from "./convextRewardPoolParser";
@@ -21,6 +25,7 @@ import { CreditFacadeParser } from "./creditFacadeParser";
 import { CreditManagerParser } from "./creditManagerParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
 import { ERC20Parser } from "./ERC20Parser";
+import { ERC4626AdapterParser } from "./erc626AdapterParser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { LidoSTETHParser } from "./lidoSTETHParser";
@@ -247,7 +252,41 @@ export class TxParser {
         break;
 
       case "AAVE_V2_LENDING_POOL":
+        TxParser._addParser(
+          addressLC,
+          new AaveV2LendingPoolAdapterParser(contract, isContract),
+        );
+        break;
+
       case "AAVE_V2_WRAPPED_ATOKEN":
+        TxParser._addParser(
+          addressLC,
+          new AaveV2WrappedATokenAdapterParser(contract, isContract),
+        );
+        break;
+
+      case "BALANCER_VAULT":
+        TxParser._addParser(
+          addressLC,
+          new BalancerV2VaultParser(contract, isContract),
+        );
+        break;
+
+      case "COMPOUND_V2_CERC20":
+      case "COMPOUND_V2_CETHER":
+        TxParser._addParser(
+          addressLC,
+          new CompoundV2CTokenAdapterParser(contract, isContract),
+        );
+        break;
+
+      case "ERC4626_VAULT":
+        TxParser._addParser(
+          addressLC,
+          new ERC4626AdapterParser(contract, isContract),
+        );
+        break;
+
       default:
         console.log(AdapterInterface[adapterType]);
     }

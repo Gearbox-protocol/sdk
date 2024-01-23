@@ -1,0 +1,29 @@
+import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+
+import { ICompoundV2_CTokenAdapter__factory } from "../types";
+import { AbstractParser } from "./abstractParser";
+import { IParser } from "./iParser";
+
+export class CompoundV2CTokenAdapterParser
+  extends AbstractParser
+  implements IParser
+{
+  constructor(contract: SupportedContract, isContract: boolean) {
+    super(contract);
+    this.ifc = ICompoundV2_CTokenAdapter__factory.createInterface();
+    if (!isContract) this.adapterName = "CompoundV2_CTokenAdapter";
+  }
+
+  parse(calldata: string): string {
+    const { functionFragment, functionName } = this.parseSelector(calldata);
+
+    switch (functionFragment.name) {
+      default:
+        return this.reportUnknownFragment(
+          functionName,
+          functionFragment,
+          calldata,
+        );
+    }
+  }
+}
