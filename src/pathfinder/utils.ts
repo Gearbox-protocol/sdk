@@ -43,14 +43,19 @@ type KnownFeeTypes =
   | "balancer";
 
 const CURVE_FEE_DECIMALS = 100000000n;
-// PERCENTAGE_FACTOR
+
+interface FindPathFeesProps {
+  calls: Array<MultiCall>;
+  provider: providers.Provider;
+  contractsByAdapter: Record<string, string>;
+}
 
 export class PathFinderUtils {
-  static async findPathFees(
-    calls: Array<MultiCall>,
-    provider: providers.Provider,
-    contractsByAdapter: Record<string, string>,
-  ) {
+  static async findPathFees({
+    calls,
+    provider,
+    contractsByAdapter,
+  }: FindPathFeesProps) {
     const pathObjects = TxParser.parseToObjectMultiCall(calls);
 
     const { simpleFees, curve, balancer } = pathObjects.reduce<GetFeeState>(
