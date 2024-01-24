@@ -20,7 +20,7 @@ import { MultiCall } from "./core";
 
 export interface FeeInfo {
   type: KnownFeeTypes;
-  value: BigInt;
+  value: bigint;
 }
 
 interface GetFeeState {
@@ -142,7 +142,7 @@ export class PathFinderUtils {
     return fees;
   }
 
-  static getUniswapV2Fee(callObject: ParsedObject): FeeInfo | null {
+  private static getUniswapV2Fee(callObject: ParsedObject): FeeInfo | null {
     const { name } = callObject.functionFragment;
 
     switch (name) {
@@ -160,7 +160,7 @@ export class PathFinderUtils {
     }
   }
 
-  static getUniswapV3Fee(callObject: ParsedObject): FeeInfo | null {
+  private static getUniswapV3Fee(callObject: ParsedObject): FeeInfo | null {
     const { name } = callObject.functionFragment;
 
     switch (name) {
@@ -180,7 +180,7 @@ export class PathFinderUtils {
     }
   }
 
-  static getCurveFeeCall(
+  private static getCurveFeeCall(
     callObject: ParsedObject,
     contractsByAdapter: Record<string, string>,
   ): MCall<ICurvePoolInterface> | null {
@@ -206,7 +206,7 @@ export class PathFinderUtils {
     }
   }
 
-  static getCurveFee({ value }: FeeResponse): FeeInfo {
+  private static getCurveFee({ value }: FeeResponse): FeeInfo {
     const feeOriginal = toBigInt(value || 0n);
     return {
       type: "curve",
@@ -214,7 +214,9 @@ export class PathFinderUtils {
     };
   }
 
-  static getBalancerFeeCall(callObject: ParsedObject): MCall<Interface> | null {
+  private static getBalancerFeeCall(
+    callObject: ParsedObject,
+  ): MCall<Interface> | null {
     const { name } = callObject.functionFragment;
 
     switch (name) {
@@ -240,7 +242,7 @@ export class PathFinderUtils {
     }
   }
 
-  static getBalancerFee({ value }: FeeResponse): FeeInfo {
+  private static getBalancerFee({ value }: FeeResponse): FeeInfo {
     const feeOriginal = toBigInt(value || 0n);
 
     return {
@@ -249,7 +251,7 @@ export class PathFinderUtils {
     };
   }
 
-  static getLidoFee(): FeeInfo | null {
+  private static getLidoFee(): FeeInfo | null {
     return {
       type: "lido",
       value: 0n,
