@@ -8,17 +8,17 @@ import type { IVersion, IVersionInterface } from "../IVersion";
 
 const _abi = [
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

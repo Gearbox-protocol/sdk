@@ -56,6 +56,7 @@ export class CreditManagerData {
   readonly collateralTokens: Array<string> = [];
   readonly supportedTokens: Record<string, true> = {};
   readonly adapters: Record<string, string>;
+  readonly contractsByAdapter: Record<string, string>;
   readonly liquidationThresholds: Record<string, bigint>;
   readonly quotas: Record<string, QuotaInfo>;
   readonly interestModel: LinearModel;
@@ -106,6 +107,13 @@ export class CreditManagerData {
       payload.adapters.map(a => [
         a.targetContract.toLowerCase(),
         a.adapter.toLowerCase(),
+      ]),
+    );
+
+    this.contractsByAdapter = Object.fromEntries(
+      payload.adapters.map(a => [
+        a.adapter.toLowerCase(),
+        a.targetContract.toLowerCase(),
       ]),
     );
 

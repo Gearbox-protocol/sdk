@@ -11,252 +11,252 @@ import type {
 
 const _abi = [
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "errorCode",
-        type: "uint256",
-      },
-    ],
-    name: "CTokenError",
-    type: "error",
-  },
-  {
-    inputs: [],
+    type: "function",
     name: "_gearboxAdapterType",
+    inputs: [],
     outputs: [
       {
-        internalType: "enum AdapterType",
         name: "",
         type: "uint8",
+        internalType: "enum AdapterType",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "_gearboxAdapterVersion",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint16",
         name: "",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "addressProvider",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "cToken",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "cTokenMask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "creditManager",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "mint",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "leftoverAmount",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "mintDiff",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "redeem",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "leftoverAmount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "redeemDiff",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "redeem",
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "redeemUnderlying",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
-    name: "targetContract",
+    type: "function",
+    name: "redeemDiff",
+    inputs: [
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [
       {
-        internalType: "address",
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "redeemUnderlying",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "targetContract",
+    inputs: [],
+    outputs: [
+      {
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "tokenMask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "error",
+    name: "CTokenError",
+    inputs: [
+      {
+        name: "errorCode",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
   },
 ] as const;
 

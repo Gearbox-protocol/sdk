@@ -11,870 +11,870 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "function",
     name: "_gearboxAdapterType",
+    inputs: [],
     outputs: [
       {
-        internalType: "enum AdapterType",
         name: "",
         type: "uint8",
+        internalType: "enum AdapterType",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "_gearboxAdapterVersion",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint16",
         name: "",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "leftoverAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "rateMinRAY",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "add_diff_liquidity_one_coin",
-    outputs: [
+    inputs: [
       {
-        internalType: "uint256",
-        name: "tokensToEnable",
+        name: "leftoverAmount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
+        name: "i",
+        type: "uint256",
         internalType: "uint256",
+      },
+      {
+        name: "rateMinRAY",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256[4]",
-        name: "amounts",
-        type: "uint256[4]",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "add_liquidity",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "minAmount",
-        type: "uint256",
-      },
-    ],
-    name: "add_liquidity_one_coin",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "addressProvider",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-    ],
-    name: "calc_add_one_coin",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "creditManager",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "int128",
-        name: "i",
-        type: "int128",
-      },
-      {
-        internalType: "int128",
-        name: "j",
-        type: "int128",
-      },
-      {
-        internalType: "uint256",
-        name: "dx",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "min_dy",
-        type: "uint256",
-      },
-    ],
-    name: "exchange",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "j",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "dx",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "min_dy",
-        type: "uint256",
-      },
-    ],
-    name: "exchange",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "j",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "leftoverAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "rateMinRAY",
-        type: "uint256",
-      },
-    ],
-    name: "exchange_diff",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "j",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "leftoverAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "rateMinRAY",
-        type: "uint256",
-      },
-    ],
-    name: "exchange_diff_underlying",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "j",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "dx",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "min_dy",
-        type: "uint256",
-      },
-    ],
-    name: "exchange_underlying",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "int128",
-        name: "i",
-        type: "int128",
-      },
-      {
-        internalType: "int128",
-        name: "j",
-        type: "int128",
-      },
-      {
-        internalType: "uint256",
-        name: "dx",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "min_dy",
-        type: "uint256",
-      },
-    ],
-    name: "exchange_underlying",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "lpTokenMask",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "lp_token",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "metapoolBase",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "nCoins",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "leftoverAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "rateMinRAY",
-        type: "uint256",
-      },
-    ],
-    name: "remove_diff_liquidity_one_coin",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256[4]",
-        name: "",
-        type: "uint256[4]",
-      },
-    ],
-    name: "remove_liquidity",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokensToEnable",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "tokensToDisable",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256[4]",
         name: "amounts",
         type: "uint256[4]",
+        internalType: "uint256[4]",
       },
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "remove_liquidity_imbalance",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "add_liquidity_one_coin",
     inputs: [
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "int128",
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "minAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "addressProvider",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "calc_add_one_coin",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "exchange",
+    inputs: [
+      {
         name: "i",
         type: "int128",
+        internalType: "int128",
       },
       {
-        internalType: "uint256",
-        name: "minAmount",
+        name: "j",
+        type: "int128",
+        internalType: "int128",
+      },
+      {
+        name: "dx",
         type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "min_dy",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "remove_liquidity_one_coin",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "exchange",
     inputs: [
       {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
         name: "i",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
-        name: "minAmount",
+        name: "j",
         type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "dx",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "min_dy",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "remove_liquidity_one_coin",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "exchange_diff",
+    inputs: [
+      {
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "j",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "rateMinRAY",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "exchange_diff_underlying",
+    inputs: [
+      {
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "j",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "rateMinRAY",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "exchange_underlying",
+    inputs: [
+      {
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "j",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "dx",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "min_dy",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "exchange_underlying",
+    inputs: [
+      {
+        name: "i",
+        type: "int128",
+        internalType: "int128",
+      },
+      {
+        name: "j",
+        type: "int128",
+        internalType: "int128",
+      },
+      {
+        name: "dx",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "min_dy",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "lpTokenMask",
     inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "lp_token",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "metapoolBase",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "nCoins",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "remove_diff_liquidity_one_coin",
+    inputs: [
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "rateMinRAY",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "remove_liquidity",
+    inputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "",
+        type: "uint256[4]",
+        internalType: "uint256[4]",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "remove_liquidity_imbalance",
+    inputs: [
+      {
+        name: "amounts",
+        type: "uint256[4]",
+        internalType: "uint256[4]",
+      },
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "remove_liquidity_one_coin",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "i",
+        type: "int128",
+        internalType: "int128",
+      },
+      {
+        name: "minAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "remove_liquidity_one_coin",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "minAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "targetContract",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token0",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token0Mask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token1",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token1Mask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token2",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token2Mask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token3",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token3Mask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying0",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying0Mask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying1",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying1Mask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying2",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying2Mask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying3",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying3Mask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "use256",
+    inputs: [],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

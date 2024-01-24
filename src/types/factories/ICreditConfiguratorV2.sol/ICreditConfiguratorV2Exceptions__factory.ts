@@ -11,49 +11,49 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "error",
     name: "AdapterUsedTwiceException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "ContractIsNotAnAllowedAdapterException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "CreditManagerOrFacadeUsedAsTargetContractsException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "IncompatibleContractException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "IncorrectExpirationDateException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "IncorrectFeesException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "IncorrectLimitsException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "IncorrectLiquidationThresholdException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
-    name: "SetLTForUnderlyingException",
     type: "error",
+    name: "SetLTForUnderlyingException",
+    inputs: [],
   },
 ] as const;
 

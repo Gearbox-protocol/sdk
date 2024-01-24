@@ -11,9 +11,9 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "CanNotPickMedianOfEmptyArray",
     type: "error",
+    name: "CanNotPickMedianOfEmptyArray",
+    inputs: [],
   },
 ] as const;
 

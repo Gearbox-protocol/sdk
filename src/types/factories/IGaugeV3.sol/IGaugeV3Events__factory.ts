@@ -11,142 +11,142 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "AddQuotaToken",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "token",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint16",
         name: "minRate",
         type: "uint16",
-      },
-      {
         indexed: false,
         internalType: "uint16",
+      },
+      {
         name: "maxRate",
         type: "uint16",
+        indexed: false,
+        internalType: "uint16",
       },
     ],
-    name: "AddQuotaToken",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "SetFrozenEpoch",
     inputs: [
       {
-        indexed: false,
-        internalType: "bool",
         name: "status",
         type: "bool",
+        indexed: false,
+        internalType: "bool",
       },
     ],
-    name: "SetFrozenEpoch",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "SetQuotaTokenParams",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "token",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint16",
         name: "minRate",
         type: "uint16",
-      },
-      {
         indexed: false,
         internalType: "uint16",
+      },
+      {
         name: "maxRate",
         type: "uint16",
-      },
-    ],
-    name: "SetQuotaTokenParams",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint96",
-        name: "votes",
-        type: "uint96",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "lpSide",
-        type: "bool",
-      },
-    ],
-    name: "Unvote",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: false,
         internalType: "uint16",
-        name: "epochNow",
-        type: "uint16",
       },
     ],
-    name: "UpdateEpoch",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "Unvote",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "user",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "token",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint96",
         name: "votes",
         type: "uint96",
+        indexed: false,
+        internalType: "uint96",
       },
       {
-        indexed: false,
-        internalType: "bool",
         name: "lpSide",
         type: "bool",
+        indexed: false,
+        internalType: "bool",
       },
     ],
-    name: "Vote",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "UpdateEpoch",
+    inputs: [
+      {
+        name: "epochNow",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "Vote",
+    inputs: [
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "votes",
+        type: "uint96",
+        indexed: false,
+        internalType: "uint96",
+      },
+      {
+        name: "lpSide",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

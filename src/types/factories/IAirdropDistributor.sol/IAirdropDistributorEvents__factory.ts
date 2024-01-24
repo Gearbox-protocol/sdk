@@ -11,73 +11,73 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "Claimed",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "account",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
       {
-        indexed: true,
-        internalType: "bool",
         name: "historic",
         type: "bool",
+        indexed: true,
+        internalType: "bool",
       },
     ],
-    name: "Claimed",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "RootUpdated",
     inputs: [
       {
-        indexed: false,
-        internalType: "bytes32",
         name: "oldRoot",
         type: "bytes32",
+        indexed: false,
+        internalType: "bytes32",
       },
       {
-        indexed: true,
-        internalType: "bytes32",
         name: "newRoot",
         type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
       },
     ],
-    name: "RootUpdated",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "TokenAllocated",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "account",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: true,
-        internalType: "uint8",
         name: "campaignId",
         type: "uint8",
+        indexed: true,
+        internalType: "uint8",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "TokenAllocated",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

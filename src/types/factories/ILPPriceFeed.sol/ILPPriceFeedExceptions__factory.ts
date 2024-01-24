@@ -11,29 +11,29 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "error",
     name: "ExchangeRateOutOfBoundsException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "LowerBoundCantBeZeroException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "ReserveFeedMustNotBeSelfException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "UpdateBoundsBeforeCooldownException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
-    name: "UpdateBoundsNotAllowedException",
     type: "error",
+    name: "UpdateBoundsNotAllowedException",
+    inputs: [],
   },
 ] as const;
 

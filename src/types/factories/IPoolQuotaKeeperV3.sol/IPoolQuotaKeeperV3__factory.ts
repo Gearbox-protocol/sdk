@@ -11,565 +11,565 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "function",
+    name: "accrueQuotaInterest",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-    ],
-    name: "AddCreditManager",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "AddQuotaToken",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newGauge",
-        type: "address",
-      },
-    ],
-    name: "SetGauge",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint16",
-        name: "fee",
-        type: "uint16",
-      },
-    ],
-    name: "SetQuotaIncreaseFee",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint96",
-        name: "limit",
-        type: "uint96",
-      },
-    ],
-    name: "SetTokenLimit",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
         name: "creditAccount",
         type: "address",
-      },
-      {
-        indexed: true,
         internalType: "address",
-        name: "token",
-        type: "address",
       },
       {
-        indexed: false,
-        internalType: "int96",
-        name: "quotaChange",
-        type: "int96",
-      },
-    ],
-    name: "UpdateQuota",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint16",
-        name: "rate",
-        type: "uint16",
-      },
-    ],
-    name: "UpdateTokenQuotaRate",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        internalType: "address[]",
         name: "tokens",
         type: "address[]",
+        internalType: "address[]",
       },
     ],
-    name: "accrueQuotaInterest",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "addCreditManager",
     inputs: [
       {
-        internalType: "address",
         name: "_creditManager",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "addCreditManager",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "addQuotaToken",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "addQuotaToken",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "creditManagers",
+    inputs: [],
     outputs: [
       {
-        internalType: "address[]",
         name: "",
         type: "address[]",
+        internalType: "address[]",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "cumulativeIndex",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "cumulativeIndex",
     outputs: [
       {
-        internalType: "uint192",
         name: "",
         type: "uint192",
+        internalType: "uint192",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "gauge",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getQuota",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getQuota",
     outputs: [
       {
-        internalType: "uint96",
         name: "quota",
         type: "uint96",
+        internalType: "uint96",
       },
       {
-        internalType: "uint192",
         name: "cumulativeIndexLU",
         type: "uint192",
+        internalType: "uint192",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getQuotaAndOutstandingInterest",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getQuotaAndOutstandingInterest",
     outputs: [
       {
-        internalType: "uint96",
         name: "quoted",
         type: "uint96",
+        internalType: "uint96",
       },
       {
-        internalType: "uint128",
         name: "outstandingInterest",
         type: "uint128",
+        internalType: "uint128",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getQuotaRate",
     inputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getQuotaRate",
     outputs: [
       {
-        internalType: "uint16",
         name: "",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getTokenQuotaParams",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getTokenQuotaParams",
     outputs: [
       {
-        internalType: "uint16",
         name: "rate",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint192",
         name: "cumulativeIndexLU",
         type: "uint192",
+        internalType: "uint192",
       },
       {
-        internalType: "uint16",
         name: "quotaIncreaseFee",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint96",
         name: "totalQuoted",
         type: "uint96",
+        internalType: "uint96",
       },
       {
-        internalType: "uint96",
         name: "limit",
         type: "uint96",
+        internalType: "uint96",
       },
       {
-        internalType: "bool",
         name: "isActive",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "isQuotedToken",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "isQuotedToken",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "lastQuotaRateUpdate",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint40",
         name: "",
         type: "uint40",
+        internalType: "uint40",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "pool",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "poolQuotaRevenue",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "quotedTokens",
+    inputs: [],
     outputs: [
       {
-        internalType: "address[]",
         name: "",
         type: "address[]",
+        internalType: "address[]",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "removeQuotas",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address[]",
         name: "tokens",
         type: "address[]",
+        internalType: "address[]",
       },
       {
-        internalType: "bool",
         name: "setLimitsToZero",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "removeQuotas",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setGauge",
     inputs: [
       {
-        internalType: "address",
         name: "_gauge",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "setGauge",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setTokenLimit",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint96",
         name: "limit",
         type: "uint96",
+        internalType: "uint96",
       },
     ],
-    name: "setTokenLimit",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setTokenQuotaIncreaseFee",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint16",
         name: "fee",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
-    name: "setTokenQuotaIncreaseFee",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "updateQuota",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "int96",
         name: "requestedChange",
         type: "int96",
+        internalType: "int96",
       },
       {
-        internalType: "uint96",
         name: "minQuota",
         type: "uint96",
+        internalType: "uint96",
       },
       {
-        internalType: "uint96",
         name: "maxQuota",
         type: "uint96",
+        internalType: "uint96",
       },
     ],
-    name: "updateQuota",
     outputs: [
       {
-        internalType: "uint128",
         name: "caQuotaInterestChange",
         type: "uint128",
+        internalType: "uint128",
       },
       {
-        internalType: "uint128",
         name: "fees",
         type: "uint128",
+        internalType: "uint128",
       },
       {
-        internalType: "bool",
         name: "enableToken",
         type: "bool",
+        internalType: "bool",
       },
       {
-        internalType: "bool",
         name: "disableToken",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "updateRates",
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "AddCreditManager",
+    inputs: [
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "AddQuotaToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetGauge",
+    inputs: [
+      {
+        name: "newGauge",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetQuotaIncreaseFee",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "fee",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetTokenLimit",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "limit",
+        type: "uint96",
+        indexed: false,
+        internalType: "uint96",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "UpdateQuota",
+    inputs: [
+      {
+        name: "creditAccount",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "quotaChange",
+        type: "int96",
+        indexed: false,
+        internalType: "int96",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "UpdateTokenQuotaRate",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "rate",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

@@ -11,150 +11,150 @@ import type {
 
 const _abi = [
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenInAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "receiver",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "deposit",
+    inputs: [
+      {
+        name: "tokenInAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "receiver",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "uint256",
         name: "tokenOutAmount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenInAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "receiver",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "deadline",
-        type: "uint256",
-      },
-      {
-        internalType: "uint8",
-        name: "v",
-        type: "uint8",
-      },
-      {
-        internalType: "bytes32",
-        name: "r",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes32",
-        name: "s",
-        type: "bytes32",
-      },
-    ],
+    type: "function",
     name: "depositWithPermit",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokenOutAmount",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "uint256",
         name: "tokenInAmount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "receiver",
         type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "referralCode",
-        type: "uint256",
-      },
-    ],
-    name: "depositWithReferral",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "tokenOutAmount",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenInAmount",
-        type: "uint256",
-      },
-      {
         internalType: "address",
-        name: "receiver",
-        type: "address",
       },
       {
-        internalType: "uint256",
-        name: "referralCode",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
         name: "deadline",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint8",
         name: "v",
         type: "uint8",
+        internalType: "uint8",
       },
       {
-        internalType: "bytes32",
         name: "r",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "bytes32",
         name: "s",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
-    name: "depositWithReferralAndPermit",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokenOutAmount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
+  },
+  {
     type: "function",
+    name: "depositWithReferral",
+    inputs: [
+      {
+        name: "tokenInAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "receiver",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "referralCode",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokenOutAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "depositWithReferralAndPermit",
+    inputs: [
+      {
+        name: "tokenInAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "receiver",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "referralCode",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "deadline",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "v",
+        type: "uint8",
+        internalType: "uint8",
+      },
+      {
+        name: "r",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "s",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokenOutAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
   },
 ] as const;
 

@@ -11,137 +11,137 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "ClaimGearWithdrawal",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "user",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "address",
         name: "to",
         type: "address",
+        indexed: false,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "ClaimGearWithdrawal",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
+    type: "event",
     name: "DepositGear",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "user",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MigrateGear",
+    inputs: [
+      {
+        name: "user",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
         name: "successor",
         type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "MigrateGear",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ScheduleGearWithdrawal",
+    inputs: [
+      {
         name: "user",
         type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "ScheduleGearWithdrawal",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetMigrator",
+    inputs: [
+      {
         name: "migrator",
         type: "address",
-      },
-    ],
-    name: "SetMigrator",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetSuccessor",
+    inputs: [
+      {
         name: "successor",
         type: "address",
-      },
-    ],
-    name: "SetSuccessor",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
-        name: "votingContract",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "enum VotingContractStatus",
-        name: "status",
-        type: "uint8",
       },
     ],
-    name: "SetVotingContractStatus",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "SetVotingContractStatus",
+    inputs: [
+      {
+        name: "votingContract",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "status",
+        type: "uint8",
+        indexed: false,
+        internalType: "enum VotingContractStatus",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

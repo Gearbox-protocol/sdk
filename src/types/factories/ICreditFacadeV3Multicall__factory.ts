@@ -11,256 +11,256 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "addCollateral",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "addCollateral",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "addCollateralWithPermit",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "deadline",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint8",
         name: "v",
         type: "uint8",
+        internalType: "uint8",
       },
       {
-        internalType: "bytes32",
         name: "r",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "bytes32",
         name: "s",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
-    name: "addCollateralWithPermit",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "compareBalances",
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "decreaseDebt",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "disableToken",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "enableToken",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "increaseDebt",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "disableToken",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "enableToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "increaseDebt",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "onDemandPriceUpdate",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "reserve",
         type: "bool",
+        internalType: "bool",
       },
       {
-        internalType: "bytes",
         name: "data",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "onDemandPriceUpdate",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "revokeAdapterAllowances",
     inputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "spender",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "token",
-            type: "address",
-          },
-        ],
-        internalType: "struct RevocationPair[]",
         name: "revocations",
         type: "tuple[]",
-      },
-    ],
-    name: "revokeAdapterAllowances",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256[]",
-        name: "collateralHints",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint16",
-        name: "minHealthFactor",
-        type: "uint16",
-      },
-    ],
-    name: "setFullCheckParams",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
+        internalType: "struct RevocationPair[]",
         components: [
           {
-            internalType: "address",
-            name: "token",
+            name: "spender",
             type: "address",
+            internalType: "address",
           },
           {
-            internalType: "int256",
-            name: "amount",
-            type: "int256",
+            name: "token",
+            type: "address",
+            internalType: "address",
           },
         ],
-        internalType: "struct BalanceDelta[]",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setFullCheckParams",
+    inputs: [
+      {
+        name: "collateralHints",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+      {
+        name: "minHealthFactor",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "storeExpectedBalances",
+    inputs: [
+      {
         name: "balanceDeltas",
         type: "tuple[]",
+        internalType: "struct BalanceDelta[]",
+        components: [
+          {
+            name: "token",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "amount",
+            type: "int256",
+            internalType: "int256",
+          },
+        ],
       },
     ],
-    name: "storeExpectedBalances",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "updateQuota",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "int96",
         name: "quotaChange",
         type: "int96",
+        internalType: "int96",
       },
       {
-        internalType: "uint96",
         name: "minQuota",
         type: "uint96",
+        internalType: "uint96",
       },
     ],
-    name: "updateQuota",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "withdrawCollateral",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "withdrawCollateral",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
 ] as const;
 

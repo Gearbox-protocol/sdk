@@ -11,401 +11,401 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "bot",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-    ],
-    name: "EraseBot",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "bot",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "forbidden",
-        type: "bool",
-      },
-    ],
-    name: "SetBotForbiddenStatus",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "bot",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint192",
-        name: "permissions",
-        type: "uint192",
-      },
-    ],
-    name: "SetBotPermissions",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "bot",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint192",
-        name: "permissions",
-        type: "uint192",
-      },
-    ],
-    name: "SetBotSpecialPermissions",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "approved",
-        type: "bool",
-      },
-    ],
-    name: "SetCreditManagerApprovedStatus",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "activeBots",
+    inputs: [
+      {
+        name: "creditManager",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "creditAccount",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "address[]",
         name: "",
         type: "address[]",
+        internalType: "address[]",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "approvedCreditManager",
+    inputs: [
+      {
+        name: "creditManager",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "bot",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "botForbiddenStatus",
+    inputs: [
+      {
+        name: "bot",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "bot",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "creditManager",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "creditAccount",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "botPermissions",
-    outputs: [
-      {
-        internalType: "uint192",
-        name: "",
-        type: "uint192",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "address",
         name: "bot",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "creditManager",
         type: "address",
+        internalType: "address",
+      },
+      {
+        name: "creditAccount",
+        type: "address",
+        internalType: "address",
       },
     ],
-    name: "botSpecialPermissions",
     outputs: [
       {
-        internalType: "uint192",
         name: "",
         type: "uint192",
+        internalType: "uint192",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "botSpecialPermissions",
     inputs: [
       {
-        internalType: "address",
-        name: "creditManager",
+        name: "bot",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
-        name: "creditAccount",
+        name: "creditManager",
         type: "address",
+        internalType: "address",
       },
     ],
+    outputs: [
+      {
+        name: "",
+        type: "uint192",
+        internalType: "uint192",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "eraseAllBotPermissions",
+    inputs: [
+      {
+        name: "creditManager",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "creditAccount",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getBotStatus",
     inputs: [
       {
-        internalType: "address",
         name: "bot",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "creditManager",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getBotStatus",
     outputs: [
       {
-        internalType: "uint192",
         name: "permissions",
         type: "uint192",
+        internalType: "uint192",
       },
       {
-        internalType: "bool",
         name: "forbidden",
         type: "bool",
+        internalType: "bool",
       },
       {
-        internalType: "bool",
         name: "hasSpecialPermissions",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setBotForbiddenStatus",
     inputs: [
       {
-        internalType: "address",
         name: "bot",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "forbidden",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "setBotForbiddenStatus",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setBotPermissions",
     inputs: [
       {
-        internalType: "address",
         name: "bot",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "creditManager",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint192",
         name: "permissions",
         type: "uint192",
+        internalType: "uint192",
       },
     ],
-    name: "setBotPermissions",
     outputs: [
       {
-        internalType: "uint256",
         name: "activeBotsRemaining",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setBotSpecialPermissions",
     inputs: [
       {
-        internalType: "address",
         name: "bot",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "creditManager",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint192",
         name: "permissions",
         type: "uint192",
+        internalType: "uint192",
       },
     ],
-    name: "setBotSpecialPermissions",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setCreditManagerApprovedStatus",
     inputs: [
       {
-        internalType: "address",
         name: "creditManager",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "approved",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "setCreditManagerApprovedStatus",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "EraseBot",
+    inputs: [
+      {
+        name: "bot",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditAccount",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetBotForbiddenStatus",
+    inputs: [
+      {
+        name: "bot",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "forbidden",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetBotPermissions",
+    inputs: [
+      {
+        name: "bot",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditAccount",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "permissions",
+        type: "uint192",
+        indexed: false,
+        internalType: "uint192",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetBotSpecialPermissions",
+    inputs: [
+      {
+        name: "bot",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "permissions",
+        type: "uint192",
+        indexed: false,
+        internalType: "uint192",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetCreditManagerApprovedStatus",
+    inputs: [
+      {
+        name: "creditManager",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "approved",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

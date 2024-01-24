@@ -11,15 +11,15 @@ import type {
 
 const _abi = [
   {
+    type: "error",
+    name: "CTokenError",
     inputs: [
       {
-        internalType: "uint256",
         name: "errorCode",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "CTokenError",
-    type: "error",
   },
 ] as const;
 

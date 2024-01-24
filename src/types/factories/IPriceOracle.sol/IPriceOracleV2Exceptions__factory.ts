@@ -11,19 +11,19 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "error",
     name: "ChainPriceStaleException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "PriceOracleNotExistsException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
-    name: "ZeroPriceException",
     type: "error",
+    name: "ZeroPriceException",
+    inputs: [],
   },
 ] as const;
 

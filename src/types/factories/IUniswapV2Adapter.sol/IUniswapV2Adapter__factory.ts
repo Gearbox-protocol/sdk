@@ -11,280 +11,280 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "InvalidPathException",
-    type: "error",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token0",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token1",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "allowed",
-        type: "bool",
-      },
-    ],
-    name: "SetPairStatus",
-    type: "event",
-  },
-  {
-    inputs: [],
+    type: "function",
     name: "_gearboxAdapterType",
+    inputs: [],
     outputs: [
       {
-        internalType: "enum AdapterType",
         name: "",
         type: "uint8",
+        internalType: "enum AdapterType",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "_gearboxAdapterVersion",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint16",
         name: "",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "addressProvider",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "creditManager",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isPairAllowed",
     inputs: [
       {
-        internalType: "address",
         name: "token0",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token1",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "isPairAllowed",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setPairStatusBatch",
     inputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "token0",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "token1",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "allowed",
-            type: "bool",
-          },
-        ],
-        internalType: "struct UniswapV2PairStatus[]",
         name: "pairs",
         type: "tuple[]",
+        internalType: "struct UniswapV2PairStatus[]",
+        components: [
+          {
+            name: "token0",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "token1",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "allowed",
+            type: "bool",
+            internalType: "bool",
+          },
+        ],
       },
     ],
-    name: "setPairStatusBatch",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "swapDiffTokensForTokens",
     inputs: [
       {
-        internalType: "uint256",
         name: "leftoverAmount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "rateMinRAY",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address[]",
         name: "path",
         type: "address[]",
+        internalType: "address[]",
       },
       {
-        internalType: "uint256",
         name: "deadline",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "swapDiffTokensForTokens",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "swapExactTokensForTokens",
     inputs: [
       {
-        internalType: "uint256",
         name: "amountIn",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "amountOutMin",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address[]",
         name: "path",
         type: "address[]",
+        internalType: "address[]",
       },
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "deadline",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "swapExactTokensForTokens",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "swapTokensForExactTokens",
     inputs: [
       {
-        internalType: "uint256",
         name: "amountOut",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "amountInMax",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address[]",
         name: "path",
         type: "address[]",
+        internalType: "address[]",
       },
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "deadline",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "swapTokensForExactTokens",
     outputs: [
       {
-        internalType: "uint256",
         name: "tokensToEnable",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "tokensToDisable",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "targetContract",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "SetPairStatus",
+    inputs: [
+      {
+        name: "token0",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token1",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "allowed",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "InvalidPathException",
+    inputs: [],
   },
 ] as const;
 

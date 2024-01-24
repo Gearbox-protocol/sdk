@@ -11,29 +11,29 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "SetPairStatus",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "token0",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
-        name: "token1",
-        type: "address",
       },
       {
-        indexed: false,
-        internalType: "bool",
+        name: "token1",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
         name: "allowed",
         type: "bool",
+        indexed: false,
+        internalType: "bool",
       },
     ],
-    name: "SetPairStatus",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

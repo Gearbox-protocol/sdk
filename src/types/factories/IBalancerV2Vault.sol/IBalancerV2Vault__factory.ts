@@ -11,460 +11,460 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "batchSwap",
     inputs: [
       {
-        internalType: "enum SwapKind",
         name: "kind",
         type: "uint8",
+        internalType: "enum SwapKind",
       },
       {
-        components: [
-          {
-            internalType: "bytes32",
-            name: "poolId",
-            type: "bytes32",
-          },
-          {
-            internalType: "uint256",
-            name: "assetInIndex",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "assetOutIndex",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "amount",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes",
-            name: "userData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct BatchSwapStep[]",
         name: "swaps",
         type: "tuple[]",
-      },
-      {
-        internalType: "contract IAsset[]",
-        name: "assets",
-        type: "address[]",
-      },
-      {
+        internalType: "struct BatchSwapStep[]",
         components: [
           {
-            internalType: "address",
-            name: "sender",
-            type: "address",
+            name: "poolId",
+            type: "bytes32",
+            internalType: "bytes32",
           },
           {
-            internalType: "bool",
-            name: "fromInternalBalance",
-            type: "bool",
+            name: "assetInIndex",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
-            internalType: "address payable",
-            name: "recipient",
-            type: "address",
+            name: "assetOutIndex",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
-            internalType: "bool",
-            name: "toInternalBalance",
-            type: "bool",
+            name: "amount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "userData",
+            type: "bytes",
+            internalType: "bytes",
           },
         ],
-        internalType: "struct FundManagement",
-        name: "funds",
-        type: "tuple",
       },
       {
-        internalType: "int256[]",
+        name: "assets",
+        type: "address[]",
+        internalType: "contract IAsset[]",
+      },
+      {
+        name: "funds",
+        type: "tuple",
+        internalType: "struct FundManagement",
+        components: [
+          {
+            name: "sender",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "fromInternalBalance",
+            type: "bool",
+            internalType: "bool",
+          },
+          {
+            name: "recipient",
+            type: "address",
+            internalType: "address payable",
+          },
+          {
+            name: "toInternalBalance",
+            type: "bool",
+            internalType: "bool",
+          },
+        ],
+      },
+      {
         name: "limits",
         type: "int256[]",
+        internalType: "int256[]",
       },
       {
-        internalType: "uint256",
         name: "deadline",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "batchSwap",
     outputs: [
       {
-        internalType: "int256[]",
         name: "assetDeltas",
         type: "int256[]",
+        internalType: "int256[]",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "exitPool",
     inputs: [
       {
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "address",
         name: "sender",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address payable",
         name: "recipient",
         type: "address",
+        internalType: "address payable",
       },
       {
+        name: "request",
+        type: "tuple",
+        internalType: "struct ExitPoolRequest",
         components: [
           {
-            internalType: "contract IAsset[]",
             name: "assets",
             type: "address[]",
+            internalType: "contract IAsset[]",
           },
           {
-            internalType: "uint256[]",
             name: "minAmountsOut",
             type: "uint256[]",
+            internalType: "uint256[]",
           },
           {
-            internalType: "bytes",
             name: "userData",
             type: "bytes",
+            internalType: "bytes",
           },
           {
-            internalType: "bool",
             name: "toInternalBalance",
             type: "bool",
+            internalType: "bool",
           },
         ],
-        internalType: "struct ExitPoolRequest",
-        name: "request",
-        type: "tuple",
       },
     ],
-    name: "exitPool",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getPool",
     inputs: [
       {
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
-    name: "getPool",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "enum PoolSpecialization",
         name: "",
         type: "uint8",
+        internalType: "enum PoolSpecialization",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getPoolTokenInfo",
     inputs: [
       {
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "contract IERC20",
         name: "token",
         type: "address",
+        internalType: "contract IERC20",
       },
     ],
-    name: "getPoolTokenInfo",
     outputs: [
       {
-        internalType: "uint256",
         name: "cash",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "managed",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "lastChangeBlock",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "assetManager",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getPoolTokens",
     inputs: [
       {
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
-    name: "getPoolTokens",
     outputs: [
       {
-        internalType: "contract IERC20[]",
         name: "tokens",
         type: "address[]",
+        internalType: "contract IERC20[]",
       },
       {
-        internalType: "uint256[]",
         name: "balances",
         type: "uint256[]",
+        internalType: "uint256[]",
       },
       {
-        internalType: "uint256",
         name: "lastChangeBlock",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "joinPool",
     inputs: [
       {
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "address",
         name: "sender",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "recipient",
         type: "address",
+        internalType: "address",
       },
       {
-        components: [
-          {
-            internalType: "contract IAsset[]",
-            name: "assets",
-            type: "address[]",
-          },
-          {
-            internalType: "uint256[]",
-            name: "maxAmountsIn",
-            type: "uint256[]",
-          },
-          {
-            internalType: "bytes",
-            name: "userData",
-            type: "bytes",
-          },
-          {
-            internalType: "bool",
-            name: "fromInternalBalance",
-            type: "bool",
-          },
-        ],
-        internalType: "struct JoinPoolRequest",
         name: "request",
         type: "tuple",
+        internalType: "struct JoinPoolRequest",
+        components: [
+          {
+            name: "assets",
+            type: "address[]",
+            internalType: "contract IAsset[]",
+          },
+          {
+            name: "maxAmountsIn",
+            type: "uint256[]",
+            internalType: "uint256[]",
+          },
+          {
+            name: "userData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+          {
+            name: "fromInternalBalance",
+            type: "bool",
+            internalType: "bool",
+          },
+        ],
       },
     ],
-    name: "joinPool",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "queryBatchSwap",
     inputs: [
       {
-        internalType: "enum SwapKind",
         name: "kind",
         type: "uint8",
+        internalType: "enum SwapKind",
       },
       {
-        components: [
-          {
-            internalType: "bytes32",
-            name: "poolId",
-            type: "bytes32",
-          },
-          {
-            internalType: "uint256",
-            name: "assetInIndex",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "assetOutIndex",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "amount",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes",
-            name: "userData",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct BatchSwapStep[]",
         name: "swaps",
         type: "tuple[]",
-      },
-      {
-        internalType: "contract IAsset[]",
-        name: "assets",
-        type: "address[]",
-      },
-      {
+        internalType: "struct BatchSwapStep[]",
         components: [
           {
-            internalType: "address",
-            name: "sender",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "fromInternalBalance",
-            type: "bool",
-          },
-          {
-            internalType: "address payable",
-            name: "recipient",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "toInternalBalance",
-            type: "bool",
-          },
-        ],
-        internalType: "struct FundManagement",
-        name: "funds",
-        type: "tuple",
-      },
-    ],
-    name: "queryBatchSwap",
-    outputs: [
-      {
-        internalType: "int256[]",
-        name: "assetDeltas",
-        type: "int256[]",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: "bytes32",
             name: "poolId",
             type: "bytes32",
+            internalType: "bytes32",
           },
           {
-            internalType: "enum SwapKind",
-            name: "kind",
-            type: "uint8",
-          },
-          {
-            internalType: "contract IAsset",
-            name: "assetIn",
-            type: "address",
-          },
-          {
-            internalType: "contract IAsset",
-            name: "assetOut",
-            type: "address",
-          },
-          {
+            name: "assetInIndex",
+            type: "uint256",
             internalType: "uint256",
+          },
+          {
+            name: "assetOutIndex",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "amount",
             type: "uint256",
+            internalType: "uint256",
           },
           {
-            internalType: "bytes",
             name: "userData",
             type: "bytes",
+            internalType: "bytes",
           },
         ],
-        internalType: "struct SingleSwap",
-        name: "singleSwap",
-        type: "tuple",
       },
       {
-        components: [
-          {
-            internalType: "address",
-            name: "sender",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "fromInternalBalance",
-            type: "bool",
-          },
-          {
-            internalType: "address payable",
-            name: "recipient",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "toInternalBalance",
-            type: "bool",
-          },
-        ],
-        internalType: "struct FundManagement",
+        name: "assets",
+        type: "address[]",
+        internalType: "contract IAsset[]",
+      },
+      {
         name: "funds",
         type: "tuple",
-      },
-      {
-        internalType: "uint256",
-        name: "limit",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "deadline",
-        type: "uint256",
+        internalType: "struct FundManagement",
+        components: [
+          {
+            name: "sender",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "fromInternalBalance",
+            type: "bool",
+            internalType: "bool",
+          },
+          {
+            name: "recipient",
+            type: "address",
+            internalType: "address payable",
+          },
+          {
+            name: "toInternalBalance",
+            type: "bool",
+            internalType: "bool",
+          },
+        ],
       },
     ],
-    name: "swap",
     outputs: [
       {
-        internalType: "uint256",
-        name: "amountCalculated",
-        type: "uint256",
+        name: "assetDeltas",
+        type: "int256[]",
+        internalType: "int256[]",
       },
     ],
     stateMutability: "nonpayable",
+  },
+  {
     type: "function",
+    name: "swap",
+    inputs: [
+      {
+        name: "singleSwap",
+        type: "tuple",
+        internalType: "struct SingleSwap",
+        components: [
+          {
+            name: "poolId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "kind",
+            type: "uint8",
+            internalType: "enum SwapKind",
+          },
+          {
+            name: "assetIn",
+            type: "address",
+            internalType: "contract IAsset",
+          },
+          {
+            name: "assetOut",
+            type: "address",
+            internalType: "contract IAsset",
+          },
+          {
+            name: "amount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "userData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+      {
+        name: "funds",
+        type: "tuple",
+        internalType: "struct FundManagement",
+        components: [
+          {
+            name: "sender",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "fromInternalBalance",
+            type: "bool",
+            internalType: "bool",
+          },
+          {
+            name: "recipient",
+            type: "address",
+            internalType: "address payable",
+          },
+          {
+            name: "toInternalBalance",
+            type: "bool",
+            internalType: "bool",
+          },
+        ],
+      },
+      {
+        name: "limit",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "deadline",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "amountCalculated",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
   },
 ] as const;
 

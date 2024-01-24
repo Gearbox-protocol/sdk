@@ -11,338 +11,338 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "AdapterForbidden",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "adapter",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "AdapterForbidden",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "AddedToUpgradeable",
     inputs: [
       {
-        indexed: false,
-        internalType: "address",
         name: "",
         type: "address",
+        indexed: false,
+        internalType: "address",
       },
     ],
-    name: "AddedToUpgradeable",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "ContractAllowed",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "protocol",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "adapter",
         type: "address",
-      },
-    ],
-    name: "ContractAllowed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ContractForbidden",
+    inputs: [
+      {
         name: "protocol",
         type: "address",
-      },
-    ],
-    name: "ContractForbidden",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "CreditConfiguratorUpgraded",
+    inputs: [
+      {
         name: "newCreditConfigurator",
         type: "address",
-      },
-    ],
-    name: "CreditConfiguratorUpgraded",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "CreditFacadeUpgraded",
+    inputs: [
+      {
         name: "newCreditFacade",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "CreditFacadeUpgraded",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
-    inputs: [],
+    type: "event",
     name: "CumulativeLossReset",
-    type: "event",
+    inputs: [],
+    anonymous: false,
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
+    type: "event",
     name: "EmergencyLiquidatorAdded",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "address",
         name: "",
         type: "address",
+        indexed: false,
+        internalType: "address",
       },
     ],
-    name: "EmergencyLiquidatorRemoved",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "EmergencyLiquidatorRemoved",
     inputs: [
       {
+        name: "",
+        type: "address",
         indexed: false,
-        internalType: "uint40",
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ExpirationDateUpdated",
+    inputs: [
+      {
         name: "",
         type: "uint40",
+        indexed: false,
+        internalType: "uint40",
       },
     ],
-    name: "ExpirationDateUpdated",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "FeesUpdated",
     inputs: [
       {
-        indexed: false,
-        internalType: "uint16",
         name: "feeInterest",
         type: "uint16",
-      },
-      {
         indexed: false,
         internalType: "uint16",
+      },
+      {
         name: "feeLiquidation",
         type: "uint16",
-      },
-      {
         indexed: false,
         internalType: "uint16",
+      },
+      {
         name: "liquidationPremium",
         type: "uint16",
-      },
-      {
         indexed: false,
         internalType: "uint16",
+      },
+      {
         name: "feeLiquidationExpired",
         type: "uint16",
-      },
-      {
         indexed: false,
         internalType: "uint16",
+      },
+      {
         name: "liquidationPremiumExpired",
         type: "uint16",
+        indexed: false,
+        internalType: "uint16",
       },
     ],
-    name: "FeesUpdated",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "IncreaseDebtForbiddenModeChanged",
     inputs: [
       {
-        indexed: false,
-        internalType: "bool",
         name: "",
         type: "bool",
+        indexed: false,
+        internalType: "bool",
       },
     ],
-    name: "IncreaseDebtForbiddenModeChanged",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "LimitPerBlockUpdated",
     inputs: [
       {
-        indexed: false,
-        internalType: "uint128",
         name: "",
         type: "uint128",
+        indexed: false,
+        internalType: "uint128",
       },
     ],
-    name: "LimitPerBlockUpdated",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "LimitsUpdated",
     inputs: [
       {
-        indexed: false,
-        internalType: "uint256",
         name: "minBorrowedAmount",
         type: "uint256",
-      },
-      {
         indexed: false,
         internalType: "uint256",
+      },
+      {
         name: "maxBorrowedAmount",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "LimitsUpdated",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "MaxEnabledTokensUpdated",
     inputs: [
       {
-        indexed: false,
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        indexed: false,
+        internalType: "uint8",
       },
     ],
-    name: "MaxEnabledTokensUpdated",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "NewEmergencyLiquidationDiscount",
     inputs: [
       {
-        indexed: false,
-        internalType: "uint16",
         name: "",
         type: "uint16",
+        indexed: false,
+        internalType: "uint16",
       },
     ],
-    name: "NewEmergencyLiquidationDiscount",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint128",
-        name: "",
-        type: "uint128",
-      },
-    ],
+    type: "event",
     name: "NewMaxCumulativeLoss",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "uint128",
         name: "",
         type: "uint128",
+        indexed: false,
+        internalType: "uint128",
       },
     ],
-    name: "NewTotalDebtLimit",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "NewTotalDebtLimit",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
+        name: "",
+        type: "uint128",
+        indexed: false,
+        internalType: "uint128",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "PriceOracleUpgraded",
+    inputs: [
+      {
         name: "newPriceOracle",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "PriceOracleUpgraded",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "RemovedFromUpgradeable",
     inputs: [
       {
-        indexed: false,
-        internalType: "address",
         name: "",
         type: "address",
-      },
-    ],
-    name: "RemovedFromUpgradeable",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "TokenAllowed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "TokenForbidden",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
         indexed: false,
-        internalType: "uint16",
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TokenAllowed",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TokenForbidden",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TokenLiquidationThresholdUpdated",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
         name: "liquidityThreshold",
         type: "uint16",
+        indexed: false,
+        internalType: "uint16",
       },
     ],
-    name: "TokenLiquidationThresholdUpdated",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

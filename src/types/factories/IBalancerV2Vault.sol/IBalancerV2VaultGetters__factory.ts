@@ -11,96 +11,96 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "getPool",
     inputs: [
       {
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
-    name: "getPool",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "enum PoolSpecialization",
         name: "",
         type: "uint8",
+        internalType: "enum PoolSpecialization",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getPoolTokenInfo",
     inputs: [
       {
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "contract IERC20",
         name: "token",
         type: "address",
+        internalType: "contract IERC20",
       },
     ],
-    name: "getPoolTokenInfo",
     outputs: [
       {
-        internalType: "uint256",
         name: "cash",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "managed",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "lastChangeBlock",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "assetManager",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getPoolTokens",
     inputs: [
       {
-        internalType: "bytes32",
         name: "poolId",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
-    name: "getPoolTokens",
     outputs: [
       {
-        internalType: "contract IERC20[]",
         name: "tokens",
         type: "address[]",
+        internalType: "contract IERC20[]",
       },
       {
-        internalType: "uint256[]",
         name: "balances",
         type: "uint256[]",
+        internalType: "uint256[]",
       },
       {
-        internalType: "uint256",
         name: "lastChangeBlock",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

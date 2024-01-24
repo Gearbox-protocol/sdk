@@ -11,24 +11,24 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "error",
     name: "CreditFacadeOrConfiguratorOnlyException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "InsufficientBalanceException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
+    type: "error",
     name: "InvalidCreditFacadeException",
-    type: "error",
+    inputs: [],
   },
   {
-    inputs: [],
-    name: "MinterOnlyException",
     type: "error",
+    name: "MinterOnlyException",
+    inputs: [],
   },
 ] as const;
 

@@ -11,52 +11,52 @@ import type {
 
 const _abi = [
   {
+    type: "function",
+    name: "permit",
     inputs: [
       {
-        internalType: "address",
         name: "holder",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "spender",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "nonce",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "expiry",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bool",
         name: "allowed",
         type: "bool",
+        internalType: "bool",
       },
       {
-        internalType: "uint8",
         name: "v",
         type: "uint8",
+        internalType: "uint8",
       },
       {
-        internalType: "bytes32",
         name: "r",
         type: "bytes32",
+        internalType: "bytes32",
       },
       {
-        internalType: "bytes32",
         name: "s",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
-    name: "permit",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
 ] as const;
 

@@ -11,36 +11,36 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "SetBounds",
     inputs: [
       {
-        indexed: false,
-        internalType: "uint256",
         name: "lowerBound",
         type: "uint256",
-      },
-      {
         indexed: false,
         internalType: "uint256",
+      },
+      {
         name: "upperBound",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "SetBounds",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "SetUpdateBoundsAllowed",
     inputs: [
       {
-        indexed: false,
-        internalType: "bool",
         name: "allowed",
         type: "bool",
+        indexed: false,
+        internalType: "bool",
       },
     ],
-    name: "SetUpdateBoundsAllowed",
-    type: "event",
+    anonymous: false,
   },
 ] as const;
 

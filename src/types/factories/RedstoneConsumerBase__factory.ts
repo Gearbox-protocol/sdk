@@ -11,208 +11,208 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "CalldataMustHaveValidPayload",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CalldataOverOrUnderFlow",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CanNotPickMedianOfEmptyArray",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DataPackageTimestampMustNotBeZero",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "DataPackageTimestampsMustBeEqual",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "EachSignerMustProvideTheSameValue",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "EmptyCalldataPointersArr",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "GetDataServiceIdNotImplemented",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "IncorrectUnsignedMetadataSize",
-    type: "error",
-  },
-  {
+    type: "function",
+    name: "aggregateValues",
     inputs: [
       {
-        internalType: "uint256",
-        name: "receivedSignersCount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "requiredSignersCount",
-        type: "uint256",
-      },
-    ],
-    name: "InsufficientNumberOfUniqueSigners",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "InvalidCalldataPointer",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "RedstonePayloadMustHaveAtLeastOneDataPackage",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "receivedSigner",
-        type: "address",
-      },
-    ],
-    name: "SignerNotAuthorised",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "receivedTimestampSeconds",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "blockTimestamp",
-        type: "uint256",
-      },
-    ],
-    name: "TimestampFromTooLongFuture",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "receivedTimestampSeconds",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "blockTimestamp",
-        type: "uint256",
-      },
-    ],
-    name: "TimestampIsTooOld",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256[]",
         name: "values",
         type: "uint256[]",
+        internalType: "uint256[]",
       },
     ],
-    name: "aggregateValues",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "extractTimestampsAndAssertAllAreEqual",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "extractedTimestamp",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "pure",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getAuthorisedSignerIndex",
     inputs: [
       {
-        internalType: "address",
         name: "receivedSigner",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getAuthorisedSignerIndex",
     outputs: [
       {
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "getDataServiceId",
+    inputs: [],
     outputs: [
       {
-        internalType: "string",
         name: "",
         type: "string",
+        internalType: "string",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "getUniqueSignersThreshold",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "validateTimestamp",
     inputs: [
       {
-        internalType: "uint256",
         name: "receivedTimestampMilliseconds",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "validateTimestamp",
     outputs: [],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "error",
+    name: "CalldataMustHaveValidPayload",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CalldataOverOrUnderFlow",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CanNotPickMedianOfEmptyArray",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "DataPackageTimestampMustNotBeZero",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "DataPackageTimestampsMustBeEqual",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "EachSignerMustProvideTheSameValue",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "EmptyCalldataPointersArr",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "GetDataServiceIdNotImplemented",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncorrectUnsignedMetadataSize",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InsufficientNumberOfUniqueSigners",
+    inputs: [
+      {
+        name: "receivedSignersCount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "requiredSignersCount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "InvalidCalldataPointer",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "RedstonePayloadMustHaveAtLeastOneDataPackage",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SignerNotAuthorised",
+    inputs: [
+      {
+        name: "receivedSigner",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "TimestampFromTooLongFuture",
+    inputs: [
+      {
+        name: "receivedTimestampSeconds",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "blockTimestamp",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "TimestampIsTooOld",
+    inputs: [
+      {
+        name: "receivedTimestampSeconds",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "blockTimestamp",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
   },
 ] as const;
 

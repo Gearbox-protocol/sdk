@@ -11,43 +11,43 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
+    type: "event",
     name: "NewCreditFacadeAdded",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "NewCreditFacadeRemoved",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "NewMinterSet",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "NewMinterSet",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

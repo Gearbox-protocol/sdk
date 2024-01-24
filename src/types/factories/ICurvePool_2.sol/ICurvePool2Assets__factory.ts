@@ -11,882 +11,882 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
+    type: "function",
     name: "A",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "A_precise",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "A_precise",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "add_liquidity",
     inputs: [
       {
-        internalType: "uint256[2]",
         name: "amounts",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
       {
-        internalType: "uint256",
         name: "min_mint_amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "add_liquidity",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "admin",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "admin_balances",
     inputs: [
       {
-        internalType: "uint256",
         name: "i",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "admin_balances",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "admin_fee",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "allowance",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
+      },
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
-    name: "balanceOf",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "balanceOf",
     inputs: [
       {
-        internalType: "int128",
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "balances",
+    inputs: [
+      {
         name: "",
         type: "int128",
+        internalType: "int128",
       },
     ],
-    name: "balances",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "balances",
     inputs: [
       {
-        internalType: "uint256",
         name: "i",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "balances",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "block_timestamp_last",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "calc_token_amount",
     inputs: [
       {
-        internalType: "uint256[2]",
         name: "_amounts",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
       {
-        internalType: "bool",
         name: "_is_deposit",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "calc_token_amount",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "calc_withdraw_one_coin",
     inputs: [
       {
-        internalType: "uint256",
         name: "_burn_amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "i",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "calc_withdraw_one_coin",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "calc_withdraw_one_coin",
     inputs: [
       {
-        internalType: "uint256",
         name: "_burn_amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "int128",
         name: "i",
         type: "int128",
+        internalType: "int128",
       },
     ],
-    name: "calc_withdraw_one_coin",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "coins",
     inputs: [
       {
-        internalType: "int128",
         name: "",
         type: "int128",
+        internalType: "int128",
       },
     ],
-    name: "coins",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "coins",
     inputs: [
       {
-        internalType: "uint256",
         name: "i",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "coins",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "decimals",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "int128",
-        name: "i",
-        type: "int128",
-      },
-      {
-        internalType: "int128",
-        name: "j",
-        type: "int128",
-      },
-      {
-        internalType: "uint256",
-        name: "dx",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "min_dy",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "exchange",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "uint256",
         name: "i",
-        type: "uint256",
+        type: "int128",
+        internalType: "int128",
       },
       {
-        internalType: "uint256",
         name: "j",
-        type: "uint256",
+        type: "int128",
+        internalType: "int128",
       },
       {
-        internalType: "uint256",
         name: "dx",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "min_dy",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "exchange",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "uint256",
         name: "i",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "j",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "dx",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "min_dy",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "exchange_underlying",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "exchange_underlying",
     inputs: [
       {
-        internalType: "int128",
         name: "i",
-        type: "int128",
-      },
-      {
-        internalType: "int128",
-        name: "j",
-        type: "int128",
-      },
-      {
+        type: "uint256",
         internalType: "uint256",
+      },
+      {
+        name: "j",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
         name: "dx",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "min_dy",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "exchange_underlying",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
+    name: "exchange_underlying",
+    inputs: [
+      {
+        name: "i",
+        type: "int128",
+        internalType: "int128",
+      },
+      {
+        name: "j",
+        type: "int128",
+        internalType: "int128",
+      },
+      {
+        name: "dx",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "min_dy",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "fee",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "future_A",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "future_A_time",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "get_balances",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256[2]",
         name: "",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "j",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "dx",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "get_dy",
+    inputs: [
+      {
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "j",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "dx",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "int128",
-        name: "i",
-        type: "int128",
-      },
-      {
-        internalType: "int128",
-        name: "j",
-        type: "int128",
-      },
-      {
-        internalType: "uint256",
-        name: "dx",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "get_dy",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
-        internalType: "int128",
         name: "i",
         type: "int128",
+        internalType: "int128",
       },
       {
-        internalType: "int128",
         name: "j",
         type: "int128",
+        internalType: "int128",
       },
       {
-        internalType: "uint256",
         name: "dx",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "get_dy_underlying",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "get_dy_underlying",
     inputs: [
       {
-        internalType: "uint256",
         name: "i",
-        type: "uint256",
+        type: "int128",
+        internalType: "int128",
       },
       {
-        internalType: "uint256",
         name: "j",
-        type: "uint256",
+        type: "int128",
+        internalType: "int128",
       },
       {
-        internalType: "uint256",
         name: "dx",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "get_dy_underlying",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
+    name: "get_dy_underlying",
+    inputs: [
+      {
+        name: "i",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "j",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "dx",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "get_previous_balances",
-    outputs: [
-      {
-        internalType: "uint256[2]",
-        name: "",
-        type: "uint256[2]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "get_price_cumulative_last",
     outputs: [
       {
-        internalType: "uint256[2]",
         name: "",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "get_price_cumulative_last",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256[2]",
+        internalType: "uint256[2]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "get_twap_balances",
     inputs: [
       {
-        internalType: "uint256[2]",
         name: "_first_balances",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
       {
-        internalType: "uint256[2]",
         name: "_last_balances",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
       {
-        internalType: "uint256",
         name: "_time_elapsed",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "get_twap_balances",
     outputs: [
       {
-        internalType: "uint256[2]",
         name: "",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "get_virtual_price",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "initial_A",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "initial_A_time",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "mid_fee",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "name",
+    inputs: [],
     outputs: [
       {
-        internalType: "string",
         name: "",
         type: "string",
+        internalType: "string",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "remove_liquidity",
     inputs: [
       {
-        internalType: "uint256",
         name: "_amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256[2]",
         name: "min_amounts",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
     ],
-    name: "remove_liquidity",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "remove_liquidity_imbalance",
     inputs: [
       {
-        internalType: "uint256[2]",
         name: "amounts",
         type: "uint256[2]",
+        internalType: "uint256[2]",
       },
       {
-        internalType: "uint256",
         name: "max_burn_amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "remove_liquidity_imbalance",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "remove_liquidity_one_coin",
     inputs: [
       {
-        internalType: "uint256",
         name: "_token_amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "int128",
         name: "i",
         type: "int128",
+        internalType: "int128",
       },
       {
-        internalType: "uint256",
         name: "min_amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "remove_liquidity_one_coin",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "remove_liquidity_one_coin",
     inputs: [
       {
-        internalType: "uint256",
         name: "_token_amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "i",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "min_amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "remove_liquidity_one_coin",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "symbol",
+    inputs: [],
     outputs: [
       {
-        internalType: "string",
         name: "",
         type: "string",
+        internalType: "string",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "token",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "totalSupply",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "underlying_coins",
     inputs: [
       {
-        internalType: "int128",
         name: "",
         type: "int128",
+        internalType: "int128",
       },
     ],
-    name: "underlying_coins",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "underlying_coins",
     inputs: [
       {
-        internalType: "uint256",
         name: "i",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "underlying_coins",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "virtual_price",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

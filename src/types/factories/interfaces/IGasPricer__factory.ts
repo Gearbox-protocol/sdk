@@ -4,27 +4,30 @@
 
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { IGasPricer, IGasPricerInterface } from "../IGasPricer";
+import type {
+  IGasPricer,
+  IGasPricerInterface,
+} from "../../interfaces/IGasPricer";
 
 const _abi = [
   {
+    type: "function",
+    name: "getGasPriceTokenOutRAY",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getGasPriceTokenOutRAY",
     outputs: [
       {
-        internalType: "uint256",
         name: "gasPrice",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
 ] as const;
 

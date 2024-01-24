@@ -11,86 +11,86 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "txHash",
-        type: "bytes32",
-      },
-    ],
+    type: "event",
     name: "CancelTransaction",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "bytes32",
         name: "txHash",
         type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
       },
     ],
-    name: "ExecuteTransaction",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "ExecuteTransaction",
     inputs: [
       {
-        indexed: true,
-        internalType: "bytes32",
         name: "txHash",
         type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "QueueTransaction",
+    inputs: [
+      {
+        name: "txHash",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
       },
       {
-        indexed: true,
-        internalType: "address",
         name: "executor",
         type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "target",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "string",
-        name: "signature",
-        type: "string",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
-      {
-        indexed: false,
-        internalType: "uint40",
-        name: "eta",
-        type: "uint40",
-      },
-    ],
-    name: "QueueTransaction",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
-        name: "newAdmin",
+      },
+      {
+        name: "target",
         type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+      {
+        name: "signature",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
+      {
+        name: "data",
+        type: "bytes",
+        indexed: false,
+        internalType: "bytes",
+      },
+      {
+        name: "eta",
+        type: "uint40",
+        indexed: false,
+        internalType: "uint40",
       },
     ],
-    name: "SetVetoAdmin",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "SetVetoAdmin",
+    inputs: [
+      {
+        name: "newAdmin",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

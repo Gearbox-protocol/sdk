@@ -11,917 +11,917 @@ import type {
 
 const _abi = [
   {
-    inputs: [],
-    name: "AdaptersOrCreditFacadeOnlyException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "AllowanceFailedException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CreditConfiguratorOnlyException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "CreditFacadeOnlyException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "HasNoOpenedAccountException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotEnoughCollateralException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ReentrancyLockException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TargetContractNotAllowedException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TokenAlreadyAddedException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TokenNotAllowedException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TooManyEnabledTokensException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "TooManyTokensException",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ZeroAddressOrUserAlreadyHasAccountException",
-    type: "error",
-  },
-  {
-    anonymous: false,
+    type: "function",
+    name: "adapterToContract",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "target",
-        type: "address",
-      },
-    ],
-    name: "ExecuteOrder",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newConfigurator",
-        type: "address",
-      },
-    ],
-    name: "NewConfigurator",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
         name: "adapter",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "adapterToContract",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "addCollateral",
     inputs: [
       {
-        internalType: "address",
         name: "payer",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "addCollateral",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "approveCreditAccount",
     inputs: [
       {
-        internalType: "address",
         name: "borrower",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "targetContract",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "approveCreditAccount",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "calcClosePayments",
     inputs: [
       {
-        internalType: "uint256",
         name: "totalValue",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "enum ClosureAction",
         name: "closureActionType",
         type: "uint8",
+        internalType: "enum ClosureAction",
       },
       {
-        internalType: "uint256",
         name: "borrowedAmount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "borrowedAmountWithInterest",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "calcClosePayments",
     outputs: [
       {
-        internalType: "uint256",
         name: "amountToPool",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "remainingFunds",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "profit",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "loss",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "calcCreditAccountAccruedInterest",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "calcCreditAccountAccruedInterest",
     outputs: [
       {
-        internalType: "uint256",
         name: "borrowedAmount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "borrowedAmountWithInterest",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "borrowedAmountWithInterestAndFees",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "canLiquidateWhilePaused",
     inputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "canLiquidateWhilePaused",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "checkAndEnableToken",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "checkAndEnableToken",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "checkAndOptimizeEnabledTokens",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "checkAndOptimizeEnabledTokens",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "checkEmergencyPausable",
     inputs: [
       {
-        internalType: "address",
         name: "caller",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bool",
         name: "state",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "checkEmergencyPausable",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "closeCreditAccount",
     inputs: [
       {
-        internalType: "address",
         name: "borrower",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "enum ClosureAction",
         name: "closureActionType",
         type: "uint8",
+        internalType: "enum ClosureAction",
       },
       {
-        internalType: "uint256",
         name: "totalValue",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "payer",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "skipTokenMask",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bool",
         name: "convertWETH",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "closeCreditAccount",
     outputs: [
       {
-        internalType: "uint256",
         name: "remainingFunds",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "collateralTokens",
     inputs: [
       {
-        internalType: "uint256",
         name: "id",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "collateralTokens",
     outputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint16",
         name: "liquidationThreshold",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "collateralTokensByMask",
     inputs: [
       {
-        internalType: "uint256",
         name: "tokenMask",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "collateralTokensByMask",
     outputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint16",
         name: "liquidationThreshold",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "collateralTokensCount",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "contractToAdapter",
     inputs: [
       {
-        internalType: "address",
         name: "targetContract",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "contractToAdapter",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "creditAccounts",
     inputs: [
       {
-        internalType: "address",
         name: "borrower",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "creditAccounts",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "creditConfigurator",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "creditFacade",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "creditFacade",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "cumulativeDropAtFastCheckRAY",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "cumulativeDropAtFastCheckRAY",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "disableToken",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "disableToken",
     outputs: [
       {
-        internalType: "bool",
         name: "",
         type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "enabledTokensMap",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "enabledTokensMap",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "executeOrder",
     inputs: [
       {
-        internalType: "address",
         name: "borrower",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "targetContract",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "bytes",
         name: "data",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "executeOrder",
     outputs: [
       {
-        internalType: "bytes",
         name: "",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "fastCollateralCheck",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "tokenIn",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "tokenOut",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "balanceInBefore",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "balanceOutBefore",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "fastCollateralCheck",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "fees",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint16",
         name: "feeInterest",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "feeLiquidation",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "liquidationDiscount",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "feeLiquidationExpired",
         type: "uint16",
+        internalType: "uint16",
       },
       {
-        internalType: "uint16",
         name: "liquidationDiscountExpired",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "forbiddenTokenMask",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "fullCollateralCheck",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "fullCollateralCheck",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getCreditAccountOrRevert",
     inputs: [
       {
-        internalType: "address",
         name: "borrower",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "getCreditAccountOrRevert",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "liquidationThresholds",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "liquidationThresholds",
     outputs: [
       {
-        internalType: "uint16",
         name: "",
         type: "uint16",
+        internalType: "uint16",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "manageDebt",
     inputs: [
       {
-        internalType: "address",
         name: "creditAccount",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bool",
         name: "increase",
         type: "bool",
+        internalType: "bool",
       },
     ],
-    name: "manageDebt",
     outputs: [
       {
-        internalType: "uint256",
         name: "newBorrowedAmount",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "maxAllowedEnabledTokenLength",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint8",
         name: "",
         type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "openCreditAccount",
     inputs: [
       {
-        internalType: "uint256",
         name: "borrowedAmount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "onBehalfOf",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "openCreditAccount",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "pool",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "poolService",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "priceOracle",
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "priceOracle",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "tokenMasksMap",
     inputs: [
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "tokenMasksMap",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "transferAccountOwnership",
     inputs: [
       {
-        internalType: "address",
         name: "from",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "to",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "transferAccountOwnership",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "underlying",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "universalAdapter",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "version",
+    inputs: [],
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "wethAddress",
+    inputs: [],
     outputs: [
       {
-        internalType: "address",
         name: "",
         type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "ExecuteOrder",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "target",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "NewConfigurator",
+    inputs: [
+      {
+        name: "newConfigurator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "AdaptersOrCreditFacadeOnlyException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "AllowanceFailedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CreditConfiguratorOnlyException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CreditFacadeOnlyException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "HasNoOpenedAccountException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotEnoughCollateralException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ReentrancyLockException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TargetContractNotAllowedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TokenAlreadyAddedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TokenNotAllowedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TooManyEnabledTokensException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "TooManyTokensException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ZeroAddressOrUserAlreadyHasAccountException",
+    inputs: [],
   },
 ] as const;
 

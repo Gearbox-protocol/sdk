@@ -11,102 +11,102 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "function",
+    name: "claim",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "Claimed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "oldRoot",
-        type: "bytes32",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "newRoot",
-        type: "bytes32",
-      },
-    ],
-    name: "RootUpdated",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "index",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "address",
         name: "account",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint256",
         name: "totalAmount",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "bytes32[]",
         name: "merkleProof",
         type: "bytes32[]",
+        internalType: "bytes32[]",
       },
     ],
-    name: "claim",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "claimed",
     inputs: [
       {
-        internalType: "address",
         name: "user",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "claimed",
     outputs: [
       {
-        internalType: "uint256",
         name: "",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "merkleRoot",
+    inputs: [],
     outputs: [
       {
-        internalType: "bytes32",
         name: "",
         type: "bytes32",
+        internalType: "bytes32",
       },
     ],
     stateMutability: "view",
-    type: "function",
+  },
+  {
+    type: "event",
+    name: "Claimed",
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "RootUpdated",
+    inputs: [
+      {
+        name: "oldRoot",
+        type: "bytes32",
+        indexed: false,
+        internalType: "bytes32",
+      },
+      {
+        name: "newRoot",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

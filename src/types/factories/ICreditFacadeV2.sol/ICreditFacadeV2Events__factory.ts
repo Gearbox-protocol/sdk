@@ -11,325 +11,325 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
+    type: "event",
+    name: "AddCollateral",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "onBehalfOf",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
-        name: "token",
-        type: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
         name: "value",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
-    name: "AddCollateral",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "BlacklistHelperSet",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "blacklistHelper",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    name: "BlacklistHelperSet",
-    type: "event",
+    anonymous: false,
   },
   {
-    anonymous: false,
+    type: "event",
+    name: "CloseCreditAccount",
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "borrower",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "to",
         type: "address",
-      },
-    ],
-    name: "CloseCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
       },
     ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "DecreaseBorrowedAmount",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "borrower",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
-      },
-    ],
-    name: "IncreaseBorrowedAmount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: false,
         internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "IncreaseBorrowedAmount",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "IncurLossOnLiquidation",
+    inputs: [
+      {
         name: "loss",
         type: "uint256",
-      },
-    ],
-    name: "IncurLossOnLiquidation",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "liquidator",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
         indexed: false,
         internalType: "uint256",
-        name: "remainingFunds",
-        type: "uint256",
       },
     ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "LiquidateCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "borrower",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "liquidator",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "to",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "remainingFunds",
         type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
     ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "LiquidateExpiredCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [],
-    name: "MultiCallFinished",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
         name: "borrower",
         type: "address",
-      },
-    ],
-    name: "MultiCallStarted",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
+        name: "liquidator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "remainingFunds",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MultiCallFinished",
+    inputs: [],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MultiCallStarted",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "OpenCreditAccount",
+    inputs: [
+      {
         name: "onBehalfOf",
         type: "address",
-      },
-      {
         indexed: true,
         internalType: "address",
+      },
+      {
         name: "creditAccount",
         type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
         name: "borrowAmount",
         type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint16",
-        name: "referralCode",
-        type: "uint16",
-      },
-    ],
-    name: "OpenCreditAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "TokenDisabled",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "TokenEnabled",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "oldOwner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "TransferAccount",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "state",
-        type: "bool",
-      },
-    ],
-    name: "TransferAccountAllowed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "borrower",
-        type: "address",
-      },
-      {
         indexed: false,
         internalType: "uint256",
-        name: "amount",
-        type: "uint256",
+      },
+      {
+        name: "referralCode",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
       },
     ],
-    name: "UnderlyingSentToBlacklistHelper",
+    anonymous: false,
+  },
+  {
     type: "event",
+    name: "TokenDisabled",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TokenEnabled",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TransferAccount",
+    inputs: [
+      {
+        name: "oldOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "newOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TransferAccountAllowed",
+    inputs: [
+      {
+        name: "from",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "state",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "UnderlyingSentToBlacklistHelper",
+    inputs: [
+      {
+        name: "borrower",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
 ] as const;
 

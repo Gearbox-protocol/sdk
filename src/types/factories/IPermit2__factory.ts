@@ -8,140 +8,140 @@ import type { IPermit2, IPermit2Interface } from "../IPermit2";
 
 const _abi = [
   {
+    type: "function",
+    name: "allowance",
     inputs: [
       {
-        internalType: "address",
         name: "user",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "spender",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "allowance",
     outputs: [
       {
-        components: [
-          {
-            internalType: "uint160",
-            name: "amount",
-            type: "uint160",
-          },
-          {
-            internalType: "uint48",
-            name: "expiration",
-            type: "uint48",
-          },
-          {
-            internalType: "uint48",
-            name: "nonce",
-            type: "uint48",
-          },
-        ],
-        internalType: "struct IPermit2.PackedAllowance",
         name: "",
         type: "tuple",
+        internalType: "struct IPermit2.PackedAllowance",
+        components: [
+          {
+            name: "amount",
+            type: "uint160",
+            internalType: "uint160",
+          },
+          {
+            name: "expiration",
+            type: "uint48",
+            internalType: "uint48",
+          },
+          {
+            name: "nonce",
+            type: "uint48",
+            internalType: "uint48",
+          },
+        ],
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "permit",
     inputs: [
       {
-        internalType: "address",
         name: "owner",
         type: "address",
+        internalType: "address",
       },
       {
-        components: [
-          {
-            components: [
-              {
-                internalType: "address",
-                name: "token",
-                type: "address",
-              },
-              {
-                internalType: "uint160",
-                name: "amount",
-                type: "uint160",
-              },
-              {
-                internalType: "uint48",
-                name: "expiration",
-                type: "uint48",
-              },
-              {
-                internalType: "uint48",
-                name: "nonce",
-                type: "uint48",
-              },
-            ],
-            internalType: "struct IPermit2.PermitDetails",
-            name: "details",
-            type: "tuple",
-          },
-          {
-            internalType: "address",
-            name: "spender",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "sigDeadline",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct IPermit2.PermitSingle",
         name: "permitSingle",
         type: "tuple",
+        internalType: "struct IPermit2.PermitSingle",
+        components: [
+          {
+            name: "details",
+            type: "tuple",
+            internalType: "struct IPermit2.PermitDetails",
+            components: [
+              {
+                name: "token",
+                type: "address",
+                internalType: "address",
+              },
+              {
+                name: "amount",
+                type: "uint160",
+                internalType: "uint160",
+              },
+              {
+                name: "expiration",
+                type: "uint48",
+                internalType: "uint48",
+              },
+              {
+                name: "nonce",
+                type: "uint48",
+                internalType: "uint48",
+              },
+            ],
+          },
+          {
+            name: "spender",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "sigDeadline",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
       },
       {
-        internalType: "bytes",
         name: "signature",
         type: "bytes",
+        internalType: "bytes",
       },
     ],
-    name: "permit",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "transferFrom",
     inputs: [
       {
-        internalType: "address",
         name: "user",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "address",
         name: "spender",
         type: "address",
+        internalType: "address",
       },
       {
-        internalType: "uint160",
         name: "amount",
         type: "uint160",
+        internalType: "uint160",
       },
       {
-        internalType: "address",
         name: "token",
         type: "address",
+        internalType: "address",
       },
     ],
-    name: "transferFrom",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
 ] as const;
 
