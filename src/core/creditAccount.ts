@@ -106,6 +106,8 @@ interface LiquidationPriceProps {
   assets: Record<string, Asset>;
 }
 
+const MAX_UINT16 = 65535;
+
 export class CreditAccountData {
   readonly isSuccessful: boolean;
 
@@ -394,6 +396,8 @@ export class CreditAccountData {
 
     prices,
   }: CalcHealthFactorProps): number {
+    if (debt === 0n) return MAX_UINT16;
+
     const [, underlyingDecimals] = extractTokenData(underlyingToken);
     const underlyingPrice = prices[underlyingToken] || 0n;
 
