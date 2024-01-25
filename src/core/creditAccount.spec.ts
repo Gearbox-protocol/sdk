@@ -356,7 +356,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       debt: 0n,
     });
 
-    expect(result).to.be.eq(0);
+    expect(result).to.be.eq(65535);
   });
   it("health factor after add collateral is calculated  correctly", () => {
     const collateral: Asset = {
