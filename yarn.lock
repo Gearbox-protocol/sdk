@@ -1371,10 +1371,24 @@
     "@gearbox-protocol/integrations-v3" "1.7.0-legacy.4"
     "@gearbox-protocol/sdk-gov" "^1.10.3"
 
-"@gearbox-protocol/sdk-gov@^1.10.3", "@gearbox-protocol/sdk-gov@^1.16.0":
+"@gearbox-protocol/sdk-gov@^1.10.3":
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.16.0.tgz#0a4795333175f93afa43331fc1d52c9a73c79e7e"
   integrity sha512-qr4NkARfjqvN6WHu29Y5zzxoYouMvNdv31flaZ3SyfwNKBOGiokmgh3cFZstN9Qq/mk2u+wW9/R5ooK+D73g9g==
+  dependencies:
+    "@types/yaml" "^1.9.7"
+    add "^2.0.6"
+    deep-object-diff "^1.1.9"
+    ethers "5.6.9"
+    humanize-duration-ts "^2.1.1"
+    yaml "^2.3.2"
+    yarn "^1.22.19"
+    zod "^3.22.2"
+
+"@gearbox-protocol/sdk-gov@^1.24.1":
+  version "1.24.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.24.1.tgz#162eee1ca32c6a77681a0ab69cf58952366f1654"
+  integrity sha512-0mdczebZRXnAAGKYbas1VqInEKzzflA0DrtRAFeTKRpD49/x+Iv3JoU7Ih9A+Hgl4kXQMeSdVvOxpKVSldfC/Q==
   dependencies:
     "@types/yaml" "^1.9.7"
     add "^2.0.6"
