@@ -70,7 +70,8 @@ interface CurvePoolDataResponse {
 
 type CurveAPYTokens = CurveLPToken | GearboxToken;
 
-const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
+// !& wstETHCRV
+const APY_DICTIONARY: Record<Exclude<CurveAPYTokens, "wstETHCRV">, string> = {
   "3Crv": "0", // 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
   FRAX3CRV: "34", // 0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B
   gusd3CRV: "19", // 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956
@@ -90,8 +91,6 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   crvUSDFRAX: "factory-crvusd-4", // 0x0CD6f267b2086bea681E922E19D40512511BE538
   crvUSDETHCRV: "factory-tricrypto-4", // 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14
   rETH_f: "factory-crypto-210", // 0x0f3159811670c117c372428D4E69AC32325e4D0F
-
-  wstETHCRV: "", // !&
 };
 
 const CRV_APY_RESPONSE_DECIMALS = 100;
