@@ -8,6 +8,7 @@ import {
 export const stEthPoolWrapper: Record<NetworkType, string> = {
   Mainnet: "0x5a97e3E43dCBFe620ccF7865739075f92E93F5E4",
   Arbitrum: "0x3fe62a62C022A069952069b32C9d56718D30B7ec",
+  Optimism: "",
 };
 
 type MainnetCreditManagersV1 = "DAI_V1" | "USDC_V1" | "WETH_V1" | "WBTC_V1";
@@ -37,12 +38,15 @@ export type MainnetCreditManagers =
   | MainnetCreditManagersV3;
 
 export type ArbitrumCreditManagers = never;
+export type OptimismCreditManagers = never;
 
 type CreditManagersListType = {
   [key in NetworkType]: key extends "Mainnet"
     ? Record<MainnetCreditManagers, string>
     : key extends "Arbitrum"
     ? Record<ArbitrumCreditManagers, string>
+    : key extends "Optimism"
+    ? Record<OptimismCreditManagers, string>
     : never;
 };
 
@@ -84,6 +88,7 @@ export const creditManagerByNetwork: CreditManagersListType = {
       "0x0b2486355e987586c32fc0feefe2943e396c484e".toLowerCase(),
   },
   Arbitrum: {},
+  Optimism: {},
 };
 
 export type SupportedCreditManagers =
@@ -120,12 +125,15 @@ export type MainnetPoolsV3 =
 export type MainnetPools = MainnetPoolsV1 | MainnetPoolsV3;
 
 export type ArbitrumPools = never;
+export type OptimismPools = never;
 
 type PoolsListType = {
   [key in NetworkType]: key extends "Mainnet"
     ? Record<MainnetPools, string>
     : key extends "Arbitrum"
     ? Record<ArbitrumPools, string>
+    : key extends "Optimism"
+    ? Record<OptimismPools, string>
     : never;
 };
 
@@ -143,6 +151,7 @@ export const poolByNetwork: PoolsListType = {
     WETH_V3_TRADE: "0xda0002859b2d05f66a753d8241fcde8623f26f4f".toLowerCase(),
   },
   Arbitrum: {},
+  Optimism: {},
 };
 
 export type SupportedPools = MainnetPools | ArbitrumPools;

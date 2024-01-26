@@ -44,6 +44,9 @@ const MAKER_BY_NETWORK: Record<
   Arbitrum: {
     MAKER_DSR_VAULT: "",
   },
+  Optimism: {
+    MAKER_DSR_VAULT: "",
+  },
 };
 
 interface PoolInfo {
