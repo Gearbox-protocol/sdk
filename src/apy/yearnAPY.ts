@@ -41,7 +41,7 @@ export async function getYearnAPY(): Promise<YearnAPYResult | null> {
       yearnTokens,
     ).reduce<YearnAPYResult>((acc, [yearnSymbol]) => {
       const { apy } = dataBySymbol[transformSymbol(yearnSymbol)] || {};
-      const { net_apy: netApy } = apy || {};
+      const { net_apy: netApy = 0 } = apy || {};
 
       acc[yearnSymbol] = toBN(
         (netApy / RESPONSE_DECIMALS).toString(),

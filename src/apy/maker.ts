@@ -6,7 +6,7 @@ import {
   toBigInt,
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber } from "ethers";
+import { BigNumberish } from "ethers";
 import { Interface } from "ethers/lib/utils";
 
 import { toBN, toSignificant } from "../utils/formatter";
@@ -42,6 +42,9 @@ const MAKER_BY_NETWORK: Record<
     MAKER_DSR_VAULT: "0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7",
   },
   Arbitrum: {
+    MAKER_DSR_VAULT: "",
+  },
+  Optimism: {
     MAKER_DSR_VAULT: "",
   },
 };
@@ -82,7 +85,7 @@ type GetMakerAPYBulkCallsReturns = ReturnType<typeof getMakerAPYBulkCalls>;
 
 export interface GetMakerAPYBulkProps {
   generated: GetMakerAPYBulkCallsReturns;
-  response: Array<BigNumber>;
+  response: Array<BigNumberish>;
 }
 
 export function getMakerAPYBulk(props: GetMakerAPYBulkProps) {

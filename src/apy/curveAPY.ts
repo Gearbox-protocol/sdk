@@ -70,7 +70,8 @@ interface CurvePoolDataResponse {
 
 type CurveAPYTokens = CurveLPToken | GearboxToken;
 
-const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
+// !& wstETHCRV
+const APY_DICTIONARY: Record<Exclude<CurveAPYTokens, "wstETHCRV">, string> = {
   "3Crv": "0", // 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
   FRAX3CRV: "34", // 0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B
   gusd3CRV: "19", // 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956

@@ -26,7 +26,7 @@ import {
   supportedTokens,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/token";
-import { BigNumber } from "ethers";
+import { BigNumberish } from "ethers";
 import { Interface } from "ethers/lib/utils";
 
 import {
@@ -50,13 +50,13 @@ export interface GetConvexAPYBulkProps {
   getTokenPrice: GetTokenPriceCallback;
   curveAPY: CurveAPYResult;
   generated: GetConvexAPYBulkCallsReturns;
-  response: Array<BigNumber>;
+  response: Array<BigNumberish>;
 }
 
 export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
   const { poolsInfo, calls } = props.generated;
 
-  const [parsedResponse] = calls.reduce<[Array<Array<BigNumber>>, number]>(
+  const [parsedResponse] = calls.reduce<[Array<Array<BigNumberish>>, number]>(
     ([acc, start], call) => {
       const end = start + call.length;
 
@@ -300,6 +300,8 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
   const crvPerSecond = props.cvxPoolRate;
   const vPrice = getVirtualPrice(props);
   const virtualSupply = (props.cvxPoolSupply * vPrice) / WAD;
+  if (!virtualSupply) return 0n;
+
   const crvPerUnderlying = (crvPerSecond * WAD) / virtualSupply;
 
   const crvPerYear = crvPerUnderlying * BigInt(SECONDS_PER_YEAR);
