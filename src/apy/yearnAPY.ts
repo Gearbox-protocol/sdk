@@ -9,11 +9,11 @@ import axios from "axios";
 import { toBN } from "../utils/formatter";
 
 interface YearnAPYData {
-  apy: {
-    gross_apr: number;
-    net_apy: number;
+  apr: {
+    netAPR: number;
   };
 
+  address: string;
   symbol: string;
   display_name: string;
 }
@@ -22,7 +22,7 @@ type Response = Array<YearnAPYData>;
 
 const RESPONSE_DECIMALS = 1;
 
-const URL = "https://api.yexporter.io/v1/chains/1/vaults/all";
+const URL = "https://ydaemon.yearn.finance/vaults/all?chainids=1&limit=2500";
 
 export type YearnAPYResult = Record<YearnLPToken, bigint>;
 
@@ -40,8 +40,11 @@ export async function getYearnAPY(): Promise<YearnAPYResult | null> {
     const yearnAPY = TypedObjectUtils.entries(
       yearnTokens,
     ).reduce<YearnAPYResult>((acc, [yearnSymbol]) => {
-      const { apy } = dataBySymbol[transformSymbol(yearnSymbol)] || {};
-      const { net_apy: netApy = 0 } = apy || {};
+      const symbol = transformSymbol(yearnSymbol);
+      const data = dataBySymbol[symbol];
+      const { apr: apy } = data || {};
+      const { netAPR } = apy || {};
+      const netApy = netAPR || 0;
 
       acc[yearnSymbol] = toBN(
         (netApy / RESPONSE_DECIMALS).toString(),
