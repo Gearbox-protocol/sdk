@@ -5,8 +5,8 @@ export const GEARBOX_RPC_CHAIN_ID = 7878;
 type ChartsPriceSource = "chainlink" | "spot";
 
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
-  [CHAINS.Mainnet]: "https://mainnet.gearbox.foundation",
-  [CHAINS.Local]: "https://mainnet.gearbox.foundation",
+  [CHAINS.Mainnet]: "https://charts-server.fly.dev",
+  [CHAINS.Local]: "https://charts-server.fly.dev",
   [GEARBOX_RPC_CHAIN_ID]: "https://testnet.gearbox.foundation",
 };
 
