@@ -5,13 +5,12 @@ import {
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 
+import { TokensWithAPY } from "../apy";
 import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {
-  apy?: number;
-
   name: string;
-  lpToken: string;
+  lpTokenSymbol: TokensWithAPY;
   protocol: Protocols;
 
   creditManagers: Array<string>;
@@ -28,9 +27,8 @@ interface CalculateMaxAPYProps {
 }
 
 export class Strategy {
-  apy: number | undefined;
   readonly name: string;
-  readonly lpToken: string;
+  readonly lpTokenSymbol: TokensWithAPY;
   readonly protocol: Protocols;
 
   readonly collateralTokens: Array<SupportedToken>;
@@ -39,10 +37,8 @@ export class Strategy {
   readonly creditManagers: Array<string>;
 
   constructor(payload: StrategyPayload) {
-    this.apy = payload.apy;
-
     this.name = payload.name;
-    this.lpToken = payload.lpToken.toLowerCase();
+    this.lpTokenSymbol = payload.lpTokenSymbol;
     this.protocol = payload.protocol;
     this.creditManagers = payload.creditManagers.map(addr =>
       addr.toLowerCase(),
