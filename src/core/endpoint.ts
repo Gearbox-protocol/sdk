@@ -1,13 +1,18 @@
 import { CHAINS } from "@gearbox-protocol/sdk-gov";
 
-export const GEARBOX_RPC_CHAIN_ID = 7878;
+export const TESTNET_CHAINS = {
+  Mainnet: 7878,
+  Optimism: 7879,
+} as const;
 
 type ChartsPriceSource = "chainlink" | "spot";
 
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [CHAINS.Mainnet]: "https://charts-server.fly.dev",
   [CHAINS.Local]: "https://charts-server.fly.dev",
-  [GEARBOX_RPC_CHAIN_ID]: "https://testnet.gearbox.foundation",
+  [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
+  // !& test server for optimism
+  [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation",
 };
 
 interface Options {

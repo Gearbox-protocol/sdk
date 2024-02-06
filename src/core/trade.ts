@@ -3,7 +3,6 @@ import {
   decimals,
   formatBN,
   isSupportedContract,
-  SupportedContract,
   tokenSymbolByAddress,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
@@ -14,7 +13,6 @@ import { CreditManagerData } from "./creditManager";
 
 interface Info {
   name: string;
-  contractAddress: string;
   creditManager: string;
   creditManagerName: string;
 }
@@ -42,7 +40,6 @@ export interface GetTradesProps {
   results: Array<PathFinderResult>;
 
   creditManager: CreditManagerData;
-  currentContracts: Record<SupportedContract, string>;
 
   swapOperation: SwapOperation;
   swapName: TradeOperations;
@@ -104,7 +101,6 @@ export class Trade {
     results,
 
     creditManager,
-    currentContracts,
 
     swapOperation,
     swapName,
@@ -114,7 +110,6 @@ export class Trade {
       const callInfo = Trade.getCallInfo(
         calls,
         creditManager.address,
-        currentContracts,
         creditManager.name,
       );
 
@@ -146,7 +141,6 @@ export class Trade {
   static getCallInfo(
     calls: Array<MultiCall>,
     creditManager: string,
-    currentContracts: Record<SupportedContract, string>,
     creditManagerName: string,
   ) {
     const callAdapters = calls.reduce<Array<Info>>((acc, call) => {
@@ -157,11 +151,9 @@ export class Trade {
       }
 
       const { name } = contractParams[contractSymbol];
-      const contractAddress = currentContracts[contractSymbol];
 
       acc.push({
         name,
-        contractAddress,
         creditManager,
         creditManagerName,
       });

@@ -233,7 +233,7 @@ export class TXSwap extends EVMTx implements CMEvent {
     }: ${this.operation} ${formatBN(
       this.amountFrom,
       fromDecimals || 18,
-    )} ${fromSymbol} ${toPart} on ${getContractName(this.protocol)}`;
+    )} ${fromSymbol} ${toPart} on ${this.protocol}`;
   }
 
   serialize(): TxSerialized {
