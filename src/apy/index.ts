@@ -5,12 +5,19 @@ import {
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 
-export type AdditionalTokenWithAPY = Extract<SupportedToken, "STETH">;
+export type AdditionalTokenWithAPY = Extract<
+  SupportedToken,
+  "STETH" | "weETH" | "osETH" | "rETH" | "wstETH"
+>;
 export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {
   STETH: true,
+  weETH: true,
+  osETH: true,
+  rETH: true,
+  wstETH: true,
 };
 
-export type TokensWithAPY = LPTokens | Extract<SupportedToken, "STETH">;
+export type TokensWithAPY = LPTokens | AdditionalTokenWithAPY;
 export type LpTokensAPY = PartialRecord<TokensWithAPY, number>;
 
 export const isTokenWithAPY = (t: unknown): t is TokensWithAPY =>
