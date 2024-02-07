@@ -30,11 +30,11 @@ describe("PathFinder test", () => {
   it("has all expected connectors", () => {
     const pf = new PathFinder("", new providers.JsonRpcProvider(), "Mainnet");
     const allowedTokens = {
-      [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: true,
       [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: true,
       [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: true,
+      [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: true,
       [tokenDataByNetwork.Mainnet.FRAX.toLowerCase()]: true,
-      [tokenDataByNetwork.Mainnet.USDT.toLowerCase()]: true,
+      [tokenDataByNetwork.Mainnet.rETH.toLowerCase()]: true,
     } as const;
     expect(pf.getAvailableConnectors(allowedTokens)).to.be.deep.equal([
       tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
