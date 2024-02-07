@@ -1,9 +1,7 @@
-import { TypedObjectUtils, WAD_DECIMALS_POW } from "@gearbox-protocol/sdk-gov";
+import { PERCENTAGE_FACTOR, TypedObjectUtils } from "@gearbox-protocol/sdk-gov";
 import { CurveLPToken } from "@gearbox-protocol/sdk-gov/lib/tokens/curveLP";
 import { GearboxToken } from "@gearbox-protocol/sdk-gov/lib/tokens/gear";
 import axios from "axios";
-
-import { toBN } from "../utils/formatter";
 
 interface CurveAPYData {
   baseApy: number;
@@ -70,8 +68,7 @@ interface CurvePoolDataResponse {
 
 type CurveAPYTokens = CurveLPToken | GearboxToken;
 
-// !& wstETHCRV
-const APY_DICTIONARY: Record<Exclude<CurveAPYTokens, "wstETHCRV">, string> = {
+const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   "3Crv": "0", // 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
   FRAX3CRV: "34", // 0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B
   gusd3CRV: "19", // 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956
@@ -95,9 +92,8 @@ const APY_DICTIONARY: Record<Exclude<CurveAPYTokens, "wstETHCRV">, string> = {
   crvUSDETHCRV: "factory-tricrypto-4", // 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14
 
   rETH_f: "factory-crypto-210", // 0x0f3159811670c117c372428D4E69AC32325e4D0F
+  wstETHCRV: "unknown",
 };
-
-const CRV_APY_RESPONSE_DECIMALS = 100;
 
 // const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
 // const FACTORY = "https://api.curve.fi/api/getPools/ethereum/factory";
@@ -112,13 +108,13 @@ const CURVE_FACTORY_CRVUSD_URL =
   "https://api.curve.fi/api/getPools/ethereum/factory-crvusd";
 
 interface CurveAPY {
-  base: bigint;
-  crv: bigint;
-  gauge: Array<[string, bigint]>;
+  base: number;
+  crv: number;
+  gauge: Array<[string, number]>;
 }
 export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
 
-export async function getCurveAPY(): Promise<CurveAPYResult | null> {
+export async function getCurveAPY(): Promise<CurveAPYResult> {
   try {
     const [{ data: apyData }, ...restData] = await Promise.all([
       axios.get<CurveAPYDataResponse>(CURVE_APY_URL),
@@ -144,15 +140,11 @@ export async function getCurveAPY(): Promise<CurveAPYResult | null> {
       APY_DICTIONARY,
     ).reduce<CurveAPYResult>((acc, [curveSymbol, poolId]) => {
       const { baseApy, crvApy } = apys[poolId] || {};
-      if (baseApy === undefined)
-        console.warn(`No base apy for: ${curveSymbol}, ${poolId}`);
-
       const pool = poolDataByID[poolId];
       const { gaugeRewards = [] } = pool || {};
-      if (pool === undefined)
-        console.warn(`No pool data for: ${curveSymbol}, ${poolId}`);
+
       const extraRewards = gaugeRewards.map(
-        ({ apy = 0, symbol }): [string, bigint] => [
+        ({ apy = 0, symbol }): [string, number] => [
           symbol.toLowerCase(),
           curveAPYToBn(apy),
         ],
@@ -173,13 +165,10 @@ export async function getCurveAPY(): Promise<CurveAPYResult | null> {
     return curveAPY;
   } catch (e) {
     console.error(e);
-    return null;
+    return {} as CurveAPYResult;
   }
 }
 
 function curveAPYToBn(baseApy: number) {
-  return toBN(
-    (baseApy / CRV_APY_RESPONSE_DECIMALS).toString(),
-    WAD_DECIMALS_POW,
-  );
+  return Math.round(baseApy * Number(PERCENTAGE_FACTOR));
 }

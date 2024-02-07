@@ -8,6 +8,8 @@ import {
   CurveSteCRVPoolParams,
   MCall,
   NetworkType,
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   SECONDS_PER_YEAR,
   toBigInt,
@@ -300,7 +302,7 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
   const crvPerSecond = props.cvxPoolRate;
   const vPrice = getVirtualPrice(props);
   const virtualSupply = (props.cvxPoolSupply * vPrice) / WAD;
-  if (!virtualSupply) return 0n;
+  if (!virtualSupply) return 0;
 
   const crvPerUnderlying = (crvPerSecond * WAD) / virtualSupply;
 
@@ -334,9 +336,13 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
 
   const extraAPYTotal = extraAPRs.reduce((acc, apy) => acc + apy, 0n);
 
-  const baseApyWAD = props.curveAPY[crvToken].base;
+  const baseApy = props.curveAPY[crvToken].base;
 
-  return baseApyWAD + crvAPY + cvxAPY + extraAPYTotal;
+  const apyTotal = crvAPY + cvxAPY + extraAPYTotal;
+  const apyTotalInPercent = apyTotal * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR;
+  const r = baseApy + Math.round(Number((apyTotalInPercent * 10n) / WAD) / 10);
+
+  return r;
 }
 
 function getTimestampInSeconds() {

@@ -3,13 +3,14 @@ import {
   ERC4626Params,
   ERC4626VaultContract,
   NetworkType,
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
   toBigInt,
-  WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 import { Interface } from "ethers/lib/utils";
 
-import { toBN, toSignificant } from "../utils/formatter";
+import { toSignificant } from "../utils/formatter";
 
 export const MAKER_VAULT_ABI = [
   {
@@ -114,5 +115,9 @@ function calculateMakerAPY(props: CalculateMakerAPYProps) {
   const rateFloat = Number(toSignificant(props.baseApy, 27, 27));
   const rate = Math.max(0, rateFloat ** POW - 1);
 
-  return toBN(rate.toString(), WAD_DECIMALS_POW);
+  const r = Math.round(
+    Number(rate * Number(PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR)),
+  );
+
+  return r;
 }
