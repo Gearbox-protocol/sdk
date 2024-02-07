@@ -27,6 +27,7 @@ export const isTokenWithAPY = (t: unknown): t is TokensWithAPY =>
 
 export * from "./convexAPY";
 export * from "./curveAPY";
+export * from "./defiLamaAPY";
 export * from "./lidoAPY";
 export * from "./maker";
 export * from "./yearnAPY";
