@@ -37,11 +37,24 @@ describe("PathFinder test", () => {
       [tokenDataByNetwork.Mainnet.rETH.toLowerCase()]: true,
     } as const;
     expect(pf.getAvailableConnectors(allowedTokens)).to.be.deep.equal([
-      tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
       tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
-      // tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
-      tokenDataByNetwork.Mainnet.USDT.toLowerCase(),
+      tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+      tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
       tokenDataByNetwork.Mainnet.FRAX.toLowerCase(),
+      tokenDataByNetwork.Mainnet.rETH.toLowerCase(),
+    ]);
+  });
+  it("has all expected connectors, when gew are disabled", () => {
+    const pf = new PathFinder("", new providers.JsonRpcProvider(), "Mainnet");
+    const allowedTokens = {
+      [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: true,
+      [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: true,
+      [tokenDataByNetwork.Mainnet.rETH.toLowerCase()]: true,
+    } as const;
+    expect(pf.getAvailableConnectors(allowedTokens)).to.be.deep.equal([
+      tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+      tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+      tokenDataByNetwork.Mainnet.rETH.toLowerCase(),
     ]);
   });
 });
