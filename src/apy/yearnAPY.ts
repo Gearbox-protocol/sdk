@@ -1,12 +1,13 @@
 import {
+  CHAINS,
+  NetworkType,
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
   TypedObjectUtils,
-  WAD_DECIMALS_POW,
   YearnLPToken,
   yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-
-import { toBN } from "../utils/formatter";
 
 interface YearnAPYData {
   apr: {
@@ -20,17 +21,20 @@ interface YearnAPYData {
 
 type Response = Array<YearnAPYData>;
 
-const RESPONSE_DECIMALS = 1;
+const getUrl = (chainId: number) =>
+  `https://ydaemon.yearn.finance/vaults/all?chainids=${chainId}&limit=2500`;
 
-const URL = "https://ydaemon.yearn.finance/vaults/all?chainids=1&limit=2500";
-
-export type YearnAPYResult = Record<YearnLPToken, bigint>;
+export type YearnAPYResult = Record<YearnLPToken, number>;
 
 const transformSymbol = (s: string) => s.replaceAll("_", "-").toLowerCase();
 
-export async function getYearnAPY(): Promise<YearnAPYResult | null> {
+export async function getYearnAPY(
+  network: NetworkType,
+): Promise<YearnAPYResult> {
   try {
-    const { data } = await axios.get<Response>(URL);
+    const chainId = CHAINS[network];
+
+    const { data } = await axios.get<Response>(getUrl(chainId));
 
     const dataBySymbol = data.reduce<Record<string, YearnAPYData>>((acc, d) => {
       acc[d.symbol.toLowerCase()] = d;
@@ -46,15 +50,16 @@ export async function getYearnAPY(): Promise<YearnAPYResult | null> {
       const { netAPR } = apy || {};
       const netApy = netAPR || 0;
 
-      acc[yearnSymbol] = toBN(
-        (netApy / RESPONSE_DECIMALS).toString(),
-        WAD_DECIMALS_POW,
+      const r = Math.round(
+        netApy * Number(PERCENTAGE_FACTOR) * Number(PERCENTAGE_DECIMALS),
       );
+      acc[yearnSymbol] = r;
+
       return acc;
     }, {} as YearnAPYResult);
 
     return yearnAPY;
   } catch (e) {
-    return null;
+    return {} as YearnAPYResult;
   }
 }

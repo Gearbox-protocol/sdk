@@ -1,9 +1,7 @@
-import { TypedObjectUtils, WAD_DECIMALS_POW } from "@gearbox-protocol/sdk-gov";
+import { PERCENTAGE_FACTOR, TypedObjectUtils } from "@gearbox-protocol/sdk-gov";
 import { CurveLPToken } from "@gearbox-protocol/sdk-gov/lib/tokens/curveLP";
 import { GearboxToken } from "@gearbox-protocol/sdk-gov/lib/tokens/gear";
 import axios from "axios";
-
-import { toBN } from "../utils/formatter";
 
 interface CurveAPYData {
   baseApy: number;
@@ -70,8 +68,7 @@ interface CurvePoolDataResponse {
 
 type CurveAPYTokens = CurveLPToken | GearboxToken;
 
-// !& wstETHCRV
-const APY_DICTIONARY: Record<Exclude<CurveAPYTokens, "wstETHCRV">, string> = {
+const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   "3Crv": "0", // 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
   FRAX3CRV: "34", // 0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B
   gusd3CRV: "19", // 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956
@@ -79,21 +76,24 @@ const APY_DICTIONARY: Record<Exclude<CurveAPYTokens, "wstETHCRV">, string> = {
   crvPlain3andSUSD: "15", // 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD
   steCRV: "14", // 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022
   crvFRAX: "44", // 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2
+
   GEAR: "factory-crypto-192", // 0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2
   OHMFRAXBP: "factory-crypto-158", // 0xfc1e8bf3e81383ef07be24c3fd146745719de48d
   MIM_3LP3CRV: "40", // 0x5a6a4d54456819380173272a5e8e9b9904bdf41b
+
   crvCRVETH: "crypto-3", // 0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511
   crvCVXETH: "crypto-4", // 0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4
   crvUSDTWBTCWETH: "factory-tricrypto-1", // 0xf5f5B97624542D72A9E06f04804Bf81baA15e2B4
   LDOETH: "factory-crypto-204", // "0x9409280DC1e6D33AB7A8C6EC03e5763FB61772B5"
+
   crvUSDUSDC: "factory-crvusd-0", // 0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E
   crvUSDUSDT: "factory-crvusd-1", // 0x390f3595bCa2Df7d23783dFd126427CCeb997BF4
   crvUSDFRAX: "factory-crvusd-4", // 0x0CD6f267b2086bea681E922E19D40512511BE538
   crvUSDETHCRV: "factory-tricrypto-4", // 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14
-  rETH_f: "factory-crypto-210", // 0x0f3159811670c117c372428D4E69AC32325e4D0F
-};
 
-const CRV_APY_RESPONSE_DECIMALS = 100;
+  rETH_f: "factory-crypto-210", // 0x0f3159811670c117c372428D4E69AC32325e4D0F
+  wstETHCRV: "unknown",
+};
 
 // const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
 // const FACTORY = "https://api.curve.fi/api/getPools/ethereum/factory";
@@ -108,13 +108,13 @@ const CURVE_FACTORY_CRVUSD_URL =
   "https://api.curve.fi/api/getPools/ethereum/factory-crvusd";
 
 interface CurveAPY {
-  base: bigint;
-  crv: bigint;
-  gauge: Array<[string, bigint]>;
+  base: number;
+  crv: number;
+  gauge: Array<[string, number]>;
 }
 export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
 
-export async function getCurveAPY(): Promise<CurveAPYResult | null> {
+export async function getCurveAPY(): Promise<CurveAPYResult> {
   try {
     const [{ data: apyData }, ...restData] = await Promise.all([
       axios.get<CurveAPYDataResponse>(CURVE_APY_URL),
@@ -140,15 +140,11 @@ export async function getCurveAPY(): Promise<CurveAPYResult | null> {
       APY_DICTIONARY,
     ).reduce<CurveAPYResult>((acc, [curveSymbol, poolId]) => {
       const { baseApy, crvApy } = apys[poolId] || {};
-      if (baseApy === undefined)
-        console.warn(`No base apy for: ${curveSymbol}, ${poolId}`);
-
       const pool = poolDataByID[poolId];
       const { gaugeRewards = [] } = pool || {};
-      if (pool === undefined)
-        console.warn(`No pool data for: ${curveSymbol}, ${poolId}`);
+
       const extraRewards = gaugeRewards.map(
-        ({ apy = 0, symbol }): [string, bigint] => [
+        ({ apy = 0, symbol }): [string, number] => [
           symbol.toLowerCase(),
           curveAPYToBn(apy),
         ],
@@ -169,13 +165,10 @@ export async function getCurveAPY(): Promise<CurveAPYResult | null> {
     return curveAPY;
   } catch (e) {
     console.error(e);
-    return null;
+    return {} as CurveAPYResult;
   }
 }
 
 function curveAPYToBn(baseApy: number) {
-  return toBN(
-    (baseApy / CRV_APY_RESPONSE_DECIMALS).toString(),
-    WAD_DECIMALS_POW,
-  );
+  return Math.round(baseApy * Number(PERCENTAGE_FACTOR));
 }
