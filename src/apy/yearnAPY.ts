@@ -1,4 +1,6 @@
 import {
+  CHAINS,
+  NetworkType,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   TypedObjectUtils,
@@ -19,15 +21,20 @@ interface YearnAPYData {
 
 type Response = Array<YearnAPYData>;
 
-const URL = "https://ydaemon.yearn.finance/vaults/all?chainids=1&limit=2500";
+const getUrl = (chainId: number) =>
+  `https://ydaemon.yearn.finance/vaults/all?chainids=${chainId}&limit=2500`;
 
 export type YearnAPYResult = Record<YearnLPToken, number>;
 
 const transformSymbol = (s: string) => s.replaceAll("_", "-").toLowerCase();
 
-export async function getYearnAPY(): Promise<YearnAPYResult> {
+export async function getYearnAPY(
+  network: NetworkType,
+): Promise<YearnAPYResult> {
   try {
-    const { data } = await axios.get<Response>(URL);
+    const chainId = CHAINS[network];
+
+    const { data } = await axios.get<Response>(getUrl(chainId));
 
     const dataBySymbol = data.reduce<Record<string, YearnAPYData>>((acc, d) => {
       acc[d.symbol.toLowerCase()] = d;
