@@ -1,10 +1,9 @@
 import {
   AwaitedRes,
+  getConnectors,
   NetworkType,
   RAY,
-  SupportedToken,
   toBigInt,
-  tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
@@ -64,26 +63,17 @@ export class PathFinder {
   pathFinder: IRouterV3;
   network: NetworkType;
 
-  public static connectors: Array<SupportedToken> = [
-    "USDC",
-    "WETH",
-    "USDT",
-    "FRAX",
-  ];
   protected readonly _connectors: Array<string>;
 
   constructor(
     address: string,
     provider: Signer | providers.Provider,
     network: NetworkType = "Mainnet",
-    connectors = PathFinder.connectors,
   ) {
     this.pathFinder = IRouterV3__factory.connect(address, provider);
     this.network = network;
 
-    this._connectors = connectors
-      .map(c => tokenDataByNetwork[this.network][c]?.toLowerCase())
-      .filter(t => !!t);
+    this._connectors = getConnectors(network);
   }
 
   async findAllSwaps({
