@@ -172,3 +172,22 @@ export async function getCurveAPY(): Promise<CurveAPYResult> {
 function curveAPYToBn(baseApy: number) {
   return Math.round(baseApy * Number(PERCENTAGE_FACTOR));
 }
+
+export async function getCurveGearPool(): Promise<CurvePoolData | undefined> {
+  const data = await Promise.all([
+    axios.get<CurvePoolDataResponse>(CURVE_FACTORY_CRYPTO_URL),
+  ]);
+
+  const poolDataByID = Object.fromEntries(
+    data
+      .map(resp => {
+        const { poolData = [] } = resp?.data?.data || {};
+        return poolData.map(p => [p.id, p] as const);
+      })
+      .flat(1),
+  );
+
+  const gearPool = poolDataByID[APY_DICTIONARY.GEAR];
+
+  return gearPool;
+}
