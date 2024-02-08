@@ -22,7 +22,7 @@ interface LamaResponse {
   data: Array<LamaItem>;
 }
 
-const LAMA_URL = "https://testnet.gearbox.foundation/api/defillama?ids=";
+const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
 
 export async function getDefiLamaAPY(
   networkType: NetworkType,
