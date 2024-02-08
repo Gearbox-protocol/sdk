@@ -50,12 +50,17 @@ type GetTokenPriceCallback = (
 
 export interface GetConvexAPYBulkProps {
   getTokenPrice: GetTokenPriceCallback;
-  curveAPY: CurveAPYResult;
+  curveAPY: CurveAPYResult | undefined;
   generated: GetConvexAPYBulkCallsReturns;
   response: Array<BigNumberish>;
+  network: NetworkType;
 }
 
 export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
+  if (props.network !== "Mainnet") {
+    return [];
+  }
+
   const { poolsInfo, calls } = props.generated;
 
   const [parsedResponse] = calls.reduce<[Array<Array<BigNumberish>>, number]>(
@@ -117,7 +122,7 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
 
 interface GetPoolInfoProps {
   pool: ConvexPoolContract;
-  networkType: NetworkType;
+  network: NetworkType;
 }
 
 interface PoolInfo {
@@ -135,15 +140,15 @@ interface PoolInfo {
 
 type CrvParams = CurveParams | CurveSteCRVPoolParams | CurveGEARPoolParams;
 
-function getPoolInfo({ pool, networkType }: GetPoolInfoProps): PoolInfo {
-  const tokenList = tokenDataByNetwork[networkType];
-  const contractsList = contractsByNetwork[networkType];
+function getPoolInfo({ pool, network }: GetPoolInfoProps): PoolInfo {
+  const tokenList = tokenDataByNetwork[network];
+  const contractsList = contractsByNetwork[network];
 
   const poolParams = contractParams[pool] as ConvexPoolParams;
   const basePoolAddress = contractsList[pool];
 
   const extraPoolAddresses = poolParams.extraRewards.map(
-    d => d.poolAddress[networkType],
+    d => d.poolAddress[network],
   );
 
   const stakedTokenParams = supportedTokens[
@@ -177,14 +182,18 @@ type GetConvexAPYBulkCallsReturns = ReturnType<typeof getConvexAPYBulkCalls>;
 
 export interface GetConvexAPYBulkCallsProps {
   pools: Array<ConvexPoolContract>;
-  networkType: NetworkType;
+  network: NetworkType;
 }
 
 export function getConvexAPYBulkCalls({
   pools,
-  networkType,
+  network,
 }: GetConvexAPYBulkCallsProps) {
-  const poolsInfo = pools.map(pool => getPoolInfo({ networkType, pool }));
+  if (network !== "Mainnet") {
+    return { poolsInfo: [], calls: [] };
+  }
+
+  const poolsInfo = pools.map(pool => getPoolInfo({ network, pool }));
   const calls = poolsInfo.map(info => getPoolDataCalls(info));
 
   return { poolsInfo, calls };
@@ -277,7 +286,7 @@ export interface CalculateConvexAPYProps {
 
   info: PoolInfo;
   getTokenPrice: GetTokenPriceCallback;
-  curveAPY: CurveAPYResult;
+  curveAPY: CurveAPYResult | undefined;
 }
 
 const CURRENCY_LIST: Partial<Record<ConvexStakedPhantomToken, SupportedToken>> =
@@ -336,7 +345,7 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
 
   const extraAPYTotal = extraAPRs.reduce((acc, apy) => acc + apy, 0n);
 
-  const baseApy = props.curveAPY[crvToken].base;
+  const baseApy = props.curveAPY?.[crvToken].base || 0;
 
   const apyTotal = crvAPY + cvxAPY + extraAPYTotal;
   const apyTotalInPercent = apyTotal * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR;

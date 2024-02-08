@@ -24,9 +24,12 @@ interface LidoApyResponse {
 
 const LIDO_URL = "https://eth-api.lido.fi/v1/protocol/steth/apr/sma";
 
-export async function getLidoAPY(): Promise<
-  PartialRecord<TokensWithAPY, number>
-> {
+export type LidoAPYResult = PartialRecord<
+  Extract<TokensWithAPY, "STETH" | "wstETH">,
+  number
+>;
+
+export async function getLidoAPY(): Promise<LidoAPYResult> {
   try {
     const res = await axios.get<LidoApyResponse>(LIDO_URL);
     const { smaApr = 0 } = res?.data?.data || {};
