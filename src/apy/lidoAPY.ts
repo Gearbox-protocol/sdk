@@ -1,8 +1,4 @@
-import {
-  PartialRecord,
-  PERCENTAGE_FACTOR,
-  SupportedToken,
-} from "@gearbox-protocol/sdk-gov";
+import { PartialRecord, PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
 
 import { TokensWithAPY } from ".";
@@ -29,7 +25,7 @@ interface LidoApyResponse {
 const LIDO_URL = "https://eth-api.lido.fi/v1/protocol/steth/apr/sma";
 
 export type LidoAPYResult = PartialRecord<
-  Extract<SupportedToken, "STETH" | "wstETH">,
+  Extract<TokensWithAPY, "STETH" | "wstETH">,
   number
 >;
 
