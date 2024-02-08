@@ -50,7 +50,7 @@ type GetTokenPriceCallback = (
 
 export interface GetConvexAPYBulkProps {
   getTokenPrice: GetTokenPriceCallback;
-  curveAPY: CurveAPYResult;
+  curveAPY: CurveAPYResult | undefined;
   generated: GetConvexAPYBulkCallsReturns;
   response: Array<BigNumberish>;
   network: NetworkType;
@@ -286,7 +286,7 @@ export interface CalculateConvexAPYProps {
 
   info: PoolInfo;
   getTokenPrice: GetTokenPriceCallback;
-  curveAPY: CurveAPYResult;
+  curveAPY: CurveAPYResult | undefined;
 }
 
 const CURRENCY_LIST: Partial<Record<ConvexStakedPhantomToken, SupportedToken>> =
@@ -345,7 +345,7 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
 
   const extraAPYTotal = extraAPRs.reduce((acc, apy) => acc + apy, 0n);
 
-  const baseApy = props.curveAPY[crvToken].base;
+  const baseApy = props.curveAPY?.[crvToken].base || 0;
 
   const apyTotal = crvAPY + cvxAPY + extraAPYTotal;
   const apyTotalInPercent = apyTotal * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR;
