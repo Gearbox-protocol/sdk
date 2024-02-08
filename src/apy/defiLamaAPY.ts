@@ -22,33 +22,32 @@ interface LamaResponse {
   data: Array<LamaItem>;
 }
 
-const LAMA_URL = "https://yields.llama.fi/pools";
+const LAMA_URL = "https://testnet.gearbox.foundation/api/defillama?ids=";
 
 export async function getDefiLamaAPY(
   networkType: NetworkType,
 ): Promise<PartialRecord<TokensWithAPY, number>> {
   try {
-    const res = await axios.get<LamaResponse>(LAMA_URL);
+    const currentNormal = NORMAL_TO_LAMA[networkType];
 
-    const networkLama = NETWORK_TO_LAMA[networkType];
-    const chainItems = res.data.data.reduce<Record<string, LamaItem>>(
+    const res = await axios.get<LamaResponse>(
+      `${LAMA_URL}${Object.values(currentNormal).join(",")}`,
+    );
+
+    const itemsRecord = res.data.data.reduce<Record<string, LamaItem>>(
       (acc, item) => {
-        if (item.chain === networkLama) {
-          acc[item.pool] = item;
-        }
+        acc[item.pool] = item;
         return acc;
       },
       {},
     );
-
-    const currentNormal = NORMAL_TO_LAMA[networkType];
 
     const allAPY: PartialRecord<TokensWithAPY, number> =
       TypedObjectUtils.fromEntries(
         TypedObjectUtils.entries(
           currentNormal as Record<TokensWithAPY, string>,
         ).map(([symbol, pool]) => {
-          const { apy = 0 } = chainItems[pool] || {};
+          const { apy = 0 } = itemsRecord[pool] || {};
           return [symbol, Math.round(apy * Number(PERCENTAGE_FACTOR))];
         }),
       );
@@ -59,12 +58,6 @@ export async function getDefiLamaAPY(
     return {};
   }
 }
-
-const NETWORK_TO_LAMA: Record<NetworkType, string> = {
-  Mainnet: "Ethereum",
-  Optimism: "Optimism",
-  Arbitrum: "Arbitrum",
-};
 
 const NORMAL_TO_LAMA: Record<
   NetworkType,
