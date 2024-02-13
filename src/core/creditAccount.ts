@@ -110,6 +110,7 @@ const MAX_UINT16 = 65535;
 
 export class CreditAccountData {
   readonly isSuccessful: boolean;
+  readonly priceFeedsNeeded: string[];
 
   readonly addr: string;
   readonly borrower: string;
@@ -150,6 +151,7 @@ export class CreditAccountData {
 
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
+    this.priceFeedsNeeded = payload.priceFeedsNeeded;
 
     this.addr = payload.addr.toLowerCase();
     this.borrower = payload.borrower.toLowerCase();
