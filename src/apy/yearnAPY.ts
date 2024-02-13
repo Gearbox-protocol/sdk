@@ -3,6 +3,7 @@ import {
   NetworkType,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
+  tokenDataByNetwork,
   TypedObjectUtils,
   YearnLPToken,
   yearnTokens,
@@ -26,8 +27,6 @@ const getUrl = (chainId: number) =>
 
 export type YearnAPYResult = Record<YearnLPToken, number>;
 
-const transformSymbol = (s: string) => s.replaceAll("_", "-").toLowerCase();
-
 export async function getYearnAPY(
   network: NetworkType,
 ): Promise<YearnAPYResult> {
@@ -36,16 +35,21 @@ export async function getYearnAPY(
 
     const { data } = await axios.get<Response>(getUrl(chainId));
 
-    const dataBySymbol = data.reduce<Record<string, YearnAPYData>>((acc, d) => {
-      acc[d.symbol.toLowerCase()] = d;
-      return acc;
-    }, {});
+    const dataByAddress = data.reduce<Record<string, YearnAPYData>>(
+      (acc, d) => {
+        acc[d.address.toLowerCase()] = d;
+        return acc;
+      },
+      {},
+    );
 
     const yearnAPY = TypedObjectUtils.entries(
       yearnTokens,
     ).reduce<YearnAPYResult>((acc, [yearnSymbol]) => {
-      const symbol = transformSymbol(yearnSymbol);
-      const data = dataBySymbol[symbol];
+      const address = (
+        tokenDataByNetwork[network]?.[yearnSymbol] || ""
+      ).toLowerCase();
+      const data = dataByAddress[address];
       const { apr: apy } = data || {};
       const { netAPR } = apy || {};
       const netApy = netAPR || 0;

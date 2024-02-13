@@ -265,6 +265,47 @@ export class CreditAccountData {
     );
   }
 
+  static sortAssets(
+    balances: Array<Asset>,
+    prices: Record<string, bigint>,
+    tokens: Record<string, TokenData>,
+  ) {
+    return balances.sort(
+      (
+        { token: addr1, balance: amount1 },
+        { token: addr2, balance: amount2 },
+      ) => {
+        const addr1Lc = addr1.toLowerCase();
+        const addr2Lc = addr2.toLowerCase();
+
+        const token1 = tokens[addr1Lc];
+        const token2 = tokens[addr2Lc];
+
+        const price1 = prices[addr1Lc] || PRICE_DECIMALS;
+        const price2 = prices[addr2Lc] || PRICE_DECIMALS;
+
+        const totalPrice1 = PriceUtils.calcTotalPrice(
+          price1,
+          amount1,
+          token1?.decimals,
+        );
+        const totalPrice2 = PriceUtils.calcTotalPrice(
+          price2,
+          amount2,
+          token2?.decimals,
+        );
+
+        if (totalPrice1 === totalPrice2) {
+          return amount1 === amount2
+            ? CreditAccountData.tokensAbcComparator(token1, token2)
+            : CreditAccountData.amountAbcComparator(amount1, amount2);
+        }
+
+        return CreditAccountData.amountAbcComparator(totalPrice1, totalPrice2);
+      },
+    );
+  }
+
   static tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
     const { symbol: symbol1 = "" } = t1 || {};
     const { symbol: symbol2 = "" } = t2 || {};
