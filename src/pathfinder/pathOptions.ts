@@ -15,6 +15,10 @@ import {
   YearnLPToken,
   yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
+import {
+  AuraLPToken,
+  auraLpTokens,
+} from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 
 import { CaTokenBalance } from "../payload/creditAccount";
 
@@ -121,14 +125,30 @@ export class PathOptionFactory {
   static getBalancerPools(
     balances: Record<string, BalanceInterface>,
   ): Array<BalancerLPToken> {
-    const result: Array<BalancerLPToken> = [];
-    for (const [token, { balance }] of Object.entries(balances)) {
-      const symbol = tokenSymbolByAddress[token.toLowerCase()];
-      if (isBalancerLPToken(symbol) && toBigInt(balance) > 1) {
-        result.push(symbol);
-      }
-    }
-    return result;
+    const balancerSymbols = Object.keys(balancerLpTokens);
+
+    const balancerPools: Array<BalancerLPToken> = Object.entries(balances)
+      .filter(([, balance]) => toBigInt(balance.balance) > 1)
+      .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
+      .filter(symbol =>
+        balancerSymbols.includes(symbol),
+      ) as Array<BalancerLPToken>;
+
+    const balancerAuraTokens = Object.entries(auraLpTokens)
+      .filter(([, data]) => balancerSymbols.includes(data.underlying))
+      .map(([token]) => token);
+
+    const balancerTokensFromAura = Object.entries(balances)
+      .filter(([, balance]) => toBigInt(balance.balance) > 1)
+      .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
+      .filter(symbol => balancerAuraTokens.includes(symbol))
+      .map(
+        symbol => auraLpTokens[symbol as AuraLPToken].underlying,
+      ) as Array<BalancerLPToken>;
+
+    const balancerSet = new Set([...balancerPools, ...balancerTokensFromAura]);
+
+    return Array.from(balancerSet.values());
   }
 
   static next(path: PathOptionSerie): PathOptionSerie {
