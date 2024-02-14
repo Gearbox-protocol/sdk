@@ -7,7 +7,6 @@ import {
   CurveLPToken,
   CurveParams,
   curveTokens,
-  isBalancerLPToken,
   NetworkType,
   toBigInt,
   tokenDataByNetwork,
