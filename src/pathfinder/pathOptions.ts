@@ -17,6 +17,7 @@ import {
 import {
   AuraLPToken,
   auraLpTokens,
+  auraTokens,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 
 import { CaTokenBalance } from "../payload/creditAccount";
@@ -133,7 +134,7 @@ export class PathOptionFactory {
         balancerSymbols.includes(symbol),
       ) as Array<BalancerLPToken>;
 
-    const balancerAuraTokens = Object.entries(auraLpTokens)
+    const balancerAuraTokens = Object.entries(auraTokens)
       .filter(([, data]) => balancerSymbols.includes(data.underlying))
       .map(([token]) => token);
 
