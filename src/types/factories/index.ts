@@ -40,7 +40,6 @@ export * as iwstEthSol from "./IwstETH.sol";
 export * as iwstEthGatewaySol from "./IwstETHGateway.sol";
 export * as redstonePriceFeedSol from "./RedstonePriceFeed.sol";
 export * as contracts from "./contracts";
-export * as interfaces from "./interfaces";
 export { AddressProvider__factory } from "./AddressProvider__factory";
 export { CalldataExtractor__factory } from "./CalldataExtractor__factory";
 export { Claimable__factory } from "./Claimable__factory";

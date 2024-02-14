@@ -79,8 +79,6 @@ import type * as redstonePriceFeedSol from "./RedstonePriceFeed.sol";
 export type { redstonePriceFeedSol };
 import type * as contracts from "./contracts";
 export type { contracts };
-import type * as interfaces from "./interfaces";
-export type { interfaces };
 export type { AddressProvider } from "./AddressProvider";
 export type { CalldataExtractor } from "./CalldataExtractor";
 export type { Claimable } from "./Claimable";

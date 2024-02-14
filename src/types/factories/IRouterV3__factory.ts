@@ -95,11 +95,6 @@ const _abi = [
             internalType: "uint256",
           },
           {
-            name: "gasUsage",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
             name: "calls",
             type: "tuple[]",
             internalType: "struct MultiCall[]",
@@ -224,11 +219,6 @@ const _abi = [
             internalType: "uint256",
           },
           {
-            name: "gasUsage",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
             name: "calls",
             type: "tuple[]",
             internalType: "struct MultiCall[]",
@@ -246,11 +236,6 @@ const _abi = [
             ],
           },
         ],
-      },
-      {
-        name: "gasPriceTargetRAY",
-        type: "uint256",
-        internalType: "uint256",
       },
     ],
     stateMutability: "nonpayable",
@@ -303,11 +288,6 @@ const _abi = [
           },
           {
             name: "minAmount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "gasUsage",
             type: "uint256",
             internalType: "uint256",
           },
@@ -426,11 +406,6 @@ const _abi = [
             internalType: "uint256",
           },
           {
-            name: "gasUsage",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
             name: "calls",
             type: "tuple[]",
             internalType: "struct MultiCall[]",
@@ -454,19 +429,13 @@ const _abi = [
   },
   {
     type: "function",
-    name: "getGasPriceTokenOutRAY",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    name: "futureRouter",
+    inputs: [],
     outputs: [
       {
-        name: "gasPrice",
-        type: "uint256",
-        internalType: "uint256",
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -557,6 +526,25 @@ const _abi = [
         indexed: true,
         internalType: "uint8",
       },
+      {
+        name: "",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "version",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetFutureRouter",
+    inputs: [
       {
         name: "",
         type: "address",
