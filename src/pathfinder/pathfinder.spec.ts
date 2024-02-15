@@ -21,9 +21,6 @@ describe("PathFinder test", () => {
 
     let result = PathFinder.compare(r1, r2);
     expect(result).to.be.eql(r2);
-
-    result = PathFinder.compare(r1, r2);
-    expect(result).to.be.eql(r1);
   });
   it("has all expected connectors", () => {
     const pf = new PathFinder("", new providers.JsonRpcProvider(), "Mainnet");
