@@ -324,7 +324,11 @@ export class PathFinder {
   getAvailableConnectors(
     availableList: Record<string, bigint> | Record<string, true>,
   ) {
-    return PathFinder.getAvailableConnectors(availableList, this._connectors);
+    const connectors = PathFinder.getAvailableConnectors(
+      availableList,
+      this._connectors,
+    );
+    return connectors;
   }
 
   static getAvailableConnectors(
