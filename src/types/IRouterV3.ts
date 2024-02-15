@@ -68,21 +68,14 @@ export type MultiCallStructOutput = [string, string] & {
 export type RouterResultStruct = {
   amount: PromiseOrValue<BigNumberish>;
   minAmount: PromiseOrValue<BigNumberish>;
-  gasUsage: PromiseOrValue<BigNumberish>;
   calls: MultiCallStruct[];
 };
 
 export type RouterResultStructOutput = [
   BigNumber,
   BigNumber,
-  BigNumber,
   MultiCallStructOutput[]
-] & {
-  amount: BigNumber;
-  minAmount: BigNumber;
-  gasUsage: BigNumber;
-  calls: MultiCallStructOutput[];
-};
+] & { amount: BigNumber; minAmount: BigNumber; calls: MultiCallStructOutput[] };
 
 export type BalanceStruct = {
   token: PromiseOrValue<string>;
@@ -113,7 +106,7 @@ export interface IRouterV3Interface extends utils.Interface {
     "findBestClosePath(address,(address,uint256)[],(address,uint256)[],address[],uint256,(address,uint8,uint8)[],uint256,bool)": FunctionFragment;
     "findOneTokenPath(address,uint256,address,address,address[],uint256)": FunctionFragment;
     "findOpenStrategyPath(address,(address,uint256)[],(address,uint256)[],address,address[],uint256)": FunctionFragment;
-    "getGasPriceTokenOutRAY(address)": FunctionFragment;
+    "futureRouter()": FunctionFragment;
     "isRouterConfigurator(address)": FunctionFragment;
     "tokenTypes(address)": FunctionFragment;
     "version()": FunctionFragment;
@@ -126,7 +119,7 @@ export interface IRouterV3Interface extends utils.Interface {
       | "findBestClosePath"
       | "findOneTokenPath"
       | "findOpenStrategyPath"
-      | "getGasPriceTokenOutRAY"
+      | "futureRouter"
       | "isRouterConfigurator"
       | "tokenTypes"
       | "version"
@@ -176,8 +169,8 @@ export interface IRouterV3Interface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "getGasPriceTokenOutRAY",
-    values: [PromiseOrValue<string>]
+    functionFragment: "futureRouter",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "isRouterConfigurator",
@@ -210,7 +203,7 @@ export interface IRouterV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getGasPriceTokenOutRAY",
+    functionFragment: "futureRouter",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -222,12 +215,14 @@ export interface IRouterV3Interface extends utils.Interface {
 
   events: {
     "ResolverUpdate(uint8,uint8,uint8)": EventFragment;
-    "RouterComponentUpdate(uint8,address)": EventFragment;
+    "RouterComponentUpdate(uint8,address,uint256)": EventFragment;
+    "SetFutureRouter(address)": EventFragment;
     "TokenTypeUpdate(address,uint8)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "ResolverUpdate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RouterComponentUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetFutureRouter"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenTypeUpdate"): EventFragment;
 }
 
@@ -246,14 +241,25 @@ export type ResolverUpdateEventFilter = TypedEventFilter<ResolverUpdateEvent>;
 export interface RouterComponentUpdateEventObject {
   arg0: number;
   arg1: string;
+  version: BigNumber;
 }
 export type RouterComponentUpdateEvent = TypedEvent<
-  [number, string],
+  [number, string, BigNumber],
   RouterComponentUpdateEventObject
 >;
 
 export type RouterComponentUpdateEventFilter =
   TypedEventFilter<RouterComponentUpdateEvent>;
+
+export interface SetFutureRouterEventObject {
+  arg0: string;
+}
+export type SetFutureRouterEvent = TypedEvent<
+  [string],
+  SetFutureRouterEventObject
+>;
+
+export type SetFutureRouterEventFilter = TypedEventFilter<SetFutureRouterEvent>;
 
 export interface TokenTypeUpdateEventObject {
   tokenAddress: string;
@@ -336,10 +342,7 @@ export interface IRouterV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    getGasPriceTokenOutRAY(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { gasPrice: BigNumber }>;
+    futureRouter(overrides?: CallOverrides): Promise<[string]>;
 
     isRouterConfigurator(
       account: PromiseOrValue<string>,
@@ -397,10 +400,7 @@ export interface IRouterV3 extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  getGasPriceTokenOutRAY(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  futureRouter(overrides?: CallOverrides): Promise<string>;
 
   isRouterConfigurator(
     account: PromiseOrValue<string>,
@@ -436,12 +436,7 @@ export interface IRouterV3 extends BaseContract {
       iterations: PromiseOrValue<BigNumberish>,
       force: PromiseOrValue<boolean>,
       overrides?: CallOverrides
-    ): Promise<
-      [RouterResultStructOutput, BigNumber] & {
-        result: RouterResultStructOutput;
-        gasPriceTargetRAY: BigNumber;
-      }
-    >;
+    ): Promise<RouterResultStructOutput>;
 
     findOneTokenPath(
       tokenIn: PromiseOrValue<string>,
@@ -463,10 +458,7 @@ export interface IRouterV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BalanceStructOutput[], RouterResultStructOutput]>;
 
-    getGasPriceTokenOutRAY(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    futureRouter(overrides?: CallOverrides): Promise<string>;
 
     isRouterConfigurator(
       account: PromiseOrValue<string>,
@@ -493,14 +485,23 @@ export interface IRouterV3 extends BaseContract {
       rc?: PromiseOrValue<BigNumberish> | null
     ): ResolverUpdateEventFilter;
 
-    "RouterComponentUpdate(uint8,address)"(
+    "RouterComponentUpdate(uint8,address,uint256)"(
       arg0?: PromiseOrValue<BigNumberish> | null,
-      arg1?: PromiseOrValue<string> | null
+      arg1?: PromiseOrValue<string> | null,
+      version?: null
     ): RouterComponentUpdateEventFilter;
     RouterComponentUpdate(
       arg0?: PromiseOrValue<BigNumberish> | null,
-      arg1?: PromiseOrValue<string> | null
+      arg1?: PromiseOrValue<string> | null,
+      version?: null
     ): RouterComponentUpdateEventFilter;
+
+    "SetFutureRouter(address)"(
+      arg0?: PromiseOrValue<string> | null
+    ): SetFutureRouterEventFilter;
+    SetFutureRouter(
+      arg0?: PromiseOrValue<string> | null
+    ): SetFutureRouterEventFilter;
 
     "TokenTypeUpdate(address,uint8)"(
       tokenAddress?: PromiseOrValue<string> | null,
@@ -556,10 +557,7 @@ export interface IRouterV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    getGasPriceTokenOutRAY(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    futureRouter(overrides?: CallOverrides): Promise<BigNumber>;
 
     isRouterConfigurator(
       account: PromiseOrValue<string>,
@@ -618,10 +616,7 @@ export interface IRouterV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    getGasPriceTokenOutRAY(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    futureRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isRouterConfigurator(
       account: PromiseOrValue<string>,

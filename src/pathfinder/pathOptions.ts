@@ -7,6 +7,8 @@ import {
   CurveLPToken,
   CurveParams,
   curveTokens,
+  isBalancerLPToken,
+  isCurveLPToken,
   NetworkType,
   toBigInt,
   tokenDataByNetwork,
@@ -16,7 +18,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import {
   AuraLPToken,
-  auraLpTokens,
+  AuraStakedToken,
   auraTokens,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 
@@ -83,19 +85,19 @@ export class PathOptionFactory {
   static getCurvePools(
     balances: Record<string, BalanceInterface>,
   ): Array<CurveLPToken> {
-    const curveSymbols = Object.keys(curveTokens);
+    const nonZeroBalances = Object.entries(balances).filter(
+      ([, balance]) => toBigInt(balance.balance) > 1,
+    );
 
-    const curvePools: Array<CurveLPToken> = Object.entries(balances)
-      .filter(([, balance]) => toBigInt(balance.balance) > 1)
+    const curvePools = nonZeroBalances
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
-      .filter(symbol => curveSymbols.includes(symbol)) as Array<CurveLPToken>;
+      .filter(symbol => isCurveLPToken(symbol)) as Array<CurveLPToken>;
 
     const yearnCurveTokens = Object.entries(yearnTokens)
-      .filter(([, data]) => curveSymbols.includes(data.underlying))
+      .filter(([, data]) => isCurveLPToken(data.underlying))
       .map(([token]) => token);
 
-    const curvePoolsFromYearn = Object.entries(balances)
-      .filter(([, balance]) => toBigInt(balance.balance) > 1)
+    const curvePoolsFromYearn = nonZeroBalances
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => yearnCurveTokens.includes(symbol))
       .map(
@@ -103,16 +105,13 @@ export class PathOptionFactory {
       ) as Array<CurveLPToken>;
 
     const convexCurveTokens = Object.entries(convexTokens)
-      .filter(([, data]) => curveSymbols.includes(data.underlying))
+      .filter(([, data]) => isCurveLPToken(data.underlying))
       .map(([token]) => token);
 
-    const curvePoolsFromConvex = Object.entries(balances)
-      .filter(([, balance]) => toBigInt(balance.balance) > 1)
+    const curvePoolsFromConvex = nonZeroBalances
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => convexCurveTokens.includes(symbol))
-      .map(
-        symbol => convexTokens[symbol as ConvexLPToken].underlying,
-      ) as Array<CurveLPToken>;
+      .map(symbol => convexTokens[symbol as ConvexLPToken].underlying);
 
     const curveSet = new Set([
       ...curvePools,
@@ -125,26 +124,25 @@ export class PathOptionFactory {
   static getBalancerPools(
     balances: Record<string, BalanceInterface>,
   ): Array<BalancerLPToken> {
-    const balancerSymbols = Object.keys(balancerLpTokens);
+    const nonZeroBalances = Object.entries(balances).filter(
+      ([, balance]) => toBigInt(balance.balance) > 1,
+    );
 
-    const balancerPools: Array<BalancerLPToken> = Object.entries(balances)
-      .filter(([, balance]) => toBigInt(balance.balance) > 1)
+    const balancerPools = nonZeroBalances
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
-      .filter(symbol =>
-        balancerSymbols.includes(symbol),
-      ) as Array<BalancerLPToken>;
+      .filter(symbol => isBalancerLPToken(symbol)) as Array<BalancerLPToken>;
 
     const balancerAuraTokens = Object.entries(auraTokens)
-      .filter(([, data]) => balancerSymbols.includes(data.underlying))
+      .filter(([, data]) => isBalancerLPToken(data.underlying))
       .map(([token]) => token);
 
-    const balancerTokensFromAura = Object.entries(balances)
-      .filter(([, balance]) => toBigInt(balance.balance) > 1)
+    const balancerTokensFromAura = nonZeroBalances
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => balancerAuraTokens.includes(symbol))
       .map(
-        symbol => auraTokens[symbol as AuraLPToken].underlying,
-      ) as Array<BalancerLPToken>;
+        symbol =>
+          auraTokens[symbol as AuraLPToken | AuraStakedToken].underlying,
+      );
 
     const balancerSet = new Set([...balancerPools, ...balancerTokensFromAura]);
 

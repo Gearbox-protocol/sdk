@@ -67,6 +67,8 @@ const NORMAL_TO_LAMA: Record<
     sDAI: "c8a24fee-ec00-4f38-86c0-9f6daebc4225",
     rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb",
     osETH: "4d01599c-69ae-41a3-bae1-5fab896f04c8",
+
+    auraB_rETH_STABLE_vault: "a4b5b995-99e7-4b8f-916d-8940b5627d70",
   },
   Optimism: { rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb" },
   Arbitrum: {},

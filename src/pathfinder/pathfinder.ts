@@ -2,7 +2,6 @@ import {
   AwaitedRes,
   getConnectors,
   NetworkType,
-  RAY,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
@@ -115,7 +114,6 @@ export class PathFinder {
       unique[key] = {
         amount: toBigInt(r.amount),
         minAmount: toBigInt(r.minAmount),
-        gasUsage: toBigInt(r.gasUsage),
         calls: r.calls,
       };
     });
@@ -147,7 +145,6 @@ export class PathFinder {
     return {
       amount: toBigInt(result.amount),
       minAmount: toBigInt(result.minAmount),
-      gasUsage: toBigInt(result.gasUsage),
       calls: result.calls,
     };
   }
@@ -219,7 +216,6 @@ export class PathFinder {
       calls: result.calls,
       minAmount: toBigInt(result.minAmount),
       amount: toBigInt(result.amount),
-      gasUsage: toBigInt(result.gasUsage),
     };
   }
 
@@ -299,21 +295,15 @@ export class PathFinder {
     }
 
     const bestResult = results.reduce<PathFinderResult>(
-      (best, [pathFinderResult, gasPriceRAY]) =>
-        PathFinder.compare(
-          best,
-          {
-            calls: pathFinderResult.calls,
-            amount: toBigInt(pathFinderResult.amount),
-            minAmount: toBigInt(pathFinderResult.minAmount),
-            gasUsage: toBigInt(pathFinderResult.gasUsage),
-          },
-          toBigInt(gasPriceRAY),
-        ),
+      (best, pathFinderResult) =>
+        PathFinder.compare(best, {
+          calls: pathFinderResult.calls,
+          amount: toBigInt(pathFinderResult.amount),
+          minAmount: toBigInt(pathFinderResult.minAmount),
+        }),
       {
         amount: 0n,
         minAmount: 0n,
-        gasUsage: 0n,
         calls: [],
       },
     );
@@ -327,22 +317,18 @@ export class PathFinder {
     };
   }
 
-  static compare(
-    r1: PathFinderResult,
-    r2: PathFinderResult,
-    gasPriceRAY: bigint,
-  ): PathFinderResult {
-    const comparator = (
-      { minAmount, gasUsage }: PathFinderResult,
-      gasPrice: bigint,
-    ) => minAmount - (gasUsage * gasPrice) / RAY;
-    return comparator(r1, gasPriceRAY) > comparator(r2, gasPriceRAY) ? r1 : r2;
+  static compare(r1: PathFinderResult, r2: PathFinderResult): PathFinderResult {
+    return r1.amount > r2.amount ? r1 : r2;
   }
 
   getAvailableConnectors(
     availableList: Record<string, bigint> | Record<string, true>,
   ) {
-    return PathFinder.getAvailableConnectors(availableList, this._connectors);
+    const connectors = PathFinder.getAvailableConnectors(
+      availableList,
+      this._connectors,
+    );
+    return connectors;
   }
 
   static getAvailableConnectors(
