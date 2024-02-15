@@ -143,7 +143,7 @@ export class PathOptionFactory {
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => balancerAuraTokens.includes(symbol))
       .map(
-        symbol => auraLpTokens[symbol as AuraLPToken].underlying,
+        symbol => auraTokens[symbol as AuraLPToken].underlying,
       ) as Array<BalancerLPToken>;
 
     const balancerSet = new Set([...balancerPools, ...balancerTokensFromAura]);
