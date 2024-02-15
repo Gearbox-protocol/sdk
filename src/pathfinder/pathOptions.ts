@@ -18,7 +18,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import {
   AuraLPToken,
-  auraLpTokens,
+  AuraStakedToken,
   auraTokens,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 
@@ -111,9 +111,7 @@ export class PathOptionFactory {
     const curvePoolsFromConvex = nonZeroBalances
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => convexCurveTokens.includes(symbol))
-      .map(
-        symbol => convexTokens[symbol as ConvexLPToken].underlying,
-      ) as Array<CurveLPToken>;
+      .map(symbol => convexTokens[symbol as ConvexLPToken].underlying);
 
     const curveSet = new Set([
       ...curvePools,
@@ -142,8 +140,9 @@ export class PathOptionFactory {
       .map(([token]) => tokenSymbolByAddress[token.toLowerCase()])
       .filter(symbol => balancerAuraTokens.includes(symbol))
       .map(
-        symbol => auraLpTokens[symbol as AuraLPToken].underlying,
-      ) as Array<BalancerLPToken>;
+        symbol =>
+          auraTokens[symbol as AuraLPToken | AuraStakedToken].underlying,
+      );
 
     const balancerSet = new Set([...balancerPools, ...balancerTokensFromAura]);
 
