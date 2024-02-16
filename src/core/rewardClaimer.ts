@@ -1,5 +1,7 @@
 import {
   NetworkType,
+  PartialRecord,
+  Protocols,
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
@@ -12,7 +14,10 @@ import { RewardConvex } from "./rewardConvex";
 
 export interface Rewards {
   contract: SupportedContract;
-  rewards: Partial<Record<SupportedToken, bigint>>;
+  totalSupply: bigint;
+  protocol: Protocols.Aura | Protocols.Convex;
+
+  rewards: PartialRecord<SupportedToken, bigint>;
   calls: Array<MultiCall>;
 }
 
