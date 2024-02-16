@@ -348,7 +348,6 @@ export class RewardConvex {
     });
 
     const result = Object.values(rewardsRecord);
-    console.log(result);
 
     return result;
   }
