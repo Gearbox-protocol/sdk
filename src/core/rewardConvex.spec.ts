@@ -5,11 +5,15 @@ import {
   DUMB_ADDRESS3,
   DUMB_ADDRESS4,
   MCall,
+  Protocols,
+  tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 
+import { IConvexToken__factory } from "../types";
 import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
+import { IConvexTokenInterface } from "../types/IConvexToken";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
 import { RewardConvex, RewardDistribution } from "./rewardConvex";
@@ -37,11 +41,6 @@ describe("RewardConvex test", () => {
         contractAddress: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
         adapter: ADAPTER_CONVEX_3CRV_POOL,
       },
-      // {
-      //   contract: "CONVEX_FRAX3CRV_POOL",
-      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-      // },
     ];
 
     const result = RewardConvex.findAdapters(cm);
@@ -59,26 +58,25 @@ describe("RewardConvex test", () => {
       },
     } as unknown as CreditManagerData;
 
-    const calls: Array<MCall<IBaseRewardPoolInterface>> = [
-      {
-        address: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
-        interface: RewardConvex.poolInterface,
-        method: "earned(address)",
-        params: [CREDIT_ACCOUNT],
-      },
-      // {
-      //   address: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-      //   interface: RewardConvex.poolInterface,
-      //   method: "earned(address)",
-      //   params: [CREDIT_ACCOUNT],
-      // },
-      // {
-      //   address: (contractParams.CONVEX_FRAX3CRV_POOL as ConvexPoolParams)
-      //     .extraRewards[0].poolAddress.Mainnet,
-      //   interface: RewardConvex.poolInterface,
-      //   method: "earned(address)",
-      //   params: [CREDIT_ACCOUNT],
-      // },
+    const calls: [
+      Array<MCall<IConvexTokenInterface>>,
+      Array<MCall<IBaseRewardPoolInterface>>,
+    ] = [
+      [
+        {
+          address: tokenDataByNetwork.Mainnet.CVX,
+          interface: IConvexToken__factory.createInterface(),
+          method: "totalSupply()",
+        },
+      ],
+      [
+        {
+          address: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
+          interface: RewardConvex.poolInterface,
+          method: "earned(address)",
+          params: [CREDIT_ACCOUNT],
+        },
+      ],
     ];
 
     const distribution: Array<RewardDistribution> = [
@@ -87,19 +85,8 @@ describe("RewardConvex test", () => {
         contractAddress: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
         contract: "CONVEX_3CRV_POOL",
         token: "CRV",
+        protocol: Protocols.Convex,
       },
-      // {
-      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-      //   contract: "CONVEX_FRAX3CRV_POOL",
-      //   token: "CRV",
-      // },
-      // {
-      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-      //   contract: "CONVEX_FRAX3CRV_POOL",
-      //   token: "FXS",
-      // },
     ];
 
     const result = RewardConvex.prepareMultiCalls(
@@ -108,15 +95,12 @@ describe("RewardConvex test", () => {
       "Mainnet",
     );
 
-    expect(result).to.be.eql({ calls, distribution });
+    expect(result.convexDistribution).to.be.eql([distribution]);
+    expect(result.convexCalls).to.be.eql(calls);
   });
 
   it("parseResults parse data correctly", () => {
-    const rewards = [
-      BigNumber.from(1000n),
-      // BigNumber.from(2000n),
-      // BigNumber.from(4000n),
-    ];
+    const rewards = [BigNumber.from(1000n)];
 
     const distribution: Array<RewardDistribution> = [
       {
@@ -124,31 +108,31 @@ describe("RewardConvex test", () => {
         contractAddress: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
         contract: "CONVEX_3CRV_POOL",
         token: "CRV",
+        protocol: Protocols.Convex,
       },
-      // {
-      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-      //   contract: "CONVEX_FRAX3CRV_POOL",
-      //   token: "CRV",
-      // },
-      // {
-      //   adapter: ADAPTER_CONVEX_FRAX3CRV_POOL,
-      //   contractAddress: contractsByNetwork.Goerli.CONVEX_FRAX3CRV_POOL,
-      //   contract: "CONVEX_FRAX3CRV_POOL",
-      //   token: "FXS",
-      // },
     ];
 
-    const parsed = RewardConvex.parseResults(rewards, distribution);
+    const parsed = RewardConvex.parseResults({
+      convexDistribution: [distribution],
+      convexResponse: rewards,
+      convexTotalSupply: 0n,
+
+      auraDistribution: [],
+      auraResponse: [],
+      auraTotalSupply: 0n,
+    });
 
     const callData =
       RewardConvex.poolInterface.encodeFunctionData("getReward()");
 
     const expected: Array<Rewards> = [
       {
+        protocol: Protocols.Convex,
+        totalSupply: 0n,
         contract: "CONVEX_3CRV_POOL",
         rewards: {
           CRV: 1000n,
+          CVX: 1000n,
         },
         calls: [
           {
@@ -157,19 +141,6 @@ describe("RewardConvex test", () => {
           },
         ],
       },
-      // {
-      //   contract: "CONVEX_FRAX3CRV_POOL",
-      //   rewards: {
-      //     CRV: 2000n,
-      //     FXS: 4000n,
-      //   },
-      //   calls: [
-      //     {
-      //       target: ADAPTER_CONVEX_FRAX3CRV_POOL,
-      //       callData,
-      //     },
-      //   ],
-      // },
     ];
 
     expect(parsed).to.be.eql(expected);
