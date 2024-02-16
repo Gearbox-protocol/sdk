@@ -3,6 +3,7 @@ import {
   AuraPoolParams,
   contractParams,
   contractsByAddress,
+  contractsByNetwork,
   ConvexPoolParams,
   MCall,
   multicall,
@@ -16,8 +17,10 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import { BigNumber, providers } from "ethers";
+import { Interface } from "ethers/lib/utils";
 
 import { getCVXMintAmount } from "../apy";
+import { AURA_BOOSTER_INTERFACE } from "../apy/auraAbi";
 import { getAURAMintAmount } from "../apy/auraAPY";
 import { IBaseRewardPool__factory, IConvexToken__factory } from "../types";
 import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
@@ -28,7 +31,11 @@ import { AdapterWithType, Rewards } from "./rewardClaimer";
 
 type DistributionList = Array<Array<RewardDistribution>>;
 type CallsList = Array<
-  Array<MCall<IConvexTokenInterface> | MCall<IBaseRewardPoolInterface>>
+  Array<
+    | MCall<IConvexTokenInterface>
+    | MCall<IBaseRewardPoolInterface>
+    | MCall<Interface>
+  >
 >;
 
 export interface RewardDistribution {
@@ -40,6 +47,17 @@ export interface RewardDistribution {
   contractAddress: string;
 }
 
+interface ParseProps {
+  convexResponse: Array<BigNumber>;
+  convexDistribution: DistributionList;
+  convexTotalSupply: bigint;
+
+  auraResponse: Array<BigNumber>;
+  auraDistribution: DistributionList;
+  auraTotalSupply: bigint;
+}
+
+// convex[totalSupply, ...tokens] aura[totalSupply, multiplier, ...tokens]
 export class RewardConvex {
   static poolInterface = IBaseRewardPool__factory.createInterface();
 
@@ -51,15 +69,35 @@ export class RewardConvex {
   ): Promise<Array<Rewards>> {
     if (network !== "Mainnet") return [];
 
-    const { calls, distribution } = RewardConvex.prepareMultiCalls(
-      ca.addr,
-      cm,
-      network,
+    const { auraCalls, auraDistribution, convexCalls, convexDistribution } =
+      RewardConvex.prepareMultiCalls(ca.addr, cm, network);
+
+    const auraTotal = auraCalls.flat(1);
+    const convexTotal = convexCalls.flat(1);
+
+    const response = await multicall<Array<BigNumber>>(
+      [...auraTotal, ...convexTotal],
+      provider,
     );
 
-    const response = await multicall<Array<BigNumber>>(calls.flat(1), provider);
+    const auraEnd = auraTotal.length;
+    const [auraTotalSupply, ...auraResponse] = response.slice(0, auraEnd);
 
-    const results = RewardConvex.parseResults(response, distribution);
+    const convexEnd = auraEnd + convexTotal.length;
+    const [convexTotalSupply, ...convexResponse] = response.slice(
+      auraEnd,
+      convexEnd,
+    );
+
+    const results = RewardConvex.parseResults({
+      auraDistribution,
+      auraResponse,
+      auraTotalSupply: toBigInt(auraTotalSupply),
+
+      convexDistribution,
+      convexResponse,
+      convexTotalSupply: toBigInt(convexTotalSupply),
+    });
 
     return results;
   }
@@ -92,11 +130,16 @@ export class RewardConvex {
     network: NetworkType,
   ) {
     const tokens = tokenDataByNetwork[network];
+    const contracts = contractsByNetwork[network];
+
     const adapters = this.findAdapters(cm);
 
-    const { distribution, calls } = adapters.reduce<{
-      distribution: DistributionList;
-      calls: CallsList;
+    const res = adapters.reduce<{
+      convexDistribution: DistributionList;
+      auraDistribution: DistributionList;
+
+      convexCalls: CallsList;
+      auraCalls: CallsList;
     }>(
       (acc, a) => {
         const currentContract = contractParams[a.contract] as
@@ -114,17 +157,16 @@ export class RewardConvex {
         }
 
         const currentCalls: CallsList[number] = [
-          currentContract.protocol === Protocols.Convex
-            ? {
-                address: tokens.CVX,
-                interface: IConvexToken__factory.createInterface(),
-                method: "totalSupply()",
-              }
-            : {
-                address: tokens.AURA,
-                interface: IConvexToken__factory.createInterface(),
-                method: "totalSupply()",
-              },
+          ...(currentContract.protocol === Protocols.Aura
+            ? [
+                {
+                  address: contracts.AURA_BOOSTER,
+                  interface: AURA_BOOSTER_INTERFACE,
+                  method: "getRewardMultipliers(address)",
+                  params: [tokens[currentContract.stakedToken]],
+                },
+              ]
+            : []),
         ];
         const currentDistribution: DistributionList[number] = [];
 
@@ -161,95 +203,210 @@ export class RewardConvex {
           });
         });
 
-        acc.calls.push(currentCalls);
-        acc.distribution.push(currentDistribution);
+        if (currentContract.protocol === Protocols.Aura) {
+          acc.auraCalls.push(currentCalls);
+          acc.auraDistribution.push(currentDistribution);
+        } else if (currentContract.protocol === Protocols.Convex) {
+          acc.convexCalls.push(currentCalls);
+          acc.convexDistribution.push(currentDistribution);
+        }
+
         return acc;
       },
-      { distribution: [], calls: [] },
+      {
+        convexDistribution: [],
+        auraDistribution: [],
+        convexCalls: [
+          [
+            {
+              address: tokens.CVX,
+              interface: IConvexToken__factory.createInterface(),
+              method: "totalSupply()",
+            },
+          ],
+        ],
+        auraCalls: [
+          [
+            {
+              address: tokens.AURA,
+              interface: IConvexToken__factory.createInterface(),
+              method: "totalSupply()",
+            },
+          ],
+        ],
+      },
     );
 
-    return {
-      calls,
-      distribution,
-    };
+    return res;
   }
 
-  static parseResults(
-    response: Array<BigNumber>,
-    distribution: DistributionList,
-  ): Array<Rewards> {
+  static parseResults({
+    convexDistribution,
+    convexResponse,
+    convexTotalSupply,
+
+    auraDistribution,
+    auraResponse,
+    auraTotalSupply,
+  }: ParseProps): Array<Rewards> {
     const callData =
       RewardConvex.poolInterface.encodeFunctionData("getReward()");
 
     const rewardsRecord: PartialRecord<SupportedContract, Rewards> = {};
 
     let start = 0;
-    distribution.forEach(dList => {
-      // totalSupply + rewards[]
-      const end = start + dList.length + 1;
-      const [ts, ...rewards] = response.slice(start, end);
+    convexDistribution.forEach(list => {
+      // rewards[]
+      const end = start + list.length;
+      const [baseRewardResp, ...rewardsResp] = convexResponse.slice(start, end);
       start = end;
 
-      const totalSupply = toBigInt(ts);
+      const [baseDistribution, ...extraDistribution] = list;
 
-      if (rewards.length !== dList.length) {
+      const boostedRewardToken = this.getBBoostedRewardToken(
+        baseDistribution.protocol,
+      );
+
+      if (
+        rewardsResp.length !== extraDistribution.length ||
+        baseRewardResp === undefined
+      ) {
         throw new Error(
-          `Rewards response length mismatch: expected: ${dList.length}, got: ${rewards.length}`,
+          `Rewards response length mismatch: expected: ${extraDistribution.length}, got: ${rewardsResp.length}`,
+        );
+      }
+      if (!boostedRewardToken) {
+        throw new Error(
+          `Unknown rewards protocol: ${baseDistribution.protocol}`,
         );
       }
 
-      dList.forEach((d, j) => {
-        const { contract, adapter, token, protocol } = d;
-        const reward = rewards[j];
+      // create base
+      const rewardObject = this.getRewardObject(
+        toBigInt(baseRewardResp || 0n),
+        baseDistribution,
+        boostedRewardToken,
 
-        if (!reward.isZero()) {
-          const prevRewards = rewardsRecord[contract]?.rewards;
-          const prevTokenReward = prevRewards?.[token] || 0n;
+        extraDistribution,
+        rewardsResp,
 
-          rewardsRecord[contract] = {
-            totalSupply,
-            protocol,
-            contract,
-            rewards: {
-              ...(prevRewards || {}),
-              [token]: prevTokenReward + BigInt(reward.toString()),
-            },
-            calls: [
-              {
-                target: adapter,
-                callData,
-              },
-            ],
-          };
-        }
-      });
+        convexTotalSupply,
+        callData,
+        0n,
+      );
+
+      if (rewardObject) rewardsRecord[baseDistribution.contract] = rewardObject;
     });
 
-    const result = Object.values(rewardsRecord).map(r => {
-      const baseRewardToken = this.getBaseRewardToken(r.protocol);
-      const boostedRewardToken = this.getBBoostedRewardToken(r.protocol);
-      if (!boostedRewardToken || !baseRewardToken) {
-        throw new Error(`Unknown rewards protocol: ${r.protocol}`);
+    start = 0;
+    auraDistribution.forEach(list => {
+      // multiplier + rewards[]
+      const end = start + list.length + 1;
+      const [mp, baseRewardResp, ...rewardsResp] = auraResponse.slice(
+        start,
+        end,
+      );
+      start = end;
+
+      const multiplier = toBigInt(mp);
+      const [baseDistribution, ...extraDistribution] = list;
+
+      const boostedRewardToken = this.getBBoostedRewardToken(
+        baseDistribution.protocol,
+      );
+
+      if (
+        rewardsResp.length !== extraDistribution.length ||
+        mp === undefined ||
+        baseRewardResp === undefined
+      ) {
+        throw new Error(
+          `Rewards response length mismatch: expected: ${extraDistribution.length}, got: ${rewardsResp.length}`,
+        );
+      }
+      if (!boostedRewardToken) {
+        throw new Error(
+          `Unknown rewards protocol: ${baseDistribution.protocol}`,
+        );
       }
 
-      const prevBaseRewardValue = r.rewards[baseRewardToken] || 0n;
-      const prevBoostedRewardValue = r.rewards[boostedRewardToken] || 0n;
+      // create base
+      const rewardObject = this.getRewardObject(
+        toBigInt(baseRewardResp || 0n),
+        baseDistribution,
+        boostedRewardToken,
 
-      const mintedReward =
-        r.protocol === Protocols.Aura
-          ? getAURAMintAmount(prevBaseRewardValue, r.totalSupply)
-          : getCVXMintAmount(prevBaseRewardValue, r.totalSupply);
+        extraDistribution,
+        rewardsResp,
 
-      return {
-        ...r,
-        rewards: {
-          ...r.rewards,
-          [boostedRewardToken]: prevBoostedRewardValue + mintedReward,
+        auraTotalSupply,
+        callData,
+        multiplier,
+      );
+
+      if (rewardObject) rewardsRecord[baseDistribution.contract] = rewardObject;
+    });
+
+    const result = Object.values(rewardsRecord);
+    console.log(result);
+
+    return result;
+  }
+
+  static getRewardObject(
+    baseReward: bigint,
+    baseDistribution: RewardDistribution,
+    boostedRewardToken: SupportedToken,
+
+    extraDistribution: Array<RewardDistribution>,
+    rewardsResp: Array<BigNumber>,
+
+    totalSupply: bigint,
+    callData: string,
+    multiplier: bigint,
+  ) {
+    // create base
+    const base: Rewards = {
+      contract: baseDistribution.contract,
+      totalSupply: totalSupply,
+      protocol: baseDistribution.protocol,
+      rewards: {
+        [baseDistribution.token]: baseReward,
+      },
+      calls: [
+        {
+          target: baseDistribution.adapter,
+          callData,
         },
+      ],
+    };
+
+    // add boosted
+    const boostedReward =
+      baseDistribution.protocol === Protocols.Aura
+        ? getAURAMintAmount(baseReward, totalSupply, multiplier)
+        : getCVXMintAmount(baseReward, totalSupply);
+    base.rewards = {
+      ...base.rewards,
+      [boostedRewardToken]: boostedReward,
+    };
+
+    // extra
+    extraDistribution.forEach((distribution, j) => {
+      const token = distribution.token;
+      const prevReward = base.rewards[token] || 0n;
+      const reward = toBigInt(rewardsResp[j] || 0n);
+
+      base.rewards = {
+        ...base.rewards,
+        [token]: prevReward + reward,
       };
     });
 
-    return result;
+    if (Object.values(base.rewards).some(r => r > 0)) {
+      return base;
+    }
+    return undefined;
   }
 
   static getBaseRewardToken(protocol: Protocols): SupportedToken | undefined {
