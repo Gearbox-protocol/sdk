@@ -63,6 +63,9 @@ export class ConvexBaseRewardPoolAdapterParser
       case "totalSupply":
         return `${functionName}()`;
 
+      case "getReward":
+        return `${functionName}()`;
+
       default:
         return this.reportUnknownFragment(
           functionName,

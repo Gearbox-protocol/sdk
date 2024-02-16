@@ -1,15 +1,19 @@
 import {
   AdapterInterface,
+  AuraPoolParams,
   contractParams,
   contractsByAddress,
   ConvexPoolParams,
   MCall,
   multicall,
   NetworkType,
+  PartialRecord,
+  Protocols,
   SupportedContract,
   SupportedToken,
   toBigInt,
   tokenDataByNetwork,
+  TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import { BigNumber, providers } from "ethers";
 
@@ -21,16 +25,18 @@ import { CreditAccountData } from "./creditAccount";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
 
+type DistributionList = Array<Array<RewardDistribution>>;
+type CallsList = Array<
+  Array<MCall<IConvexTokenInterface> | MCall<IBaseRewardPoolInterface>>
+>;
+
 export interface RewardDistribution {
+  contract: Rewards["contract"];
+  protocol: Rewards["protocol"];
+  token: SupportedToken;
+
   adapter: string;
   contractAddress: string;
-  contract: SupportedContract;
-  token: SupportedToken;
-}
-
-interface MCallPreparation {
-  calls: Array<MCall<IBaseRewardPoolInterface>>;
-  distribution: Array<RewardDistribution>;
 }
 
 export class RewardConvex {
@@ -50,90 +56,117 @@ export class RewardConvex {
       network,
     );
 
-    const mcalls: Array<
-      MCall<IBaseRewardPoolInterface> | MCall<IConvexTokenInterface>
-    > = calls;
+    const response = await multicall<Array<BigNumber>>(calls.flat(1), provider);
 
-    mcalls.push({
-      address: tokenDataByNetwork[network].CVX,
-      interface: IConvexToken__factory.createInterface(),
-      method: "totalSupply()",
-    });
-
-    const rewards = await multicall<Array<BigNumber>>(mcalls, provider);
-
-    const totalSupply = rewards.pop();
-
-    const results = RewardConvex.parseResults(rewards, distribution);
-
-    results.forEach(r => {
-      r.rewards.CVX = getCVXMintAmount(
-        r.rewards.CRV || 0n,
-        toBigInt(totalSupply!),
-      );
-    });
+    const results = RewardConvex.parseResults(response, distribution);
 
     return results;
   }
 
-  static findAdapters(cm: CreditManagerData): Array<AdapterWithType> {
-    const convexPools: Array<SupportedContract> = Object.entries(contractParams)
-      .filter(
-        ([_, params]) =>
+  static findAdapters(cm: CreditManagerData) {
+    const convexPools = TypedObjectUtils.fromEntries(
+      TypedObjectUtils.entries(contractParams).filter(
+        ([, params]) =>
           params.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-      )
-      .map(([contract]) => contract as SupportedContract);
+      ),
+    );
 
     return Object.entries(cm.adapters)
-      .map(([contract, adapter]) => ({
-        adapter,
-        contractAddress: contract,
-        contract: contractsByAddress[contract.toLowerCase()],
-      }))
-      .filter(a => convexPools.includes(a.contract));
+      .filter(
+        ([contract]) =>
+          !!convexPools[contractsByAddress[contract.toLowerCase()]],
+      )
+      .map(
+        ([contract, adapter]): AdapterWithType => ({
+          adapter,
+          contractAddress: contract,
+          contract: contractsByAddress[contract.toLowerCase()],
+        }),
+      );
   }
 
   static prepareMultiCalls(
     creditAccount: string,
     cm: CreditManagerData,
     network: NetworkType,
-  ): MCallPreparation {
-    const calls: Array<MCall<IBaseRewardPoolInterface>> = [];
-    const distribution: Array<RewardDistribution> = [];
-
+  ) {
+    const tokens = tokenDataByNetwork[network];
     const adapters = this.findAdapters(cm);
 
-    for (let a of adapters) {
-      calls.push({
-        address: a.contractAddress,
-        interface: RewardConvex.poolInterface,
-        method: "earned(address)",
-        params: [creditAccount],
-      });
-      distribution.push({
-        contractAddress: a.contractAddress,
-        adapter: a.adapter,
-        contract: a.contract,
-        token: "CRV",
-      });
+    const { distribution, calls } = adapters.reduce<{
+      distribution: DistributionList;
+      calls: CallsList;
+    }>(
+      (acc, a) => {
+        const currentContract = contractParams[a.contract] as
+          | ConvexPoolParams
+          | AuraPoolParams;
 
-      const params = contractParams[a.contract] as ConvexPoolParams;
+        const baseRewardToken = this.getBaseRewardToken(
+          currentContract.protocol,
+        );
 
-      for (let er of params.extraRewards) {
-        calls.push({
-          address: er.poolAddress[network],
+        if (!baseRewardToken) {
+          throw new Error(
+            `Unknown rewards protocol: ${currentContract.protocol}`,
+          );
+        }
+
+        const currentCalls: CallsList[number] = [
+          currentContract.protocol === Protocols.Convex
+            ? {
+                address: tokens.CVX,
+                interface: IConvexToken__factory.createInterface(),
+                method: "totalSupply()",
+              }
+            : {
+                address: tokens.AURA,
+                interface: IConvexToken__factory.createInterface(),
+                method: "totalSupply()",
+              },
+        ];
+        const currentDistribution: DistributionList[number] = [];
+
+        currentCalls.push({
+          address: a.contractAddress,
           interface: RewardConvex.poolInterface,
           method: "earned(address)",
           params: [creditAccount],
         });
-        distribution.push({
+        currentDistribution.push({
+          protocol: currentContract.protocol,
+          contract: a.contract,
+          token: baseRewardToken,
+
           contractAddress: a.contractAddress,
           adapter: a.adapter,
-          contract: a.contract,
-          token: er.rewardToken,
         });
-      }
-    }
+
+        currentContract.extraRewards.forEach(extra => {
+          currentCalls.push({
+            address: extra.poolAddress[network],
+            interface: RewardConvex.poolInterface,
+            method: "earned(address)",
+            params: [creditAccount],
+          });
+
+          currentDistribution.push({
+            protocol: currentContract.protocol,
+            contract: a.contract,
+            token: extra.rewardToken,
+
+            contractAddress: a.contractAddress,
+            adapter: a.adapter,
+          });
+        });
+
+        acc.calls.push(currentCalls);
+        acc.distribution.push(currentDistribution);
+        return acc;
+      },
+      { distribution: [], calls: [] },
+    );
+
     return {
       calls,
       distribution,
@@ -141,23 +174,45 @@ export class RewardConvex {
   }
 
   static parseResults(
-    rewards: Array<BigNumber>,
-    distribution: Array<RewardDistribution>,
+    response: Array<BigNumber>,
+    distribution: DistributionList,
   ): Array<Rewards> {
-    const result: Partial<Record<SupportedContract, Rewards>> = {};
-
     const callData =
       RewardConvex.poolInterface.encodeFunctionData("getReward()");
 
-    for (let i = 0; i < rewards.length; i++) {
-      const { contract, adapter, token } = distribution[i];
-      const reward = rewards[i];
+    const rewardsRecord: PartialRecord<SupportedContract, Rewards> = {};
 
-      if (!reward.isZero()) {
-        if (!result[contract]) {
-          result[contract] = {
+    let start = 0;
+    distribution.forEach(dList => {
+      // totalSupply + rewards[]
+      const end = start + dList.length + 1;
+      const [ts, ...rewards] = response.slice(start, end);
+      start = end;
+
+      const totalSupply = toBigInt(ts);
+
+      if (rewards.length !== dList.length) {
+        throw new Error(
+          `Rewards response length mismatch: expected: ${dList.length}, got: ${rewards.length}`,
+        );
+      }
+
+      dList.forEach((d, j) => {
+        const { contract, adapter, token, protocol } = d;
+        const reward = rewards[j];
+
+        if (!reward.isZero()) {
+          const prevRewards = rewardsRecord[contract]?.rewards;
+          const prevTokenReward = prevRewards?.[token] || 0n;
+
+          rewardsRecord[contract] = {
+            totalSupply,
+            protocol,
             contract,
-            rewards: {},
+            rewards: {
+              ...(prevRewards || {}),
+              [token]: prevTokenReward + BigInt(reward.toString()),
+            },
             calls: [
               {
                 target: adapter,
@@ -166,10 +221,50 @@ export class RewardConvex {
             ],
           };
         }
-        result[contract]!.rewards[token] = BigInt(reward.toString());
-      }
-    }
+      });
+    });
 
-    return Object.values(result);
+    const result = Object.values(rewardsRecord).map(r => {
+      const baseRewardToken = this.getBaseRewardToken(r.protocol);
+      const boostedRewardToken = this.getBBoostedRewardToken(r.protocol);
+      if (!boostedRewardToken || !baseRewardToken) {
+        throw new Error(`Unknown rewards protocol: ${r.protocol}`);
+      }
+
+      const prevBaseRewardValue = r.rewards[baseRewardToken] || 0n;
+      const prevBoostedRewardValue = r.rewards[boostedRewardToken] || 0n;
+
+      const mintedReward =
+        r.protocol === Protocols.Aura
+          ? getCVXMintAmount(prevBaseRewardValue, r.totalSupply)
+          : getCVXMintAmount(prevBaseRewardValue, r.totalSupply);
+
+      return {
+        ...r,
+        rewards: {
+          ...r.rewards,
+          [boostedRewardToken]: prevBoostedRewardValue + mintedReward,
+        },
+      };
+    });
+
+    return result;
+  }
+
+  static getBaseRewardToken(protocol: Protocols): SupportedToken | undefined {
+    return protocol === Protocols.Aura
+      ? "BAL"
+      : protocol === Protocols.Convex
+      ? "CRV"
+      : undefined;
+  }
+  static getBBoostedRewardToken(
+    protocol: Protocols,
+  ): SupportedToken | undefined {
+    return protocol === Protocols.Aura
+      ? "AURA"
+      : protocol === Protocols.Convex
+      ? "CVX"
+      : undefined;
   }
 }
