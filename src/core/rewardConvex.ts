@@ -18,6 +18,7 @@ import {
 import { BigNumber, providers } from "ethers";
 
 import { getCVXMintAmount } from "../apy";
+import { getAURAMintAmount } from "../apy/auraAPY";
 import { IBaseRewardPool__factory, IConvexToken__factory } from "../types";
 import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
 import { IConvexTokenInterface } from "../types/IConvexToken";
@@ -236,7 +237,7 @@ export class RewardConvex {
 
       const mintedReward =
         r.protocol === Protocols.Aura
-          ? getCVXMintAmount(prevBaseRewardValue, r.totalSupply)
+          ? getAURAMintAmount(prevBaseRewardValue, r.totalSupply)
           : getCVXMintAmount(prevBaseRewardValue, r.totalSupply);
 
       return {
