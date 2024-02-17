@@ -8,6 +8,7 @@ import {
   CurveSteCRVPoolParams,
   MCall,
   NetworkType,
+  PartialRecord,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
@@ -289,14 +290,13 @@ export interface CalculateConvexAPYProps {
   curveAPY: CurveAPYResult | undefined;
 }
 
-const CURRENCY_LIST: Partial<Record<ConvexStakedPhantomToken, SupportedToken>> =
-  {
-    stkcvxsteCRV: "WETH",
-    stkcvxcrvCVXETH: "WETH",
-    stkcvxcrvCRVETH: "WETH",
-    stkcvxLDOETH: "WETH",
-    stkcvxcrvUSDTWBTCWETH: "USDT",
-  };
+const CURRENCY_LIST: PartialRecord<ConvexStakedPhantomToken, SupportedToken> = {
+  stkcvxsteCRV: "WETH",
+  stkcvxcrvCVXETH: "WETH",
+  stkcvxcrvCRVETH: "WETH",
+  stkcvxLDOETH: "WETH",
+  stkcvxcrvUSDTWBTCWETH: "USDT",
+};
 
 function calculateConvexAPY(props: CalculateConvexAPYProps) {
   const { tokenList, cvxPool, crvToken, cvxExtraPools } = props.info;

@@ -1,4 +1,5 @@
 import { TokenData } from "../tokens/tokenData";
+import { PartialKeys } from "../utils/types";
 import type { TxSerialized } from "./transactions";
 
 export interface Display {
@@ -65,9 +66,7 @@ export abstract class EVMEvent extends EventOrTx {
   }
 }
 
-type OptionalFields = "block" | "txStatus";
-export type EVMTxProps = Omit<EventOrTxProps, OptionalFields> &
-  Partial<Pick<EventOrTxProps, OptionalFields>>;
+export type EVMTxProps = PartialKeys<EventOrTxProps, "block" | "txStatus">;
 
 export abstract class EVMTx extends EventOrTx {
   constructor({
