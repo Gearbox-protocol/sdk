@@ -29,7 +29,9 @@ type MainnetCreditManagersV3 =
   | "WBTC_V3_TRADE_TIER_3"
   | "WETH_V3_TRADE_TIER_1"
   | "WETH_V3_TRADE_TIER_2"
-  | "WETH_V3_TRADE_TIER_3";
+  | "WETH_V3_TRADE_TIER_3"
+  | "USDC_V3_FARM"
+  | "WETH_V3_FARM";
 
 export type MainnetCreditManagers =
   | MainnetCreditManagersV1
@@ -86,6 +88,9 @@ export const creditManagerByNetwork: CreditManagersListType = {
       "0x3f11758aca3f2eb7a27828c9cbcd0b347944ac14".toLowerCase(),
     WETH_V3_TRADE_TIER_3:
       "0x0b2486355e987586c32fc0feefe2943e396c484e".toLowerCase(),
+
+    USDC_V3_FARM: "0x1d489ccd2b96908c0a80acbbdb2f1963ffed3384".toLowerCase(),
+    WETH_V3_FARM: "0x6dc0eb1980fa6b3fa89f5b29937b9baab5865b3e".toLowerCase(),
   },
   Arbitrum: {},
   Optimism: {},
