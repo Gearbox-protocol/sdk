@@ -4,7 +4,7 @@ import {
   safeMulticall,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber, providers, utils } from "ethers";
+import { BigNumber, providers } from "ethers";
 import { Interface } from "ethers/lib/utils";
 
 import { ParsedObject } from "../parsers/abstractParser";
@@ -16,6 +16,7 @@ import { UniswapV2AdapterParser } from "../parsers/uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "../parsers/uniV3AdapterParser";
 import { ICurvePool__factory } from "../types";
 import { ICurvePoolInterface } from "../types/ICurvePool";
+import { splitPoolId } from "./balancerVault";
 import { MultiCall } from "./core";
 
 export interface FeeInfo {
@@ -223,15 +224,11 @@ export class PathFinderUtils {
       case "swapDiff":
       case "swap": {
         const { poolId = "" } = callObject.args?.[0] || {};
-        // !& implement address getting
-        const [contract] = utils.defaultAbiCoder.decode(
-          ["address", "unit16"],
-          poolId,
-        );
+        const { address } = splitPoolId(poolId);
 
-        return contract
+        return address
           ? {
-              address: contract,
+              address,
               interface: BALANCER_VAULT_INTERFACE,
               method: "getSwapFeePercentage()",
             }
