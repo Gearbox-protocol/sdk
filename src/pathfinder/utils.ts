@@ -4,7 +4,7 @@ import {
   safeMulticall,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber, providers, utils } from "ethers";
+import { BigNumber, providers } from "ethers";
 import { Interface } from "ethers/lib/utils";
 
 import { ParsedObject } from "../parsers/abstractParser";
