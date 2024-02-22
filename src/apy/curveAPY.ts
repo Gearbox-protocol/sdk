@@ -92,7 +92,15 @@ const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
   crvUSDETHCRV: "factory-tricrypto-4", // 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14
 
   rETH_f: "factory-crypto-210", // 0x0f3159811670c117c372428D4E69AC32325e4D0F
-  wstETHCRV: "unknown",
+
+  wstETHCRV: "unknown", // 0xEfDE221f306152971D8e9f181bFe998447975810
+
+  "2CRV": "unknown", // 0x7f90122BF0700F9E7e1F688fe926940E8839F353
+  "3c-crvUSD": "unknown", // 0x82670f35306253222F8a165869B28c64739ac62e
+  crvUSDC: "unknown", // 0xec090cf6DD891D2d014beA6edAda6e05E025D93d
+  crvUSDT: "unknown", // 0x73aF1150F265419Ef8a5DB41908B700C32D49135
+  crvUSDC_e: "unknown", // 0x3aDf984c937FA6846E5a24E0A68521Bdaf767cE1
+  "3CRV": "unknown", // 0xEfDE221f306152971D8e9f181bFe998447975810
 };
 
 // const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
