@@ -21,11 +21,12 @@ import {
   ICreditFacadeV3Multicall__factory,
 } from "../types";
 import { Asset } from "./assets";
-import { PoolData, PoolType } from "./pool";
+
+export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
 
 export class CreditManagerData {
   readonly address: string;
-  readonly type: PoolType;
+  readonly type: CreditManagerType;
   readonly underlyingToken: string;
   readonly pool: string;
   readonly creditFacade: string; // V2 only: address of creditFacade
@@ -64,10 +65,10 @@ export class CreditManagerData {
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
-    this.type = PoolData.getPoolType(payload.name || "");
+    this.type = CreditManagerData.getType(payload.name || "");
     this.name = payload.name;
     this.pool = payload.pool.toLowerCase();
-    this.tier = CreditManagerData.getPoolTier(payload.name);
+    this.tier = CreditManagerData.getTier(payload.name);
     this.creditFacade = payload.creditFacade.toLowerCase();
     this.creditConfigurator = payload.creditConfigurator.toLowerCase();
     this.degenNFT = payload.degenNFT.toLowerCase();
@@ -369,7 +370,7 @@ export class CreditManagerData {
     };
   }
 
-  static getPoolTier(name: string): number {
+  static getTier(name: string): number {
     const DEFAULT_TIER = 99;
     const l = name.split(" ") || [];
     const [word, number] = l.slice(-2);
@@ -380,6 +381,17 @@ export class CreditManagerData {
     }
 
     return DEFAULT_TIER;
+  }
+
+  static getType(name: string): CreditManagerType {
+    const [identity = ""] = name.split(" ") || [];
+    const lc = identity.toLowerCase();
+
+    if (lc === "farm") return "farm";
+    if (lc === "trade") return "trade";
+    if (lc === "restaking") return "restaking";
+
+    return "universal";
   }
 }
 
