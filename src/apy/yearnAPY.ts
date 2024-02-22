@@ -32,6 +32,7 @@ export async function getYearnAPY(
 ): Promise<YearnAPYResult> {
   try {
     const chainId = CHAINS[network];
+    const currentTokens = tokenDataByNetwork[network];
 
     const { data } = await axios.get<Response>(getUrl(chainId));
 
@@ -46,9 +47,8 @@ export async function getYearnAPY(
     const yearnAPY = TypedObjectUtils.entries(
       yearnTokens,
     ).reduce<YearnAPYResult>((acc, [yearnSymbol]) => {
-      const address = (
-        tokenDataByNetwork[network]?.[yearnSymbol] || ""
-      ).toLowerCase();
+      const address = (currentTokens?.[yearnSymbol] || "").toLowerCase();
+
       const data = dataByAddress[address];
       const { apr: apy } = data || {};
       const { netAPR } = apy || {};

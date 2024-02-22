@@ -3,6 +3,7 @@ import { CHAINS } from "@gearbox-protocol/sdk-gov";
 export const TESTNET_CHAINS = {
   Mainnet: 7878,
   Optimism: 7879,
+  Arbitrum: 7880,
 } as const;
 
 type ChartsPriceSource = "chainlink" | "spot";
@@ -13,6 +14,7 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   // !& test server for optimism
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation",
+  [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation",
 };
 
 interface Options {
