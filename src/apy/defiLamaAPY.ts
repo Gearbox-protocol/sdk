@@ -29,11 +29,10 @@ export async function getDefiLamaAPY(
 ): Promise<PartialRecord<TokensWithAPY, number>> {
   try {
     const currentNormal = NORMAL_TO_LAMA[networkType];
+    const idList = Object.values(currentNormal);
+    if (idList.length === 0) return {};
 
-    const res = await axios.get<LamaResponse>(
-      `${LAMA_URL}${Object.values(currentNormal).join(",")}`,
-    );
-
+    const res = await axios.get<LamaResponse>(`${LAMA_URL}${idList.join(",")}`);
     const itemsRecord = res.data.data.reduce<Record<string, LamaItem>>(
       (acc, item) => {
         acc[item.pool] = item;

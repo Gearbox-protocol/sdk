@@ -146,10 +146,6 @@ export async function getCurveAPY(network: NetworkType) {
       const baseAPY = volume?.latestDailyApyPcent || 0;
       const maxCrv = Math.max(...(pool?.gaugeCrvApy || []), 0);
 
-      if (!pool) {
-        console.log(curveSymbol);
-      }
-
       const extraRewards = (pool?.gaugeRewards || []).map(
         ({ apy = 0, symbol }): [string, number] => [
           symbol.toLowerCase(),
@@ -193,7 +189,7 @@ export async function getCurveAPY(network: NetworkType) {
     return { curveAPY, gearAPY };
   } catch (e) {
     console.error(e);
-    return undefined;
+    return {};
   }
 }
 
