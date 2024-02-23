@@ -66,6 +66,7 @@ export interface CalcQuotaUpdateProps {
   initialQuotas: Record<string, Pick<CaTokenBalance, "quota">>;
   liquidationThresholds: Record<string, bigint>;
   assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
+  maxDebt: bigint;
 
   allowedToSpend: Record<string, {}>;
   allowedToObtain: Record<string, {}>;
@@ -522,6 +523,7 @@ export class CreditAccountData {
     quotas,
     initialQuotas,
     assetsAfterUpdate,
+    maxDebt,
 
     liquidationThresholds,
 
@@ -530,6 +532,13 @@ export class CreditAccountData {
 
     quotaReserve,
   }: CalcQuotaUpdateProps) {
+    const quotaCap = maxDebt * 2n;
+    const quotaBought = Object.values(initialQuotas).reduce(
+      (sum, q) => sum + (q?.quota || 0n),
+      0n,
+    );
+    const relativeLimit = BigIntMath.max(quotaCap - quotaBought, 0n);
+
     const r = Object.values(quotas).reduce<CalcQuotaUpdateReturnType>(
       (acc, cmQuota) => {
         const { token, isActive } = cmQuota;
@@ -548,13 +557,17 @@ export class CreditAccountData {
         const { amountInTarget = 0n } = after || {};
         const lt = liquidationThresholds[token] || 0n;
 
-        const desiredQuota = this.calcDefaultQuota({
+        const defaultQuota = this.calcDefaultQuota({
           lt,
           quotaReserve,
           amount: amountInTarget,
         });
 
-        const quotaChange = desiredQuota - initialQuota;
+        const quotaChange = BigIntMath.min(
+          relativeLimit,
+          defaultQuota - initialQuota,
+        );
+        const desiredQuota = defaultQuota + quotaChange;
 
         const correctIncrease =
           after && allowedToObtain[token] && quotaChange > 0;
