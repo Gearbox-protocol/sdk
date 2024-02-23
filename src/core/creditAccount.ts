@@ -66,6 +66,7 @@ export interface CalcQuotaUpdateProps {
   initialQuotas: Record<string, Pick<CaTokenBalance, "quota">>;
   liquidationThresholds: Record<string, bigint>;
   assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
+  maxDebt: bigint;
 
   allowedToSpend: Record<string, {}>;
   allowedToObtain: Record<string, {}>;
@@ -518,79 +519,122 @@ export class CreditAccountData {
     return recommendedQuota;
   }
 
-  static calcQuotaUpdate({
-    quotas,
-    initialQuotas,
-    assetsAfterUpdate,
+  static calcQuotaUpdate(
+    props: CalcQuotaUpdateProps,
+  ): CalcQuotaUpdateReturnType {
+    const { quotas, initialQuotas, maxDebt, allowedToSpend, allowedToObtain } =
+      props;
+    const quotaDecrease = Object.keys(allowedToSpend).reduce<
+      Record<string, Asset>
+    >((acc, token) => {
+      const ch = CreditAccountData.getSingleQuotaChange(token, 0n, props);
+      if (ch) acc[ch.token] = ch;
+      return acc;
+    }, {});
 
-    liquidationThresholds,
+    const quotaCap = maxDebt * 2n;
+    const quotaBought = Object.values(initialQuotas).reduce(
+      (sum, q) => sum + (q?.quota || 0n),
+      0n,
+    );
+    const quotaReduced = Object.values(quotaDecrease).reduce(
+      (sum, q) => sum + (q.balance || 0n),
+      0n,
+    );
+    const maxQuotaIncrease = BigIntMath.max(
+      quotaCap - (quotaBought + quotaReduced),
+      0n,
+    );
 
-    allowedToSpend,
-    allowedToObtain,
+    const quotaIncrease = Object.keys(allowedToObtain).reduce<
+      Record<string, Asset>
+    >((acc, token) => {
+      const ch = CreditAccountData.getSingleQuotaChange(
+        token,
+        maxQuotaIncrease,
+        props,
+      );
+      if (ch) acc[ch.token] = ch;
+      return acc;
+    }, {});
 
-    quotaReserve,
-  }: CalcQuotaUpdateProps) {
-    const r = Object.values(quotas).reduce<CalcQuotaUpdateReturnType>(
+    const quotaChange = {
+      ...quotaDecrease,
+      ...quotaIncrease,
+    };
+
+    const desiredQuota = Object.values(quotas).reduce<Record<string, Asset>>(
       (acc, cmQuota) => {
         const { token, isActive } = cmQuota;
         const { quota: initialQuota = 0n } = initialQuotas[token] || {};
 
         if (!isActive) {
-          acc.desiredQuota[token] = {
+          acc[token] = {
             balance: initialQuota,
-            token,
-          };
-          return acc;
-        }
-
-        // min(debt,assetAmountInUnderlying*LT)*(1+buffer)
-        const after = assetsAfterUpdate[token];
-        const { amountInTarget = 0n } = after || {};
-        const lt = liquidationThresholds[token] || 0n;
-
-        const desiredQuota = this.calcDefaultQuota({
-          lt,
-          quotaReserve,
-          amount: amountInTarget,
-        });
-
-        const quotaChange = desiredQuota - initialQuota;
-
-        const correctIncrease =
-          after && allowedToObtain[token] && quotaChange > 0;
-        const correctDecrease =
-          after && allowedToSpend[token] && quotaChange < 0;
-
-        if (correctIncrease || correctDecrease) {
-          acc.desiredQuota[token] = {
-            balance: desiredQuota,
             token,
           };
         } else {
-          acc.desiredQuota[token] = {
-            balance: initialQuota,
+          const change = quotaChange[token]?.balance || 0n;
+          const quotaAfter = initialQuota + change;
+          acc[token] = {
+            balance: quotaAfter,
             token,
           };
-        }
-
-        if (correctIncrease) {
-          acc.quotaIncrease.push({
-            balance: quotaChange,
-            token,
-          });
-        }
-        if (correctDecrease) {
-          acc.quotaDecrease.push({
-            balance: quotaChange,
-            token,
-          });
         }
 
         return acc;
       },
-      { desiredQuota: {}, quotaIncrease: [], quotaDecrease: [] },
+      {},
     );
-    return r;
+    return {
+      desiredQuota,
+      quotaDecrease: Object.values(quotaDecrease),
+      quotaIncrease: Object.values(quotaIncrease),
+    };
+  }
+
+  private static getSingleQuotaChange(
+    token: string,
+    maxQuotaIncrease: bigint,
+    props: CalcQuotaUpdateProps,
+  ) {
+    const { isActive = false } = props.quotas[token] || {};
+    const { quota: initialQuota = 0n } = props.initialQuotas[token] || {};
+
+    if (!isActive) {
+      return undefined;
+    }
+
+    // min(debt,assetAmountInUnderlying*LT)*(1+buffer)
+    const assetAfter = props.assetsAfterUpdate[token];
+    const { amountInTarget = 0n } = assetAfter || {};
+    const lt = props.liquidationThresholds[token] || 0n;
+
+    const defaultQuota = this.calcDefaultQuota({
+      lt,
+      quotaReserve: props.quotaReserve,
+      amount: amountInTarget,
+    });
+
+    const unsafeQuotaChange = defaultQuota - initialQuota;
+    const quotaChange =
+      unsafeQuotaChange > 0
+        ? BigIntMath.min(maxQuotaIncrease, unsafeQuotaChange)
+        : unsafeQuotaChange;
+
+    const correctIncrease =
+      assetAfter && props.allowedToObtain[token] && quotaChange > 0;
+    const correctDecrease =
+      assetAfter && props.allowedToSpend[token] && quotaChange < 0;
+
+    if (correctIncrease || correctDecrease) {
+      return {
+        balance: quotaChange,
+        token,
+      };
+    }
+
+    return undefined;
   }
 
   static calcQuotaBorrowRate({ quotas, quotaRates }: CalcQuotaBorrowRateProps) {
