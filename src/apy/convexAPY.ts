@@ -345,7 +345,7 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
 
   const extraAPYTotal = extraAPRs.reduce((acc, apy) => acc + apy, 0n);
 
-  const baseApy = props.curveAPY?.[crvToken].base || 0;
+  const baseApy = props.curveAPY?.[crvToken]?.base || 0;
 
   const apyTotal = crvAPY + cvxAPY + extraAPYTotal;
   const apyTotalInPercent = apyTotal * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR;

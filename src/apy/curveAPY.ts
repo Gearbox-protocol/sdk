@@ -1,17 +1,29 @@
-import { PERCENTAGE_FACTOR, TypedObjectUtils } from "@gearbox-protocol/sdk-gov";
+import {
+  curveTokens,
+  NetworkType,
+  PartialRecord,
+  PERCENTAGE_FACTOR,
+  tokenDataByNetwork,
+  TypedObjectUtils,
+} from "@gearbox-protocol/sdk-gov";
 import { CurveLPToken } from "@gearbox-protocol/sdk-gov/lib/tokens/curveLP";
 import { GearboxToken } from "@gearbox-protocol/sdk-gov/lib/tokens/gear";
 import axios from "axios";
 
-interface CurveAPYData {
-  baseApy: number;
-  crvApy: number;
-  crvBoost: number;
-  crvPrice: number;
-}
-
-interface CurveAPYDataResponse {
-  apys: Record<string, CurveAPYData>;
+interface VolumesResponse {
+  data: {
+    pools: [
+      {
+        address: string;
+        includedApyPcentFromLsts: number;
+        latestDailyApyPcent: number;
+        latestWeeklyApyPcent: number;
+        type: string;
+        virtualPrice: number;
+        volumeUSD: number;
+      },
+    ];
+  };
 }
 
 interface CurvePoolData {
@@ -68,112 +80,180 @@ interface CurvePoolDataResponse {
 
 type CurveAPYTokens = CurveLPToken | GearboxToken;
 
-const APY_DICTIONARY: Record<CurveAPYTokens, string> = {
-  "3Crv": "0", // 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7
-  FRAX3CRV: "34", // 0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B
-  gusd3CRV: "19", // 0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956
-  LUSD3CRV: "33", // 0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA
-  crvPlain3andSUSD: "15", // 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD
-  steCRV: "14", // 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022
-  crvFRAX: "44", // 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2
+const GEAR_POOL = "0x5Be6C45e2d074fAa20700C49aDA3E88a1cc0025d".toLowerCase();
 
-  GEAR: "factory-crypto-192", // 0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2
-  OHMFRAXBP: "factory-crypto-158", // 0xfc1e8bf3e81383ef07be24c3fd146745719de48d
-  MIM_3LP3CRV: "40", // 0x5a6a4d54456819380173272a5e8e9b9904bdf41b
-
-  crvCRVETH: "crypto-3", // 0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511
-  crvCVXETH: "crypto-4", // 0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4
-  crvUSDTWBTCWETH: "factory-tricrypto-1", // 0xf5f5B97624542D72A9E06f04804Bf81baA15e2B4
-  LDOETH: "factory-crypto-204", // "0x9409280DC1e6D33AB7A8C6EC03e5763FB61772B5"
-
-  crvUSDUSDC: "factory-crvusd-0", // 0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E
-  crvUSDUSDT: "factory-crvusd-1", // 0x390f3595bCa2Df7d23783dFd126427CCeb997BF4
-  crvUSDFRAX: "factory-crvusd-4", // 0x0CD6f267b2086bea681E922E19D40512511BE538
-  crvUSDETHCRV: "factory-tricrypto-4", // 0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14
-
-  rETH_f: "factory-crypto-210", // 0x0f3159811670c117c372428D4E69AC32325e4D0F
-
-  wstETHCRV: "unknown", // 0xEfDE221f306152971D8e9f181bFe998447975810
-
-  "2CRV": "unknown", // 0x7f90122BF0700F9E7e1F688fe926940E8839F353
-  "3c-crvUSD": "unknown", // 0x82670f35306253222F8a165869B28c64739ac62e
-  crvUSDC: "unknown", // 0xec090cf6DD891D2d014beA6edAda6e05E025D93d
-  crvUSDT: "unknown", // 0x73aF1150F265419Ef8a5DB41908B700C32D49135
-  crvUSDC_e: "unknown", // 0x3aDf984c937FA6846E5a24E0A68521Bdaf767cE1
-  "3CRV": "unknown", // 0xEfDE221f306152971D8e9f181bFe998447975810
+const CURVE_CHAINS: Record<NetworkType, string> = {
+  Arbitrum: "arbitrum",
+  Mainnet: "ethereum",
+  Optimism: "optimism",
 };
 
-// const CRYPTO = "https://api.curve.fi/api/getPools/ethereum/crypto";
-// const FACTORY = "https://api.curve.fi/api/getPools/ethereum/factory";
-const CURVE_APY_URL = "https://www.convexfinance.com/api/curve-apys";
-const CURVE_MAIN_URL = "https://api.curve.fi/api/getPools/ethereum/main";
-const CURVE_FACTORY_CRYPTO_URL =
-  "https://api.curve.fi/api/getPools/ethereum/factory-crypto";
-const CURVE_CRYPTO_URL = "https://api.curve.fi/api/getPools/ethereum/crypto";
-const CURVE_FACTORY_TRICRYPTO_URL =
-  "https://api.curve.fi/api/getPools/ethereum/factory-tricrypto";
-const CURVE_FACTORY_CRVUSD_URL =
-  "https://api.curve.fi/api/getPools/ethereum/factory-crvusd";
+// const CRYPTO = "https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/crypto";
+// const FACTORY = "https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/factory";
+// const CURVE_APY_URL = "https://www.convexfinance.com/api/curve-apys";
+const getVolumesURL = (n: NetworkType) =>
+  `https://api.curve.fi/api/getVolumes/${CURVE_CHAINS[n]}`;
+const getMainURL = (n: NetworkType) =>
+  `https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/main`;
+const getFactoryCryptoURL = (n: NetworkType) =>
+  `https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/factory-crypto`;
+const getCryptoURL = (n: NetworkType) =>
+  `https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/crypto`;
+const getFactoryTriCryptoURL = (n: NetworkType) =>
+  `https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/factory-tricrypto`;
+const getFactoryCrvUsdURL = (n: NetworkType) =>
+  `https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/factory-crvusd`;
+const getFactoryStableNgURL = (n: NetworkType) =>
+  `https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/factory-stable-ng`;
 
 interface CurveAPY {
   base: number;
   crv: number;
   gauge: Array<[string, number]>;
 }
-export type CurveAPYResult = Record<CurveAPYTokens, CurveAPY>;
+export type CurveAPYResult = PartialRecord<CurveAPYTokens, CurveAPY>;
 
-export async function getCurveAPY(): Promise<CurveAPYResult> {
+export async function getCurveAPY(network: NetworkType) {
   try {
-    const [{ data: apyData }, ...restData] = await Promise.all([
-      axios.get<CurveAPYDataResponse>(CURVE_APY_URL),
-      axios.get<CurvePoolDataResponse>(CURVE_MAIN_URL),
-      axios.get<CurvePoolDataResponse>(CURVE_FACTORY_CRYPTO_URL),
-      axios.get<CurvePoolDataResponse>(CURVE_CRYPTO_URL),
-      axios.get<CurvePoolDataResponse>(CURVE_FACTORY_TRICRYPTO_URL),
-      axios.get<CurvePoolDataResponse>(CURVE_FACTORY_CRVUSD_URL),
-    ]);
+    const currentTokens = tokenDataByNetwork[network];
+    const { mainnetVolumes, mainnetFactoryPools, volumes, pools } =
+      await getCurvePools(network);
 
-    const { apys } = apyData || {};
+    const volumeByAddress = Object.fromEntries(
+      volumes.data.data.pools.map(v => [v.address.toLowerCase(), v]),
+    );
 
-    const poolDataByID = Object.fromEntries(
-      restData
-        .map(resp => {
-          const { poolData = [] } = resp?.data?.data || {};
-          return poolData.map(p => [p.id, p] as const);
+    const poolDataByAddress = Object.fromEntries(
+      pools
+        .map(poolCategory => {
+          const { poolData = [] } = poolCategory?.data?.data || {};
+          return poolData.map((p): [string, CurvePoolData] => [
+            p.lpTokenAddress.toLowerCase(),
+            p,
+          ]);
         })
         .flat(1),
     );
 
     const curveAPY = TypedObjectUtils.entries(
-      APY_DICTIONARY,
-    ).reduce<CurveAPYResult>((acc, [curveSymbol, poolId]) => {
-      const { baseApy, crvApy } = apys[poolId] || {};
-      const pool = poolDataByID[poolId];
-      const { gaugeRewards = [] } = pool || {};
+      curveTokens,
+    ).reduce<CurveAPYResult>((acc, [curveSymbol]) => {
+      const address = (currentTokens?.[curveSymbol] || "").toLowerCase();
 
-      const extraRewards = gaugeRewards.map(
+      const pool = poolDataByAddress[address];
+      const volume = volumeByAddress[(pool?.address || "").toLowerCase()];
+
+      const baseAPY = volume?.latestDailyApyPcent || 0;
+      const maxCrv = Math.max(...(pool?.gaugeCrvApy || []), 0);
+
+      const extraRewards = (pool?.gaugeRewards || []).map(
         ({ apy = 0, symbol }): [string, number] => [
           symbol.toLowerCase(),
           curveAPYToBn(apy),
         ],
       );
 
-      const maxCrv =
-        pool?.gaugeCrvApy?.length > 0 ? Math.max(...pool.gaugeCrvApy) : crvApy;
-
       acc[curveSymbol] = {
-        base: curveAPYToBn(baseApy || 0),
-        crv: curveAPYToBn(maxCrv || 0),
+        base: curveAPYToBn(baseAPY),
+        crv: curveAPYToBn(maxCrv),
         gauge: extraRewards,
       };
 
       return acc;
-    }, {} as CurveAPYResult);
+    }, {});
 
-    return curveAPY;
+    const poolFactoryByAddress = Object.fromEntries(
+      (mainnetFactoryPools?.data?.data?.poolData || []).map(
+        (p): [string, CurvePoolData] => [p.lpTokenAddress.toLowerCase(), p],
+      ),
+    );
+    const mainnetVolumeByAddress = Object.fromEntries(
+      mainnetVolumes.data.data.pools.map(v => [v.address.toLowerCase(), v]),
+    );
+
+    const gearPool = poolFactoryByAddress[GEAR_POOL];
+    const gearVolume =
+      mainnetVolumeByAddress[(gearPool?.address || "").toLowerCase()];
+
+    const gearAPY: CurveAPY = {
+      base: curveAPYToBn(gearVolume?.latestDailyApyPcent || 0),
+      crv: curveAPYToBn(Math.max(...(gearPool?.gaugeCrvApy || []), 0)),
+      gauge: (gearPool?.gaugeRewards || []).map(
+        ({ apy = 0, symbol }): [string, number] => [
+          symbol.toLowerCase(),
+          curveAPYToBn(apy),
+        ],
+      ),
+    };
+
+    return { curveAPY, gearAPY };
   } catch (e) {
     console.error(e);
-    return {} as CurveAPYResult;
+    return {};
+  }
+}
+
+async function getCurvePools(network: NetworkType) {
+  switch (network) {
+    case "Mainnet": {
+      const [volumes, mainnetFactoryPools, ...pools] = await Promise.all([
+        axios.get<VolumesResponse>(getVolumesURL(network)),
+        axios.get<CurvePoolDataResponse>(getFactoryCryptoURL(network)),
+
+        axios.get<CurvePoolDataResponse>(getMainURL(network)),
+        axios.get<CurvePoolDataResponse>(getCryptoURL(network)),
+        axios.get<CurvePoolDataResponse>(getFactoryTriCryptoURL(network)),
+        axios.get<CurvePoolDataResponse>(getFactoryCrvUsdURL(network)),
+      ]);
+      return {
+        mainnetVolumes: volumes,
+        mainnetFactoryPools,
+
+        volumes,
+        pools: [mainnetFactoryPools, ...pools],
+      };
+    }
+    case "Arbitrum": {
+      const [mainnetVolumes, mainnetFactoryPools, volumes, ...pools] =
+        await Promise.all([
+          axios.get<VolumesResponse>(getVolumesURL("Mainnet")),
+          axios.get<CurvePoolDataResponse>(getFactoryCryptoURL("Mainnet")),
+
+          axios.get<VolumesResponse>(getVolumesURL(network)),
+          axios.get<CurvePoolDataResponse>(getMainURL(network)),
+          axios.get<CurvePoolDataResponse>(getFactoryStableNgURL(network)),
+        ]);
+
+      return {
+        mainnetVolumes,
+        mainnetFactoryPools,
+
+        volumes,
+        pools,
+      };
+    }
+
+    case "Optimism": {
+      const [mainnetVolumes, mainnetFactoryPools, volumes, ...pools] =
+        await Promise.all([
+          axios.get<VolumesResponse>(getVolumesURL("Mainnet")),
+          axios.get<CurvePoolDataResponse>(getFactoryCryptoURL("Mainnet")),
+
+          axios.get<VolumesResponse>(getVolumesURL(network)),
+          axios.get<CurvePoolDataResponse>(getMainURL(network)),
+          axios.get<CurvePoolDataResponse>(getFactoryStableNgURL(network)),
+        ]);
+
+      return {
+        mainnetVolumes,
+        mainnetFactoryPools,
+
+        volumes,
+        pools,
+      };
+    }
+    default:
+      throw new Error("Unknown network");
   }
 }
 
@@ -182,20 +262,14 @@ function curveAPYToBn(baseApy: number) {
 }
 
 export async function getCurveGearPool(): Promise<CurvePoolData | undefined> {
-  const data = await Promise.all([
-    axios.get<CurvePoolDataResponse>(CURVE_FACTORY_CRYPTO_URL),
-  ]);
-
-  const poolDataByID = Object.fromEntries(
-    data
-      .map(resp => {
-        const { poolData = [] } = resp?.data?.data || {};
-        return poolData.map(p => [p.id, p] as const);
-      })
-      .flat(1),
+  const resp = await axios.get<CurvePoolDataResponse>(
+    getFactoryCryptoURL("Mainnet"),
   );
+  const { poolData = [] } = resp?.data?.data || {};
 
-  const gearPool = poolDataByID[APY_DICTIONARY.GEAR];
-
+  const poolDataByAddress = Object.fromEntries(
+    poolData.map(p => [p.lpTokenAddress.toLowerCase(), p]),
+  );
+  const gearPool = poolDataByAddress[GEAR_POOL];
   return gearPool;
 }

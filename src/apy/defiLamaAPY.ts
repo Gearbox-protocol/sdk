@@ -29,11 +29,10 @@ export async function getDefiLamaAPY(
 ): Promise<PartialRecord<TokensWithAPY, number>> {
   try {
     const currentNormal = NORMAL_TO_LAMA[networkType];
+    const idList = Object.values(currentNormal);
+    if (idList.length === 0) return {};
 
-    const res = await axios.get<LamaResponse>(
-      `${LAMA_URL}${Object.values(currentNormal).join(",")}`,
-    );
-
+    const res = await axios.get<LamaResponse>(`${LAMA_URL}${idList.join(",")}`);
     const itemsRecord = res.data.data.reduce<Record<string, LamaItem>>(
       (acc, item) => {
         acc[item.pool] = item;
@@ -70,7 +69,7 @@ const NORMAL_TO_LAMA: Record<
 
     auraB_rETH_STABLE_vault: "a4b5b995-99e7-4b8f-916d-8940b5627d70",
   },
-  Optimism: { rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb" },
+  Optimism: {},
   Arbitrum: {},
 };
 

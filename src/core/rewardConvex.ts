@@ -67,8 +67,6 @@ export class RewardConvex {
     network: NetworkType,
     provider: providers.Provider,
   ): Promise<Array<Rewards>> {
-    if (network !== "Mainnet") return [];
-
     const { auraCalls, auraDistribution, convexCalls, convexDistribution } =
       RewardConvex.prepareMultiCalls(ca.addr, cm, network);
 
