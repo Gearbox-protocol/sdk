@@ -538,10 +538,12 @@ const DEFAULT_LT = {
   [tokenDataByNetwork.Mainnet.WETH]: PERCENTAGE_FACTOR,
   [tokenDataByNetwork.Mainnet.STETH]: PERCENTAGE_FACTOR,
 };
+const HUGE_MAX_DEBT = 20n;
 
 describe("CreditAccount calcQuotaUpdate test", () => {
   it("open account should buy quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {},
@@ -595,6 +597,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("add collateral should buy quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
@@ -638,6 +641,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("add collateral should add additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
@@ -681,6 +685,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("add collateral shouldn't add additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
@@ -719,6 +724,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("swap should buy quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
@@ -767,8 +773,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       },
     });
   });
-  it("swap should add additional quota", () => {
+  it("swap should buy additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
@@ -822,8 +829,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       },
     });
   });
-  it("swap shouldn't add additional quota", () => {
+  it("swap shouldn't buy additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
@@ -872,6 +880,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("shouldn't change quota if disallowed", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: caQuota,
@@ -913,6 +922,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("shouldn't change quota if it is disabled", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
@@ -971,6 +981,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("swap shouldn't buy quota if no lt", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {
@@ -1021,6 +1032,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("swap should buy quota with respect to lt", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {
@@ -1077,6 +1089,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("swap shouldn't buy quota with respect to lt", () => {
     const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {
@@ -1122,6 +1135,184 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
         balance: 5n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap should buy additional quota after limit was increased", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: 10n,
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          quota: 10n,
+        },
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 20n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+
+      liquidationThresholds: DEFAULT_LT,
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: -10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 20n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap should buy additional quota with respect to debt limit", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: 9n,
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          quota: 10n,
+        },
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 20n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+
+      liquidationThresholds: DEFAULT_LT,
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 8n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: -10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 18n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap shouldn't buy additional quota if debt limit more then current quota", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: 5n,
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          quota: 10n,
+        },
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 20n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+
+      liquidationThresholds: DEFAULT_LT,
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: -10n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 10n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
