@@ -4,7 +4,7 @@ import { IGearStakingV3 } from "../types";
 import {
   GaugeInfoStructOutput,
   GaugeQuotaParamsStructOutput,
-} from "../types/IDataCompressorV3_00";
+} from "../types/IDataCompressorV3";
 import { BigintifyProps } from "../utils/types";
 
 export type GaugeQuotaParams = BigintifyProps<
