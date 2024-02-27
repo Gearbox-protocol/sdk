@@ -1,7 +1,11 @@
-import { SupportedToken } from "@gearbox-protocol/sdk-gov";
+import { PartialRecord, SupportedToken } from "@gearbox-protocol/sdk-gov";
 
 import { STATIC_TOKEN } from "../config";
 import { TokenDataPayload } from "../payload/token";
+
+const ALIASES: PartialRecord<SupportedToken, string> = {
+  USDC_e: "USDC.e",
+};
 
 export class TokenData {
   readonly title: string;
@@ -14,7 +18,7 @@ export class TokenData {
     const symbol = payload.symbol;
     const title = payload.title || symbol;
 
-    this.title = title;
+    this.title = ALIASES[title as SupportedToken] || title;
     this.address = payload.addr.toLowerCase();
     this.symbol = symbol;
     this.decimals = payload.decimals;
