@@ -70,7 +70,10 @@ const NORMAL_TO_LAMA: Record<
     auraB_rETH_STABLE_vault: "a4b5b995-99e7-4b8f-916d-8940b5627d70",
   },
   Optimism: {},
-  Arbitrum: {},
+  Arbitrum: {
+    rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb",
+    cbETH: "0f45d730-b279-4629-8e11-ccb5cc3038b4",
+  },
 };
 
 // const CONVEX_TO_LAMA: Record<
