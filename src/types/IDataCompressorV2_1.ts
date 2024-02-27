@@ -7,8 +7,6 @@ import type {
   BigNumberish,
   BytesLike,
   CallOverrides,
-  ContractTransaction,
-  Overrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -22,16 +20,6 @@ import type {
   OnEvent,
   PromiseOrValue,
 } from "./common";
-
-export type PriceOnDemandStruct = {
-  token: PromiseOrValue<string>;
-  callData: PromiseOrValue<BytesLike>;
-};
-
-export type PriceOnDemandStructOutput = [string, string] & {
-  token: string;
-  callData: string;
-};
 
 export type TokenBalanceStruct = {
   token: PromiseOrValue<string>;
@@ -309,80 +297,6 @@ export type CreditManagerDataStructOutput = [
   isPaused: boolean;
 };
 
-export type GaugeQuotaParamsStruct = {
-  token: PromiseOrValue<string>;
-  minRate: PromiseOrValue<BigNumberish>;
-  maxRate: PromiseOrValue<BigNumberish>;
-  totalVotesLpSide: PromiseOrValue<BigNumberish>;
-  totalVotesCaSide: PromiseOrValue<BigNumberish>;
-  rate: PromiseOrValue<BigNumberish>;
-  quotaIncreaseFee: PromiseOrValue<BigNumberish>;
-  totalQuoted: PromiseOrValue<BigNumberish>;
-  limit: PromiseOrValue<BigNumberish>;
-  isActive: PromiseOrValue<boolean>;
-  stakerVotesLpSide: PromiseOrValue<BigNumberish>;
-  stakerVotesCaSide: PromiseOrValue<BigNumberish>;
-};
-
-export type GaugeQuotaParamsStructOutput = [
-  string,
-  number,
-  number,
-  BigNumber,
-  BigNumber,
-  number,
-  number,
-  BigNumber,
-  BigNumber,
-  boolean,
-  BigNumber,
-  BigNumber
-] & {
-  token: string;
-  minRate: number;
-  maxRate: number;
-  totalVotesLpSide: BigNumber;
-  totalVotesCaSide: BigNumber;
-  rate: number;
-  quotaIncreaseFee: number;
-  totalQuoted: BigNumber;
-  limit: BigNumber;
-  isActive: boolean;
-  stakerVotesLpSide: BigNumber;
-  stakerVotesCaSide: BigNumber;
-};
-
-export type GaugeInfoStruct = {
-  addr: PromiseOrValue<string>;
-  pool: PromiseOrValue<string>;
-  symbol: PromiseOrValue<string>;
-  name: PromiseOrValue<string>;
-  underlying: PromiseOrValue<string>;
-  currentEpoch: PromiseOrValue<BigNumberish>;
-  epochFrozen: PromiseOrValue<boolean>;
-  quotaParams: GaugeQuotaParamsStruct[];
-};
-
-export type GaugeInfoStructOutput = [
-  string,
-  string,
-  string,
-  string,
-  string,
-  number,
-  boolean,
-  GaugeQuotaParamsStructOutput[]
-] & {
-  addr: string;
-  pool: string;
-  symbol: string;
-  name: string;
-  underlying: string;
-  currentEpoch: number;
-  epochFrozen: boolean;
-  quotaParams: GaugeQuotaParamsStructOutput[];
-};
-
 export type CreditManagerDebtParamsStruct = {
   creditManager: PromiseOrValue<string>;
   borrowed: PromiseOrValue<BigNumberish>;
@@ -499,72 +413,67 @@ export type PoolDataStructOutput = [
   isPaused: boolean;
 };
 
-export interface IDataCompressorV3_00Interface extends utils.Interface {
+export interface IDataCompressorV2_1Interface extends utils.Interface {
   functions: {
-    "getCreditAccountData(address,(address,bytes)[])": FunctionFragment;
-    "getCreditAccountsByBorrower(address,(address,bytes)[])": FunctionFragment;
-    "getCreditAccountsByCreditManager(address,(address,bytes)[])": FunctionFragment;
+    "getAdapter(address,address)": FunctionFragment;
+    "getCreditAccountData(address,address)": FunctionFragment;
+    "getCreditAccountsByBorrower(address)": FunctionFragment;
     "getCreditManagerData(address)": FunctionFragment;
-    "getCreditManagersV3List()": FunctionFragment;
-    "getGaugesV3Data(address)": FunctionFragment;
-    "getLiquidatableCreditAccounts((address,bytes)[])": FunctionFragment;
+    "getCreditManagersV2List()": FunctionFragment;
     "getPoolData(address)": FunctionFragment;
-    "getPoolsV3List()": FunctionFragment;
+    "getPoolsV1List()": FunctionFragment;
+    "hasOpenedCreditAccount(address,address)": FunctionFragment;
     "version()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "getAdapter"
       | "getCreditAccountData"
       | "getCreditAccountsByBorrower"
-      | "getCreditAccountsByCreditManager"
       | "getCreditManagerData"
-      | "getCreditManagersV3List"
-      | "getGaugesV3Data"
-      | "getLiquidatableCreditAccounts"
+      | "getCreditManagersV2List"
       | "getPoolData"
-      | "getPoolsV3List"
+      | "getPoolsV1List"
+      | "hasOpenedCreditAccount"
       | "version"
   ): FunctionFragment;
 
   encodeFunctionData(
+    functionFragment: "getAdapter",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getCreditAccountData",
-    values: [PromiseOrValue<string>, PriceOnDemandStruct[]]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountsByBorrower",
-    values: [PromiseOrValue<string>, PriceOnDemandStruct[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCreditAccountsByCreditManager",
-    values: [PromiseOrValue<string>, PriceOnDemandStruct[]]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditManagerData",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getCreditManagersV3List",
+    functionFragment: "getCreditManagersV2List",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getGaugesV3Data",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLiquidatableCreditAccounts",
-    values: [PriceOnDemandStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolData",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getPoolsV3List",
+    functionFragment: "getPoolsV1List",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasOpenedCreditAccount",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: "getAdapter", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountData",
     data: BytesLike
@@ -574,23 +483,11 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getCreditAccountsByCreditManager",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getCreditManagerData",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getCreditManagersV3List",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getGaugesV3Data",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLiquidatableCreditAccounts",
+    functionFragment: "getCreditManagersV2List",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -598,7 +495,11 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPoolsV3List",
+    functionFragment: "getPoolsV1List",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "hasOpenedCreditAccount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
@@ -606,12 +507,12 @@ export interface IDataCompressorV3_00Interface extends utils.Interface {
   events: {};
 }
 
-export interface IDataCompressorV3_00 extends BaseContract {
+export interface IDataCompressorV2_1 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IDataCompressorV3_00Interface;
+  interface: IDataCompressorV2_1Interface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -633,145 +534,130 @@ export interface IDataCompressorV3_00 extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    getAdapter(
+      _creditManager: PromiseOrValue<string>,
+      _allowedContract: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { adapter: string }>;
+
     getCreditAccountData(
-      creditAccount: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+      _creditManager: PromiseOrValue<string>,
+      borrower: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[CreditAccountDataStructOutput]>;
 
     getCreditAccountsByBorrower(
       borrower: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getCreditAccountsByCreditManager(
-      creditManager: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[CreditAccountDataStructOutput[]]>;
 
     getCreditManagerData(
-      creditManager: PromiseOrValue<string>,
+      _creditManager: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[CreditManagerDataStructOutput]>;
 
-    getCreditManagersV3List(
+    getCreditManagersV2List(
       overrides?: CallOverrides
     ): Promise<[CreditManagerDataStructOutput[]]>;
-
-    getGaugesV3Data(
-      staker: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[GaugeInfoStructOutput[]] & { result: GaugeInfoStructOutput[] }>;
-
-    getLiquidatableCreditAccounts(
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
 
     getPoolData(
       _pool: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[PoolDataStructOutput]>;
 
-    getPoolsV3List(
+    getPoolsV1List(
       overrides?: CallOverrides
     ): Promise<[PoolDataStructOutput[]]>;
+
+    hasOpenedCreditAccount(
+      creditManager: PromiseOrValue<string>,
+      borrower: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
+  getAdapter(
+    _creditManager: PromiseOrValue<string>,
+    _allowedContract: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   getCreditAccountData(
-    creditAccount: PromiseOrValue<string>,
-    priceUpdates: PriceOnDemandStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+    _creditManager: PromiseOrValue<string>,
+    borrower: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<CreditAccountDataStructOutput>;
 
   getCreditAccountsByBorrower(
     borrower: PromiseOrValue<string>,
-    priceUpdates: PriceOnDemandStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getCreditAccountsByCreditManager(
-    creditManager: PromiseOrValue<string>,
-    priceUpdates: PriceOnDemandStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<CreditAccountDataStructOutput[]>;
 
   getCreditManagerData(
-    creditManager: PromiseOrValue<string>,
+    _creditManager: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<CreditManagerDataStructOutput>;
 
-  getCreditManagersV3List(
+  getCreditManagersV2List(
     overrides?: CallOverrides
   ): Promise<CreditManagerDataStructOutput[]>;
-
-  getGaugesV3Data(
-    staker: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<GaugeInfoStructOutput[]>;
-
-  getLiquidatableCreditAccounts(
-    priceUpdates: PriceOnDemandStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
 
   getPoolData(
     _pool: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<PoolDataStructOutput>;
 
-  getPoolsV3List(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
+  getPoolsV1List(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
+
+  hasOpenedCreditAccount(
+    creditManager: PromiseOrValue<string>,
+    borrower: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   version(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
+    getAdapter(
+      _creditManager: PromiseOrValue<string>,
+      _allowedContract: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     getCreditAccountData(
-      creditAccount: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
+      _creditManager: PromiseOrValue<string>,
+      borrower: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<CreditAccountDataStructOutput>;
 
     getCreditAccountsByBorrower(
       borrower: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: CallOverrides
-    ): Promise<CreditAccountDataStructOutput[]>;
-
-    getCreditAccountsByCreditManager(
-      creditManager: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
       overrides?: CallOverrides
     ): Promise<CreditAccountDataStructOutput[]>;
 
     getCreditManagerData(
-      creditManager: PromiseOrValue<string>,
+      _creditManager: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<CreditManagerDataStructOutput>;
 
-    getCreditManagersV3List(
+    getCreditManagersV2List(
       overrides?: CallOverrides
     ): Promise<CreditManagerDataStructOutput[]>;
-
-    getGaugesV3Data(
-      staker: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<GaugeInfoStructOutput[]>;
-
-    getLiquidatableCreditAccounts(
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: CallOverrides
-    ): Promise<CreditAccountDataStructOutput[]>;
 
     getPoolData(
       _pool: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PoolDataStructOutput>;
 
-    getPoolsV3List(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
+    getPoolsV1List(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
+
+    hasOpenedCreditAccount(
+      creditManager: PromiseOrValue<string>,
+      borrower: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -779,87 +665,71 @@ export interface IDataCompressorV3_00 extends BaseContract {
   filters: {};
 
   estimateGas: {
+    getAdapter(
+      _creditManager: PromiseOrValue<string>,
+      _allowedContract: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getCreditAccountData(
-      creditAccount: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _creditManager: PromiseOrValue<string>,
+      borrower: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCreditAccountsByBorrower(
       borrower: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getCreditAccountsByCreditManager(
-      creditManager: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCreditManagerData(
-      creditManager: PromiseOrValue<string>,
+      _creditManager: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getCreditManagersV3List(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getGaugesV3Data(
-      staker: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getLiquidatableCreditAccounts(
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    getCreditManagersV2List(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPoolData(
       _pool: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getPoolsV3List(overrides?: CallOverrides): Promise<BigNumber>;
+    getPoolsV1List(overrides?: CallOverrides): Promise<BigNumber>;
+
+    hasOpenedCreditAccount(
+      creditManager: PromiseOrValue<string>,
+      borrower: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    getAdapter(
+      _creditManager: PromiseOrValue<string>,
+      _allowedContract: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getCreditAccountData(
-      creditAccount: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _creditManager: PromiseOrValue<string>,
+      borrower: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCreditAccountsByBorrower(
       borrower: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getCreditAccountsByCreditManager(
-      creditManager: PromiseOrValue<string>,
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCreditManagerData(
-      creditManager: PromiseOrValue<string>,
+      _creditManager: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getCreditManagersV3List(
+    getCreditManagersV2List(
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getGaugesV3Data(
-      staker: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getLiquidatableCreditAccounts(
-      priceUpdates: PriceOnDemandStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getPoolData(
@@ -867,7 +737,13 @@ export interface IDataCompressorV3_00 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getPoolsV3List(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getPoolsV1List(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    hasOpenedCreditAccount(
+      creditManager: PromiseOrValue<string>,
+      borrower: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

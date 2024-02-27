@@ -59,8 +59,8 @@ export { ICurveV1_2AssetsAdapter__factory } from "./ICurveV1_2AssetsAdapter__fac
 export { ICurveV1_3AssetsAdapter__factory } from "./ICurveV1_3AssetsAdapter__factory";
 export { ICurveV1_4AssetsAdapter__factory } from "./ICurveV1_4AssetsAdapter__factory";
 export { IDaiLikePermit__factory } from "./IDaiLikePermit__factory";
-export { IDataCompressorV2_10__factory } from "./IDataCompressorV2_10__factory";
-export { IDataCompressorV3_00__factory } from "./IDataCompressorV3_00__factory";
+export { IDataCompressorV2_1__factory } from "./IDataCompressorV2_1__factory";
+export { IDataCompressorV3__factory } from "./IDataCompressorV3__factory";
 export { IERC165__factory } from "./IERC165__factory";
 export { IERC20__factory } from "./IERC20__factory";
 export { IERC20Metadata__factory } from "./IERC20Metadata__factory";
