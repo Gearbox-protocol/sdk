@@ -5,9 +5,9 @@
 import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
 import type {
-  IDataCompressorV2_10,
-  IDataCompressorV2_10Interface,
-} from "../IDataCompressorV2_10";
+  IDataCompressorV2_1,
+  IDataCompressorV2_1Interface,
+} from "../IDataCompressorV2_1";
 
 const _abi = [
   {
@@ -1494,19 +1494,15 @@ const _abi = [
   },
 ] as const;
 
-export class IDataCompressorV2_10__factory {
+export class IDataCompressorV2_1__factory {
   static readonly abi = _abi;
-  static createInterface(): IDataCompressorV2_10Interface {
-    return new utils.Interface(_abi) as IDataCompressorV2_10Interface;
+  static createInterface(): IDataCompressorV2_1Interface {
+    return new utils.Interface(_abi) as IDataCompressorV2_1Interface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IDataCompressorV2_10 {
-    return new Contract(
-      address,
-      _abi,
-      signerOrProvider
-    ) as IDataCompressorV2_10;
+  ): IDataCompressorV2_1 {
+    return new Contract(address, _abi, signerOrProvider) as IDataCompressorV2_1;
   }
 }

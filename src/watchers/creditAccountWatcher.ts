@@ -8,7 +8,7 @@ import {
   ICreditConfiguratorV2__factory,
   ICreditFacadeV2__factory,
   ICreditManagerV2__factory,
-  IDataCompressorV2_10__factory,
+  IDataCompressorV2_1__factory,
   IERC20__factory,
 } from "../types";
 import { TypedEvent } from "../types/common";
@@ -174,7 +174,7 @@ export class CreditAccountWatcherV2 {
       atBlock = options;
     }
 
-    const dcInterface = IDataCompressorV2_10__factory.createInterface();
+    const dcInterface = IDataCompressorV2_1__factory.createInterface();
 
     const dcmc = new MultiCallContract(dataCompressor210, dcInterface, signer);
 

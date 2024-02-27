@@ -6,8 +6,8 @@ import {
   IAddressProviderV3__factory,
   ICreditManagerV2__factory,
   ICreditManagerV3__factory,
-  IDataCompressorV2_10__factory,
-  IDataCompressorV3_00__factory,
+  IDataCompressorV2_1__factory,
+  IDataCompressorV3__factory,
 } from "../types";
 
 export class CreditManagerWatcher {
@@ -48,7 +48,7 @@ export class CreditManagerWatcher {
   ): Promise<Record<string, CreditManagerData>> {
     const creditManagers: Record<string, CreditManagerData> = {};
 
-    const creditManagersPayload = await IDataCompressorV2_10__factory.connect(
+    const creditManagersPayload = await IDataCompressorV2_1__factory.connect(
       dataCompressorV210,
       signer,
     ).getCreditManagersV2List({ blockTag: atBlock });
@@ -67,7 +67,7 @@ export class CreditManagerWatcher {
   ): Promise<Record<string, CreditManagerData>> {
     const creditManagers: Record<string, CreditManagerData> = {};
 
-    const creditManagersPayload = await IDataCompressorV3_00__factory.connect(
+    const creditManagersPayload = await IDataCompressorV3__factory.connect(
       dataCompressorV300,
       signer,
     ).getCreditManagersV3List({ blockTag: atBlock });
