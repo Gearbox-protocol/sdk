@@ -1,22 +1,24 @@
+import { SupportedToken } from "@gearbox-protocol/sdk-gov";
+
 import { STATIC_TOKEN } from "../config";
 import { TokenDataPayload } from "../payload/token";
 
 export class TokenData {
-  readonly id: string;
-  readonly symbol: string;
+  readonly title: string;
+  readonly symbol: SupportedToken;
   readonly address: string;
   readonly decimals: number;
-  readonly icon?: string;
+  readonly icon: string;
 
-  constructor(
-    payload: TokenDataPayload,
-    symbolReplacements: Record<string, string> = {},
-  ) {
-    this.id = payload.addr.toLowerCase();
+  constructor(payload: TokenDataPayload) {
+    const symbol = payload.symbol;
+    const title = payload.title || symbol;
+
+    this.title = title;
     this.address = payload.addr.toLowerCase();
-    this.symbol = symbolReplacements[payload.symbol] || payload.symbol;
+    this.symbol = symbol;
     this.decimals = payload.decimals;
-    this.icon = `${STATIC_TOKEN}${payload.symbol?.toLowerCase()}.svg`;
+    this.icon = `${STATIC_TOKEN}${symbol.toLowerCase()}.svg`;
   }
 
   compareBySymbol(b: TokenData): number {
