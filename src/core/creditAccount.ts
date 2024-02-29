@@ -675,8 +675,11 @@ export class CreditAccountData {
     const [, underlyingDecimals = 18] = extractTokenData(underlyingTokenLC);
     const { balance: underlyingBalance = 0n } = assets[underlyingTokenLC] || {};
 
+    // effectiveDebt = Debt - underlyingBalance*LTunderlying
+    const ltUnderlying = liquidationThresholds[underlyingTokenLC] || 0n;
     const effectiveDebt =
-      ((debt - underlyingBalance) * WAD) / 10n ** BigInt(underlyingDecimals);
+      ((debt - (underlyingBalance * ltUnderlying) / PERCENTAGE_FACTOR) * WAD) /
+      10n ** BigInt(underlyingDecimals);
 
     const targetTokenLC = targetToken.toLowerCase();
     const [, targetDecimals = 18] = extractTokenData(targetTokenLC);
@@ -688,10 +691,10 @@ export class CreditAccountData {
 
     if (targetBalance <= 0n || lpLT <= 0n) return 0n;
 
+    // priceTarget = effectiveDebt / (lpLT*targetBalance)
     return (
       (effectiveDebt * PRICE_DECIMALS * PERCENTAGE_FACTOR) /
-      effectiveTargetBalance /
-      lpLT
+      (effectiveTargetBalance * lpLT)
     );
   }
 }
