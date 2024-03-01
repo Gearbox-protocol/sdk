@@ -14,7 +14,7 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   // !& test server for optimism
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation",
-  [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation",
+  [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
 };
 
 interface Options {
