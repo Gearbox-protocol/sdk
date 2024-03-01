@@ -242,10 +242,16 @@ export class PathFinder {
       loopsPerTx,
     );
 
-    const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
-      token,
-      balance: expectedBalances[token]?.balance || 0n,
-    }));
+    const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => {
+      // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
+      // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
+      // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
+      const actual = expectedBalances[token]?.balance || 0n;
+      return {
+        token,
+        balance: actual > 10n ? actual : 0n,
+      };
+    });
 
     const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
