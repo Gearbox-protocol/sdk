@@ -40,7 +40,11 @@ export type MainnetCreditManagers =
   | MainnetCreditManagersV2_1
   | MainnetCreditManagersV3;
 
-export type ArbitrumCreditManagers = never;
+export type ArbitrumCreditManagers =
+  | "USDC_E_V3_TRADE_TIER_1"
+  | "USDC_E_V3_TRADE_TIER_2"
+  | "WETH_V3_TRADE_TIER_1"
+  | "WETH_V3_TRADE_TIER_2";
 export type OptimismCreditManagers = never;
 
 type CreditManagersListType = {
@@ -96,7 +100,17 @@ export const creditManagerByNetwork: CreditManagersListType = {
     WETH_V3_RESTAKING:
       "0x50ba483272484fc5eebe8676dc87d814a11faef6".toLowerCase(),
   },
-  Arbitrum: {},
+  Arbitrum: {
+    USDC_E_V3_TRADE_TIER_1:
+      "0x75bc0fef1c93723be3d73b2000b5ba139a0c680c".toLowerCase(),
+    USDC_E_V3_TRADE_TIER_2:
+      "0xb4bc02c0859b372c61abccfa5df91b1ccaa4dd1f".toLowerCase(),
+
+    WETH_V3_TRADE_TIER_1:
+      "0xcedaa4b4a42c0a771f6c24a3745c3ca3ed73f17a".toLowerCase(),
+    WETH_V3_TRADE_TIER_2:
+      "0x3ab1d35500d2da4216f5863229a7b81e2f6ff976".toLowerCase(),
+  },
   Optimism: {},
 };
 
