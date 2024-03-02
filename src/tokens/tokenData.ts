@@ -1,12 +1,26 @@
-import { PartialRecord, SupportedToken } from "@gearbox-protocol/sdk-gov";
+import {
+  NetworkType,
+  PartialRecord,
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
 
 import { STATIC_TOKEN } from "../config";
 import { TokenDataPayload } from "../payload/token";
 
 const ALIASES: PartialRecord<SupportedToken, string> = {
   USDC_e: "USDC.e",
-  dUSDC_EV3: "dUSDC.eV3",
-  sdUSDC_EV3: "sdUSDC.eV3",
+};
+
+const NETWROK_DEPENDENT_ALIASES: Record<
+  NetworkType,
+  PartialRecord<SupportedToken, string>
+> = {
+  Mainnet: {},
+  Optimism: {},
+  Arbitrum: {
+    dUSDCV3: "dUSDC.eV3",
+    sdUSDCV3: "sdUSDC.eV3",
+  },
 };
 
 export class TokenData {
@@ -16,11 +30,13 @@ export class TokenData {
   readonly decimals: number;
   readonly icon: string;
 
-  constructor(payload: TokenDataPayload) {
+  constructor(payload: TokenDataPayload, network?: NetworkType) {
     const symbol = payload.symbol;
-    const title = payload.title || symbol;
+    const networkAlias = network
+      ? NETWROK_DEPENDENT_ALIASES[network][symbol]
+      : undefined;
 
-    this.title = ALIASES[title as SupportedToken] || title;
+    this.title = networkAlias || ALIASES[symbol] || payload.title || symbol;
     this.address = payload.addr.toLowerCase();
     this.symbol = symbol;
     this.decimals = payload.decimals;
