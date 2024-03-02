@@ -10,9 +10,12 @@ type ChartsPriceSource = "chainlink" | "spot";
 
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [CHAINS.Mainnet]: "https://charts-server.fly.dev",
+  // !& server for Arbitrum
+  [CHAINS.Arbitrum]: "https://charts-server.fly.dev",
+
   [CHAINS.Local]: "https://charts-server.fly.dev",
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
-  // !& test server for optimism
+  // !& test server for Optimism
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
 };
