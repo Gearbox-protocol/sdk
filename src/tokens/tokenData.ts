@@ -5,6 +5,8 @@ import { TokenDataPayload } from "../payload/token";
 
 const ALIASES: PartialRecord<SupportedToken, string> = {
   USDC_e: "USDC.e",
+  dUSDC_EV3: "dUSDC.eV3",
+  sdUSDC_EV3: "sdUSDC.eV3",
 };
 
 export class TokenData {
