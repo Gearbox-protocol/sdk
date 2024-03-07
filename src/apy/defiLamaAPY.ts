@@ -75,6 +75,8 @@ const NORMAL_TO_LAMA: Record<
   Arbitrum: {
     rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb",
     cbETH: "0f45d730-b279-4629-8e11-ccb5cc3038b4",
+
+    sfrxETH: "77020688-e1f9-443c-9388-e51ace15cc32",
   },
 };
 
