@@ -68,6 +68,8 @@ const NORMAL_TO_LAMA: Record<
     osETH: "4d01599c-69ae-41a3-bae1-5fab896f04c8",
 
     auraB_rETH_STABLE_vault: "a4b5b995-99e7-4b8f-916d-8940b5627d70",
+
+    sUSDe: "66985a81-9c51-46ca-9977-42b4fe7bc6df",
   },
   Optimism: {},
   Arbitrum: {
