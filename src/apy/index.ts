@@ -7,7 +7,14 @@ import {
 
 export type AdditionalTokenWithAPY = Extract<
   SupportedToken,
-  "STETH" | "weETH" | "osETH" | "rETH" | "wstETH" | "ezETH" | "cbETH"
+  | "STETH"
+  | "weETH"
+  | "osETH"
+  | "rETH"
+  | "wstETH"
+  | "ezETH"
+  | "cbETH"
+  | "sfrxETH"
 >;
 export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {
   STETH: true,
@@ -17,6 +24,7 @@ export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {
   wstETH: true,
   ezETH: true,
   cbETH: true,
+  sfrxETH: true,
 };
 
 export type TokensWithAPY = LPTokens | AdditionalTokenWithAPY;

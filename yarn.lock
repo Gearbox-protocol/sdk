@@ -1385,10 +1385,10 @@
     yarn "^1.22.19"
     zod "^3.22.2"
 
-"@gearbox-protocol/sdk-gov@^1.41.1":
-  version "1.41.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.41.1.tgz#68552aca95c93bc93a0f699d55ebdb87a03da13f"
-  integrity sha512-fr3Af9SXb2kWl7pBb4KEctmkUbaKtqLux1+dsC3aQNrW2NzlkkyhRtQ1bkCtA2/mTHVdqcsRWjgbaklSxQJ1Qg==
+"@gearbox-protocol/sdk-gov@^1.42.0":
+  version "1.42.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.42.0.tgz#84157a4216af9e960f66653fd656e5e1fa944a9e"
+  integrity sha512-ff2AZa4ODZIg1pNPOf6/D66QKjC8143KgYSiXyD56nOTwUQYfJqmLl8pPP+X676jwF/MPxr3X1NpAabEn8cEtw==
   dependencies:
     "@types/yaml" "^1.9.7"
     add "^2.0.6"
