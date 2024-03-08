@@ -147,7 +147,7 @@ export type MainnetPoolsV3 =
 
 export type MainnetPools = MainnetPoolsV1 | MainnetPoolsV3;
 
-export type ArbitrumPools = never;
+export type ArbitrumPools = "USDC_V3" | "WETH_V3";
 export type OptimismPools = never;
 
 type PoolsListType = {
@@ -173,7 +173,10 @@ export const poolByNetwork: PoolsListType = {
     WBTC_V3_TRADE: "0xda00010eda646913f273e10e7a5d1f659242757d".toLowerCase(),
     WETH_V3_TRADE: "0xda0002859b2d05f66a753d8241fcde8623f26f4f".toLowerCase(),
   },
-  Arbitrum: {},
+  Arbitrum: {
+    USDC_V3: "0xa76c604145d7394dec36c49af494c144ff327861".toLowerCase(),
+    WETH_V3: "0x04419d3509f13054f60d253e0c79491d9e683399".toLowerCase(),
+  },
   Optimism: {},
 };
 
