@@ -104,10 +104,12 @@ export interface IRouterV3Interface extends utils.Interface {
     "componentAddressById(uint8)": FunctionFragment;
     "findAllSwaps((uint8,address,address,address,address[],uint256,uint256),uint256)": FunctionFragment;
     "findBestClosePath(address,(address,uint256)[],(address,uint256)[],address[],uint256,(address,uint8,uint8)[],uint256,bool)": FunctionFragment;
+    "findOneTokenDiffPath(address,uint256,uint256,address,address,address[],uint256)": FunctionFragment;
     "findOneTokenPath(address,uint256,address,address,address[],uint256)": FunctionFragment;
     "findOpenStrategyPath(address,(address,uint256)[],(address,uint256)[],address,address[],uint256)": FunctionFragment;
     "futureRouter()": FunctionFragment;
     "isRouterConfigurator(address)": FunctionFragment;
+    "maxComponentId()": FunctionFragment;
     "tokenTypes(address)": FunctionFragment;
     "version()": FunctionFragment;
   };
@@ -117,10 +119,12 @@ export interface IRouterV3Interface extends utils.Interface {
       | "componentAddressById"
       | "findAllSwaps"
       | "findBestClosePath"
+      | "findOneTokenDiffPath"
       | "findOneTokenPath"
       | "findOpenStrategyPath"
       | "futureRouter"
       | "isRouterConfigurator"
+      | "maxComponentId"
       | "tokenTypes"
       | "version"
   ): FunctionFragment;
@@ -144,6 +148,18 @@ export interface IRouterV3Interface extends utils.Interface {
       PathOptionStruct[],
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<boolean>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "findOneTokenDiffPath",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
@@ -177,6 +193,10 @@ export interface IRouterV3Interface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
+    functionFragment: "maxComponentId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "tokenTypes",
     values: [PromiseOrValue<string>]
   ): string;
@@ -195,6 +215,10 @@ export interface IRouterV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "findOneTokenDiffPath",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "findOneTokenPath",
     data: BytesLike
   ): Result;
@@ -208,6 +232,10 @@ export interface IRouterV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "isRouterConfigurator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "maxComponentId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "tokenTypes", data: BytesLike): Result;
@@ -322,6 +350,17 @@ export interface IRouterV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    findOneTokenDiffPath(
+      tokenIn: PromiseOrValue<string>,
+      expectedBalance: PromiseOrValue<BigNumberish>,
+      leftoverAmount: PromiseOrValue<BigNumberish>,
+      tokenOut: PromiseOrValue<string>,
+      creditAccount: PromiseOrValue<string>,
+      connectors: PromiseOrValue<string>[],
+      slippage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     findOneTokenPath(
       tokenIn: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -348,6 +387,8 @@ export interface IRouterV3 extends BaseContract {
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    maxComponentId(overrides?: CallOverrides): Promise<[number]>;
 
     tokenTypes(
       arg0: PromiseOrValue<string>,
@@ -380,6 +421,17 @@ export interface IRouterV3 extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  findOneTokenDiffPath(
+    tokenIn: PromiseOrValue<string>,
+    expectedBalance: PromiseOrValue<BigNumberish>,
+    leftoverAmount: PromiseOrValue<BigNumberish>,
+    tokenOut: PromiseOrValue<string>,
+    creditAccount: PromiseOrValue<string>,
+    connectors: PromiseOrValue<string>[],
+    slippage: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   findOneTokenPath(
     tokenIn: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
@@ -406,6 +458,8 @@ export interface IRouterV3 extends BaseContract {
     account: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  maxComponentId(overrides?: CallOverrides): Promise<number>;
 
   tokenTypes(
     arg0: PromiseOrValue<string>,
@@ -438,6 +492,17 @@ export interface IRouterV3 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<RouterResultStructOutput>;
 
+    findOneTokenDiffPath(
+      tokenIn: PromiseOrValue<string>,
+      expectedBalance: PromiseOrValue<BigNumberish>,
+      leftoverAmount: PromiseOrValue<BigNumberish>,
+      tokenOut: PromiseOrValue<string>,
+      creditAccount: PromiseOrValue<string>,
+      connectors: PromiseOrValue<string>[],
+      slippage: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<RouterResultStructOutput>;
+
     findOneTokenPath(
       tokenIn: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -464,6 +529,8 @@ export interface IRouterV3 extends BaseContract {
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    maxComponentId(overrides?: CallOverrides): Promise<number>;
 
     tokenTypes(
       arg0: PromiseOrValue<string>,
@@ -537,6 +604,17 @@ export interface IRouterV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    findOneTokenDiffPath(
+      tokenIn: PromiseOrValue<string>,
+      expectedBalance: PromiseOrValue<BigNumberish>,
+      leftoverAmount: PromiseOrValue<BigNumberish>,
+      tokenOut: PromiseOrValue<string>,
+      creditAccount: PromiseOrValue<string>,
+      connectors: PromiseOrValue<string>[],
+      slippage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     findOneTokenPath(
       tokenIn: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -563,6 +641,8 @@ export interface IRouterV3 extends BaseContract {
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    maxComponentId(overrides?: CallOverrides): Promise<BigNumber>;
 
     tokenTypes(
       arg0: PromiseOrValue<string>,
@@ -596,6 +676,17 @@ export interface IRouterV3 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    findOneTokenDiffPath(
+      tokenIn: PromiseOrValue<string>,
+      expectedBalance: PromiseOrValue<BigNumberish>,
+      leftoverAmount: PromiseOrValue<BigNumberish>,
+      tokenOut: PromiseOrValue<string>,
+      creditAccount: PromiseOrValue<string>,
+      connectors: PromiseOrValue<string>[],
+      slippage: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     findOneTokenPath(
       tokenIn: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -622,6 +713,8 @@ export interface IRouterV3 extends BaseContract {
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    maxComponentId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     tokenTypes(
       arg0: PromiseOrValue<string>,
