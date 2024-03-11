@@ -242,6 +242,84 @@ const _abi = [
   },
   {
     type: "function",
+    name: "findOneTokenDiffPath",
+    inputs: [
+      {
+        name: "tokenIn",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "expectedBalance",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokenOut",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "creditAccount",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "connectors",
+        type: "address[]",
+        internalType: "address[]",
+      },
+      {
+        name: "slippage",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct RouterResult",
+        components: [
+          {
+            name: "amount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "minAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "calls",
+            type: "tuple[]",
+            internalType: "struct MultiCall[]",
+            components: [
+              {
+                name: "target",
+                type: "address",
+                internalType: "address",
+              },
+              {
+                name: "callData",
+                type: "bytes",
+                internalType: "bytes",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "findOneTokenPath",
     inputs: [
       {
@@ -455,6 +533,19 @@ const _abi = [
         name: "",
         type: "bool",
         internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "maxComponentId",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",

@@ -1282,6 +1282,11 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@gearbox-protocol/bots-v3@^1.3.1":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/bots-v3/-/bots-v3-1.4.0.tgz#4927144f2d17cd4f81626c931c86f9049d6ed5fb"
+  integrity sha512-NhxuHsqIxTcBW4gifOcVhT+DDZz8OfCaKlHT063t1JJz9RDhM5avlVFJzMXY32Eim72TLRpBX4gcfAwI1shOLw==
+
 "@gearbox-protocol/core-v2@1.19.0-base.17":
   version "1.19.0-base.17"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v2/-/core-v2-1.19.0-base.17.tgz#1cb409fcaf866de194f9f7253d2e6ce0de5bcf7d"
@@ -1294,10 +1299,10 @@
   dependencies:
     "@typechain/ethers-v5" "^10.2.1"
 
-"@gearbox-protocol/core-v3@^1.47.3":
-  version "1.47.3"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.47.3.tgz#5403be07120abac098640a58dae7be4770fd2e67"
-  integrity sha512-VIhrwypv2H12esVawVmrpJ4H512c+JhyUvS+rchw6F76WrI5x4exMnbMfic01iKnAi70imcm1LA/qohqGzaBnQ==
+"@gearbox-protocol/core-v3@^1.48.1":
+  version "1.48.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.48.1.tgz#4bec265847d71abff1abd0b52daf6583fe58e2f7"
+  integrity sha512-VTLyp2GRGgp0FOpAdckaE4ISavyD672JgdFAkNXHc00s1snssnVRrVD5JtuSWjDhFzTt1HeVKt7HkQRmQ3d6Og==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1328,22 +1333,22 @@
     "@gearbox-protocol/sdk" "^1.22.0"
     axios "^1.1.3"
 
-"@gearbox-protocol/integrations-v3@^1.36.0":
-  version "1.36.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.36.0.tgz#5cf9abe6c26a0f1553ff7fd7ee1283d558c766fd"
-  integrity sha512-THqE1U/lFePl+p0Q2yEmlORpujZZlfGPyEbsCdDQHh0iiSPBiTu/AW4RzPRakF1DnXKE1U+FEaZYdOifNh4Wog==
+"@gearbox-protocol/integrations-v3@^1.39.1":
+  version "1.39.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.39.1.tgz#c3f8efd37cbffd7bec2850ad0ee29b0ba9eb2e73"
+  integrity sha512-Wr3VTwC11YlnBO13zMQJq/DR1owKFo7gcWG6EEpsnUup8Wa+1yesjzUQKwJ10khxsQa/9Var59j0BIzRhDJ8vA==
 
-"@gearbox-protocol/oracles-v3@^1.10.1":
-  version "1.10.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/oracles-v3/-/oracles-v3-1.10.1.tgz#8b2356089a1a0e4816d85b62c786812e6f433b42"
-  integrity sha512-JDiUY2+4pOFF/eE937lLYEJziSd2t5dURH92i7XfSTOHjMfH7GNaLeJ4oZN6kVwVMrRzboE0CXutt0D5jpC/oQ==
+"@gearbox-protocol/oracles-v3@^1.10.3":
+  version "1.10.3"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/oracles-v3/-/oracles-v3-1.10.3.tgz#27a9c7ab89536ef79cfc9315b2a3114f1b700159"
+  integrity sha512-6K8ahmik2sFqK0cTDHadq5WXBN/mCeBef7yx7k9j+O4g7gXLf3bYdnQdNTVh3QPwF1hCKQ1dtvi4T9/M5oAWcw==
   dependencies:
     redstone-protocol "^1.0.5"
 
-"@gearbox-protocol/periphery-v3@^1.5.3":
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.5.3.tgz#067a2e025fa182c5afe85b6e9173f8cba3e254bb"
-  integrity sha512-fmh69n6aP3mbRYFxiiw9Ft9hKZiEpYP1cTT1IeBD9T33S5iywAkLyc+jShTYO7Npll+1tGqEEwtCBfaDzEyixw==
+"@gearbox-protocol/periphery-v3@^1.6.1":
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/periphery-v3/-/periphery-v3-1.6.1.tgz#6f249c56c33cc0575ad1bdb2e273e294ac674763"
+  integrity sha512-Tg+LOX1lLdkN0LXWUHpUpC0LVxFxmA6M8hgdS4MgaajLnAvJEpqNS58EsWNG3u3a8tZor449RaK8o1BZ04Hwrg==
   dependencies:
     husky "^8.0.3"
     lint-staged "^13.0.3"
@@ -1354,11 +1359,12 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/prettier-config/-/prettier-config-1.5.0.tgz#4df8e9fd2305fee6ab8c1417a02e31343836932a"
   integrity sha512-FUoprSsBdZyBjgxXCKL6mTkbeUJytaLzPJqIOoQpDmBRTX0seCc2o5I9PI9tySoRIlNnd/XXnKCXq1xHDEGbxw==
 
-"@gearbox-protocol/router-v3@^1.16.5":
-  version "1.16.5"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.16.5.tgz#cbca4727e6d2b290742c2e3208f6c9d1130e3b78"
-  integrity sha512-PKq77rA0GcQtWbxFvOGgxKntvulGG/mzaJ02prp9pxD/W2/sG0++8DbcvhBgWNRptJRa88JVEfGtMEAK4uSs5Q==
+"@gearbox-protocol/router-v3@^1.19.1":
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.19.1.tgz#d30fd7b0fe83d452c5f523bb1f09501774a34535"
+  integrity sha512-3geOj27yjRcWMzf8gsdHGBI1VOgFhlKEQoU9tKx0wdV2792zmTMqobMq8zgH/5B6Z4ZjxgVb0JgPrjiPUjqJFw==
   dependencies:
+    "@gearbox-protocol/bots-v3" "^1.3.1"
     "@gearbox-protocol/integration-types" "^1.4.0"
 
 "@gearbox-protocol/router@^1.5.5":
@@ -1385,10 +1391,10 @@
     yarn "^1.22.19"
     zod "^3.22.2"
 
-"@gearbox-protocol/sdk-gov@^1.42.0":
-  version "1.42.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.42.0.tgz#84157a4216af9e960f66653fd656e5e1fa944a9e"
-  integrity sha512-ff2AZa4ODZIg1pNPOf6/D66QKjC8143KgYSiXyD56nOTwUQYfJqmLl8pPP+X676jwF/MPxr3X1NpAabEn8cEtw==
+"@gearbox-protocol/sdk-gov@^1.44.0":
+  version "1.44.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.44.0.tgz#f4bb1cb4759451b3f25227a758dde4ac61fc68f7"
+  integrity sha512-IMLZzOHHOofGzN2KI+MIcpEypxxf/vJbCpnEZAoUWYsGhNSdD8r517RFCI8RzAJX4S1AQCiD8QFpE0W7cyxVPw==
   dependencies:
     "@types/yaml" "^1.9.7"
     add "^2.0.6"
