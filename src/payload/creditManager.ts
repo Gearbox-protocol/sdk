@@ -88,4 +88,6 @@ export interface ChartsCreditManagerPayload {
 
   totalRepaidAccounts: number;
   liquidityThresholds: Record<string, number>;
+
+  totalDebtLimit: BigNumberish;
 }

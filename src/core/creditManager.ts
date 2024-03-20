@@ -426,6 +426,7 @@ export class ChartsCreditManagerData {
   readonly totalBorrowed: bigint;
   readonly totalBorrowedOld: bigint;
   readonly totalBorrowedChange: number;
+  readonly totalDebtLimit: bigint;
 
   readonly totalRepaid: bigint;
 
@@ -497,6 +498,7 @@ export class ChartsCreditManagerData {
     this.totalBorrowedChange = Number(
       toBigInt(payload.totalBorrowedBI10kBasis || 0) * PERCENTAGE_DECIMALS,
     );
+    this.totalDebtLimit = toBigInt(payload.totalDebtLimit || 0);
 
     this.totalLosses = toBigInt(payload.totalLosses || 0);
     this.totalLossesOld = toBigInt(payload.totalLossesOld || 0);
