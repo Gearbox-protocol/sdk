@@ -14,6 +14,20 @@ import {
 } from "../payload/creditSession";
 import { AssetWithView } from "./assets";
 
+export interface CreditSessionAsset extends AssetWithView {
+  ind: number;
+  isForbidden: boolean;
+  isEnabled: boolean;
+
+  quota: bigint;
+  quotaIndexLU: bigint;
+  isQuoted: boolean;
+}
+
+export interface CreditSessionReward extends AssetWithView {
+  pool: string;
+}
+
 export type CreditSessionStatus =
   | "active"
   | "closed"
@@ -89,8 +103,8 @@ export class CreditSession {
   readonly spotTotalValue: bigint;
   readonly spotUserFunds: bigint;
 
-  readonly cvxUnclaimedRewards: Array<AssetWithView>;
-  readonly balances: Array<AssetWithView> = [];
+  readonly cvxUnclaimedRewards: Array<CreditSessionReward>;
+  readonly balances: Array<CreditSessionAsset> = [];
   readonly forbiddenTokens: Record<string, true> = {};
   readonly disabledTokens: Record<string, true> = {};
   readonly teritaryStatus: SecondaryStatus;
@@ -157,11 +171,12 @@ export class CreditSession {
 
     this.cvxUnclaimedRewards = Object.entries(
       payload.cvxUnclaimedRewards || {},
-    ).map(([token, balance]): AssetWithView => {
+    ).map(([t, b]): CreditSessionReward => {
       return {
-        token: token.toLowerCase(),
-        balance: toBigInt(balance.bi || 0),
-        balanceView: balance.f.toString(),
+        token: t.toLowerCase(),
+        balance: toBigInt(b.bi || 0),
+        balanceView: b.f.toString(),
+        pool: b.pool.toLowerCase(),
       };
     });
 
@@ -171,7 +186,7 @@ export class CreditSession {
       if (!b.isEnabled) {
         this.disabledTokens[token] = true;
       }
-      if (!b.isAllowed) {
+      if (b.isForbidden) {
         this.forbiddenTokens[token] = true;
       }
 
@@ -179,6 +194,15 @@ export class CreditSession {
         token: token.toLowerCase(),
         balance: toBigInt(b.BI || 0),
         balanceView: b.F.toString(),
+
+        ind: b.ind,
+
+        isEnabled: b.isEnabled,
+        isForbidden: b.isForbidden,
+
+        quota: toBigInt(b.quota || 0),
+        quotaIndexLU: toBigInt(b.quotaIndexLU || 0),
+        isQuoted: b.isQuoted || false,
       });
     });
   }

@@ -4,8 +4,13 @@ export interface CreditSessionBalancePayload {
   BI: string;
   F: number;
   ind: number;
-  isAllowed: boolean;
+
+  isForbidden: boolean;
   isEnabled: boolean;
+
+  quota?: BigNumberish;
+  quotaIndexLU?: BigNumberish;
+  isQuoted?: boolean;
 }
 
 interface CreditSessionReward {
