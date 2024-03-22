@@ -32,7 +32,10 @@ type MainnetCreditManagersV3 =
   | "WETH_V3_TRADE_TIER_3"
   | "USDC_V3_FARM"
   | "WETH_V3_FARM"
-  | "WETH_V3_RESTAKING";
+  | "WETH_V3_RESTAKING"
+  | "USDT_V3_TIER_1"
+  | "GHO_V3_TIER_1"
+  | "DAI_V3_TIER_1";
 
 export type MainnetCreditManagers =
   | MainnetCreditManagersV1
@@ -99,6 +102,10 @@ export const creditManagerByNetwork: CreditManagersListType = {
 
     WETH_V3_RESTAKING:
       "0x50ba483272484fc5eebe8676dc87d814a11faef6".toLowerCase(),
+
+    USDT_V3_TIER_1: "0x6950f4190aa1e1339519d5d4d89796ae4165cd5c".toLowerCase(),
+    GHO_V3_TIER_1: "0x58c8e983d9479b69b64970f79e8965ea347189c9".toLowerCase(),
+    DAI_V3_TIER_1: "0x4582411643f9bbe6c736ed2114eda856b1c9ed40".toLowerCase(),
   },
   Arbitrum: {
     USDC_E_V3_TRADE_TIER_1:
@@ -143,7 +150,10 @@ export type MainnetPoolsV1 =
 export type MainnetPoolsV3 =
   | "USDC_V3_TRADE"
   | "WETH_V3_TRADE"
-  | "WBTC_V3_TRADE";
+  | "WBTC_V3_TRADE"
+  | "USDT_V3"
+  | "GHO_V3"
+  | "DAI_V3";
 
 export type MainnetPools = MainnetPoolsV1 | MainnetPoolsV3;
 
@@ -172,6 +182,10 @@ export const poolByNetwork: PoolsListType = {
     USDC_V3_TRADE: "0xda00000035fef4082f78def6a8903bee419fbf8e".toLowerCase(),
     WBTC_V3_TRADE: "0xda00010eda646913f273e10e7a5d1f659242757d".toLowerCase(),
     WETH_V3_TRADE: "0xda0002859b2d05f66a753d8241fcde8623f26f4f".toLowerCase(),
+
+    USDT_V3: "0x1dc0f3359a254f876b37906cfc1000a35ce2d717".toLowerCase(),
+    GHO_V3: "0x4d56c9cba373ad39df69eb18f076b7348000ae09".toLowerCase(),
+    DAI_V3: "0xe7146f53dbcae9d6fa3555fe502648deb0b2f823".toLowerCase(),
   },
   Arbitrum: {
     USDC_V3: "0xa76c604145d7394dec36c49af494c144ff327861".toLowerCase(),
