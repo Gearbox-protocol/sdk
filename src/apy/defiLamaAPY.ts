@@ -78,6 +78,7 @@ const NORMAL_TO_LAMA: Record<
 
     sfrxETH: "77020688-e1f9-443c-9388-e51ace15cc32",
   },
+  Base: {},
 };
 
 // const CONVEX_TO_LAMA: Record<

@@ -14,7 +14,7 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
 
   [CHAINS.Local]: "https://charts-server.fly.dev",
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
-  // !& test server for Optimism
+  // !& test server for Optimism and Base
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
 };
