@@ -21,6 +21,7 @@ const NETWROK_DEPENDENT_ALIASES: Record<
     dUSDCV3: "dUSDC.eV3",
     sdUSDCV3: "sdUSDC.eV3",
   },
+  Base: {},
 };
 
 export class TokenData {

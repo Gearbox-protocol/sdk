@@ -86,6 +86,7 @@ const CURVE_CHAINS: Record<NetworkType, string> = {
   Arbitrum: "arbitrum",
   Mainnet: "ethereum",
   Optimism: "optimism",
+  Base: "base",
 };
 
 // const CRYPTO = "https://api.curve.fi/api/getPools/${CURVE_CHAINS[n]}/crypto";
