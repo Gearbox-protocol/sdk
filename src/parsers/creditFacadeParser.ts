@@ -17,7 +17,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
     super(token);
     this.version = version;
     this.ifc =
-      version === 300
+      version >= 300
         ? ICreditFacadeV3Multicall__factory.createInterface()
         : ICreditFacadeV2Extended__factory.createInterface();
     this.adapterName = "CreditFacade";
