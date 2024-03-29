@@ -37,7 +37,7 @@ export class ChartsApi {
       this.getRelativeUrl(url, options),
     ].join("/");
 
-  private static getRelativeUrl = (url: string, options?: Options) => {
+  static getRelativeUrl = (url: string, options?: Options) => {
     const { params = {} } = options || {};
 
     const paramsString = Object.entries(params)
