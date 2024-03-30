@@ -42,6 +42,7 @@ export class PoolData {
   readonly expectedLiquidityLimit: bigint;
   readonly availableLiquidity: bigint;
   readonly baseInterestIndex: bigint;
+  readonly utilization: number;
 
   readonly totalBorrowed: bigint;
   readonly totalDebtLimit: bigint;
@@ -77,11 +78,15 @@ export class PoolData {
     this.name = payload.name;
     this.symbol = payload.symbol;
 
-    this.expectedLiquidity = toBigInt(payload.expectedLiquidity);
-    this.availableLiquidity = toBigInt(payload.availableLiquidity);
+    const expected = toBigInt(payload.expectedLiquidity);
+    const available = toBigInt(payload.availableLiquidity);
+    this.expectedLiquidity = expected;
+    this.availableLiquidity = available;
     this.expectedLiquidityLimit =
       this.expectedLiquidity + this.availableLiquidity;
     this.baseInterestIndex = toBigInt(payload.baseInterestIndex);
+
+    this.utilization = PoolData.calculateUtilization(expected, available);
 
     this.totalBorrowed = toBigInt(payload.totalBorrowed);
     this.totalDebtLimit = toBigInt(payload.totalDebtLimit);
@@ -187,6 +192,13 @@ export class PoolData {
 
     return "universal";
   }
+
+  static calculateUtilization(expected: bigint, available: bigint) {
+    return expected > 0
+      ? Number(((expected - available) * PERCENTAGE_FACTOR) / expected) /
+          Number(PERCENTAGE_DECIMALS)
+      : 0;
+  }
 }
 
 interface CalculateBorrowRateProps {
@@ -270,14 +282,6 @@ export class ChartsPoolData {
 
     this.earned7D = payload.earned7D || 0;
     this.earned7DInUSD = payload.earned7DInUSD || 0;
-    const expected = toBigInt(payload.expectedLiquidity || 0);
-    this.utilization =
-      expected > 0
-        ? Number(
-            (toBigInt(payload.totalBorrowed || 0) * PERCENTAGE_FACTOR) /
-              expected,
-          ) / Number(PERCENTAGE_DECIMALS)
-        : 0;
 
     this.dieselRate = rayToNumber(payload.dieselRate_RAY || 0);
     this.dieselRateRay = toBigInt(payload.dieselRate_RAY || 0);
@@ -289,11 +293,15 @@ export class ChartsPoolData {
     this.borrowAPYRay = toBigInt(payload.borrowAPY_RAY || 0);
     this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS);
 
-    this.availableLiquidity = toBigInt(payload.availableLiquidity || 0);
+    const expected = toBigInt(payload.expectedLiquidity || 0);
+    const available = toBigInt(payload.availableLiquidity || 0);
+    this.availableLiquidity = available;
     this.oldAvailableLiquidity = toBigInt(payload.availableLiquidityOld || 0);
     this.availableLiquidityChange =
       (payload.availableLiquidity10kBasis || 0) * Number(PERCENTAGE_DECIMALS);
     this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
+
+    this.utilization = PoolData.calculateUtilization(expected, available);
 
     this.caLockedValue = payload.caLockedValue || 0;
     this.oldCALockedValue = payload.caLockedValueOld || 0;
