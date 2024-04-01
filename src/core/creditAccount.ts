@@ -544,7 +544,7 @@ export class CreditAccountData {
 
     const quotaCap = this.roundUpQuota(maxDebt * 2n);
     const quotaBought = Object.values(initialQuotas).reduce(
-      (sum, q) => sum + (q?.quota || 0n),
+      (sum, q) => sum + this.roundUpQuota(q?.quota || 0n),
       0n,
     );
     const quotaReduced = Object.values(quotaDecrease).reduce((sum, q) => {
