@@ -21,6 +21,10 @@ import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetWithAmountInTarget } from "./assets";
 
+export const MIN_INT96 = -39614081257132168796771975168n;
+export const MAX_UINT256 =
+  115792089237316195423570985008687907853269984665640564039457584007913129639935n;
+
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
   lpAPY: LpTokensAPY | undefined;
@@ -492,6 +496,12 @@ export class CreditAccountData {
     return Number(hfInPercent);
   }
 
+  static roundUpQuota(quotaChange: bigint) {
+    return quotaChange !== MIN_INT96
+      ? (quotaChange / PERCENTAGE_FACTOR) * PERCENTAGE_FACTOR
+      : quotaChange;
+  }
+
   static calcRecommendedQuota({
     amount,
     debt,
@@ -507,7 +517,7 @@ export class CreditAccountData {
       (recommendedBaseQuota * (PERCENTAGE_FACTOR + quotaReserve)) /
       PERCENTAGE_FACTOR;
 
-    return recommendedQuota;
+    return this.roundUpQuota(recommendedQuota);
   }
 
   static calcDefaultQuota({ amount, lt, quotaReserve }: CalcDefaultQuotaProps) {
@@ -516,7 +526,7 @@ export class CreditAccountData {
       (recommendedBaseQuota * (PERCENTAGE_FACTOR + quotaReserve)) /
       PERCENTAGE_FACTOR;
 
-    return recommendedQuota;
+    return this.roundUpQuota(recommendedQuota);
   }
 
   static calcQuotaUpdate(
@@ -532,7 +542,7 @@ export class CreditAccountData {
       return acc;
     }, {});
 
-    const quotaCap = maxDebt * 2n;
+    const quotaCap = this.roundUpQuota(maxDebt * 2n);
     const quotaBought = Object.values(initialQuotas).reduce(
       (sum, q) => sum + (q?.quota || 0n),
       0n,
@@ -541,9 +551,8 @@ export class CreditAccountData {
       (sum, q) => sum + (q.balance || 0n),
       0n,
     );
-    const maxQuotaIncrease = BigIntMath.max(
-      quotaCap - (quotaBought + quotaReduced),
-      0n,
+    const maxQuotaIncrease = this.roundUpQuota(
+      BigIntMath.max(quotaCap - (quotaBought + quotaReduced), 0n),
     );
 
     const quotaIncrease = Object.keys(allowedToObtain).reduce<
@@ -595,7 +604,7 @@ export class CreditAccountData {
 
   private static getSingleQuotaChange(
     token: string,
-    maxQuotaIncrease: bigint,
+    unsafeMaxQuotaIncrease: bigint,
     props: CalcQuotaUpdateProps,
   ) {
     const { isActive = false } = props.quotas[token] || {};
@@ -609,6 +618,7 @@ export class CreditAccountData {
     const assetAfter = props.assetsAfterUpdate[token];
     const { amountInTarget = 0n } = assetAfter || {};
     const lt = props.liquidationThresholds[token] || 0n;
+    const maxQuotaIncrease = this.roundUpQuota(unsafeMaxQuotaIncrease);
 
     const defaultQuota = this.calcDefaultQuota({
       lt,
@@ -616,7 +626,7 @@ export class CreditAccountData {
       amount: amountInTarget,
     });
 
-    const unsafeQuotaChange = defaultQuota - initialQuota;
+    const unsafeQuotaChange = this.roundUpQuota(defaultQuota - initialQuota);
     const quotaChange =
       unsafeQuotaChange > 0
         ? BigIntMath.min(maxQuotaIncrease, unsafeQuotaChange)
@@ -629,7 +639,7 @@ export class CreditAccountData {
 
     if (correctIncrease || correctDecrease) {
       return {
-        balance: quotaChange,
+        balance: this.roundUpQuota(quotaChange),
         token,
       };
     }
