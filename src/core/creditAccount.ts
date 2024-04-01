@@ -261,11 +261,11 @@ export class CreditAccountData {
 
         if (totalPrice1 === totalPrice2) {
           return amount1 === amount2
-            ? CreditAccountData.tokensAbcComparator(token1, token2)
-            : CreditAccountData.amountAbcComparator(amount1, amount2);
+            ? this.tokensAbcComparator(token1, token2)
+            : this.amountAbcComparator(amount1, amount2);
         }
 
-        return CreditAccountData.amountAbcComparator(totalPrice1, totalPrice2);
+        return this.amountAbcComparator(totalPrice1, totalPrice2);
       },
     );
   }
@@ -302,11 +302,11 @@ export class CreditAccountData {
 
         if (totalPrice1 === totalPrice2) {
           return amount1 === amount2
-            ? CreditAccountData.tokensAbcComparator(token1, token2)
-            : CreditAccountData.amountAbcComparator(amount1, amount2);
+            ? this.tokensAbcComparator(token1, token2)
+            : this.amountAbcComparator(amount1, amount2);
         }
 
-        return CreditAccountData.amountAbcComparator(totalPrice1, totalPrice2);
+        return this.amountAbcComparator(totalPrice1, totalPrice2);
       },
     );
   }
@@ -537,7 +537,7 @@ export class CreditAccountData {
     const quotaDecrease = Object.keys(allowedToSpend).reduce<
       Record<string, Asset>
     >((acc, token) => {
-      const ch = CreditAccountData.getSingleQuotaChange(token, 0n, props);
+      const ch = this.getSingleQuotaChange(token, 0n, props);
       if (ch) acc[ch.token] = ch;
       return acc;
     }, {});
@@ -547,10 +547,17 @@ export class CreditAccountData {
       (sum, q) => sum + (q?.quota || 0n),
       0n,
     );
-    const quotaReduced = Object.values(quotaDecrease).reduce(
-      (sum, q) => sum + (q.balance || 0n),
-      0n,
-    );
+    const quotaReduced = Object.values(quotaDecrease).reduce((sum, q) => {
+      const quotaBalance = q.balance || 0n;
+      const safeBalance =
+        quotaBalance === MIN_INT96
+          ? BigIntMath.neg(
+              this.roundUpQuota(initialQuotas[q.token]?.quota || 0n),
+            )
+          : quotaBalance;
+
+      return sum + safeBalance;
+    }, 0n);
     const maxQuotaIncrease = this.roundUpQuota(
       BigIntMath.max(quotaCap - (quotaBought + quotaReduced), 0n),
     );
@@ -558,11 +565,7 @@ export class CreditAccountData {
     const quotaIncrease = Object.keys(allowedToObtain).reduce<
       Record<string, Asset>
     >((acc, token) => {
-      const ch = CreditAccountData.getSingleQuotaChange(
-        token,
-        maxQuotaIncrease,
-        props,
-      );
+      const ch = this.getSingleQuotaChange(token, maxQuotaIncrease, props);
       if (ch) acc[ch.token] = ch;
       return acc;
     }, {});
@@ -583,7 +586,14 @@ export class CreditAccountData {
             token,
           };
         } else {
-          const change = quotaChange[token]?.balance || 0n;
+          const unsafeChange = quotaChange[token]?.balance || 0n;
+          const change =
+            unsafeChange === MIN_INT96
+              ? BigIntMath.neg(
+                  this.roundUpQuota(initialQuotas[cmQuota.token]?.quota || 0n),
+                )
+              : unsafeChange;
+
           const quotaAfter = initialQuota + change;
           acc[token] = {
             balance: quotaAfter,
@@ -608,7 +618,7 @@ export class CreditAccountData {
     props: CalcQuotaUpdateProps,
   ) {
     const { isActive = false } = props.quotas[token] || {};
-    const { quota: initialQuota = 0n } = props.initialQuotas[token] || {};
+    const { quota: unsafeInitialQuota = 0n } = props.initialQuotas[token] || {};
 
     if (!isActive) {
       return undefined;
@@ -619,6 +629,7 @@ export class CreditAccountData {
     const { amountInTarget = 0n } = assetAfter || {};
     const lt = props.liquidationThresholds[token] || 0n;
     const maxQuotaIncrease = this.roundUpQuota(unsafeMaxQuotaIncrease);
+    const initialQuota = this.roundUpQuota(unsafeInitialQuota);
 
     const defaultQuota = this.calcDefaultQuota({
       lt,
@@ -630,6 +641,9 @@ export class CreditAccountData {
     const quotaChange =
       unsafeQuotaChange > 0
         ? BigIntMath.min(maxQuotaIncrease, unsafeQuotaChange)
+        : initialQuota !== 0n &&
+          BigIntMath.abs(unsafeQuotaChange) >= initialQuota
+        ? MIN_INT96
         : unsafeQuotaChange;
 
     const correctIncrease =
@@ -639,7 +653,7 @@ export class CreditAccountData {
 
     if (correctIncrease || correctDecrease) {
       return {
-        balance: this.roundUpQuota(quotaChange),
+        balance: quotaChange,
         token,
       };
     }

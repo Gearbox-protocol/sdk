@@ -38,4 +38,5 @@ export class BigIntMath {
   static toHexString = (x: bigint) => BigNumber.from(x).toHexString();
   static max = (a: bigint, b: bigint) => (a > b ? a : b);
   static min = (a: bigint, b: bigint) => (a < b ? a : b);
+  static neg = (a: bigint) => (a > 0 ? a * -1n : a);
 }

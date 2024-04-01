@@ -15,6 +15,7 @@ import {
   CalcOverallAPYProps,
   CalcQuotaUpdateProps,
   CreditAccountData,
+  MIN_INT96,
 } from "./creditAccount";
 
 interface CATestInfo {
@@ -757,7 +758,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n * PERCENTAGE_FACTOR,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
@@ -813,7 +814,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n * PERCENTAGE_FACTOR,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
@@ -862,7 +863,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).to.be.deep.eq([]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -5n * PERCENTAGE_FACTOR,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
@@ -1017,7 +1018,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).to.be.deep.eq([]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n * PERCENTAGE_FACTOR,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
@@ -1193,7 +1194,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n * PERCENTAGE_FACTOR,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
@@ -1254,7 +1255,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n * PERCENTAGE_FACTOR,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
@@ -1275,7 +1276,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
   });
   it("swap shouldn't buy additional quota if debt limit more then current quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
-      maxDebt: 5n,
+      maxDebt: 5n * PERCENTAGE_FACTOR,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {
@@ -1310,7 +1311,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).to.be.deep.eq([]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n * PERCENTAGE_FACTOR,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
