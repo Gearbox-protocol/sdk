@@ -15,6 +15,7 @@ import {
   CalcOverallAPYProps,
   CalcQuotaUpdateProps,
   CreditAccountData,
+  MIN_INT96,
 } from "./creditAccount";
 
 interface CATestInfo {
@@ -525,10 +526,10 @@ const cmQuotas: CalcQuotaUpdateProps["quotas"] = {
 
 const caQuota: CalcQuotaUpdateProps["initialQuotas"] = {
   [tokenDataByNetwork.Mainnet.DAI]: {
-    quota: 5n,
+    quota: 5n * PERCENTAGE_FACTOR,
   },
   [tokenDataByNetwork.Mainnet.WETH]: {
-    quota: 10n,
+    quota: 10n * PERCENTAGE_FACTOR,
   },
 };
 
@@ -538,7 +539,7 @@ const DEFAULT_LT = {
   [tokenDataByNetwork.Mainnet.WETH]: PERCENTAGE_FACTOR,
   [tokenDataByNetwork.Mainnet.STETH]: PERCENTAGE_FACTOR,
 };
-const HUGE_MAX_DEBT = 20n;
+const HUGE_MAX_DEBT = 20n * PERCENTAGE_FACTOR;
 
 describe("CreditAccount calcQuotaUpdate test", () => {
   it("open account should buy quota", () => {
@@ -549,12 +550,12 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: {},
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 20n,
+          amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
@@ -571,26 +572,26 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([
       {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       {
-        balance: 20n,
+        balance: 20n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 20n,
+        balance: 20n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -603,7 +604,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: caQuota,
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.STETH]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
@@ -619,22 +620,22 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([
       {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -647,7 +648,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: caQuota,
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
@@ -663,22 +664,22 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([
       {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -691,7 +692,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: caQuota,
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
@@ -709,15 +710,15 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaDecrease).to.be.deep.eq([]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -730,12 +731,12 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: caQuota,
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.STETH]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 0n,
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
@@ -751,24 +752,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([
       {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
-      { balance: -10n, token: tokenDataByNetwork.Mainnet.WETH },
+      {
+        balance: MIN_INT96,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -781,12 +785,12 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: caQuota,
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 0n,
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
@@ -804,27 +808,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([
       {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -837,12 +841,12 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: caQuota,
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 0n,
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
@@ -859,21 +863,21 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).to.be.deep.eq([]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -5n,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -886,12 +890,12 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: caQuota,
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 0n,
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
@@ -907,15 +911,15 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaDecrease).to.be.deep.eq([]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -941,12 +945,12 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: caQuota,
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 0n,
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
@@ -966,15 +970,15 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaDecrease).to.be.deep.eq([]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -987,17 +991,17 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       initialQuotas: {
         ...caQuota,
         [tokenDataByNetwork.Mainnet.STETH]: {
-          quota: 5n,
+          quota: 5n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.STETH]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 5n,
+          amountInTarget: 5n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
@@ -1013,19 +1017,22 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
     expect(result.quotaDecrease).to.be.deep.eq([
-      { balance: -10n, token: tokenDataByNetwork.Mainnet.WETH },
+      {
+        balance: MIN_INT96,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -1037,16 +1044,16 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.STETH]: { quota: 5n },
+        [tokenDataByNetwork.Mainnet.STETH]: { quota: 5n * PERCENTAGE_FACTOR },
       },
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.STETH]: {
-          amountInTarget: 20n,
+          amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 5n,
+          amountInTarget: 5n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
@@ -1065,24 +1072,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([
       {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
-      { balance: -5n, token: tokenDataByNetwork.Mainnet.WETH },
+      {
+        balance: -5n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
@@ -1094,16 +1104,16 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.STETH]: { quota: 5n },
+        [tokenDataByNetwork.Mainnet.STETH]: { quota: 5n * PERCENTAGE_FACTOR },
       },
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.STETH]: {
-          amountInTarget: 10n,
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 5n,
+          amountInTarget: 5n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
@@ -1122,42 +1132,45 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([]);
     expect(result.quotaDecrease).to.be.deep.eq([
-      { balance: -5n, token: tokenDataByNetwork.Mainnet.WETH },
+      {
+        balance: -5n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 5n,
+        balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
   });
   it("swap should buy additional quota after limit was increased", () => {
     const result = CreditAccountData.calcQuotaUpdate({
-      maxDebt: 10n,
+      maxDebt: 10n * PERCENTAGE_FACTOR,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
         [tokenDataByNetwork.Mainnet.DAI]: {
-          quota: 10n,
+          quota: 10n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 20n,
+          amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 0n,
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
@@ -1175,50 +1188,50 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([
       {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 20n,
+        balance: 20n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
   });
   it("swap should buy additional quota with respect to debt limit", () => {
     const result = CreditAccountData.calcQuotaUpdate({
-      maxDebt: 9n,
+      maxDebt: 9n * PERCENTAGE_FACTOR,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
         [tokenDataByNetwork.Mainnet.DAI]: {
-          quota: 10n,
+          quota: 10n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 20n,
+          amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 0n,
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
@@ -1236,50 +1249,50 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
     expect(result.quotaIncrease).to.be.deep.eq([
       {
-        balance: 8n,
+        balance: 8n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 18n,
+        balance: 18n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
   });
   it("swap shouldn't buy additional quota if debt limit more then current quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
-      maxDebt: 5n,
+      maxDebt: 5n * PERCENTAGE_FACTOR,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
         [tokenDataByNetwork.Mainnet.DAI]: {
-          quota: 10n,
+          quota: 10n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          amountInTarget: 20n,
+          amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.DAI,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          amountInTarget: 0n,
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
           token: tokenDataByNetwork.Mainnet.WETH,
         },
@@ -1298,21 +1311,145 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).to.be.deep.eq([]);
     expect(result.quotaDecrease).to.be.deep.eq([
       {
-        balance: -10n,
+        balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
     expect(result.desiredQuota).to.be.deep.eq({
       [tokenDataByNetwork.Mainnet.DAI]: {
-        balance: 10n,
+        balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
       [tokenDataByNetwork.Mainnet.WETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
       [tokenDataByNetwork.Mainnet.STETH]: {
-        balance: 0n,
+        balance: 0n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap on old accounts should work correctly", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          quota: 5_2345n,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          quota: 10_7458n * PERCENTAGE_FACTOR,
+        },
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 10_1345n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+
+      liquidationThresholds: DEFAULT_LT,
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 10n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: MIN_INT96,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5_2345n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 10n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
+  it("swap on old accounts should work correctly and respect maxQuotaIncrease", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: 6n * PERCENTAGE_FACTOR,
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          quota: 5_2345n,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          quota: 10_7458n * PERCENTAGE_FACTOR,
+        },
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.STETH]: {
+          amountInTarget: 10_1345n,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.STETH]: {},
+      },
+      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+
+      liquidationThresholds: DEFAULT_LT,
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 7n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: MIN_INT96,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 5_2345n,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 7n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     });
