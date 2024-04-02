@@ -18,7 +18,7 @@
     "dev": "tsc -w --p tsconfig.build.json",
     "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc --p tsconfig.build.json && yarn publish",
     "types:clean": "rm -rf forge-out src/types",
-    "types:build": "forge build",
+    "types:build": "forge build --via-ir",
     "types:generate": "typechain --target ethers-v5 --out-dir src/types ./forge-out/**/*.json",
     "types": "yarn types:clean && yarn types:build && yarn types:generate",
     "prepare": "husky install",

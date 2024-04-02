@@ -46,6 +46,7 @@ export { Claimable__factory } from "./Claimable__factory";
 export { ERC20__factory } from "./ERC20__factory";
 export { Errors__factory } from "./Errors__factory";
 export { FarmAccounting__factory } from "./FarmAccounting__factory";
+export { FarmingPool__factory } from "./FarmingPool__factory";
 export { IAaveV2_LendingPoolAdapter__factory } from "./IAaveV2_LendingPoolAdapter__factory";
 export { IAaveV2_WrappedATokenAdapter__factory } from "./IAaveV2_WrappedATokenAdapter__factory";
 export { IAdapter__factory } from "./IAdapter__factory";
