@@ -77,7 +77,11 @@ describe("PathOptionFactory test", () => {
       [tokenDataByNetwork.Mainnet["50OHM_50DAI"]]: { balance: 200n },
     };
 
-    const result = PathOptionFactory.generatePathOptions(balances, 4);
+    const result = PathOptionFactory.generatePathOptions(
+      balances,
+      4,
+      "Mainnet",
+    );
 
     const expected: PathOptionSerie = [
       {
@@ -175,11 +179,5 @@ describe("PathOptionFactory test", () => {
     expect(PathOptionFactory.getCurvePools(balances)).to.be.eql(
       expectedCurvePools,
     );
-  });
-
-  it("detectNetwork works correctly", () => {
-    expect(
-      PathOptionFactory.detectNetwork(tokenDataByNetwork.Mainnet["1INCH"]),
-    ).to.be.eq("Mainnet");
   });
 });

@@ -16,7 +16,10 @@ const NETWROK_DEPENDENT_ALIASES: Record<
   PartialRecord<SupportedToken, string>
 > = {
   Mainnet: {},
-  Optimism: {},
+  Optimism: {
+    dUSDCV3: "dUSDC.eV3",
+    sdUSDCV3: "sdUSDC.eV3",
+  },
   Arbitrum: {
     dUSDCV3: "dUSDC.eV3",
     sdUSDCV3: "sdUSDC.eV3",

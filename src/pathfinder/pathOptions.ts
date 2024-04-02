@@ -38,11 +38,10 @@ export class PathOptionFactory {
   static generatePathOptions(
     balances: Record<string, BalanceInterface>,
     loopsInTx: number,
+    network: NetworkType,
   ): Array<PathOptionSerie> {
     const curvePools = PathOptionFactory.getCurvePools(balances);
     const balancerPools = PathOptionFactory.getBalancerPools(balances);
-
-    const network = PathOptionFactory.detectNetwork(Object.keys(balances)[0]);
 
     const curveInitPO: PathOptionSerie = curvePools.map(symbol => {
       return {
@@ -161,13 +160,5 @@ export class PathOptionFactory {
     }
 
     throw new Error("Path options overflow");
-  }
-
-  static detectNetwork(underlying: string): NetworkType {
-    return tokenDataByNetwork.Mainnet[
-      tokenSymbolByAddress[underlying.toLowerCase()]
-    ].toLowerCase() === underlying.toLowerCase()
-      ? "Mainnet"
-      : "Arbitrum";
   }
 }

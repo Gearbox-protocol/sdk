@@ -202,11 +202,13 @@ export class PathFinderV1 {
     creditAccount: CreditAccountData,
     slippage: number,
     noConcurency = false,
+    network: NetworkType,
   ): Promise<PathFinderV1CloseResult> {
     const loopsPerTx = Math.floor(GAS_PER_BLOCK / MAX_GAS_PER_ROUTE);
     const pathOptions = PathOptionFactory.generatePathOptions(
       creditAccount.allBalances,
       loopsPerTx,
+      network,
     );
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
