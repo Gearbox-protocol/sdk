@@ -71,7 +71,7 @@ const NORMAL_TO_LAMA: Record<
 
     sUSDe: "66985a81-9c51-46ca-9977-42b4fe7bc6df",
   },
-  Optimism: {},
+  Optimism: { rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb" },
   Arbitrum: {
     rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb",
     cbETH: "0f45d730-b279-4629-8e11-ccb5cc3038b4",
