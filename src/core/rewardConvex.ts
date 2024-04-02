@@ -67,16 +67,19 @@ export class RewardConvex {
     network: NetworkType,
     provider: providers.Provider,
   ): Promise<Array<Rewards>> {
+    const prepared = RewardConvex.prepareMultiCalls(ca.addr, cm, network);
+
+    if (!prepared) return [];
     const { auraCalls, auraDistribution, convexCalls, convexDistribution } =
-      RewardConvex.prepareMultiCalls(ca.addr, cm, network);
+      prepared;
 
     const auraTotal = auraCalls.flat(1);
     const convexTotal = convexCalls.flat(1);
 
-    const response = await multicall<Array<BigNumber>>(
-      [...auraTotal, ...convexTotal],
-      provider,
-    );
+    const allCalls = [...auraTotal, ...convexTotal];
+    if (allCalls.length === 0) return [];
+
+    const response = await multicall<Array<BigNumber>>(allCalls, provider);
 
     const auraEnd = auraTotal.length;
     const [auraTotalSupply, ...auraResponse] = response.slice(0, auraEnd);
@@ -131,6 +134,10 @@ export class RewardConvex {
     const contracts = contractsByNetwork[network];
 
     const adapters = this.findAdapters(cm);
+
+    if (adapters.length === 0) {
+      return undefined;
+    }
 
     const res = adapters.reduce<{
       convexDistribution: DistributionList;
@@ -234,7 +241,6 @@ export class RewardConvex {
         ],
       },
     );
-
     return res;
   }
 
