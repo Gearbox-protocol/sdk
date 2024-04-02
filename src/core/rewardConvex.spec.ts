@@ -95,8 +95,8 @@ describe("RewardConvex test", () => {
       "Mainnet",
     );
 
-    expect(result.convexDistribution).to.be.eql([distribution]);
-    expect(result.convexCalls).to.be.eql(calls);
+    expect(result?.convexDistribution).to.be.eql([distribution]);
+    expect(result?.convexCalls).to.be.eql(calls);
   });
 
   it("parseResults parse data correctly", () => {
