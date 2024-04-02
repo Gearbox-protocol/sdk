@@ -85,7 +85,6 @@ export type { Claimable } from "./Claimable";
 export type { ERC20 } from "./ERC20";
 export type { Errors } from "./Errors";
 export type { FarmAccounting } from "./FarmAccounting";
-export type { FarmingPool } from "./FarmingPool";
 export type { IAaveV2_LendingPoolAdapter } from "./IAaveV2_LendingPoolAdapter";
 export type { IAaveV2_WrappedATokenAdapter } from "./IAaveV2_WrappedATokenAdapter";
 export type { IAdapter } from "./IAdapter";
@@ -147,7 +146,6 @@ export { IGasPricer__factory } from "./factories/contracts/interfaces/IGasPricer
 export { ERC20__factory } from "./factories/ERC20__factory";
 export { Errors__factory } from "./factories/Errors__factory";
 export { FarmAccounting__factory } from "./factories/FarmAccounting__factory";
-export { FarmingPool__factory } from "./factories/FarmingPool__factory";
 export { IAaveV2_LendingPoolAdapter__factory } from "./factories/IAaveV2_LendingPoolAdapter__factory";
 export { IAaveV2_WrappedATokenAdapter__factory } from "./factories/IAaveV2_WrappedATokenAdapter__factory";
 export { IAdapter__factory } from "./factories/IAdapter__factory";
