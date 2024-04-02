@@ -48,6 +48,7 @@ interface FindBestClosePathProps {
   leftoverBalances: Record<string, Asset>;
   slippage: number;
   noConcurrency?: boolean;
+  network: NetworkType;
 }
 
 interface FindOpenStrategyPathProps {
@@ -235,11 +236,13 @@ export class PathFinder {
     leftoverBalances,
     slippage,
     noConcurrency = false,
+    network,
   }: FindBestClosePathProps): Promise<PathFinderCloseResult> {
     const loopsPerTx = Math.floor(GAS_PER_BLOCK / MAX_GAS_PER_ROUTE);
     const pathOptions = PathOptionFactory.generatePathOptions(
       creditAccount.allBalances,
       loopsPerTx,
+      network,
     );
 
     const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => {
