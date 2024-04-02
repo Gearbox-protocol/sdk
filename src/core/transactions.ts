@@ -37,7 +37,7 @@ export interface TxSerialized {
     | "TxOpenMultitokenAccount"
     | "TxClaimReward"
     | "TxClaimNFT"
-    | "TxClaimGearRewards"
+    | "TxClaimRewards"
     | "TxEnableTokens"
     | "TxUpdateQuota"
     | "TxGaugeStake"
@@ -83,8 +83,8 @@ export class TxSerializer {
           return new TxClaimReward(params);
         case "TxClaimNFT":
           return new TxClaimNFT(params);
-        case "TxClaimGearRewards":
-          return new TxClaimGearRewards(params);
+        case "TxClaimRewards":
+          return new TxClaimRewards(params);
         case "TxEnableTokens":
           return new TxEnableTokens(params);
         case "TxUpdateQuota":
@@ -507,16 +507,16 @@ export class TxClaimNFT extends EVMTx {
   }
 }
 
-interface TxClaimGearRewardsProps extends EVMTxProps {
+interface TxClaimRewardsProps extends EVMTxProps {
   token: string;
   amount: bigint;
 }
 
-export class TxClaimGearRewards extends EVMTx {
+export class TxClaimRewards extends EVMTx {
   readonly token: string;
   readonly amount: bigint;
 
-  constructor(opts: TxClaimGearRewardsProps) {
+  constructor(opts: TxClaimRewardsProps) {
     super(opts);
 
     this.amount = opts.amount;
@@ -526,7 +526,7 @@ export class TxClaimGearRewards extends EVMTx {
   toString(): string {
     const [symbol, decimals] = extractTokenData(this.token);
 
-    return `GEAR Rewards claimed: ${formatBN(
+    return `Rewards claimed: ${formatBN(
       this.amount,
       decimals || 18,
     )} ${symbol} `;
@@ -534,7 +534,7 @@ export class TxClaimGearRewards extends EVMTx {
 
   serialize(): TxSerialized {
     return {
-      type: "TxClaimGearRewards",
+      type: "TxClaimRewards",
       content: JSON.stringify(this),
     };
   }
