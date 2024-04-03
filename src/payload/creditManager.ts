@@ -9,7 +9,7 @@ import {
 } from "../types/IDataCompressorV3";
 import { BigintifyProps } from "../utils/types";
 
-export type CreditManagerDebtParams = BigintifyProps<
+export type CreditManagerDebtParamsSDK = BigintifyProps<
   ExcludeArrayProps<CreditManagerDebtParamsStructOutput>
 >;
 
