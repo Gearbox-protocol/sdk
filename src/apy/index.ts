@@ -16,6 +16,7 @@ export type AdditionalTokenWithAPY = Extract<
   | "cbETH"
   | "sfrxETH"
   | "USDe"
+  | "rsETH"
 >;
 export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {
   STETH: true,
@@ -27,6 +28,7 @@ export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {
   cbETH: true,
   sfrxETH: true,
   USDe: true,
+  rsETH: true,
 };
 
 export type TokensWithAPY = LPTokens | AdditionalTokenWithAPY;
