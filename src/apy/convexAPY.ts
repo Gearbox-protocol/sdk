@@ -55,6 +55,7 @@ export interface GetConvexAPYBulkProps {
   generated: GetConvexAPYBulkCallsReturns;
   response: Array<BigNumberish>;
   network: NetworkType;
+  currentTimestamp: number;
 }
 
 export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
@@ -112,6 +113,8 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
         info: poolsInfo[i],
         getTokenPrice: props.getTokenPrice,
         curveAPY: props.curveAPY,
+
+        currentTimestamp: props.currentTimestamp,
       });
 
       return apy;
@@ -288,6 +291,8 @@ export interface CalculateConvexAPYProps {
   info: PoolInfo;
   getTokenPrice: GetTokenPriceCallback;
   curveAPY: CurveAPYResult | undefined;
+
+  currentTimestamp: number;
 }
 
 const CURRENCY_LIST: PartialRecord<ConvexStakedPhantomToken, SupportedToken> = {
@@ -300,7 +305,6 @@ const CURRENCY_LIST: PartialRecord<ConvexStakedPhantomToken, SupportedToken> = {
 
 function calculateConvexAPY(props: CalculateConvexAPYProps) {
   const { tokenList, cvxPool, crvToken, cvxExtraPools } = props.info;
-  const currentTimestamp = getTimestampInSeconds();
 
   const currencySymbol = CURRENCY_LIST[cvxPool.stakedToken];
   const currency = currencySymbol && tokenList[currencySymbol || ""];
@@ -318,7 +322,7 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
   const crvPerYear = crvPerUnderlying * BigInt(SECONDS_PER_YEAR);
   const cvxPerYear = getCVXMintAmount(crvPerYear, props.cvxTokenSupply);
 
-  const baseFinished = props.cvxPoolRewardsFinish <= currentTimestamp;
+  const baseFinished = props.cvxPoolRewardsFinish <= props.currentTimestamp;
 
   const crvAPY = baseFinished ? 0n : (crvPerYear * crvPrice) / PRICE_DECIMALS;
   const cvxAPY = baseFinished ? 0n : (cvxPerYear * cvxPrice) / PRICE_DECIMALS;
@@ -338,7 +342,7 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
 
     const extraAPY = (perYear * extraPrice) / PRICE_DECIMALS;
 
-    const finished = extraFinished <= currentTimestamp;
+    const finished = extraFinished <= props.currentTimestamp;
 
     return finished ? 0n : extraAPY;
   });
@@ -352,10 +356,6 @@ function calculateConvexAPY(props: CalculateConvexAPYProps) {
   const r = baseApy + Math.round(Number((apyTotalInPercent * 10n) / WAD) / 10);
 
   return r;
-}
-
-function getTimestampInSeconds() {
-  return Math.floor(Date.now() / 1000);
 }
 
 export function getCVXMintAmount(crvAmount: bigint, cvxTokenSupply: bigint) {
