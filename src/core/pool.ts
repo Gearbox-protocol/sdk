@@ -5,7 +5,10 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { providers, Signer } from "ethers";
 
-import { CreditManagerDebtParams, QuotaInfo } from "../payload/creditManager";
+import {
+  CreditManagerDebtParamsSDK,
+  QuotaInfo,
+} from "../payload/creditManager";
 import {
   ChartsPoolDataPayload,
   LinearModel,
@@ -46,7 +49,7 @@ export class PoolData {
 
   readonly totalBorrowed: bigint;
   readonly totalDebtLimit: bigint;
-  readonly creditManagerDebtParams: Record<string, CreditManagerDebtParams>;
+  readonly creditManagerDebtParams: Record<string, CreditManagerDebtParamsSDK>;
   readonly quotas: Record<string, QuotaInfo>;
   readonly zappers: Record<string, Record<string, PoolZapper>>;
 
