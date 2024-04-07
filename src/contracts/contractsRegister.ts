@@ -51,9 +51,9 @@ export type ArbitrumCreditManagers =
   | "WETH_V3_TRADE_TIER_1"
   | "WETH_V3_TRADE_TIER_2";
 export type OptimismCreditManagers =
-  | "USDC_E_V3_TRADE_TIER_1"
-  | "USDC_E_V3_TRADE_TIER_2"
-  | "WETH_V3_TRADE_TIER_1"
+  | "USDC_E_V3_TIER_1"
+  | "USDC_E_V3_TIER_2"
+  | "WETH_V3_TIER_1"
   | "WETH_V3_TRADE_TIER_2";
 export type BaseCreditManagers = never;
 
@@ -130,13 +130,12 @@ export const creditManagerByNetwork: CreditManagersListType = {
       "0x3ab1d35500d2da4216f5863229a7b81e2f6ff976".toLowerCase(),
   },
   Optimism: {
-    USDC_E_V3_TRADE_TIER_1:
+    USDC_E_V3_TIER_1:
       "0xab260a0acbee82db69e61221a57aff302a2a83d9".toLowerCase(),
-    USDC_E_V3_TRADE_TIER_2:
+    USDC_E_V3_TIER_2:
       "0xbd71b3e744a0f9a6f8405479118ff2f42118463a".toLowerCase(),
 
-    WETH_V3_TRADE_TIER_1:
-      "0xf9fbdf90c4503055b82643c53f2daf78c619c72b".toLowerCase(),
+    WETH_V3_TIER_1: "0xf9fbdf90c4503055b82643c53f2daf78c619c72b".toLowerCase(),
     WETH_V3_TRADE_TIER_2:
       "0x66e033fc1504a1be084ddff50333039945bc8a7d".toLowerCase(),
   },
@@ -220,7 +219,7 @@ export const poolByNetwork: PoolsListType = {
   },
   Optimism: {
     USDC_V3: "0x5520daa93a187f4ec67344e6d2c4fc9b080b6a35".toLowerCase(),
-    WETH_V3: "0x6b0c5a7efd43c1d0cf114518b11865d0f4aaacbb".toLowerCase(),
+    WETH_V3: "0x42db77b3103c71059f4b997d6441cfb299fd0d94".toLowerCase(),
   },
   Base: {},
 };
