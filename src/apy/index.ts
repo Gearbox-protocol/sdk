@@ -18,7 +18,7 @@ export type AdditionalTokenWithAPY = Extract<
   | "USDe"
   | "rsETH"
 >;
-export const additionalTokensWIthAPY: Record<AdditionalTokenWithAPY, true> = {
+export const additionalTokensWithAPY: Record<AdditionalTokenWithAPY, true> = {
   STETH: true,
   weETH: true,
   osETH: true,
@@ -37,7 +37,7 @@ export type LpTokensAPY = PartialRecord<TokensWithAPY, number>;
 export const isTokenWithAPY = (t: unknown): t is TokensWithAPY =>
   typeof t === "string" &&
   (!!lpTokens[t as LPTokens] ||
-    !!additionalTokensWIthAPY[t as AdditionalTokenWithAPY]);
+    !!additionalTokensWithAPY[t as AdditionalTokenWithAPY]);
 
 export * from "./convexAPY";
 export * from "./curveAPY";
