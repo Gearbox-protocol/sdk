@@ -135,9 +135,9 @@ export const creditManagerByNetwork: CreditManagersListType = {
     USDC_E_V3_TIER_2:
       "0xbd71b3e744a0f9a6f8405479118ff2f42118463a".toLowerCase(),
 
-    WETH_V3_TIER_1: "0xf9fbdf90c4503055b82643c53f2daf78c619c72b".toLowerCase(),
+    WETH_V3_TIER_1: "0x1c1261bbccd09cb618d3fd8cd74bf7562c022ac4".toLowerCase(),
     WETH_V3_TRADE_TIER_2:
-      "0x66e033fc1504a1be084ddff50333039945bc8a7d".toLowerCase(),
+      "0x6ed2150a2d4136b42adf2043d25f5834baa0f1a9".toLowerCase(),
   },
   Base: {},
 };
