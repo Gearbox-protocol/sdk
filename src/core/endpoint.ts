@@ -11,7 +11,8 @@ type ChartsPriceSource = "chainlink" | "spot";
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [CHAINS.Mainnet]: "https://charts-server.fly.dev",
   [CHAINS.Arbitrum]: "https://arbitrum.gearbox.foundation",
-  // !& Base and OP
+  [CHAINS.Optimism]: "https://optimism.gearbox.foundation",
+  // !& Base
 
   [CHAINS.Local]: "https://charts-server.fly.dev",
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
