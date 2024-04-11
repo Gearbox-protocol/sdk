@@ -43,6 +43,7 @@ export * as contracts from "./contracts";
 export { AddressProvider__factory } from "./AddressProvider__factory";
 export { CalldataExtractor__factory } from "./CalldataExtractor__factory";
 export { Claimable__factory } from "./Claimable__factory";
+export { CompositePriceFeed__factory } from "./CompositePriceFeed__factory";
 export { ERC20__factory } from "./ERC20__factory";
 export { Errors__factory } from "./Errors__factory";
 export { FarmAccounting__factory } from "./FarmAccounting__factory";

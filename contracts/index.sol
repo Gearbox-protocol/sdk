@@ -61,6 +61,7 @@ import {IPriceOracleV3} from "@gearbox-protocol/core-v3/contracts/interfaces/IPr
 import {IPriceFeed} from "@gearbox-protocol/core-v2/contracts/interfaces/IPriceFeed.sol";
 import {ILPPriceFeed} from "@gearbox-protocol/oracles-v3/contracts/interfaces/ILPPriceFeed.sol";
 import {RedstonePriceFeed} from "@gearbox-protocol/oracles-v3/contracts/oracles/updatable/RedstonePriceFeed.sol";
+import {CompositePriceFeed} from "@gearbox-protocol/oracles-v3/contracts/oracles/CompositePriceFeed.sol";
 
 import {ICurveV1_2AssetsAdapter} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_2AssetsAdapter.sol";
