@@ -76,3 +76,5 @@ import {IRouterV3} from "@gearbox-protocol/router-v3/contracts/interfaces/IRoute
 import {IRouter} from "@gearbox-protocol/router/contracts/interfaces/IRouter.sol";
 
 import {IFarmingPool} from "@1inch/farming/contracts/interfaces/IFarmingPool.sol";
+
+import {PartialLiquidationBotV3} from "@gearbox-protocol/bots-v3/contracts/bots/PartialLiquidationBotV3.sol";
