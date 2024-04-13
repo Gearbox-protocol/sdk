@@ -1,10 +1,11 @@
 import { toBigInt } from "@gearbox-protocol/sdk-gov";
 
-import { BotDataPayload, BotType } from "../payload/bot";
+import { BotBaseType, BotDataPayload, BotDetailedType } from "../payload/bot";
 
 export class BotData {
   readonly address: string;
-  readonly type: BotType;
+  readonly baseType: BotBaseType;
+  readonly detailedType: BotDetailedType;
 
   readonly minHealthFactor: bigint;
   readonly maxHealthFactor: bigint;
@@ -13,7 +14,8 @@ export class BotData {
 
   constructor(payload: BotDataPayload) {
     this.address = payload.address.toLowerCase();
-    this.type = payload.type;
+    this.baseType = payload.baseType;
+    this.detailedType = payload.detailedType;
 
     this.minHealthFactor = toBigInt(payload.minHealthFactor);
     this.maxHealthFactor = toBigInt(payload.maxHealthFactor);

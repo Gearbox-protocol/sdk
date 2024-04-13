@@ -1,13 +1,16 @@
 import type { BigNumberish } from "ethers";
 
-export type BotType =
+export type BotBaseType = "liquidationProtection";
+export type LiquidationBotType =
   | "partialLiquidationBot"
   | "deleverageBotPegged"
   | "deleverageBotLV"
   | "deleverageBotHV";
+export type BotDetailedType = LiquidationBotType;
 
 export interface BotDataPayload {
-  type: BotType;
+  baseType: BotBaseType;
+  detailedType: BotDetailedType;
   address: string;
 
   minHealthFactor: BigNumberish;
