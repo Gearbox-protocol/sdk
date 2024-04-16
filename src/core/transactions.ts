@@ -884,7 +884,7 @@ export class TxAddBot extends EVMTx implements CMEvent {
   toString(): string {
     return `Credit Account ${
       this.creditManagerName || getContractName(this.creditManager)
-    }: bot added`;
+    }: bot enabled`;
   }
 
   serialize(): TxSerialized {
@@ -908,7 +908,7 @@ export class TxRemoveBot extends EVMTx implements CMEvent {
   toString(): string {
     return `Credit Account ${
       this.creditManagerName || getContractName(this.creditManager)
-    }: bot removed`;
+    }: bot disabled`;
   }
 
   serialize(): TxSerialized {
