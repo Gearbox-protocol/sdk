@@ -140,6 +140,7 @@ export type { RedstoneConstants } from "./RedstoneConstants";
 export type { RedstoneConsumerBase } from "./RedstoneConsumerBase";
 export type { RedstoneConsumerNumericBase } from "./RedstoneConsumerNumericBase";
 export type { RedstoneDefaultsLib } from "./RedstoneDefaultsLib";
+export type { SafeERC20 } from "./SafeERC20";
 export * as factories from "./factories";
 export { AddressProvider__factory } from "./factories/AddressProvider__factory";
 export type { BalanceOps } from "./Balances.sol/BalanceOps";
@@ -372,3 +373,4 @@ export type { IRedstonePriceFeedExceptions } from "./RedstonePriceFeed.sol/IReds
 export { IRedstonePriceFeedExceptions__factory } from "./factories/RedstonePriceFeed.sol/IRedstonePriceFeedExceptions__factory";
 export type { RedstonePriceFeed } from "./RedstonePriceFeed.sol/RedstonePriceFeed";
 export { RedstonePriceFeed__factory } from "./factories/RedstonePriceFeed.sol/RedstonePriceFeed__factory";
+export { SafeERC20__factory } from "./factories/SafeERC20__factory";

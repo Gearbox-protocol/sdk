@@ -146,7 +146,7 @@ export class CreditAccountData {
   readonly cumulativeIndexLastUpdate: bigint;
   readonly cumulativeQuotaInterest: bigint;
 
-  readonly activeBots: string[];
+  readonly activeBots: Record<string, true>;
 
   readonly balances: Record<string, bigint> = {};
   readonly collateralTokens: Array<string> = [];
@@ -198,7 +198,9 @@ export class CreditAccountData {
     );
     this.cumulativeQuotaInterest = toBigInt(payload.cumulativeQuotaInterest);
 
-    this.activeBots = payload.activeBots.map(b => b.toLowerCase());
+    this.activeBots = Object.fromEntries(
+      payload.activeBots.map(b => [b.toLowerCase(), true]),
+    );
 
     payload.balances.forEach(b => {
       const token = b.token.toLowerCase();

@@ -44,7 +44,9 @@ export interface TxSerialized {
     | "TxGaugeUnstake"
     | "TxGaugeClaim"
     | "TxGaugeVote"
-    | "TxWithdrawCollateral";
+    | "TxWithdrawCollateral"
+    | "TxAddBot"
+    | "TxRemoveBot";
   content: string;
 }
 
@@ -99,6 +101,10 @@ export class TxSerializer {
           return new TxGaugeVote(params);
         case "TxWithdrawCollateral":
           return new TxWithdrawCollateral(params);
+        case "TxAddBot":
+          return new TxAddBot(params);
+        case "TxRemoveBot":
+          return new TxRemoveBot(params);
 
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
@@ -855,6 +861,59 @@ export class TxWithdrawCollateral extends EVMTx implements CMEvent {
   serialize(): TxSerialized {
     return {
       type: "TxWithdrawCollateral",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxAddBotProps extends EVMTxProps {
+  creditManager: string;
+  creditManagerName?: string;
+}
+
+export class TxAddBot extends EVMTx implements CMEvent {
+  readonly creditManager: string;
+  readonly creditManagerName?: string;
+
+  constructor(opts: TxAddBotProps) {
+    super(opts);
+    this.creditManager = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
+  }
+
+  toString(): string {
+    return `Credit Account ${
+      this.creditManagerName || getContractName(this.creditManager)
+    }: bot enabled`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxAddBot",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+export class TxRemoveBot extends EVMTx implements CMEvent {
+  readonly creditManager: string;
+  readonly creditManagerName?: string;
+
+  constructor(opts: TxAddBotProps) {
+    super(opts);
+    this.creditManager = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
+  }
+
+  toString(): string {
+    return `Credit Account ${
+      this.creditManagerName || getContractName(this.creditManager)
+    }: bot disabled`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxAddBot",
       content: JSON.stringify(this),
     };
   }
