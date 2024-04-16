@@ -2,7 +2,6 @@ import type { BigNumberish } from "ethers";
 
 export type BotBaseType = "liquidationProtection";
 export type LiquidationBotType =
-  | "partialLiquidationBot"
   | "deleverageBotPegged"
   | "deleverageBotLV"
   | "deleverageBotHV";
