@@ -100,3 +100,4 @@ export { RedstoneConstants__factory } from "./RedstoneConstants__factory";
 export { RedstoneConsumerBase__factory } from "./RedstoneConsumerBase__factory";
 export { RedstoneConsumerNumericBase__factory } from "./RedstoneConsumerNumericBase__factory";
 export { RedstoneDefaultsLib__factory } from "./RedstoneDefaultsLib__factory";
+export { SafeERC20__factory } from "./SafeERC20__factory";
