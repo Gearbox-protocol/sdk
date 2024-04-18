@@ -30,17 +30,12 @@ export type LidoAPYResult = PartialRecord<
 >;
 
 export async function getLidoAPY(): Promise<LidoAPYResult> {
-  try {
-    const res = await axios.get<LidoApyResponse>(LIDO_URL);
-    const { smaApr = 0 } = res?.data?.data || {};
+  const res = await axios.get<LidoApyResponse>(LIDO_URL);
+  const { smaApr = 0 } = res?.data?.data || {};
 
-    const r = Math.round(smaApr * Number(PERCENTAGE_FACTOR));
-    return {
-      STETH: r,
-      wstETH: r,
-    };
-  } catch (e) {
-    console.error(e);
-    return {};
-  }
+  const r = Math.round(smaApr * Number(PERCENTAGE_FACTOR));
+  return {
+    STETH: r,
+    wstETH: r,
+  };
 }

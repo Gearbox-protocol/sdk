@@ -27,35 +27,30 @@ const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
 export async function getDefiLamaAPY(
   networkType: NetworkType,
 ): Promise<PartialRecord<TokensWithAPY, number>> {
-  try {
-    const currentNormal = NORMAL_TO_LAMA[networkType];
-    const idList = Object.values(currentNormal);
-    if (idList.length === 0) return {};
+  const currentNormal = NORMAL_TO_LAMA[networkType];
+  const idList = Object.values(currentNormal);
+  if (idList.length === 0) return {};
 
-    const res = await axios.get<LamaResponse>(`${LAMA_URL}${idList.join(",")}`);
-    const itemsRecord = res.data.data.reduce<Record<string, LamaItem>>(
-      (acc, item) => {
-        acc[item.pool] = item;
-        return acc;
-      },
-      {},
+  const res = await axios.get<LamaResponse>(`${LAMA_URL}${idList.join(",")}`);
+  const itemsRecord = res.data.data.reduce<Record<string, LamaItem>>(
+    (acc, item) => {
+      acc[item.pool] = item;
+      return acc;
+    },
+    {},
+  );
+
+  const allAPY: PartialRecord<TokensWithAPY, number> =
+    TypedObjectUtils.fromEntries(
+      TypedObjectUtils.entries(
+        currentNormal as Record<TokensWithAPY, string>,
+      ).map(([symbol, pool]) => {
+        const { apy = 0 } = itemsRecord[pool] || {};
+        return [symbol, Math.round(apy * Number(PERCENTAGE_FACTOR))];
+      }),
     );
 
-    const allAPY: PartialRecord<TokensWithAPY, number> =
-      TypedObjectUtils.fromEntries(
-        TypedObjectUtils.entries(
-          currentNormal as Record<TokensWithAPY, string>,
-        ).map(([symbol, pool]) => {
-          const { apy = 0 } = itemsRecord[pool] || {};
-          return [symbol, Math.round(apy * Number(PERCENTAGE_FACTOR))];
-        }),
-      );
-
-    return allAPY;
-  } catch (e) {
-    console.error(e);
-    return {};
-  }
+  return allAPY;
 }
 
 const NORMAL_TO_LAMA: Record<

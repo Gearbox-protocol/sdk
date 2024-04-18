@@ -115,30 +115,28 @@ interface CurveAPY {
 export type CurveAPYResult = PartialRecord<CurveAPYTokens, CurveAPY>;
 
 export async function getCurveAPY(network: NetworkType) {
-  try {
-    const currentTokens = tokenDataByNetwork[network];
-    const { mainnetVolumes, mainnetFactoryPools, volumes, pools } =
-      await getCurvePools(network);
+  const currentTokens = tokenDataByNetwork[network];
+  const { mainnetVolumes, mainnetFactoryPools, volumes, pools } =
+    await getCurvePools(network);
 
-    const volumeByAddress = Object.fromEntries(
-      volumes.data.data.pools.map(v => [v.address.toLowerCase(), v]),
-    );
+  const volumeByAddress = Object.fromEntries(
+    volumes.data.data.pools.map(v => [v.address.toLowerCase(), v]),
+  );
 
-    const poolDataByAddress = Object.fromEntries(
-      pools
-        .map(poolCategory => {
-          const { poolData = [] } = poolCategory?.data?.data || {};
-          return poolData.map((p): [string, CurvePoolData] => [
-            p.lpTokenAddress.toLowerCase(),
-            p,
-          ]);
-        })
-        .flat(1),
-    );
+  const poolDataByAddress = Object.fromEntries(
+    pools
+      .map(poolCategory => {
+        const { poolData = [] } = poolCategory?.data?.data || {};
+        return poolData.map((p): [string, CurvePoolData] => [
+          p.lpTokenAddress.toLowerCase(),
+          p,
+        ]);
+      })
+      .flat(1),
+  );
 
-    const curveAPY = TypedObjectUtils.entries(
-      curveTokens,
-    ).reduce<CurveAPYResult>((acc, [curveSymbol]) => {
+  const curveAPY = TypedObjectUtils.entries(curveTokens).reduce<CurveAPYResult>(
+    (acc, [curveSymbol]) => {
       const address = (currentTokens?.[curveSymbol] || "").toLowerCase();
 
       const pool = poolDataByAddress[address];
@@ -161,37 +159,35 @@ export async function getCurveAPY(network: NetworkType) {
       };
 
       return acc;
-    }, {});
+    },
+    {},
+  );
 
-    const poolFactoryByAddress = Object.fromEntries(
-      (mainnetFactoryPools?.data?.data?.poolData || []).map(
-        (p): [string, CurvePoolData] => [p.lpTokenAddress.toLowerCase(), p],
-      ),
-    );
-    const mainnetVolumeByAddress = Object.fromEntries(
-      mainnetVolumes.data.data.pools.map(v => [v.address.toLowerCase(), v]),
-    );
+  const poolFactoryByAddress = Object.fromEntries(
+    (mainnetFactoryPools?.data?.data?.poolData || []).map(
+      (p): [string, CurvePoolData] => [p.lpTokenAddress.toLowerCase(), p],
+    ),
+  );
+  const mainnetVolumeByAddress = Object.fromEntries(
+    mainnetVolumes.data.data.pools.map(v => [v.address.toLowerCase(), v]),
+  );
 
-    const gearPool = poolFactoryByAddress[GEAR_POOL];
-    const gearVolume =
-      mainnetVolumeByAddress[(gearPool?.address || "").toLowerCase()];
+  const gearPool = poolFactoryByAddress[GEAR_POOL];
+  const gearVolume =
+    mainnetVolumeByAddress[(gearPool?.address || "").toLowerCase()];
 
-    const gearAPY: CurveAPY = {
-      base: curveAPYToBn(gearVolume?.latestDailyApyPcent || 0),
-      crv: curveAPYToBn(Math.max(...(gearPool?.gaugeCrvApy || []), 0)),
-      gauge: (gearPool?.gaugeRewards || []).map(
-        ({ apy = 0, symbol }): [string, number] => [
-          symbol.toLowerCase(),
-          curveAPYToBn(apy),
-        ],
-      ),
-    };
+  const gearAPY: CurveAPY = {
+    base: curveAPYToBn(gearVolume?.latestDailyApyPcent || 0),
+    crv: curveAPYToBn(Math.max(...(gearPool?.gaugeCrvApy || []), 0)),
+    gauge: (gearPool?.gaugeRewards || []).map(
+      ({ apy = 0, symbol }): [string, number] => [
+        symbol.toLowerCase(),
+        curveAPYToBn(apy),
+      ],
+    ),
+  };
 
-    return { curveAPY, gearAPY };
-  } catch (e) {
-    console.error(e);
-    return {};
-  }
+  return { curveAPY, gearAPY };
 }
 
 async function getCurvePools(network: NetworkType) {
