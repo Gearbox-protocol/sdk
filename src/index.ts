@@ -17,6 +17,7 @@ export * from "./core/strategy";
 export * from "./core/tokenDistributor";
 export * from "./core/trade";
 export * from "./core/transactions";
+export * from "./gearboxRewards";
 export * from "./parsers/txParser";
 export * from "./pathfinder";
 export * from "./payload/bot";
