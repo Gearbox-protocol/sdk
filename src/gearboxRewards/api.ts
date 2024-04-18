@@ -268,13 +268,16 @@ export class GearboxRewardsApi {
       provider,
     );
 
-    const [claimed, merkleData] = await Promise.all([
+    const [claimedResp, merkleDataResp] = await Promise.all([
       this.getClaimed({ distributor, account }),
       this.getMerkle(provider, airdropDistributorAddress, network, account),
     ]);
 
-    const amountOnContract = this.getAmountOnContract({ account, merkleData });
-    const diff = amountOnContract - claimed;
+    const amountOnContract = this.getAmountOnContract({
+      account,
+      merkleData: merkleDataResp,
+    });
+    const diff = amountOnContract - claimedResp;
     const availableToClaimV2 = BigIntMath.max(0n, diff);
 
     const rewards: Array<GearboxLmReward> = [
@@ -441,7 +444,7 @@ export class GearboxRewardsApi {
     distributorAddress: string,
     network: NetworkType,
     account: string,
-  ): Promise<MerkleDistributorInfo | undefined> {
+  ): Promise<MerkleDistributorInfo> {
     const distributor = IAirdropDistributor__factory.connect(
       distributorAddress,
       provider,
@@ -451,13 +454,8 @@ export class GearboxRewardsApi {
     const path = `${network}_${root.slice(2)}/${account.slice(2, 4)}`;
     const url = `https://am.gearbox.finance/${path.toLowerCase()}.json`;
 
-    try {
-      const result = await axios.get<MerkleDistributorInfo>(url);
-      return result.data;
-    } catch (error) {
-      console.error("core/gearboxRewards/lmRewards/getMerkle", error);
-      return undefined;
-    }
+    const result = await axios.get<MerkleDistributorInfo>(url);
+    return result.data;
   }
 
   private static async getClaimed({

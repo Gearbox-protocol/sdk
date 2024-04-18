@@ -108,39 +108,37 @@ export class GearboxRewardsExtraApy {
   }: GetTotalTokensOnProtocolProps) {
     const currTokens = TOKENS[network];
 
-    const res = await Promise.all(
+    const res = await Promise.allSettled(
       currTokens.map(s =>
         this.getTokenTotal(currentTokenData[s], chainId, tokensList),
       ),
     );
 
-    return Object.fromEntries(res.filter(r => r).map(r => [r!.token, r!]));
+    return res.map((r, i): [SupportedToken, PromiseSettledResult<Asset>] => [
+      currTokens[i],
+      r,
+    ]);
   }
 
   private static async getTokenTotal(
     token: string,
     chainId: number,
     tokensList: Record<string, TokenData>,
-  ): Promise<Asset | undefined> {
-    try {
-      const url = ChartsApi.getUrl("getBalanceAt", chainId, {
-        params: {
-          asset: token,
-        },
-      });
+  ) {
+    const url = ChartsApi.getUrl("getBalanceAt", chainId, {
+      params: {
+        asset: token,
+      },
+    });
 
-      const result = await axios.get<GetBalanceAtResponse>(url);
-      const balance = result.data.result.reduce(
-        (sum, r) => r.effective_balance + sum,
-        0,
-      );
-      const { decimals = 18 } = tokensList[token] || {};
+    const result = await axios.get<GetBalanceAtResponse>(url);
+    const balance = result.data.result.reduce(
+      (sum, r) => r.effective_balance + sum,
+      0,
+    );
+    const { decimals = 18 } = tokensList[token] || {};
 
-      return { token, balance: toBN(String(balance), decimals) };
-    } catch (error) {
-      console.error("core/apy/extraAPYApi/getTokenTotal", error);
-      return undefined;
-    }
+    return { token, balance: toBN(String(balance), decimals) };
   }
 
   static getPointsByPool({
