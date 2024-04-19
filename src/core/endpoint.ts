@@ -1,10 +1,11 @@
-import { CHAINS } from "@gearbox-protocol/sdk-gov";
+import { CHAINS, NetworkType } from "@gearbox-protocol/sdk-gov";
 
-export const TESTNET_CHAINS = {
+export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Mainnet: 7878,
   Optimism: 7879,
   Arbitrum: 7880,
-} as const;
+  Base: 7881,
+};
 
 type ChartsPriceSource = "chainlink" | "spot";
 
