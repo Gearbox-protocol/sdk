@@ -117,15 +117,22 @@ const EXTRA_LM_MINING: PartialRecord<string, (timestamp: number) => FarmInfo> =
     [tokenDataByNetwork.Mainnet.sdGHOV3.toLowerCase()]: (timestamp: number) => {
       const REWARD_PERIOD = 14 * 24 * 60 * 60;
       // const REWARDS_FIRST_START = 1711641600;
-      const REWARDS_FIRST_END = 1712844000;
+      // const REWARDS_FIRST_END = 1712844000;
       const REWARDS_SECOND_END = 1714150800;
-      const REWARD_FIRST_PART = toBN("15000", decimals.GHO);
+      const REWARDS_THIRD_END = REWARDS_SECOND_END + REWARD_PERIOD;
+
+      // const REWARD_FIRST_PART = toBN("15000", decimals.GHO);
       const REWARD_SECOND_PART = toBN("15000", decimals.GHO);
+      const REWARD_THIRD_PART = toBN("15000", decimals.GHO);
 
       const reward =
-        timestamp >= REWARDS_FIRST_END ? REWARD_SECOND_PART : REWARD_FIRST_PART;
+        timestamp >= REWARDS_SECOND_END
+          ? REWARD_THIRD_PART
+          : REWARD_SECOND_PART;
       const finished =
-        timestamp >= REWARDS_FIRST_END ? REWARDS_SECOND_END : REWARDS_FIRST_END;
+        timestamp >= REWARDS_SECOND_END
+          ? REWARDS_THIRD_END
+          : REWARDS_SECOND_END;
 
       return {
         balance: 0n,
