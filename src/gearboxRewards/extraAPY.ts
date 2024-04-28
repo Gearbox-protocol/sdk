@@ -54,12 +54,12 @@ const POOL_POINTS: Record<
 > = {
   Mainnet: {
     [poolByNetwork.Mainnet.WETH_V3_TRADE]: {
-      ezETH: {
-        amount: PERCENTAGE_FACTOR,
-        symbol: "ezETH",
-        duration: "hour",
-        name: "ezPoint",
-      },
+      // ezETH: {
+      //   amount: PERCENTAGE_FACTOR,
+      //   symbol: "ezETH",
+      //   duration: "hour",
+      //   name: "ezPoint",
+      // },
       rsETH: {
         amount: 7500n * 10000n,
         symbol: "rsETH",
@@ -69,14 +69,14 @@ const POOL_POINTS: Record<
     },
   },
   Arbitrum: {
-    [poolByNetwork.Arbitrum.WETH_V3]: {
-      ezETH: {
-        amount: PERCENTAGE_FACTOR,
-        symbol: "ezETH",
-        duration: "hour",
-        name: "ezPoint",
-      },
-    },
+    // [poolByNetwork.Arbitrum.WETH_V3]: {
+    //   ezETH: {
+    //     amount: PERCENTAGE_FACTOR,
+    //     symbol: "ezETH",
+    //     duration: "hour",
+    //     name: "ezPoint",
+    //   },
+    // },
   },
   Optimism: {},
   Base: {},
