@@ -65,7 +65,9 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
 
   const { poolsInfo, calls } = props.generated;
 
-  const [parsedResponse] = calls.reduce<[Array<Array<BigNumberish>>, number]>(
+  const [parsedResponse] = calls.reduce<
+    [Array<Array<BigNumberish | undefined>>, number]
+  >(
     ([acc, start], call) => {
       const end = start + call.length;
 
@@ -80,11 +82,11 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
   const apyList = parsedResponse.map(
     (
       [
-        cvxPoolRewardsFinish,
-        cvxPoolRate,
-        cvxPoolSupply,
-        crvVPrice,
-        cvxTokenSupply,
+        cvxPoolRewardsFinish = 0n,
+        cvxPoolRate = 0n,
+        cvxPoolSupply = 0n,
+        crvVPrice = 0n,
+        cvxTokenSupply = 0n,
         ...rest
       ],
       i,
@@ -106,9 +108,11 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
         cvxPoolSupply: toBigInt(cvxPoolSupply),
         crvVPrice: toBigInt(crvVPrice),
         cvxTokenSupply: toBigInt(cvxTokenSupply),
-        cvxExtraRewards: cvxExtraRewards.map(v => toBigInt(v)),
-        cvxExtraRewardsFinish: cvxExtraRewardsFinish.map(v => toBigInt(v)),
-        crvLpPrice: crvLpPrice.map(v => toBigInt(v)),
+        cvxExtraRewards: cvxExtraRewards.map(v => toBigInt(v || 0n)),
+        cvxExtraRewardsFinish: cvxExtraRewardsFinish.map(v =>
+          toBigInt(v || 0n),
+        ),
+        crvLpPrice: crvLpPrice.map(v => toBigInt(v || 0n)),
 
         info: poolsInfo[i],
         getTokenPrice: props.getTokenPrice,
