@@ -1,8 +1,11 @@
 import { FunctionFragment, Result } from "@ethersproject/abi";
 import {
+  Address,
   decimals,
   formatBN,
+  getTokenSymbolOrTicker,
   SupportedToken,
+  TickerToken,
   toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
@@ -55,6 +58,14 @@ export class AbstractParser {
   tokenSymbol(address: string): SupportedToken {
     const symbol = tokenSymbolByAddress[address.toLowerCase()];
     if (!symbol) throw new Error(`Unknown token: ${address}`);
+    return symbol;
+  }
+
+  tokenOrTickerSymbol(address: string): SupportedToken | TickerToken {
+    const symbol = getTokenSymbolOrTicker(address as Address);
+    if (!symbol) {
+      throw new Error(`Unknown token or ticker: ${address}`);
+    }
     return symbol;
   }
 

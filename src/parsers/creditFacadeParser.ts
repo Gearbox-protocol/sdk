@@ -140,7 +140,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
           calldata,
         );
 
-        return `${functionName}(token: ${this.tokenSymbol(
+        return `${functionName}(token: ${this.tokenOrTickerSymbol(
           token,
         )}, reserve: ${reserve}, data: ${data})`;
       }
