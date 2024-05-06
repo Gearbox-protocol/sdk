@@ -24,6 +24,7 @@ interface PoolEvent {
 
 export interface TxSerialized {
   type:
+    | "PreflightTx"
     | "TxAddLiquidity"
     | "TxRemoveLiquidity"
     | "TxSwap"
@@ -105,6 +106,8 @@ export class TxSerializer {
           return new TxAddBot(params);
         case "TxRemoveBot":
           return new TxRemoveBot(params);
+        case "PreflightTx":
+          return new PreflightTx(params);
 
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
@@ -914,6 +917,19 @@ export class TxRemoveBot extends EVMTx implements CMEvent {
   serialize(): TxSerialized {
     return {
       type: "TxAddBot",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+export class PreflightTx extends EVMTx {
+  toString(): string {
+    return "PreflightTx";
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "PreflightTx",
       content: JSON.stringify(this),
     };
   }

@@ -12,6 +12,7 @@ import {
 import {
   ChartsPoolDataPayload,
   LinearModel,
+  PoolDataExtraPayload,
   PoolDataPayload,
   PoolZapper,
   UserPoolPayload,
@@ -66,12 +67,12 @@ export class PoolData {
   readonly withdrawFee: number;
   readonly lastBaseInterestUpdate: bigint;
 
-  constructor(payload: PoolDataPayload) {
+  constructor(payload: PoolDataPayload, extra: PoolDataExtraPayload) {
     this.address = payload.addr.toLowerCase();
     this.type = PoolData.getPoolType(payload.name || "");
     this.underlyingToken = payload.underlying.toLowerCase();
     this.dieselToken = payload.dieselToken.toLowerCase();
-    this.stakedDieselToken = (payload.stakedDieselToken || []).map(t =>
+    this.stakedDieselToken = (extra.stakedDieselToken || []).map(t =>
       t.toLowerCase(),
     );
     this.isPaused = payload.isPaused;
@@ -145,7 +146,7 @@ export class PoolData {
     this.borrowAPY = rayToNumber(
       payload.baseInterestRate * PERCENTAGE_DECIMALS,
     );
-    this.supplyAPY7D = payload.supplyAPY7D;
+    this.supplyAPY7D = extra.supplyAPY7D;
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
