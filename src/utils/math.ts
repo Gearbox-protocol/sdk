@@ -1,5 +1,4 @@
 import { halfRAY, PERCENTAGE_FACTOR, RAY } from "@gearbox-protocol/sdk-gov";
-import { BigNumber } from "ethers";
 
 export function revertRay(num?: bigint): bigint | undefined {
   if (!num) return undefined;
@@ -35,7 +34,6 @@ export const nonNegativeBn = (v: bigint): bigint => (v < 0 ? 0n : v);
 
 export class BigIntMath {
   static abs = (x: bigint) => (x < 0n ? -x : x);
-  static toHexString = (x: bigint) => BigNumber.from(x).toHexString();
   static max = (a: bigint, b: bigint) => (a > b ? a : b);
   static min = (a: bigint, b: bigint) => (a < b ? a : b);
   static neg = (a: bigint) => (a > 0 ? a * -1n : a);

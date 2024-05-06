@@ -13,8 +13,15 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import { BigNumber, BigNumberish, ethers, providers, Signer } from "ethers";
-import { getAddress, Interface } from "ethers/lib/utils";
+import {
+  BigNumberish,
+  BytesLike,
+  ethers,
+  getAddress,
+  Interface,
+  Provider,
+  Signer,
+} from "ethers";
 
 import { ChartsApi } from "../core/endpoint";
 import {
@@ -26,7 +33,6 @@ import {
 import { FarmAccounting } from "../types/IFarmingPool";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
-import { BigintifyProps } from "../utils/types";
 import { MULTICALL_EXTENDED_INTERFACE } from "./abi";
 
 export interface GearboxExtraMerkleLmReward {
@@ -71,19 +77,19 @@ export interface MerkleDistributorInfo {
     {
       index: number;
       amount: string;
-      proof: Array<ethers.utils.BytesLike>;
+      proof: Array<BytesLike>;
     }
   >;
 }
 
 type FarmInfoOutput = ExcludeArrayProps<FarmAccounting.InfoStructOutput>;
-export type FarmInfo = BigintifyProps<FarmInfoOutput> & {
+export type FarmInfo = FarmInfoOutput & {
   symbol: SupportedToken;
 };
 
 export interface GetLmRewardsInfoProps {
   currentTokenData: Record<SupportedToken, string>;
-  provider: providers.Provider | Signer;
+  provider: Provider | Signer;
 
   multicallAddress: string;
 }
@@ -92,7 +98,7 @@ export interface GetLmRewardsProps {
   baseRewardPoolsInfo: Record<string, FarmInfo>;
   currentTokenData: Record<SupportedToken, string>;
   account: string;
-  provider: providers.Provider | Signer;
+  provider: Provider | Signer;
 
   airdropDistributorAddress: string | undefined;
   network: NetworkType;
@@ -101,7 +107,7 @@ export interface GetLmRewardsProps {
 export interface ClaimLmRewardsV2Props {
   signer: Signer;
   account: string;
-  provider: providers.Provider;
+  provider: Provider;
 
   airdropDistributorAddress: string | undefined;
   network: NetworkType;
@@ -200,7 +206,7 @@ export class GearboxRewardsApi {
     );
 
     const farmSupplyCallsEnd = farmInfoCallsEnd + farmSupplyCalls.length;
-    const farmSupply: Array<BigNumber> = mcResponse.slice(
+    const farmSupply: Array<bigint> = mcResponse.slice(
       farmInfoCallsEnd,
       farmSupplyCallsEnd,
     );
@@ -326,7 +332,7 @@ export class GearboxRewardsApi {
       network === "Mainnet" && EXTRA_LM_MINING[currentTokenData.sdGHOV3];
 
     const [gearboxLmResponse, merkleXYZLMResponse] = await Promise.allSettled([
-      multicall<Array<BigNumber>>(farmedCalls, provider),
+      multicall<Array<bigint>>(farmedCalls, provider),
 
       hasGHOReward
         ? axios.get<MerkleXYZUserRewardsResponse>(
@@ -447,7 +453,7 @@ export class GearboxRewardsApi {
   }
 
   private static async getMerkle(
-    provider: providers.Provider | Signer,
+    provider: Provider | Signer,
     distributorAddress: string,
     network: NetworkType,
     account: string,

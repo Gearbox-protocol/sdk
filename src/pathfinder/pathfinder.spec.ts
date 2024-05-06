@@ -1,6 +1,6 @@
 import { tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { providers } from "ethers";
+import { JsonRpcProvider } from "ethers";
 
 import { PathFinderResult } from "./core";
 import { PathFinder } from "./pathfinder";
@@ -23,7 +23,7 @@ describe("PathFinder test", () => {
     expect(result).to.be.eql(r2);
   });
   it("has all expected connectors", () => {
-    const pf = new PathFinder("", new providers.JsonRpcProvider(), "Mainnet");
+    const pf = new PathFinder("", new JsonRpcProvider(), "Mainnet");
     const allowedTokens = {
       [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: true,
       [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: true,
@@ -40,7 +40,7 @@ describe("PathFinder test", () => {
     ]);
   });
   it("has all expected connectors, when gew are disabled", () => {
-    const pf = new PathFinder("", new providers.JsonRpcProvider(), "Mainnet");
+    const pf = new PathFinder("", new JsonRpcProvider(), "Mainnet");
     const allowedTokens = {
       [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: true,
       [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: true,

@@ -16,8 +16,7 @@ import {
   tokenDataByNetwork,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber, providers } from "ethers";
-import { Interface } from "ethers/lib/utils";
+import { Interface, providers } from "ethers";
 
 import { getCVXMintAmount } from "../apy";
 import { AURA_BOOSTER_INTERFACE } from "../apy/auraAbi";
@@ -65,7 +64,7 @@ export class RewardConvex {
     ca: CreditAccountData,
     cm: CreditManagerData,
     network: NetworkType,
-    provider: providers.Provider,
+    provider: Provider,
   ): Promise<Array<Rewards>> {
     const prepared = RewardConvex.prepareMultiCalls(ca.addr, cm, network);
 

@@ -205,7 +205,7 @@ export class PoolData {
 }
 
 interface CalculateBorrowRateProps {
-  provider: providers.Provider;
+  provider: Provider;
   expectedLiquidity: bigint;
   availableLiquidity: bigint;
 }

@@ -1,4 +1,4 @@
-import { FunctionFragment } from "ethers/lib/utils";
+import { FunctionFragment } from "ethers";
 
 export interface IParser {
   parse: (calldata: string) => string;

@@ -4,7 +4,7 @@ import {
   NetworkType,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { providers, Signer } from "ethers";
+import { Provider, Signer } from "ethers";
 
 import { Asset } from "../core/assets";
 import { CreditAccountData } from "../core/creditAccount";
@@ -67,7 +67,7 @@ export class PathFinder {
 
   constructor(
     address: string,
-    provider: Signer | providers.Provider,
+    provider: Signer | Provider,
     network: NetworkType = "Mainnet",
   ) {
     this.pathFinder = IRouterV3__factory.connect(address, provider);
@@ -97,7 +97,7 @@ export class PathFinder {
       leftoverAmount,
     };
 
-    const results = await this.pathFinder.callStatic.findAllSwaps(
+    const results = await this.pathFinder.findAllSwaps.staticCall(
       swapTask,
       slippage,
       {
@@ -108,7 +108,7 @@ export class PathFinder {
     const unique: Record<string, PathFinderResult> = {};
 
     results.forEach(r => {
-      const key = `${r.minAmount.toHexString()}${r.calls
+      const key = `${r.minAmount.toString()}${r.calls
         .map(c => `${c.target.toLowerCase()}${c.callData}`)
         .join("-")}`;
 
@@ -131,7 +131,7 @@ export class PathFinder {
   }: FindOneTokenPathProps): Promise<PathFinderResult> {
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    const result = await this.pathFinder.callStatic.findOneTokenPath(
+    const result = await this.pathFinder.findOneTokenPath.staticCall(
       tokenIn,
       amount,
       tokenOut,
@@ -182,7 +182,7 @@ export class PathFinder {
     const connectors = this.getAvailableConnectors(cm.supportedTokens);
 
     const [outBalances, result] =
-      await this.pathFinder.callStatic.findOpenStrategyPath(
+      await this.pathFinder.findOpenStrategyPath.staticCall(
         cm.address,
         input,
         leftover,
@@ -264,12 +264,12 @@ export class PathFinder {
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
     let results: Array<
-      AwaitedRes<IRouterV3["callStatic"]["findBestClosePath"]>
+      AwaitedRes<IRouterV3["findBestClosePath"]["staticCall"]>
     > = [];
     if (noConcurrency) {
       for (const po of pathOptions) {
         results.push(
-          await this.pathFinder.callStatic.findBestClosePath(
+          await this.pathFinder.findBestClosePath.staticCall(
             creditAccount.addr,
             expected,
             leftover,
@@ -286,7 +286,7 @@ export class PathFinder {
       }
     } else {
       const requests = pathOptions.map(po =>
-        this.pathFinder.callStatic.findBestClosePath(
+        this.pathFinder.findBestClosePath.staticCall(
           creditAccount.addr,
           expected,
           leftover,

@@ -32,7 +32,7 @@ export class RewardClaimer {
     ca: CreditAccountData,
     cm: CreditManagerData,
     network: NetworkType,
-    provider: providers.Provider,
+    provider: Provider,
   ): Promise<Array<Rewards>> {
     return RewardConvex.findRewards(ca, cm, network, provider);
   }
