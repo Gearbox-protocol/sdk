@@ -3,62 +3,28 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface AddressProviderInterface extends utils.Interface {
-  functions: {
-    "addresses(bytes32)": FunctionFragment;
-    "claimOwnership()": FunctionFragment;
-    "getACL()": FunctionFragment;
-    "getAccountFactory()": FunctionFragment;
-    "getContractsRegister()": FunctionFragment;
-    "getDataCompressor()": FunctionFragment;
-    "getGearToken()": FunctionFragment;
-    "getLeveragedActions()": FunctionFragment;
-    "getPriceOracle()": FunctionFragment;
-    "getTreasuryContract()": FunctionFragment;
-    "getWETHGateway()": FunctionFragment;
-    "getWethToken()": FunctionFragment;
-    "owner()": FunctionFragment;
-    "pendingOwner()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "setACL(address)": FunctionFragment;
-    "setAccountFactory(address)": FunctionFragment;
-    "setContractsRegister(address)": FunctionFragment;
-    "setDataCompressor(address)": FunctionFragment;
-    "setGearToken(address)": FunctionFragment;
-    "setLeveragedActions(address)": FunctionFragment;
-    "setPriceOracle(address)": FunctionFragment;
-    "setTreasuryContract(address)": FunctionFragment;
-    "setWETHGateway(address)": FunctionFragment;
-    "setWethToken(address)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface AddressProviderInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "addresses"
       | "claimOwnership"
       | "getACL"
@@ -88,9 +54,13 @@ export interface AddressProviderInterface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic: "AddressSet" | "OwnershipTransferred"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "addresses",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "claimOwnership",
@@ -142,49 +112,46 @@ export interface AddressProviderInterface extends utils.Interface {
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "setACL",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "setACL", values: [AddressLike]): string;
   encodeFunctionData(
     functionFragment: "setAccountFactory",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setContractsRegister",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setDataCompressor",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setGearToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setLeveragedActions",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setPriceOracle",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setTreasuryContract",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setWETHGateway",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setWethToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -281,562 +248,293 @@ export interface AddressProviderInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "AddressSet(bytes32,address)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AddressSet"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
-export interface AddressSetEventObject {
-  service: string;
-  newAddress: string;
+export namespace AddressSetEvent {
+  export type InputTuple = [service: BytesLike, newAddress: AddressLike];
+  export type OutputTuple = [service: string, newAddress: string];
+  export interface OutputObject {
+    service: string;
+    newAddress: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddressSetEvent = TypedEvent<
-  [string, string],
-  AddressSetEventObject
->;
 
-export type AddressSetEventFilter = TypedEventFilter<AddressSetEvent>;
-
-export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
+export namespace OwnershipTransferredEvent {
+  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
+  export type OutputTuple = [previousOwner: string, newOwner: string];
+  export interface OutputObject {
+    previousOwner: string;
+    newOwner: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
-
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface AddressProvider extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): AddressProvider;
+  waitForDeployment(): Promise<this>;
 
   interface: AddressProviderInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
-
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
-
-  functions: {
-    addresses(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    claimOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getACL(overrides?: CallOverrides): Promise<[string]>;
-
-    getAccountFactory(overrides?: CallOverrides): Promise<[string]>;
-
-    getContractsRegister(overrides?: CallOverrides): Promise<[string]>;
-
-    getDataCompressor(overrides?: CallOverrides): Promise<[string]>;
-
-    getGearToken(overrides?: CallOverrides): Promise<[string]>;
-
-    getLeveragedActions(overrides?: CallOverrides): Promise<[string]>;
-
-    getPriceOracle(overrides?: CallOverrides): Promise<[string]>;
-
-    getTreasuryContract(overrides?: CallOverrides): Promise<[string]>;
-
-    getWETHGateway(overrides?: CallOverrides): Promise<[string]>;
-
-    getWethToken(overrides?: CallOverrides): Promise<[string]>;
-
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setACL(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setAccountFactory(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setContractsRegister(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setDataCompressor(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setGearToken(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setLeveragedActions(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setPriceOracle(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setTreasuryContract(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setWETHGateway(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setWethToken(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  addresses(
-    arg0: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  claimOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getACL(overrides?: CallOverrides): Promise<string>;
-
-  getAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-  getContractsRegister(overrides?: CallOverrides): Promise<string>;
-
-  getDataCompressor(overrides?: CallOverrides): Promise<string>;
-
-  getGearToken(overrides?: CallOverrides): Promise<string>;
-
-  getLeveragedActions(overrides?: CallOverrides): Promise<string>;
-
-  getPriceOracle(overrides?: CallOverrides): Promise<string>;
-
-  getTreasuryContract(overrides?: CallOverrides): Promise<string>;
-
-  getWETHGateway(overrides?: CallOverrides): Promise<string>;
-
-  getWethToken(overrides?: CallOverrides): Promise<string>;
-
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  pendingOwner(overrides?: CallOverrides): Promise<string>;
-
-  renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setACL(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setAccountFactory(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setContractsRegister(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setDataCompressor(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setGearToken(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setLeveragedActions(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setPriceOracle(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setTreasuryContract(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setWETHGateway(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setWethToken(
-    _address: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  transferOwnership(
-    newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    addresses(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    claimOwnership(overrides?: CallOverrides): Promise<void>;
-
-    getACL(overrides?: CallOverrides): Promise<string>;
-
-    getAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-    getContractsRegister(overrides?: CallOverrides): Promise<string>;
-
-    getDataCompressor(overrides?: CallOverrides): Promise<string>;
-
-    getGearToken(overrides?: CallOverrides): Promise<string>;
-
-    getLeveragedActions(overrides?: CallOverrides): Promise<string>;
-
-    getPriceOracle(overrides?: CallOverrides): Promise<string>;
-
-    getTreasuryContract(overrides?: CallOverrides): Promise<string>;
-
-    getWETHGateway(overrides?: CallOverrides): Promise<string>;
-
-    getWethToken(overrides?: CallOverrides): Promise<string>;
-
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<string>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    setACL(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setAccountFactory(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setContractsRegister(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setDataCompressor(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setGearToken(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setLeveragedActions(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setPriceOracle(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setTreasuryContract(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setWETHGateway(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setWethToken(
-      _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  addresses: TypedContractMethod<[arg0: BytesLike], [string], "view">;
+
+  claimOwnership: TypedContractMethod<[], [void], "nonpayable">;
+
+  getACL: TypedContractMethod<[], [string], "view">;
+
+  getAccountFactory: TypedContractMethod<[], [string], "view">;
+
+  getContractsRegister: TypedContractMethod<[], [string], "view">;
+
+  getDataCompressor: TypedContractMethod<[], [string], "view">;
+
+  getGearToken: TypedContractMethod<[], [string], "view">;
+
+  getLeveragedActions: TypedContractMethod<[], [string], "view">;
+
+  getPriceOracle: TypedContractMethod<[], [string], "view">;
+
+  getTreasuryContract: TypedContractMethod<[], [string], "view">;
+
+  getWETHGateway: TypedContractMethod<[], [string], "view">;
+
+  getWethToken: TypedContractMethod<[], [string], "view">;
+
+  owner: TypedContractMethod<[], [string], "view">;
+
+  pendingOwner: TypedContractMethod<[], [string], "view">;
+
+  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+
+  setACL: TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+
+  setAccountFactory: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setContractsRegister: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setDataCompressor: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setGearToken: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setLeveragedActions: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setPriceOracle: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setTreasuryContract: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setWETHGateway: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setWethToken: TypedContractMethod<
+    [_address: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  transferOwnership: TypedContractMethod<
+    [newOwner: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "addresses"
+  ): TypedContractMethod<[arg0: BytesLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "claimOwnership"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "getACL"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getAccountFactory"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getContractsRegister"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getDataCompressor"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getGearToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getLeveragedActions"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getPriceOracle"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getTreasuryContract"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getWETHGateway"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getWethToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "owner"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "pendingOwner"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "renounceOwnership"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setACL"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setAccountFactory"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setContractsRegister"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setDataCompressor"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setGearToken"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setLeveragedActions"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setPriceOracle"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setTreasuryContract"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setWETHGateway"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setWethToken"
+  ): TypedContractMethod<[_address: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "transferOwnership"
+  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+
+  getEvent(
+    key: "AddressSet"
+  ): TypedContractEvent<
+    AddressSetEvent.InputTuple,
+    AddressSetEvent.OutputTuple,
+    AddressSetEvent.OutputObject
+  >;
+  getEvent(
+    key: "OwnershipTransferred"
+  ): TypedContractEvent<
+    OwnershipTransferredEvent.InputTuple,
+    OwnershipTransferredEvent.OutputTuple,
+    OwnershipTransferredEvent.OutputObject
+  >;
 
   filters: {
-    "AddressSet(bytes32,address)"(
-      service?: PromiseOrValue<BytesLike> | null,
-      newAddress?: PromiseOrValue<string> | null
-    ): AddressSetEventFilter;
-    AddressSet(
-      service?: PromiseOrValue<BytesLike> | null,
-      newAddress?: PromiseOrValue<string> | null
-    ): AddressSetEventFilter;
+    "AddressSet(bytes32,address)": TypedContractEvent<
+      AddressSetEvent.InputTuple,
+      AddressSetEvent.OutputTuple,
+      AddressSetEvent.OutputObject
+    >;
+    AddressSet: TypedContractEvent<
+      AddressSetEvent.InputTuple,
+      AddressSetEvent.OutputTuple,
+      AddressSetEvent.OutputObject
+    >;
 
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
-    ): OwnershipTransferredEventFilter;
-  };
-
-  estimateGas: {
-    addresses(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    claimOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getACL(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getContractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getDataCompressor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getGearToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getLeveragedActions(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getPriceOracle(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTreasuryContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getWETHGateway(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getWethToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setACL(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setAccountFactory(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setContractsRegister(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setDataCompressor(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setGearToken(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setLeveragedActions(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setPriceOracle(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setTreasuryContract(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setWETHGateway(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setWethToken(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    addresses(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    claimOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getACL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getAccountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getContractsRegister(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getDataCompressor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getGearToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getLeveragedActions(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPriceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getTreasuryContract(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getWETHGateway(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getWethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setACL(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setAccountFactory(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setContractsRegister(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDataCompressor(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setGearToken(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setLeveragedActions(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setPriceOracle(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTreasuryContract(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setWETHGateway(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setWethToken(
-      _address: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "OwnershipTransferred(address,address)": TypedContractEvent<
+      OwnershipTransferredEvent.InputTuple,
+      OwnershipTransferredEvent.OutputTuple,
+      OwnershipTransferredEvent.OutputObject
+    >;
+    OwnershipTransferred: TypedContractEvent<
+      OwnershipTransferredEvent.InputTuple,
+      OwnershipTransferredEvent.OutputTuple,
+      OwnershipTransferredEvent.OutputObject
+    >;
   };
 }

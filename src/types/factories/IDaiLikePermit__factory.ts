@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IDaiLikePermit,
   IDaiLikePermitInterface,
@@ -63,12 +62,12 @@ const _abi = [
 export class IDaiLikePermit__factory {
   static readonly abi = _abi;
   static createInterface(): IDaiLikePermitInterface {
-    return new utils.Interface(_abi) as IDaiLikePermitInterface;
+    return new Interface(_abi) as IDaiLikePermitInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IDaiLikePermit {
-    return new Contract(address, _abi, signerOrProvider) as IDaiLikePermit;
+    return new Contract(address, _abi, runner) as unknown as IDaiLikePermit;
   }
 }

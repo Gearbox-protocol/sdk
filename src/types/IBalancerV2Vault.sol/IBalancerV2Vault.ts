@@ -3,56 +3,59 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
 export type BatchSwapStepStruct = {
-  poolId: PromiseOrValue<BytesLike>;
-  assetInIndex: PromiseOrValue<BigNumberish>;
-  assetOutIndex: PromiseOrValue<BigNumberish>;
-  amount: PromiseOrValue<BigNumberish>;
-  userData: PromiseOrValue<BytesLike>;
+  poolId: BytesLike;
+  assetInIndex: BigNumberish;
+  assetOutIndex: BigNumberish;
+  amount: BigNumberish;
+  userData: BytesLike;
 };
 
 export type BatchSwapStepStructOutput = [
-  string,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string
+  poolId: string,
+  assetInIndex: bigint,
+  assetOutIndex: bigint,
+  amount: bigint,
+  userData: string
 ] & {
   poolId: string;
-  assetInIndex: BigNumber;
-  assetOutIndex: BigNumber;
-  amount: BigNumber;
+  assetInIndex: bigint;
+  assetOutIndex: bigint;
+  amount: bigint;
   userData: string;
 };
 
 export type FundManagementStruct = {
-  sender: PromiseOrValue<string>;
-  fromInternalBalance: PromiseOrValue<boolean>;
-  recipient: PromiseOrValue<string>;
-  toInternalBalance: PromiseOrValue<boolean>;
+  sender: AddressLike;
+  fromInternalBalance: boolean;
+  recipient: AddressLike;
+  toInternalBalance: boolean;
 };
 
-export type FundManagementStructOutput = [string, boolean, string, boolean] & {
+export type FundManagementStructOutput = [
+  sender: string,
+  fromInternalBalance: boolean,
+  recipient: string,
+  toInternalBalance: boolean
+] & {
   sender: string;
   fromInternalBalance: boolean;
   recipient: string;
@@ -60,82 +63,71 @@ export type FundManagementStructOutput = [string, boolean, string, boolean] & {
 };
 
 export type ExitPoolRequestStruct = {
-  assets: PromiseOrValue<string>[];
-  minAmountsOut: PromiseOrValue<BigNumberish>[];
-  userData: PromiseOrValue<BytesLike>;
-  toInternalBalance: PromiseOrValue<boolean>;
+  assets: AddressLike[];
+  minAmountsOut: BigNumberish[];
+  userData: BytesLike;
+  toInternalBalance: boolean;
 };
 
 export type ExitPoolRequestStructOutput = [
-  string[],
-  BigNumber[],
-  string,
-  boolean
+  assets: string[],
+  minAmountsOut: bigint[],
+  userData: string,
+  toInternalBalance: boolean
 ] & {
   assets: string[];
-  minAmountsOut: BigNumber[];
+  minAmountsOut: bigint[];
   userData: string;
   toInternalBalance: boolean;
 };
 
 export type JoinPoolRequestStruct = {
-  assets: PromiseOrValue<string>[];
-  maxAmountsIn: PromiseOrValue<BigNumberish>[];
-  userData: PromiseOrValue<BytesLike>;
-  fromInternalBalance: PromiseOrValue<boolean>;
+  assets: AddressLike[];
+  maxAmountsIn: BigNumberish[];
+  userData: BytesLike;
+  fromInternalBalance: boolean;
 };
 
 export type JoinPoolRequestStructOutput = [
-  string[],
-  BigNumber[],
-  string,
-  boolean
+  assets: string[],
+  maxAmountsIn: bigint[],
+  userData: string,
+  fromInternalBalance: boolean
 ] & {
   assets: string[];
-  maxAmountsIn: BigNumber[];
+  maxAmountsIn: bigint[];
   userData: string;
   fromInternalBalance: boolean;
 };
 
 export type SingleSwapStruct = {
-  poolId: PromiseOrValue<BytesLike>;
-  kind: PromiseOrValue<BigNumberish>;
-  assetIn: PromiseOrValue<string>;
-  assetOut: PromiseOrValue<string>;
-  amount: PromiseOrValue<BigNumberish>;
-  userData: PromiseOrValue<BytesLike>;
+  poolId: BytesLike;
+  kind: BigNumberish;
+  assetIn: AddressLike;
+  assetOut: AddressLike;
+  amount: BigNumberish;
+  userData: BytesLike;
 };
 
 export type SingleSwapStructOutput = [
-  string,
-  number,
-  string,
-  string,
-  BigNumber,
-  string
+  poolId: string,
+  kind: bigint,
+  assetIn: string,
+  assetOut: string,
+  amount: bigint,
+  userData: string
 ] & {
   poolId: string;
-  kind: number;
+  kind: bigint;
   assetIn: string;
   assetOut: string;
-  amount: BigNumber;
+  amount: bigint;
   userData: string;
 };
 
-export interface IBalancerV2VaultInterface extends utils.Interface {
-  functions: {
-    "batchSwap(uint8,(bytes32,uint256,uint256,uint256,bytes)[],address[],(address,bool,address,bool),int256[],uint256)": FunctionFragment;
-    "exitPool(bytes32,address,address,(address[],uint256[],bytes,bool))": FunctionFragment;
-    "getPool(bytes32)": FunctionFragment;
-    "getPoolTokenInfo(bytes32,address)": FunctionFragment;
-    "getPoolTokens(bytes32)": FunctionFragment;
-    "joinPool(bytes32,address,address,(address[],uint256[],bytes,bool))": FunctionFragment;
-    "queryBatchSwap(uint8,(bytes32,uint256,uint256,uint256,bytes)[],address[],(address,bool,address,bool))": FunctionFragment;
-    "swap((bytes32,uint8,address,address,uint256,bytes),(address,bool,address,bool),uint256,uint256)": FunctionFragment;
-  };
-
+export interface IBalancerV2VaultInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "batchSwap"
       | "exitPool"
       | "getPool"
@@ -149,61 +141,43 @@ export interface IBalancerV2VaultInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "batchSwap",
     values: [
-      PromiseOrValue<BigNumberish>,
+      BigNumberish,
       BatchSwapStepStruct[],
-      PromiseOrValue<string>[],
+      AddressLike[],
       FundManagementStruct,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>
+      BigNumberish[],
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "exitPool",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      ExitPoolRequestStruct
-    ]
+    values: [BytesLike, AddressLike, AddressLike, ExitPoolRequestStruct]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getPool",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
+  encodeFunctionData(functionFragment: "getPool", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "getPoolTokenInfo",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+    values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolTokens",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "joinPool",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      JoinPoolRequestStruct
-    ]
+    values: [BytesLike, AddressLike, AddressLike, JoinPoolRequestStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "queryBatchSwap",
     values: [
-      PromiseOrValue<BigNumberish>,
+      BigNumberish,
       BatchSwapStepStruct[],
-      PromiseOrValue<string>[],
+      AddressLike[],
       FundManagementStruct
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "swap",
-    values: [
-      SingleSwapStruct,
-      FundManagementStruct,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [SingleSwapStruct, FundManagementStruct, BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "batchSwap", data: BytesLike): Result;
@@ -223,372 +197,231 @@ export interface IBalancerV2VaultInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
-
-  events: {};
 }
 
 export interface IBalancerV2Vault extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IBalancerV2Vault;
+  waitForDeployment(): Promise<this>;
 
   interface: IBalancerV2VaultInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    batchSwap(
-      kind: PromiseOrValue<BigNumberish>,
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  batchSwap: TypedContractMethod<
+    [
+      kind: BigNumberish,
       swaps: BatchSwapStepStruct[],
-      assets: PromiseOrValue<string>[],
+      assets: AddressLike[],
       funds: FundManagementStruct,
-      limits: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    exitPool(
-      poolId: PromiseOrValue<BytesLike>,
-      sender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      request: ExitPoolRequestStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getPool(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[string, number]>;
-
-    getPoolTokenInfo(
-      poolId: PromiseOrValue<BytesLike>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, string] & {
-        cash: BigNumber;
-        managed: BigNumber;
-        lastChangeBlock: BigNumber;
-        assetManager: string;
-      }
-    >;
-
-    getPoolTokens(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[], BigNumber] & {
-        tokens: string[];
-        balances: BigNumber[];
-        lastChangeBlock: BigNumber;
-      }
-    >;
-
-    joinPool(
-      poolId: PromiseOrValue<BytesLike>,
-      sender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      request: JoinPoolRequestStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    queryBatchSwap(
-      kind: PromiseOrValue<BigNumberish>,
-      swaps: BatchSwapStepStruct[],
-      assets: PromiseOrValue<string>[],
-      funds: FundManagementStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    swap(
-      singleSwap: SingleSwapStruct,
-      funds: FundManagementStruct,
-      limit: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
-
-  batchSwap(
-    kind: PromiseOrValue<BigNumberish>,
-    swaps: BatchSwapStepStruct[],
-    assets: PromiseOrValue<string>[],
-    funds: FundManagementStruct,
-    limits: PromiseOrValue<BigNumberish>[],
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exitPool(
-    poolId: PromiseOrValue<BytesLike>,
-    sender: PromiseOrValue<string>,
-    recipient: PromiseOrValue<string>,
-    request: ExitPoolRequestStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getPool(
-    poolId: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<[string, number]>;
-
-  getPoolTokenInfo(
-    poolId: PromiseOrValue<BytesLike>,
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, string] & {
-      cash: BigNumber;
-      managed: BigNumber;
-      lastChangeBlock: BigNumber;
-      assetManager: string;
-    }
+      limits: BigNumberish[],
+      deadline: BigNumberish
+    ],
+    [bigint[]],
+    "nonpayable"
   >;
 
-  getPoolTokens(
-    poolId: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[], BigNumber] & {
-      tokens: string[];
-      balances: BigNumber[];
-      lastChangeBlock: BigNumber;
-    }
+  exitPool: TypedContractMethod<
+    [
+      poolId: BytesLike,
+      sender: AddressLike,
+      recipient: AddressLike,
+      request: ExitPoolRequestStruct
+    ],
+    [void],
+    "nonpayable"
   >;
 
-  joinPool(
-    poolId: PromiseOrValue<BytesLike>,
-    sender: PromiseOrValue<string>,
-    recipient: PromiseOrValue<string>,
-    request: JoinPoolRequestStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getPool: TypedContractMethod<[poolId: BytesLike], [[string, bigint]], "view">;
 
-  queryBatchSwap(
-    kind: PromiseOrValue<BigNumberish>,
-    swaps: BatchSwapStepStruct[],
-    assets: PromiseOrValue<string>[],
-    funds: FundManagementStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  swap(
-    singleSwap: SingleSwapStruct,
-    funds: FundManagementStruct,
-    limit: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    batchSwap(
-      kind: PromiseOrValue<BigNumberish>,
-      swaps: BatchSwapStepStruct[],
-      assets: PromiseOrValue<string>[],
-      funds: FundManagementStruct,
-      limits: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    exitPool(
-      poolId: PromiseOrValue<BytesLike>,
-      sender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      request: ExitPoolRequestStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    getPool(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[string, number]>;
-
-    getPoolTokenInfo(
-      poolId: PromiseOrValue<BytesLike>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, string] & {
-        cash: BigNumber;
-        managed: BigNumber;
-        lastChangeBlock: BigNumber;
+  getPoolTokenInfo: TypedContractMethod<
+    [poolId: BytesLike, token: AddressLike],
+    [
+      [bigint, bigint, bigint, string] & {
+        cash: bigint;
+        managed: bigint;
+        lastChangeBlock: bigint;
         assetManager: string;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    getPoolTokens(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[], BigNumber] & {
+  getPoolTokens: TypedContractMethod<
+    [poolId: BytesLike],
+    [
+      [string[], bigint[], bigint] & {
         tokens: string[];
-        balances: BigNumber[];
-        lastChangeBlock: BigNumber;
+        balances: bigint[];
+        lastChangeBlock: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    joinPool(
-      poolId: PromiseOrValue<BytesLike>,
-      sender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      request: JoinPoolRequestStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  joinPool: TypedContractMethod<
+    [
+      poolId: BytesLike,
+      sender: AddressLike,
+      recipient: AddressLike,
+      request: JoinPoolRequestStruct
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    queryBatchSwap(
-      kind: PromiseOrValue<BigNumberish>,
+  queryBatchSwap: TypedContractMethod<
+    [
+      kind: BigNumberish,
       swaps: BatchSwapStepStruct[],
-      assets: PromiseOrValue<string>[],
-      funds: FundManagementStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+      assets: AddressLike[],
+      funds: FundManagementStruct
+    ],
+    [bigint[]],
+    "nonpayable"
+  >;
 
-    swap(
+  swap: TypedContractMethod<
+    [
       singleSwap: SingleSwapStruct,
       funds: FundManagementStruct,
-      limit: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
+      limit: BigNumberish,
+      deadline: BigNumberish
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "batchSwap"
+  ): TypedContractMethod<
+    [
+      kind: BigNumberish,
+      swaps: BatchSwapStepStruct[],
+      assets: AddressLike[],
+      funds: FundManagementStruct,
+      limits: BigNumberish[],
+      deadline: BigNumberish
+    ],
+    [bigint[]],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exitPool"
+  ): TypedContractMethod<
+    [
+      poolId: BytesLike,
+      sender: AddressLike,
+      recipient: AddressLike,
+      request: ExitPoolRequestStruct
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "getPool"
+  ): TypedContractMethod<[poolId: BytesLike], [[string, bigint]], "view">;
+  getFunction(
+    nameOrSignature: "getPoolTokenInfo"
+  ): TypedContractMethod<
+    [poolId: BytesLike, token: AddressLike],
+    [
+      [bigint, bigint, bigint, string] & {
+        cash: bigint;
+        managed: bigint;
+        lastChangeBlock: bigint;
+        assetManager: string;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getPoolTokens"
+  ): TypedContractMethod<
+    [poolId: BytesLike],
+    [
+      [string[], bigint[], bigint] & {
+        tokens: string[];
+        balances: bigint[];
+        lastChangeBlock: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "joinPool"
+  ): TypedContractMethod<
+    [
+      poolId: BytesLike,
+      sender: AddressLike,
+      recipient: AddressLike,
+      request: JoinPoolRequestStruct
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "queryBatchSwap"
+  ): TypedContractMethod<
+    [
+      kind: BigNumberish,
+      swaps: BatchSwapStepStruct[],
+      assets: AddressLike[],
+      funds: FundManagementStruct
+    ],
+    [bigint[]],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "swap"
+  ): TypedContractMethod<
+    [
+      singleSwap: SingleSwapStruct,
+      funds: FundManagementStruct,
+      limit: BigNumberish,
+      deadline: BigNumberish
+    ],
+    [bigint],
+    "nonpayable"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    batchSwap(
-      kind: PromiseOrValue<BigNumberish>,
-      swaps: BatchSwapStepStruct[],
-      assets: PromiseOrValue<string>[],
-      funds: FundManagementStruct,
-      limits: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exitPool(
-      poolId: PromiseOrValue<BytesLike>,
-      sender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      request: ExitPoolRequestStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getPool(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPoolTokenInfo(
-      poolId: PromiseOrValue<BytesLike>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPoolTokens(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    joinPool(
-      poolId: PromiseOrValue<BytesLike>,
-      sender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      request: JoinPoolRequestStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    queryBatchSwap(
-      kind: PromiseOrValue<BigNumberish>,
-      swaps: BatchSwapStepStruct[],
-      assets: PromiseOrValue<string>[],
-      funds: FundManagementStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    swap(
-      singleSwap: SingleSwapStruct,
-      funds: FundManagementStruct,
-      limit: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    batchSwap(
-      kind: PromiseOrValue<BigNumberish>,
-      swaps: BatchSwapStepStruct[],
-      assets: PromiseOrValue<string>[],
-      funds: FundManagementStruct,
-      limits: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exitPool(
-      poolId: PromiseOrValue<BytesLike>,
-      sender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      request: ExitPoolRequestStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getPool(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPoolTokenInfo(
-      poolId: PromiseOrValue<BytesLike>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPoolTokens(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    joinPool(
-      poolId: PromiseOrValue<BytesLike>,
-      sender: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      request: JoinPoolRequestStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    queryBatchSwap(
-      kind: PromiseOrValue<BigNumberish>,
-      swaps: BatchSwapStepStruct[],
-      assets: PromiseOrValue<string>[],
-      funds: FundManagementStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swap(
-      singleSwap: SingleSwapStruct,
-      funds: FundManagementStruct,
-      limit: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
 }

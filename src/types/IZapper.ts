@@ -3,40 +3,27 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface IZapperInterface extends utils.Interface {
-  functions: {
-    "pool()": FunctionFragment;
-    "previewDeposit(uint256)": FunctionFragment;
-    "previewRedeem(uint256)": FunctionFragment;
-    "redeem(uint256,address)": FunctionFragment;
-    "redeemWithPermit(uint256,address,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "tokenIn()": FunctionFragment;
-    "tokenOut()": FunctionFragment;
-    "underlying()": FunctionFragment;
-  };
-
+export interface IZapperInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "pool"
       | "previewDeposit"
       | "previewRedeem"
@@ -50,25 +37,25 @@ export interface IZapperInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "pool", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "previewDeposit",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewRedeem",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "redeem",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "redeemWithPermit",
     values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      BigNumberish,
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
   encodeFunctionData(functionFragment: "tokenIn", values?: undefined): string;
@@ -95,213 +82,133 @@ export interface IZapperInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "tokenIn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "tokenOut", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
-
-  events: {};
 }
 
 export interface IZapper extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IZapper;
+  waitForDeployment(): Promise<this>;
 
   interface: IZapperInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    pool(overrides?: CallOverrides): Promise<[string]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    previewDeposit(
-      tokenInAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { tokenOutAmount: BigNumber }>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    previewRedeem(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { tokenInAmount: BigNumber }>;
+  pool: TypedContractMethod<[], [string], "view">;
 
-    redeem(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  previewDeposit: TypedContractMethod<
+    [tokenInAmount: BigNumberish],
+    [bigint],
+    "view"
+  >;
 
-    redeemWithPermit(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  previewRedeem: TypedContractMethod<
+    [tokenOutAmount: BigNumberish],
+    [bigint],
+    "view"
+  >;
 
-    tokenIn(overrides?: CallOverrides): Promise<[string]>;
+  redeem: TypedContractMethod<
+    [tokenOutAmount: BigNumberish, receiver: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
 
-    tokenOut(overrides?: CallOverrides): Promise<[string]>;
+  redeemWithPermit: TypedContractMethod<
+    [
+      tokenOutAmount: BigNumberish,
+      receiver: AddressLike,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [bigint],
+    "nonpayable"
+  >;
 
-    underlying(overrides?: CallOverrides): Promise<[string]>;
-  };
+  tokenIn: TypedContractMethod<[], [string], "view">;
 
-  pool(overrides?: CallOverrides): Promise<string>;
+  tokenOut: TypedContractMethod<[], [string], "view">;
 
-  previewDeposit(
-    tokenInAmount: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  underlying: TypedContractMethod<[], [string], "view">;
 
-  previewRedeem(
-    tokenOutAmount: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  redeem(
-    tokenOutAmount: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  redeemWithPermit(
-    tokenOutAmount: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    deadline: PromiseOrValue<BigNumberish>,
-    v: PromiseOrValue<BigNumberish>,
-    r: PromiseOrValue<BytesLike>,
-    s: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  tokenIn(overrides?: CallOverrides): Promise<string>;
-
-  tokenOut(overrides?: CallOverrides): Promise<string>;
-
-  underlying(overrides?: CallOverrides): Promise<string>;
-
-  callStatic: {
-    pool(overrides?: CallOverrides): Promise<string>;
-
-    previewDeposit(
-      tokenInAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    previewRedeem(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    redeem(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    redeemWithPermit(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenIn(overrides?: CallOverrides): Promise<string>;
-
-    tokenOut(overrides?: CallOverrides): Promise<string>;
-
-    underlying(overrides?: CallOverrides): Promise<string>;
-  };
+  getFunction(
+    nameOrSignature: "pool"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "previewDeposit"
+  ): TypedContractMethod<[tokenInAmount: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "previewRedeem"
+  ): TypedContractMethod<[tokenOutAmount: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "redeem"
+  ): TypedContractMethod<
+    [tokenOutAmount: BigNumberish, receiver: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "redeemWithPermit"
+  ): TypedContractMethod<
+    [
+      tokenOutAmount: BigNumberish,
+      receiver: AddressLike,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "tokenIn"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "tokenOut"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "underlying"
+  ): TypedContractMethod<[], [string], "view">;
 
   filters: {};
-
-  estimateGas: {
-    pool(overrides?: CallOverrides): Promise<BigNumber>;
-
-    previewDeposit(
-      tokenInAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    previewRedeem(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    redeem(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    redeemWithPermit(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    tokenIn(overrides?: CallOverrides): Promise<BigNumber>;
-
-    tokenOut(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    previewDeposit(
-      tokenInAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    previewRedeem(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    redeem(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    redeemWithPermit(
-      tokenOutAmount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    tokenIn(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    tokenOut(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
 }

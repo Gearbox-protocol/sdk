@@ -3,119 +3,95 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
 export type SwapTaskStruct = {
-  swapOperation: PromiseOrValue<BigNumberish>;
-  creditAccount: PromiseOrValue<string>;
-  tokenIn: PromiseOrValue<string>;
-  tokenOut: PromiseOrValue<string>;
-  connectors: PromiseOrValue<string>[];
-  amount: PromiseOrValue<BigNumberish>;
-  leftoverAmount: PromiseOrValue<BigNumberish>;
+  swapOperation: BigNumberish;
+  creditAccount: AddressLike;
+  tokenIn: AddressLike;
+  tokenOut: AddressLike;
+  connectors: AddressLike[];
+  amount: BigNumberish;
+  leftoverAmount: BigNumberish;
 };
 
 export type SwapTaskStructOutput = [
-  number,
-  string,
-  string,
-  string,
-  string[],
-  BigNumber,
-  BigNumber
+  swapOperation: bigint,
+  creditAccount: string,
+  tokenIn: string,
+  tokenOut: string,
+  connectors: string[],
+  amount: bigint,
+  leftoverAmount: bigint
 ] & {
-  swapOperation: number;
+  swapOperation: bigint;
   creditAccount: string;
   tokenIn: string;
   tokenOut: string;
   connectors: string[];
-  amount: BigNumber;
-  leftoverAmount: BigNumber;
+  amount: bigint;
+  leftoverAmount: bigint;
 };
 
-export type MultiCallStruct = {
-  target: PromiseOrValue<string>;
-  callData: PromiseOrValue<BytesLike>;
-};
+export type MultiCallStruct = { target: AddressLike; callData: BytesLike };
 
-export type MultiCallStructOutput = [string, string] & {
+export type MultiCallStructOutput = [target: string, callData: string] & {
   target: string;
   callData: string;
 };
 
 export type RouterResultStruct = {
-  amount: PromiseOrValue<BigNumberish>;
-  minAmount: PromiseOrValue<BigNumberish>;
+  amount: BigNumberish;
+  minAmount: BigNumberish;
   calls: MultiCallStruct[];
 };
 
 export type RouterResultStructOutput = [
-  BigNumber,
-  BigNumber,
-  MultiCallStructOutput[]
-] & { amount: BigNumber; minAmount: BigNumber; calls: MultiCallStructOutput[] };
+  amount: bigint,
+  minAmount: bigint,
+  calls: MultiCallStructOutput[]
+] & { amount: bigint; minAmount: bigint; calls: MultiCallStructOutput[] };
 
-export type BalanceStruct = {
-  token: PromiseOrValue<string>;
-  balance: PromiseOrValue<BigNumberish>;
-};
+export type BalanceStruct = { token: AddressLike; balance: BigNumberish };
 
-export type BalanceStructOutput = [string, BigNumber] & {
+export type BalanceStructOutput = [token: string, balance: bigint] & {
   token: string;
-  balance: BigNumber;
+  balance: bigint;
 };
 
 export type PathOptionStruct = {
-  target: PromiseOrValue<string>;
-  option: PromiseOrValue<BigNumberish>;
-  totalOptions: PromiseOrValue<BigNumberish>;
+  target: AddressLike;
+  option: BigNumberish;
+  totalOptions: BigNumberish;
 };
 
-export type PathOptionStructOutput = [string, number, number] & {
-  target: string;
-  option: number;
-  totalOptions: number;
-};
+export type PathOptionStructOutput = [
+  target: string,
+  option: bigint,
+  totalOptions: bigint
+] & { target: string; option: bigint; totalOptions: bigint };
 
-export interface IRouterV3Interface extends utils.Interface {
-  functions: {
-    "componentAddressById(uint8)": FunctionFragment;
-    "findAllSwaps((uint8,address,address,address,address[],uint256,uint256),uint256)": FunctionFragment;
-    "findBestClosePath(address,(address,uint256)[],(address,uint256)[],address[],uint256,(address,uint8,uint8)[],uint256,bool)": FunctionFragment;
-    "findOneTokenDiffPath(address,uint256,uint256,address,address,address[],uint256)": FunctionFragment;
-    "findOneTokenPath(address,uint256,address,address,address[],uint256)": FunctionFragment;
-    "findOpenStrategyPath(address,(address,uint256)[],(address,uint256)[],address,address[],uint256)": FunctionFragment;
-    "futureRouter()": FunctionFragment;
-    "isRouterConfigurator(address)": FunctionFragment;
-    "maxComponentId()": FunctionFragment;
-    "tokenTypes(address)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IRouterV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "componentAddressById"
       | "findAllSwaps"
       | "findBestClosePath"
@@ -129,59 +105,67 @@ export interface IRouterV3Interface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "ResolverUpdate"
+      | "RouterComponentUpdate"
+      | "SetFutureRouter"
+      | "TokenTypeUpdate"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "componentAddressById",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "findAllSwaps",
-    values: [SwapTaskStruct, PromiseOrValue<BigNumberish>]
+    values: [SwapTaskStruct, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "findBestClosePath",
     values: [
-      PromiseOrValue<string>,
+      AddressLike,
       BalanceStruct[],
       BalanceStruct[],
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>,
+      AddressLike[],
+      BigNumberish,
       PathOptionStruct[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
+      BigNumberish,
+      boolean
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "findOneTokenDiffPath",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      AddressLike,
+      AddressLike,
+      AddressLike[],
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "findOneTokenPath",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>
+      AddressLike,
+      BigNumberish,
+      AddressLike,
+      AddressLike,
+      AddressLike[],
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "findOpenStrategyPath",
     values: [
-      PromiseOrValue<string>,
+      AddressLike,
       BalanceStruct[],
       BalanceStruct[],
-      PromiseOrValue<string>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>
+      AddressLike,
+      AddressLike[],
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
@@ -190,7 +174,7 @@ export interface IRouterV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isRouterConfigurator",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "maxComponentId",
@@ -198,7 +182,7 @@ export interface IRouterV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "tokenTypes",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -240,487 +224,354 @@ export interface IRouterV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "tokenTypes", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "ResolverUpdate(uint8,uint8,uint8)": EventFragment;
-    "RouterComponentUpdate(uint8,address,uint256)": EventFragment;
-    "SetFutureRouter(address)": EventFragment;
-    "TokenTypeUpdate(address,uint8)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "ResolverUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RouterComponentUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetFutureRouter"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenTypeUpdate"): EventFragment;
 }
 
-export interface ResolverUpdateEventObject {
-  ttIn: number;
-  ttOut: number;
-  rc: number;
+export namespace ResolverUpdateEvent {
+  export type InputTuple = [
+    ttIn: BigNumberish,
+    ttOut: BigNumberish,
+    rc: BigNumberish
+  ];
+  export type OutputTuple = [ttIn: bigint, ttOut: bigint, rc: bigint];
+  export interface OutputObject {
+    ttIn: bigint;
+    ttOut: bigint;
+    rc: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ResolverUpdateEvent = TypedEvent<
-  [number, number, number],
-  ResolverUpdateEventObject
->;
 
-export type ResolverUpdateEventFilter = TypedEventFilter<ResolverUpdateEvent>;
-
-export interface RouterComponentUpdateEventObject {
-  arg0: number;
-  arg1: string;
-  version: BigNumber;
+export namespace RouterComponentUpdateEvent {
+  export type InputTuple = [
+    arg0: BigNumberish,
+    arg1: AddressLike,
+    version: BigNumberish
+  ];
+  export type OutputTuple = [arg0: bigint, arg1: string, version: bigint];
+  export interface OutputObject {
+    arg0: bigint;
+    arg1: string;
+    version: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RouterComponentUpdateEvent = TypedEvent<
-  [number, string, BigNumber],
-  RouterComponentUpdateEventObject
->;
 
-export type RouterComponentUpdateEventFilter =
-  TypedEventFilter<RouterComponentUpdateEvent>;
-
-export interface SetFutureRouterEventObject {
-  arg0: string;
+export namespace SetFutureRouterEvent {
+  export type InputTuple = [arg0: AddressLike];
+  export type OutputTuple = [arg0: string];
+  export interface OutputObject {
+    arg0: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetFutureRouterEvent = TypedEvent<
-  [string],
-  SetFutureRouterEventObject
->;
 
-export type SetFutureRouterEventFilter = TypedEventFilter<SetFutureRouterEvent>;
-
-export interface TokenTypeUpdateEventObject {
-  tokenAddress: string;
-  tt: number;
+export namespace TokenTypeUpdateEvent {
+  export type InputTuple = [tokenAddress: AddressLike, tt: BigNumberish];
+  export type OutputTuple = [tokenAddress: string, tt: bigint];
+  export interface OutputObject {
+    tokenAddress: string;
+    tt: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TokenTypeUpdateEvent = TypedEvent<
-  [string, number],
-  TokenTypeUpdateEventObject
->;
-
-export type TokenTypeUpdateEventFilter = TypedEventFilter<TokenTypeUpdateEvent>;
 
 export interface IRouterV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IRouterV3;
+  waitForDeployment(): Promise<this>;
 
   interface: IRouterV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    componentAddressById(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    findAllSwaps(
-      swapTask: SwapTaskStruct,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    findBestClosePath(
-      creditAccount: PromiseOrValue<string>,
+  componentAddressById: TypedContractMethod<
+    [arg0: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  findAllSwaps: TypedContractMethod<
+    [swapTask: SwapTaskStruct, slippage: BigNumberish],
+    [RouterResultStructOutput[]],
+    "nonpayable"
+  >;
+
+  findBestClosePath: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
       expectedBalances: BalanceStruct[],
       leftoverBalances: BalanceStruct[],
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
+      connectors: AddressLike[],
+      slippage: BigNumberish,
       pathOptions: PathOptionStruct[],
-      iterations: PromiseOrValue<BigNumberish>,
-      force: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+      iterations: BigNumberish,
+      force: boolean
+    ],
+    [RouterResultStructOutput],
+    "nonpayable"
+  >;
 
-    findOneTokenDiffPath(
-      tokenIn: PromiseOrValue<string>,
-      expectedBalance: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      tokenOut: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  findOneTokenDiffPath: TypedContractMethod<
+    [
+      tokenIn: AddressLike,
+      expectedBalance: BigNumberish,
+      leftoverAmount: BigNumberish,
+      tokenOut: AddressLike,
+      creditAccount: AddressLike,
+      connectors: AddressLike[],
+      slippage: BigNumberish
+    ],
+    [RouterResultStructOutput],
+    "nonpayable"
+  >;
 
-    findOneTokenPath(
-      tokenIn: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      tokenOut: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  findOneTokenPath: TypedContractMethod<
+    [
+      tokenIn: AddressLike,
+      amount: BigNumberish,
+      tokenOut: AddressLike,
+      creditAccount: AddressLike,
+      connectors: AddressLike[],
+      slippage: BigNumberish
+    ],
+    [RouterResultStructOutput],
+    "nonpayable"
+  >;
 
-    findOpenStrategyPath(
-      creditManager: PromiseOrValue<string>,
+  findOpenStrategyPath: TypedContractMethod<
+    [
+      creditManager: AddressLike,
       balances: BalanceStruct[],
       leftoverBalances: BalanceStruct[],
-      target: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+      target: AddressLike,
+      connectors: AddressLike[],
+      slippage: BigNumberish
+    ],
+    [[BalanceStructOutput[], RouterResultStructOutput]],
+    "nonpayable"
+  >;
 
-    futureRouter(overrides?: CallOverrides): Promise<[string]>;
+  futureRouter: TypedContractMethod<[], [string], "view">;
 
-    isRouterConfigurator(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  isRouterConfigurator: TypedContractMethod<
+    [account: AddressLike],
+    [boolean],
+    "view"
+  >;
 
-    maxComponentId(overrides?: CallOverrides): Promise<[number]>;
+  maxComponentId: TypedContractMethod<[], [bigint], "view">;
 
-    tokenTypes(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+  tokenTypes: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  componentAddressById(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  findAllSwaps(
-    swapTask: SwapTaskStruct,
-    slippage: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  findBestClosePath(
-    creditAccount: PromiseOrValue<string>,
-    expectedBalances: BalanceStruct[],
-    leftoverBalances: BalanceStruct[],
-    connectors: PromiseOrValue<string>[],
-    slippage: PromiseOrValue<BigNumberish>,
-    pathOptions: PathOptionStruct[],
-    iterations: PromiseOrValue<BigNumberish>,
-    force: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  findOneTokenDiffPath(
-    tokenIn: PromiseOrValue<string>,
-    expectedBalance: PromiseOrValue<BigNumberish>,
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    tokenOut: PromiseOrValue<string>,
-    creditAccount: PromiseOrValue<string>,
-    connectors: PromiseOrValue<string>[],
-    slippage: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  findOneTokenPath(
-    tokenIn: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    tokenOut: PromiseOrValue<string>,
-    creditAccount: PromiseOrValue<string>,
-    connectors: PromiseOrValue<string>[],
-    slippage: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  findOpenStrategyPath(
-    creditManager: PromiseOrValue<string>,
-    balances: BalanceStruct[],
-    leftoverBalances: BalanceStruct[],
-    target: PromiseOrValue<string>,
-    connectors: PromiseOrValue<string>[],
-    slippage: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  futureRouter(overrides?: CallOverrides): Promise<string>;
-
-  isRouterConfigurator(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  maxComponentId(overrides?: CallOverrides): Promise<number>;
-
-  tokenTypes(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    componentAddressById(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    findAllSwaps(
-      swapTask: SwapTaskStruct,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<RouterResultStructOutput[]>;
-
-    findBestClosePath(
-      creditAccount: PromiseOrValue<string>,
+  getFunction(
+    nameOrSignature: "componentAddressById"
+  ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "findAllSwaps"
+  ): TypedContractMethod<
+    [swapTask: SwapTaskStruct, slippage: BigNumberish],
+    [RouterResultStructOutput[]],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "findBestClosePath"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
       expectedBalances: BalanceStruct[],
       leftoverBalances: BalanceStruct[],
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
+      connectors: AddressLike[],
+      slippage: BigNumberish,
       pathOptions: PathOptionStruct[],
-      iterations: PromiseOrValue<BigNumberish>,
-      force: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<RouterResultStructOutput>;
-
-    findOneTokenDiffPath(
-      tokenIn: PromiseOrValue<string>,
-      expectedBalance: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      tokenOut: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<RouterResultStructOutput>;
-
-    findOneTokenPath(
-      tokenIn: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      tokenOut: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<RouterResultStructOutput>;
-
-    findOpenStrategyPath(
-      creditManager: PromiseOrValue<string>,
+      iterations: BigNumberish,
+      force: boolean
+    ],
+    [RouterResultStructOutput],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "findOneTokenDiffPath"
+  ): TypedContractMethod<
+    [
+      tokenIn: AddressLike,
+      expectedBalance: BigNumberish,
+      leftoverAmount: BigNumberish,
+      tokenOut: AddressLike,
+      creditAccount: AddressLike,
+      connectors: AddressLike[],
+      slippage: BigNumberish
+    ],
+    [RouterResultStructOutput],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "findOneTokenPath"
+  ): TypedContractMethod<
+    [
+      tokenIn: AddressLike,
+      amount: BigNumberish,
+      tokenOut: AddressLike,
+      creditAccount: AddressLike,
+      connectors: AddressLike[],
+      slippage: BigNumberish
+    ],
+    [RouterResultStructOutput],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "findOpenStrategyPath"
+  ): TypedContractMethod<
+    [
+      creditManager: AddressLike,
       balances: BalanceStruct[],
       leftoverBalances: BalanceStruct[],
-      target: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BalanceStructOutput[], RouterResultStructOutput]>;
+      target: AddressLike,
+      connectors: AddressLike[],
+      slippage: BigNumberish
+    ],
+    [[BalanceStructOutput[], RouterResultStructOutput]],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "futureRouter"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "isRouterConfigurator"
+  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "maxComponentId"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "tokenTypes"
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-    futureRouter(overrides?: CallOverrides): Promise<string>;
-
-    isRouterConfigurator(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    maxComponentId(overrides?: CallOverrides): Promise<number>;
-
-    tokenTypes(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "ResolverUpdate"
+  ): TypedContractEvent<
+    ResolverUpdateEvent.InputTuple,
+    ResolverUpdateEvent.OutputTuple,
+    ResolverUpdateEvent.OutputObject
+  >;
+  getEvent(
+    key: "RouterComponentUpdate"
+  ): TypedContractEvent<
+    RouterComponentUpdateEvent.InputTuple,
+    RouterComponentUpdateEvent.OutputTuple,
+    RouterComponentUpdateEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetFutureRouter"
+  ): TypedContractEvent<
+    SetFutureRouterEvent.InputTuple,
+    SetFutureRouterEvent.OutputTuple,
+    SetFutureRouterEvent.OutputObject
+  >;
+  getEvent(
+    key: "TokenTypeUpdate"
+  ): TypedContractEvent<
+    TokenTypeUpdateEvent.InputTuple,
+    TokenTypeUpdateEvent.OutputTuple,
+    TokenTypeUpdateEvent.OutputObject
+  >;
 
   filters: {
-    "ResolverUpdate(uint8,uint8,uint8)"(
-      ttIn?: PromiseOrValue<BigNumberish> | null,
-      ttOut?: PromiseOrValue<BigNumberish> | null,
-      rc?: PromiseOrValue<BigNumberish> | null
-    ): ResolverUpdateEventFilter;
-    ResolverUpdate(
-      ttIn?: PromiseOrValue<BigNumberish> | null,
-      ttOut?: PromiseOrValue<BigNumberish> | null,
-      rc?: PromiseOrValue<BigNumberish> | null
-    ): ResolverUpdateEventFilter;
+    "ResolverUpdate(uint8,uint8,uint8)": TypedContractEvent<
+      ResolverUpdateEvent.InputTuple,
+      ResolverUpdateEvent.OutputTuple,
+      ResolverUpdateEvent.OutputObject
+    >;
+    ResolverUpdate: TypedContractEvent<
+      ResolverUpdateEvent.InputTuple,
+      ResolverUpdateEvent.OutputTuple,
+      ResolverUpdateEvent.OutputObject
+    >;
 
-    "RouterComponentUpdate(uint8,address,uint256)"(
-      arg0?: PromiseOrValue<BigNumberish> | null,
-      arg1?: PromiseOrValue<string> | null,
-      version?: null
-    ): RouterComponentUpdateEventFilter;
-    RouterComponentUpdate(
-      arg0?: PromiseOrValue<BigNumberish> | null,
-      arg1?: PromiseOrValue<string> | null,
-      version?: null
-    ): RouterComponentUpdateEventFilter;
+    "RouterComponentUpdate(uint8,address,uint256)": TypedContractEvent<
+      RouterComponentUpdateEvent.InputTuple,
+      RouterComponentUpdateEvent.OutputTuple,
+      RouterComponentUpdateEvent.OutputObject
+    >;
+    RouterComponentUpdate: TypedContractEvent<
+      RouterComponentUpdateEvent.InputTuple,
+      RouterComponentUpdateEvent.OutputTuple,
+      RouterComponentUpdateEvent.OutputObject
+    >;
 
-    "SetFutureRouter(address)"(
-      arg0?: PromiseOrValue<string> | null
-    ): SetFutureRouterEventFilter;
-    SetFutureRouter(
-      arg0?: PromiseOrValue<string> | null
-    ): SetFutureRouterEventFilter;
+    "SetFutureRouter(address)": TypedContractEvent<
+      SetFutureRouterEvent.InputTuple,
+      SetFutureRouterEvent.OutputTuple,
+      SetFutureRouterEvent.OutputObject
+    >;
+    SetFutureRouter: TypedContractEvent<
+      SetFutureRouterEvent.InputTuple,
+      SetFutureRouterEvent.OutputTuple,
+      SetFutureRouterEvent.OutputObject
+    >;
 
-    "TokenTypeUpdate(address,uint8)"(
-      tokenAddress?: PromiseOrValue<string> | null,
-      tt?: PromiseOrValue<BigNumberish> | null
-    ): TokenTypeUpdateEventFilter;
-    TokenTypeUpdate(
-      tokenAddress?: PromiseOrValue<string> | null,
-      tt?: PromiseOrValue<BigNumberish> | null
-    ): TokenTypeUpdateEventFilter;
-  };
-
-  estimateGas: {
-    componentAddressById(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    findAllSwaps(
-      swapTask: SwapTaskStruct,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    findBestClosePath(
-      creditAccount: PromiseOrValue<string>,
-      expectedBalances: BalanceStruct[],
-      leftoverBalances: BalanceStruct[],
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      pathOptions: PathOptionStruct[],
-      iterations: PromiseOrValue<BigNumberish>,
-      force: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    findOneTokenDiffPath(
-      tokenIn: PromiseOrValue<string>,
-      expectedBalance: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      tokenOut: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    findOneTokenPath(
-      tokenIn: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      tokenOut: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    findOpenStrategyPath(
-      creditManager: PromiseOrValue<string>,
-      balances: BalanceStruct[],
-      leftoverBalances: BalanceStruct[],
-      target: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    futureRouter(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isRouterConfigurator(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maxComponentId(overrides?: CallOverrides): Promise<BigNumber>;
-
-    tokenTypes(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    componentAddressById(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    findAllSwaps(
-      swapTask: SwapTaskStruct,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    findBestClosePath(
-      creditAccount: PromiseOrValue<string>,
-      expectedBalances: BalanceStruct[],
-      leftoverBalances: BalanceStruct[],
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      pathOptions: PathOptionStruct[],
-      iterations: PromiseOrValue<BigNumberish>,
-      force: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    findOneTokenDiffPath(
-      tokenIn: PromiseOrValue<string>,
-      expectedBalance: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      tokenOut: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    findOneTokenPath(
-      tokenIn: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      tokenOut: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    findOpenStrategyPath(
-      creditManager: PromiseOrValue<string>,
-      balances: BalanceStruct[],
-      leftoverBalances: BalanceStruct[],
-      target: PromiseOrValue<string>,
-      connectors: PromiseOrValue<string>[],
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    futureRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    isRouterConfigurator(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    maxComponentId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    tokenTypes(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "TokenTypeUpdate(address,uint8)": TypedContractEvent<
+      TokenTypeUpdateEvent.InputTuple,
+      TokenTypeUpdateEvent.OutputTuple,
+      TokenTypeUpdateEvent.OutputObject
+    >;
+    TokenTypeUpdate: TypedContractEvent<
+      TokenTypeUpdateEvent.InputTuple,
+      TokenTypeUpdateEvent.OutputTuple,
+      TokenTypeUpdateEvent.OutputObject
+    >;
   };
 }

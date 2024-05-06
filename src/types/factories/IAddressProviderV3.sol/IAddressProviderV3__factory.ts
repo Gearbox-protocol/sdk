@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IAddressProviderV3,
   IAddressProviderV3Interface,
@@ -124,12 +123,12 @@ const _abi = [
 export class IAddressProviderV3__factory {
   static readonly abi = _abi;
   static createInterface(): IAddressProviderV3Interface {
-    return new utils.Interface(_abi) as IAddressProviderV3Interface;
+    return new Interface(_abi) as IAddressProviderV3Interface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IAddressProviderV3 {
-    return new Contract(address, _abi, signerOrProvider) as IAddressProviderV3;
+    return new Contract(address, _abi, runner) as unknown as IAddressProviderV3;
   }
 }

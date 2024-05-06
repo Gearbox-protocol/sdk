@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IBalancerV2VaultGetters,
   IBalancerV2VaultGettersInterface,
@@ -107,16 +106,16 @@ const _abi = [
 export class IBalancerV2VaultGetters__factory {
   static readonly abi = _abi;
   static createInterface(): IBalancerV2VaultGettersInterface {
-    return new utils.Interface(_abi) as IBalancerV2VaultGettersInterface;
+    return new Interface(_abi) as IBalancerV2VaultGettersInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IBalancerV2VaultGetters {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IBalancerV2VaultGetters;
+      runner
+    ) as unknown as IBalancerV2VaultGetters;
   }
 }

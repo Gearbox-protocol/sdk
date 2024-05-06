@@ -3,45 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IPriceOracleV2ExtInterface extends utils.Interface {
-  functions: {
-    "addPriceFeed(address,address)": FunctionFragment;
-    "convert(uint256,address,address)": FunctionFragment;
-    "convertFromUSD(uint256,address)": FunctionFragment;
-    "convertToUSD(uint256,address)": FunctionFragment;
-    "fastCheck(uint256,address,uint256,address)": FunctionFragment;
-    "getPrice(address)": FunctionFragment;
-    "priceFeeds(address)": FunctionFragment;
-    "priceFeedsWithFlags(address)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IPriceOracleV2ExtInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "addPriceFeed"
       | "convert"
       | "convertFromUSD"
@@ -53,46 +37,39 @@ export interface IPriceOracleV2ExtInterface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(nameOrSignatureOrTopic: "NewPriceFeed"): EventFragment;
+
   encodeFunctionData(
     functionFragment: "addPriceFeed",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "convert",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "convertFromUSD",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "convertToUSD",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "fastCheck",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, AddressLike, BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getPrice",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "priceFeeds",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "priceFeedsWithFlags",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -117,350 +94,202 @@ export interface IPriceOracleV2ExtInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "NewPriceFeed(address,address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "NewPriceFeed"): EventFragment;
 }
 
-export interface NewPriceFeedEventObject {
-  token: string;
-  priceFeed: string;
+export namespace NewPriceFeedEvent {
+  export type InputTuple = [token: AddressLike, priceFeed: AddressLike];
+  export type OutputTuple = [token: string, priceFeed: string];
+  export interface OutputObject {
+    token: string;
+    priceFeed: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type NewPriceFeedEvent = TypedEvent<
-  [string, string],
-  NewPriceFeedEventObject
->;
-
-export type NewPriceFeedEventFilter = TypedEventFilter<NewPriceFeedEvent>;
 
 export interface IPriceOracleV2Ext extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IPriceOracleV2Ext;
+  waitForDeployment(): Promise<this>;
 
   interface: IPriceOracleV2ExtInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    addPriceFeed(
-      token: PromiseOrValue<string>,
-      priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    convert(
-      amount: PromiseOrValue<BigNumberish>,
-      tokenFrom: PromiseOrValue<string>,
-      tokenTo: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    convertFromUSD(
-      amount: PromiseOrValue<BigNumberish>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    convertToUSD(
-      amount: PromiseOrValue<BigNumberish>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    fastCheck(
-      amountFrom: PromiseOrValue<BigNumberish>,
-      tokenFrom: PromiseOrValue<string>,
-      amountTo: PromiseOrValue<BigNumberish>,
-      tokenTo: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        collateralFrom: BigNumber;
-        collateralTo: BigNumber;
-      }
-    >;
-
-    getPrice(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    priceFeeds(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { priceFeed: string }>;
-
-    priceFeedsWithFlags(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, boolean, BigNumber] & {
-        priceFeed: string;
-        skipCheck: boolean;
-        decimals: BigNumber;
-      }
-    >;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  addPriceFeed(
-    token: PromiseOrValue<string>,
-    priceFeed: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  convert(
-    amount: PromiseOrValue<BigNumberish>,
-    tokenFrom: PromiseOrValue<string>,
-    tokenTo: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  convertFromUSD(
-    amount: PromiseOrValue<BigNumberish>,
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  convertToUSD(
-    amount: PromiseOrValue<BigNumberish>,
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  fastCheck(
-    amountFrom: PromiseOrValue<BigNumberish>,
-    tokenFrom: PromiseOrValue<string>,
-    amountTo: PromiseOrValue<BigNumberish>,
-    tokenTo: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & {
-      collateralFrom: BigNumber;
-      collateralTo: BigNumber;
-    }
+  addPriceFeed: TypedContractMethod<
+    [token: AddressLike, priceFeed: AddressLike],
+    [void],
+    "nonpayable"
   >;
 
-  getPrice(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  priceFeeds(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  priceFeedsWithFlags(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [string, boolean, BigNumber] & {
-      priceFeed: string;
-      skipCheck: boolean;
-      decimals: BigNumber;
-    }
+  convert: TypedContractMethod<
+    [amount: BigNumberish, tokenFrom: AddressLike, tokenTo: AddressLike],
+    [bigint],
+    "view"
   >;
 
-  version(overrides?: CallOverrides): Promise<BigNumber>;
+  convertFromUSD: TypedContractMethod<
+    [amount: BigNumberish, token: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-  callStatic: {
-    addPriceFeed(
-      token: PromiseOrValue<string>,
-      priceFeed: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  convertToUSD: TypedContractMethod<
+    [amount: BigNumberish, token: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-    convert(
-      amount: PromiseOrValue<BigNumberish>,
-      tokenFrom: PromiseOrValue<string>,
-      tokenTo: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+  fastCheck: TypedContractMethod<
+    [
+      amountFrom: BigNumberish,
+      tokenFrom: AddressLike,
+      amountTo: BigNumberish,
+      tokenTo: AddressLike
+    ],
+    [[bigint, bigint] & { collateralFrom: bigint; collateralTo: bigint }],
+    "view"
+  >;
 
-    convertFromUSD(
-      amount: PromiseOrValue<BigNumberish>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+  getPrice: TypedContractMethod<[token: AddressLike], [bigint], "view">;
 
-    convertToUSD(
-      amount: PromiseOrValue<BigNumberish>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+  priceFeeds: TypedContractMethod<[token: AddressLike], [string], "view">;
 
-    fastCheck(
-      amountFrom: PromiseOrValue<BigNumberish>,
-      tokenFrom: PromiseOrValue<string>,
-      amountTo: PromiseOrValue<BigNumberish>,
-      tokenTo: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        collateralFrom: BigNumber;
-        collateralTo: BigNumber;
-      }
-    >;
-
-    getPrice(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    priceFeeds(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    priceFeedsWithFlags(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, boolean, BigNumber] & {
+  priceFeedsWithFlags: TypedContractMethod<
+    [token: AddressLike],
+    [
+      [string, boolean, bigint] & {
         priceFeed: string;
         skipCheck: boolean;
-        decimals: BigNumber;
+        decimals: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "addPriceFeed"
+  ): TypedContractMethod<
+    [token: AddressLike, priceFeed: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "convert"
+  ): TypedContractMethod<
+    [amount: BigNumberish, tokenFrom: AddressLike, tokenTo: AddressLike],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "convertFromUSD"
+  ): TypedContractMethod<
+    [amount: BigNumberish, token: AddressLike],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "convertToUSD"
+  ): TypedContractMethod<
+    [amount: BigNumberish, token: AddressLike],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "fastCheck"
+  ): TypedContractMethod<
+    [
+      amountFrom: BigNumberish,
+      tokenFrom: AddressLike,
+      amountTo: BigNumberish,
+      tokenTo: AddressLike
+    ],
+    [[bigint, bigint] & { collateralFrom: bigint; collateralTo: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getPrice"
+  ): TypedContractMethod<[token: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "priceFeeds"
+  ): TypedContractMethod<[token: AddressLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "priceFeedsWithFlags"
+  ): TypedContractMethod<
+    [token: AddressLike],
+    [
+      [string, boolean, bigint] & {
+        priceFeed: string;
+        skipCheck: boolean;
+        decimals: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+
+  getEvent(
+    key: "NewPriceFeed"
+  ): TypedContractEvent<
+    NewPriceFeedEvent.InputTuple,
+    NewPriceFeedEvent.OutputTuple,
+    NewPriceFeedEvent.OutputObject
+  >;
 
   filters: {
-    "NewPriceFeed(address,address)"(
-      token?: PromiseOrValue<string> | null,
-      priceFeed?: PromiseOrValue<string> | null
-    ): NewPriceFeedEventFilter;
-    NewPriceFeed(
-      token?: PromiseOrValue<string> | null,
-      priceFeed?: PromiseOrValue<string> | null
-    ): NewPriceFeedEventFilter;
-  };
-
-  estimateGas: {
-    addPriceFeed(
-      token: PromiseOrValue<string>,
-      priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    convert(
-      amount: PromiseOrValue<BigNumberish>,
-      tokenFrom: PromiseOrValue<string>,
-      tokenTo: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    convertFromUSD(
-      amount: PromiseOrValue<BigNumberish>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    convertToUSD(
-      amount: PromiseOrValue<BigNumberish>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    fastCheck(
-      amountFrom: PromiseOrValue<BigNumberish>,
-      tokenFrom: PromiseOrValue<string>,
-      amountTo: PromiseOrValue<BigNumberish>,
-      tokenTo: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPrice(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    priceFeeds(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    priceFeedsWithFlags(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    addPriceFeed(
-      token: PromiseOrValue<string>,
-      priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    convert(
-      amount: PromiseOrValue<BigNumberish>,
-      tokenFrom: PromiseOrValue<string>,
-      tokenTo: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    convertFromUSD(
-      amount: PromiseOrValue<BigNumberish>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    convertToUSD(
-      amount: PromiseOrValue<BigNumberish>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    fastCheck(
-      amountFrom: PromiseOrValue<BigNumberish>,
-      tokenFrom: PromiseOrValue<string>,
-      amountTo: PromiseOrValue<BigNumberish>,
-      tokenTo: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPrice(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    priceFeeds(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    priceFeedsWithFlags(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "NewPriceFeed(address,address)": TypedContractEvent<
+      NewPriceFeedEvent.InputTuple,
+      NewPriceFeedEvent.OutputTuple,
+      NewPriceFeedEvent.OutputObject
+    >;
+    NewPriceFeed: TypedContractEvent<
+      NewPriceFeedEvent.InputTuple,
+      NewPriceFeedEvent.OutputTuple,
+      NewPriceFeedEvent.OutputObject
+    >;
   };
 }

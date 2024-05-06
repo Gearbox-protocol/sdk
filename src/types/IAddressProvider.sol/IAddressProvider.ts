@@ -3,44 +3,28 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IAddressProviderInterface extends utils.Interface {
-  functions: {
-    "getACL()": FunctionFragment;
-    "getAccountFactory()": FunctionFragment;
-    "getContractsRegister()": FunctionFragment;
-    "getDataCompressor()": FunctionFragment;
-    "getGearToken()": FunctionFragment;
-    "getLeveragedActions()": FunctionFragment;
-    "getPriceOracle()": FunctionFragment;
-    "getTreasuryContract()": FunctionFragment;
-    "getWETHGateway()": FunctionFragment;
-    "getWethToken()": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IAddressProviderInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "getACL"
       | "getAccountFactory"
       | "getContractsRegister"
@@ -53,6 +37,8 @@ export interface IAddressProviderInterface extends utils.Interface {
       | "getWethToken"
       | "version"
   ): FunctionFragment;
+
+  getEvent(nameOrSignatureOrTopic: "AddressSet"): EventFragment;
 
   encodeFunctionData(functionFragment: "getACL", values?: undefined): string;
   encodeFunctionData(
@@ -131,183 +117,142 @@ export interface IAddressProviderInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "AddressSet(bytes32,address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AddressSet"): EventFragment;
 }
 
-export interface AddressSetEventObject {
-  service: string;
-  newAddress: string;
+export namespace AddressSetEvent {
+  export type InputTuple = [service: BytesLike, newAddress: AddressLike];
+  export type OutputTuple = [service: string, newAddress: string];
+  export interface OutputObject {
+    service: string;
+    newAddress: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddressSetEvent = TypedEvent<
-  [string, string],
-  AddressSetEventObject
->;
-
-export type AddressSetEventFilter = TypedEventFilter<AddressSetEvent>;
 
 export interface IAddressProvider extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IAddressProvider;
+  waitForDeployment(): Promise<this>;
 
   interface: IAddressProviderInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    getACL(overrides?: CallOverrides): Promise<[string]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    getAccountFactory(overrides?: CallOverrides): Promise<[string]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    getContractsRegister(overrides?: CallOverrides): Promise<[string]>;
+  getACL: TypedContractMethod<[], [string], "view">;
 
-    getDataCompressor(overrides?: CallOverrides): Promise<[string]>;
+  getAccountFactory: TypedContractMethod<[], [string], "view">;
 
-    getGearToken(overrides?: CallOverrides): Promise<[string]>;
+  getContractsRegister: TypedContractMethod<[], [string], "view">;
 
-    getLeveragedActions(overrides?: CallOverrides): Promise<[string]>;
+  getDataCompressor: TypedContractMethod<[], [string], "view">;
 
-    getPriceOracle(overrides?: CallOverrides): Promise<[string]>;
+  getGearToken: TypedContractMethod<[], [string], "view">;
 
-    getTreasuryContract(overrides?: CallOverrides): Promise<[string]>;
+  getLeveragedActions: TypedContractMethod<[], [string], "view">;
 
-    getWETHGateway(overrides?: CallOverrides): Promise<[string]>;
+  getPriceOracle: TypedContractMethod<[], [string], "view">;
 
-    getWethToken(overrides?: CallOverrides): Promise<[string]>;
+  getTreasuryContract: TypedContractMethod<[], [string], "view">;
 
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  getWETHGateway: TypedContractMethod<[], [string], "view">;
 
-  getACL(overrides?: CallOverrides): Promise<string>;
+  getWethToken: TypedContractMethod<[], [string], "view">;
 
-  getAccountFactory(overrides?: CallOverrides): Promise<string>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  getContractsRegister(overrides?: CallOverrides): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  getDataCompressor(overrides?: CallOverrides): Promise<string>;
+  getFunction(
+    nameOrSignature: "getACL"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getAccountFactory"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getContractsRegister"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getDataCompressor"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getGearToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getLeveragedActions"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getPriceOracle"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getTreasuryContract"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getWETHGateway"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getWethToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-  getGearToken(overrides?: CallOverrides): Promise<string>;
-
-  getLeveragedActions(overrides?: CallOverrides): Promise<string>;
-
-  getPriceOracle(overrides?: CallOverrides): Promise<string>;
-
-  getTreasuryContract(overrides?: CallOverrides): Promise<string>;
-
-  getWETHGateway(overrides?: CallOverrides): Promise<string>;
-
-  getWethToken(overrides?: CallOverrides): Promise<string>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    getACL(overrides?: CallOverrides): Promise<string>;
-
-    getAccountFactory(overrides?: CallOverrides): Promise<string>;
-
-    getContractsRegister(overrides?: CallOverrides): Promise<string>;
-
-    getDataCompressor(overrides?: CallOverrides): Promise<string>;
-
-    getGearToken(overrides?: CallOverrides): Promise<string>;
-
-    getLeveragedActions(overrides?: CallOverrides): Promise<string>;
-
-    getPriceOracle(overrides?: CallOverrides): Promise<string>;
-
-    getTreasuryContract(overrides?: CallOverrides): Promise<string>;
-
-    getWETHGateway(overrides?: CallOverrides): Promise<string>;
-
-    getWethToken(overrides?: CallOverrides): Promise<string>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "AddressSet"
+  ): TypedContractEvent<
+    AddressSetEvent.InputTuple,
+    AddressSetEvent.OutputTuple,
+    AddressSetEvent.OutputObject
+  >;
 
   filters: {
-    "AddressSet(bytes32,address)"(
-      service?: PromiseOrValue<BytesLike> | null,
-      newAddress?: PromiseOrValue<string> | null
-    ): AddressSetEventFilter;
-    AddressSet(
-      service?: PromiseOrValue<BytesLike> | null,
-      newAddress?: PromiseOrValue<string> | null
-    ): AddressSetEventFilter;
-  };
-
-  estimateGas: {
-    getACL(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAccountFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getContractsRegister(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getDataCompressor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getGearToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getLeveragedActions(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getPriceOracle(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTreasuryContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getWETHGateway(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getWethToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    getACL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getAccountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getContractsRegister(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getDataCompressor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getGearToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getLeveragedActions(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPriceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getTreasuryContract(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getWETHGateway(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getWethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "AddressSet(bytes32,address)": TypedContractEvent<
+      AddressSetEvent.InputTuple,
+      AddressSetEvent.OutputTuple,
+      AddressSetEvent.OutputObject
+    >;
+    AddressSet: TypedContractEvent<
+      AddressSetEvent.InputTuple,
+      AddressSetEvent.OutputTuple,
+      AddressSetEvent.OutputObject
+    >;
   };
 }

@@ -3,86 +3,105 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
-  Signer,
-  utils,
+  FunctionFragment,
+  Interface,
+  EventFragment,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { EventFragment } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
 } from "../common";
 
-export interface IConvexV1BoosterAdapterEventsInterface
-  extends utils.Interface {
-  functions: {};
-
-  events: {
-    "SetPidToPhantomToken(uint256,address)": EventFragment;
-  };
-
+export interface IConvexV1BoosterAdapterEventsInterface extends Interface {
   getEvent(nameOrSignatureOrTopic: "SetPidToPhantomToken"): EventFragment;
 }
 
-export interface SetPidToPhantomTokenEventObject {
-  pid: BigNumber;
-  phantomToken: string;
+export namespace SetPidToPhantomTokenEvent {
+  export type InputTuple = [pid: BigNumberish, phantomToken: AddressLike];
+  export type OutputTuple = [pid: bigint, phantomToken: string];
+  export interface OutputObject {
+    pid: bigint;
+    phantomToken: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetPidToPhantomTokenEvent = TypedEvent<
-  [BigNumber, string],
-  SetPidToPhantomTokenEventObject
->;
-
-export type SetPidToPhantomTokenEventFilter =
-  TypedEventFilter<SetPidToPhantomTokenEvent>;
 
 export interface IConvexV1BoosterAdapterEvents extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IConvexV1BoosterAdapterEvents;
+  waitForDeployment(): Promise<this>;
 
   interface: IConvexV1BoosterAdapterEventsInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {};
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  callStatic: {};
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getEvent(
+    key: "SetPidToPhantomToken"
+  ): TypedContractEvent<
+    SetPidToPhantomTokenEvent.InputTuple,
+    SetPidToPhantomTokenEvent.OutputTuple,
+    SetPidToPhantomTokenEvent.OutputObject
+  >;
 
   filters: {
-    "SetPidToPhantomToken(uint256,address)"(
-      pid?: PromiseOrValue<BigNumberish> | null,
-      phantomToken?: PromiseOrValue<string> | null
-    ): SetPidToPhantomTokenEventFilter;
-    SetPidToPhantomToken(
-      pid?: PromiseOrValue<BigNumberish> | null,
-      phantomToken?: PromiseOrValue<string> | null
-    ): SetPidToPhantomTokenEventFilter;
+    "SetPidToPhantomToken(uint256,address)": TypedContractEvent<
+      SetPidToPhantomTokenEvent.InputTuple,
+      SetPidToPhantomTokenEvent.OutputTuple,
+      SetPidToPhantomTokenEvent.OutputObject
+    >;
+    SetPidToPhantomToken: TypedContractEvent<
+      SetPidToPhantomTokenEvent.InputTuple,
+      SetPidToPhantomTokenEvent.OutputTuple,
+      SetPidToPhantomTokenEvent.OutputObject
+    >;
   };
-
-  estimateGas: {};
-
-  populateTransaction: {};
 }

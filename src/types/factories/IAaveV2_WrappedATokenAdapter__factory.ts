@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IAaveV2_WrappedATokenAdapter,
   IAaveV2_WrappedATokenAdapterInterface,
@@ -337,16 +336,16 @@ const _abi = [
 export class IAaveV2_WrappedATokenAdapter__factory {
   static readonly abi = _abi;
   static createInterface(): IAaveV2_WrappedATokenAdapterInterface {
-    return new utils.Interface(_abi) as IAaveV2_WrappedATokenAdapterInterface;
+    return new Interface(_abi) as IAaveV2_WrappedATokenAdapterInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IAaveV2_WrappedATokenAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IAaveV2_WrappedATokenAdapter;
+      runner
+    ) as unknown as IAaveV2_WrappedATokenAdapter;
   }
 }

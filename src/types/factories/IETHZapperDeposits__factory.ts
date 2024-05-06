@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IETHZapperDeposits,
   IETHZapperDepositsInterface,
@@ -58,12 +57,12 @@ const _abi = [
 export class IETHZapperDeposits__factory {
   static readonly abi = _abi;
   static createInterface(): IETHZapperDepositsInterface {
-    return new utils.Interface(_abi) as IETHZapperDepositsInterface;
+    return new Interface(_abi) as IETHZapperDepositsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IETHZapperDeposits {
-    return new Contract(address, _abi, signerOrProvider) as IETHZapperDeposits;
+    return new Contract(address, _abi, runner) as unknown as IETHZapperDeposits;
   }
 }

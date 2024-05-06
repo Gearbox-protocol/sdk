@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   ICreditManagerV3Events,
   ICreditManagerV3EventsInterface,
@@ -28,16 +27,16 @@ const _abi = [
 export class ICreditManagerV3Events__factory {
   static readonly abi = _abi;
   static createInterface(): ICreditManagerV3EventsInterface {
-    return new utils.Interface(_abi) as ICreditManagerV3EventsInterface;
+    return new Interface(_abi) as ICreditManagerV3EventsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): ICreditManagerV3Events {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as ICreditManagerV3Events;
+      runner
+    ) as unknown as ICreditManagerV3Events;
   }
 }

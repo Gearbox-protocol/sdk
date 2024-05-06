@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type { IYVault, IYVaultInterface } from "../IYVault";
 
 const _abi = [
@@ -401,12 +400,9 @@ const _abi = [
 export class IYVault__factory {
   static readonly abi = _abi;
   static createInterface(): IYVaultInterface {
-    return new utils.Interface(_abi) as IYVaultInterface;
+    return new Interface(_abi) as IYVaultInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IYVault {
-    return new Contract(address, _abi, signerOrProvider) as IYVault;
+  static connect(address: string, runner?: ContractRunner | null): IYVault {
+    return new Contract(address, _abi, runner) as unknown as IYVault;
   }
 }

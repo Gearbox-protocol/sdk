@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   ICreditFacadeV3Multicall,
   ICreditFacadeV3MulticallInterface,
@@ -267,16 +266,16 @@ const _abi = [
 export class ICreditFacadeV3Multicall__factory {
   static readonly abi = _abi;
   static createInterface(): ICreditFacadeV3MulticallInterface {
-    return new utils.Interface(_abi) as ICreditFacadeV3MulticallInterface;
+    return new Interface(_abi) as ICreditFacadeV3MulticallInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): ICreditFacadeV3Multicall {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as ICreditFacadeV3Multicall;
+      runner
+    ) as unknown as ICreditFacadeV3Multicall;
   }
 }

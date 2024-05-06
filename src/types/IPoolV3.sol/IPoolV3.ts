@@ -3,98 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IPoolV3Interface extends utils.Interface {
-  functions: {
-    "DOMAIN_SEPARATOR()": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "allowance(address,address)": FunctionFragment;
-    "approve(address,uint256)": FunctionFragment;
-    "asset()": FunctionFragment;
-    "availableLiquidity()": FunctionFragment;
-    "balanceOf(address)": FunctionFragment;
-    "baseInterestIndex()": FunctionFragment;
-    "baseInterestIndexLU()": FunctionFragment;
-    "baseInterestRate()": FunctionFragment;
-    "convertToAssets(uint256)": FunctionFragment;
-    "convertToShares(uint256)": FunctionFragment;
-    "creditManagerBorrowable(address)": FunctionFragment;
-    "creditManagerBorrowed(address)": FunctionFragment;
-    "creditManagerDebtLimit(address)": FunctionFragment;
-    "creditManagers()": FunctionFragment;
-    "decimals()": FunctionFragment;
-    "deposit(uint256,address)": FunctionFragment;
-    "depositWithReferral(uint256,address,uint256)": FunctionFragment;
-    "expectedLiquidity()": FunctionFragment;
-    "expectedLiquidityLU()": FunctionFragment;
-    "interestRateModel()": FunctionFragment;
-    "lastBaseInterestUpdate()": FunctionFragment;
-    "lastQuotaRevenueUpdate()": FunctionFragment;
-    "lendCreditAccount(uint256,address)": FunctionFragment;
-    "maxDeposit(address)": FunctionFragment;
-    "maxMint(address)": FunctionFragment;
-    "maxRedeem(address)": FunctionFragment;
-    "maxWithdraw(address)": FunctionFragment;
-    "mint(uint256,address)": FunctionFragment;
-    "mintWithReferral(uint256,address,uint256)": FunctionFragment;
-    "name()": FunctionFragment;
-    "nonces(address)": FunctionFragment;
-    "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "poolQuotaKeeper()": FunctionFragment;
-    "previewDeposit(uint256)": FunctionFragment;
-    "previewMint(uint256)": FunctionFragment;
-    "previewRedeem(uint256)": FunctionFragment;
-    "previewWithdraw(uint256)": FunctionFragment;
-    "quotaRevenue()": FunctionFragment;
-    "redeem(uint256,address,address)": FunctionFragment;
-    "repayCreditAccount(uint256,uint256,uint256)": FunctionFragment;
-    "setCreditManagerDebtLimit(address,uint256)": FunctionFragment;
-    "setInterestRateModel(address)": FunctionFragment;
-    "setPoolQuotaKeeper(address)": FunctionFragment;
-    "setQuotaRevenue(uint256)": FunctionFragment;
-    "setTotalDebtLimit(uint256)": FunctionFragment;
-    "setWithdrawFee(uint256)": FunctionFragment;
-    "supplyRate()": FunctionFragment;
-    "symbol()": FunctionFragment;
-    "totalAssets()": FunctionFragment;
-    "totalBorrowed()": FunctionFragment;
-    "totalDebtLimit()": FunctionFragment;
-    "totalSupply()": FunctionFragment;
-    "transfer(address,uint256)": FunctionFragment;
-    "transferFrom(address,address,uint256)": FunctionFragment;
-    "treasury()": FunctionFragment;
-    "underlyingToken()": FunctionFragment;
-    "updateQuotaRevenue(int256)": FunctionFragment;
-    "version()": FunctionFragment;
-    "withdraw(uint256,address,address)": FunctionFragment;
-    "withdrawFee()": FunctionFragment;
-  };
-
+export interface IPoolV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "DOMAIN_SEPARATOR"
       | "addressProvider"
       | "allowance"
@@ -159,6 +90,24 @@ export interface IPoolV3Interface extends utils.Interface {
       | "withdrawFee"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "AddCreditManager"
+      | "Approval"
+      | "Borrow"
+      | "Deposit"
+      | "IncurUncoveredLoss"
+      | "Refer"
+      | "Repay"
+      | "SetCreditManagerDebtLimit"
+      | "SetInterestRateModel"
+      | "SetPoolQuotaKeeper"
+      | "SetTotalDebtLimit"
+      | "SetWithdrawFee"
+      | "Transfer"
+      | "Withdraw"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "DOMAIN_SEPARATOR",
     values?: undefined
@@ -169,11 +118,11 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "approve",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "asset", values?: undefined): string;
   encodeFunctionData(
@@ -182,7 +131,7 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "baseInterestIndex",
@@ -198,23 +147,23 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "convertToAssets",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "convertToShares",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManagerBorrowable",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManagerBorrowed",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManagerDebtLimit",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManagers",
@@ -223,15 +172,11 @@ export interface IPoolV3Interface extends utils.Interface {
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "depositWithReferral",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "expectedLiquidity",
@@ -255,51 +200,44 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "lendCreditAccount",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "maxDeposit",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "maxMint",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "maxRedeem",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "maxWithdraw",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "mint",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "mintWithReferral",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "nonces",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "nonces", values: [AddressLike]): string;
   encodeFunctionData(
     functionFragment: "permit",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      AddressLike,
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
   encodeFunctionData(
@@ -308,19 +246,19 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "previewDeposit",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewMint",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewRedeem",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewWithdraw",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "quotaRevenue",
@@ -328,43 +266,35 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "redeem",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "repayCreditAccount",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setCreditManagerDebtLimit",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setInterestRateModel",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setPoolQuotaKeeper",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setQuotaRevenue",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTotalDebtLimit",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setWithdrawFee",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "supplyRate",
@@ -389,15 +319,11 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transfer",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
   encodeFunctionData(
@@ -406,16 +332,12 @@ export interface IPoolV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateQuotaRevenue",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawFee",
@@ -610,1653 +532,1050 @@ export interface IPoolV3Interface extends utils.Interface {
     functionFragment: "withdrawFee",
     data: BytesLike
   ): Result;
-
-  events: {
-    "AddCreditManager(address)": EventFragment;
-    "Approval(address,address,uint256)": EventFragment;
-    "Borrow(address,address,uint256)": EventFragment;
-    "Deposit(address,address,uint256,uint256)": EventFragment;
-    "IncurUncoveredLoss(address,uint256)": EventFragment;
-    "Refer(address,uint256,uint256)": EventFragment;
-    "Repay(address,uint256,uint256,uint256)": EventFragment;
-    "SetCreditManagerDebtLimit(address,uint256)": EventFragment;
-    "SetInterestRateModel(address)": EventFragment;
-    "SetPoolQuotaKeeper(address)": EventFragment;
-    "SetTotalDebtLimit(uint256)": EventFragment;
-    "SetWithdrawFee(uint256)": EventFragment;
-    "Transfer(address,address,uint256)": EventFragment;
-    "Withdraw(address,address,address,uint256,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AddCreditManager"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Borrow"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "IncurUncoveredLoss"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Refer"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Repay"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetCreditManagerDebtLimit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetInterestRateModel"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetPoolQuotaKeeper"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetTotalDebtLimit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetWithdrawFee"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
-export interface AddCreditManagerEventObject {
-  creditManager: string;
+export namespace AddCreditManagerEvent {
+  export type InputTuple = [creditManager: AddressLike];
+  export type OutputTuple = [creditManager: string];
+  export interface OutputObject {
+    creditManager: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddCreditManagerEvent = TypedEvent<
-  [string],
-  AddCreditManagerEventObject
->;
 
-export type AddCreditManagerEventFilter =
-  TypedEventFilter<AddCreditManagerEvent>;
-
-export interface ApprovalEventObject {
-  owner: string;
-  spender: string;
-  value: BigNumber;
+export namespace ApprovalEvent {
+  export type InputTuple = [
+    owner: AddressLike,
+    spender: AddressLike,
+    value: BigNumberish
+  ];
+  export type OutputTuple = [owner: string, spender: string, value: bigint];
+  export interface OutputObject {
+    owner: string;
+    spender: string;
+    value: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
-  ApprovalEventObject
->;
 
-export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
-
-export interface BorrowEventObject {
-  creditManager: string;
-  creditAccount: string;
-  amount: BigNumber;
+export namespace BorrowEvent {
+  export type InputTuple = [
+    creditManager: AddressLike,
+    creditAccount: AddressLike,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditManager: string,
+    creditAccount: string,
+    amount: bigint
+  ];
+  export interface OutputObject {
+    creditManager: string;
+    creditAccount: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type BorrowEvent = TypedEvent<
-  [string, string, BigNumber],
-  BorrowEventObject
->;
 
-export type BorrowEventFilter = TypedEventFilter<BorrowEvent>;
-
-export interface DepositEventObject {
-  sender: string;
-  owner: string;
-  assets: BigNumber;
-  shares: BigNumber;
+export namespace DepositEvent {
+  export type InputTuple = [
+    sender: AddressLike,
+    owner: AddressLike,
+    assets: BigNumberish,
+    shares: BigNumberish
+  ];
+  export type OutputTuple = [
+    sender: string,
+    owner: string,
+    assets: bigint,
+    shares: bigint
+  ];
+  export interface OutputObject {
+    sender: string;
+    owner: string;
+    assets: bigint;
+    shares: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type DepositEvent = TypedEvent<
-  [string, string, BigNumber, BigNumber],
-  DepositEventObject
->;
 
-export type DepositEventFilter = TypedEventFilter<DepositEvent>;
-
-export interface IncurUncoveredLossEventObject {
-  creditManager: string;
-  loss: BigNumber;
+export namespace IncurUncoveredLossEvent {
+  export type InputTuple = [creditManager: AddressLike, loss: BigNumberish];
+  export type OutputTuple = [creditManager: string, loss: bigint];
+  export interface OutputObject {
+    creditManager: string;
+    loss: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type IncurUncoveredLossEvent = TypedEvent<
-  [string, BigNumber],
-  IncurUncoveredLossEventObject
->;
 
-export type IncurUncoveredLossEventFilter =
-  TypedEventFilter<IncurUncoveredLossEvent>;
-
-export interface ReferEventObject {
-  onBehalfOf: string;
-  referralCode: BigNumber;
-  amount: BigNumber;
+export namespace ReferEvent {
+  export type InputTuple = [
+    onBehalfOf: AddressLike,
+    referralCode: BigNumberish,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [
+    onBehalfOf: string,
+    referralCode: bigint,
+    amount: bigint
+  ];
+  export interface OutputObject {
+    onBehalfOf: string;
+    referralCode: bigint;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ReferEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  ReferEventObject
->;
 
-export type ReferEventFilter = TypedEventFilter<ReferEvent>;
-
-export interface RepayEventObject {
-  creditManager: string;
-  borrowedAmount: BigNumber;
-  profit: BigNumber;
-  loss: BigNumber;
+export namespace RepayEvent {
+  export type InputTuple = [
+    creditManager: AddressLike,
+    borrowedAmount: BigNumberish,
+    profit: BigNumberish,
+    loss: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditManager: string,
+    borrowedAmount: bigint,
+    profit: bigint,
+    loss: bigint
+  ];
+  export interface OutputObject {
+    creditManager: string;
+    borrowedAmount: bigint;
+    profit: bigint;
+    loss: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RepayEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber],
-  RepayEventObject
->;
 
-export type RepayEventFilter = TypedEventFilter<RepayEvent>;
-
-export interface SetCreditManagerDebtLimitEventObject {
-  creditManager: string;
-  newLimit: BigNumber;
+export namespace SetCreditManagerDebtLimitEvent {
+  export type InputTuple = [creditManager: AddressLike, newLimit: BigNumberish];
+  export type OutputTuple = [creditManager: string, newLimit: bigint];
+  export interface OutputObject {
+    creditManager: string;
+    newLimit: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetCreditManagerDebtLimitEvent = TypedEvent<
-  [string, BigNumber],
-  SetCreditManagerDebtLimitEventObject
->;
 
-export type SetCreditManagerDebtLimitEventFilter =
-  TypedEventFilter<SetCreditManagerDebtLimitEvent>;
-
-export interface SetInterestRateModelEventObject {
-  newInterestRateModel: string;
+export namespace SetInterestRateModelEvent {
+  export type InputTuple = [newInterestRateModel: AddressLike];
+  export type OutputTuple = [newInterestRateModel: string];
+  export interface OutputObject {
+    newInterestRateModel: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetInterestRateModelEvent = TypedEvent<
-  [string],
-  SetInterestRateModelEventObject
->;
 
-export type SetInterestRateModelEventFilter =
-  TypedEventFilter<SetInterestRateModelEvent>;
-
-export interface SetPoolQuotaKeeperEventObject {
-  newPoolQuotaKeeper: string;
+export namespace SetPoolQuotaKeeperEvent {
+  export type InputTuple = [newPoolQuotaKeeper: AddressLike];
+  export type OutputTuple = [newPoolQuotaKeeper: string];
+  export interface OutputObject {
+    newPoolQuotaKeeper: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetPoolQuotaKeeperEvent = TypedEvent<
-  [string],
-  SetPoolQuotaKeeperEventObject
->;
 
-export type SetPoolQuotaKeeperEventFilter =
-  TypedEventFilter<SetPoolQuotaKeeperEvent>;
-
-export interface SetTotalDebtLimitEventObject {
-  limit: BigNumber;
+export namespace SetTotalDebtLimitEvent {
+  export type InputTuple = [limit: BigNumberish];
+  export type OutputTuple = [limit: bigint];
+  export interface OutputObject {
+    limit: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetTotalDebtLimitEvent = TypedEvent<
-  [BigNumber],
-  SetTotalDebtLimitEventObject
->;
 
-export type SetTotalDebtLimitEventFilter =
-  TypedEventFilter<SetTotalDebtLimitEvent>;
-
-export interface SetWithdrawFeeEventObject {
-  fee: BigNumber;
+export namespace SetWithdrawFeeEvent {
+  export type InputTuple = [fee: BigNumberish];
+  export type OutputTuple = [fee: bigint];
+  export interface OutputObject {
+    fee: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetWithdrawFeeEvent = TypedEvent<
-  [BigNumber],
-  SetWithdrawFeeEventObject
->;
 
-export type SetWithdrawFeeEventFilter = TypedEventFilter<SetWithdrawFeeEvent>;
-
-export interface TransferEventObject {
-  from: string;
-  to: string;
-  value: BigNumber;
+export namespace TransferEvent {
+  export type InputTuple = [
+    from: AddressLike,
+    to: AddressLike,
+    value: BigNumberish
+  ];
+  export type OutputTuple = [from: string, to: string, value: bigint];
+  export interface OutputObject {
+    from: string;
+    to: string;
+    value: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TransferEvent = TypedEvent<
-  [string, string, BigNumber],
-  TransferEventObject
->;
 
-export type TransferEventFilter = TypedEventFilter<TransferEvent>;
-
-export interface WithdrawEventObject {
-  sender: string;
-  receiver: string;
-  owner: string;
-  assets: BigNumber;
-  shares: BigNumber;
+export namespace WithdrawEvent {
+  export type InputTuple = [
+    sender: AddressLike,
+    receiver: AddressLike,
+    owner: AddressLike,
+    assets: BigNumberish,
+    shares: BigNumberish
+  ];
+  export type OutputTuple = [
+    sender: string,
+    receiver: string,
+    owner: string,
+    assets: bigint,
+    shares: bigint
+  ];
+  export interface OutputObject {
+    sender: string;
+    receiver: string;
+    owner: string;
+    assets: bigint;
+    shares: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type WithdrawEvent = TypedEvent<
-  [string, string, string, BigNumber, BigNumber],
-  WithdrawEventObject
->;
-
-export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
 export interface IPoolV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IPoolV3;
+  waitForDeployment(): Promise<this>;
 
   interface: IPoolV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
-
-  functions: {
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
-
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
-
-    allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    approve(
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    asset(
-      overrides?: CallOverrides
-    ): Promise<[string] & { assetTokenAddress: string }>;
-
-    availableLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    baseInterestIndex(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    baseInterestIndexLU(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    baseInterestRate(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { assets: BigNumber }>;
-
-    convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { shares: BigNumber }>;
-
-    creditManagerBorrowable(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { borrowable: BigNumber }>;
-
-    creditManagerBorrowed(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    creditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    creditManagers(overrides?: CallOverrides): Promise<[string[]]>;
-
-    decimals(overrides?: CallOverrides): Promise<[number]>;
-
-    deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    depositWithReferral(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    expectedLiquidity(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    expectedLiquidityLU(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    interestRateModel(overrides?: CallOverrides): Promise<[string]>;
-
-    lastBaseInterestUpdate(overrides?: CallOverrides): Promise<[number]>;
-
-    lastQuotaRevenueUpdate(overrides?: CallOverrides): Promise<[number]>;
-
-    lendCreditAccount(
-      borrowedAmount: PromiseOrValue<BigNumberish>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    maxDeposit(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { maxAssets: BigNumber }>;
-
-    maxMint(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { maxShares: BigNumber }>;
-
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { maxShares: BigNumber }>;
-
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { maxAssets: BigNumber }>;
-
-    mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    mintWithReferral(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    name(overrides?: CallOverrides): Promise<[string]>;
-
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    permit(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      value: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    poolQuotaKeeper(overrides?: CallOverrides): Promise<[string]>;
-
-    previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { shares: BigNumber }>;
-
-    previewMint(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { assets: BigNumber }>;
-
-    previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { assets: BigNumber }>;
-
-    previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { shares: BigNumber }>;
-
-    quotaRevenue(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    repayCreditAccount(
-      repaidAmount: PromiseOrValue<BigNumberish>,
-      profit: PromiseOrValue<BigNumberish>,
-      loss: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setCreditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setInterestRateModel(
-      newInterestRateModel: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setPoolQuotaKeeper(
-      newPoolQuotaKeeper: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setQuotaRevenue(
-      newQuotaRevenue: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setTotalDebtLimit(
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setWithdrawFee(
-      newWithdrawFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    supplyRate(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    symbol(overrides?: CallOverrides): Promise<[string]>;
-
-    totalAssets(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { totalManagedAssets: BigNumber }>;
-
-    totalBorrowed(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    totalDebtLimit(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    treasury(overrides?: CallOverrides): Promise<[string]>;
-
-    underlyingToken(overrides?: CallOverrides): Promise<[string]>;
-
-    updateQuotaRevenue(
-      quotaRevenueDelta: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawFee(overrides?: CallOverrides): Promise<[number]>;
-  };
-
-  DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
-
-  addressProvider(overrides?: CallOverrides): Promise<string>;
-
-  allowance(
-    owner: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  approve(
-    spender: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  asset(overrides?: CallOverrides): Promise<string>;
-
-  availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
-
-  balanceOf(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  baseInterestIndex(overrides?: CallOverrides): Promise<BigNumber>;
-
-  baseInterestIndexLU(overrides?: CallOverrides): Promise<BigNumber>;
-
-  baseInterestRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-  convertToAssets(
-    shares: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  convertToShares(
-    assets: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  creditManagerBorrowable(
-    creditManager: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  creditManagerBorrowed(
-    creditManager: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  creditManagerDebtLimit(
-    creditManager: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  creditManagers(overrides?: CallOverrides): Promise<string[]>;
-
-  decimals(overrides?: CallOverrides): Promise<number>;
-
-  deposit(
-    assets: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  depositWithReferral(
-    assets: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  expectedLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
-
-  expectedLiquidityLU(overrides?: CallOverrides): Promise<BigNumber>;
-
-  interestRateModel(overrides?: CallOverrides): Promise<string>;
-
-  lastBaseInterestUpdate(overrides?: CallOverrides): Promise<number>;
-
-  lastQuotaRevenueUpdate(overrides?: CallOverrides): Promise<number>;
-
-  lendCreditAccount(
-    borrowedAmount: PromiseOrValue<BigNumberish>,
-    creditAccount: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  maxDeposit(
-    receiver: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  maxMint(
-    receiver: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  maxRedeem(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  maxWithdraw(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  mint(
-    shares: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  mintWithReferral(
-    shares: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  name(overrides?: CallOverrides): Promise<string>;
-
-  nonces(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  permit(
-    owner: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
-    value: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    v: PromiseOrValue<BigNumberish>,
-    r: PromiseOrValue<BytesLike>,
-    s: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  poolQuotaKeeper(overrides?: CallOverrides): Promise<string>;
-
-  previewDeposit(
-    assets: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  previewMint(
-    shares: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  previewRedeem(
-    shares: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  previewWithdraw(
-    assets: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  quotaRevenue(overrides?: CallOverrides): Promise<BigNumber>;
-
-  redeem(
-    shares: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  repayCreditAccount(
-    repaidAmount: PromiseOrValue<BigNumberish>,
-    profit: PromiseOrValue<BigNumberish>,
-    loss: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setCreditManagerDebtLimit(
-    creditManager: PromiseOrValue<string>,
-    newLimit: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setInterestRateModel(
-    newInterestRateModel: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setPoolQuotaKeeper(
-    newPoolQuotaKeeper: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setQuotaRevenue(
-    newQuotaRevenue: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setTotalDebtLimit(
-    newLimit: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setWithdrawFee(
-    newWithdrawFee: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  supplyRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-  symbol(overrides?: CallOverrides): Promise<string>;
-
-  totalAssets(overrides?: CallOverrides): Promise<BigNumber>;
-
-  totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
-
-  totalDebtLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  transfer(
-    to: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  transferFrom(
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  treasury(overrides?: CallOverrides): Promise<string>;
-
-  underlyingToken(overrides?: CallOverrides): Promise<string>;
-
-  updateQuotaRevenue(
-    quotaRevenueDelta: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  withdraw(
-    assets: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawFee(overrides?: CallOverrides): Promise<number>;
-
-  callStatic: {
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    approve(
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    asset(overrides?: CallOverrides): Promise<string>;
-
-    availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
-
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    baseInterestIndex(overrides?: CallOverrides): Promise<BigNumber>;
-
-    baseInterestIndexLU(overrides?: CallOverrides): Promise<BigNumber>;
-
-    baseInterestRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManagerBorrowable(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManagerBorrowed(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManagers(overrides?: CallOverrides): Promise<string[]>;
-
-    decimals(overrides?: CallOverrides): Promise<number>;
-
-    deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    depositWithReferral(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    expectedLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
-
-    expectedLiquidityLU(overrides?: CallOverrides): Promise<BigNumber>;
-
-    interestRateModel(overrides?: CallOverrides): Promise<string>;
-
-    lastBaseInterestUpdate(overrides?: CallOverrides): Promise<number>;
-
-    lastQuotaRevenueUpdate(overrides?: CallOverrides): Promise<number>;
-
-    lendCreditAccount(
-      borrowedAmount: PromiseOrValue<BigNumberish>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    maxDeposit(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maxMint(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    mintWithReferral(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    name(overrides?: CallOverrides): Promise<string>;
-
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    permit(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      value: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    poolQuotaKeeper(overrides?: CallOverrides): Promise<string>;
-
-    previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    previewMint(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    quotaRevenue(overrides?: CallOverrides): Promise<BigNumber>;
-
-    redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    repayCreditAccount(
-      repaidAmount: PromiseOrValue<BigNumberish>,
-      profit: PromiseOrValue<BigNumberish>,
-      loss: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setCreditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setInterestRateModel(
-      newInterestRateModel: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setPoolQuotaKeeper(
-      newPoolQuotaKeeper: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setQuotaRevenue(
-      newQuotaRevenue: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setTotalDebtLimit(
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setWithdrawFee(
-      newWithdrawFee: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    supplyRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    symbol(overrides?: CallOverrides): Promise<string>;
-
-    totalAssets(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalDebtLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    treasury(overrides?: CallOverrides): Promise<string>;
-
-    underlyingToken(overrides?: CallOverrides): Promise<string>;
-
-    updateQuotaRevenue(
-      quotaRevenueDelta: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    withdrawFee(overrides?: CallOverrides): Promise<number>;
-  };
+  DOMAIN_SEPARATOR: TypedContractMethod<[], [string], "view">;
+
+  addressProvider: TypedContractMethod<[], [string], "view">;
+
+  allowance: TypedContractMethod<
+    [owner: AddressLike, spender: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  approve: TypedContractMethod<
+    [spender: AddressLike, amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+
+  asset: TypedContractMethod<[], [string], "view">;
+
+  availableLiquidity: TypedContractMethod<[], [bigint], "view">;
+
+  balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
+
+  baseInterestIndex: TypedContractMethod<[], [bigint], "view">;
+
+  baseInterestIndexLU: TypedContractMethod<[], [bigint], "view">;
+
+  baseInterestRate: TypedContractMethod<[], [bigint], "view">;
+
+  convertToAssets: TypedContractMethod<
+    [shares: BigNumberish],
+    [bigint],
+    "view"
+  >;
+
+  convertToShares: TypedContractMethod<
+    [assets: BigNumberish],
+    [bigint],
+    "view"
+  >;
+
+  creditManagerBorrowable: TypedContractMethod<
+    [creditManager: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  creditManagerBorrowed: TypedContractMethod<
+    [creditManager: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  creditManagerDebtLimit: TypedContractMethod<
+    [creditManager: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  creditManagers: TypedContractMethod<[], [string[]], "view">;
+
+  decimals: TypedContractMethod<[], [bigint], "view">;
+
+  deposit: TypedContractMethod<
+    [assets: BigNumberish, receiver: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+
+  depositWithReferral: TypedContractMethod<
+    [assets: BigNumberish, receiver: AddressLike, referralCode: BigNumberish],
+    [bigint],
+    "nonpayable"
+  >;
+
+  expectedLiquidity: TypedContractMethod<[], [bigint], "view">;
+
+  expectedLiquidityLU: TypedContractMethod<[], [bigint], "view">;
+
+  interestRateModel: TypedContractMethod<[], [string], "view">;
+
+  lastBaseInterestUpdate: TypedContractMethod<[], [bigint], "view">;
+
+  lastQuotaRevenueUpdate: TypedContractMethod<[], [bigint], "view">;
+
+  lendCreditAccount: TypedContractMethod<
+    [borrowedAmount: BigNumberish, creditAccount: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  maxDeposit: TypedContractMethod<[receiver: AddressLike], [bigint], "view">;
+
+  maxMint: TypedContractMethod<[receiver: AddressLike], [bigint], "view">;
+
+  maxRedeem: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+
+  maxWithdraw: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+
+  mint: TypedContractMethod<
+    [shares: BigNumberish, receiver: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+
+  mintWithReferral: TypedContractMethod<
+    [shares: BigNumberish, receiver: AddressLike, referralCode: BigNumberish],
+    [bigint],
+    "nonpayable"
+  >;
+
+  name: TypedContractMethod<[], [string], "view">;
+
+  nonces: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+
+  permit: TypedContractMethod<
+    [
+      owner: AddressLike,
+      spender: AddressLike,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  poolQuotaKeeper: TypedContractMethod<[], [string], "view">;
+
+  previewDeposit: TypedContractMethod<[assets: BigNumberish], [bigint], "view">;
+
+  previewMint: TypedContractMethod<[shares: BigNumberish], [bigint], "view">;
+
+  previewRedeem: TypedContractMethod<[shares: BigNumberish], [bigint], "view">;
+
+  previewWithdraw: TypedContractMethod<
+    [assets: BigNumberish],
+    [bigint],
+    "view"
+  >;
+
+  quotaRevenue: TypedContractMethod<[], [bigint], "view">;
+
+  redeem: TypedContractMethod<
+    [shares: BigNumberish, receiver: AddressLike, owner: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+
+  repayCreditAccount: TypedContractMethod<
+    [repaidAmount: BigNumberish, profit: BigNumberish, loss: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setCreditManagerDebtLimit: TypedContractMethod<
+    [creditManager: AddressLike, newLimit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setInterestRateModel: TypedContractMethod<
+    [newInterestRateModel: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setPoolQuotaKeeper: TypedContractMethod<
+    [newPoolQuotaKeeper: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setQuotaRevenue: TypedContractMethod<
+    [newQuotaRevenue: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setTotalDebtLimit: TypedContractMethod<
+    [newLimit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setWithdrawFee: TypedContractMethod<
+    [newWithdrawFee: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  supplyRate: TypedContractMethod<[], [bigint], "view">;
+
+  symbol: TypedContractMethod<[], [string], "view">;
+
+  totalAssets: TypedContractMethod<[], [bigint], "view">;
+
+  totalBorrowed: TypedContractMethod<[], [bigint], "view">;
+
+  totalDebtLimit: TypedContractMethod<[], [bigint], "view">;
+
+  totalSupply: TypedContractMethod<[], [bigint], "view">;
+
+  transfer: TypedContractMethod<
+    [to: AddressLike, amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+
+  transferFrom: TypedContractMethod<
+    [from: AddressLike, to: AddressLike, amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+
+  treasury: TypedContractMethod<[], [string], "view">;
+
+  underlyingToken: TypedContractMethod<[], [string], "view">;
+
+  updateQuotaRevenue: TypedContractMethod<
+    [quotaRevenueDelta: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  withdraw: TypedContractMethod<
+    [assets: BigNumberish, receiver: AddressLike, owner: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+
+  withdrawFee: TypedContractMethod<[], [bigint], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "DOMAIN_SEPARATOR"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "allowance"
+  ): TypedContractMethod<
+    [owner: AddressLike, spender: AddressLike],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "approve"
+  ): TypedContractMethod<
+    [spender: AddressLike, amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "asset"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "availableLiquidity"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "balanceOf"
+  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "baseInterestIndex"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "baseInterestIndexLU"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "baseInterestRate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "convertToAssets"
+  ): TypedContractMethod<[shares: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "convertToShares"
+  ): TypedContractMethod<[assets: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "creditManagerBorrowable"
+  ): TypedContractMethod<[creditManager: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "creditManagerBorrowed"
+  ): TypedContractMethod<[creditManager: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "creditManagerDebtLimit"
+  ): TypedContractMethod<[creditManager: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "creditManagers"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "decimals"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "deposit"
+  ): TypedContractMethod<
+    [assets: BigNumberish, receiver: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "depositWithReferral"
+  ): TypedContractMethod<
+    [assets: BigNumberish, receiver: AddressLike, referralCode: BigNumberish],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "expectedLiquidity"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "expectedLiquidityLU"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "interestRateModel"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "lastBaseInterestUpdate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lastQuotaRevenueUpdate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lendCreditAccount"
+  ): TypedContractMethod<
+    [borrowedAmount: BigNumberish, creditAccount: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "maxDeposit"
+  ): TypedContractMethod<[receiver: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "maxMint"
+  ): TypedContractMethod<[receiver: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "maxRedeem"
+  ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "maxWithdraw"
+  ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "mint"
+  ): TypedContractMethod<
+    [shares: BigNumberish, receiver: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "mintWithReferral"
+  ): TypedContractMethod<
+    [shares: BigNumberish, receiver: AddressLike, referralCode: BigNumberish],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "name"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "nonces"
+  ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "permit"
+  ): TypedContractMethod<
+    [
+      owner: AddressLike,
+      spender: AddressLike,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "poolQuotaKeeper"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "previewDeposit"
+  ): TypedContractMethod<[assets: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "previewMint"
+  ): TypedContractMethod<[shares: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "previewRedeem"
+  ): TypedContractMethod<[shares: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "previewWithdraw"
+  ): TypedContractMethod<[assets: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "quotaRevenue"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "redeem"
+  ): TypedContractMethod<
+    [shares: BigNumberish, receiver: AddressLike, owner: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "repayCreditAccount"
+  ): TypedContractMethod<
+    [repaidAmount: BigNumberish, profit: BigNumberish, loss: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setCreditManagerDebtLimit"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, newLimit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setInterestRateModel"
+  ): TypedContractMethod<
+    [newInterestRateModel: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setPoolQuotaKeeper"
+  ): TypedContractMethod<
+    [newPoolQuotaKeeper: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setQuotaRevenue"
+  ): TypedContractMethod<[newQuotaRevenue: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setTotalDebtLimit"
+  ): TypedContractMethod<[newLimit: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setWithdrawFee"
+  ): TypedContractMethod<[newWithdrawFee: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "supplyRate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "symbol"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "totalAssets"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "totalBorrowed"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "totalDebtLimit"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "totalSupply"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "transfer"
+  ): TypedContractMethod<
+    [to: AddressLike, amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "transferFrom"
+  ): TypedContractMethod<
+    [from: AddressLike, to: AddressLike, amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "treasury"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "underlyingToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "updateQuotaRevenue"
+  ): TypedContractMethod<
+    [quotaRevenueDelta: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "withdraw"
+  ): TypedContractMethod<
+    [assets: BigNumberish, receiver: AddressLike, owner: AddressLike],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawFee"
+  ): TypedContractMethod<[], [bigint], "view">;
+
+  getEvent(
+    key: "AddCreditManager"
+  ): TypedContractEvent<
+    AddCreditManagerEvent.InputTuple,
+    AddCreditManagerEvent.OutputTuple,
+    AddCreditManagerEvent.OutputObject
+  >;
+  getEvent(
+    key: "Approval"
+  ): TypedContractEvent<
+    ApprovalEvent.InputTuple,
+    ApprovalEvent.OutputTuple,
+    ApprovalEvent.OutputObject
+  >;
+  getEvent(
+    key: "Borrow"
+  ): TypedContractEvent<
+    BorrowEvent.InputTuple,
+    BorrowEvent.OutputTuple,
+    BorrowEvent.OutputObject
+  >;
+  getEvent(
+    key: "Deposit"
+  ): TypedContractEvent<
+    DepositEvent.InputTuple,
+    DepositEvent.OutputTuple,
+    DepositEvent.OutputObject
+  >;
+  getEvent(
+    key: "IncurUncoveredLoss"
+  ): TypedContractEvent<
+    IncurUncoveredLossEvent.InputTuple,
+    IncurUncoveredLossEvent.OutputTuple,
+    IncurUncoveredLossEvent.OutputObject
+  >;
+  getEvent(
+    key: "Refer"
+  ): TypedContractEvent<
+    ReferEvent.InputTuple,
+    ReferEvent.OutputTuple,
+    ReferEvent.OutputObject
+  >;
+  getEvent(
+    key: "Repay"
+  ): TypedContractEvent<
+    RepayEvent.InputTuple,
+    RepayEvent.OutputTuple,
+    RepayEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetCreditManagerDebtLimit"
+  ): TypedContractEvent<
+    SetCreditManagerDebtLimitEvent.InputTuple,
+    SetCreditManagerDebtLimitEvent.OutputTuple,
+    SetCreditManagerDebtLimitEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetInterestRateModel"
+  ): TypedContractEvent<
+    SetInterestRateModelEvent.InputTuple,
+    SetInterestRateModelEvent.OutputTuple,
+    SetInterestRateModelEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetPoolQuotaKeeper"
+  ): TypedContractEvent<
+    SetPoolQuotaKeeperEvent.InputTuple,
+    SetPoolQuotaKeeperEvent.OutputTuple,
+    SetPoolQuotaKeeperEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetTotalDebtLimit"
+  ): TypedContractEvent<
+    SetTotalDebtLimitEvent.InputTuple,
+    SetTotalDebtLimitEvent.OutputTuple,
+    SetTotalDebtLimitEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetWithdrawFee"
+  ): TypedContractEvent<
+    SetWithdrawFeeEvent.InputTuple,
+    SetWithdrawFeeEvent.OutputTuple,
+    SetWithdrawFeeEvent.OutputObject
+  >;
+  getEvent(
+    key: "Transfer"
+  ): TypedContractEvent<
+    TransferEvent.InputTuple,
+    TransferEvent.OutputTuple,
+    TransferEvent.OutputObject
+  >;
+  getEvent(
+    key: "Withdraw"
+  ): TypedContractEvent<
+    WithdrawEvent.InputTuple,
+    WithdrawEvent.OutputTuple,
+    WithdrawEvent.OutputObject
+  >;
 
   filters: {
-    "AddCreditManager(address)"(
-      creditManager?: PromiseOrValue<string> | null
-    ): AddCreditManagerEventFilter;
-    AddCreditManager(
-      creditManager?: PromiseOrValue<string> | null
-    ): AddCreditManagerEventFilter;
-
-    "Approval(address,address,uint256)"(
-      owner?: PromiseOrValue<string> | null,
-      spender?: PromiseOrValue<string> | null,
-      value?: null
-    ): ApprovalEventFilter;
-    Approval(
-      owner?: PromiseOrValue<string> | null,
-      spender?: PromiseOrValue<string> | null,
-      value?: null
-    ): ApprovalEventFilter;
-
-    "Borrow(address,address,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      amount?: null
-    ): BorrowEventFilter;
-    Borrow(
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      amount?: null
-    ): BorrowEventFilter;
-
-    "Deposit(address,address,uint256,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
-      assets?: null,
-      shares?: null
-    ): DepositEventFilter;
-    Deposit(
-      sender?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
-      assets?: null,
-      shares?: null
-    ): DepositEventFilter;
-
-    "IncurUncoveredLoss(address,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      loss?: null
-    ): IncurUncoveredLossEventFilter;
-    IncurUncoveredLoss(
-      creditManager?: PromiseOrValue<string> | null,
-      loss?: null
-    ): IncurUncoveredLossEventFilter;
-
-    "Refer(address,uint256,uint256)"(
-      onBehalfOf?: PromiseOrValue<string> | null,
-      referralCode?: PromiseOrValue<BigNumberish> | null,
-      amount?: null
-    ): ReferEventFilter;
-    Refer(
-      onBehalfOf?: PromiseOrValue<string> | null,
-      referralCode?: PromiseOrValue<BigNumberish> | null,
-      amount?: null
-    ): ReferEventFilter;
-
-    "Repay(address,uint256,uint256,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      borrowedAmount?: null,
-      profit?: null,
-      loss?: null
-    ): RepayEventFilter;
-    Repay(
-      creditManager?: PromiseOrValue<string> | null,
-      borrowedAmount?: null,
-      profit?: null,
-      loss?: null
-    ): RepayEventFilter;
-
-    "SetCreditManagerDebtLimit(address,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      newLimit?: null
-    ): SetCreditManagerDebtLimitEventFilter;
-    SetCreditManagerDebtLimit(
-      creditManager?: PromiseOrValue<string> | null,
-      newLimit?: null
-    ): SetCreditManagerDebtLimitEventFilter;
-
-    "SetInterestRateModel(address)"(
-      newInterestRateModel?: PromiseOrValue<string> | null
-    ): SetInterestRateModelEventFilter;
-    SetInterestRateModel(
-      newInterestRateModel?: PromiseOrValue<string> | null
-    ): SetInterestRateModelEventFilter;
-
-    "SetPoolQuotaKeeper(address)"(
-      newPoolQuotaKeeper?: PromiseOrValue<string> | null
-    ): SetPoolQuotaKeeperEventFilter;
-    SetPoolQuotaKeeper(
-      newPoolQuotaKeeper?: PromiseOrValue<string> | null
-    ): SetPoolQuotaKeeperEventFilter;
-
-    "SetTotalDebtLimit(uint256)"(limit?: null): SetTotalDebtLimitEventFilter;
-    SetTotalDebtLimit(limit?: null): SetTotalDebtLimitEventFilter;
-
-    "SetWithdrawFee(uint256)"(fee?: null): SetWithdrawFeeEventFilter;
-    SetWithdrawFee(fee?: null): SetWithdrawFeeEventFilter;
-
-    "Transfer(address,address,uint256)"(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      value?: null
-    ): TransferEventFilter;
-    Transfer(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      value?: null
-    ): TransferEventFilter;
-
-    "Withdraw(address,address,address,uint256,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
-      assets?: null,
-      shares?: null
-    ): WithdrawEventFilter;
-    Withdraw(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
-      assets?: null,
-      shares?: null
-    ): WithdrawEventFilter;
-  };
-
-  estimateGas: {
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    approve(
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    asset(overrides?: CallOverrides): Promise<BigNumber>;
-
-    availableLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
-
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    baseInterestIndex(overrides?: CallOverrides): Promise<BigNumber>;
-
-    baseInterestIndexLU(overrides?: CallOverrides): Promise<BigNumber>;
-
-    baseInterestRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManagerBorrowable(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManagerBorrowed(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManagers(overrides?: CallOverrides): Promise<BigNumber>;
-
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-    deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    depositWithReferral(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    expectedLiquidity(overrides?: CallOverrides): Promise<BigNumber>;
-
-    expectedLiquidityLU(overrides?: CallOverrides): Promise<BigNumber>;
-
-    interestRateModel(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastBaseInterestUpdate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastQuotaRevenueUpdate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lendCreditAccount(
-      borrowedAmount: PromiseOrValue<BigNumberish>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    maxDeposit(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maxMint(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    mintWithReferral(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    name(overrides?: CallOverrides): Promise<BigNumber>;
-
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    permit(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      value: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    poolQuotaKeeper(overrides?: CallOverrides): Promise<BigNumber>;
-
-    previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    previewMint(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    quotaRevenue(overrides?: CallOverrides): Promise<BigNumber>;
-
-    redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    repayCreditAccount(
-      repaidAmount: PromiseOrValue<BigNumberish>,
-      profit: PromiseOrValue<BigNumberish>,
-      loss: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setCreditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setInterestRateModel(
-      newInterestRateModel: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setPoolQuotaKeeper(
-      newPoolQuotaKeeper: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setQuotaRevenue(
-      newQuotaRevenue: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setTotalDebtLimit(
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setWithdrawFee(
-      newWithdrawFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    supplyRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    symbol(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalAssets(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalBorrowed(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalDebtLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    treasury(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateQuotaRevenue(
-      quotaRevenueDelta: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawFee(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    approve(
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    asset(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    availableLiquidity(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    baseInterestIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    baseInterestIndexLU(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    baseInterestRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    creditManagerBorrowable(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    creditManagerBorrowed(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    creditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    creditManagers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    depositWithReferral(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    expectedLiquidity(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    expectedLiquidityLU(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    interestRateModel(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    lastBaseInterestUpdate(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    lastQuotaRevenueUpdate(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    lendCreditAccount(
-      borrowedAmount: PromiseOrValue<BigNumberish>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    maxDeposit(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    maxMint(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    mintWithReferral(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    permit(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      value: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    poolQuotaKeeper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    previewMint(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    quotaRevenue(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    repayCreditAccount(
-      repaidAmount: PromiseOrValue<BigNumberish>,
-      profit: PromiseOrValue<BigNumberish>,
-      loss: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setCreditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setInterestRateModel(
-      newInterestRateModel: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setPoolQuotaKeeper(
-      newPoolQuotaKeeper: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setQuotaRevenue(
-      newQuotaRevenue: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTotalDebtLimit(
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setWithdrawFee(
-      newWithdrawFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    supplyRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalAssets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalBorrowed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalDebtLimit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    treasury(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlyingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updateQuotaRevenue(
-      quotaRevenueDelta: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "AddCreditManager(address)": TypedContractEvent<
+      AddCreditManagerEvent.InputTuple,
+      AddCreditManagerEvent.OutputTuple,
+      AddCreditManagerEvent.OutputObject
+    >;
+    AddCreditManager: TypedContractEvent<
+      AddCreditManagerEvent.InputTuple,
+      AddCreditManagerEvent.OutputTuple,
+      AddCreditManagerEvent.OutputObject
+    >;
+
+    "Approval(address,address,uint256)": TypedContractEvent<
+      ApprovalEvent.InputTuple,
+      ApprovalEvent.OutputTuple,
+      ApprovalEvent.OutputObject
+    >;
+    Approval: TypedContractEvent<
+      ApprovalEvent.InputTuple,
+      ApprovalEvent.OutputTuple,
+      ApprovalEvent.OutputObject
+    >;
+
+    "Borrow(address,address,uint256)": TypedContractEvent<
+      BorrowEvent.InputTuple,
+      BorrowEvent.OutputTuple,
+      BorrowEvent.OutputObject
+    >;
+    Borrow: TypedContractEvent<
+      BorrowEvent.InputTuple,
+      BorrowEvent.OutputTuple,
+      BorrowEvent.OutputObject
+    >;
+
+    "Deposit(address,address,uint256,uint256)": TypedContractEvent<
+      DepositEvent.InputTuple,
+      DepositEvent.OutputTuple,
+      DepositEvent.OutputObject
+    >;
+    Deposit: TypedContractEvent<
+      DepositEvent.InputTuple,
+      DepositEvent.OutputTuple,
+      DepositEvent.OutputObject
+    >;
+
+    "IncurUncoveredLoss(address,uint256)": TypedContractEvent<
+      IncurUncoveredLossEvent.InputTuple,
+      IncurUncoveredLossEvent.OutputTuple,
+      IncurUncoveredLossEvent.OutputObject
+    >;
+    IncurUncoveredLoss: TypedContractEvent<
+      IncurUncoveredLossEvent.InputTuple,
+      IncurUncoveredLossEvent.OutputTuple,
+      IncurUncoveredLossEvent.OutputObject
+    >;
+
+    "Refer(address,uint256,uint256)": TypedContractEvent<
+      ReferEvent.InputTuple,
+      ReferEvent.OutputTuple,
+      ReferEvent.OutputObject
+    >;
+    Refer: TypedContractEvent<
+      ReferEvent.InputTuple,
+      ReferEvent.OutputTuple,
+      ReferEvent.OutputObject
+    >;
+
+    "Repay(address,uint256,uint256,uint256)": TypedContractEvent<
+      RepayEvent.InputTuple,
+      RepayEvent.OutputTuple,
+      RepayEvent.OutputObject
+    >;
+    Repay: TypedContractEvent<
+      RepayEvent.InputTuple,
+      RepayEvent.OutputTuple,
+      RepayEvent.OutputObject
+    >;
+
+    "SetCreditManagerDebtLimit(address,uint256)": TypedContractEvent<
+      SetCreditManagerDebtLimitEvent.InputTuple,
+      SetCreditManagerDebtLimitEvent.OutputTuple,
+      SetCreditManagerDebtLimitEvent.OutputObject
+    >;
+    SetCreditManagerDebtLimit: TypedContractEvent<
+      SetCreditManagerDebtLimitEvent.InputTuple,
+      SetCreditManagerDebtLimitEvent.OutputTuple,
+      SetCreditManagerDebtLimitEvent.OutputObject
+    >;
+
+    "SetInterestRateModel(address)": TypedContractEvent<
+      SetInterestRateModelEvent.InputTuple,
+      SetInterestRateModelEvent.OutputTuple,
+      SetInterestRateModelEvent.OutputObject
+    >;
+    SetInterestRateModel: TypedContractEvent<
+      SetInterestRateModelEvent.InputTuple,
+      SetInterestRateModelEvent.OutputTuple,
+      SetInterestRateModelEvent.OutputObject
+    >;
+
+    "SetPoolQuotaKeeper(address)": TypedContractEvent<
+      SetPoolQuotaKeeperEvent.InputTuple,
+      SetPoolQuotaKeeperEvent.OutputTuple,
+      SetPoolQuotaKeeperEvent.OutputObject
+    >;
+    SetPoolQuotaKeeper: TypedContractEvent<
+      SetPoolQuotaKeeperEvent.InputTuple,
+      SetPoolQuotaKeeperEvent.OutputTuple,
+      SetPoolQuotaKeeperEvent.OutputObject
+    >;
+
+    "SetTotalDebtLimit(uint256)": TypedContractEvent<
+      SetTotalDebtLimitEvent.InputTuple,
+      SetTotalDebtLimitEvent.OutputTuple,
+      SetTotalDebtLimitEvent.OutputObject
+    >;
+    SetTotalDebtLimit: TypedContractEvent<
+      SetTotalDebtLimitEvent.InputTuple,
+      SetTotalDebtLimitEvent.OutputTuple,
+      SetTotalDebtLimitEvent.OutputObject
+    >;
+
+    "SetWithdrawFee(uint256)": TypedContractEvent<
+      SetWithdrawFeeEvent.InputTuple,
+      SetWithdrawFeeEvent.OutputTuple,
+      SetWithdrawFeeEvent.OutputObject
+    >;
+    SetWithdrawFee: TypedContractEvent<
+      SetWithdrawFeeEvent.InputTuple,
+      SetWithdrawFeeEvent.OutputTuple,
+      SetWithdrawFeeEvent.OutputObject
+    >;
+
+    "Transfer(address,address,uint256)": TypedContractEvent<
+      TransferEvent.InputTuple,
+      TransferEvent.OutputTuple,
+      TransferEvent.OutputObject
+    >;
+    Transfer: TypedContractEvent<
+      TransferEvent.InputTuple,
+      TransferEvent.OutputTuple,
+      TransferEvent.OutputObject
+    >;
+
+    "Withdraw(address,address,address,uint256,uint256)": TypedContractEvent<
+      WithdrawEvent.InputTuple,
+      WithdrawEvent.OutputTuple,
+      WithdrawEvent.OutputObject
+    >;
+    Withdraw: TypedContractEvent<
+      WithdrawEvent.InputTuple,
+      WithdrawEvent.OutputTuple,
+      WithdrawEvent.OutputObject
+    >;
   };
 }

@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type { IVersion, IVersionInterface } from "../IVersion";
 
 const _abi = [
@@ -25,12 +24,9 @@ const _abi = [
 export class IVersion__factory {
   static readonly abi = _abi;
   static createInterface(): IVersionInterface {
-    return new utils.Interface(_abi) as IVersionInterface;
+    return new Interface(_abi) as IVersionInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IVersion {
-    return new Contract(address, _abi, signerOrProvider) as IVersion;
+  static connect(address: string, runner?: ContractRunner | null): IVersion {
+    return new Contract(address, _abi, runner) as unknown as IVersion;
   }
 }

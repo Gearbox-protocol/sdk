@@ -3,72 +3,36 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PayableOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export type MultiCallStruct = {
-  target: PromiseOrValue<string>;
-  callData: PromiseOrValue<BytesLike>;
-};
+export type MultiCallStruct = { target: AddressLike; callData: BytesLike };
 
-export type MultiCallStructOutput = [string, string] & {
+export type MultiCallStructOutput = [target: string, callData: string] & {
   target: string;
   callData: string;
 };
 
-export interface ICreditFacadeV3Interface extends utils.Interface {
-  functions: {
-    "botList()": FunctionFragment;
-    "botMulticall(address,(address,bytes)[])": FunctionFragment;
-    "canLiquidateWhilePaused(address)": FunctionFragment;
-    "closeCreditAccount(address,(address,bytes)[])": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "debtLimits()": FunctionFragment;
-    "degenNFT()": FunctionFragment;
-    "expirable()": FunctionFragment;
-    "expirationDate()": FunctionFragment;
-    "forbiddenTokenMask()": FunctionFragment;
-    "liquidateCreditAccount(address,address,(address,bytes)[])": FunctionFragment;
-    "lossParams()": FunctionFragment;
-    "maxDebtPerBlockMultiplier()": FunctionFragment;
-    "maxQuotaMultiplier()": FunctionFragment;
-    "multicall(address,(address,bytes)[])": FunctionFragment;
-    "openCreditAccount(address,(address,bytes)[],uint256)": FunctionFragment;
-    "setBotList(address)": FunctionFragment;
-    "setBotPermissions(address,address,uint192)": FunctionFragment;
-    "setCumulativeLossParams(uint128,bool)": FunctionFragment;
-    "setDebtLimits(uint128,uint128,uint8)": FunctionFragment;
-    "setEmergencyLiquidator(address,uint8)": FunctionFragment;
-    "setExpirationDate(uint40)": FunctionFragment;
-    "setTokenAllowance(address,uint8)": FunctionFragment;
-    "version()": FunctionFragment;
-    "weth()": FunctionFragment;
-  };
-
+export interface ICreditFacadeV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "botList"
       | "botMulticall"
       | "canLiquidateWhilePaused"
@@ -96,18 +60,32 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
       | "weth"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "AddCollateral"
+      | "CloseCreditAccount"
+      | "DecreaseDebt"
+      | "Execute"
+      | "FinishMultiCall"
+      | "IncreaseDebt"
+      | "LiquidateCreditAccount"
+      | "OpenCreditAccount"
+      | "StartMultiCall"
+      | "WithdrawCollateral"
+  ): EventFragment;
+
   encodeFunctionData(functionFragment: "botList", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "botMulticall",
-    values: [PromiseOrValue<string>, MultiCallStruct[]]
+    values: [AddressLike, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "canLiquidateWhilePaused",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "closeCreditAccount",
-    values: [PromiseOrValue<string>, MultiCallStruct[]]
+    values: [AddressLike, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
@@ -129,7 +107,7 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>, MultiCallStruct[]]
+    values: [AddressLike, AddressLike, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "lossParams",
@@ -145,51 +123,39 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "multicall",
-    values: [PromiseOrValue<string>, MultiCallStruct[]]
+    values: [AddressLike, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount",
-    values: [
-      PromiseOrValue<string>,
-      MultiCallStruct[],
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, MultiCallStruct[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setBotList",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setBotPermissions",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setCumulativeLossParams",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setDebtLimits",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setEmergencyLiquidator",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setExpirationDate",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTokenAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(functionFragment: "weth", values?: undefined): string;
@@ -267,829 +233,674 @@ export interface ICreditFacadeV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
-
-  events: {
-    "AddCollateral(address,address,uint256)": EventFragment;
-    "CloseCreditAccount(address,address)": EventFragment;
-    "DecreaseDebt(address,uint256)": EventFragment;
-    "Execute(address,address)": EventFragment;
-    "FinishMultiCall()": EventFragment;
-    "IncreaseDebt(address,uint256)": EventFragment;
-    "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
-    "OpenCreditAccount(address,address,address,uint256)": EventFragment;
-    "StartMultiCall(address,address)": EventFragment;
-    "WithdrawCollateral(address,address,uint256,address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AddCollateral"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CloseCreditAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "DecreaseDebt"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Execute"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "FinishMultiCall"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "IncreaseDebt"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "StartMultiCall"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "WithdrawCollateral"): EventFragment;
 }
 
-export interface AddCollateralEventObject {
-  creditAccount: string;
-  token: string;
-  amount: BigNumber;
+export namespace AddCollateralEvent {
+  export type InputTuple = [
+    creditAccount: AddressLike,
+    token: AddressLike,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditAccount: string,
+    token: string,
+    amount: bigint
+  ];
+  export interface OutputObject {
+    creditAccount: string;
+    token: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddCollateralEvent = TypedEvent<
-  [string, string, BigNumber],
-  AddCollateralEventObject
->;
 
-export type AddCollateralEventFilter = TypedEventFilter<AddCollateralEvent>;
-
-export interface CloseCreditAccountEventObject {
-  creditAccount: string;
-  borrower: string;
+export namespace CloseCreditAccountEvent {
+  export type InputTuple = [creditAccount: AddressLike, borrower: AddressLike];
+  export type OutputTuple = [creditAccount: string, borrower: string];
+  export interface OutputObject {
+    creditAccount: string;
+    borrower: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type CloseCreditAccountEvent = TypedEvent<
-  [string, string],
-  CloseCreditAccountEventObject
->;
 
-export type CloseCreditAccountEventFilter =
-  TypedEventFilter<CloseCreditAccountEvent>;
-
-export interface DecreaseDebtEventObject {
-  creditAccount: string;
-  amount: BigNumber;
+export namespace DecreaseDebtEvent {
+  export type InputTuple = [creditAccount: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [creditAccount: string, amount: bigint];
+  export interface OutputObject {
+    creditAccount: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type DecreaseDebtEvent = TypedEvent<
-  [string, BigNumber],
-  DecreaseDebtEventObject
->;
 
-export type DecreaseDebtEventFilter = TypedEventFilter<DecreaseDebtEvent>;
-
-export interface ExecuteEventObject {
-  creditAccount: string;
-  targetContract: string;
+export namespace ExecuteEvent {
+  export type InputTuple = [
+    creditAccount: AddressLike,
+    targetContract: AddressLike
+  ];
+  export type OutputTuple = [creditAccount: string, targetContract: string];
+  export interface OutputObject {
+    creditAccount: string;
+    targetContract: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ExecuteEvent = TypedEvent<[string, string], ExecuteEventObject>;
 
-export type ExecuteEventFilter = TypedEventFilter<ExecuteEvent>;
-
-export interface FinishMultiCallEventObject {}
-export type FinishMultiCallEvent = TypedEvent<[], FinishMultiCallEventObject>;
-
-export type FinishMultiCallEventFilter = TypedEventFilter<FinishMultiCallEvent>;
-
-export interface IncreaseDebtEventObject {
-  creditAccount: string;
-  amount: BigNumber;
+export namespace FinishMultiCallEvent {
+  export type InputTuple = [];
+  export type OutputTuple = [];
+  export interface OutputObject {}
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type IncreaseDebtEvent = TypedEvent<
-  [string, BigNumber],
-  IncreaseDebtEventObject
->;
 
-export type IncreaseDebtEventFilter = TypedEventFilter<IncreaseDebtEvent>;
-
-export interface LiquidateCreditAccountEventObject {
-  creditAccount: string;
-  liquidator: string;
-  to: string;
-  remainingFunds: BigNumber;
+export namespace IncreaseDebtEvent {
+  export type InputTuple = [creditAccount: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [creditAccount: string, amount: bigint];
+  export interface OutputObject {
+    creditAccount: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type LiquidateCreditAccountEvent = TypedEvent<
-  [string, string, string, BigNumber],
-  LiquidateCreditAccountEventObject
->;
 
-export type LiquidateCreditAccountEventFilter =
-  TypedEventFilter<LiquidateCreditAccountEvent>;
-
-export interface OpenCreditAccountEventObject {
-  creditAccount: string;
-  onBehalfOf: string;
-  caller: string;
-  referralCode: BigNumber;
+export namespace LiquidateCreditAccountEvent {
+  export type InputTuple = [
+    creditAccount: AddressLike,
+    liquidator: AddressLike,
+    to: AddressLike,
+    remainingFunds: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditAccount: string,
+    liquidator: string,
+    to: string,
+    remainingFunds: bigint
+  ];
+  export interface OutputObject {
+    creditAccount: string;
+    liquidator: string;
+    to: string;
+    remainingFunds: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type OpenCreditAccountEvent = TypedEvent<
-  [string, string, string, BigNumber],
-  OpenCreditAccountEventObject
->;
 
-export type OpenCreditAccountEventFilter =
-  TypedEventFilter<OpenCreditAccountEvent>;
-
-export interface StartMultiCallEventObject {
-  creditAccount: string;
-  caller: string;
+export namespace OpenCreditAccountEvent {
+  export type InputTuple = [
+    creditAccount: AddressLike,
+    onBehalfOf: AddressLike,
+    caller: AddressLike,
+    referralCode: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditAccount: string,
+    onBehalfOf: string,
+    caller: string,
+    referralCode: bigint
+  ];
+  export interface OutputObject {
+    creditAccount: string;
+    onBehalfOf: string;
+    caller: string;
+    referralCode: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type StartMultiCallEvent = TypedEvent<
-  [string, string],
-  StartMultiCallEventObject
->;
 
-export type StartMultiCallEventFilter = TypedEventFilter<StartMultiCallEvent>;
-
-export interface WithdrawCollateralEventObject {
-  creditAccount: string;
-  token: string;
-  amount: BigNumber;
-  to: string;
+export namespace StartMultiCallEvent {
+  export type InputTuple = [creditAccount: AddressLike, caller: AddressLike];
+  export type OutputTuple = [creditAccount: string, caller: string];
+  export interface OutputObject {
+    creditAccount: string;
+    caller: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type WithdrawCollateralEvent = TypedEvent<
-  [string, string, BigNumber, string],
-  WithdrawCollateralEventObject
->;
 
-export type WithdrawCollateralEventFilter =
-  TypedEventFilter<WithdrawCollateralEvent>;
+export namespace WithdrawCollateralEvent {
+  export type InputTuple = [
+    creditAccount: AddressLike,
+    token: AddressLike,
+    amount: BigNumberish,
+    to: AddressLike
+  ];
+  export type OutputTuple = [
+    creditAccount: string,
+    token: string,
+    amount: bigint,
+    to: string
+  ];
+  export interface OutputObject {
+    creditAccount: string;
+    token: string;
+    amount: bigint;
+    to: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
 
 export interface ICreditFacadeV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ICreditFacadeV3;
+  waitForDeployment(): Promise<this>;
 
   interface: ICreditFacadeV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    botList(overrides?: CallOverrides): Promise<[string]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    botMulticall(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    canLiquidateWhilePaused(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  botList: TypedContractMethod<[], [string], "view">;
 
-    closeCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
-
-    debtLimits(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { minDebt: BigNumber; maxDebt: BigNumber }
-    >;
-
-    degenNFT(overrides?: CallOverrides): Promise<[string]>;
-
-    expirable(overrides?: CallOverrides): Promise<[boolean]>;
-
-    expirationDate(overrides?: CallOverrides): Promise<[number]>;
-
-    forbiddenTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    liquidateCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    lossParams(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        currentCumulativeLoss: BigNumber;
-        maxCumulativeLoss: BigNumber;
-      }
-    >;
-
-    maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<[number]>;
-
-    maxQuotaMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    multicall(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    openCreditAccount(
-      onBehalfOf: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setBotList(
-      newBotList: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setBotPermissions(
-      creditAccount: PromiseOrValue<string>,
-      bot: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setCumulativeLossParams(
-      newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
-      resetCumulativeLoss: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setDebtLimits(
-      newMinDebt: PromiseOrValue<BigNumberish>,
-      newMaxDebt: PromiseOrValue<BigNumberish>,
-      newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      allowance: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setExpirationDate(
-      newExpirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setTokenAllowance(
-      token: PromiseOrValue<string>,
-      allowance: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    weth(overrides?: CallOverrides): Promise<[string]>;
-  };
-
-  botList(overrides?: CallOverrides): Promise<string>;
-
-  botMulticall(
-    creditAccount: PromiseOrValue<string>,
-    calls: MultiCallStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  canLiquidateWhilePaused(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  closeCreditAccount(
-    creditAccount: PromiseOrValue<string>,
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  creditManager(overrides?: CallOverrides): Promise<string>;
-
-  debtLimits(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & { minDebt: BigNumber; maxDebt: BigNumber }
+  botMulticall: TypedContractMethod<
+    [creditAccount: AddressLike, calls: MultiCallStruct[]],
+    [void],
+    "nonpayable"
   >;
 
-  degenNFT(overrides?: CallOverrides): Promise<string>;
-
-  expirable(overrides?: CallOverrides): Promise<boolean>;
-
-  expirationDate(overrides?: CallOverrides): Promise<number>;
-
-  forbiddenTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  liquidateCreditAccount(
-    creditAccount: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    calls: MultiCallStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  lossParams(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & {
-      currentCumulativeLoss: BigNumber;
-      maxCumulativeLoss: BigNumber;
-    }
+  canLiquidateWhilePaused: TypedContractMethod<
+    [arg0: AddressLike],
+    [boolean],
+    "view"
   >;
 
-  maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<number>;
+  closeCreditAccount: TypedContractMethod<
+    [creditAccount: AddressLike, calls: MultiCallStruct[]],
+    [void],
+    "payable"
+  >;
 
-  maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
+  creditManager: TypedContractMethod<[], [string], "view">;
 
-  multicall(
-    creditAccount: PromiseOrValue<string>,
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  debtLimits: TypedContractMethod<
+    [],
+    [[bigint, bigint] & { minDebt: bigint; maxDebt: bigint }],
+    "view"
+  >;
 
-  openCreditAccount(
-    onBehalfOf: PromiseOrValue<string>,
-    calls: MultiCallStruct[],
-    referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  degenNFT: TypedContractMethod<[], [string], "view">;
 
-  setBotList(
-    newBotList: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  expirable: TypedContractMethod<[], [boolean], "view">;
 
-  setBotPermissions(
-    creditAccount: PromiseOrValue<string>,
-    bot: PromiseOrValue<string>,
-    permissions: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  expirationDate: TypedContractMethod<[], [bigint], "view">;
 
-  setCumulativeLossParams(
-    newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
-    resetCumulativeLoss: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  forbiddenTokenMask: TypedContractMethod<[], [bigint], "view">;
 
-  setDebtLimits(
-    newMinDebt: PromiseOrValue<BigNumberish>,
-    newMaxDebt: PromiseOrValue<BigNumberish>,
-    newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  liquidateCreditAccount: TypedContractMethod<
+    [creditAccount: AddressLike, to: AddressLike, calls: MultiCallStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-  setEmergencyLiquidator(
-    liquidator: PromiseOrValue<string>,
-    allowance: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setExpirationDate(
-    newExpirationDate: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setTokenAllowance(
-    token: PromiseOrValue<string>,
-    allowance: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  weth(overrides?: CallOverrides): Promise<string>;
-
-  callStatic: {
-    botList(overrides?: CallOverrides): Promise<string>;
-
-    botMulticall(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    canLiquidateWhilePaused(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    closeCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    debtLimits(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { minDebt: BigNumber; maxDebt: BigNumber }
-    >;
-
-    degenNFT(overrides?: CallOverrides): Promise<string>;
-
-    expirable(overrides?: CallOverrides): Promise<boolean>;
-
-    expirationDate(overrides?: CallOverrides): Promise<number>;
-
-    forbiddenTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    liquidateCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    lossParams(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        currentCumulativeLoss: BigNumber;
-        maxCumulativeLoss: BigNumber;
+  lossParams: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint] & {
+        currentCumulativeLoss: bigint;
+        maxCumulativeLoss: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<number>;
+  maxDebtPerBlockMultiplier: TypedContractMethod<[], [bigint], "view">;
 
-    maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
+  maxQuotaMultiplier: TypedContractMethod<[], [bigint], "view">;
 
-    multicall(
-      creditAccount: PromiseOrValue<string>,
+  multicall: TypedContractMethod<
+    [creditAccount: AddressLike, calls: MultiCallStruct[]],
+    [void],
+    "payable"
+  >;
+
+  openCreditAccount: TypedContractMethod<
+    [
+      onBehalfOf: AddressLike,
       calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+      referralCode: BigNumberish
+    ],
+    [string],
+    "payable"
+  >;
 
-    openCreditAccount(
-      onBehalfOf: PromiseOrValue<string>,
+  setBotList: TypedContractMethod<
+    [newBotList: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setBotPermissions: TypedContractMethod<
+    [creditAccount: AddressLike, bot: AddressLike, permissions: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setCumulativeLossParams: TypedContractMethod<
+    [newMaxCumulativeLoss: BigNumberish, resetCumulativeLoss: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  setDebtLimits: TypedContractMethod<
+    [
+      newMinDebt: BigNumberish,
+      newMaxDebt: BigNumberish,
+      newMaxDebtPerBlockMultiplier: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  setEmergencyLiquidator: TypedContractMethod<
+    [liquidator: AddressLike, allowance: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setExpirationDate: TypedContractMethod<
+    [newExpirationDate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setTokenAllowance: TypedContractMethod<
+    [token: AddressLike, allowance: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  weth: TypedContractMethod<[], [string], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "botList"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "botMulticall"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, calls: MultiCallStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "canLiquidateWhilePaused"
+  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "closeCreditAccount"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, calls: MultiCallStruct[]],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "debtLimits"
+  ): TypedContractMethod<
+    [],
+    [[bigint, bigint] & { minDebt: bigint; maxDebt: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "degenNFT"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "expirable"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "expirationDate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "forbiddenTokenMask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "liquidateCreditAccount"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, to: AddressLike, calls: MultiCallStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "lossParams"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint] & {
+        currentCumulativeLoss: bigint;
+        maxCumulativeLoss: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "maxDebtPerBlockMultiplier"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "maxQuotaMultiplier"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "multicall"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, calls: MultiCallStruct[]],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "openCreditAccount"
+  ): TypedContractMethod<
+    [
+      onBehalfOf: AddressLike,
       calls: MultiCallStruct[],
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+      referralCode: BigNumberish
+    ],
+    [string],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "setBotList"
+  ): TypedContractMethod<[newBotList: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setBotPermissions"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, bot: AddressLike, permissions: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setCumulativeLossParams"
+  ): TypedContractMethod<
+    [newMaxCumulativeLoss: BigNumberish, resetCumulativeLoss: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setDebtLimits"
+  ): TypedContractMethod<
+    [
+      newMinDebt: BigNumberish,
+      newMaxDebt: BigNumberish,
+      newMaxDebtPerBlockMultiplier: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setEmergencyLiquidator"
+  ): TypedContractMethod<
+    [liquidator: AddressLike, allowance: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setExpirationDate"
+  ): TypedContractMethod<
+    [newExpirationDate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setTokenAllowance"
+  ): TypedContractMethod<
+    [token: AddressLike, allowance: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "weth"
+  ): TypedContractMethod<[], [string], "view">;
 
-    setBotList(
-      newBotList: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setBotPermissions(
-      creditAccount: PromiseOrValue<string>,
-      bot: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setCumulativeLossParams(
-      newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
-      resetCumulativeLoss: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setDebtLimits(
-      newMinDebt: PromiseOrValue<BigNumberish>,
-      newMaxDebt: PromiseOrValue<BigNumberish>,
-      newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      allowance: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setExpirationDate(
-      newExpirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setTokenAllowance(
-      token: PromiseOrValue<string>,
-      allowance: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    weth(overrides?: CallOverrides): Promise<string>;
-  };
+  getEvent(
+    key: "AddCollateral"
+  ): TypedContractEvent<
+    AddCollateralEvent.InputTuple,
+    AddCollateralEvent.OutputTuple,
+    AddCollateralEvent.OutputObject
+  >;
+  getEvent(
+    key: "CloseCreditAccount"
+  ): TypedContractEvent<
+    CloseCreditAccountEvent.InputTuple,
+    CloseCreditAccountEvent.OutputTuple,
+    CloseCreditAccountEvent.OutputObject
+  >;
+  getEvent(
+    key: "DecreaseDebt"
+  ): TypedContractEvent<
+    DecreaseDebtEvent.InputTuple,
+    DecreaseDebtEvent.OutputTuple,
+    DecreaseDebtEvent.OutputObject
+  >;
+  getEvent(
+    key: "Execute"
+  ): TypedContractEvent<
+    ExecuteEvent.InputTuple,
+    ExecuteEvent.OutputTuple,
+    ExecuteEvent.OutputObject
+  >;
+  getEvent(
+    key: "FinishMultiCall"
+  ): TypedContractEvent<
+    FinishMultiCallEvent.InputTuple,
+    FinishMultiCallEvent.OutputTuple,
+    FinishMultiCallEvent.OutputObject
+  >;
+  getEvent(
+    key: "IncreaseDebt"
+  ): TypedContractEvent<
+    IncreaseDebtEvent.InputTuple,
+    IncreaseDebtEvent.OutputTuple,
+    IncreaseDebtEvent.OutputObject
+  >;
+  getEvent(
+    key: "LiquidateCreditAccount"
+  ): TypedContractEvent<
+    LiquidateCreditAccountEvent.InputTuple,
+    LiquidateCreditAccountEvent.OutputTuple,
+    LiquidateCreditAccountEvent.OutputObject
+  >;
+  getEvent(
+    key: "OpenCreditAccount"
+  ): TypedContractEvent<
+    OpenCreditAccountEvent.InputTuple,
+    OpenCreditAccountEvent.OutputTuple,
+    OpenCreditAccountEvent.OutputObject
+  >;
+  getEvent(
+    key: "StartMultiCall"
+  ): TypedContractEvent<
+    StartMultiCallEvent.InputTuple,
+    StartMultiCallEvent.OutputTuple,
+    StartMultiCallEvent.OutputObject
+  >;
+  getEvent(
+    key: "WithdrawCollateral"
+  ): TypedContractEvent<
+    WithdrawCollateralEvent.InputTuple,
+    WithdrawCollateralEvent.OutputTuple,
+    WithdrawCollateralEvent.OutputObject
+  >;
 
   filters: {
-    "AddCollateral(address,address,uint256)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      amount?: null
-    ): AddCollateralEventFilter;
-    AddCollateral(
-      creditAccount?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      amount?: null
-    ): AddCollateralEventFilter;
+    "AddCollateral(address,address,uint256)": TypedContractEvent<
+      AddCollateralEvent.InputTuple,
+      AddCollateralEvent.OutputTuple,
+      AddCollateralEvent.OutputObject
+    >;
+    AddCollateral: TypedContractEvent<
+      AddCollateralEvent.InputTuple,
+      AddCollateralEvent.OutputTuple,
+      AddCollateralEvent.OutputObject
+    >;
 
-    "CloseCreditAccount(address,address)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null
-    ): CloseCreditAccountEventFilter;
-    CloseCreditAccount(
-      creditAccount?: PromiseOrValue<string> | null,
-      borrower?: PromiseOrValue<string> | null
-    ): CloseCreditAccountEventFilter;
+    "CloseCreditAccount(address,address)": TypedContractEvent<
+      CloseCreditAccountEvent.InputTuple,
+      CloseCreditAccountEvent.OutputTuple,
+      CloseCreditAccountEvent.OutputObject
+    >;
+    CloseCreditAccount: TypedContractEvent<
+      CloseCreditAccountEvent.InputTuple,
+      CloseCreditAccountEvent.OutputTuple,
+      CloseCreditAccountEvent.OutputObject
+    >;
 
-    "DecreaseDebt(address,uint256)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      amount?: null
-    ): DecreaseDebtEventFilter;
-    DecreaseDebt(
-      creditAccount?: PromiseOrValue<string> | null,
-      amount?: null
-    ): DecreaseDebtEventFilter;
+    "DecreaseDebt(address,uint256)": TypedContractEvent<
+      DecreaseDebtEvent.InputTuple,
+      DecreaseDebtEvent.OutputTuple,
+      DecreaseDebtEvent.OutputObject
+    >;
+    DecreaseDebt: TypedContractEvent<
+      DecreaseDebtEvent.InputTuple,
+      DecreaseDebtEvent.OutputTuple,
+      DecreaseDebtEvent.OutputObject
+    >;
 
-    "Execute(address,address)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      targetContract?: PromiseOrValue<string> | null
-    ): ExecuteEventFilter;
-    Execute(
-      creditAccount?: PromiseOrValue<string> | null,
-      targetContract?: PromiseOrValue<string> | null
-    ): ExecuteEventFilter;
+    "Execute(address,address)": TypedContractEvent<
+      ExecuteEvent.InputTuple,
+      ExecuteEvent.OutputTuple,
+      ExecuteEvent.OutputObject
+    >;
+    Execute: TypedContractEvent<
+      ExecuteEvent.InputTuple,
+      ExecuteEvent.OutputTuple,
+      ExecuteEvent.OutputObject
+    >;
 
-    "FinishMultiCall()"(): FinishMultiCallEventFilter;
-    FinishMultiCall(): FinishMultiCallEventFilter;
+    "FinishMultiCall()": TypedContractEvent<
+      FinishMultiCallEvent.InputTuple,
+      FinishMultiCallEvent.OutputTuple,
+      FinishMultiCallEvent.OutputObject
+    >;
+    FinishMultiCall: TypedContractEvent<
+      FinishMultiCallEvent.InputTuple,
+      FinishMultiCallEvent.OutputTuple,
+      FinishMultiCallEvent.OutputObject
+    >;
 
-    "IncreaseDebt(address,uint256)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      amount?: null
-    ): IncreaseDebtEventFilter;
-    IncreaseDebt(
-      creditAccount?: PromiseOrValue<string> | null,
-      amount?: null
-    ): IncreaseDebtEventFilter;
+    "IncreaseDebt(address,uint256)": TypedContractEvent<
+      IncreaseDebtEvent.InputTuple,
+      IncreaseDebtEvent.OutputTuple,
+      IncreaseDebtEvent.OutputObject
+    >;
+    IncreaseDebt: TypedContractEvent<
+      IncreaseDebtEvent.InputTuple,
+      IncreaseDebtEvent.OutputTuple,
+      IncreaseDebtEvent.OutputObject
+    >;
 
-    "LiquidateCreditAccount(address,address,address,uint256)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      liquidator?: PromiseOrValue<string> | null,
-      to?: null,
-      remainingFunds?: null
-    ): LiquidateCreditAccountEventFilter;
-    LiquidateCreditAccount(
-      creditAccount?: PromiseOrValue<string> | null,
-      liquidator?: PromiseOrValue<string> | null,
-      to?: null,
-      remainingFunds?: null
-    ): LiquidateCreditAccountEventFilter;
+    "LiquidateCreditAccount(address,address,address,uint256)": TypedContractEvent<
+      LiquidateCreditAccountEvent.InputTuple,
+      LiquidateCreditAccountEvent.OutputTuple,
+      LiquidateCreditAccountEvent.OutputObject
+    >;
+    LiquidateCreditAccount: TypedContractEvent<
+      LiquidateCreditAccountEvent.InputTuple,
+      LiquidateCreditAccountEvent.OutputTuple,
+      LiquidateCreditAccountEvent.OutputObject
+    >;
 
-    "OpenCreditAccount(address,address,address,uint256)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      onBehalfOf?: PromiseOrValue<string> | null,
-      caller?: PromiseOrValue<string> | null,
-      referralCode?: null
-    ): OpenCreditAccountEventFilter;
-    OpenCreditAccount(
-      creditAccount?: PromiseOrValue<string> | null,
-      onBehalfOf?: PromiseOrValue<string> | null,
-      caller?: PromiseOrValue<string> | null,
-      referralCode?: null
-    ): OpenCreditAccountEventFilter;
+    "OpenCreditAccount(address,address,address,uint256)": TypedContractEvent<
+      OpenCreditAccountEvent.InputTuple,
+      OpenCreditAccountEvent.OutputTuple,
+      OpenCreditAccountEvent.OutputObject
+    >;
+    OpenCreditAccount: TypedContractEvent<
+      OpenCreditAccountEvent.InputTuple,
+      OpenCreditAccountEvent.OutputTuple,
+      OpenCreditAccountEvent.OutputObject
+    >;
 
-    "StartMultiCall(address,address)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      caller?: PromiseOrValue<string> | null
-    ): StartMultiCallEventFilter;
-    StartMultiCall(
-      creditAccount?: PromiseOrValue<string> | null,
-      caller?: PromiseOrValue<string> | null
-    ): StartMultiCallEventFilter;
+    "StartMultiCall(address,address)": TypedContractEvent<
+      StartMultiCallEvent.InputTuple,
+      StartMultiCallEvent.OutputTuple,
+      StartMultiCallEvent.OutputObject
+    >;
+    StartMultiCall: TypedContractEvent<
+      StartMultiCallEvent.InputTuple,
+      StartMultiCallEvent.OutputTuple,
+      StartMultiCallEvent.OutputObject
+    >;
 
-    "WithdrawCollateral(address,address,uint256,address)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      amount?: null,
-      to?: null
-    ): WithdrawCollateralEventFilter;
-    WithdrawCollateral(
-      creditAccount?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      amount?: null,
-      to?: null
-    ): WithdrawCollateralEventFilter;
-  };
-
-  estimateGas: {
-    botList(overrides?: CallOverrides): Promise<BigNumber>;
-
-    botMulticall(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    canLiquidateWhilePaused(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    closeCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    debtLimits(overrides?: CallOverrides): Promise<BigNumber>;
-
-    degenNFT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    expirable(overrides?: CallOverrides): Promise<BigNumber>;
-
-    expirationDate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    forbiddenTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    liquidateCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    lossParams(overrides?: CallOverrides): Promise<BigNumber>;
-
-    maxDebtPerBlockMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
-
-    maxQuotaMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
-
-    multicall(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    openCreditAccount(
-      onBehalfOf: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setBotList(
-      newBotList: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setBotPermissions(
-      creditAccount: PromiseOrValue<string>,
-      bot: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setCumulativeLossParams(
-      newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
-      resetCumulativeLoss: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setDebtLimits(
-      newMinDebt: PromiseOrValue<BigNumberish>,
-      newMaxDebt: PromiseOrValue<BigNumberish>,
-      newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      allowance: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setExpirationDate(
-      newExpirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setTokenAllowance(
-      token: PromiseOrValue<string>,
-      allowance: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    weth(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    botList(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    botMulticall(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    canLiquidateWhilePaused(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    closeCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    debtLimits(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    degenNFT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    expirable(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    expirationDate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    forbiddenTokenMask(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    liquidateCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    lossParams(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    maxDebtPerBlockMultiplier(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    maxQuotaMultiplier(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    multicall(
-      creditAccount: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    openCreditAccount(
-      onBehalfOf: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setBotList(
-      newBotList: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setBotPermissions(
-      creditAccount: PromiseOrValue<string>,
-      bot: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setCumulativeLossParams(
-      newMaxCumulativeLoss: PromiseOrValue<BigNumberish>,
-      resetCumulativeLoss: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDebtLimits(
-      newMinDebt: PromiseOrValue<BigNumberish>,
-      newMaxDebt: PromiseOrValue<BigNumberish>,
-      newMaxDebtPerBlockMultiplier: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      allowance: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setExpirationDate(
-      newExpirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTokenAllowance(
-      token: PromiseOrValue<string>,
-      allowance: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "WithdrawCollateral(address,address,uint256,address)": TypedContractEvent<
+      WithdrawCollateralEvent.InputTuple,
+      WithdrawCollateralEvent.OutputTuple,
+      WithdrawCollateralEvent.OutputObject
+    >;
+    WithdrawCollateral: TypedContractEvent<
+      WithdrawCollateralEvent.InputTuple,
+      WithdrawCollateralEvent.OutputTuple,
+      WithdrawCollateralEvent.OutputObject
+    >;
   };
 }

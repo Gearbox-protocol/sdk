@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IPoolQuotaKeeperV3Events,
   IPoolQuotaKeeperV3EventsInterface,
@@ -136,16 +135,16 @@ const _abi = [
 export class IPoolQuotaKeeperV3Events__factory {
   static readonly abi = _abi;
   static createInterface(): IPoolQuotaKeeperV3EventsInterface {
-    return new utils.Interface(_abi) as IPoolQuotaKeeperV3EventsInterface;
+    return new Interface(_abi) as IPoolQuotaKeeperV3EventsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IPoolQuotaKeeperV3Events {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IPoolQuotaKeeperV3Events;
+      runner
+    ) as unknown as IPoolQuotaKeeperV3Events;
   }
 }

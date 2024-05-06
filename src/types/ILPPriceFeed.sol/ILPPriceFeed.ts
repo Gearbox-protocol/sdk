@@ -3,56 +3,28 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface ILPPriceFeedInterface extends utils.Interface {
-  functions: {
-    "allowBoundsUpdate()": FunctionFragment;
-    "decimals()": FunctionFragment;
-    "description()": FunctionFragment;
-    "forbidBoundsUpdate()": FunctionFragment;
-    "getAggregatePrice()": FunctionFragment;
-    "getLPExchangeRate()": FunctionFragment;
-    "getScale()": FunctionFragment;
-    "lastBoundsUpdate()": FunctionFragment;
-    "latestRoundData()": FunctionFragment;
-    "lowerBound()": FunctionFragment;
-    "lpContract()": FunctionFragment;
-    "lpToken()": FunctionFragment;
-    "priceFeedType()": FunctionFragment;
-    "priceOracle()": FunctionFragment;
-    "setLimiter(uint256)": FunctionFragment;
-    "skipPriceCheck()": FunctionFragment;
-    "updateBounds(bytes)": FunctionFragment;
-    "updateBoundsAllowed()": FunctionFragment;
-    "upperBound()": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface ILPPriceFeedInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "allowBoundsUpdate"
       | "decimals"
       | "description"
@@ -74,6 +46,10 @@ export interface ILPPriceFeedInterface extends utils.Interface {
       | "upperBound"
       | "version"
   ): FunctionFragment;
+
+  getEvent(
+    nameOrSignatureOrTopic: "SetBounds" | "SetUpdateBoundsAllowed"
+  ): EventFragment;
 
   encodeFunctionData(
     functionFragment: "allowBoundsUpdate",
@@ -124,7 +100,7 @@ export interface ILPPriceFeedInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setLimiter",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "skipPriceCheck",
@@ -132,7 +108,7 @@ export interface ILPPriceFeedInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateBounds",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "updateBoundsAllowed",
@@ -200,357 +176,243 @@ export interface ILPPriceFeedInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "upperBound", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "SetBounds(uint256,uint256)": EventFragment;
-    "SetUpdateBoundsAllowed(bool)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "SetBounds"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetUpdateBoundsAllowed"): EventFragment;
 }
 
-export interface SetBoundsEventObject {
-  lowerBound: BigNumber;
-  upperBound: BigNumber;
+export namespace SetBoundsEvent {
+  export type InputTuple = [lowerBound: BigNumberish, upperBound: BigNumberish];
+  export type OutputTuple = [lowerBound: bigint, upperBound: bigint];
+  export interface OutputObject {
+    lowerBound: bigint;
+    upperBound: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetBoundsEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  SetBoundsEventObject
->;
 
-export type SetBoundsEventFilter = TypedEventFilter<SetBoundsEvent>;
-
-export interface SetUpdateBoundsAllowedEventObject {
-  allowed: boolean;
+export namespace SetUpdateBoundsAllowedEvent {
+  export type InputTuple = [allowed: boolean];
+  export type OutputTuple = [allowed: boolean];
+  export interface OutputObject {
+    allowed: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetUpdateBoundsAllowedEvent = TypedEvent<
-  [boolean],
-  SetUpdateBoundsAllowedEventObject
->;
-
-export type SetUpdateBoundsAllowedEventFilter =
-  TypedEventFilter<SetUpdateBoundsAllowedEvent>;
 
 export interface ILPPriceFeed extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ILPPriceFeed;
+  waitForDeployment(): Promise<this>;
 
   interface: ILPPriceFeedInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    allowBoundsUpdate(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    decimals(overrides?: CallOverrides): Promise<[number]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    description(overrides?: CallOverrides): Promise<[string]>;
+  allowBoundsUpdate: TypedContractMethod<[], [void], "nonpayable">;
 
-    forbidBoundsUpdate(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  decimals: TypedContractMethod<[], [bigint], "view">;
 
-    getAggregatePrice(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { answer: BigNumber }>;
+  description: TypedContractMethod<[], [string], "view">;
 
-    getLPExchangeRate(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { exchangeRate: BigNumber }>;
+  forbidBoundsUpdate: TypedContractMethod<[], [void], "nonpayable">;
 
-    getScale(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { scale: BigNumber }>;
+  getAggregatePrice: TypedContractMethod<[], [bigint], "view">;
 
-    lastBoundsUpdate(overrides?: CallOverrides): Promise<[number]>;
+  getLPExchangeRate: TypedContractMethod<[], [bigint], "view">;
 
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        answer: BigNumber;
-        updatedAt: BigNumber;
+  getScale: TypedContractMethod<[], [bigint], "view">;
+
+  lastBoundsUpdate: TypedContractMethod<[], [bigint], "view">;
+
+  latestRoundData: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint, bigint, bigint] & {
+        answer: bigint;
+        updatedAt: bigint;
       }
-    >;
-
-    lowerBound(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    lpContract(overrides?: CallOverrides): Promise<[string]>;
-
-    lpToken(overrides?: CallOverrides): Promise<[string]>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<[number]>;
-
-    priceOracle(overrides?: CallOverrides): Promise<[string]>;
-
-    setLimiter(
-      newLowerBound: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<[boolean]>;
-
-    updateBounds(
-      updateData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    updateBoundsAllowed(overrides?: CallOverrides): Promise<[boolean]>;
-
-    upperBound(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  allowBoundsUpdate(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  decimals(overrides?: CallOverrides): Promise<number>;
-
-  description(overrides?: CallOverrides): Promise<string>;
-
-  forbidBoundsUpdate(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getAggregatePrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getLPExchangeRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getScale(overrides?: CallOverrides): Promise<BigNumber>;
-
-  lastBoundsUpdate(overrides?: CallOverrides): Promise<number>;
-
-  latestRoundData(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-      answer: BigNumber;
-      updatedAt: BigNumber;
-    }
+    ],
+    "view"
   >;
 
-  lowerBound(overrides?: CallOverrides): Promise<BigNumber>;
+  lowerBound: TypedContractMethod<[], [bigint], "view">;
 
-  lpContract(overrides?: CallOverrides): Promise<string>;
+  lpContract: TypedContractMethod<[], [string], "view">;
 
-  lpToken(overrides?: CallOverrides): Promise<string>;
+  lpToken: TypedContractMethod<[], [string], "view">;
 
-  priceFeedType(overrides?: CallOverrides): Promise<number>;
+  priceFeedType: TypedContractMethod<[], [bigint], "view">;
 
-  priceOracle(overrides?: CallOverrides): Promise<string>;
+  priceOracle: TypedContractMethod<[], [string], "view">;
 
-  setLimiter(
-    newLowerBound: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  setLimiter: TypedContractMethod<
+    [newLowerBound: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-  skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
+  skipPriceCheck: TypedContractMethod<[], [boolean], "view">;
 
-  updateBounds(
-    updateData: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  updateBounds: TypedContractMethod<
+    [updateData: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
-  updateBoundsAllowed(overrides?: CallOverrides): Promise<boolean>;
+  updateBoundsAllowed: TypedContractMethod<[], [boolean], "view">;
 
-  upperBound(overrides?: CallOverrides): Promise<BigNumber>;
+  upperBound: TypedContractMethod<[], [bigint], "view">;
 
-  version(overrides?: CallOverrides): Promise<BigNumber>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  callStatic: {
-    allowBoundsUpdate(overrides?: CallOverrides): Promise<void>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-    decimals(overrides?: CallOverrides): Promise<number>;
-
-    description(overrides?: CallOverrides): Promise<string>;
-
-    forbidBoundsUpdate(overrides?: CallOverrides): Promise<void>;
-
-    getAggregatePrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getLPExchangeRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getScale(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastBoundsUpdate(overrides?: CallOverrides): Promise<number>;
-
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        answer: BigNumber;
-        updatedAt: BigNumber;
+  getFunction(
+    nameOrSignature: "allowBoundsUpdate"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "decimals"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "description"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "forbidBoundsUpdate"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "getAggregatePrice"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getLPExchangeRate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getScale"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lastBoundsUpdate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "latestRoundData"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint, bigint, bigint] & {
+        answer: bigint;
+        updatedAt: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "lowerBound"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lpContract"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "lpToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "priceFeedType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "priceOracle"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "setLimiter"
+  ): TypedContractMethod<[newLowerBound: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "skipPriceCheck"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "updateBounds"
+  ): TypedContractMethod<[updateData: BytesLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "updateBoundsAllowed"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "upperBound"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-    lowerBound(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lpContract(overrides?: CallOverrides): Promise<string>;
-
-    lpToken(overrides?: CallOverrides): Promise<string>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<number>;
-
-    priceOracle(overrides?: CallOverrides): Promise<string>;
-
-    setLimiter(
-      newLowerBound: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
-
-    updateBounds(
-      updateData: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    updateBoundsAllowed(overrides?: CallOverrides): Promise<boolean>;
-
-    upperBound(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "SetBounds"
+  ): TypedContractEvent<
+    SetBoundsEvent.InputTuple,
+    SetBoundsEvent.OutputTuple,
+    SetBoundsEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetUpdateBoundsAllowed"
+  ): TypedContractEvent<
+    SetUpdateBoundsAllowedEvent.InputTuple,
+    SetUpdateBoundsAllowedEvent.OutputTuple,
+    SetUpdateBoundsAllowedEvent.OutputObject
+  >;
 
   filters: {
-    "SetBounds(uint256,uint256)"(
-      lowerBound?: null,
-      upperBound?: null
-    ): SetBoundsEventFilter;
-    SetBounds(lowerBound?: null, upperBound?: null): SetBoundsEventFilter;
+    "SetBounds(uint256,uint256)": TypedContractEvent<
+      SetBoundsEvent.InputTuple,
+      SetBoundsEvent.OutputTuple,
+      SetBoundsEvent.OutputObject
+    >;
+    SetBounds: TypedContractEvent<
+      SetBoundsEvent.InputTuple,
+      SetBoundsEvent.OutputTuple,
+      SetBoundsEvent.OutputObject
+    >;
 
-    "SetUpdateBoundsAllowed(bool)"(
-      allowed?: null
-    ): SetUpdateBoundsAllowedEventFilter;
-    SetUpdateBoundsAllowed(allowed?: null): SetUpdateBoundsAllowedEventFilter;
-  };
-
-  estimateGas: {
-    allowBoundsUpdate(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-    description(overrides?: CallOverrides): Promise<BigNumber>;
-
-    forbidBoundsUpdate(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getAggregatePrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getLPExchangeRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getScale(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastBoundsUpdate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lowerBound(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lpContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lpToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
-
-    setLimiter(
-      newLowerBound: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateBounds(
-      updateData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    updateBoundsAllowed(overrides?: CallOverrides): Promise<BigNumber>;
-
-    upperBound(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    allowBoundsUpdate(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    forbidBoundsUpdate(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getAggregatePrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getLPExchangeRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getScale(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    lastBoundsUpdate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    lowerBound(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    lpContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    lpToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    setLimiter(
-      newLowerBound: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updateBounds(
-      updateData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    updateBoundsAllowed(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    upperBound(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "SetUpdateBoundsAllowed(bool)": TypedContractEvent<
+      SetUpdateBoundsAllowedEvent.InputTuple,
+      SetUpdateBoundsAllowedEvent.OutputTuple,
+      SetUpdateBoundsAllowedEvent.OutputObject
+    >;
+    SetUpdateBoundsAllowed: TypedContractEvent<
+      SetUpdateBoundsAllowedEvent.InputTuple,
+      SetUpdateBoundsAllowedEvent.OutputTuple,
+      SetUpdateBoundsAllowedEvent.OutputObject
+    >;
   };
 }

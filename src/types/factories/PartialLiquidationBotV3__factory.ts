@@ -2,15 +2,19 @@
 /* tslint:disable */
 /* eslint-disable */
 import {
-  Signer,
-  utils,
   Contract,
   ContractFactory,
-  BigNumberish,
-  Overrides,
+  ContractTransactionResponse,
+  Interface,
 } from "ethers";
-import type { Provider, TransactionRequest } from "@ethersproject/providers";
-import type { PromiseOrValue } from "../common";
+import type {
+  Signer,
+  BigNumberish,
+  AddressLike,
+  ContractDeployTransaction,
+  ContractRunner,
+} from "ethers";
+import type { NonPayableOverrides } from "../common";
 import type {
   PartialLiquidationBotV3,
   PartialLiquidationBotV3Interface,
@@ -376,31 +380,14 @@ export class PartialLiquidationBotV3__factory extends ContractFactory {
     }
   }
 
-  override deploy(
-    addressProvider: PromiseOrValue<string>,
-    minHealthFactor_: PromiseOrValue<BigNumberish>,
-    maxHealthFactor_: PromiseOrValue<BigNumberish>,
-    premiumScaleFactor_: PromiseOrValue<BigNumberish>,
-    feeScaleFactor_: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<PartialLiquidationBotV3> {
-    return super.deploy(
-      addressProvider,
-      minHealthFactor_,
-      maxHealthFactor_,
-      premiumScaleFactor_,
-      feeScaleFactor_,
-      overrides || {}
-    ) as Promise<PartialLiquidationBotV3>;
-  }
   override getDeployTransaction(
-    addressProvider: PromiseOrValue<string>,
-    minHealthFactor_: PromiseOrValue<BigNumberish>,
-    maxHealthFactor_: PromiseOrValue<BigNumberish>,
-    premiumScaleFactor_: PromiseOrValue<BigNumberish>,
-    feeScaleFactor_: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): TransactionRequest {
+    addressProvider: AddressLike,
+    minHealthFactor_: BigNumberish,
+    maxHealthFactor_: BigNumberish,
+    premiumScaleFactor_: BigNumberish,
+    feeScaleFactor_: BigNumberish,
+    overrides?: NonPayableOverrides & { from?: string }
+  ): Promise<ContractDeployTransaction> {
     return super.getDeployTransaction(
       addressProvider,
       minHealthFactor_,
@@ -410,26 +397,46 @@ export class PartialLiquidationBotV3__factory extends ContractFactory {
       overrides || {}
     );
   }
-  override attach(address: string): PartialLiquidationBotV3 {
-    return super.attach(address) as PartialLiquidationBotV3;
+  override deploy(
+    addressProvider: AddressLike,
+    minHealthFactor_: BigNumberish,
+    maxHealthFactor_: BigNumberish,
+    premiumScaleFactor_: BigNumberish,
+    feeScaleFactor_: BigNumberish,
+    overrides?: NonPayableOverrides & { from?: string }
+  ) {
+    return super.deploy(
+      addressProvider,
+      minHealthFactor_,
+      maxHealthFactor_,
+      premiumScaleFactor_,
+      feeScaleFactor_,
+      overrides || {}
+    ) as Promise<
+      PartialLiquidationBotV3 & {
+        deploymentTransaction(): ContractTransactionResponse;
+      }
+    >;
   }
-  override connect(signer: Signer): PartialLiquidationBotV3__factory {
-    return super.connect(signer) as PartialLiquidationBotV3__factory;
+  override connect(
+    runner: ContractRunner | null
+  ): PartialLiquidationBotV3__factory {
+    return super.connect(runner) as PartialLiquidationBotV3__factory;
   }
 
   static readonly bytecode = _bytecode;
   static readonly abi = _abi;
   static createInterface(): PartialLiquidationBotV3Interface {
-    return new utils.Interface(_abi) as PartialLiquidationBotV3Interface;
+    return new Interface(_abi) as PartialLiquidationBotV3Interface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): PartialLiquidationBotV3 {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as PartialLiquidationBotV3;
+      runner
+    ) as unknown as PartialLiquidationBotV3;
   }
 }

@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   ILPPriceFeedExceptions,
   ILPPriceFeedExceptionsInterface,
@@ -40,16 +39,16 @@ const _abi = [
 export class ILPPriceFeedExceptions__factory {
   static readonly abi = _abi;
   static createInterface(): ILPPriceFeedExceptionsInterface {
-    return new utils.Interface(_abi) as ILPPriceFeedExceptionsInterface;
+    return new Interface(_abi) as ILPPriceFeedExceptionsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): ILPPriceFeedExceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as ILPPriceFeedExceptions;
+      runner
+    ) as unknown as ILPPriceFeedExceptions;
   }
 }

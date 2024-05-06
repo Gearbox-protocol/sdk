@@ -3,144 +3,135 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  PayableOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
 export declare namespace ISwapRouter {
   export type ExactInputParamsStruct = {
-    path: PromiseOrValue<BytesLike>;
-    recipient: PromiseOrValue<string>;
-    deadline: PromiseOrValue<BigNumberish>;
-    amountIn: PromiseOrValue<BigNumberish>;
-    amountOutMinimum: PromiseOrValue<BigNumberish>;
+    path: BytesLike;
+    recipient: AddressLike;
+    deadline: BigNumberish;
+    amountIn: BigNumberish;
+    amountOutMinimum: BigNumberish;
   };
 
   export type ExactInputParamsStructOutput = [
-    string,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    path: string,
+    recipient: string,
+    deadline: bigint,
+    amountIn: bigint,
+    amountOutMinimum: bigint
   ] & {
     path: string;
     recipient: string;
-    deadline: BigNumber;
-    amountIn: BigNumber;
-    amountOutMinimum: BigNumber;
+    deadline: bigint;
+    amountIn: bigint;
+    amountOutMinimum: bigint;
   };
 
   export type ExactInputSingleParamsStruct = {
-    tokenIn: PromiseOrValue<string>;
-    tokenOut: PromiseOrValue<string>;
-    fee: PromiseOrValue<BigNumberish>;
-    recipient: PromiseOrValue<string>;
-    deadline: PromiseOrValue<BigNumberish>;
-    amountIn: PromiseOrValue<BigNumberish>;
-    amountOutMinimum: PromiseOrValue<BigNumberish>;
-    sqrtPriceLimitX96: PromiseOrValue<BigNumberish>;
+    tokenIn: AddressLike;
+    tokenOut: AddressLike;
+    fee: BigNumberish;
+    recipient: AddressLike;
+    deadline: BigNumberish;
+    amountIn: BigNumberish;
+    amountOutMinimum: BigNumberish;
+    sqrtPriceLimitX96: BigNumberish;
   };
 
   export type ExactInputSingleParamsStructOutput = [
-    string,
-    string,
-    number,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    tokenIn: string,
+    tokenOut: string,
+    fee: bigint,
+    recipient: string,
+    deadline: bigint,
+    amountIn: bigint,
+    amountOutMinimum: bigint,
+    sqrtPriceLimitX96: bigint
   ] & {
     tokenIn: string;
     tokenOut: string;
-    fee: number;
+    fee: bigint;
     recipient: string;
-    deadline: BigNumber;
-    amountIn: BigNumber;
-    amountOutMinimum: BigNumber;
-    sqrtPriceLimitX96: BigNumber;
+    deadline: bigint;
+    amountIn: bigint;
+    amountOutMinimum: bigint;
+    sqrtPriceLimitX96: bigint;
   };
 
   export type ExactOutputParamsStruct = {
-    path: PromiseOrValue<BytesLike>;
-    recipient: PromiseOrValue<string>;
-    deadline: PromiseOrValue<BigNumberish>;
-    amountOut: PromiseOrValue<BigNumberish>;
-    amountInMaximum: PromiseOrValue<BigNumberish>;
+    path: BytesLike;
+    recipient: AddressLike;
+    deadline: BigNumberish;
+    amountOut: BigNumberish;
+    amountInMaximum: BigNumberish;
   };
 
   export type ExactOutputParamsStructOutput = [
-    string,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    path: string,
+    recipient: string,
+    deadline: bigint,
+    amountOut: bigint,
+    amountInMaximum: bigint
   ] & {
     path: string;
     recipient: string;
-    deadline: BigNumber;
-    amountOut: BigNumber;
-    amountInMaximum: BigNumber;
+    deadline: bigint;
+    amountOut: bigint;
+    amountInMaximum: bigint;
   };
 
   export type ExactOutputSingleParamsStruct = {
-    tokenIn: PromiseOrValue<string>;
-    tokenOut: PromiseOrValue<string>;
-    fee: PromiseOrValue<BigNumberish>;
-    recipient: PromiseOrValue<string>;
-    deadline: PromiseOrValue<BigNumberish>;
-    amountOut: PromiseOrValue<BigNumberish>;
-    amountInMaximum: PromiseOrValue<BigNumberish>;
-    sqrtPriceLimitX96: PromiseOrValue<BigNumberish>;
+    tokenIn: AddressLike;
+    tokenOut: AddressLike;
+    fee: BigNumberish;
+    recipient: AddressLike;
+    deadline: BigNumberish;
+    amountOut: BigNumberish;
+    amountInMaximum: BigNumberish;
+    sqrtPriceLimitX96: BigNumberish;
   };
 
   export type ExactOutputSingleParamsStructOutput = [
-    string,
-    string,
-    number,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    tokenIn: string,
+    tokenOut: string,
+    fee: bigint,
+    recipient: string,
+    deadline: bigint,
+    amountOut: bigint,
+    amountInMaximum: bigint,
+    sqrtPriceLimitX96: bigint
   ] & {
     tokenIn: string;
     tokenOut: string;
-    fee: number;
+    fee: bigint;
     recipient: string;
-    deadline: BigNumber;
-    amountOut: BigNumber;
-    amountInMaximum: BigNumber;
-    sqrtPriceLimitX96: BigNumber;
+    deadline: bigint;
+    amountOut: bigint;
+    amountInMaximum: bigint;
+    sqrtPriceLimitX96: bigint;
   };
 }
 
-export interface ISwapRouterInterface extends utils.Interface {
-  functions: {
-    "exactInput((bytes,address,uint256,uint256,uint256))": FunctionFragment;
-    "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))": FunctionFragment;
-    "exactOutput((bytes,address,uint256,uint256,uint256))": FunctionFragment;
-    "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))": FunctionFragment;
-  };
-
+export interface ISwapRouterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "exactInput"
       | "exactInputSingle"
       | "exactOutput"
@@ -177,143 +168,107 @@ export interface ISwapRouterInterface extends utils.Interface {
     functionFragment: "exactOutputSingle",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface ISwapRouter extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ISwapRouter;
+  waitForDeployment(): Promise<this>;
 
   interface: ISwapRouterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    exactInput(
-      params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    exactInputSingle(
-      params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    exactOutput(
-      params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  exactInput: TypedContractMethod<
+    [params: ISwapRouter.ExactInputParamsStruct],
+    [bigint],
+    "payable"
+  >;
 
-    exactOutputSingle(
-      params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+  exactInputSingle: TypedContractMethod<
+    [params: ISwapRouter.ExactInputSingleParamsStruct],
+    [bigint],
+    "payable"
+  >;
 
-  exactInput(
-    params: ISwapRouter.ExactInputParamsStruct,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  exactOutput: TypedContractMethod<
+    [params: ISwapRouter.ExactOutputParamsStruct],
+    [bigint],
+    "payable"
+  >;
 
-  exactInputSingle(
-    params: ISwapRouter.ExactInputSingleParamsStruct,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  exactOutputSingle: TypedContractMethod<
+    [params: ISwapRouter.ExactOutputSingleParamsStruct],
+    [bigint],
+    "payable"
+  >;
 
-  exactOutput(
-    params: ISwapRouter.ExactOutputParamsStruct,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  exactOutputSingle(
-    params: ISwapRouter.ExactOutputSingleParamsStruct,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    exactInput(
-      params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    exactInputSingle(
-      params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    exactOutput(
-      params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    exactOutputSingle(
-      params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
+  getFunction(
+    nameOrSignature: "exactInput"
+  ): TypedContractMethod<
+    [params: ISwapRouter.ExactInputParamsStruct],
+    [bigint],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "exactInputSingle"
+  ): TypedContractMethod<
+    [params: ISwapRouter.ExactInputSingleParamsStruct],
+    [bigint],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "exactOutput"
+  ): TypedContractMethod<
+    [params: ISwapRouter.ExactOutputParamsStruct],
+    [bigint],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "exactOutputSingle"
+  ): TypedContractMethod<
+    [params: ISwapRouter.ExactOutputSingleParamsStruct],
+    [bigint],
+    "payable"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    exactInput(
-      params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exactInputSingle(
-      params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exactOutput(
-      params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exactOutputSingle(
-      params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    exactInput(
-      params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exactInputSingle(
-      params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exactOutput(
-      params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exactOutputSingle(
-      params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
 }

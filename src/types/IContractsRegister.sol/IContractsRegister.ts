@@ -3,43 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IContractsRegisterInterface extends utils.Interface {
-  functions: {
-    "creditManagers(uint256)": FunctionFragment;
-    "getCreditManagers()": FunctionFragment;
-    "getCreditManagersCount()": FunctionFragment;
-    "getPools()": FunctionFragment;
-    "getPoolsCount()": FunctionFragment;
-    "isCreditManager(address)": FunctionFragment;
-    "isPool(address)": FunctionFragment;
-    "pools(uint256)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IContractsRegisterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "creditManagers"
       | "getCreditManagers"
       | "getCreditManagersCount"
@@ -51,9 +37,13 @@ export interface IContractsRegisterInterface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic: "NewCreditManagerAdded" | "NewPoolAdded"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "creditManagers",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditManagers",
@@ -70,16 +60,10 @@ export interface IContractsRegisterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isCreditManager",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "isPool",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "pools",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "isPool", values: [AddressLike]): string;
+  encodeFunctionData(functionFragment: "pools", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
@@ -106,231 +90,161 @@ export interface IContractsRegisterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "isPool", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pools", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "NewCreditManagerAdded(address)": EventFragment;
-    "NewPoolAdded(address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "NewCreditManagerAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewPoolAdded"): EventFragment;
 }
 
-export interface NewCreditManagerAddedEventObject {
-  creditManager: string;
+export namespace NewCreditManagerAddedEvent {
+  export type InputTuple = [creditManager: AddressLike];
+  export type OutputTuple = [creditManager: string];
+  export interface OutputObject {
+    creditManager: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type NewCreditManagerAddedEvent = TypedEvent<
-  [string],
-  NewCreditManagerAddedEventObject
->;
 
-export type NewCreditManagerAddedEventFilter =
-  TypedEventFilter<NewCreditManagerAddedEvent>;
-
-export interface NewPoolAddedEventObject {
-  pool: string;
+export namespace NewPoolAddedEvent {
+  export type InputTuple = [pool: AddressLike];
+  export type OutputTuple = [pool: string];
+  export interface OutputObject {
+    pool: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type NewPoolAddedEvent = TypedEvent<[string], NewPoolAddedEventObject>;
-
-export type NewPoolAddedEventFilter = TypedEventFilter<NewPoolAddedEvent>;
 
 export interface IContractsRegister extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IContractsRegister;
+  waitForDeployment(): Promise<this>;
 
   interface: IContractsRegisterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    creditManagers(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    getCreditManagers(overrides?: CallOverrides): Promise<[string[]]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    getCreditManagersCount(overrides?: CallOverrides): Promise<[BigNumber]>;
+  creditManagers: TypedContractMethod<[i: BigNumberish], [string], "view">;
 
-    getPools(overrides?: CallOverrides): Promise<[string[]]>;
+  getCreditManagers: TypedContractMethod<[], [string[]], "view">;
 
-    getPoolsCount(overrides?: CallOverrides): Promise<[BigNumber]>;
+  getCreditManagersCount: TypedContractMethod<[], [bigint], "view">;
 
-    isCreditManager(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  getPools: TypedContractMethod<[], [string[]], "view">;
 
-    isPool(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  getPoolsCount: TypedContractMethod<[], [bigint], "view">;
 
-    pools(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+  isCreditManager: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
 
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  isPool: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
 
-  creditManagers(
-    i: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  pools: TypedContractMethod<[i: BigNumberish], [string], "view">;
 
-  getCreditManagers(overrides?: CallOverrides): Promise<string[]>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  getCreditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  getPools(overrides?: CallOverrides): Promise<string[]>;
+  getFunction(
+    nameOrSignature: "creditManagers"
+  ): TypedContractMethod<[i: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getCreditManagers"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "getCreditManagersCount"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getPools"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "getPoolsCount"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "isCreditManager"
+  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "isPool"
+  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "pools"
+  ): TypedContractMethod<[i: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-  getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-  isCreditManager(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isPool(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  pools(
-    i: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    creditManagers(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getCreditManagers(overrides?: CallOverrides): Promise<string[]>;
-
-    getCreditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getPools(overrides?: CallOverrides): Promise<string[]>;
-
-    getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isCreditManager(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isPool(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    pools(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "NewCreditManagerAdded"
+  ): TypedContractEvent<
+    NewCreditManagerAddedEvent.InputTuple,
+    NewCreditManagerAddedEvent.OutputTuple,
+    NewCreditManagerAddedEvent.OutputObject
+  >;
+  getEvent(
+    key: "NewPoolAdded"
+  ): TypedContractEvent<
+    NewPoolAddedEvent.InputTuple,
+    NewPoolAddedEvent.OutputTuple,
+    NewPoolAddedEvent.OutputObject
+  >;
 
   filters: {
-    "NewCreditManagerAdded(address)"(
-      creditManager?: PromiseOrValue<string> | null
-    ): NewCreditManagerAddedEventFilter;
-    NewCreditManagerAdded(
-      creditManager?: PromiseOrValue<string> | null
-    ): NewCreditManagerAddedEventFilter;
+    "NewCreditManagerAdded(address)": TypedContractEvent<
+      NewCreditManagerAddedEvent.InputTuple,
+      NewCreditManagerAddedEvent.OutputTuple,
+      NewCreditManagerAddedEvent.OutputObject
+    >;
+    NewCreditManagerAdded: TypedContractEvent<
+      NewCreditManagerAddedEvent.InputTuple,
+      NewCreditManagerAddedEvent.OutputTuple,
+      NewCreditManagerAddedEvent.OutputObject
+    >;
 
-    "NewPoolAdded(address)"(
-      pool?: PromiseOrValue<string> | null
-    ): NewPoolAddedEventFilter;
-    NewPoolAdded(pool?: PromiseOrValue<string> | null): NewPoolAddedEventFilter;
-  };
-
-  estimateGas: {
-    creditManagers(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCreditManagers(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getCreditManagersCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getPools(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getPoolsCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isCreditManager(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isPool(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    pools(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    creditManagers(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCreditManagers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getCreditManagersCount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPools(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getPoolsCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    isCreditManager(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isPool(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    pools(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "NewPoolAdded(address)": TypedContractEvent<
+      NewPoolAddedEvent.InputTuple,
+      NewPoolAddedEvent.OutputTuple,
+      NewPoolAddedEvent.OutputObject
+    >;
+    NewPoolAdded: TypedContractEvent<
+      NewPoolAddedEvent.InputTuple,
+      NewPoolAddedEvent.OutputTuple,
+      NewPoolAddedEvent.OutputObject
+    >;
   };
 }

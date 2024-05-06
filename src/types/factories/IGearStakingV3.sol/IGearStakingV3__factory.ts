@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IGearStakingV3,
   IGearStakingV3Interface,
@@ -656,12 +655,12 @@ const _abi = [
 export class IGearStakingV3__factory {
   static readonly abi = _abi;
   static createInterface(): IGearStakingV3Interface {
-    return new utils.Interface(_abi) as IGearStakingV3Interface;
+    return new Interface(_abi) as IGearStakingV3Interface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IGearStakingV3 {
-    return new Contract(address, _abi, signerOrProvider) as IGearStakingV3;
+    return new Contract(address, _abi, runner) as unknown as IGearStakingV3;
   }
 }

@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IDegenDistributorEvents,
   IDegenDistributorEventsInterface,
@@ -53,16 +52,16 @@ const _abi = [
 export class IDegenDistributorEvents__factory {
   static readonly abi = _abi;
   static createInterface(): IDegenDistributorEventsInterface {
-    return new utils.Interface(_abi) as IDegenDistributorEventsInterface;
+    return new Interface(_abi) as IDegenDistributorEventsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IDegenDistributorEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IDegenDistributorEvents;
+      runner
+    ) as unknown as IDegenDistributorEvents;
   }
 }

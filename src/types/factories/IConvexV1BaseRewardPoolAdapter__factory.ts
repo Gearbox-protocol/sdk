@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IConvexV1BaseRewardPoolAdapter,
   IConvexV1BaseRewardPoolAdapterInterface,
@@ -405,16 +404,16 @@ const _abi = [
 export class IConvexV1BaseRewardPoolAdapter__factory {
   static readonly abi = _abi;
   static createInterface(): IConvexV1BaseRewardPoolAdapterInterface {
-    return new utils.Interface(_abi) as IConvexV1BaseRewardPoolAdapterInterface;
+    return new Interface(_abi) as IConvexV1BaseRewardPoolAdapterInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IConvexV1BaseRewardPoolAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IConvexV1BaseRewardPoolAdapter;
+      runner
+    ) as unknown as IConvexV1BaseRewardPoolAdapter;
   }
 }

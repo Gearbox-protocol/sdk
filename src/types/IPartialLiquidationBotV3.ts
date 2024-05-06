@@ -3,58 +3,43 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
 export declare namespace IPartialLiquidationBotV3 {
   export type PriceUpdateStruct = {
-    token: PromiseOrValue<string>;
-    reserve: PromiseOrValue<boolean>;
-    data: PromiseOrValue<BytesLike>;
+    token: AddressLike;
+    reserve: boolean;
+    data: BytesLike;
   };
 
-  export type PriceUpdateStructOutput = [string, boolean, string] & {
-    token: string;
-    reserve: boolean;
-    data: string;
-  };
+  export type PriceUpdateStructOutput = [
+    token: string,
+    reserve: boolean,
+    data: string
+  ] & { token: string; reserve: boolean; data: string };
 }
 
-export interface IPartialLiquidationBotV3Interface extends utils.Interface {
-  functions: {
-    "feeScaleFactor()": FunctionFragment;
-    "liquidateExactCollateral(address,address,uint256,uint256,address,(address,bool,bytes)[])": FunctionFragment;
-    "liquidateExactDebt(address,address,uint256,uint256,address,(address,bool,bytes)[])": FunctionFragment;
-    "maxHealthFactor()": FunctionFragment;
-    "minHealthFactor()": FunctionFragment;
-    "premiumScaleFactor()": FunctionFragment;
-    "treasury()": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IPartialLiquidationBotV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "feeScaleFactor"
       | "liquidateExactCollateral"
       | "liquidateExactDebt"
@@ -65,6 +50,8 @@ export interface IPartialLiquidationBotV3Interface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(nameOrSignatureOrTopic: "LiquidatePartial"): EventFragment;
+
   encodeFunctionData(
     functionFragment: "feeScaleFactor",
     values?: undefined
@@ -72,22 +59,22 @@ export interface IPartialLiquidationBotV3Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "liquidateExactCollateral",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
+      AddressLike,
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      AddressLike,
       IPartialLiquidationBotV3.PriceUpdateStruct[]
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateExactDebt",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
+      AddressLike,
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      AddressLike,
       IPartialLiquidationBotV3.PriceUpdateStruct[]
     ]
   ): string;
@@ -132,242 +119,189 @@ export interface IPartialLiquidationBotV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "LiquidatePartial(address,address,address,uint256,uint256,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "LiquidatePartial"): EventFragment;
 }
 
-export interface LiquidatePartialEventObject {
-  creditManager: string;
-  creditAccount: string;
-  token: string;
-  repaidDebt: BigNumber;
-  seizedCollateral: BigNumber;
-  fee: BigNumber;
+export namespace LiquidatePartialEvent {
+  export type InputTuple = [
+    creditManager: AddressLike,
+    creditAccount: AddressLike,
+    token: AddressLike,
+    repaidDebt: BigNumberish,
+    seizedCollateral: BigNumberish,
+    fee: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditManager: string,
+    creditAccount: string,
+    token: string,
+    repaidDebt: bigint,
+    seizedCollateral: bigint,
+    fee: bigint
+  ];
+  export interface OutputObject {
+    creditManager: string;
+    creditAccount: string;
+    token: string;
+    repaidDebt: bigint;
+    seizedCollateral: bigint;
+    fee: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type LiquidatePartialEvent = TypedEvent<
-  [string, string, string, BigNumber, BigNumber, BigNumber],
-  LiquidatePartialEventObject
->;
-
-export type LiquidatePartialEventFilter =
-  TypedEventFilter<LiquidatePartialEvent>;
 
 export interface IPartialLiquidationBotV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IPartialLiquidationBotV3;
+  waitForDeployment(): Promise<this>;
 
   interface: IPartialLiquidationBotV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    feeScaleFactor(overrides?: CallOverrides): Promise<[number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    liquidateExactCollateral(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      seizedAmount: PromiseOrValue<BigNumberish>,
-      maxRepaidAmount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    liquidateExactDebt(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      repaidAmount: PromiseOrValue<BigNumberish>,
-      minSeizedAmount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  feeScaleFactor: TypedContractMethod<[], [bigint], "view">;
 
-    maxHealthFactor(overrides?: CallOverrides): Promise<[number]>;
+  liquidateExactCollateral: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      seizedAmount: BigNumberish,
+      maxRepaidAmount: BigNumberish,
+      to: AddressLike,
+      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[]
+    ],
+    [bigint],
+    "nonpayable"
+  >;
 
-    minHealthFactor(overrides?: CallOverrides): Promise<[number]>;
+  liquidateExactDebt: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      repaidAmount: BigNumberish,
+      minSeizedAmount: BigNumberish,
+      to: AddressLike,
+      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[]
+    ],
+    [bigint],
+    "nonpayable"
+  >;
 
-    premiumScaleFactor(overrides?: CallOverrides): Promise<[number]>;
+  maxHealthFactor: TypedContractMethod<[], [bigint], "view">;
 
-    treasury(overrides?: CallOverrides): Promise<[string]>;
+  minHealthFactor: TypedContractMethod<[], [bigint], "view">;
 
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  premiumScaleFactor: TypedContractMethod<[], [bigint], "view">;
 
-  feeScaleFactor(overrides?: CallOverrides): Promise<number>;
+  treasury: TypedContractMethod<[], [string], "view">;
 
-  liquidateExactCollateral(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    seizedAmount: PromiseOrValue<BigNumberish>,
-    maxRepaidAmount: PromiseOrValue<BigNumberish>,
-    to: PromiseOrValue<string>,
-    priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  liquidateExactDebt(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    repaidAmount: PromiseOrValue<BigNumberish>,
-    minSeizedAmount: PromiseOrValue<BigNumberish>,
-    to: PromiseOrValue<string>,
-    priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  maxHealthFactor(overrides?: CallOverrides): Promise<number>;
+  getFunction(
+    nameOrSignature: "feeScaleFactor"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "liquidateExactCollateral"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      seizedAmount: BigNumberish,
+      maxRepaidAmount: BigNumberish,
+      to: AddressLike,
+      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[]
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "liquidateExactDebt"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      repaidAmount: BigNumberish,
+      minSeizedAmount: BigNumberish,
+      to: AddressLike,
+      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[]
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "maxHealthFactor"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "minHealthFactor"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "premiumScaleFactor"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "treasury"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-  minHealthFactor(overrides?: CallOverrides): Promise<number>;
-
-  premiumScaleFactor(overrides?: CallOverrides): Promise<number>;
-
-  treasury(overrides?: CallOverrides): Promise<string>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    feeScaleFactor(overrides?: CallOverrides): Promise<number>;
-
-    liquidateExactCollateral(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      seizedAmount: PromiseOrValue<BigNumberish>,
-      maxRepaidAmount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    liquidateExactDebt(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      repaidAmount: PromiseOrValue<BigNumberish>,
-      minSeizedAmount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maxHealthFactor(overrides?: CallOverrides): Promise<number>;
-
-    minHealthFactor(overrides?: CallOverrides): Promise<number>;
-
-    premiumScaleFactor(overrides?: CallOverrides): Promise<number>;
-
-    treasury(overrides?: CallOverrides): Promise<string>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "LiquidatePartial"
+  ): TypedContractEvent<
+    LiquidatePartialEvent.InputTuple,
+    LiquidatePartialEvent.OutputTuple,
+    LiquidatePartialEvent.OutputObject
+  >;
 
   filters: {
-    "LiquidatePartial(address,address,address,uint256,uint256,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      repaidDebt?: null,
-      seizedCollateral?: null,
-      fee?: null
-    ): LiquidatePartialEventFilter;
-    LiquidatePartial(
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      repaidDebt?: null,
-      seizedCollateral?: null,
-      fee?: null
-    ): LiquidatePartialEventFilter;
-  };
-
-  estimateGas: {
-    feeScaleFactor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    liquidateExactCollateral(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      seizedAmount: PromiseOrValue<BigNumberish>,
-      maxRepaidAmount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    liquidateExactDebt(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      repaidAmount: PromiseOrValue<BigNumberish>,
-      minSeizedAmount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    maxHealthFactor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    minHealthFactor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    premiumScaleFactor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    treasury(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    feeScaleFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    liquidateExactCollateral(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      seizedAmount: PromiseOrValue<BigNumberish>,
-      maxRepaidAmount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    liquidateExactDebt(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      repaidAmount: PromiseOrValue<BigNumberish>,
-      minSeizedAmount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      priceUpdates: IPartialLiquidationBotV3.PriceUpdateStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    maxHealthFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    minHealthFactor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    premiumScaleFactor(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    treasury(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "LiquidatePartial(address,address,address,uint256,uint256,uint256)": TypedContractEvent<
+      LiquidatePartialEvent.InputTuple,
+      LiquidatePartialEvent.OutputTuple,
+      LiquidatePartialEvent.OutputObject
+    >;
+    LiquidatePartial: TypedContractEvent<
+      LiquidatePartialEvent.InputTuple,
+      LiquidatePartialEvent.OutputTuple,
+      LiquidatePartialEvent.OutputObject
+    >;
   };
 }

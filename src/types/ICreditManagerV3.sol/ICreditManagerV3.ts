@@ -3,150 +3,85 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
 export type CollateralDebtDataStruct = {
-  debt: PromiseOrValue<BigNumberish>;
-  cumulativeIndexNow: PromiseOrValue<BigNumberish>;
-  cumulativeIndexLastUpdate: PromiseOrValue<BigNumberish>;
-  cumulativeQuotaInterest: PromiseOrValue<BigNumberish>;
-  accruedInterest: PromiseOrValue<BigNumberish>;
-  accruedFees: PromiseOrValue<BigNumberish>;
-  totalDebtUSD: PromiseOrValue<BigNumberish>;
-  totalValue: PromiseOrValue<BigNumberish>;
-  totalValueUSD: PromiseOrValue<BigNumberish>;
-  twvUSD: PromiseOrValue<BigNumberish>;
-  enabledTokensMask: PromiseOrValue<BigNumberish>;
-  quotedTokensMask: PromiseOrValue<BigNumberish>;
-  quotedTokens: PromiseOrValue<string>[];
-  _poolQuotaKeeper: PromiseOrValue<string>;
+  debt: BigNumberish;
+  cumulativeIndexNow: BigNumberish;
+  cumulativeIndexLastUpdate: BigNumberish;
+  cumulativeQuotaInterest: BigNumberish;
+  accruedInterest: BigNumberish;
+  accruedFees: BigNumberish;
+  totalDebtUSD: BigNumberish;
+  totalValue: BigNumberish;
+  totalValueUSD: BigNumberish;
+  twvUSD: BigNumberish;
+  enabledTokensMask: BigNumberish;
+  quotedTokensMask: BigNumberish;
+  quotedTokens: AddressLike[];
+  _poolQuotaKeeper: AddressLike;
 };
 
 export type CollateralDebtDataStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string[],
-  string
+  debt: bigint,
+  cumulativeIndexNow: bigint,
+  cumulativeIndexLastUpdate: bigint,
+  cumulativeQuotaInterest: bigint,
+  accruedInterest: bigint,
+  accruedFees: bigint,
+  totalDebtUSD: bigint,
+  totalValue: bigint,
+  totalValueUSD: bigint,
+  twvUSD: bigint,
+  enabledTokensMask: bigint,
+  quotedTokensMask: bigint,
+  quotedTokens: string[],
+  _poolQuotaKeeper: string
 ] & {
-  debt: BigNumber;
-  cumulativeIndexNow: BigNumber;
-  cumulativeIndexLastUpdate: BigNumber;
-  cumulativeQuotaInterest: BigNumber;
-  accruedInterest: BigNumber;
-  accruedFees: BigNumber;
-  totalDebtUSD: BigNumber;
-  totalValue: BigNumber;
-  totalValueUSD: BigNumber;
-  twvUSD: BigNumber;
-  enabledTokensMask: BigNumber;
-  quotedTokensMask: BigNumber;
+  debt: bigint;
+  cumulativeIndexNow: bigint;
+  cumulativeIndexLastUpdate: bigint;
+  cumulativeQuotaInterest: bigint;
+  accruedInterest: bigint;
+  accruedFees: bigint;
+  totalDebtUSD: bigint;
+  totalValue: bigint;
+  totalValueUSD: bigint;
+  twvUSD: bigint;
+  enabledTokensMask: bigint;
+  quotedTokensMask: bigint;
   quotedTokens: string[];
   _poolQuotaKeeper: string;
 };
 
-export type RevocationPairStruct = {
-  spender: PromiseOrValue<string>;
-  token: PromiseOrValue<string>;
-};
+export type RevocationPairStruct = { spender: AddressLike; token: AddressLike };
 
-export type RevocationPairStructOutput = [string, string] & {
+export type RevocationPairStructOutput = [spender: string, token: string] & {
   spender: string;
   token: string;
 };
 
-export interface ICreditManagerV3Interface extends utils.Interface {
-  functions: {
-    "accountFactory()": FunctionFragment;
-    "adapterToContract(address)": FunctionFragment;
-    "addCollateral(address,address,address,uint256)": FunctionFragment;
-    "addToken(address)": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "approveCreditAccount(address,uint256)": FunctionFragment;
-    "approveToken(address,address,address,uint256)": FunctionFragment;
-    "calcDebtAndCollateral(address,uint8)": FunctionFragment;
-    "closeCreditAccount(address)": FunctionFragment;
-    "collateralTokenByMask(uint256)": FunctionFragment;
-    "collateralTokensCount()": FunctionFragment;
-    "contractToAdapter(address)": FunctionFragment;
-    "creditAccountInfo(address)": FunctionFragment;
-    "creditAccounts(uint256,uint256)": FunctionFragment;
-    "creditAccounts()": FunctionFragment;
-    "creditAccountsLen()": FunctionFragment;
-    "creditConfigurator()": FunctionFragment;
-    "creditFacade()": FunctionFragment;
-    "enabledTokensMaskOf(address)": FunctionFragment;
-    "execute(bytes)": FunctionFragment;
-    "externalCall(address,address,bytes)": FunctionFragment;
-    "fees()": FunctionFragment;
-    "flagsOf(address)": FunctionFragment;
-    "fullCollateralCheck(address,uint256,uint256[],uint16,bool)": FunctionFragment;
-    "getActiveCreditAccountOrRevert()": FunctionFragment;
-    "getBorrowerOrRevert(address)": FunctionFragment;
-    "getTokenByMask(uint256)": FunctionFragment;
-    "getTokenMaskOrRevert(address)": FunctionFragment;
-    "isLiquidatable(address,uint16)": FunctionFragment;
-    "liquidateCreditAccount(address,(uint256,uint256,uint256,uint128,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,address[],address),address,bool)": FunctionFragment;
-    "liquidationThresholds(address)": FunctionFragment;
-    "ltParams(address)": FunctionFragment;
-    "manageDebt(address,uint256,uint256,uint8)": FunctionFragment;
-    "maxEnabledTokens()": FunctionFragment;
-    "name()": FunctionFragment;
-    "openCreditAccount(address)": FunctionFragment;
-    "pool()": FunctionFragment;
-    "poolQuotaKeeper()": FunctionFragment;
-    "priceOracle()": FunctionFragment;
-    "quotedTokensMask()": FunctionFragment;
-    "revokeAdapterAllowances(address,(address,address)[])": FunctionFragment;
-    "setActiveCreditAccount(address)": FunctionFragment;
-    "setCollateralTokenData(address,uint16,uint16,uint40,uint24)": FunctionFragment;
-    "setContractAllowance(address,address)": FunctionFragment;
-    "setCreditConfigurator(address)": FunctionFragment;
-    "setCreditFacade(address)": FunctionFragment;
-    "setFees(uint16,uint16,uint16,uint16,uint16)": FunctionFragment;
-    "setFlagFor(address,uint16,bool)": FunctionFragment;
-    "setMaxEnabledTokens(uint8)": FunctionFragment;
-    "setPriceOracle(address)": FunctionFragment;
-    "setQuotedMask(uint256)": FunctionFragment;
-    "underlying()": FunctionFragment;
-    "updateQuota(address,address,int96,uint96,uint96)": FunctionFragment;
-    "version()": FunctionFragment;
-    "withdrawCollateral(address,address,uint256,address)": FunctionFragment;
-  };
-
+export interface ICreditManagerV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "accountFactory"
       | "adapterToContract"
       | "addCollateral"
@@ -204,26 +139,23 @@ export interface ICreditManagerV3Interface extends utils.Interface {
       | "withdrawCollateral"
   ): FunctionFragment;
 
+  getEvent(nameOrSignatureOrTopic: "SetCreditConfigurator"): EventFragment;
+
   encodeFunctionData(
     functionFragment: "accountFactory",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "adapterToContract",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "addCollateral",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "addToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
@@ -231,28 +163,23 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "approveCreditAccount",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "approveToken",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcDebtAndCollateral",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "closeCreditAccount",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "collateralTokenByMask",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "collateralTokensCount",
@@ -260,15 +187,15 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "contractToAdapter",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "creditAccountInfo",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "creditAccounts(uint256,uint256)",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "creditAccounts()",
@@ -288,34 +215,21 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "enabledTokensMaskOf",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "execute",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
+  encodeFunctionData(functionFragment: "execute", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "externalCall",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [AddressLike, AddressLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "fees", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "flagsOf",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "fullCollateralCheck",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
-    ]
+    values: [AddressLike, BigNumberish, BigNumberish[], BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "getActiveCreditAccountOrRevert",
@@ -323,45 +237,35 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getBorrowerOrRevert",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenByMask",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenMaskOrRevert",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isLiquidatable",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount",
-    values: [
-      PromiseOrValue<string>,
-      CollateralDebtDataStruct,
-      PromiseOrValue<string>,
-      PromiseOrValue<boolean>
-    ]
+    values: [AddressLike, CollateralDebtDataStruct, AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidationThresholds",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "ltParams",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "manageDebt",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "maxEnabledTokens",
@@ -370,7 +274,7 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "pool", values?: undefined): string;
   encodeFunctionData(
@@ -387,63 +291,59 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "revokeAdapterAllowances",
-    values: [PromiseOrValue<string>, RevocationPairStruct[]]
+    values: [AddressLike, RevocationPairStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "setActiveCreditAccount",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setCollateralTokenData",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "setContractAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setCreditConfigurator",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setCreditFacade",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setFees",
     values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "setFlagFor",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
-    ]
+    values: [AddressLike, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setMaxEnabledTokens",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setPriceOracle",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setQuotedMask",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
@@ -451,23 +351,12 @@ export interface ICreditManagerV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateQuota",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdrawCollateral",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, AddressLike]
   ): string;
 
   decodeFunctionResult(
@@ -654,1534 +543,763 @@ export interface ICreditManagerV3Interface extends utils.Interface {
     functionFragment: "withdrawCollateral",
     data: BytesLike
   ): Result;
-
-  events: {
-    "SetCreditConfigurator(address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "SetCreditConfigurator"): EventFragment;
 }
 
-export interface SetCreditConfiguratorEventObject {
-  newConfigurator: string;
+export namespace SetCreditConfiguratorEvent {
+  export type InputTuple = [newConfigurator: AddressLike];
+  export type OutputTuple = [newConfigurator: string];
+  export interface OutputObject {
+    newConfigurator: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetCreditConfiguratorEvent = TypedEvent<
-  [string],
-  SetCreditConfiguratorEventObject
->;
-
-export type SetCreditConfiguratorEventFilter =
-  TypedEventFilter<SetCreditConfiguratorEvent>;
 
 export interface ICreditManagerV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ICreditManagerV3;
+  waitForDeployment(): Promise<this>;
 
   interface: ICreditManagerV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
-
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
-
-  functions: {
-    accountFactory(overrides?: CallOverrides): Promise<[string]>;
-
-    adapterToContract(
-      adapter: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { targetContract: string }>;
-
-    addCollateral(
-      payer: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    addToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
-
-    approveCreditAccount(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    approveToken(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    calcDebtAndCollateral(
-      creditAccount: PromiseOrValue<string>,
-      task: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [CollateralDebtDataStructOutput] & { cdd: CollateralDebtDataStructOutput }
-    >;
-
-    closeCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    collateralTokenByMask(
-      tokenMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, number] & { token: string; liquidationThreshold: number }
-    >;
-
-    collateralTokensCount(overrides?: CallOverrides): Promise<[number]>;
-
-    contractToAdapter(
-      targetContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { adapter: string }>;
-
-    creditAccountInfo(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        number,
-        BigNumber,
-        string
-      ] & {
-        debt: BigNumber;
-        cumulativeIndexLastUpdate: BigNumber;
-        cumulativeQuotaInterest: BigNumber;
-        quotaFees: BigNumber;
-        enabledTokensMask: BigNumber;
-        flags: number;
-        lastDebtUpdate: BigNumber;
-        borrower: string;
-      }
-    >;
-
-    "creditAccounts(uint256,uint256)"(
-      offset: PromiseOrValue<BigNumberish>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string[]]>;
-
-    "creditAccounts()"(overrides?: CallOverrides): Promise<[string[]]>;
-
-    creditAccountsLen(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    creditConfigurator(overrides?: CallOverrides): Promise<[string]>;
-
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
-    enabledTokensMaskOf(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    execute(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    externalCall(
-      creditAccount: PromiseOrValue<string>,
-      target: PromiseOrValue<string>,
-      callData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    fees(
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number, number, number, number] & {
-        feeInterest: number;
-        feeLiquidation: number;
-        liquidationDiscount: number;
-        feeLiquidationExpired: number;
-        liquidationDiscountExpired: number;
-      }
-    >;
-
-    flagsOf(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
-    fullCollateralCheck(
-      creditAccount: PromiseOrValue<string>,
-      enabledTokensMask: PromiseOrValue<BigNumberish>,
-      collateralHints: PromiseOrValue<BigNumberish>[],
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      useSafePrices: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getActiveCreditAccountOrRevert(
-      overrides?: CallOverrides
-    ): Promise<[string] & { creditAccount: string }>;
-
-    getBorrowerOrRevert(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { borrower: string }>;
-
-    getTokenByMask(
-      tokenMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { token: string }>;
-
-    getTokenMaskOrRevert(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { tokenMask: BigNumber }>;
-
-    isLiquidatable(
-      creditAccount: PromiseOrValue<string>,
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    liquidateCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      collateralDebtData: CollateralDebtDataStruct,
-      to: PromiseOrValue<string>,
-      isExpired: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    liquidationThresholds(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[number] & { lt: number }>;
-
-    ltParams(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number, number, number] & {
-        ltInitial: number;
-        ltFinal: number;
-        timestampRampStart: number;
-        rampDuration: number;
-      }
-    >;
-
-    manageDebt(
-      creditAccount: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      enabledTokensMask: PromiseOrValue<BigNumberish>,
-      action: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    maxEnabledTokens(overrides?: CallOverrides): Promise<[number]>;
-
-    name(overrides?: CallOverrides): Promise<[string]>;
-
-    openCreditAccount(
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    pool(overrides?: CallOverrides): Promise<[string]>;
-
-    poolQuotaKeeper(overrides?: CallOverrides): Promise<[string]>;
-
-    priceOracle(overrides?: CallOverrides): Promise<[string]>;
-
-    quotedTokensMask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    revokeAdapterAllowances(
-      creditAccount: PromiseOrValue<string>,
-      revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setActiveCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setCollateralTokenData(
-      token: PromiseOrValue<string>,
-      ltInitial: PromiseOrValue<BigNumberish>,
-      ltFinal: PromiseOrValue<BigNumberish>,
-      timestampRampStart: PromiseOrValue<BigNumberish>,
-      rampDuration: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setContractAllowance(
-      adapter: PromiseOrValue<string>,
-      targetContract: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setCreditConfigurator(
-      creditConfigurator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setCreditFacade(
-      creditFacade: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setFees(
-      feeInterest: PromiseOrValue<BigNumberish>,
-      feeLiquidation: PromiseOrValue<BigNumberish>,
-      liquidationDiscount: PromiseOrValue<BigNumberish>,
-      feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-      liquidationDiscountExpired: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setFlagFor(
-      creditAccount: PromiseOrValue<string>,
-      flag: PromiseOrValue<BigNumberish>,
-      value: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setMaxEnabledTokens(
-      maxEnabledTokens: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setPriceOracle(
-      priceOracle: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setQuotedMask(
-      quotedTokensMask: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    underlying(overrides?: CallOverrides): Promise<[string]>;
-
-    updateQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      quotaChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      maxQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    withdrawCollateral(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
-
-  accountFactory(overrides?: CallOverrides): Promise<string>;
-
-  adapterToContract(
-    adapter: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  addCollateral(
-    payer: PromiseOrValue<string>,
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  addToken(
-    token: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  addressProvider(overrides?: CallOverrides): Promise<string>;
-
-  approveCreditAccount(
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  approveToken(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  calcDebtAndCollateral(
-    creditAccount: PromiseOrValue<string>,
-    task: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<CollateralDebtDataStructOutput>;
-
-  closeCreditAccount(
-    creditAccount: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  collateralTokenByMask(
-    tokenMask: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<
-    [string, number] & { token: string; liquidationThreshold: number }
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  accountFactory: TypedContractMethod<[], [string], "view">;
+
+  adapterToContract: TypedContractMethod<
+    [adapter: AddressLike],
+    [string],
+    "view"
   >;
 
-  collateralTokensCount(overrides?: CallOverrides): Promise<number>;
-
-  contractToAdapter(
-    targetContract: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  creditAccountInfo(
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
+  addCollateral: TypedContractMethod<
     [
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      number,
-      BigNumber,
-      string
-    ] & {
-      debt: BigNumber;
-      cumulativeIndexLastUpdate: BigNumber;
-      cumulativeQuotaInterest: BigNumber;
-      quotaFees: BigNumber;
-      enabledTokensMask: BigNumber;
-      flags: number;
-      lastDebtUpdate: BigNumber;
-      borrower: string;
-    }
+      payer: AddressLike,
+      creditAccount: AddressLike,
+      token: AddressLike,
+      amount: BigNumberish
+    ],
+    [bigint],
+    "nonpayable"
   >;
 
-  "creditAccounts(uint256,uint256)"(
-    offset: PromiseOrValue<BigNumberish>,
-    limit: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
+  addToken: TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
 
-  "creditAccounts()"(overrides?: CallOverrides): Promise<string[]>;
+  addressProvider: TypedContractMethod<[], [string], "view">;
 
-  creditAccountsLen(overrides?: CallOverrides): Promise<BigNumber>;
-
-  creditConfigurator(overrides?: CallOverrides): Promise<string>;
-
-  creditFacade(overrides?: CallOverrides): Promise<string>;
-
-  enabledTokensMaskOf(
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  execute(
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  externalCall(
-    creditAccount: PromiseOrValue<string>,
-    target: PromiseOrValue<string>,
-    callData: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  fees(
-    overrides?: CallOverrides
-  ): Promise<
-    [number, number, number, number, number] & {
-      feeInterest: number;
-      feeLiquidation: number;
-      liquidationDiscount: number;
-      feeLiquidationExpired: number;
-      liquidationDiscountExpired: number;
-    }
+  approveCreditAccount: TypedContractMethod<
+    [token: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
   >;
 
-  flagsOf(
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  fullCollateralCheck(
-    creditAccount: PromiseOrValue<string>,
-    enabledTokensMask: PromiseOrValue<BigNumberish>,
-    collateralHints: PromiseOrValue<BigNumberish>[],
-    minHealthFactor: PromiseOrValue<BigNumberish>,
-    useSafePrices: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getActiveCreditAccountOrRevert(overrides?: CallOverrides): Promise<string>;
-
-  getBorrowerOrRevert(
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getTokenByMask(
-    tokenMask: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getTokenMaskOrRevert(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  isLiquidatable(
-    creditAccount: PromiseOrValue<string>,
-    minHealthFactor: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  liquidateCreditAccount(
-    creditAccount: PromiseOrValue<string>,
-    collateralDebtData: CollateralDebtDataStruct,
-    to: PromiseOrValue<string>,
-    isExpired: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  liquidationThresholds(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  ltParams(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [number, number, number, number] & {
-      ltInitial: number;
-      ltFinal: number;
-      timestampRampStart: number;
-      rampDuration: number;
-    }
+  approveToken: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      spender: AddressLike,
+      amount: BigNumberish
+    ],
+    [void],
+    "nonpayable"
   >;
 
-  manageDebt(
-    creditAccount: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    enabledTokensMask: PromiseOrValue<BigNumberish>,
-    action: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  calcDebtAndCollateral: TypedContractMethod<
+    [creditAccount: AddressLike, task: BigNumberish],
+    [CollateralDebtDataStructOutput],
+    "view"
+  >;
 
-  maxEnabledTokens(overrides?: CallOverrides): Promise<number>;
+  closeCreditAccount: TypedContractMethod<
+    [creditAccount: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-  name(overrides?: CallOverrides): Promise<string>;
+  collateralTokenByMask: TypedContractMethod<
+    [tokenMask: BigNumberish],
+    [[string, bigint] & { token: string; liquidationThreshold: bigint }],
+    "view"
+  >;
 
-  openCreditAccount(
-    onBehalfOf: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  collateralTokensCount: TypedContractMethod<[], [bigint], "view">;
 
-  pool(overrides?: CallOverrides): Promise<string>;
+  contractToAdapter: TypedContractMethod<
+    [targetContract: AddressLike],
+    [string],
+    "view"
+  >;
 
-  poolQuotaKeeper(overrides?: CallOverrides): Promise<string>;
-
-  priceOracle(overrides?: CallOverrides): Promise<string>;
-
-  quotedTokensMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  revokeAdapterAllowances(
-    creditAccount: PromiseOrValue<string>,
-    revocations: RevocationPairStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setActiveCreditAccount(
-    creditAccount: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setCollateralTokenData(
-    token: PromiseOrValue<string>,
-    ltInitial: PromiseOrValue<BigNumberish>,
-    ltFinal: PromiseOrValue<BigNumberish>,
-    timestampRampStart: PromiseOrValue<BigNumberish>,
-    rampDuration: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setContractAllowance(
-    adapter: PromiseOrValue<string>,
-    targetContract: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setCreditConfigurator(
-    creditConfigurator: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setCreditFacade(
-    creditFacade: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFees(
-    feeInterest: PromiseOrValue<BigNumberish>,
-    feeLiquidation: PromiseOrValue<BigNumberish>,
-    liquidationDiscount: PromiseOrValue<BigNumberish>,
-    feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-    liquidationDiscountExpired: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFlagFor(
-    creditAccount: PromiseOrValue<string>,
-    flag: PromiseOrValue<BigNumberish>,
-    value: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setMaxEnabledTokens(
-    maxEnabledTokens: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setPriceOracle(
-    priceOracle: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setQuotedMask(
-    quotedTokensMask: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  underlying(overrides?: CallOverrides): Promise<string>;
-
-  updateQuota(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    quotaChange: PromiseOrValue<BigNumberish>,
-    minQuota: PromiseOrValue<BigNumberish>,
-    maxQuota: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  withdrawCollateral(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    accountFactory(overrides?: CallOverrides): Promise<string>;
-
-    adapterToContract(
-      adapter: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    addCollateral(
-      payer: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    addToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    approveCreditAccount(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    approveToken(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    calcDebtAndCollateral(
-      creditAccount: PromiseOrValue<string>,
-      task: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<CollateralDebtDataStructOutput>;
-
-    closeCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    collateralTokenByMask(
-      tokenMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, number] & { token: string; liquidationThreshold: number }
-    >;
-
-    collateralTokensCount(overrides?: CallOverrides): Promise<number>;
-
-    contractToAdapter(
-      targetContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    creditAccountInfo(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        number,
-        BigNumber,
-        string
-      ] & {
-        debt: BigNumber;
-        cumulativeIndexLastUpdate: BigNumber;
-        cumulativeQuotaInterest: BigNumber;
-        quotaFees: BigNumber;
-        enabledTokensMask: BigNumber;
-        flags: number;
-        lastDebtUpdate: BigNumber;
+  creditAccountInfo: TypedContractMethod<
+    [creditAccount: AddressLike],
+    [
+      [bigint, bigint, bigint, bigint, bigint, bigint, bigint, string] & {
+        debt: bigint;
+        cumulativeIndexLastUpdate: bigint;
+        cumulativeQuotaInterest: bigint;
+        quotaFees: bigint;
+        enabledTokensMask: bigint;
+        flags: bigint;
+        lastDebtUpdate: bigint;
         borrower: string;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    "creditAccounts(uint256,uint256)"(
-      offset: PromiseOrValue<BigNumberish>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string[]>;
+  "creditAccounts(uint256,uint256)": TypedContractMethod<
+    [offset: BigNumberish, limit: BigNumberish],
+    [string[]],
+    "view"
+  >;
 
-    "creditAccounts()"(overrides?: CallOverrides): Promise<string[]>;
+  "creditAccounts()": TypedContractMethod<[], [string[]], "view">;
 
-    creditAccountsLen(overrides?: CallOverrides): Promise<BigNumber>;
+  creditAccountsLen: TypedContractMethod<[], [bigint], "view">;
 
-    creditConfigurator(overrides?: CallOverrides): Promise<string>;
+  creditConfigurator: TypedContractMethod<[], [string], "view">;
 
-    creditFacade(overrides?: CallOverrides): Promise<string>;
+  creditFacade: TypedContractMethod<[], [string], "view">;
 
-    enabledTokensMaskOf(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+  enabledTokensMaskOf: TypedContractMethod<
+    [creditAccount: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-    execute(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+  execute: TypedContractMethod<[data: BytesLike], [string], "nonpayable">;
 
-    externalCall(
-      creditAccount: PromiseOrValue<string>,
-      target: PromiseOrValue<string>,
-      callData: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+  externalCall: TypedContractMethod<
+    [creditAccount: AddressLike, target: AddressLike, callData: BytesLike],
+    [string],
+    "nonpayable"
+  >;
 
-    fees(
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number, number, number, number] & {
-        feeInterest: number;
-        feeLiquidation: number;
-        liquidationDiscount: number;
-        feeLiquidationExpired: number;
-        liquidationDiscountExpired: number;
+  fees: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint, bigint, bigint] & {
+        feeInterest: bigint;
+        feeLiquidation: bigint;
+        liquidationDiscount: bigint;
+        feeLiquidationExpired: bigint;
+        liquidationDiscountExpired: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    flagsOf(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<number>;
+  flagsOf: TypedContractMethod<[creditAccount: AddressLike], [bigint], "view">;
 
-    fullCollateralCheck(
-      creditAccount: PromiseOrValue<string>,
-      enabledTokensMask: PromiseOrValue<BigNumberish>,
-      collateralHints: PromiseOrValue<BigNumberish>[],
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      useSafePrices: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+  fullCollateralCheck: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      enabledTokensMask: BigNumberish,
+      collateralHints: BigNumberish[],
+      minHealthFactor: BigNumberish,
+      useSafePrices: boolean
+    ],
+    [bigint],
+    "nonpayable"
+  >;
 
-    getActiveCreditAccountOrRevert(overrides?: CallOverrides): Promise<string>;
+  getActiveCreditAccountOrRevert: TypedContractMethod<[], [string], "view">;
 
-    getBorrowerOrRevert(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+  getBorrowerOrRevert: TypedContractMethod<
+    [creditAccount: AddressLike],
+    [string],
+    "view"
+  >;
 
-    getTokenByMask(
-      tokenMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+  getTokenByMask: TypedContractMethod<
+    [tokenMask: BigNumberish],
+    [string],
+    "view"
+  >;
 
-    getTokenMaskOrRevert(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+  getTokenMaskOrRevert: TypedContractMethod<
+    [token: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-    isLiquidatable(
-      creditAccount: PromiseOrValue<string>,
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+  isLiquidatable: TypedContractMethod<
+    [creditAccount: AddressLike, minHealthFactor: BigNumberish],
+    [boolean],
+    "view"
+  >;
 
-    liquidateCreditAccount(
-      creditAccount: PromiseOrValue<string>,
+  liquidateCreditAccount: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
       collateralDebtData: CollateralDebtDataStruct,
-      to: PromiseOrValue<string>,
-      isExpired: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { remainingFunds: BigNumber; loss: BigNumber }
-    >;
+      to: AddressLike,
+      isExpired: boolean
+    ],
+    [[bigint, bigint] & { remainingFunds: bigint; loss: bigint }],
+    "nonpayable"
+  >;
 
-    liquidationThresholds(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<number>;
+  liquidationThresholds: TypedContractMethod<
+    [token: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-    ltParams(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number, number, number] & {
-        ltInitial: number;
-        ltFinal: number;
-        timestampRampStart: number;
-        rampDuration: number;
+  ltParams: TypedContractMethod<
+    [token: AddressLike],
+    [
+      [bigint, bigint, bigint, bigint] & {
+        ltInitial: bigint;
+        ltFinal: bigint;
+        timestampRampStart: bigint;
+        rampDuration: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    manageDebt(
-      creditAccount: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      enabledTokensMask: PromiseOrValue<BigNumberish>,
-      action: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        newDebt: BigNumber;
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
+  manageDebt: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      amount: BigNumberish,
+      enabledTokensMask: BigNumberish,
+      action: BigNumberish
+    ],
+    [
+      [bigint, bigint, bigint] & {
+        newDebt: bigint;
+        tokensToEnable: bigint;
+        tokensToDisable: bigint;
       }
-    >;
+    ],
+    "nonpayable"
+  >;
 
-    maxEnabledTokens(overrides?: CallOverrides): Promise<number>;
+  maxEnabledTokens: TypedContractMethod<[], [bigint], "view">;
 
-    name(overrides?: CallOverrides): Promise<string>;
+  name: TypedContractMethod<[], [string], "view">;
 
-    openCreditAccount(
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+  openCreditAccount: TypedContractMethod<
+    [onBehalfOf: AddressLike],
+    [string],
+    "nonpayable"
+  >;
 
-    pool(overrides?: CallOverrides): Promise<string>;
+  pool: TypedContractMethod<[], [string], "view">;
 
-    poolQuotaKeeper(overrides?: CallOverrides): Promise<string>;
+  poolQuotaKeeper: TypedContractMethod<[], [string], "view">;
 
-    priceOracle(overrides?: CallOverrides): Promise<string>;
+  priceOracle: TypedContractMethod<[], [string], "view">;
 
-    quotedTokensMask(overrides?: CallOverrides): Promise<BigNumber>;
+  quotedTokensMask: TypedContractMethod<[], [bigint], "view">;
 
-    revokeAdapterAllowances(
-      creditAccount: PromiseOrValue<string>,
-      revocations: RevocationPairStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+  revokeAdapterAllowances: TypedContractMethod<
+    [creditAccount: AddressLike, revocations: RevocationPairStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-    setActiveCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setActiveCreditAccount: TypedContractMethod<
+    [creditAccount: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-    setCollateralTokenData(
-      token: PromiseOrValue<string>,
-      ltInitial: PromiseOrValue<BigNumberish>,
-      ltFinal: PromiseOrValue<BigNumberish>,
-      timestampRampStart: PromiseOrValue<BigNumberish>,
-      rampDuration: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setCollateralTokenData: TypedContractMethod<
+    [
+      token: AddressLike,
+      ltInitial: BigNumberish,
+      ltFinal: BigNumberish,
+      timestampRampStart: BigNumberish,
+      rampDuration: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    setContractAllowance(
-      adapter: PromiseOrValue<string>,
-      targetContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setContractAllowance: TypedContractMethod<
+    [adapter: AddressLike, targetContract: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-    setCreditConfigurator(
-      creditConfigurator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setCreditConfigurator: TypedContractMethod<
+    [creditConfigurator: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-    setCreditFacade(
-      creditFacade: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setCreditFacade: TypedContractMethod<
+    [creditFacade: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-    setFees(
-      feeInterest: PromiseOrValue<BigNumberish>,
-      feeLiquidation: PromiseOrValue<BigNumberish>,
-      liquidationDiscount: PromiseOrValue<BigNumberish>,
-      feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-      liquidationDiscountExpired: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setFees: TypedContractMethod<
+    [
+      feeInterest: BigNumberish,
+      feeLiquidation: BigNumberish,
+      liquidationDiscount: BigNumberish,
+      feeLiquidationExpired: BigNumberish,
+      liquidationDiscountExpired: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    setFlagFor(
-      creditAccount: PromiseOrValue<string>,
-      flag: PromiseOrValue<BigNumberish>,
-      value: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setFlagFor: TypedContractMethod<
+    [creditAccount: AddressLike, flag: BigNumberish, value: boolean],
+    [void],
+    "nonpayable"
+  >;
 
-    setMaxEnabledTokens(
-      maxEnabledTokens: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setMaxEnabledTokens: TypedContractMethod<
+    [maxEnabledTokens: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setPriceOracle(
-      priceOracle: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setPriceOracle: TypedContractMethod<
+    [priceOracle: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-    setQuotedMask(
-      quotedTokensMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setQuotedMask: TypedContractMethod<
+    [quotedTokensMask: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    underlying(overrides?: CallOverrides): Promise<string>;
+  underlying: TypedContractMethod<[], [string], "view">;
 
-    updateQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      quotaChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      maxQuota: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
+  updateQuota: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      quotaChange: BigNumberish,
+      minQuota: BigNumberish,
+      maxQuota: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  withdrawCollateral: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      amount: BigNumberish,
+      to: AddressLike
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "accountFactory"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "adapterToContract"
+  ): TypedContractMethod<[adapter: AddressLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "addCollateral"
+  ): TypedContractMethod<
+    [
+      payer: AddressLike,
+      creditAccount: AddressLike,
+      token: AddressLike,
+      amount: BigNumberish
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "addToken"
+  ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "approveCreditAccount"
+  ): TypedContractMethod<
+    [token: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "approveToken"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      spender: AddressLike,
+      amount: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "calcDebtAndCollateral"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, task: BigNumberish],
+    [CollateralDebtDataStructOutput],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "closeCreditAccount"
+  ): TypedContractMethod<[creditAccount: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "collateralTokenByMask"
+  ): TypedContractMethod<
+    [tokenMask: BigNumberish],
+    [[string, bigint] & { token: string; liquidationThreshold: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "collateralTokensCount"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "contractToAdapter"
+  ): TypedContractMethod<[targetContract: AddressLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "creditAccountInfo"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike],
+    [
+      [bigint, bigint, bigint, bigint, bigint, bigint, bigint, string] & {
+        debt: bigint;
+        cumulativeIndexLastUpdate: bigint;
+        cumulativeQuotaInterest: bigint;
+        quotaFees: bigint;
+        enabledTokensMask: bigint;
+        flags: bigint;
+        lastDebtUpdate: bigint;
+        borrower: string;
       }
-    >;
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "creditAccounts(uint256,uint256)"
+  ): TypedContractMethod<
+    [offset: BigNumberish, limit: BigNumberish],
+    [string[]],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "creditAccounts()"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "creditAccountsLen"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "creditConfigurator"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "creditFacade"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "enabledTokensMaskOf"
+  ): TypedContractMethod<[creditAccount: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "execute"
+  ): TypedContractMethod<[data: BytesLike], [string], "nonpayable">;
+  getFunction(
+    nameOrSignature: "externalCall"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, target: AddressLike, callData: BytesLike],
+    [string],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "fees"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint, bigint, bigint] & {
+        feeInterest: bigint;
+        feeLiquidation: bigint;
+        liquidationDiscount: bigint;
+        feeLiquidationExpired: bigint;
+        liquidationDiscountExpired: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "flagsOf"
+  ): TypedContractMethod<[creditAccount: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "fullCollateralCheck"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      enabledTokensMask: BigNumberish,
+      collateralHints: BigNumberish[],
+      minHealthFactor: BigNumberish,
+      useSafePrices: boolean
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "getActiveCreditAccountOrRevert"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getBorrowerOrRevert"
+  ): TypedContractMethod<[creditAccount: AddressLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "getTokenByMask"
+  ): TypedContractMethod<[tokenMask: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getTokenMaskOrRevert"
+  ): TypedContractMethod<[token: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "isLiquidatable"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, minHealthFactor: BigNumberish],
+    [boolean],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "liquidateCreditAccount"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      collateralDebtData: CollateralDebtDataStruct,
+      to: AddressLike,
+      isExpired: boolean
+    ],
+    [[bigint, bigint] & { remainingFunds: bigint; loss: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "liquidationThresholds"
+  ): TypedContractMethod<[token: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "ltParams"
+  ): TypedContractMethod<
+    [token: AddressLike],
+    [
+      [bigint, bigint, bigint, bigint] & {
+        ltInitial: bigint;
+        ltFinal: bigint;
+        timestampRampStart: bigint;
+        rampDuration: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "manageDebt"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      amount: BigNumberish,
+      enabledTokensMask: BigNumberish,
+      action: BigNumberish
+    ],
+    [
+      [bigint, bigint, bigint] & {
+        newDebt: bigint;
+        tokensToEnable: bigint;
+        tokensToDisable: bigint;
+      }
+    ],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "maxEnabledTokens"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "name"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "openCreditAccount"
+  ): TypedContractMethod<[onBehalfOf: AddressLike], [string], "nonpayable">;
+  getFunction(
+    nameOrSignature: "pool"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "poolQuotaKeeper"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "priceOracle"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "quotedTokensMask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "revokeAdapterAllowances"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, revocations: RevocationPairStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setActiveCreditAccount"
+  ): TypedContractMethod<[creditAccount: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setCollateralTokenData"
+  ): TypedContractMethod<
+    [
+      token: AddressLike,
+      ltInitial: BigNumberish,
+      ltFinal: BigNumberish,
+      timestampRampStart: BigNumberish,
+      rampDuration: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setContractAllowance"
+  ): TypedContractMethod<
+    [adapter: AddressLike, targetContract: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setCreditConfigurator"
+  ): TypedContractMethod<
+    [creditConfigurator: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setCreditFacade"
+  ): TypedContractMethod<[creditFacade: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setFees"
+  ): TypedContractMethod<
+    [
+      feeInterest: BigNumberish,
+      feeLiquidation: BigNumberish,
+      liquidationDiscount: BigNumberish,
+      feeLiquidationExpired: BigNumberish,
+      liquidationDiscountExpired: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setFlagFor"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, flag: BigNumberish, value: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setMaxEnabledTokens"
+  ): TypedContractMethod<
+    [maxEnabledTokens: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setPriceOracle"
+  ): TypedContractMethod<[priceOracle: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setQuotedMask"
+  ): TypedContractMethod<
+    [quotedTokensMask: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "underlying"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "updateQuota"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      quotaChange: BigNumberish,
+      minQuota: BigNumberish,
+      maxQuota: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "withdrawCollateral"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      amount: BigNumberish,
+      to: AddressLike
+    ],
+    [bigint],
+    "nonpayable"
+  >;
 
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdrawCollateral(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "SetCreditConfigurator"
+  ): TypedContractEvent<
+    SetCreditConfiguratorEvent.InputTuple,
+    SetCreditConfiguratorEvent.OutputTuple,
+    SetCreditConfiguratorEvent.OutputObject
+  >;
 
   filters: {
-    "SetCreditConfigurator(address)"(
-      newConfigurator?: PromiseOrValue<string> | null
-    ): SetCreditConfiguratorEventFilter;
-    SetCreditConfigurator(
-      newConfigurator?: PromiseOrValue<string> | null
-    ): SetCreditConfiguratorEventFilter;
-  };
-
-  estimateGas: {
-    accountFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    adapterToContract(
-      adapter: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    addCollateral(
-      payer: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    addToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    approveCreditAccount(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    approveToken(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    calcDebtAndCollateral(
-      creditAccount: PromiseOrValue<string>,
-      task: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    closeCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    collateralTokenByMask(
-      tokenMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    collateralTokensCount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    contractToAdapter(
-      targetContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditAccountInfo(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "creditAccounts(uint256,uint256)"(
-      offset: PromiseOrValue<BigNumberish>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "creditAccounts()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditAccountsLen(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditConfigurator(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
-
-    enabledTokensMaskOf(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    execute(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    externalCall(
-      creditAccount: PromiseOrValue<string>,
-      target: PromiseOrValue<string>,
-      callData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    fees(overrides?: CallOverrides): Promise<BigNumber>;
-
-    flagsOf(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    fullCollateralCheck(
-      creditAccount: PromiseOrValue<string>,
-      enabledTokensMask: PromiseOrValue<BigNumberish>,
-      collateralHints: PromiseOrValue<BigNumberish>[],
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      useSafePrices: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getActiveCreditAccountOrRevert(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getBorrowerOrRevert(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenByMask(
-      tokenMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenMaskOrRevert(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isLiquidatable(
-      creditAccount: PromiseOrValue<string>,
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    liquidateCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      collateralDebtData: CollateralDebtDataStruct,
-      to: PromiseOrValue<string>,
-      isExpired: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    liquidationThresholds(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    ltParams(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    manageDebt(
-      creditAccount: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      enabledTokensMask: PromiseOrValue<BigNumberish>,
-      action: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    maxEnabledTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    name(overrides?: CallOverrides): Promise<BigNumber>;
-
-    openCreditAccount(
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    pool(overrides?: CallOverrides): Promise<BigNumber>;
-
-    poolQuotaKeeper(overrides?: CallOverrides): Promise<BigNumber>;
-
-    priceOracle(overrides?: CallOverrides): Promise<BigNumber>;
-
-    quotedTokensMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    revokeAdapterAllowances(
-      creditAccount: PromiseOrValue<string>,
-      revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setActiveCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setCollateralTokenData(
-      token: PromiseOrValue<string>,
-      ltInitial: PromiseOrValue<BigNumberish>,
-      ltFinal: PromiseOrValue<BigNumberish>,
-      timestampRampStart: PromiseOrValue<BigNumberish>,
-      rampDuration: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setContractAllowance(
-      adapter: PromiseOrValue<string>,
-      targetContract: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setCreditConfigurator(
-      creditConfigurator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setCreditFacade(
-      creditFacade: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFees(
-      feeInterest: PromiseOrValue<BigNumberish>,
-      feeLiquidation: PromiseOrValue<BigNumberish>,
-      liquidationDiscount: PromiseOrValue<BigNumberish>,
-      feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-      liquidationDiscountExpired: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFlagFor(
-      creditAccount: PromiseOrValue<string>,
-      flag: PromiseOrValue<BigNumberish>,
-      value: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setMaxEnabledTokens(
-      maxEnabledTokens: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setPriceOracle(
-      priceOracle: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setQuotedMask(
-      quotedTokensMask: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    underlying(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      quotaChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      maxQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdrawCollateral(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    accountFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    adapterToContract(
-      adapter: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addCollateral(
-      payer: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    approveCreditAccount(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    approveToken(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    calcDebtAndCollateral(
-      creditAccount: PromiseOrValue<string>,
-      task: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    closeCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    collateralTokenByMask(
-      tokenMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    collateralTokensCount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    contractToAdapter(
-      targetContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    creditAccountInfo(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "creditAccounts(uint256,uint256)"(
-      offset: PromiseOrValue<BigNumberish>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "creditAccounts()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    creditAccountsLen(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    creditConfigurator(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    enabledTokensMaskOf(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    execute(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    externalCall(
-      creditAccount: PromiseOrValue<string>,
-      target: PromiseOrValue<string>,
-      callData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    fees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    flagsOf(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    fullCollateralCheck(
-      creditAccount: PromiseOrValue<string>,
-      enabledTokensMask: PromiseOrValue<BigNumberish>,
-      collateralHints: PromiseOrValue<BigNumberish>[],
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      useSafePrices: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getActiveCreditAccountOrRevert(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getBorrowerOrRevert(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenByMask(
-      tokenMask: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenMaskOrRevert(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isLiquidatable(
-      creditAccount: PromiseOrValue<string>,
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    liquidateCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      collateralDebtData: CollateralDebtDataStruct,
-      to: PromiseOrValue<string>,
-      isExpired: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    liquidationThresholds(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    ltParams(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    manageDebt(
-      creditAccount: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      enabledTokensMask: PromiseOrValue<BigNumberish>,
-      action: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    maxEnabledTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    openCreditAccount(
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    poolQuotaKeeper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    priceOracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    quotedTokensMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    revokeAdapterAllowances(
-      creditAccount: PromiseOrValue<string>,
-      revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setActiveCreditAccount(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setCollateralTokenData(
-      token: PromiseOrValue<string>,
-      ltInitial: PromiseOrValue<BigNumberish>,
-      ltFinal: PromiseOrValue<BigNumberish>,
-      timestampRampStart: PromiseOrValue<BigNumberish>,
-      rampDuration: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setContractAllowance(
-      adapter: PromiseOrValue<string>,
-      targetContract: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setCreditConfigurator(
-      creditConfigurator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setCreditFacade(
-      creditFacade: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFees(
-      feeInterest: PromiseOrValue<BigNumberish>,
-      feeLiquidation: PromiseOrValue<BigNumberish>,
-      liquidationDiscount: PromiseOrValue<BigNumberish>,
-      feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-      liquidationDiscountExpired: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFlagFor(
-      creditAccount: PromiseOrValue<string>,
-      flag: PromiseOrValue<BigNumberish>,
-      value: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setMaxEnabledTokens(
-      maxEnabledTokens: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setPriceOracle(
-      priceOracle: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setQuotedMask(
-      quotedTokensMask: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updateQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      quotaChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      maxQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdrawCollateral(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    "SetCreditConfigurator(address)": TypedContractEvent<
+      SetCreditConfiguratorEvent.InputTuple,
+      SetCreditConfiguratorEvent.OutputTuple,
+      SetCreditConfiguratorEvent.OutputObject
+    >;
+    SetCreditConfigurator: TypedContractEvent<
+      SetCreditConfiguratorEvent.InputTuple,
+      SetCreditConfiguratorEvent.OutputTuple,
+      SetCreditConfiguratorEvent.OutputObject
+    >;
   };
 }

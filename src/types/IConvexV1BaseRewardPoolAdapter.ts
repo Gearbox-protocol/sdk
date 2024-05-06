@@ -3,56 +3,26 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface IConvexV1BaseRewardPoolAdapterInterface
-  extends utils.Interface {
-  functions: {
-    "_gearboxAdapterType()": FunctionFragment;
-    "_gearboxAdapterVersion()": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "curveLPTokenMask()": FunctionFragment;
-    "curveLPtoken()": FunctionFragment;
-    "extraReward1()": FunctionFragment;
-    "extraReward2()": FunctionFragment;
-    "extraReward3()": FunctionFragment;
-    "extraReward4()": FunctionFragment;
-    "getReward()": FunctionFragment;
-    "rewardTokensMask()": FunctionFragment;
-    "stake(uint256)": FunctionFragment;
-    "stakeDiff(uint256)": FunctionFragment;
-    "stakedPhantomToken()": FunctionFragment;
-    "stakedTokenMask()": FunctionFragment;
-    "stakingToken()": FunctionFragment;
-    "stakingTokenMask()": FunctionFragment;
-    "targetContract()": FunctionFragment;
-    "withdraw(uint256,bool)": FunctionFragment;
-    "withdrawAndUnwrap(uint256,bool)": FunctionFragment;
-    "withdrawDiff(uint256,bool)": FunctionFragment;
-    "withdrawDiffAndUnwrap(uint256,bool)": FunctionFragment;
-  };
-
+export interface IConvexV1BaseRewardPoolAdapterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
       | "addressProvider"
@@ -123,13 +93,10 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     functionFragment: "rewardTokensMask",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "stake",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "stake", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "stakeDiff",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "stakedPhantomToken",
@@ -153,19 +120,19 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAndUnwrap",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawDiff",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawDiffAndUnwrap",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+    values: [BigNumberish, boolean]
   ): string;
 
   decodeFunctionResult(
@@ -248,434 +215,226 @@ export interface IConvexV1BaseRewardPoolAdapterInterface
     functionFragment: "withdrawDiffAndUnwrap",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface IConvexV1BaseRewardPoolAdapter extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IConvexV1BaseRewardPoolAdapter;
+  waitForDeployment(): Promise<this>;
 
   interface: IConvexV1BaseRewardPoolAdapterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
-
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
-
-  functions: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<[number]>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
-
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
-
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
-
-    curveLPTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    curveLPtoken(overrides?: CallOverrides): Promise<[string]>;
-
-    extraReward1(overrides?: CallOverrides): Promise<[string]>;
-
-    extraReward2(overrides?: CallOverrides): Promise<[string]>;
-
-    extraReward3(overrides?: CallOverrides): Promise<[string]>;
-
-    extraReward4(overrides?: CallOverrides): Promise<[string]>;
-
-    getReward(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    rewardTokensMask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    stake(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    stakeDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    stakedPhantomToken(overrides?: CallOverrides): Promise<[string]>;
-
-    stakedTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    stakingToken(overrides?: CallOverrides): Promise<[string]>;
-
-    stakingTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    targetContract(overrides?: CallOverrides): Promise<[string]>;
-
-    withdraw(
-      arg0: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawAndUnwrap(
-      arg0: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawDiffAndUnwrap(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
-
-  _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
-
-  _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-  addressProvider(overrides?: CallOverrides): Promise<string>;
-
-  creditManager(overrides?: CallOverrides): Promise<string>;
-
-  curveLPTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  curveLPtoken(overrides?: CallOverrides): Promise<string>;
-
-  extraReward1(overrides?: CallOverrides): Promise<string>;
-
-  extraReward2(overrides?: CallOverrides): Promise<string>;
-
-  extraReward3(overrides?: CallOverrides): Promise<string>;
-
-  extraReward4(overrides?: CallOverrides): Promise<string>;
-
-  getReward(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  rewardTokensMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  stake(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  stakeDiff(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  stakedPhantomToken(overrides?: CallOverrides): Promise<string>;
-
-  stakedTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  stakingToken(overrides?: CallOverrides): Promise<string>;
-
-  stakingTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  targetContract(overrides?: CallOverrides): Promise<string>;
-
-  withdraw(
-    arg0: PromiseOrValue<BigNumberish>,
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawAndUnwrap(
-    arg0: PromiseOrValue<BigNumberish>,
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawDiff(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawDiffAndUnwrap(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    curveLPTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    curveLPtoken(overrides?: CallOverrides): Promise<string>;
-
-    extraReward1(overrides?: CallOverrides): Promise<string>;
-
-    extraReward2(overrides?: CallOverrides): Promise<string>;
-
-    extraReward3(overrides?: CallOverrides): Promise<string>;
-
-    extraReward4(overrides?: CallOverrides): Promise<string>;
-
-    getReward(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    rewardTokensMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stake(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    stakeDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    stakedPhantomToken(overrides?: CallOverrides): Promise<string>;
-
-    stakedTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stakingToken(overrides?: CallOverrides): Promise<string>;
-
-    stakingTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    targetContract(overrides?: CallOverrides): Promise<string>;
-
-    withdraw(
-      arg0: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    withdrawAndUnwrap(
-      arg0: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    withdrawDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    withdrawDiffAndUnwrap(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-  };
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  _gearboxAdapterType: TypedContractMethod<[], [bigint], "view">;
+
+  _gearboxAdapterVersion: TypedContractMethod<[], [bigint], "view">;
+
+  addressProvider: TypedContractMethod<[], [string], "view">;
+
+  creditManager: TypedContractMethod<[], [string], "view">;
+
+  curveLPTokenMask: TypedContractMethod<[], [bigint], "view">;
+
+  curveLPtoken: TypedContractMethod<[], [string], "view">;
+
+  extraReward1: TypedContractMethod<[], [string], "view">;
+
+  extraReward2: TypedContractMethod<[], [string], "view">;
+
+  extraReward3: TypedContractMethod<[], [string], "view">;
+
+  extraReward4: TypedContractMethod<[], [string], "view">;
+
+  getReward: TypedContractMethod<
+    [],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  rewardTokensMask: TypedContractMethod<[], [bigint], "view">;
+
+  stake: TypedContractMethod<
+    [arg0: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  stakeDiff: TypedContractMethod<
+    [leftoverAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  stakedPhantomToken: TypedContractMethod<[], [string], "view">;
+
+  stakedTokenMask: TypedContractMethod<[], [bigint], "view">;
+
+  stakingToken: TypedContractMethod<[], [string], "view">;
+
+  stakingTokenMask: TypedContractMethod<[], [bigint], "view">;
+
+  targetContract: TypedContractMethod<[], [string], "view">;
+
+  withdraw: TypedContractMethod<
+    [arg0: BigNumberish, claim: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  withdrawAndUnwrap: TypedContractMethod<
+    [arg0: BigNumberish, claim: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  withdrawDiff: TypedContractMethod<
+    [leftoverAmount: BigNumberish, claim: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  withdrawDiffAndUnwrap: TypedContractMethod<
+    [leftoverAmount: BigNumberish, claim: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "_gearboxAdapterType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterVersion"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "curveLPTokenMask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "curveLPtoken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "extraReward1"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "extraReward2"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "extraReward3"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "extraReward4"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getReward"
+  ): TypedContractMethod<
+    [],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "rewardTokensMask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "stake"
+  ): TypedContractMethod<
+    [arg0: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "stakeDiff"
+  ): TypedContractMethod<
+    [leftoverAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "stakedPhantomToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "stakedTokenMask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "stakingToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "stakingTokenMask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "targetContract"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "withdraw"
+  ): TypedContractMethod<
+    [arg0: BigNumberish, claim: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawAndUnwrap"
+  ): TypedContractMethod<
+    [arg0: BigNumberish, claim: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawDiff"
+  ): TypedContractMethod<
+    [leftoverAmount: BigNumberish, claim: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawDiffAndUnwrap"
+  ): TypedContractMethod<
+    [leftoverAmount: BigNumberish, claim: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    curveLPTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    curveLPtoken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    extraReward1(overrides?: CallOverrides): Promise<BigNumber>;
-
-    extraReward2(overrides?: CallOverrides): Promise<BigNumber>;
-
-    extraReward3(overrides?: CallOverrides): Promise<BigNumber>;
-
-    extraReward4(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getReward(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    rewardTokensMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stake(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    stakeDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    stakedPhantomToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stakedTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stakingToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stakingTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    targetContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      arg0: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawAndUnwrap(
-      arg0: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawDiffAndUnwrap(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    _gearboxAdapterType(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    _gearboxAdapterVersion(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    curveLPTokenMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    curveLPtoken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    extraReward1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    extraReward2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    extraReward3(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    extraReward4(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getReward(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    rewardTokensMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    stake(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    stakeDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    stakedPhantomToken(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    stakedTokenMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    stakingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    stakingTokenMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdraw(
-      arg0: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawAndUnwrap(
-      arg0: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawDiffAndUnwrap(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
 }

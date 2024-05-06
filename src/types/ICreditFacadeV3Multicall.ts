@@ -3,65 +3,41 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export type RevocationPairStruct = {
-  spender: PromiseOrValue<string>;
-  token: PromiseOrValue<string>;
-};
+export type RevocationPairStruct = { spender: AddressLike; token: AddressLike };
 
-export type RevocationPairStructOutput = [string, string] & {
+export type RevocationPairStructOutput = [spender: string, token: string] & {
   spender: string;
   token: string;
 };
 
-export type BalanceDeltaStruct = {
-  token: PromiseOrValue<string>;
-  amount: PromiseOrValue<BigNumberish>;
-};
+export type BalanceDeltaStruct = { token: AddressLike; amount: BigNumberish };
 
-export type BalanceDeltaStructOutput = [string, BigNumber] & {
+export type BalanceDeltaStructOutput = [token: string, amount: bigint] & {
   token: string;
-  amount: BigNumber;
+  amount: bigint;
 };
 
-export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
-  functions: {
-    "addCollateral(address,uint256)": FunctionFragment;
-    "addCollateralWithPermit(address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "compareBalances()": FunctionFragment;
-    "decreaseDebt(uint256)": FunctionFragment;
-    "disableToken(address)": FunctionFragment;
-    "enableToken(address)": FunctionFragment;
-    "increaseDebt(uint256)": FunctionFragment;
-    "onDemandPriceUpdate(address,bool,bytes)": FunctionFragment;
-    "revokeAdapterAllowances((address,address)[])": FunctionFragment;
-    "setFullCheckParams(uint256[],uint16)": FunctionFragment;
-    "storeExpectedBalances((address,int256)[])": FunctionFragment;
-    "updateQuota(address,int96,uint96)": FunctionFragment;
-    "withdrawCollateral(address,uint256,address)": FunctionFragment;
-  };
-
+export interface ICreditFacadeV3MulticallInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "addCollateral"
       | "addCollateralWithPermit"
       | "compareBalances"
@@ -79,17 +55,17 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "addCollateral",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "addCollateralWithPermit",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
   encodeFunctionData(
@@ -98,27 +74,23 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseDebt",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "disableToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "enableToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseDebt",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "onDemandPriceUpdate",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<boolean>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [AddressLike, boolean, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "revokeAdapterAllowances",
@@ -126,7 +98,7 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFullCheckParams",
-    values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>]
+    values: [BigNumberish[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "storeExpectedBalances",
@@ -134,19 +106,11 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateQuota",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawCollateral",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [AddressLike, BigNumberish, AddressLike]
   ): string;
 
   decodeFunctionResult(
@@ -201,426 +165,206 @@ export interface ICreditFacadeV3MulticallInterface extends utils.Interface {
     functionFragment: "withdrawCollateral",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface ICreditFacadeV3Multicall extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ICreditFacadeV3Multicall;
+  waitForDeployment(): Promise<this>;
 
   interface: ICreditFacadeV3MulticallInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    addCollateral(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    addCollateralWithPermit(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    compareBalances(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  addCollateral: TypedContractMethod<
+    [token: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    decreaseDebt(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  addCollateralWithPermit: TypedContractMethod<
+    [
+      token: AddressLike,
+      amount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    disableToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  compareBalances: TypedContractMethod<[], [void], "nonpayable">;
 
-    enableToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  decreaseDebt: TypedContractMethod<
+    [amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    increaseDebt(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  disableToken: TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
 
-    onDemandPriceUpdate(
-      token: PromiseOrValue<string>,
-      reserve: PromiseOrValue<boolean>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  enableToken: TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
 
-    revokeAdapterAllowances(
-      revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  increaseDebt: TypedContractMethod<
+    [amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setFullCheckParams(
-      collateralHints: PromiseOrValue<BigNumberish>[],
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  onDemandPriceUpdate: TypedContractMethod<
+    [token: AddressLike, reserve: boolean, data: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
-    storeExpectedBalances(
-      balanceDeltas: BalanceDeltaStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  revokeAdapterAllowances: TypedContractMethod<
+    [revocations: RevocationPairStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-    updateQuota(
-      token: PromiseOrValue<string>,
-      quotaChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  setFullCheckParams: TypedContractMethod<
+    [collateralHints: BigNumberish[], minHealthFactor: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    withdrawCollateral(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+  storeExpectedBalances: TypedContractMethod<
+    [balanceDeltas: BalanceDeltaStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-  addCollateral(
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  updateQuota: TypedContractMethod<
+    [token: AddressLike, quotaChange: BigNumberish, minQuota: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-  addCollateralWithPermit(
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    v: PromiseOrValue<BigNumberish>,
-    r: PromiseOrValue<BytesLike>,
-    s: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  withdrawCollateral: TypedContractMethod<
+    [token: AddressLike, amount: BigNumberish, to: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-  compareBalances(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  decreaseDebt(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  disableToken(
-    token: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  enableToken(
-    token: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  increaseDebt(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  onDemandPriceUpdate(
-    token: PromiseOrValue<string>,
-    reserve: PromiseOrValue<boolean>,
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  revokeAdapterAllowances(
-    revocations: RevocationPairStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFullCheckParams(
-    collateralHints: PromiseOrValue<BigNumberish>[],
-    minHealthFactor: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  storeExpectedBalances(
-    balanceDeltas: BalanceDeltaStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  updateQuota(
-    token: PromiseOrValue<string>,
-    quotaChange: PromiseOrValue<BigNumberish>,
-    minQuota: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawCollateral(
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    addCollateral(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addCollateralWithPermit(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    compareBalances(overrides?: CallOverrides): Promise<void>;
-
-    decreaseDebt(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    disableToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    enableToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    increaseDebt(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    onDemandPriceUpdate(
-      token: PromiseOrValue<string>,
-      reserve: PromiseOrValue<boolean>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    revokeAdapterAllowances(
-      revocations: RevocationPairStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFullCheckParams(
-      collateralHints: PromiseOrValue<BigNumberish>[],
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    storeExpectedBalances(
-      balanceDeltas: BalanceDeltaStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    updateQuota(
-      token: PromiseOrValue<string>,
-      quotaChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdrawCollateral(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+  getFunction(
+    nameOrSignature: "addCollateral"
+  ): TypedContractMethod<
+    [token: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "addCollateralWithPermit"
+  ): TypedContractMethod<
+    [
+      token: AddressLike,
+      amount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "compareBalances"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "decreaseDebt"
+  ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "disableToken"
+  ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "enableToken"
+  ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "increaseDebt"
+  ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "onDemandPriceUpdate"
+  ): TypedContractMethod<
+    [token: AddressLike, reserve: boolean, data: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "revokeAdapterAllowances"
+  ): TypedContractMethod<
+    [revocations: RevocationPairStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setFullCheckParams"
+  ): TypedContractMethod<
+    [collateralHints: BigNumberish[], minHealthFactor: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "storeExpectedBalances"
+  ): TypedContractMethod<
+    [balanceDeltas: BalanceDeltaStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "updateQuota"
+  ): TypedContractMethod<
+    [token: AddressLike, quotaChange: BigNumberish, minQuota: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawCollateral"
+  ): TypedContractMethod<
+    [token: AddressLike, amount: BigNumberish, to: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    addCollateral(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    addCollateralWithPermit(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    compareBalances(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    decreaseDebt(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    disableToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    enableToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    increaseDebt(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    onDemandPriceUpdate(
-      token: PromiseOrValue<string>,
-      reserve: PromiseOrValue<boolean>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    revokeAdapterAllowances(
-      revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFullCheckParams(
-      collateralHints: PromiseOrValue<BigNumberish>[],
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    storeExpectedBalances(
-      balanceDeltas: BalanceDeltaStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    updateQuota(
-      token: PromiseOrValue<string>,
-      quotaChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawCollateral(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    addCollateral(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addCollateralWithPermit(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    compareBalances(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    decreaseDebt(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    disableToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    enableToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    increaseDebt(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    onDemandPriceUpdate(
-      token: PromiseOrValue<string>,
-      reserve: PromiseOrValue<boolean>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    revokeAdapterAllowances(
-      revocations: RevocationPairStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFullCheckParams(
-      collateralHints: PromiseOrValue<BigNumberish>[],
-      minHealthFactor: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    storeExpectedBalances(
-      balanceDeltas: BalanceDeltaStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    updateQuota(
-      token: PromiseOrValue<string>,
-      quotaChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawCollateral(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
 }

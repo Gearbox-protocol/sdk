@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IDegenNFTV2Exceptions,
   IDegenNFTV2ExceptionsInterface,
@@ -35,16 +34,16 @@ const _abi = [
 export class IDegenNFTV2Exceptions__factory {
   static readonly abi = _abi;
   static createInterface(): IDegenNFTV2ExceptionsInterface {
-    return new utils.Interface(_abi) as IDegenNFTV2ExceptionsInterface;
+    return new Interface(_abi) as IDegenNFTV2ExceptionsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IDegenNFTV2Exceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IDegenNFTV2Exceptions;
+      runner
+    ) as unknown as IDegenNFTV2Exceptions;
   }
 }

@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type { IGaugeV3, IGaugeV3Interface } from "../../IGaugeV3.sol/IGaugeV3";
 
 const _abi = [
@@ -441,12 +440,9 @@ const _abi = [
 export class IGaugeV3__factory {
   static readonly abi = _abi;
   static createInterface(): IGaugeV3Interface {
-    return new utils.Interface(_abi) as IGaugeV3Interface;
+    return new Interface(_abi) as IGaugeV3Interface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IGaugeV3 {
-    return new Contract(address, _abi, signerOrProvider) as IGaugeV3;
+  static connect(address: string, runner?: ContractRunner | null): IGaugeV3 {
+    return new Contract(address, _abi, runner) as unknown as IGaugeV3;
   }
 }

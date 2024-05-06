@@ -3,277 +3,421 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
-  Signer,
-  utils,
+  FunctionFragment,
+  Interface,
+  EventFragment,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { EventFragment } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
 } from "../common";
 
-export interface IPoolV3EventsInterface extends utils.Interface {
-  functions: {};
-
-  events: {
-    "AddCreditManager(address)": EventFragment;
-    "Borrow(address,address,uint256)": EventFragment;
-    "IncurUncoveredLoss(address,uint256)": EventFragment;
-    "Refer(address,uint256,uint256)": EventFragment;
-    "Repay(address,uint256,uint256,uint256)": EventFragment;
-    "SetCreditManagerDebtLimit(address,uint256)": EventFragment;
-    "SetInterestRateModel(address)": EventFragment;
-    "SetPoolQuotaKeeper(address)": EventFragment;
-    "SetTotalDebtLimit(uint256)": EventFragment;
-    "SetWithdrawFee(uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AddCreditManager"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Borrow"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "IncurUncoveredLoss"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Refer"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Repay"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetCreditManagerDebtLimit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetInterestRateModel"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetPoolQuotaKeeper"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetTotalDebtLimit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetWithdrawFee"): EventFragment;
+export interface IPoolV3EventsInterface extends Interface {
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "AddCreditManager"
+      | "Borrow"
+      | "IncurUncoveredLoss"
+      | "Refer"
+      | "Repay"
+      | "SetCreditManagerDebtLimit"
+      | "SetInterestRateModel"
+      | "SetPoolQuotaKeeper"
+      | "SetTotalDebtLimit"
+      | "SetWithdrawFee"
+  ): EventFragment;
 }
 
-export interface AddCreditManagerEventObject {
-  creditManager: string;
+export namespace AddCreditManagerEvent {
+  export type InputTuple = [creditManager: AddressLike];
+  export type OutputTuple = [creditManager: string];
+  export interface OutputObject {
+    creditManager: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddCreditManagerEvent = TypedEvent<
-  [string],
-  AddCreditManagerEventObject
->;
 
-export type AddCreditManagerEventFilter =
-  TypedEventFilter<AddCreditManagerEvent>;
-
-export interface BorrowEventObject {
-  creditManager: string;
-  creditAccount: string;
-  amount: BigNumber;
+export namespace BorrowEvent {
+  export type InputTuple = [
+    creditManager: AddressLike,
+    creditAccount: AddressLike,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditManager: string,
+    creditAccount: string,
+    amount: bigint
+  ];
+  export interface OutputObject {
+    creditManager: string;
+    creditAccount: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type BorrowEvent = TypedEvent<
-  [string, string, BigNumber],
-  BorrowEventObject
->;
 
-export type BorrowEventFilter = TypedEventFilter<BorrowEvent>;
-
-export interface IncurUncoveredLossEventObject {
-  creditManager: string;
-  loss: BigNumber;
+export namespace IncurUncoveredLossEvent {
+  export type InputTuple = [creditManager: AddressLike, loss: BigNumberish];
+  export type OutputTuple = [creditManager: string, loss: bigint];
+  export interface OutputObject {
+    creditManager: string;
+    loss: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type IncurUncoveredLossEvent = TypedEvent<
-  [string, BigNumber],
-  IncurUncoveredLossEventObject
->;
 
-export type IncurUncoveredLossEventFilter =
-  TypedEventFilter<IncurUncoveredLossEvent>;
-
-export interface ReferEventObject {
-  onBehalfOf: string;
-  referralCode: BigNumber;
-  amount: BigNumber;
+export namespace ReferEvent {
+  export type InputTuple = [
+    onBehalfOf: AddressLike,
+    referralCode: BigNumberish,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [
+    onBehalfOf: string,
+    referralCode: bigint,
+    amount: bigint
+  ];
+  export interface OutputObject {
+    onBehalfOf: string;
+    referralCode: bigint;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ReferEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  ReferEventObject
->;
 
-export type ReferEventFilter = TypedEventFilter<ReferEvent>;
-
-export interface RepayEventObject {
-  creditManager: string;
-  borrowedAmount: BigNumber;
-  profit: BigNumber;
-  loss: BigNumber;
+export namespace RepayEvent {
+  export type InputTuple = [
+    creditManager: AddressLike,
+    borrowedAmount: BigNumberish,
+    profit: BigNumberish,
+    loss: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditManager: string,
+    borrowedAmount: bigint,
+    profit: bigint,
+    loss: bigint
+  ];
+  export interface OutputObject {
+    creditManager: string;
+    borrowedAmount: bigint;
+    profit: bigint;
+    loss: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RepayEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber],
-  RepayEventObject
->;
 
-export type RepayEventFilter = TypedEventFilter<RepayEvent>;
-
-export interface SetCreditManagerDebtLimitEventObject {
-  creditManager: string;
-  newLimit: BigNumber;
+export namespace SetCreditManagerDebtLimitEvent {
+  export type InputTuple = [creditManager: AddressLike, newLimit: BigNumberish];
+  export type OutputTuple = [creditManager: string, newLimit: bigint];
+  export interface OutputObject {
+    creditManager: string;
+    newLimit: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetCreditManagerDebtLimitEvent = TypedEvent<
-  [string, BigNumber],
-  SetCreditManagerDebtLimitEventObject
->;
 
-export type SetCreditManagerDebtLimitEventFilter =
-  TypedEventFilter<SetCreditManagerDebtLimitEvent>;
-
-export interface SetInterestRateModelEventObject {
-  newInterestRateModel: string;
+export namespace SetInterestRateModelEvent {
+  export type InputTuple = [newInterestRateModel: AddressLike];
+  export type OutputTuple = [newInterestRateModel: string];
+  export interface OutputObject {
+    newInterestRateModel: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetInterestRateModelEvent = TypedEvent<
-  [string],
-  SetInterestRateModelEventObject
->;
 
-export type SetInterestRateModelEventFilter =
-  TypedEventFilter<SetInterestRateModelEvent>;
-
-export interface SetPoolQuotaKeeperEventObject {
-  newPoolQuotaKeeper: string;
+export namespace SetPoolQuotaKeeperEvent {
+  export type InputTuple = [newPoolQuotaKeeper: AddressLike];
+  export type OutputTuple = [newPoolQuotaKeeper: string];
+  export interface OutputObject {
+    newPoolQuotaKeeper: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetPoolQuotaKeeperEvent = TypedEvent<
-  [string],
-  SetPoolQuotaKeeperEventObject
->;
 
-export type SetPoolQuotaKeeperEventFilter =
-  TypedEventFilter<SetPoolQuotaKeeperEvent>;
-
-export interface SetTotalDebtLimitEventObject {
-  limit: BigNumber;
+export namespace SetTotalDebtLimitEvent {
+  export type InputTuple = [limit: BigNumberish];
+  export type OutputTuple = [limit: bigint];
+  export interface OutputObject {
+    limit: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetTotalDebtLimitEvent = TypedEvent<
-  [BigNumber],
-  SetTotalDebtLimitEventObject
->;
 
-export type SetTotalDebtLimitEventFilter =
-  TypedEventFilter<SetTotalDebtLimitEvent>;
-
-export interface SetWithdrawFeeEventObject {
-  fee: BigNumber;
+export namespace SetWithdrawFeeEvent {
+  export type InputTuple = [fee: BigNumberish];
+  export type OutputTuple = [fee: bigint];
+  export interface OutputObject {
+    fee: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetWithdrawFeeEvent = TypedEvent<
-  [BigNumber],
-  SetWithdrawFeeEventObject
->;
-
-export type SetWithdrawFeeEventFilter = TypedEventFilter<SetWithdrawFeeEvent>;
 
 export interface IPoolV3Events extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IPoolV3Events;
+  waitForDeployment(): Promise<this>;
 
   interface: IPoolV3EventsInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {};
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  callStatic: {};
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getEvent(
+    key: "AddCreditManager"
+  ): TypedContractEvent<
+    AddCreditManagerEvent.InputTuple,
+    AddCreditManagerEvent.OutputTuple,
+    AddCreditManagerEvent.OutputObject
+  >;
+  getEvent(
+    key: "Borrow"
+  ): TypedContractEvent<
+    BorrowEvent.InputTuple,
+    BorrowEvent.OutputTuple,
+    BorrowEvent.OutputObject
+  >;
+  getEvent(
+    key: "IncurUncoveredLoss"
+  ): TypedContractEvent<
+    IncurUncoveredLossEvent.InputTuple,
+    IncurUncoveredLossEvent.OutputTuple,
+    IncurUncoveredLossEvent.OutputObject
+  >;
+  getEvent(
+    key: "Refer"
+  ): TypedContractEvent<
+    ReferEvent.InputTuple,
+    ReferEvent.OutputTuple,
+    ReferEvent.OutputObject
+  >;
+  getEvent(
+    key: "Repay"
+  ): TypedContractEvent<
+    RepayEvent.InputTuple,
+    RepayEvent.OutputTuple,
+    RepayEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetCreditManagerDebtLimit"
+  ): TypedContractEvent<
+    SetCreditManagerDebtLimitEvent.InputTuple,
+    SetCreditManagerDebtLimitEvent.OutputTuple,
+    SetCreditManagerDebtLimitEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetInterestRateModel"
+  ): TypedContractEvent<
+    SetInterestRateModelEvent.InputTuple,
+    SetInterestRateModelEvent.OutputTuple,
+    SetInterestRateModelEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetPoolQuotaKeeper"
+  ): TypedContractEvent<
+    SetPoolQuotaKeeperEvent.InputTuple,
+    SetPoolQuotaKeeperEvent.OutputTuple,
+    SetPoolQuotaKeeperEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetTotalDebtLimit"
+  ): TypedContractEvent<
+    SetTotalDebtLimitEvent.InputTuple,
+    SetTotalDebtLimitEvent.OutputTuple,
+    SetTotalDebtLimitEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetWithdrawFee"
+  ): TypedContractEvent<
+    SetWithdrawFeeEvent.InputTuple,
+    SetWithdrawFeeEvent.OutputTuple,
+    SetWithdrawFeeEvent.OutputObject
+  >;
 
   filters: {
-    "AddCreditManager(address)"(
-      creditManager?: PromiseOrValue<string> | null
-    ): AddCreditManagerEventFilter;
-    AddCreditManager(
-      creditManager?: PromiseOrValue<string> | null
-    ): AddCreditManagerEventFilter;
+    "AddCreditManager(address)": TypedContractEvent<
+      AddCreditManagerEvent.InputTuple,
+      AddCreditManagerEvent.OutputTuple,
+      AddCreditManagerEvent.OutputObject
+    >;
+    AddCreditManager: TypedContractEvent<
+      AddCreditManagerEvent.InputTuple,
+      AddCreditManagerEvent.OutputTuple,
+      AddCreditManagerEvent.OutputObject
+    >;
 
-    "Borrow(address,address,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      amount?: null
-    ): BorrowEventFilter;
-    Borrow(
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      amount?: null
-    ): BorrowEventFilter;
+    "Borrow(address,address,uint256)": TypedContractEvent<
+      BorrowEvent.InputTuple,
+      BorrowEvent.OutputTuple,
+      BorrowEvent.OutputObject
+    >;
+    Borrow: TypedContractEvent<
+      BorrowEvent.InputTuple,
+      BorrowEvent.OutputTuple,
+      BorrowEvent.OutputObject
+    >;
 
-    "IncurUncoveredLoss(address,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      loss?: null
-    ): IncurUncoveredLossEventFilter;
-    IncurUncoveredLoss(
-      creditManager?: PromiseOrValue<string> | null,
-      loss?: null
-    ): IncurUncoveredLossEventFilter;
+    "IncurUncoveredLoss(address,uint256)": TypedContractEvent<
+      IncurUncoveredLossEvent.InputTuple,
+      IncurUncoveredLossEvent.OutputTuple,
+      IncurUncoveredLossEvent.OutputObject
+    >;
+    IncurUncoveredLoss: TypedContractEvent<
+      IncurUncoveredLossEvent.InputTuple,
+      IncurUncoveredLossEvent.OutputTuple,
+      IncurUncoveredLossEvent.OutputObject
+    >;
 
-    "Refer(address,uint256,uint256)"(
-      onBehalfOf?: PromiseOrValue<string> | null,
-      referralCode?: PromiseOrValue<BigNumberish> | null,
-      amount?: null
-    ): ReferEventFilter;
-    Refer(
-      onBehalfOf?: PromiseOrValue<string> | null,
-      referralCode?: PromiseOrValue<BigNumberish> | null,
-      amount?: null
-    ): ReferEventFilter;
+    "Refer(address,uint256,uint256)": TypedContractEvent<
+      ReferEvent.InputTuple,
+      ReferEvent.OutputTuple,
+      ReferEvent.OutputObject
+    >;
+    Refer: TypedContractEvent<
+      ReferEvent.InputTuple,
+      ReferEvent.OutputTuple,
+      ReferEvent.OutputObject
+    >;
 
-    "Repay(address,uint256,uint256,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      borrowedAmount?: null,
-      profit?: null,
-      loss?: null
-    ): RepayEventFilter;
-    Repay(
-      creditManager?: PromiseOrValue<string> | null,
-      borrowedAmount?: null,
-      profit?: null,
-      loss?: null
-    ): RepayEventFilter;
+    "Repay(address,uint256,uint256,uint256)": TypedContractEvent<
+      RepayEvent.InputTuple,
+      RepayEvent.OutputTuple,
+      RepayEvent.OutputObject
+    >;
+    Repay: TypedContractEvent<
+      RepayEvent.InputTuple,
+      RepayEvent.OutputTuple,
+      RepayEvent.OutputObject
+    >;
 
-    "SetCreditManagerDebtLimit(address,uint256)"(
-      creditManager?: PromiseOrValue<string> | null,
-      newLimit?: null
-    ): SetCreditManagerDebtLimitEventFilter;
-    SetCreditManagerDebtLimit(
-      creditManager?: PromiseOrValue<string> | null,
-      newLimit?: null
-    ): SetCreditManagerDebtLimitEventFilter;
+    "SetCreditManagerDebtLimit(address,uint256)": TypedContractEvent<
+      SetCreditManagerDebtLimitEvent.InputTuple,
+      SetCreditManagerDebtLimitEvent.OutputTuple,
+      SetCreditManagerDebtLimitEvent.OutputObject
+    >;
+    SetCreditManagerDebtLimit: TypedContractEvent<
+      SetCreditManagerDebtLimitEvent.InputTuple,
+      SetCreditManagerDebtLimitEvent.OutputTuple,
+      SetCreditManagerDebtLimitEvent.OutputObject
+    >;
 
-    "SetInterestRateModel(address)"(
-      newInterestRateModel?: PromiseOrValue<string> | null
-    ): SetInterestRateModelEventFilter;
-    SetInterestRateModel(
-      newInterestRateModel?: PromiseOrValue<string> | null
-    ): SetInterestRateModelEventFilter;
+    "SetInterestRateModel(address)": TypedContractEvent<
+      SetInterestRateModelEvent.InputTuple,
+      SetInterestRateModelEvent.OutputTuple,
+      SetInterestRateModelEvent.OutputObject
+    >;
+    SetInterestRateModel: TypedContractEvent<
+      SetInterestRateModelEvent.InputTuple,
+      SetInterestRateModelEvent.OutputTuple,
+      SetInterestRateModelEvent.OutputObject
+    >;
 
-    "SetPoolQuotaKeeper(address)"(
-      newPoolQuotaKeeper?: PromiseOrValue<string> | null
-    ): SetPoolQuotaKeeperEventFilter;
-    SetPoolQuotaKeeper(
-      newPoolQuotaKeeper?: PromiseOrValue<string> | null
-    ): SetPoolQuotaKeeperEventFilter;
+    "SetPoolQuotaKeeper(address)": TypedContractEvent<
+      SetPoolQuotaKeeperEvent.InputTuple,
+      SetPoolQuotaKeeperEvent.OutputTuple,
+      SetPoolQuotaKeeperEvent.OutputObject
+    >;
+    SetPoolQuotaKeeper: TypedContractEvent<
+      SetPoolQuotaKeeperEvent.InputTuple,
+      SetPoolQuotaKeeperEvent.OutputTuple,
+      SetPoolQuotaKeeperEvent.OutputObject
+    >;
 
-    "SetTotalDebtLimit(uint256)"(limit?: null): SetTotalDebtLimitEventFilter;
-    SetTotalDebtLimit(limit?: null): SetTotalDebtLimitEventFilter;
+    "SetTotalDebtLimit(uint256)": TypedContractEvent<
+      SetTotalDebtLimitEvent.InputTuple,
+      SetTotalDebtLimitEvent.OutputTuple,
+      SetTotalDebtLimitEvent.OutputObject
+    >;
+    SetTotalDebtLimit: TypedContractEvent<
+      SetTotalDebtLimitEvent.InputTuple,
+      SetTotalDebtLimitEvent.OutputTuple,
+      SetTotalDebtLimitEvent.OutputObject
+    >;
 
-    "SetWithdrawFee(uint256)"(fee?: null): SetWithdrawFeeEventFilter;
-    SetWithdrawFee(fee?: null): SetWithdrawFeeEventFilter;
+    "SetWithdrawFee(uint256)": TypedContractEvent<
+      SetWithdrawFeeEvent.InputTuple,
+      SetWithdrawFeeEvent.OutputTuple,
+      SetWithdrawFeeEvent.OutputObject
+    >;
+    SetWithdrawFee: TypedContractEvent<
+      SetWithdrawFeeEvent.InputTuple,
+      SetWithdrawFeeEvent.OutputTuple,
+      SetWithdrawFeeEvent.OutputObject
+    >;
   };
-
-  estimateGas: {};
-
-  populateTransaction: {};
 }
