@@ -1,6 +1,6 @@
 import { RAY, tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { providers } from "ethers";
+import { JsonRpcProvider } from "ethers";
 
 import { CloseResult, PathFinderV1 } from "./pathfinderv1";
 
@@ -25,7 +25,7 @@ describe("PathFinderV1 test", () => {
     expect(result).to.be.eql(r1);
   });
   it("has all expected connectors", () => {
-    const pf = new PathFinderV1("", new providers.JsonRpcProvider(), "Mainnet");
+    const pf = new PathFinderV1("", new JsonRpcProvider(), "Mainnet");
     const allowedTokens = {
       [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: true,
       [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: true,

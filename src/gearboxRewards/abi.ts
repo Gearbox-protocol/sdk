@@ -1,4 +1,5 @@
-import { Interface, multicallInterface } from "@gearbox-protocol/sdk-gov";
+import { multicallInterface } from "@gearbox-protocol/sdk-gov";
+import { Interface } from "ethers";
 
 const MULTICALL_GET_ABI = [
   ...multicallInterface.fragments,

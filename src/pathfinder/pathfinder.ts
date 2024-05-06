@@ -2,7 +2,6 @@ import {
   AwaitedRes,
   getConnectors,
   NetworkType,
-  toBigInt,
 } from "@gearbox-protocol/sdk-gov";
 import { Provider, Signer } from "ethers";
 
@@ -113,8 +112,8 @@ export class PathFinder {
         .join("-")}`;
 
       unique[key] = {
-        amount: toBigInt(r.amount),
-        minAmount: toBigInt(r.minAmount),
+        amount: r.amount,
+        minAmount: r.minAmount,
         calls: r.calls,
       };
     });
@@ -144,8 +143,8 @@ export class PathFinder {
     );
 
     return {
-      amount: toBigInt(result.amount),
-      minAmount: toBigInt(result.minAmount),
+      amount: result.amount,
+      minAmount: result.minAmount,
       calls: result.calls,
     };
   }
@@ -196,7 +195,7 @@ export class PathFinder {
 
     const balancesAfter = outBalances.reduce<Record<string, bigint>>(
       (acc, b) => {
-        acc[b.token.toLowerCase()] = toBigInt(b.balance);
+        acc[b.token.toLowerCase()] = b.balance;
         return acc;
       },
       {},
@@ -205,18 +204,15 @@ export class PathFinder {
     return {
       balances: {
         ...balancesAfter,
-        [target]:
-          (expectedBalances[target]?.balance || 0n) + toBigInt(result.amount),
+        [target]: (expectedBalances[target]?.balance || 0n) + result.amount,
       },
       minBalances: {
         ...balancesAfter,
-        [target]:
-          (expectedBalances[target]?.balance || 0n) +
-          toBigInt(result.minAmount),
+        [target]: (expectedBalances[target]?.balance || 0n) + result.minAmount,
       },
       calls: result.calls,
-      minAmount: toBigInt(result.minAmount),
-      amount: toBigInt(result.amount),
+      minAmount: result.minAmount,
+      amount: result.amount,
     };
   }
 
@@ -307,8 +303,8 @@ export class PathFinder {
       (best, pathFinderResult) =>
         PathFinder.compare(best, {
           calls: pathFinderResult.calls,
-          amount: toBigInt(pathFinderResult.amount),
-          minAmount: toBigInt(pathFinderResult.minAmount),
+          amount: pathFinderResult.amount,
+          minAmount: pathFinderResult.minAmount,
         }),
       {
         amount: 0n,

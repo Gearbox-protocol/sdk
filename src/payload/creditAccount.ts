@@ -4,11 +4,9 @@ import {
   CreditAccountDataStructOutput,
   TokenBalanceStructOutput,
 } from "../types/IDataCompressorV3";
-import { BigintifyProps, PartialKeys } from "../utils/types";
+import { PartialKeys } from "../utils/types";
 
-export type CaTokenBalance = BigintifyProps<
-  ExcludeArrayProps<TokenBalanceStructOutput>
->;
+export type CaTokenBalance = ExcludeArrayProps<TokenBalanceStructOutput>;
 
 export type CreditAccountDataPayload = PartialKeys<
   ExcludeArrayProps<CreditAccountDataStructOutput>,

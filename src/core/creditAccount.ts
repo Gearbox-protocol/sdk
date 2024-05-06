@@ -4,7 +4,6 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
-  toBigInt,
   tokenSymbolByAddress,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
@@ -163,40 +162,34 @@ export class CreditAccountData {
     this.creditManager = payload.creditManager.toLowerCase();
     this.creditFacade = payload.creditFacade.toLowerCase();
     this.underlyingToken = payload.underlying.toLowerCase();
-    this.since = Number(toBigInt(payload.since));
-    this.expirationDate = Number(toBigInt(payload.expirationDate));
-    this.version = payload.cfVersion?.toNumber();
+    this.since = Number(payload.since);
+    this.expirationDate = Number(payload.expirationDate);
+    this.version = Number(payload.cfVersion);
     this.cmName = payload.cmName;
 
-    this.healthFactor = Number(toBigInt(payload.healthFactor || 0n));
-    this.enabledTokenMask = toBigInt(payload.enabledTokensMask);
+    this.healthFactor = Number(payload.healthFactor || 0n);
+    this.enabledTokenMask = payload.enabledTokensMask;
     this.isDeleting = false;
 
-    this.borrowedAmount = toBigInt(payload.debt);
-    this.accruedInterest = toBigInt(payload.accruedInterest || 0n);
-    this.accruedFees = toBigInt(payload.accruedFees || 0n);
+    this.borrowedAmount = payload.debt;
+    this.accruedInterest = payload.accruedInterest || 0n;
+    this.accruedFees = payload.accruedFees || 0n;
     this.borrowedAmountPlusInterestAndFees =
       this.borrowedAmount + this.accruedInterest + this.accruedFees;
-    this.totalDebtUSD = toBigInt(payload.totalDebtUSD);
-    this.totalValue = toBigInt(payload.totalValue || 0n);
-    this.totalValueUSD = toBigInt(payload.totalValueUSD);
-    this.twvUSD = toBigInt(payload.twvUSD);
+    this.totalDebtUSD = payload.totalDebtUSD;
+    this.totalValue = payload.totalValue || 0n;
+    this.totalValueUSD = payload.totalValueUSD;
+    this.twvUSD = payload.twvUSD;
 
     this.baseBorrowRateWithoutFee = rayToNumber(
-      toBigInt(payload.baseBorrowRate) *
-        PERCENTAGE_DECIMALS *
-        PERCENTAGE_FACTOR,
+      payload.baseBorrowRate * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR,
     );
     this.borrowRateWithoutFee = rayToNumber(
-      toBigInt(payload.aggregatedBorrowRate) *
-        PERCENTAGE_DECIMALS *
-        PERCENTAGE_FACTOR,
+      payload.aggregatedBorrowRate * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR,
     );
 
-    this.cumulativeIndexLastUpdate = toBigInt(
-      payload.cumulativeIndexLastUpdate,
-    );
-    this.cumulativeQuotaInterest = toBigInt(payload.cumulativeQuotaInterest);
+    this.cumulativeIndexLastUpdate = payload.cumulativeIndexLastUpdate;
+    this.cumulativeQuotaInterest = payload.cumulativeQuotaInterest;
 
     this.activeBots = Object.fromEntries(
       payload.activeBots.map(b => [b.toLowerCase(), true]),
@@ -206,13 +199,13 @@ export class CreditAccountData {
       const token = b.token.toLowerCase();
       const balance: CaTokenBalance = {
         token,
-        balance: toBigInt(b.balance),
+        balance: b.balance,
         isForbidden: b.isForbidden,
         isEnabled: b.isEnabled,
         isQuoted: b.isQuoted,
-        quota: toBigInt(b.quota),
-        quotaRate: Number(toBigInt(b.quotaRate) * PERCENTAGE_DECIMALS),
-        quotaCumulativeIndexLU: toBigInt(b.quotaCumulativeIndexLU),
+        quota: b.quota,
+        quotaRate: b.quotaRate * PERCENTAGE_DECIMALS,
+        quotaCumulativeIndexLU: b.quotaCumulativeIndexLU,
       };
 
       if (!b.isForbidden) {
@@ -388,7 +381,7 @@ export class CreditAccountData {
         const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
         const apyMoney = money * BigInt(apy);
 
-        const { rate: quotaAPY = 0, isActive = false } =
+        const { rate: quotaAPY = 0n, isActive = false } =
           quotaRates?.[tokenAddressLC] || {};
         const { balance: quotaBalance = 0n } = quotas[tokenAddressLC] || {};
 
@@ -400,7 +393,7 @@ export class CreditAccountData {
         );
 
         const quotaRate =
-          (toBigInt(quotaAPY) * (BigInt(feeInterest) + PERCENTAGE_FACTOR)) /
+          (quotaAPY * (BigInt(feeInterest) + PERCENTAGE_FACTOR)) /
           PERCENTAGE_FACTOR;
 
         const quotaAPYMoney = quotaMoney * quotaRate;

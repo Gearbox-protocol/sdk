@@ -73,29 +73,31 @@ export class CreditManagerData {
     this.creditConfigurator = payload.creditConfigurator.toLowerCase();
     this.degenNFT = payload.degenNFT.toLowerCase();
     this.isDegenMode = payload.isDegenMode;
-    this.version = payload.cfVersion?.toNumber();
+    this.version = Number(payload.cfVersion);
     this.isPaused = payload.isPaused;
-    this.forbiddenTokenMask = toBigInt(payload.forbiddenTokenMask);
-    this.maxEnabledTokensLength = payload.maxEnabledTokensLength;
+    this.forbiddenTokenMask = payload.forbiddenTokenMask;
+    this.maxEnabledTokensLength = Number(payload.maxEnabledTokensLength);
 
     this.baseBorrowRate = Number(
-      (toBigInt(payload.baseBorrowRate) *
-        (toBigInt(payload.feeInterest) + PERCENTAGE_FACTOR) *
+      (payload.baseBorrowRate *
+        (payload.feeInterest + PERCENTAGE_FACTOR) *
         PERCENTAGE_DECIMALS) /
         RAY,
     );
 
-    this.minDebt = toBigInt(payload.minDebt);
-    this.maxDebt = toBigInt(payload.maxDebt);
-    this.availableToBorrow = toBigInt(payload.availableToBorrow);
-    this.totalDebt = toBigInt(payload.totalDebt);
-    this.totalDebtLimit = toBigInt(payload.totalDebtLimit);
+    this.minDebt = payload.minDebt;
+    this.maxDebt = payload.maxDebt;
+    this.availableToBorrow = payload.availableToBorrow;
+    this.totalDebt = payload.totalDebt;
+    this.totalDebtLimit = payload.totalDebtLimit;
 
-    this.feeInterest = payload.feeInterest;
-    this.feeLiquidation = payload.feeLiquidation;
-    this.liquidationDiscount = payload.liquidationDiscount;
-    this.feeLiquidationExpired = payload.feeLiquidationExpired;
-    this.liquidationDiscountExpired = payload.liquidationDiscountExpired;
+    this.feeInterest = Number(payload.feeInterest);
+    this.feeLiquidation = Number(payload.feeLiquidation);
+    this.liquidationDiscount = Number(payload.liquidationDiscount);
+    this.feeLiquidationExpired = Number(payload.feeLiquidationExpired);
+    this.liquidationDiscountExpired = Number(
+      payload.liquidationDiscountExpired,
+    );
 
     payload.collateralTokens.forEach(t => {
       const tLc = t.toLowerCase();
@@ -122,7 +124,7 @@ export class CreditManagerData {
       Record<string, bigint>
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
-      if (address) acc[address.toLowerCase()] = toBigInt(threshold);
+      if (address) acc[address.toLowerCase()] = threshold;
       return acc;
     }, {});
 
@@ -131,10 +133,10 @@ export class CreditManagerData {
         q.token.toLowerCase(),
         {
           token: q.token.toLowerCase(),
-          rate: Number(toBigInt(q.rate) * PERCENTAGE_DECIMALS),
+          rate: q.rate * PERCENTAGE_DECIMALS,
           quotaIncreaseFee: q.quotaIncreaseFee,
-          totalQuoted: toBigInt(q.totalQuoted),
-          limit: toBigInt(q.limit),
+          totalQuoted: q.totalQuoted,
+          limit: q.limit,
           isActive: q.isActive,
         },
       ]),
@@ -148,7 +150,7 @@ export class CreditManagerData {
       R_slope1: payload.lirm.R_slope1,
       R_slope2: payload.lirm.R_slope2,
       R_slope3: payload.lirm.R_slope3,
-      version: payload?.lirm?.version?.toNumber(),
+      version: Number(payload?.lirm?.version),
       isBorrowingMoreU2Forbidden: payload?.lirm?.isBorrowingMoreU2Forbidden,
     };
 

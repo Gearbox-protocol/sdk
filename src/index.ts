@@ -38,6 +38,4 @@ export * from "./utils/price";
 export { callRepeater } from "./utils/repeater";
 export * from "./utils/types";
 export * from "./utils/validate";
-export * from "./watchers/creditAccountWatcher";
-export * from "./watchers/creditManagerWatcher";
 export * from "@gearbox-protocol/sdk-gov";

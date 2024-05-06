@@ -10,7 +10,6 @@ import {
   isBalancerLPToken,
   isCurveLPToken,
   NetworkType,
-  toBigInt,
   tokenDataByNetwork,
   tokenSymbolByAddress,
   YearnLPToken,
@@ -85,7 +84,7 @@ export class PathOptionFactory {
     balances: Record<string, BalanceInterface>,
   ): Array<CurveLPToken> {
     const nonZeroBalances = Object.entries(balances).filter(
-      ([, balance]) => toBigInt(balance.balance) > 1,
+      ([, balance]) => balance.balance > 1,
     );
 
     const curvePools = nonZeroBalances
@@ -124,7 +123,7 @@ export class PathOptionFactory {
     balances: Record<string, BalanceInterface>,
   ): Array<BalancerLPToken> {
     const nonZeroBalances = Object.entries(balances).filter(
-      ([, balance]) => toBigInt(balance.balance) > 1,
+      ([, balance]) => balance.balance > 1,
     );
 
     const balancerPools = nonZeroBalances

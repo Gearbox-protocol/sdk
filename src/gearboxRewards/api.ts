@@ -16,7 +16,6 @@ import axios from "axios";
 import {
   BigNumberish,
   BytesLike,
-  ethers,
   getAddress,
   Interface,
   Provider,
@@ -120,7 +119,9 @@ export interface ClaimLmRewardsV3Props {
 
 const EXTRA_LM_MINING: PartialRecord<string, (timestamp: number) => FarmInfo> =
   {
-    [tokenDataByNetwork.Mainnet.sdGHOV3.toLowerCase()]: (timestamp: number) => {
+    [tokenDataByNetwork.Mainnet.sdGHOV3.toLowerCase()]: (
+      timestamp: number,
+    ): FarmInfo => {
       const REWARD_PERIOD = 14 * 24 * 60 * 60;
       // const REWARDS_FIRST_START = 1711641600;
       // const REWARDS_FIRST_END = 1712844000;
@@ -142,8 +143,8 @@ const EXTRA_LM_MINING: PartialRecord<string, (timestamp: number) => FarmInfo> =
 
       return {
         balance: 0n,
-        duration: REWARD_PERIOD,
-        finished,
+        duration: BigInt(REWARD_PERIOD),
+        finished: BigInt(finished),
         reward: reward,
         symbol: "GHO",
       };
@@ -236,8 +237,8 @@ export class GearboxRewardsApi {
         const baseReward: FarmInfo = {
           duration: currentInfo.duration,
           finished: currentInfo.finished,
-          reward: toBigInt(currentInfo.reward),
-          balance: toBigInt(currentInfo.balance),
+          reward: currentInfo.reward,
+          balance: currentInfo.balance,
           symbol: symbol,
         };
         const extraReward = otherRewards
@@ -255,7 +256,7 @@ export class GearboxRewardsApi {
     const rewardPoolsSupply = Object.fromEntries(
       poolTokens.map(([, address], i): [string, bigint] => [
         address,
-        toBigInt(farmSupply[i] || 0),
+        farmSupply[i] || 0n,
       ]),
     );
 
@@ -364,7 +365,7 @@ export class GearboxRewardsApi {
       return {
         poolToken: address,
         rewardToken: currentTokenData[baseRewardPoolsInfo[address].symbol],
-        amount: toBigInt(gearboxLm[i] || 0n),
+        amount: gearboxLm[i] || 0n,
         type: "stakedV3",
       };
     });
@@ -441,7 +442,7 @@ export class GearboxRewardsApi {
     return distributor.claim(
       rewardFromMerkle.index,
       account,
-      toBigInt(rewardFromMerkle.amount),
+      rewardFromMerkle.amount,
       rewardFromMerkle.proof,
     );
   }
@@ -480,7 +481,7 @@ export class GearboxRewardsApi {
     );
 
     const claimedRewards = (claimedRewardsResponse || []).reduce(
-      (acc, r) => acc + toBigInt(r.args.amount),
+      (acc, r) => acc + r.args.amount,
       0n,
     );
     return claimedRewards;

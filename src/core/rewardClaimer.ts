@@ -5,7 +5,7 @@ import {
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
-import { providers } from "ethers";
+import { Provider } from "ethers";
 
 import { MultiCall } from "../pathfinder/core";
 import { CreditAccountData } from "./creditAccount";

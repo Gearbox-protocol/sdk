@@ -7,15 +7,11 @@ import {
   CreditManagerDebtParamsStructOutput,
   QuotaInfoStructOutput,
 } from "../types/IDataCompressorV3";
-import { BigintifyProps } from "../utils/types";
 
-export type CreditManagerDebtParamsSDK = BigintifyProps<
-  ExcludeArrayProps<CreditManagerDebtParamsStructOutput>
->;
+export type CreditManagerDebtParamsSDK =
+  ExcludeArrayProps<CreditManagerDebtParamsStructOutput>;
 
-export type QuotaInfo = BigintifyProps<
-  ExcludeArrayProps<QuotaInfoStructOutput>
->;
+export type QuotaInfo = ExcludeArrayProps<QuotaInfoStructOutput>;
 
 export interface AdapterPayload {
   allowedContract: string;

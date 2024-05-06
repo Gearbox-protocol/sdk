@@ -1,4 +1,4 @@
-import { PERCENTAGE_DECIMALS, toBigInt } from "@gearbox-protocol/sdk-gov";
+import { PERCENTAGE_DECIMALS } from "@gearbox-protocol/sdk-gov";
 
 import {
   GaugeDataPayload,
@@ -13,7 +13,7 @@ export class GaugeData {
   readonly name: string;
   readonly symbol: string;
 
-  readonly currentEpoch: number;
+  readonly currentEpoch: bigint;
   readonly epochFrozen: boolean;
 
   readonly quotaParams: Record<string, GaugeQuotaParams>;
@@ -36,19 +36,19 @@ export class GaugeData {
 
           isActive: q.isActive,
 
-          rate: Number(toBigInt(q.rate) * PERCENTAGE_DECIMALS),
-          minRate: Number(toBigInt(q.minRate) * PERCENTAGE_DECIMALS),
-          maxRate: Number(toBigInt(q.maxRate) * PERCENTAGE_DECIMALS),
+          rate: q.rate * PERCENTAGE_DECIMALS,
+          minRate: q.minRate * PERCENTAGE_DECIMALS,
+          maxRate: q.maxRate * PERCENTAGE_DECIMALS,
 
           quotaIncreaseFee: q.quotaIncreaseFee,
-          totalQuoted: toBigInt(q.totalQuoted),
-          limit: toBigInt(q.limit),
+          totalQuoted: q.totalQuoted,
+          limit: q.limit,
 
-          totalVotesLpSide: toBigInt(q.totalVotesLpSide),
-          totalVotesCaSide: toBigInt(q.totalVotesCaSide),
+          totalVotesLpSide: q.totalVotesLpSide,
+          totalVotesCaSide: q.totalVotesCaSide,
 
-          stakerVotesLpSide: toBigInt(q.stakerVotesLpSide),
-          stakerVotesCaSide: toBigInt(q.stakerVotesCaSide),
+          stakerVotesLpSide: q.stakerVotesLpSide,
+          stakerVotesCaSide: q.stakerVotesCaSide,
         },
       ]),
     );
@@ -63,19 +63,17 @@ interface WithDrawableGaugeItem {
 export class GaugeStakingData {
   readonly availableBalance: bigint;
   readonly totalBalance: bigint;
-  readonly epoch: number;
+  readonly epoch: bigint;
 
   readonly withdrawableNow: bigint;
   readonly withdrawableInEpochsTotal: bigint;
   readonly withdrawableInEpochs: Array<WithDrawableGaugeItem>;
 
   constructor(payload: GaugeStakingDataPayload) {
-    this.availableBalance = toBigInt(payload.availableBalance);
-    this.totalBalance = toBigInt(payload.totalBalance);
+    this.availableBalance = payload.availableBalance;
+    this.totalBalance = payload.totalBalance;
     this.epoch = payload.epoch;
-    this.withdrawableNow = toBigInt(
-      payload.withdrawableAmounts.withdrawableNow,
-    );
+    this.withdrawableNow = payload.withdrawableAmounts.withdrawableNow;
 
     const { total, list } =
       payload.withdrawableAmounts.withdrawableInEpochs.reduce<{
@@ -83,7 +81,7 @@ export class GaugeStakingData {
         list: Array<WithDrawableGaugeItem>;
       }>(
         ({ total, list }, a, i) => {
-          const bn = toBigInt(a);
+          const bn = a;
           list.push({ amount: bn, epochsLeft: i + 1 });
 
           return { total: total + bn, list };

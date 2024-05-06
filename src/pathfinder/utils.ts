@@ -207,7 +207,7 @@ export class PathFinderUtils {
   }
 
   private static getCurveFee({ value }: FeeResponse): FeeInfo {
-    const feeOriginal = toBigInt(value || 0n);
+    const feeOriginal = value || 0n;
     return {
       type: "curve",
       value: (feeOriginal * PERCENTAGE_FACTOR) / CURVE_FEE_DECIMALS,
@@ -239,7 +239,7 @@ export class PathFinderUtils {
   }
 
   private static getBalancerFee({ value }: FeeResponse): FeeInfo {
-    const feeOriginal = toBigInt(value || 0n);
+    const feeOriginal = value || 0n;
 
     return {
       type: "balancer",

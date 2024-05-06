@@ -330,8 +330,8 @@ describe("GaugeMath getGaugeApy() test", () => {
       totalVotesLpSide: 0n,
       stakerVotesCaSide: 0n,
       stakerVotesLpSide: 0n,
-      minRate: 12,
-      maxRate: 12345,
+      minRate: 12n,
+      maxRate: 12345n,
     };
 
     const r = GaugeMath.getGaugeApy({
@@ -346,8 +346,8 @@ describe("GaugeMath getGaugeApy() test", () => {
       totalVotesLpSide: 100n,
       stakerVotesCaSide: 10n,
       stakerVotesLpSide: 0n,
-      minRate: 0,
-      maxRate: 10000,
+      minRate: 0n,
+      maxRate: 10000n,
     };
 
     const r = GaugeMath.getGaugeApy({
@@ -362,8 +362,8 @@ describe("GaugeMath getGaugeApy() test", () => {
       totalVotesLpSide: 100n,
       stakerVotesCaSide: 10n,
       stakerVotesLpSide: 0n,
-      minRate: 0,
-      maxRate: 10000,
+      minRate: 0n,
+      maxRate: 10000n,
     };
     const vote: GetGaugeApyProps["vote"] = { amount: 10n, type: "lower" };
 
@@ -380,8 +380,8 @@ describe("GaugeMath getGaugeApy() test", () => {
       totalVotesLpSide: 100n,
       stakerVotesCaSide: 10n,
       stakerVotesLpSide: 0n,
-      minRate: 0,
-      maxRate: 10000,
+      minRate: 0n,
+      maxRate: 10000n,
     };
     const vote: GetGaugeApyProps["vote"] = { amount: 10n, type: "lower" };
     const voteAfter: GetGaugeApyProps["voteAfter"] = {
@@ -403,8 +403,8 @@ describe("GaugeMath getGaugeApy() test", () => {
       totalVotesLpSide: 100n,
       stakerVotesCaSide: 20n,
       stakerVotesLpSide: 0n,
-      minRate: 0,
-      maxRate: 10000,
+      minRate: 0n,
+      maxRate: 10000n,
     };
     const vote: GetGaugeApyProps["vote"] = { amount: 30n, type: "lower" };
     const voteAfter: GetGaugeApyProps["voteAfter"] = {
@@ -429,8 +429,8 @@ describe("GaugeMath getGaugeApy() test", () => {
       totalVotesLpSide: 100n,
       stakerVotesCaSide: 20n,
       stakerVotesLpSide: 0n,
-      minRate: 0,
-      maxRate: 10000,
+      minRate: 0n,
+      maxRate: 10000n,
     };
     const vote: GetGaugeApyProps["vote"] = { amount: 20n, type: "lower" };
     const voteAfter: GetGaugeApyProps["voteAfter"] = {

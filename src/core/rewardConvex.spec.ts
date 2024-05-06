@@ -9,7 +9,6 @@ import {
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { BigNumber } from "ethers";
 
 import { IConvexToken__factory } from "../types";
 import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
@@ -100,7 +99,7 @@ describe("RewardConvex test", () => {
   });
 
   it("parseResults parse data correctly", () => {
-    const rewards = [BigNumber.from(1000n)];
+    const rewards = [1000n];
 
     const distribution: Array<RewardDistribution> = [
       {

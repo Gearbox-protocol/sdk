@@ -139,7 +139,7 @@ export class GearboxRewardsApy {
 
     if (supply.amount <= 0n) return 0;
     if (supply.price === 0n || reward.price === 0n) return 0;
-    if (info.duration === 0) return 0;
+    if (info.duration === 0n) return 0;
 
     const supplyMoney = PriceUtils.calcTotalPrice(
       supply.price,
@@ -153,8 +153,7 @@ export class GearboxRewardsApy {
       reward.decimals,
     );
 
-    const durationRatio =
-      (toBigInt(SECONDS_PER_YEAR) * WAD) / toBigInt(info.duration);
+    const durationRatio = (toBigInt(SECONDS_PER_YEAR) * WAD) / info.duration;
 
     const apyBn = (((rewardMoney * ONE) / supplyMoney) * durationRatio) / WAD;
 
