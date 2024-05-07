@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   RedstoneConsumerNumericBase,
   RedstoneConsumerNumericBaseInterface,
@@ -219,16 +218,16 @@ const _abi = [
 export class RedstoneConsumerNumericBase__factory {
   static readonly abi = _abi;
   static createInterface(): RedstoneConsumerNumericBaseInterface {
-    return new utils.Interface(_abi) as RedstoneConsumerNumericBaseInterface;
+    return new Interface(_abi) as RedstoneConsumerNumericBaseInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): RedstoneConsumerNumericBase {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as RedstoneConsumerNumericBase;
+      runner
+    ) as unknown as RedstoneConsumerNumericBase;
   }
 }

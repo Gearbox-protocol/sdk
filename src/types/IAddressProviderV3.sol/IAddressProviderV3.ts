@@ -3,61 +3,48 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IAddressProviderV3Interface extends utils.Interface {
-  functions: {
-    "addresses(bytes32,uint256)": FunctionFragment;
-    "getAddressOrRevert(bytes32,uint256)": FunctionFragment;
-    "setAddress(bytes32,address,bool)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IAddressProviderV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "addresses"
       | "getAddressOrRevert"
       | "setAddress"
       | "version"
   ): FunctionFragment;
 
+  getEvent(nameOrSignatureOrTopic: "SetAddress"): EventFragment;
+
   encodeFunctionData(
     functionFragment: "addresses",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getAddressOrRevert",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setAddress",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<string>,
-      PromiseOrValue<boolean>
-    ]
+    values: [BytesLike, AddressLike, boolean]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -68,175 +55,136 @@ export interface IAddressProviderV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "setAddress", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "SetAddress(bytes32,address,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "SetAddress"): EventFragment;
 }
 
-export interface SetAddressEventObject {
-  key: string;
-  value: string;
-  version: BigNumber;
+export namespace SetAddressEvent {
+  export type InputTuple = [
+    key: BytesLike,
+    value: AddressLike,
+    version: BigNumberish
+  ];
+  export type OutputTuple = [key: string, value: string, version: bigint];
+  export interface OutputObject {
+    key: string;
+    value: string;
+    version: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetAddressEvent = TypedEvent<
-  [string, string, BigNumber],
-  SetAddressEventObject
->;
-
-export type SetAddressEventFilter = TypedEventFilter<SetAddressEvent>;
 
 export interface IAddressProviderV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IAddressProviderV3;
+  waitForDeployment(): Promise<this>;
 
   interface: IAddressProviderV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    addresses(
-      key: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    getAddressOrRevert(
-      key: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { result: string }>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    setAddress(
-      key: PromiseOrValue<BytesLike>,
-      value: PromiseOrValue<string>,
-      saveVersion: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  addresses: TypedContractMethod<
+    [key: BytesLike, _version: BigNumberish],
+    [string],
+    "view"
+  >;
 
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  getAddressOrRevert: TypedContractMethod<
+    [key: BytesLike, _version: BigNumberish],
+    [string],
+    "view"
+  >;
 
-  addresses(
-    key: PromiseOrValue<BytesLike>,
-    _version: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  setAddress: TypedContractMethod<
+    [key: BytesLike, value: AddressLike, saveVersion: boolean],
+    [void],
+    "nonpayable"
+  >;
 
-  getAddressOrRevert(
-    key: PromiseOrValue<BytesLike>,
-    _version: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  setAddress(
-    key: PromiseOrValue<BytesLike>,
-    value: PromiseOrValue<string>,
-    saveVersion: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  version(overrides?: CallOverrides): Promise<BigNumber>;
+  getFunction(
+    nameOrSignature: "addresses"
+  ): TypedContractMethod<
+    [key: BytesLike, _version: BigNumberish],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getAddressOrRevert"
+  ): TypedContractMethod<
+    [key: BytesLike, _version: BigNumberish],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "setAddress"
+  ): TypedContractMethod<
+    [key: BytesLike, value: AddressLike, saveVersion: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-  callStatic: {
-    addresses(
-      key: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getAddressOrRevert(
-      key: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    setAddress(
-      key: PromiseOrValue<BytesLike>,
-      value: PromiseOrValue<string>,
-      saveVersion: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "SetAddress"
+  ): TypedContractEvent<
+    SetAddressEvent.InputTuple,
+    SetAddressEvent.OutputTuple,
+    SetAddressEvent.OutputObject
+  >;
 
   filters: {
-    "SetAddress(bytes32,address,uint256)"(
-      key?: PromiseOrValue<BytesLike> | null,
-      value?: PromiseOrValue<string> | null,
-      version?: PromiseOrValue<BigNumberish> | null
-    ): SetAddressEventFilter;
-    SetAddress(
-      key?: PromiseOrValue<BytesLike> | null,
-      value?: PromiseOrValue<string> | null,
-      version?: PromiseOrValue<BigNumberish> | null
-    ): SetAddressEventFilter;
-  };
-
-  estimateGas: {
-    addresses(
-      key: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAddressOrRevert(
-      key: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    setAddress(
-      key: PromiseOrValue<BytesLike>,
-      value: PromiseOrValue<string>,
-      saveVersion: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    addresses(
-      key: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getAddressOrRevert(
-      key: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    setAddress(
-      key: PromiseOrValue<BytesLike>,
-      value: PromiseOrValue<string>,
-      saveVersion: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "SetAddress(bytes32,address,uint256)": TypedContractEvent<
+      SetAddressEvent.InputTuple,
+      SetAddressEvent.OutputTuple,
+      SetAddressEvent.OutputObject
+    >;
+    SetAddress: TypedContractEvent<
+      SetAddressEvent.InputTuple,
+      SetAddressEvent.OutputTuple,
+      SetAddressEvent.OutputObject
+    >;
   };
 }

@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IPartialLiquidationBotV3,
   IPartialLiquidationBotV3Interface,
@@ -283,16 +282,16 @@ const _abi = [
 export class IPartialLiquidationBotV3__factory {
   static readonly abi = _abi;
   static createInterface(): IPartialLiquidationBotV3Interface {
-    return new utils.Interface(_abi) as IPartialLiquidationBotV3Interface;
+    return new Interface(_abi) as IPartialLiquidationBotV3Interface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IPartialLiquidationBotV3 {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IPartialLiquidationBotV3;
+      runner
+    ) as unknown as IPartialLiquidationBotV3;
   }
 }

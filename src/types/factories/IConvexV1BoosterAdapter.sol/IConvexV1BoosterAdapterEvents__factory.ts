@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IConvexV1BoosterAdapterEvents,
   IConvexV1BoosterAdapterEventsInterface,
@@ -34,16 +33,16 @@ const _abi = [
 export class IConvexV1BoosterAdapterEvents__factory {
   static readonly abi = _abi;
   static createInterface(): IConvexV1BoosterAdapterEventsInterface {
-    return new utils.Interface(_abi) as IConvexV1BoosterAdapterEventsInterface;
+    return new Interface(_abi) as IConvexV1BoosterAdapterEventsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IConvexV1BoosterAdapterEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IConvexV1BoosterAdapterEvents;
+      runner
+    ) as unknown as IConvexV1BoosterAdapterEvents;
   }
 }

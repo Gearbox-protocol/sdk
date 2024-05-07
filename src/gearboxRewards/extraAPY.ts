@@ -97,7 +97,7 @@ const TOKENS = TypedObjectUtils.fromEntries(
 );
 
 const REWARD = toBN("7.7", decimals.wstETH);
-const REWARD_PERIOD = 30 * 24 * 60 * 60;
+const REWARD_PERIOD = BigInt(30 * 24 * 60 * 60);
 
 export class GearboxRewardsExtraApy {
   static async getTotalTokensOnProtocol({
@@ -227,7 +227,7 @@ export class GearboxRewardsExtraApy {
         balance: 0n,
         duration: REWARD_PERIOD,
         // !& + STETH
-        finished: Math.floor(Date.now() / 1000) + 10000,
+        finished: BigInt(Math.floor(Date.now() / 1000) + 10000),
         reward: REWARD,
         symbol: "STETH",
       },

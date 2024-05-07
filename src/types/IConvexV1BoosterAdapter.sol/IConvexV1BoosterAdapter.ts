@@ -3,47 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
-  functions: {
-    "_gearboxAdapterType()": FunctionFragment;
-    "_gearboxAdapterVersion()": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "deposit(uint256,uint256,bool)": FunctionFragment;
-    "depositDiff(uint256,uint256,bool)": FunctionFragment;
-    "pidToPhantomToken(uint256)": FunctionFragment;
-    "targetContract()": FunctionFragment;
-    "updateStakedPhantomTokensMap()": FunctionFragment;
-    "withdraw(uint256,uint256)": FunctionFragment;
-    "withdrawDiff(uint256,uint256)": FunctionFragment;
-  };
-
+export interface IConvexV1BoosterAdapterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
       | "addressProvider"
@@ -56,6 +38,8 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
       | "withdraw"
       | "withdrawDiff"
   ): FunctionFragment;
+
+  getEvent(nameOrSignatureOrTopic: "SetPidToPhantomToken"): EventFragment;
 
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
@@ -75,23 +59,15 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
-    ]
+    values: [BigNumberish, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "depositDiff",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
-    ]
+    values: [BigNumberish, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "pidToPhantomToken",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
@@ -103,11 +79,11 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawDiff",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -148,315 +124,178 @@ export interface IConvexV1BoosterAdapterInterface extends utils.Interface {
     functionFragment: "withdrawDiff",
     data: BytesLike
   ): Result;
-
-  events: {
-    "SetPidToPhantomToken(uint256,address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "SetPidToPhantomToken"): EventFragment;
 }
 
-export interface SetPidToPhantomTokenEventObject {
-  pid: BigNumber;
-  phantomToken: string;
+export namespace SetPidToPhantomTokenEvent {
+  export type InputTuple = [pid: BigNumberish, phantomToken: AddressLike];
+  export type OutputTuple = [pid: bigint, phantomToken: string];
+  export interface OutputObject {
+    pid: bigint;
+    phantomToken: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetPidToPhantomTokenEvent = TypedEvent<
-  [BigNumber, string],
-  SetPidToPhantomTokenEventObject
->;
-
-export type SetPidToPhantomTokenEventFilter =
-  TypedEventFilter<SetPidToPhantomTokenEvent>;
 
 export interface IConvexV1BoosterAdapter extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IConvexV1BoosterAdapter;
+  waitForDeployment(): Promise<this>;
 
   interface: IConvexV1BoosterAdapterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<[number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
+  _gearboxAdapterType: TypedContractMethod<[], [bigint], "view">;
 
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
+  _gearboxAdapterVersion: TypedContractMethod<[], [bigint], "view">;
 
-    deposit(
-      _pid: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      _stake: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  addressProvider: TypedContractMethod<[], [string], "view">;
 
-    depositDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      _pid: PromiseOrValue<BigNumberish>,
-      _stake: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  creditManager: TypedContractMethod<[], [string], "view">;
 
-    pidToPhantomToken(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+  deposit: TypedContractMethod<
+    [_pid: BigNumberish, arg1: BigNumberish, _stake: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    targetContract(overrides?: CallOverrides): Promise<[string]>;
+  depositDiff: TypedContractMethod<
+    [leftoverAmount: BigNumberish, _pid: BigNumberish, _stake: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    updateStakedPhantomTokensMap(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  pidToPhantomToken: TypedContractMethod<
+    [arg0: BigNumberish],
+    [string],
+    "view"
+  >;
 
-    withdraw(
-      _pid: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  targetContract: TypedContractMethod<[], [string], "view">;
 
-    withdrawDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      _pid: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+  updateStakedPhantomTokensMap: TypedContractMethod<[], [void], "nonpayable">;
 
-  _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
+  withdraw: TypedContractMethod<
+    [_pid: BigNumberish, arg1: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-  _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
+  withdrawDiff: TypedContractMethod<
+    [leftoverAmount: BigNumberish, _pid: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-  addressProvider(overrides?: CallOverrides): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  creditManager(overrides?: CallOverrides): Promise<string>;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterVersion"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "deposit"
+  ): TypedContractMethod<
+    [_pid: BigNumberish, arg1: BigNumberish, _stake: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "depositDiff"
+  ): TypedContractMethod<
+    [leftoverAmount: BigNumberish, _pid: BigNumberish, _stake: boolean],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "pidToPhantomToken"
+  ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "targetContract"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "updateStakedPhantomTokensMap"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "withdraw"
+  ): TypedContractMethod<
+    [_pid: BigNumberish, arg1: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawDiff"
+  ): TypedContractMethod<
+    [leftoverAmount: BigNumberish, _pid: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-  deposit(
-    _pid: PromiseOrValue<BigNumberish>,
-    arg1: PromiseOrValue<BigNumberish>,
-    _stake: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  depositDiff(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    _pid: PromiseOrValue<BigNumberish>,
-    _stake: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  pidToPhantomToken(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  targetContract(overrides?: CallOverrides): Promise<string>;
-
-  updateStakedPhantomTokensMap(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdraw(
-    _pid: PromiseOrValue<BigNumberish>,
-    arg1: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawDiff(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    _pid: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    deposit(
-      _pid: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      _stake: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    depositDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      _pid: PromiseOrValue<BigNumberish>,
-      _stake: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    pidToPhantomToken(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    targetContract(overrides?: CallOverrides): Promise<string>;
-
-    updateStakedPhantomTokensMap(overrides?: CallOverrides): Promise<void>;
-
-    withdraw(
-      _pid: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    withdrawDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      _pid: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-  };
+  getEvent(
+    key: "SetPidToPhantomToken"
+  ): TypedContractEvent<
+    SetPidToPhantomTokenEvent.InputTuple,
+    SetPidToPhantomTokenEvent.OutputTuple,
+    SetPidToPhantomTokenEvent.OutputObject
+  >;
 
   filters: {
-    "SetPidToPhantomToken(uint256,address)"(
-      pid?: PromiseOrValue<BigNumberish> | null,
-      phantomToken?: PromiseOrValue<string> | null
-    ): SetPidToPhantomTokenEventFilter;
-    SetPidToPhantomToken(
-      pid?: PromiseOrValue<BigNumberish> | null,
-      phantomToken?: PromiseOrValue<string> | null
-    ): SetPidToPhantomTokenEventFilter;
-  };
-
-  estimateGas: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    deposit(
-      _pid: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      _stake: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    depositDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      _pid: PromiseOrValue<BigNumberish>,
-      _stake: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    pidToPhantomToken(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    targetContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateStakedPhantomTokensMap(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdraw(
-      _pid: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      _pid: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    _gearboxAdapterType(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    _gearboxAdapterVersion(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    deposit(
-      _pid: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      _stake: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    depositDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      _pid: PromiseOrValue<BigNumberish>,
-      _stake: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    pidToPhantomToken(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updateStakedPhantomTokensMap(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdraw(
-      _pid: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      _pid: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    "SetPidToPhantomToken(uint256,address)": TypedContractEvent<
+      SetPidToPhantomTokenEvent.InputTuple,
+      SetPidToPhantomTokenEvent.OutputTuple,
+      SetPidToPhantomTokenEvent.OutputObject
+    >;
+    SetPidToPhantomToken: TypedContractEvent<
+      SetPidToPhantomTokenEvent.InputTuple,
+      SetPidToPhantomTokenEvent.OutputTuple,
+      SetPidToPhantomTokenEvent.OutputObject
+    >;
   };
 }

@@ -3,71 +3,26 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface ICurveV1AdapterInterface extends utils.Interface {
-  functions: {
-    "_gearboxAdapterType()": FunctionFragment;
-    "_gearboxAdapterVersion()": FunctionFragment;
-    "add_diff_liquidity_one_coin(uint256,uint256,uint256)": FunctionFragment;
-    "add_liquidity_one_coin(uint256,uint256,uint256)": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "calc_add_one_coin(uint256,uint256)": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "exchange(int128,int128,uint256,uint256)": FunctionFragment;
-    "exchange(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "exchange_diff(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "exchange_diff_underlying(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "exchange_underlying(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "exchange_underlying(int128,int128,uint256,uint256)": FunctionFragment;
-    "lpTokenMask()": FunctionFragment;
-    "lp_token()": FunctionFragment;
-    "metapoolBase()": FunctionFragment;
-    "nCoins()": FunctionFragment;
-    "remove_diff_liquidity_one_coin(uint256,uint256,uint256)": FunctionFragment;
-    "remove_liquidity_one_coin(uint256,int128,uint256)": FunctionFragment;
-    "remove_liquidity_one_coin(uint256,uint256,uint256)": FunctionFragment;
-    "targetContract()": FunctionFragment;
-    "token()": FunctionFragment;
-    "token0()": FunctionFragment;
-    "token0Mask()": FunctionFragment;
-    "token1()": FunctionFragment;
-    "token1Mask()": FunctionFragment;
-    "token2()": FunctionFragment;
-    "token2Mask()": FunctionFragment;
-    "token3()": FunctionFragment;
-    "token3Mask()": FunctionFragment;
-    "underlying0()": FunctionFragment;
-    "underlying0Mask()": FunctionFragment;
-    "underlying1()": FunctionFragment;
-    "underlying1Mask()": FunctionFragment;
-    "underlying2()": FunctionFragment;
-    "underlying2Mask()": FunctionFragment;
-    "underlying3()": FunctionFragment;
-    "underlying3Mask()": FunctionFragment;
-    "use256()": FunctionFragment;
-  };
-
+export interface ICurveV1AdapterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
       | "add_diff_liquidity_one_coin"
@@ -119,19 +74,11 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "add_diff_liquidity_one_coin",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "add_liquidity_one_coin",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
@@ -139,7 +86,7 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "calc_add_one_coin",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
@@ -147,57 +94,27 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "exchange(int128,int128,uint256,uint256)",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "exchange(uint256,uint256,uint256,uint256)",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "exchange_diff",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "exchange_diff_underlying",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "exchange_underlying(uint256,uint256,uint256,uint256)",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "exchange_underlying(int128,int128,uint256,uint256)",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "lpTokenMask",
@@ -211,27 +128,15 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "nCoins", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "remove_diff_liquidity_one_coin",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "remove_liquidity_one_coin(uint256,int128,uint256)",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "remove_liquidity_one_coin(uint256,uint256,uint256)",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
@@ -412,817 +317,366 @@ export interface ICurveV1AdapterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "use256", data: BytesLike): Result;
-
-  events: {};
 }
 
 export interface ICurveV1Adapter extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ICurveV1Adapter;
+  waitForDeployment(): Promise<this>;
 
   interface: ICurveV1AdapterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
-
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
-
-  functions: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<[number]>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
-
-    add_diff_liquidity_one_coin(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    add_liquidity_one_coin(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
-
-    calc_add_one_coin(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    "exchange(uint256,uint256,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  _gearboxAdapterType: TypedContractMethod<[], [bigint], "view">;
+
+  _gearboxAdapterVersion: TypedContractMethod<[], [bigint], "view">;
+
+  add_diff_liquidity_one_coin: TypedContractMethod<
+    [leftoverAmount: BigNumberish, i: BigNumberish, rateMinRAY: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  add_liquidity_one_coin: TypedContractMethod<
+    [amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  addressProvider: TypedContractMethod<[], [string], "view">;
+
+  calc_add_one_coin: TypedContractMethod<
+    [amount: BigNumberish, i: BigNumberish],
+    [bigint],
+    "view"
+  >;
+
+  creditManager: TypedContractMethod<[], [string], "view">;
+
+  "exchange(int128,int128,uint256,uint256)": TypedContractMethod<
+    [i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  "exchange(uint256,uint256,uint256,uint256)": TypedContractMethod<
+    [i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    exchange_diff(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  exchange_diff: TypedContractMethod<
+    [
+      i: BigNumberish,
+      j: BigNumberish,
+      leftoverAmount: BigNumberish,
+      rateMinRAY: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  exchange_diff_underlying: TypedContractMethod<
+    [
+      i: BigNumberish,
+      j: BigNumberish,
+      leftoverAmount: BigNumberish,
+      rateMinRAY: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  "exchange_underlying(uint256,uint256,uint256,uint256)": TypedContractMethod<
+    [i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  "exchange_underlying(int128,int128,uint256,uint256)": TypedContractMethod<
+    [i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    exchange_diff_underlying(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  lpTokenMask: TypedContractMethod<[], [bigint], "view">;
 
-    "exchange_underlying(uint256,uint256,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  lp_token: TypedContractMethod<[], [string], "view">;
 
-    "exchange_underlying(int128,int128,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  metapoolBase: TypedContractMethod<[], [string], "view">;
 
-    lpTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    lp_token(overrides?: CallOverrides): Promise<[string]>;
-
-    metapoolBase(overrides?: CallOverrides): Promise<[string]>;
-
-    nCoins(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    remove_diff_liquidity_one_coin(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  nCoins: TypedContractMethod<[], [bigint], "view">;
 
-    "remove_liquidity_one_coin(uint256,int128,uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    "remove_liquidity_one_coin(uint256,uint256,uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    targetContract(overrides?: CallOverrides): Promise<[string]>;
-
-    token(overrides?: CallOverrides): Promise<[string]>;
-
-    token0(overrides?: CallOverrides): Promise<[string]>;
-
-    token0Mask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    token1(overrides?: CallOverrides): Promise<[string]>;
-
-    token1Mask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    token2(overrides?: CallOverrides): Promise<[string]>;
-
-    token2Mask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    token3(overrides?: CallOverrides): Promise<[string]>;
-
-    token3Mask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    underlying0(overrides?: CallOverrides): Promise<[string]>;
-
-    underlying0Mask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    underlying1(overrides?: CallOverrides): Promise<[string]>;
-
-    underlying1Mask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    underlying2(overrides?: CallOverrides): Promise<[string]>;
-
-    underlying2Mask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    underlying3(overrides?: CallOverrides): Promise<[string]>;
-
-    underlying3Mask(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    use256(overrides?: CallOverrides): Promise<[boolean]>;
-  };
-
-  _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
-
-  _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-  add_diff_liquidity_one_coin(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    i: PromiseOrValue<BigNumberish>,
-    rateMinRAY: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  add_liquidity_one_coin(
-    amount: PromiseOrValue<BigNumberish>,
-    i: PromiseOrValue<BigNumberish>,
-    minAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  addressProvider(overrides?: CallOverrides): Promise<string>;
-
-  calc_add_one_coin(
-    amount: PromiseOrValue<BigNumberish>,
-    i: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  creditManager(overrides?: CallOverrides): Promise<string>;
-
-  "exchange(int128,int128,uint256,uint256)"(
-    i: PromiseOrValue<BigNumberish>,
-    j: PromiseOrValue<BigNumberish>,
-    dx: PromiseOrValue<BigNumberish>,
-    min_dy: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "exchange(uint256,uint256,uint256,uint256)"(
-    i: PromiseOrValue<BigNumberish>,
-    j: PromiseOrValue<BigNumberish>,
-    dx: PromiseOrValue<BigNumberish>,
-    min_dy: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exchange_diff(
-    i: PromiseOrValue<BigNumberish>,
-    j: PromiseOrValue<BigNumberish>,
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    rateMinRAY: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exchange_diff_underlying(
-    i: PromiseOrValue<BigNumberish>,
-    j: PromiseOrValue<BigNumberish>,
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    rateMinRAY: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "exchange_underlying(uint256,uint256,uint256,uint256)"(
-    i: PromiseOrValue<BigNumberish>,
-    j: PromiseOrValue<BigNumberish>,
-    dx: PromiseOrValue<BigNumberish>,
-    min_dy: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "exchange_underlying(int128,int128,uint256,uint256)"(
-    i: PromiseOrValue<BigNumberish>,
-    j: PromiseOrValue<BigNumberish>,
-    dx: PromiseOrValue<BigNumberish>,
-    min_dy: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  lpTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  lp_token(overrides?: CallOverrides): Promise<string>;
-
-  metapoolBase(overrides?: CallOverrides): Promise<string>;
-
-  nCoins(overrides?: CallOverrides): Promise<BigNumber>;
-
-  remove_diff_liquidity_one_coin(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    i: PromiseOrValue<BigNumberish>,
-    rateMinRAY: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "remove_liquidity_one_coin(uint256,int128,uint256)"(
-    amount: PromiseOrValue<BigNumberish>,
-    i: PromiseOrValue<BigNumberish>,
-    minAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "remove_liquidity_one_coin(uint256,uint256,uint256)"(
-    amount: PromiseOrValue<BigNumberish>,
-    i: PromiseOrValue<BigNumberish>,
-    minAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  targetContract(overrides?: CallOverrides): Promise<string>;
-
-  token(overrides?: CallOverrides): Promise<string>;
-
-  token0(overrides?: CallOverrides): Promise<string>;
-
-  token0Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  token1(overrides?: CallOverrides): Promise<string>;
-
-  token1Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  token2(overrides?: CallOverrides): Promise<string>;
-
-  token2Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  token3(overrides?: CallOverrides): Promise<string>;
-
-  token3Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  underlying0(overrides?: CallOverrides): Promise<string>;
-
-  underlying0Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  underlying1(overrides?: CallOverrides): Promise<string>;
-
-  underlying1Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  underlying2(overrides?: CallOverrides): Promise<string>;
-
-  underlying2Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  underlying3(overrides?: CallOverrides): Promise<string>;
-
-  underlying3Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  use256(overrides?: CallOverrides): Promise<boolean>;
-
-  callStatic: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    add_diff_liquidity_one_coin(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    add_liquidity_one_coin(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    calc_add_one_coin(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    "exchange(uint256,uint256,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    exchange_diff(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    exchange_diff_underlying(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    "exchange_underlying(uint256,uint256,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    "exchange_underlying(int128,int128,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    lpTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lp_token(overrides?: CallOverrides): Promise<string>;
-
-    metapoolBase(overrides?: CallOverrides): Promise<string>;
-
-    nCoins(overrides?: CallOverrides): Promise<BigNumber>;
-
-    remove_diff_liquidity_one_coin(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    "remove_liquidity_one_coin(uint256,int128,uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    "remove_liquidity_one_coin(uint256,uint256,uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    targetContract(overrides?: CallOverrides): Promise<string>;
-
-    token(overrides?: CallOverrides): Promise<string>;
-
-    token0(overrides?: CallOverrides): Promise<string>;
-
-    token0Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token1(overrides?: CallOverrides): Promise<string>;
-
-    token1Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token2(overrides?: CallOverrides): Promise<string>;
-
-    token2Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token3(overrides?: CallOverrides): Promise<string>;
-
-    token3Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying0(overrides?: CallOverrides): Promise<string>;
-
-    underlying0Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying1(overrides?: CallOverrides): Promise<string>;
-
-    underlying1Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying2(overrides?: CallOverrides): Promise<string>;
-
-    underlying2Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying3(overrides?: CallOverrides): Promise<string>;
-
-    underlying3Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    use256(overrides?: CallOverrides): Promise<boolean>;
-  };
+  remove_diff_liquidity_one_coin: TypedContractMethod<
+    [leftoverAmount: BigNumberish, i: BigNumberish, rateMinRAY: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  "remove_liquidity_one_coin(uint256,int128,uint256)": TypedContractMethod<
+    [amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  "remove_liquidity_one_coin(uint256,uint256,uint256)": TypedContractMethod<
+    [amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+
+  targetContract: TypedContractMethod<[], [string], "view">;
+
+  token: TypedContractMethod<[], [string], "view">;
+
+  token0: TypedContractMethod<[], [string], "view">;
+
+  token0Mask: TypedContractMethod<[], [bigint], "view">;
+
+  token1: TypedContractMethod<[], [string], "view">;
+
+  token1Mask: TypedContractMethod<[], [bigint], "view">;
+
+  token2: TypedContractMethod<[], [string], "view">;
+
+  token2Mask: TypedContractMethod<[], [bigint], "view">;
+
+  token3: TypedContractMethod<[], [string], "view">;
+
+  token3Mask: TypedContractMethod<[], [bigint], "view">;
+
+  underlying0: TypedContractMethod<[], [string], "view">;
+
+  underlying0Mask: TypedContractMethod<[], [bigint], "view">;
+
+  underlying1: TypedContractMethod<[], [string], "view">;
+
+  underlying1Mask: TypedContractMethod<[], [bigint], "view">;
+
+  underlying2: TypedContractMethod<[], [string], "view">;
+
+  underlying2Mask: TypedContractMethod<[], [bigint], "view">;
+
+  underlying3: TypedContractMethod<[], [string], "view">;
+
+  underlying3Mask: TypedContractMethod<[], [bigint], "view">;
+
+  use256: TypedContractMethod<[], [boolean], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "_gearboxAdapterType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterVersion"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "add_diff_liquidity_one_coin"
+  ): TypedContractMethod<
+    [leftoverAmount: BigNumberish, i: BigNumberish, rateMinRAY: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "add_liquidity_one_coin"
+  ): TypedContractMethod<
+    [amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "calc_add_one_coin"
+  ): TypedContractMethod<
+    [amount: BigNumberish, i: BigNumberish],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "exchange(int128,int128,uint256,uint256)"
+  ): TypedContractMethod<
+    [i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exchange(uint256,uint256,uint256,uint256)"
+  ): TypedContractMethod<
+    [i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exchange_diff"
+  ): TypedContractMethod<
+    [
+      i: BigNumberish,
+      j: BigNumberish,
+      leftoverAmount: BigNumberish,
+      rateMinRAY: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exchange_diff_underlying"
+  ): TypedContractMethod<
+    [
+      i: BigNumberish,
+      j: BigNumberish,
+      leftoverAmount: BigNumberish,
+      rateMinRAY: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exchange_underlying(uint256,uint256,uint256,uint256)"
+  ): TypedContractMethod<
+    [i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exchange_underlying(int128,int128,uint256,uint256)"
+  ): TypedContractMethod<
+    [i: BigNumberish, j: BigNumberish, dx: BigNumberish, min_dy: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "lpTokenMask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lp_token"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "metapoolBase"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "nCoins"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "remove_diff_liquidity_one_coin"
+  ): TypedContractMethod<
+    [leftoverAmount: BigNumberish, i: BigNumberish, rateMinRAY: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "remove_liquidity_one_coin(uint256,int128,uint256)"
+  ): TypedContractMethod<
+    [amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "remove_liquidity_one_coin(uint256,uint256,uint256)"
+  ): TypedContractMethod<
+    [amount: BigNumberish, i: BigNumberish, minAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "targetContract"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "token"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "token0"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "token0Mask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "token1"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "token1Mask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "token2"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "token2Mask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "token3"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "token3Mask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "underlying0"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "underlying0Mask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "underlying1"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "underlying1Mask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "underlying2"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "underlying2Mask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "underlying3"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "underlying3Mask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "use256"
+  ): TypedContractMethod<[], [boolean], "view">;
 
   filters: {};
-
-  estimateGas: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    add_diff_liquidity_one_coin(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    add_liquidity_one_coin(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    calc_add_one_coin(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "exchange(uint256,uint256,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exchange_diff(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exchange_diff_underlying(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "exchange_underlying(uint256,uint256,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "exchange_underlying(int128,int128,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    lpTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lp_token(overrides?: CallOverrides): Promise<BigNumber>;
-
-    metapoolBase(overrides?: CallOverrides): Promise<BigNumber>;
-
-    nCoins(overrides?: CallOverrides): Promise<BigNumber>;
-
-    remove_diff_liquidity_one_coin(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "remove_liquidity_one_coin(uint256,int128,uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "remove_liquidity_one_coin(uint256,uint256,uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    targetContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token0Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token1(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token1Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token2(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token2Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token3(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token3Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying0Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying1(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying1Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying2(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying2Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying3(overrides?: CallOverrides): Promise<BigNumber>;
-
-    underlying3Mask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    use256(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    _gearboxAdapterType(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    _gearboxAdapterVersion(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    add_diff_liquidity_one_coin(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    add_liquidity_one_coin(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    calc_add_one_coin(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "exchange(int128,int128,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "exchange(uint256,uint256,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exchange_diff(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exchange_diff_underlying(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "exchange_underlying(uint256,uint256,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "exchange_underlying(int128,int128,uint256,uint256)"(
-      i: PromiseOrValue<BigNumberish>,
-      j: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      min_dy: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    lpTokenMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    lp_token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    metapoolBase(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    nCoins(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    remove_diff_liquidity_one_coin(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "remove_liquidity_one_coin(uint256,int128,uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "remove_liquidity_one_coin(uint256,uint256,uint256)"(
-      amount: PromiseOrValue<BigNumberish>,
-      i: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token0Mask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token1Mask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token2Mask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token3(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token3Mask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying0Mask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying1Mask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying2Mask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying3(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    underlying3Mask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    use256(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
 }

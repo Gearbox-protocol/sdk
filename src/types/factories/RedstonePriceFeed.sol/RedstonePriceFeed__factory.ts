@@ -2,16 +2,20 @@
 /* tslint:disable */
 /* eslint-disable */
 import {
-  Signer,
-  utils,
   Contract,
   ContractFactory,
+  ContractTransactionResponse,
+  Interface,
+} from "ethers";
+import type {
+  Signer,
   BytesLike,
   BigNumberish,
-  Overrides,
+  AddressLike,
+  ContractDeployTransaction,
+  ContractRunner,
 } from "ethers";
-import type { Provider, TransactionRequest } from "@ethersproject/providers";
-import type { PromiseOrValue } from "../../common";
+import type { NonPayableOverrides } from "../../common";
 import type {
   RedstonePriceFeed,
   RedstonePriceFeedInterface,
@@ -587,28 +591,13 @@ export class RedstonePriceFeed__factory extends ContractFactory {
     }
   }
 
-  override deploy(
-    _token: PromiseOrValue<string>,
-    _dataFeedId: PromiseOrValue<BytesLike>,
-    _signers: PromiseOrValue<string>[],
-    signersThreshold: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<RedstonePriceFeed> {
-    return super.deploy(
-      _token,
-      _dataFeedId,
-      _signers,
-      signersThreshold,
-      overrides || {}
-    ) as Promise<RedstonePriceFeed>;
-  }
   override getDeployTransaction(
-    _token: PromiseOrValue<string>,
-    _dataFeedId: PromiseOrValue<BytesLike>,
-    _signers: PromiseOrValue<string>[],
-    signersThreshold: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): TransactionRequest {
+    _token: AddressLike,
+    _dataFeedId: BytesLike,
+    _signers: AddressLike[],
+    signersThreshold: BigNumberish,
+    overrides?: NonPayableOverrides & { from?: string }
+  ): Promise<ContractDeployTransaction> {
     return super.getDeployTransaction(
       _token,
       _dataFeedId,
@@ -617,22 +606,38 @@ export class RedstonePriceFeed__factory extends ContractFactory {
       overrides || {}
     );
   }
-  override attach(address: string): RedstonePriceFeed {
-    return super.attach(address) as RedstonePriceFeed;
+  override deploy(
+    _token: AddressLike,
+    _dataFeedId: BytesLike,
+    _signers: AddressLike[],
+    signersThreshold: BigNumberish,
+    overrides?: NonPayableOverrides & { from?: string }
+  ) {
+    return super.deploy(
+      _token,
+      _dataFeedId,
+      _signers,
+      signersThreshold,
+      overrides || {}
+    ) as Promise<
+      RedstonePriceFeed & {
+        deploymentTransaction(): ContractTransactionResponse;
+      }
+    >;
   }
-  override connect(signer: Signer): RedstonePriceFeed__factory {
-    return super.connect(signer) as RedstonePriceFeed__factory;
+  override connect(runner: ContractRunner | null): RedstonePriceFeed__factory {
+    return super.connect(runner) as RedstonePriceFeed__factory;
   }
 
   static readonly bytecode = _bytecode;
   static readonly abi = _abi;
   static createInterface(): RedstonePriceFeedInterface {
-    return new utils.Interface(_abi) as RedstonePriceFeedInterface;
+    return new Interface(_abi) as RedstonePriceFeedInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): RedstonePriceFeed {
-    return new Contract(address, _abi, signerOrProvider) as RedstonePriceFeed;
+    return new Contract(address, _abi, runner) as unknown as RedstonePriceFeed;
   }
 }

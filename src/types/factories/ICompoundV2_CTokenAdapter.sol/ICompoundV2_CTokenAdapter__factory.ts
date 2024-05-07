@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   ICompoundV2_CTokenAdapter,
   ICompoundV2_CTokenAdapterInterface,
@@ -263,16 +262,16 @@ const _abi = [
 export class ICompoundV2_CTokenAdapter__factory {
   static readonly abi = _abi;
   static createInterface(): ICompoundV2_CTokenAdapterInterface {
-    return new utils.Interface(_abi) as ICompoundV2_CTokenAdapterInterface;
+    return new Interface(_abi) as ICompoundV2_CTokenAdapterInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): ICompoundV2_CTokenAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as ICompoundV2_CTokenAdapter;
+      runner
+    ) as unknown as ICompoundV2_CTokenAdapter;
   }
 }

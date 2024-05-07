@@ -3,53 +3,40 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IDegenDistributorInterface extends utils.Interface {
-  functions: {
-    "claim(uint256,address,uint256,bytes32[])": FunctionFragment;
-    "claimed(address)": FunctionFragment;
-    "merkleRoot()": FunctionFragment;
-  };
-
+export interface IDegenDistributorInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic: "claim" | "claimed" | "merkleRoot"
+    nameOrSignature: "claim" | "claimed" | "merkleRoot"
   ): FunctionFragment;
+
+  getEvent(nameOrSignatureOrTopic: "Claimed" | "RootUpdated"): EventFragment;
 
   encodeFunctionData(
     functionFragment: "claim",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>[]
-    ]
+    values: [BigNumberish, AddressLike, BigNumberish, BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "claimed",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "merkleRoot",
@@ -59,161 +46,151 @@ export interface IDegenDistributorInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claimed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "merkleRoot", data: BytesLike): Result;
-
-  events: {
-    "Claimed(address,uint256)": EventFragment;
-    "RootUpdated(bytes32,bytes32)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "Claimed"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RootUpdated"): EventFragment;
 }
 
-export interface ClaimedEventObject {
-  account: string;
-  amount: BigNumber;
+export namespace ClaimedEvent {
+  export type InputTuple = [account: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [account: string, amount: bigint];
+  export interface OutputObject {
+    account: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ClaimedEvent = TypedEvent<[string, BigNumber], ClaimedEventObject>;
 
-export type ClaimedEventFilter = TypedEventFilter<ClaimedEvent>;
-
-export interface RootUpdatedEventObject {
-  oldRoot: string;
-  newRoot: string;
+export namespace RootUpdatedEvent {
+  export type InputTuple = [oldRoot: BytesLike, newRoot: BytesLike];
+  export type OutputTuple = [oldRoot: string, newRoot: string];
+  export interface OutputObject {
+    oldRoot: string;
+    newRoot: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RootUpdatedEvent = TypedEvent<
-  [string, string],
-  RootUpdatedEventObject
->;
-
-export type RootUpdatedEventFilter = TypedEventFilter<RootUpdatedEvent>;
 
 export interface IDegenDistributor extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IDegenDistributor;
+  waitForDeployment(): Promise<this>;
 
   interface: IDegenDistributorInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    claim(
-      index: PromiseOrValue<BigNumberish>,
-      account: PromiseOrValue<string>,
-      totalAmount: PromiseOrValue<BigNumberish>,
-      merkleProof: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    claimed(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    merkleRoot(overrides?: CallOverrides): Promise<[string]>;
-  };
+  claim: TypedContractMethod<
+    [
+      index: BigNumberish,
+      account: AddressLike,
+      totalAmount: BigNumberish,
+      merkleProof: BytesLike[]
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-  claim(
-    index: PromiseOrValue<BigNumberish>,
-    account: PromiseOrValue<string>,
-    totalAmount: PromiseOrValue<BigNumberish>,
-    merkleProof: PromiseOrValue<BytesLike>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  claimed: TypedContractMethod<[user: AddressLike], [bigint], "view">;
 
-  claimed(
-    user: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  merkleRoot: TypedContractMethod<[], [string], "view">;
 
-  merkleRoot(overrides?: CallOverrides): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  callStatic: {
-    claim(
-      index: PromiseOrValue<BigNumberish>,
-      account: PromiseOrValue<string>,
-      totalAmount: PromiseOrValue<BigNumberish>,
-      merkleProof: PromiseOrValue<BytesLike>[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+  getFunction(
+    nameOrSignature: "claim"
+  ): TypedContractMethod<
+    [
+      index: BigNumberish,
+      account: AddressLike,
+      totalAmount: BigNumberish,
+      merkleProof: BytesLike[]
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "claimed"
+  ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "merkleRoot"
+  ): TypedContractMethod<[], [string], "view">;
 
-    claimed(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    merkleRoot(overrides?: CallOverrides): Promise<string>;
-  };
+  getEvent(
+    key: "Claimed"
+  ): TypedContractEvent<
+    ClaimedEvent.InputTuple,
+    ClaimedEvent.OutputTuple,
+    ClaimedEvent.OutputObject
+  >;
+  getEvent(
+    key: "RootUpdated"
+  ): TypedContractEvent<
+    RootUpdatedEvent.InputTuple,
+    RootUpdatedEvent.OutputTuple,
+    RootUpdatedEvent.OutputObject
+  >;
 
   filters: {
-    "Claimed(address,uint256)"(
-      account?: PromiseOrValue<string> | null,
-      amount?: null
-    ): ClaimedEventFilter;
-    Claimed(
-      account?: PromiseOrValue<string> | null,
-      amount?: null
-    ): ClaimedEventFilter;
+    "Claimed(address,uint256)": TypedContractEvent<
+      ClaimedEvent.InputTuple,
+      ClaimedEvent.OutputTuple,
+      ClaimedEvent.OutputObject
+    >;
+    Claimed: TypedContractEvent<
+      ClaimedEvent.InputTuple,
+      ClaimedEvent.OutputTuple,
+      ClaimedEvent.OutputObject
+    >;
 
-    "RootUpdated(bytes32,bytes32)"(
-      oldRoot?: null,
-      newRoot?: PromiseOrValue<BytesLike> | null
-    ): RootUpdatedEventFilter;
-    RootUpdated(
-      oldRoot?: null,
-      newRoot?: PromiseOrValue<BytesLike> | null
-    ): RootUpdatedEventFilter;
-  };
-
-  estimateGas: {
-    claim(
-      index: PromiseOrValue<BigNumberish>,
-      account: PromiseOrValue<string>,
-      totalAmount: PromiseOrValue<BigNumberish>,
-      merkleProof: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    claimed(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    merkleRoot(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    claim(
-      index: PromiseOrValue<BigNumberish>,
-      account: PromiseOrValue<string>,
-      totalAmount: PromiseOrValue<BigNumberish>,
-      merkleProof: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    claimed(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    merkleRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "RootUpdated(bytes32,bytes32)": TypedContractEvent<
+      RootUpdatedEvent.InputTuple,
+      RootUpdatedEvent.OutputTuple,
+      RootUpdatedEvent.OutputObject
+    >;
+    RootUpdated: TypedContractEvent<
+      RootUpdatedEvent.InputTuple,
+      RootUpdatedEvent.OutputTuple,
+      RootUpdatedEvent.OutputObject
+    >;
   };
 }

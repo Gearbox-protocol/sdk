@@ -3,220 +3,200 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
 export type UniswapV3PoolStatusStruct = {
-  token0: PromiseOrValue<string>;
-  token1: PromiseOrValue<string>;
-  fee: PromiseOrValue<BigNumberish>;
-  allowed: PromiseOrValue<boolean>;
+  token0: AddressLike;
+  token1: AddressLike;
+  fee: BigNumberish;
+  allowed: boolean;
 };
 
 export type UniswapV3PoolStatusStructOutput = [
-  string,
-  string,
-  number,
-  boolean
-] & { token0: string; token1: string; fee: number; allowed: boolean };
+  token0: string,
+  token1: string,
+  fee: bigint,
+  allowed: boolean
+] & { token0: string; token1: string; fee: bigint; allowed: boolean };
 
 export declare namespace IUniswapV3AdapterTypes {
   export type ExactDiffInputParamsStruct = {
-    path: PromiseOrValue<BytesLike>;
-    deadline: PromiseOrValue<BigNumberish>;
-    leftoverAmount: PromiseOrValue<BigNumberish>;
-    rateMinRAY: PromiseOrValue<BigNumberish>;
+    path: BytesLike;
+    deadline: BigNumberish;
+    leftoverAmount: BigNumberish;
+    rateMinRAY: BigNumberish;
   };
 
   export type ExactDiffInputParamsStructOutput = [
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    path: string,
+    deadline: bigint,
+    leftoverAmount: bigint,
+    rateMinRAY: bigint
   ] & {
     path: string;
-    deadline: BigNumber;
-    leftoverAmount: BigNumber;
-    rateMinRAY: BigNumber;
+    deadline: bigint;
+    leftoverAmount: bigint;
+    rateMinRAY: bigint;
   };
 
   export type ExactDiffInputSingleParamsStruct = {
-    tokenIn: PromiseOrValue<string>;
-    tokenOut: PromiseOrValue<string>;
-    fee: PromiseOrValue<BigNumberish>;
-    deadline: PromiseOrValue<BigNumberish>;
-    leftoverAmount: PromiseOrValue<BigNumberish>;
-    rateMinRAY: PromiseOrValue<BigNumberish>;
-    sqrtPriceLimitX96: PromiseOrValue<BigNumberish>;
+    tokenIn: AddressLike;
+    tokenOut: AddressLike;
+    fee: BigNumberish;
+    deadline: BigNumberish;
+    leftoverAmount: BigNumberish;
+    rateMinRAY: BigNumberish;
+    sqrtPriceLimitX96: BigNumberish;
   };
 
   export type ExactDiffInputSingleParamsStructOutput = [
-    string,
-    string,
-    number,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    tokenIn: string,
+    tokenOut: string,
+    fee: bigint,
+    deadline: bigint,
+    leftoverAmount: bigint,
+    rateMinRAY: bigint,
+    sqrtPriceLimitX96: bigint
   ] & {
     tokenIn: string;
     tokenOut: string;
-    fee: number;
-    deadline: BigNumber;
-    leftoverAmount: BigNumber;
-    rateMinRAY: BigNumber;
-    sqrtPriceLimitX96: BigNumber;
+    fee: bigint;
+    deadline: bigint;
+    leftoverAmount: bigint;
+    rateMinRAY: bigint;
+    sqrtPriceLimitX96: bigint;
   };
 }
 
 export declare namespace ISwapRouter {
   export type ExactInputParamsStruct = {
-    path: PromiseOrValue<BytesLike>;
-    recipient: PromiseOrValue<string>;
-    deadline: PromiseOrValue<BigNumberish>;
-    amountIn: PromiseOrValue<BigNumberish>;
-    amountOutMinimum: PromiseOrValue<BigNumberish>;
+    path: BytesLike;
+    recipient: AddressLike;
+    deadline: BigNumberish;
+    amountIn: BigNumberish;
+    amountOutMinimum: BigNumberish;
   };
 
   export type ExactInputParamsStructOutput = [
-    string,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    path: string,
+    recipient: string,
+    deadline: bigint,
+    amountIn: bigint,
+    amountOutMinimum: bigint
   ] & {
     path: string;
     recipient: string;
-    deadline: BigNumber;
-    amountIn: BigNumber;
-    amountOutMinimum: BigNumber;
+    deadline: bigint;
+    amountIn: bigint;
+    amountOutMinimum: bigint;
   };
 
   export type ExactInputSingleParamsStruct = {
-    tokenIn: PromiseOrValue<string>;
-    tokenOut: PromiseOrValue<string>;
-    fee: PromiseOrValue<BigNumberish>;
-    recipient: PromiseOrValue<string>;
-    deadline: PromiseOrValue<BigNumberish>;
-    amountIn: PromiseOrValue<BigNumberish>;
-    amountOutMinimum: PromiseOrValue<BigNumberish>;
-    sqrtPriceLimitX96: PromiseOrValue<BigNumberish>;
+    tokenIn: AddressLike;
+    tokenOut: AddressLike;
+    fee: BigNumberish;
+    recipient: AddressLike;
+    deadline: BigNumberish;
+    amountIn: BigNumberish;
+    amountOutMinimum: BigNumberish;
+    sqrtPriceLimitX96: BigNumberish;
   };
 
   export type ExactInputSingleParamsStructOutput = [
-    string,
-    string,
-    number,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    tokenIn: string,
+    tokenOut: string,
+    fee: bigint,
+    recipient: string,
+    deadline: bigint,
+    amountIn: bigint,
+    amountOutMinimum: bigint,
+    sqrtPriceLimitX96: bigint
   ] & {
     tokenIn: string;
     tokenOut: string;
-    fee: number;
+    fee: bigint;
     recipient: string;
-    deadline: BigNumber;
-    amountIn: BigNumber;
-    amountOutMinimum: BigNumber;
-    sqrtPriceLimitX96: BigNumber;
+    deadline: bigint;
+    amountIn: bigint;
+    amountOutMinimum: bigint;
+    sqrtPriceLimitX96: bigint;
   };
 
   export type ExactOutputParamsStruct = {
-    path: PromiseOrValue<BytesLike>;
-    recipient: PromiseOrValue<string>;
-    deadline: PromiseOrValue<BigNumberish>;
-    amountOut: PromiseOrValue<BigNumberish>;
-    amountInMaximum: PromiseOrValue<BigNumberish>;
+    path: BytesLike;
+    recipient: AddressLike;
+    deadline: BigNumberish;
+    amountOut: BigNumberish;
+    amountInMaximum: BigNumberish;
   };
 
   export type ExactOutputParamsStructOutput = [
-    string,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    path: string,
+    recipient: string,
+    deadline: bigint,
+    amountOut: bigint,
+    amountInMaximum: bigint
   ] & {
     path: string;
     recipient: string;
-    deadline: BigNumber;
-    amountOut: BigNumber;
-    amountInMaximum: BigNumber;
+    deadline: bigint;
+    amountOut: bigint;
+    amountInMaximum: bigint;
   };
 
   export type ExactOutputSingleParamsStruct = {
-    tokenIn: PromiseOrValue<string>;
-    tokenOut: PromiseOrValue<string>;
-    fee: PromiseOrValue<BigNumberish>;
-    recipient: PromiseOrValue<string>;
-    deadline: PromiseOrValue<BigNumberish>;
-    amountOut: PromiseOrValue<BigNumberish>;
-    amountInMaximum: PromiseOrValue<BigNumberish>;
-    sqrtPriceLimitX96: PromiseOrValue<BigNumberish>;
+    tokenIn: AddressLike;
+    tokenOut: AddressLike;
+    fee: BigNumberish;
+    recipient: AddressLike;
+    deadline: BigNumberish;
+    amountOut: BigNumberish;
+    amountInMaximum: BigNumberish;
+    sqrtPriceLimitX96: BigNumberish;
   };
 
   export type ExactOutputSingleParamsStructOutput = [
-    string,
-    string,
-    number,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
+    tokenIn: string,
+    tokenOut: string,
+    fee: bigint,
+    recipient: string,
+    deadline: bigint,
+    amountOut: bigint,
+    amountInMaximum: bigint,
+    sqrtPriceLimitX96: bigint
   ] & {
     tokenIn: string;
     tokenOut: string;
-    fee: number;
+    fee: bigint;
     recipient: string;
-    deadline: BigNumber;
-    amountOut: BigNumber;
-    amountInMaximum: BigNumber;
-    sqrtPriceLimitX96: BigNumber;
+    deadline: bigint;
+    amountOut: bigint;
+    amountInMaximum: bigint;
+    sqrtPriceLimitX96: bigint;
   };
 }
 
-export interface IUniswapV3AdapterInterface extends utils.Interface {
-  functions: {
-    "_gearboxAdapterType()": FunctionFragment;
-    "_gearboxAdapterVersion()": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "exactDiffInput((bytes,uint256,uint256,uint256))": FunctionFragment;
-    "exactDiffInputSingle((address,address,uint24,uint256,uint256,uint256,uint160))": FunctionFragment;
-    "exactInput((bytes,address,uint256,uint256,uint256))": FunctionFragment;
-    "exactInputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))": FunctionFragment;
-    "exactOutput((bytes,address,uint256,uint256,uint256))": FunctionFragment;
-    "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint256,uint160))": FunctionFragment;
-    "isPoolAllowed(address,address,uint24)": FunctionFragment;
-    "setPoolStatusBatch((address,address,uint24,bool)[])": FunctionFragment;
-    "targetContract()": FunctionFragment;
-  };
-
+export interface IUniswapV3AdapterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
       | "addressProvider"
@@ -231,6 +211,8 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
       | "setPoolStatusBatch"
       | "targetContract"
   ): FunctionFragment;
+
+  getEvent(nameOrSignatureOrTopic: "SetPoolStatus"): EventFragment;
 
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
@@ -274,11 +256,7 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isPoolAllowed",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setPoolStatusBatch",
@@ -338,367 +316,228 @@ export interface IUniswapV3AdapterInterface extends utils.Interface {
     functionFragment: "targetContract",
     data: BytesLike
   ): Result;
-
-  events: {
-    "SetPoolStatus(address,address,uint24,bool)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "SetPoolStatus"): EventFragment;
 }
 
-export interface SetPoolStatusEventObject {
-  token0: string;
-  token1: string;
-  fee: number;
-  allowed: boolean;
+export namespace SetPoolStatusEvent {
+  export type InputTuple = [
+    token0: AddressLike,
+    token1: AddressLike,
+    fee: BigNumberish,
+    allowed: boolean
+  ];
+  export type OutputTuple = [
+    token0: string,
+    token1: string,
+    fee: bigint,
+    allowed: boolean
+  ];
+  export interface OutputObject {
+    token0: string;
+    token1: string;
+    fee: bigint;
+    allowed: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetPoolStatusEvent = TypedEvent<
-  [string, string, number, boolean],
-  SetPoolStatusEventObject
->;
-
-export type SetPoolStatusEventFilter = TypedEventFilter<SetPoolStatusEvent>;
 
 export interface IUniswapV3Adapter extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IUniswapV3Adapter;
+  waitForDeployment(): Promise<this>;
 
   interface: IUniswapV3AdapterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<[number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
+  _gearboxAdapterType: TypedContractMethod<[], [bigint], "view">;
 
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
+  _gearboxAdapterVersion: TypedContractMethod<[], [bigint], "view">;
 
-    exactDiffInput(
-      params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  addressProvider: TypedContractMethod<[], [string], "view">;
 
-    exactDiffInputSingle(
-      params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  creditManager: TypedContractMethod<[], [string], "view">;
 
-    exactInput(
-      params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  exactDiffInput: TypedContractMethod<
+    [params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    exactInputSingle(
-      params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  exactDiffInputSingle: TypedContractMethod<
+    [params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    exactOutput(
-      params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  exactInput: TypedContractMethod<
+    [params: ISwapRouter.ExactInputParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    exactOutputSingle(
-      params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  exactInputSingle: TypedContractMethod<
+    [params: ISwapRouter.ExactInputSingleParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    isPoolAllowed(
-      token0: PromiseOrValue<string>,
-      token1: PromiseOrValue<string>,
-      fee: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  exactOutput: TypedContractMethod<
+    [params: ISwapRouter.ExactOutputParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    setPoolStatusBatch(
-      pools: UniswapV3PoolStatusStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  exactOutputSingle: TypedContractMethod<
+    [params: ISwapRouter.ExactOutputSingleParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    targetContract(overrides?: CallOverrides): Promise<[string]>;
-  };
+  isPoolAllowed: TypedContractMethod<
+    [token0: AddressLike, token1: AddressLike, fee: BigNumberish],
+    [boolean],
+    "view"
+  >;
 
-  _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
+  setPoolStatusBatch: TypedContractMethod<
+    [pools: UniswapV3PoolStatusStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-  _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
+  targetContract: TypedContractMethod<[], [string], "view">;
 
-  addressProvider(overrides?: CallOverrides): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  creditManager(overrides?: CallOverrides): Promise<string>;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterVersion"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "exactDiffInput"
+  ): TypedContractMethod<
+    [params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exactDiffInputSingle"
+  ): TypedContractMethod<
+    [params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exactInput"
+  ): TypedContractMethod<
+    [params: ISwapRouter.ExactInputParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exactInputSingle"
+  ): TypedContractMethod<
+    [params: ISwapRouter.ExactInputSingleParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exactOutput"
+  ): TypedContractMethod<
+    [params: ISwapRouter.ExactOutputParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exactOutputSingle"
+  ): TypedContractMethod<
+    [params: ISwapRouter.ExactOutputSingleParamsStruct],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "isPoolAllowed"
+  ): TypedContractMethod<
+    [token0: AddressLike, token1: AddressLike, fee: BigNumberish],
+    [boolean],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "setPoolStatusBatch"
+  ): TypedContractMethod<
+    [pools: UniswapV3PoolStatusStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "targetContract"
+  ): TypedContractMethod<[], [string], "view">;
 
-  exactDiffInput(
-    params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exactDiffInputSingle(
-    params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exactInput(
-    params: ISwapRouter.ExactInputParamsStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exactInputSingle(
-    params: ISwapRouter.ExactInputSingleParamsStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exactOutput(
-    params: ISwapRouter.ExactOutputParamsStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exactOutputSingle(
-    params: ISwapRouter.ExactOutputSingleParamsStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  isPoolAllowed(
-    token0: PromiseOrValue<string>,
-    token1: PromiseOrValue<string>,
-    fee: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  setPoolStatusBatch(
-    pools: UniswapV3PoolStatusStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  targetContract(overrides?: CallOverrides): Promise<string>;
-
-  callStatic: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    exactDiffInput(
-      params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    exactDiffInputSingle(
-      params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    exactInput(
-      params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    exactInputSingle(
-      params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    exactOutput(
-      params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    exactOutputSingle(
-      params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    isPoolAllowed(
-      token0: PromiseOrValue<string>,
-      token1: PromiseOrValue<string>,
-      fee: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    setPoolStatusBatch(
-      pools: UniswapV3PoolStatusStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    targetContract(overrides?: CallOverrides): Promise<string>;
-  };
+  getEvent(
+    key: "SetPoolStatus"
+  ): TypedContractEvent<
+    SetPoolStatusEvent.InputTuple,
+    SetPoolStatusEvent.OutputTuple,
+    SetPoolStatusEvent.OutputObject
+  >;
 
   filters: {
-    "SetPoolStatus(address,address,uint24,bool)"(
-      token0?: PromiseOrValue<string> | null,
-      token1?: PromiseOrValue<string> | null,
-      fee?: PromiseOrValue<BigNumberish> | null,
-      allowed?: null
-    ): SetPoolStatusEventFilter;
-    SetPoolStatus(
-      token0?: PromiseOrValue<string> | null,
-      token1?: PromiseOrValue<string> | null,
-      fee?: PromiseOrValue<BigNumberish> | null,
-      allowed?: null
-    ): SetPoolStatusEventFilter;
-  };
-
-  estimateGas: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    exactDiffInput(
-      params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exactDiffInputSingle(
-      params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exactInput(
-      params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exactInputSingle(
-      params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exactOutput(
-      params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exactOutputSingle(
-      params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    isPoolAllowed(
-      token0: PromiseOrValue<string>,
-      token1: PromiseOrValue<string>,
-      fee: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    setPoolStatusBatch(
-      pools: UniswapV3PoolStatusStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    targetContract(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    _gearboxAdapterType(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    _gearboxAdapterVersion(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    exactDiffInput(
-      params: IUniswapV3AdapterTypes.ExactDiffInputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exactDiffInputSingle(
-      params: IUniswapV3AdapterTypes.ExactDiffInputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exactInput(
-      params: ISwapRouter.ExactInputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exactInputSingle(
-      params: ISwapRouter.ExactInputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exactOutput(
-      params: ISwapRouter.ExactOutputParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exactOutputSingle(
-      params: ISwapRouter.ExactOutputSingleParamsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    isPoolAllowed(
-      token0: PromiseOrValue<string>,
-      token1: PromiseOrValue<string>,
-      fee: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    setPoolStatusBatch(
-      pools: UniswapV3PoolStatusStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "SetPoolStatus(address,address,uint24,bool)": TypedContractEvent<
+      SetPoolStatusEvent.InputTuple,
+      SetPoolStatusEvent.OutputTuple,
+      SetPoolStatusEvent.OutputObject
+    >;
+    SetPoolStatus: TypedContractEvent<
+      SetPoolStatusEvent.InputTuple,
+      SetPoolStatusEvent.OutputTuple,
+      SetPoolStatusEvent.OutputObject
+    >;
   };
 }

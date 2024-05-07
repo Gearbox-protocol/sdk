@@ -3,58 +3,41 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
 export type UniswapV2PairStatusStruct = {
-  token0: PromiseOrValue<string>;
-  token1: PromiseOrValue<string>;
-  allowed: PromiseOrValue<boolean>;
-};
-
-export type UniswapV2PairStatusStructOutput = [string, string, boolean] & {
-  token0: string;
-  token1: string;
+  token0: AddressLike;
+  token1: AddressLike;
   allowed: boolean;
 };
 
-export interface IUniswapV2AdapterInterface extends utils.Interface {
-  functions: {
-    "_gearboxAdapterType()": FunctionFragment;
-    "_gearboxAdapterVersion()": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "isPairAllowed(address,address)": FunctionFragment;
-    "setPairStatusBatch((address,address,bool)[])": FunctionFragment;
-    "swapDiffTokensForTokens(uint256,uint256,address[],uint256)": FunctionFragment;
-    "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)": FunctionFragment;
-    "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)": FunctionFragment;
-    "targetContract()": FunctionFragment;
-  };
+export type UniswapV2PairStatusStructOutput = [
+  token0: string,
+  token1: string,
+  allowed: boolean
+] & { token0: string; token1: string; allowed: boolean };
 
+export interface IUniswapV2AdapterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
       | "addressProvider"
@@ -67,6 +50,8 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
       | "targetContract"
   ): FunctionFragment;
 
+  getEvent(nameOrSignatureOrTopic: "SetPairStatus"): EventFragment;
+
   encodeFunctionData(
     functionFragment: "_gearboxAdapterType",
     values?: undefined
@@ -85,7 +70,7 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isPairAllowed",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setPairStatusBatch",
@@ -93,31 +78,26 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "swapDiffTokensForTokens",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, AddressLike[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForTokens",
     values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
+      BigNumberish,
+      BigNumberish,
+      AddressLike[],
+      AddressLike,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "swapTokensForExactTokens",
     values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
+      BigNumberish,
+      BigNumberish,
+      AddressLike[],
+      AddressLike,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
@@ -165,324 +145,216 @@ export interface IUniswapV2AdapterInterface extends utils.Interface {
     functionFragment: "targetContract",
     data: BytesLike
   ): Result;
-
-  events: {
-    "SetPairStatus(address,address,bool)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "SetPairStatus"): EventFragment;
 }
 
-export interface SetPairStatusEventObject {
-  token0: string;
-  token1: string;
-  allowed: boolean;
+export namespace SetPairStatusEvent {
+  export type InputTuple = [
+    token0: AddressLike,
+    token1: AddressLike,
+    allowed: boolean
+  ];
+  export type OutputTuple = [token0: string, token1: string, allowed: boolean];
+  export interface OutputObject {
+    token0: string;
+    token1: string;
+    allowed: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetPairStatusEvent = TypedEvent<
-  [string, string, boolean],
-  SetPairStatusEventObject
->;
-
-export type SetPairStatusEventFilter = TypedEventFilter<SetPairStatusEvent>;
 
 export interface IUniswapV2Adapter extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IUniswapV2Adapter;
+  waitForDeployment(): Promise<this>;
 
   interface: IUniswapV2AdapterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<[number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
+  _gearboxAdapterType: TypedContractMethod<[], [bigint], "view">;
 
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
+  _gearboxAdapterVersion: TypedContractMethod<[], [bigint], "view">;
 
-    isPairAllowed(
-      token0: PromiseOrValue<string>,
-      token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  addressProvider: TypedContractMethod<[], [string], "view">;
 
-    setPairStatusBatch(
-      pairs: UniswapV2PairStatusStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  creditManager: TypedContractMethod<[], [string], "view">;
 
-    swapDiffTokensForTokens(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  isPairAllowed: TypedContractMethod<
+    [token0: AddressLike, token1: AddressLike],
+    [boolean],
+    "view"
+  >;
 
-    swapExactTokensForTokens(
-      amountIn: PromiseOrValue<BigNumberish>,
-      amountOutMin: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      arg3: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  setPairStatusBatch: TypedContractMethod<
+    [pairs: UniswapV2PairStatusStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-    swapTokensForExactTokens(
-      amountOut: PromiseOrValue<BigNumberish>,
-      amountInMax: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      arg3: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  swapDiffTokensForTokens: TypedContractMethod<
+    [
+      leftoverAmount: BigNumberish,
+      rateMinRAY: BigNumberish,
+      path: AddressLike[],
+      deadline: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    targetContract(overrides?: CallOverrides): Promise<[string]>;
-  };
+  swapExactTokensForTokens: TypedContractMethod<
+    [
+      amountIn: BigNumberish,
+      amountOutMin: BigNumberish,
+      path: AddressLike[],
+      arg3: AddressLike,
+      deadline: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-  _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
+  swapTokensForExactTokens: TypedContractMethod<
+    [
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
+      path: AddressLike[],
+      arg3: AddressLike,
+      deadline: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-  _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
+  targetContract: TypedContractMethod<[], [string], "view">;
 
-  addressProvider(overrides?: CallOverrides): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  creditManager(overrides?: CallOverrides): Promise<string>;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterVersion"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "isPairAllowed"
+  ): TypedContractMethod<
+    [token0: AddressLike, token1: AddressLike],
+    [boolean],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "setPairStatusBatch"
+  ): TypedContractMethod<
+    [pairs: UniswapV2PairStatusStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "swapDiffTokensForTokens"
+  ): TypedContractMethod<
+    [
+      leftoverAmount: BigNumberish,
+      rateMinRAY: BigNumberish,
+      path: AddressLike[],
+      deadline: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "swapExactTokensForTokens"
+  ): TypedContractMethod<
+    [
+      amountIn: BigNumberish,
+      amountOutMin: BigNumberish,
+      path: AddressLike[],
+      arg3: AddressLike,
+      deadline: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "swapTokensForExactTokens"
+  ): TypedContractMethod<
+    [
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
+      path: AddressLike[],
+      arg3: AddressLike,
+      deadline: BigNumberish
+    ],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "targetContract"
+  ): TypedContractMethod<[], [string], "view">;
 
-  isPairAllowed(
-    token0: PromiseOrValue<string>,
-    token1: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  setPairStatusBatch(
-    pairs: UniswapV2PairStatusStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  swapDiffTokensForTokens(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    rateMinRAY: PromiseOrValue<BigNumberish>,
-    path: PromiseOrValue<string>[],
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  swapExactTokensForTokens(
-    amountIn: PromiseOrValue<BigNumberish>,
-    amountOutMin: PromiseOrValue<BigNumberish>,
-    path: PromiseOrValue<string>[],
-    arg3: PromiseOrValue<string>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  swapTokensForExactTokens(
-    amountOut: PromiseOrValue<BigNumberish>,
-    amountInMax: PromiseOrValue<BigNumberish>,
-    path: PromiseOrValue<string>[],
-    arg3: PromiseOrValue<string>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  targetContract(overrides?: CallOverrides): Promise<string>;
-
-  callStatic: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    isPairAllowed(
-      token0: PromiseOrValue<string>,
-      token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    setPairStatusBatch(
-      pairs: UniswapV2PairStatusStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    swapDiffTokensForTokens(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    swapExactTokensForTokens(
-      amountIn: PromiseOrValue<BigNumberish>,
-      amountOutMin: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      arg3: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    swapTokensForExactTokens(
-      amountOut: PromiseOrValue<BigNumberish>,
-      amountInMax: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      arg3: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    targetContract(overrides?: CallOverrides): Promise<string>;
-  };
+  getEvent(
+    key: "SetPairStatus"
+  ): TypedContractEvent<
+    SetPairStatusEvent.InputTuple,
+    SetPairStatusEvent.OutputTuple,
+    SetPairStatusEvent.OutputObject
+  >;
 
   filters: {
-    "SetPairStatus(address,address,bool)"(
-      token0?: PromiseOrValue<string> | null,
-      token1?: PromiseOrValue<string> | null,
-      allowed?: null
-    ): SetPairStatusEventFilter;
-    SetPairStatus(
-      token0?: PromiseOrValue<string> | null,
-      token1?: PromiseOrValue<string> | null,
-      allowed?: null
-    ): SetPairStatusEventFilter;
-  };
-
-  estimateGas: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isPairAllowed(
-      token0: PromiseOrValue<string>,
-      token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    setPairStatusBatch(
-      pairs: UniswapV2PairStatusStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    swapDiffTokensForTokens(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    swapExactTokensForTokens(
-      amountIn: PromiseOrValue<BigNumberish>,
-      amountOutMin: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      arg3: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    swapTokensForExactTokens(
-      amountOut: PromiseOrValue<BigNumberish>,
-      amountInMax: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      arg3: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    targetContract(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    _gearboxAdapterType(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    _gearboxAdapterVersion(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    isPairAllowed(
-      token0: PromiseOrValue<string>,
-      token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    setPairStatusBatch(
-      pairs: UniswapV2PairStatusStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swapDiffTokensForTokens(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      rateMinRAY: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swapExactTokensForTokens(
-      amountIn: PromiseOrValue<BigNumberish>,
-      amountOutMin: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      arg3: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swapTokensForExactTokens(
-      amountOut: PromiseOrValue<BigNumberish>,
-      amountInMax: PromiseOrValue<BigNumberish>,
-      path: PromiseOrValue<string>[],
-      arg3: PromiseOrValue<string>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "SetPairStatus(address,address,bool)": TypedContractEvent<
+      SetPairStatusEvent.InputTuple,
+      SetPairStatusEvent.OutputTuple,
+      SetPairStatusEvent.OutputObject
+    >;
+    SetPairStatus: TypedContractEvent<
+      SetPairStatusEvent.InputTuple,
+      SetPairStatusEvent.OutputTuple,
+      SetPairStatusEvent.OutputObject
+    >;
   };
 }

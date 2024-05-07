@@ -3,44 +3,26 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface ILidoV1AdapterInterface extends utils.Interface {
-  functions: {
-    "_gearboxAdapterType()": FunctionFragment;
-    "_gearboxAdapterVersion()": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "stETH()": FunctionFragment;
-    "stETHTokenMask()": FunctionFragment;
-    "submit(uint256)": FunctionFragment;
-    "submitDiff(uint256)": FunctionFragment;
-    "targetContract()": FunctionFragment;
-    "treasury()": FunctionFragment;
-    "weth()": FunctionFragment;
-    "wethTokenMask()": FunctionFragment;
-  };
-
+export interface ILidoV1AdapterInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "_gearboxAdapterType"
       | "_gearboxAdapterVersion"
       | "addressProvider"
@@ -78,11 +60,11 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "submit",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "submitDiff",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "targetContract",
@@ -128,207 +110,131 @@ export interface ILidoV1AdapterInterface extends utils.Interface {
     functionFragment: "wethTokenMask",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface ILidoV1Adapter extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ILidoV1Adapter;
+  waitForDeployment(): Promise<this>;
 
   interface: ILidoV1AdapterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<[number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<[number]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
+  _gearboxAdapterType: TypedContractMethod<[], [bigint], "view">;
 
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
+  _gearboxAdapterVersion: TypedContractMethod<[], [bigint], "view">;
 
-    stETH(overrides?: CallOverrides): Promise<[string]>;
+  addressProvider: TypedContractMethod<[], [string], "view">;
 
-    stETHTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
+  creditManager: TypedContractMethod<[], [string], "view">;
 
-    submit(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  stETH: TypedContractMethod<[], [string], "view">;
 
-    submitDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  stETHTokenMask: TypedContractMethod<[], [bigint], "view">;
 
-    targetContract(overrides?: CallOverrides): Promise<[string]>;
+  submit: TypedContractMethod<
+    [amount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    treasury(overrides?: CallOverrides): Promise<[string]>;
+  submitDiff: TypedContractMethod<
+    [leftoverAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
 
-    weth(overrides?: CallOverrides): Promise<[string]>;
+  targetContract: TypedContractMethod<[], [string], "view">;
 
-    wethTokenMask(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  treasury: TypedContractMethod<[], [string], "view">;
 
-  _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
+  weth: TypedContractMethod<[], [string], "view">;
 
-  _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
+  wethTokenMask: TypedContractMethod<[], [bigint], "view">;
 
-  addressProvider(overrides?: CallOverrides): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  creditManager(overrides?: CallOverrides): Promise<string>;
-
-  stETH(overrides?: CallOverrides): Promise<string>;
-
-  stETHTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  submit(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  submitDiff(
-    leftoverAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  targetContract(overrides?: CallOverrides): Promise<string>;
-
-  treasury(overrides?: CallOverrides): Promise<string>;
-
-  weth(overrides?: CallOverrides): Promise<string>;
-
-  wethTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<number>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<number>;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    stETH(overrides?: CallOverrides): Promise<string>;
-
-    stETHTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    submit(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    submitDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        tokensToEnable: BigNumber;
-        tokensToDisable: BigNumber;
-      }
-    >;
-
-    targetContract(overrides?: CallOverrides): Promise<string>;
-
-    treasury(overrides?: CallOverrides): Promise<string>;
-
-    weth(overrides?: CallOverrides): Promise<string>;
-
-    wethTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getFunction(
+    nameOrSignature: "_gearboxAdapterType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "_gearboxAdapterVersion"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "stETH"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "stETHTokenMask"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "submit"
+  ): TypedContractMethod<
+    [amount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "submitDiff"
+  ): TypedContractMethod<
+    [leftoverAmount: BigNumberish],
+    [[bigint, bigint] & { tokensToEnable: bigint; tokensToDisable: bigint }],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "targetContract"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "treasury"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "weth"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "wethTokenMask"
+  ): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
-
-  estimateGas: {
-    _gearboxAdapterType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    _gearboxAdapterVersion(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stETH(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stETHTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-
-    submit(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    submitDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    targetContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    treasury(overrides?: CallOverrides): Promise<BigNumber>;
-
-    weth(overrides?: CallOverrides): Promise<BigNumber>;
-
-    wethTokenMask(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    _gearboxAdapterType(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    _gearboxAdapterVersion(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    stETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    stETHTokenMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    submit(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    submitDiff(
-      leftoverAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    targetContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    treasury(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    wethTokenMask(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
 }

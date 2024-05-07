@@ -1,4 +1,3 @@
-import { FunctionFragment, Result } from "@ethersproject/abi";
 import {
   Address,
   decimals,
@@ -9,7 +8,14 @@ import {
   toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish, BytesLike, utils } from "ethers";
+import {
+  BigNumberish,
+  BytesLike,
+  dataSlice,
+  FunctionFragment,
+  Interface,
+  Result,
+} from "ethers";
 
 interface ParseSelectorResult {
   functionFragment: FunctionFragment;
@@ -24,7 +30,7 @@ export interface ParsedObject {
 
 export class AbstractParser {
   public readonly contract: string;
-  protected ifc!: utils.Interface;
+  protected ifc!: Interface;
   public adapterName: string;
 
   constructor(contract: string) {
@@ -34,10 +40,11 @@ export class AbstractParser {
 
   parseSelector(calldata: BytesLike): ParseSelectorResult {
     const functionFragment = this.ifc.getFunction(
-      utils.hexDataSlice(calldata, 0, 4) as any,
+      dataSlice(calldata, 0, 4) as any,
     );
+    if (!functionFragment) throw new Error("Function fragment not found");
 
-    const functionName = `${this.adapterName}[${this.contract}].${functionFragment.name}`;
+    const functionName = `${this.adapterName}[${this.contract}].${functionFragment?.name}`;
     return { functionFragment, functionName };
   }
 

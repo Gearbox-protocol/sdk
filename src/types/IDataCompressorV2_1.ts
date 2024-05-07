@@ -3,111 +3,111 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
 export type TokenBalanceStruct = {
-  token: PromiseOrValue<string>;
-  balance: PromiseOrValue<BigNumberish>;
-  isForbidden: PromiseOrValue<boolean>;
-  isEnabled: PromiseOrValue<boolean>;
-  isQuoted: PromiseOrValue<boolean>;
-  quota: PromiseOrValue<BigNumberish>;
-  quotaRate: PromiseOrValue<BigNumberish>;
-  quotaCumulativeIndexLU: PromiseOrValue<BigNumberish>;
-};
-
-export type TokenBalanceStructOutput = [
-  string,
-  BigNumber,
-  boolean,
-  boolean,
-  boolean,
-  BigNumber,
-  number,
-  BigNumber
-] & {
-  token: string;
-  balance: BigNumber;
+  token: AddressLike;
+  balance: BigNumberish;
   isForbidden: boolean;
   isEnabled: boolean;
   isQuoted: boolean;
-  quota: BigNumber;
-  quotaRate: number;
-  quotaCumulativeIndexLU: BigNumber;
+  quota: BigNumberish;
+  quotaRate: BigNumberish;
+  quotaCumulativeIndexLU: BigNumberish;
+};
+
+export type TokenBalanceStructOutput = [
+  token: string,
+  balance: bigint,
+  isForbidden: boolean,
+  isEnabled: boolean,
+  isQuoted: boolean,
+  quota: bigint,
+  quotaRate: bigint,
+  quotaCumulativeIndexLU: bigint
+] & {
+  token: string;
+  balance: bigint;
+  isForbidden: boolean;
+  isEnabled: boolean;
+  isQuoted: boolean;
+  quota: bigint;
+  quotaRate: bigint;
+  quotaCumulativeIndexLU: bigint;
 };
 
 export type CreditAccountDataStruct = {
-  isSuccessful: PromiseOrValue<boolean>;
-  priceFeedsNeeded: PromiseOrValue<string>[];
-  addr: PromiseOrValue<string>;
-  borrower: PromiseOrValue<string>;
-  creditManager: PromiseOrValue<string>;
-  cmName: PromiseOrValue<string>;
-  creditFacade: PromiseOrValue<string>;
-  underlying: PromiseOrValue<string>;
-  debt: PromiseOrValue<BigNumberish>;
-  cumulativeIndexLastUpdate: PromiseOrValue<BigNumberish>;
-  cumulativeQuotaInterest: PromiseOrValue<BigNumberish>;
-  accruedInterest: PromiseOrValue<BigNumberish>;
-  accruedFees: PromiseOrValue<BigNumberish>;
-  totalDebtUSD: PromiseOrValue<BigNumberish>;
-  totalValue: PromiseOrValue<BigNumberish>;
-  totalValueUSD: PromiseOrValue<BigNumberish>;
-  twvUSD: PromiseOrValue<BigNumberish>;
-  enabledTokensMask: PromiseOrValue<BigNumberish>;
-  healthFactor: PromiseOrValue<BigNumberish>;
-  baseBorrowRate: PromiseOrValue<BigNumberish>;
-  aggregatedBorrowRate: PromiseOrValue<BigNumberish>;
+  isSuccessful: boolean;
+  priceFeedsNeeded: AddressLike[];
+  addr: AddressLike;
+  borrower: AddressLike;
+  creditManager: AddressLike;
+  cmName: string;
+  creditFacade: AddressLike;
+  underlying: AddressLike;
+  debt: BigNumberish;
+  cumulativeIndexLastUpdate: BigNumberish;
+  cumulativeQuotaInterest: BigNumberish;
+  accruedInterest: BigNumberish;
+  accruedFees: BigNumberish;
+  totalDebtUSD: BigNumberish;
+  totalValue: BigNumberish;
+  totalValueUSD: BigNumberish;
+  twvUSD: BigNumberish;
+  enabledTokensMask: BigNumberish;
+  healthFactor: BigNumberish;
+  baseBorrowRate: BigNumberish;
+  aggregatedBorrowRate: BigNumberish;
   balances: TokenBalanceStruct[];
-  since: PromiseOrValue<BigNumberish>;
-  cfVersion: PromiseOrValue<BigNumberish>;
-  expirationDate: PromiseOrValue<BigNumberish>;
-  activeBots: PromiseOrValue<string>[];
+  since: BigNumberish;
+  cfVersion: BigNumberish;
+  expirationDate: BigNumberish;
+  activeBots: AddressLike[];
 };
 
 export type CreditAccountDataStructOutput = [
-  boolean,
-  string[],
-  string,
-  string,
-  string,
-  string,
-  string,
-  string,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  TokenBalanceStructOutput[],
-  BigNumber,
-  BigNumber,
-  number,
-  string[]
+  isSuccessful: boolean,
+  priceFeedsNeeded: string[],
+  addr: string,
+  borrower: string,
+  creditManager: string,
+  cmName: string,
+  creditFacade: string,
+  underlying: string,
+  debt: bigint,
+  cumulativeIndexLastUpdate: bigint,
+  cumulativeQuotaInterest: bigint,
+  accruedInterest: bigint,
+  accruedFees: bigint,
+  totalDebtUSD: bigint,
+  totalValue: bigint,
+  totalValueUSD: bigint,
+  twvUSD: bigint,
+  enabledTokensMask: bigint,
+  healthFactor: bigint,
+  baseBorrowRate: bigint,
+  aggregatedBorrowRate: bigint,
+  balances: TokenBalanceStructOutput[],
+  since: bigint,
+  cfVersion: bigint,
+  expirationDate: bigint,
+  activeBots: string[]
 ] & {
   isSuccessful: boolean;
   priceFeedsNeeded: string[];
@@ -117,294 +117,294 @@ export type CreditAccountDataStructOutput = [
   cmName: string;
   creditFacade: string;
   underlying: string;
-  debt: BigNumber;
-  cumulativeIndexLastUpdate: BigNumber;
-  cumulativeQuotaInterest: BigNumber;
-  accruedInterest: BigNumber;
-  accruedFees: BigNumber;
-  totalDebtUSD: BigNumber;
-  totalValue: BigNumber;
-  totalValueUSD: BigNumber;
-  twvUSD: BigNumber;
-  enabledTokensMask: BigNumber;
-  healthFactor: BigNumber;
-  baseBorrowRate: BigNumber;
-  aggregatedBorrowRate: BigNumber;
+  debt: bigint;
+  cumulativeIndexLastUpdate: bigint;
+  cumulativeQuotaInterest: bigint;
+  accruedInterest: bigint;
+  accruedFees: bigint;
+  totalDebtUSD: bigint;
+  totalValue: bigint;
+  totalValueUSD: bigint;
+  twvUSD: bigint;
+  enabledTokensMask: bigint;
+  healthFactor: bigint;
+  baseBorrowRate: bigint;
+  aggregatedBorrowRate: bigint;
   balances: TokenBalanceStructOutput[];
-  since: BigNumber;
-  cfVersion: BigNumber;
-  expirationDate: number;
+  since: bigint;
+  cfVersion: bigint;
+  expirationDate: bigint;
   activeBots: string[];
 };
 
 export type ContractAdapterStruct = {
-  targetContract: PromiseOrValue<string>;
-  adapter: PromiseOrValue<string>;
+  targetContract: AddressLike;
+  adapter: AddressLike;
 };
 
-export type ContractAdapterStructOutput = [string, string] & {
-  targetContract: string;
-  adapter: string;
-};
+export type ContractAdapterStructOutput = [
+  targetContract: string,
+  adapter: string
+] & { targetContract: string; adapter: string };
 
 export type QuotaInfoStruct = {
-  token: PromiseOrValue<string>;
-  rate: PromiseOrValue<BigNumberish>;
-  quotaIncreaseFee: PromiseOrValue<BigNumberish>;
-  totalQuoted: PromiseOrValue<BigNumberish>;
-  limit: PromiseOrValue<BigNumberish>;
-  isActive: PromiseOrValue<boolean>;
+  token: AddressLike;
+  rate: BigNumberish;
+  quotaIncreaseFee: BigNumberish;
+  totalQuoted: BigNumberish;
+  limit: BigNumberish;
+  isActive: boolean;
 };
 
 export type QuotaInfoStructOutput = [
-  string,
-  number,
-  number,
-  BigNumber,
-  BigNumber,
-  boolean
+  token: string,
+  rate: bigint,
+  quotaIncreaseFee: bigint,
+  totalQuoted: bigint,
+  limit: bigint,
+  isActive: boolean
 ] & {
   token: string;
-  rate: number;
-  quotaIncreaseFee: number;
-  totalQuoted: BigNumber;
-  limit: BigNumber;
+  rate: bigint;
+  quotaIncreaseFee: bigint;
+  totalQuoted: bigint;
+  limit: bigint;
   isActive: boolean;
 };
 
 export type LinearModelStruct = {
-  interestModel: PromiseOrValue<string>;
-  version: PromiseOrValue<BigNumberish>;
-  U_1: PromiseOrValue<BigNumberish>;
-  U_2: PromiseOrValue<BigNumberish>;
-  R_base: PromiseOrValue<BigNumberish>;
-  R_slope1: PromiseOrValue<BigNumberish>;
-  R_slope2: PromiseOrValue<BigNumberish>;
-  R_slope3: PromiseOrValue<BigNumberish>;
-  isBorrowingMoreU2Forbidden: PromiseOrValue<boolean>;
+  interestModel: AddressLike;
+  version: BigNumberish;
+  U_1: BigNumberish;
+  U_2: BigNumberish;
+  R_base: BigNumberish;
+  R_slope1: BigNumberish;
+  R_slope2: BigNumberish;
+  R_slope3: BigNumberish;
+  isBorrowingMoreU2Forbidden: boolean;
 };
 
 export type LinearModelStructOutput = [
-  string,
-  BigNumber,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  boolean
+  interestModel: string,
+  version: bigint,
+  U_1: bigint,
+  U_2: bigint,
+  R_base: bigint,
+  R_slope1: bigint,
+  R_slope2: bigint,
+  R_slope3: bigint,
+  isBorrowingMoreU2Forbidden: boolean
 ] & {
   interestModel: string;
-  version: BigNumber;
-  U_1: number;
-  U_2: number;
-  R_base: number;
-  R_slope1: number;
-  R_slope2: number;
-  R_slope3: number;
+  version: bigint;
+  U_1: bigint;
+  U_2: bigint;
+  R_base: bigint;
+  R_slope1: bigint;
+  R_slope2: bigint;
+  R_slope3: bigint;
   isBorrowingMoreU2Forbidden: boolean;
 };
 
 export type CreditManagerDataStruct = {
-  addr: PromiseOrValue<string>;
-  name: PromiseOrValue<string>;
-  cfVersion: PromiseOrValue<BigNumberish>;
-  creditFacade: PromiseOrValue<string>;
-  creditConfigurator: PromiseOrValue<string>;
-  underlying: PromiseOrValue<string>;
-  pool: PromiseOrValue<string>;
-  totalDebt: PromiseOrValue<BigNumberish>;
-  totalDebtLimit: PromiseOrValue<BigNumberish>;
-  baseBorrowRate: PromiseOrValue<BigNumberish>;
-  minDebt: PromiseOrValue<BigNumberish>;
-  maxDebt: PromiseOrValue<BigNumberish>;
-  availableToBorrow: PromiseOrValue<BigNumberish>;
-  collateralTokens: PromiseOrValue<string>[];
+  addr: AddressLike;
+  name: string;
+  cfVersion: BigNumberish;
+  creditFacade: AddressLike;
+  creditConfigurator: AddressLike;
+  underlying: AddressLike;
+  pool: AddressLike;
+  totalDebt: BigNumberish;
+  totalDebtLimit: BigNumberish;
+  baseBorrowRate: BigNumberish;
+  minDebt: BigNumberish;
+  maxDebt: BigNumberish;
+  availableToBorrow: BigNumberish;
+  collateralTokens: AddressLike[];
   adapters: ContractAdapterStruct[];
-  liquidationThresholds: PromiseOrValue<BigNumberish>[];
-  isDegenMode: PromiseOrValue<boolean>;
-  degenNFT: PromiseOrValue<string>;
-  forbiddenTokenMask: PromiseOrValue<BigNumberish>;
-  maxEnabledTokensLength: PromiseOrValue<BigNumberish>;
-  feeInterest: PromiseOrValue<BigNumberish>;
-  feeLiquidation: PromiseOrValue<BigNumberish>;
-  liquidationDiscount: PromiseOrValue<BigNumberish>;
-  feeLiquidationExpired: PromiseOrValue<BigNumberish>;
-  liquidationDiscountExpired: PromiseOrValue<BigNumberish>;
+  liquidationThresholds: BigNumberish[];
+  isDegenMode: boolean;
+  degenNFT: AddressLike;
+  forbiddenTokenMask: BigNumberish;
+  maxEnabledTokensLength: BigNumberish;
+  feeInterest: BigNumberish;
+  feeLiquidation: BigNumberish;
+  liquidationDiscount: BigNumberish;
+  feeLiquidationExpired: BigNumberish;
+  liquidationDiscountExpired: BigNumberish;
   quotas: QuotaInfoStruct[];
   lirm: LinearModelStruct;
-  isPaused: PromiseOrValue<boolean>;
+  isPaused: boolean;
 };
 
 export type CreditManagerDataStructOutput = [
-  string,
-  string,
-  BigNumber,
-  string,
-  string,
-  string,
-  string,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string[],
-  ContractAdapterStructOutput[],
-  BigNumber[],
-  boolean,
-  string,
-  BigNumber,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  QuotaInfoStructOutput[],
-  LinearModelStructOutput,
-  boolean
+  addr: string,
+  name: string,
+  cfVersion: bigint,
+  creditFacade: string,
+  creditConfigurator: string,
+  underlying: string,
+  pool: string,
+  totalDebt: bigint,
+  totalDebtLimit: bigint,
+  baseBorrowRate: bigint,
+  minDebt: bigint,
+  maxDebt: bigint,
+  availableToBorrow: bigint,
+  collateralTokens: string[],
+  adapters: ContractAdapterStructOutput[],
+  liquidationThresholds: bigint[],
+  isDegenMode: boolean,
+  degenNFT: string,
+  forbiddenTokenMask: bigint,
+  maxEnabledTokensLength: bigint,
+  feeInterest: bigint,
+  feeLiquidation: bigint,
+  liquidationDiscount: bigint,
+  feeLiquidationExpired: bigint,
+  liquidationDiscountExpired: bigint,
+  quotas: QuotaInfoStructOutput[],
+  lirm: LinearModelStructOutput,
+  isPaused: boolean
 ] & {
   addr: string;
   name: string;
-  cfVersion: BigNumber;
+  cfVersion: bigint;
   creditFacade: string;
   creditConfigurator: string;
   underlying: string;
   pool: string;
-  totalDebt: BigNumber;
-  totalDebtLimit: BigNumber;
-  baseBorrowRate: BigNumber;
-  minDebt: BigNumber;
-  maxDebt: BigNumber;
-  availableToBorrow: BigNumber;
+  totalDebt: bigint;
+  totalDebtLimit: bigint;
+  baseBorrowRate: bigint;
+  minDebt: bigint;
+  maxDebt: bigint;
+  availableToBorrow: bigint;
   collateralTokens: string[];
   adapters: ContractAdapterStructOutput[];
-  liquidationThresholds: BigNumber[];
+  liquidationThresholds: bigint[];
   isDegenMode: boolean;
   degenNFT: string;
-  forbiddenTokenMask: BigNumber;
-  maxEnabledTokensLength: number;
-  feeInterest: number;
-  feeLiquidation: number;
-  liquidationDiscount: number;
-  feeLiquidationExpired: number;
-  liquidationDiscountExpired: number;
+  forbiddenTokenMask: bigint;
+  maxEnabledTokensLength: bigint;
+  feeInterest: bigint;
+  feeLiquidation: bigint;
+  liquidationDiscount: bigint;
+  feeLiquidationExpired: bigint;
+  liquidationDiscountExpired: bigint;
   quotas: QuotaInfoStructOutput[];
   lirm: LinearModelStructOutput;
   isPaused: boolean;
 };
 
 export type CreditManagerDebtParamsStruct = {
-  creditManager: PromiseOrValue<string>;
-  borrowed: PromiseOrValue<BigNumberish>;
-  limit: PromiseOrValue<BigNumberish>;
-  availableToBorrow: PromiseOrValue<BigNumberish>;
+  creditManager: AddressLike;
+  borrowed: BigNumberish;
+  limit: BigNumberish;
+  availableToBorrow: BigNumberish;
 };
 
 export type CreditManagerDebtParamsStructOutput = [
-  string,
-  BigNumber,
-  BigNumber,
-  BigNumber
+  creditManager: string,
+  borrowed: bigint,
+  limit: bigint,
+  availableToBorrow: bigint
 ] & {
   creditManager: string;
-  borrowed: BigNumber;
-  limit: BigNumber;
-  availableToBorrow: BigNumber;
+  borrowed: bigint;
+  limit: bigint;
+  availableToBorrow: bigint;
 };
 
 export type ZapperInfoStruct = {
-  zapper: PromiseOrValue<string>;
-  tokenIn: PromiseOrValue<string>;
-  tokenOut: PromiseOrValue<string>;
+  zapper: AddressLike;
+  tokenIn: AddressLike;
+  tokenOut: AddressLike;
 };
 
-export type ZapperInfoStructOutput = [string, string, string] & {
-  zapper: string;
-  tokenIn: string;
-  tokenOut: string;
-};
+export type ZapperInfoStructOutput = [
+  zapper: string,
+  tokenIn: string,
+  tokenOut: string
+] & { zapper: string; tokenIn: string; tokenOut: string };
 
 export type PoolDataStruct = {
-  addr: PromiseOrValue<string>;
-  underlying: PromiseOrValue<string>;
-  dieselToken: PromiseOrValue<string>;
-  symbol: PromiseOrValue<string>;
-  name: PromiseOrValue<string>;
-  baseInterestIndex: PromiseOrValue<BigNumberish>;
-  availableLiquidity: PromiseOrValue<BigNumberish>;
-  expectedLiquidity: PromiseOrValue<BigNumberish>;
-  totalBorrowed: PromiseOrValue<BigNumberish>;
-  totalDebtLimit: PromiseOrValue<BigNumberish>;
+  addr: AddressLike;
+  underlying: AddressLike;
+  dieselToken: AddressLike;
+  symbol: string;
+  name: string;
+  baseInterestIndex: BigNumberish;
+  availableLiquidity: BigNumberish;
+  expectedLiquidity: BigNumberish;
+  totalBorrowed: BigNumberish;
+  totalDebtLimit: BigNumberish;
   creditManagerDebtParams: CreditManagerDebtParamsStruct[];
-  totalAssets: PromiseOrValue<BigNumberish>;
-  totalSupply: PromiseOrValue<BigNumberish>;
-  supplyRate: PromiseOrValue<BigNumberish>;
-  baseInterestRate: PromiseOrValue<BigNumberish>;
-  dieselRate_RAY: PromiseOrValue<BigNumberish>;
-  withdrawFee: PromiseOrValue<BigNumberish>;
-  lastBaseInterestUpdate: PromiseOrValue<BigNumberish>;
-  baseInterestIndexLU: PromiseOrValue<BigNumberish>;
-  version: PromiseOrValue<BigNumberish>;
-  poolQuotaKeeper: PromiseOrValue<string>;
-  gauge: PromiseOrValue<string>;
+  totalAssets: BigNumberish;
+  totalSupply: BigNumberish;
+  supplyRate: BigNumberish;
+  baseInterestRate: BigNumberish;
+  dieselRate_RAY: BigNumberish;
+  withdrawFee: BigNumberish;
+  lastBaseInterestUpdate: BigNumberish;
+  baseInterestIndexLU: BigNumberish;
+  version: BigNumberish;
+  poolQuotaKeeper: AddressLike;
+  gauge: AddressLike;
   quotas: QuotaInfoStruct[];
   zappers: ZapperInfoStruct[];
   lirm: LinearModelStruct;
-  isPaused: PromiseOrValue<boolean>;
+  isPaused: boolean;
 };
 
 export type PoolDataStructOutput = [
-  string,
-  string,
-  string,
-  string,
-  string,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  CreditManagerDebtParamsStructOutput[],
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string,
-  string,
-  QuotaInfoStructOutput[],
-  ZapperInfoStructOutput[],
-  LinearModelStructOutput,
-  boolean
+  addr: string,
+  underlying: string,
+  dieselToken: string,
+  symbol: string,
+  name: string,
+  baseInterestIndex: bigint,
+  availableLiquidity: bigint,
+  expectedLiquidity: bigint,
+  totalBorrowed: bigint,
+  totalDebtLimit: bigint,
+  creditManagerDebtParams: CreditManagerDebtParamsStructOutput[],
+  totalAssets: bigint,
+  totalSupply: bigint,
+  supplyRate: bigint,
+  baseInterestRate: bigint,
+  dieselRate_RAY: bigint,
+  withdrawFee: bigint,
+  lastBaseInterestUpdate: bigint,
+  baseInterestIndexLU: bigint,
+  version: bigint,
+  poolQuotaKeeper: string,
+  gauge: string,
+  quotas: QuotaInfoStructOutput[],
+  zappers: ZapperInfoStructOutput[],
+  lirm: LinearModelStructOutput,
+  isPaused: boolean
 ] & {
   addr: string;
   underlying: string;
   dieselToken: string;
   symbol: string;
   name: string;
-  baseInterestIndex: BigNumber;
-  availableLiquidity: BigNumber;
-  expectedLiquidity: BigNumber;
-  totalBorrowed: BigNumber;
-  totalDebtLimit: BigNumber;
+  baseInterestIndex: bigint;
+  availableLiquidity: bigint;
+  expectedLiquidity: bigint;
+  totalBorrowed: bigint;
+  totalDebtLimit: bigint;
   creditManagerDebtParams: CreditManagerDebtParamsStructOutput[];
-  totalAssets: BigNumber;
-  totalSupply: BigNumber;
-  supplyRate: BigNumber;
-  baseInterestRate: BigNumber;
-  dieselRate_RAY: BigNumber;
-  withdrawFee: BigNumber;
-  lastBaseInterestUpdate: BigNumber;
-  baseInterestIndexLU: BigNumber;
-  version: BigNumber;
+  totalAssets: bigint;
+  totalSupply: bigint;
+  supplyRate: bigint;
+  baseInterestRate: bigint;
+  dieselRate_RAY: bigint;
+  withdrawFee: bigint;
+  lastBaseInterestUpdate: bigint;
+  baseInterestIndexLU: bigint;
+  version: bigint;
   poolQuotaKeeper: string;
   gauge: string;
   quotas: QuotaInfoStructOutput[];
@@ -413,21 +413,9 @@ export type PoolDataStructOutput = [
   isPaused: boolean;
 };
 
-export interface IDataCompressorV2_1Interface extends utils.Interface {
-  functions: {
-    "getAdapter(address,address)": FunctionFragment;
-    "getCreditAccountData(address,address)": FunctionFragment;
-    "getCreditAccountsByBorrower(address)": FunctionFragment;
-    "getCreditManagerData(address)": FunctionFragment;
-    "getCreditManagersV2List()": FunctionFragment;
-    "getPoolData(address)": FunctionFragment;
-    "getPoolsV1List()": FunctionFragment;
-    "hasOpenedCreditAccount(address,address)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IDataCompressorV2_1Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "getAdapter"
       | "getCreditAccountData"
       | "getCreditAccountsByBorrower"
@@ -441,19 +429,19 @@ export interface IDataCompressorV2_1Interface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "getAdapter",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountData",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountsByBorrower",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditManagerData",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditManagersV2List",
@@ -461,7 +449,7 @@ export interface IDataCompressorV2_1Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolData",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolsV1List",
@@ -469,7 +457,7 @@ export interface IDataCompressorV2_1Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "hasOpenedCreditAccount",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -503,248 +491,148 @@ export interface IDataCompressorV2_1Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {};
 }
 
 export interface IDataCompressorV2_1 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IDataCompressorV2_1;
+  waitForDeployment(): Promise<this>;
 
   interface: IDataCompressorV2_1Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    getAdapter(
-      _creditManager: PromiseOrValue<string>,
-      _allowedContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { adapter: string }>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    getCreditAccountData(
-      _creditManager: PromiseOrValue<string>,
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[CreditAccountDataStructOutput]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    getCreditAccountsByBorrower(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[CreditAccountDataStructOutput[]]>;
+  getAdapter: TypedContractMethod<
+    [_creditManager: AddressLike, _allowedContract: AddressLike],
+    [string],
+    "view"
+  >;
 
-    getCreditManagerData(
-      _creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[CreditManagerDataStructOutput]>;
+  getCreditAccountData: TypedContractMethod<
+    [_creditManager: AddressLike, borrower: AddressLike],
+    [CreditAccountDataStructOutput],
+    "view"
+  >;
 
-    getCreditManagersV2List(
-      overrides?: CallOverrides
-    ): Promise<[CreditManagerDataStructOutput[]]>;
+  getCreditAccountsByBorrower: TypedContractMethod<
+    [borrower: AddressLike],
+    [CreditAccountDataStructOutput[]],
+    "view"
+  >;
 
-    getPoolData(
-      _pool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[PoolDataStructOutput]>;
+  getCreditManagerData: TypedContractMethod<
+    [_creditManager: AddressLike],
+    [CreditManagerDataStructOutput],
+    "view"
+  >;
 
-    getPoolsV1List(
-      overrides?: CallOverrides
-    ): Promise<[PoolDataStructOutput[]]>;
+  getCreditManagersV2List: TypedContractMethod<
+    [],
+    [CreditManagerDataStructOutput[]],
+    "view"
+  >;
 
-    hasOpenedCreditAccount(
-      creditManager: PromiseOrValue<string>,
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  getPoolData: TypedContractMethod<
+    [_pool: AddressLike],
+    [PoolDataStructOutput],
+    "view"
+  >;
 
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  getPoolsV1List: TypedContractMethod<[], [PoolDataStructOutput[]], "view">;
 
-  getAdapter(
-    _creditManager: PromiseOrValue<string>,
-    _allowedContract: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  hasOpenedCreditAccount: TypedContractMethod<
+    [creditManager: AddressLike, borrower: AddressLike],
+    [boolean],
+    "view"
+  >;
 
-  getCreditAccountData(
-    _creditManager: PromiseOrValue<string>,
-    borrower: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<CreditAccountDataStructOutput>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  getCreditAccountsByBorrower(
-    borrower: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<CreditAccountDataStructOutput[]>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  getCreditManagerData(
-    _creditManager: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<CreditManagerDataStructOutput>;
-
-  getCreditManagersV2List(
-    overrides?: CallOverrides
-  ): Promise<CreditManagerDataStructOutput[]>;
-
-  getPoolData(
-    _pool: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<PoolDataStructOutput>;
-
-  getPoolsV1List(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
-
-  hasOpenedCreditAccount(
-    creditManager: PromiseOrValue<string>,
-    borrower: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    getAdapter(
-      _creditManager: PromiseOrValue<string>,
-      _allowedContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getCreditAccountData(
-      _creditManager: PromiseOrValue<string>,
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<CreditAccountDataStructOutput>;
-
-    getCreditAccountsByBorrower(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<CreditAccountDataStructOutput[]>;
-
-    getCreditManagerData(
-      _creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<CreditManagerDataStructOutput>;
-
-    getCreditManagersV2List(
-      overrides?: CallOverrides
-    ): Promise<CreditManagerDataStructOutput[]>;
-
-    getPoolData(
-      _pool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PoolDataStructOutput>;
-
-    getPoolsV1List(overrides?: CallOverrides): Promise<PoolDataStructOutput[]>;
-
-    hasOpenedCreditAccount(
-      creditManager: PromiseOrValue<string>,
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getFunction(
+    nameOrSignature: "getAdapter"
+  ): TypedContractMethod<
+    [_creditManager: AddressLike, _allowedContract: AddressLike],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getCreditAccountData"
+  ): TypedContractMethod<
+    [_creditManager: AddressLike, borrower: AddressLike],
+    [CreditAccountDataStructOutput],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getCreditAccountsByBorrower"
+  ): TypedContractMethod<
+    [borrower: AddressLike],
+    [CreditAccountDataStructOutput[]],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getCreditManagerData"
+  ): TypedContractMethod<
+    [_creditManager: AddressLike],
+    [CreditManagerDataStructOutput],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getCreditManagersV2List"
+  ): TypedContractMethod<[], [CreditManagerDataStructOutput[]], "view">;
+  getFunction(
+    nameOrSignature: "getPoolData"
+  ): TypedContractMethod<[_pool: AddressLike], [PoolDataStructOutput], "view">;
+  getFunction(
+    nameOrSignature: "getPoolsV1List"
+  ): TypedContractMethod<[], [PoolDataStructOutput[]], "view">;
+  getFunction(
+    nameOrSignature: "hasOpenedCreditAccount"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, borrower: AddressLike],
+    [boolean],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
-
-  estimateGas: {
-    getAdapter(
-      _creditManager: PromiseOrValue<string>,
-      _allowedContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCreditAccountData(
-      _creditManager: PromiseOrValue<string>,
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCreditAccountsByBorrower(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCreditManagerData(
-      _creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCreditManagersV2List(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getPoolData(
-      _pool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPoolsV1List(overrides?: CallOverrides): Promise<BigNumber>;
-
-    hasOpenedCreditAccount(
-      creditManager: PromiseOrValue<string>,
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    getAdapter(
-      _creditManager: PromiseOrValue<string>,
-      _allowedContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCreditAccountData(
-      _creditManager: PromiseOrValue<string>,
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCreditAccountsByBorrower(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCreditManagerData(
-      _creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCreditManagersV2List(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPoolData(
-      _pool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPoolsV1List(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    hasOpenedCreditAccount(
-      creditManager: PromiseOrValue<string>,
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
 }

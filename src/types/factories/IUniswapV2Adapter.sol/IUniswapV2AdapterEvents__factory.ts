@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IUniswapV2AdapterEvents,
   IUniswapV2AdapterEventsInterface,
@@ -40,16 +39,16 @@ const _abi = [
 export class IUniswapV2AdapterEvents__factory {
   static readonly abi = _abi;
   static createInterface(): IUniswapV2AdapterEventsInterface {
-    return new utils.Interface(_abi) as IUniswapV2AdapterEventsInterface;
+    return new Interface(_abi) as IUniswapV2AdapterEventsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IUniswapV2AdapterEvents {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IUniswapV2AdapterEvents;
+      runner
+    ) as unknown as IUniswapV2AdapterEvents;
   }
 }

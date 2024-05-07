@@ -3,39 +3,25 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IUpdatablePriceFeedInterface extends utils.Interface {
-  functions: {
-    "decimals()": FunctionFragment;
-    "description()": FunctionFragment;
-    "latestRoundData()": FunctionFragment;
-    "priceFeedType()": FunctionFragment;
-    "skipPriceCheck()": FunctionFragment;
-    "updatable()": FunctionFragment;
-    "updatePrice(bytes)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IUpdatablePriceFeedInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "decimals"
       | "description"
       | "latestRoundData"
@@ -66,7 +52,7 @@ export interface IUpdatablePriceFeedInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "updatable", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "updatePrice",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -93,159 +79,113 @@ export interface IUpdatablePriceFeedInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {};
 }
 
 export interface IUpdatablePriceFeed extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IUpdatablePriceFeed;
+  waitForDeployment(): Promise<this>;
 
   interface: IUpdatablePriceFeedInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    decimals(overrides?: CallOverrides): Promise<[number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    description(overrides?: CallOverrides): Promise<[string]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        answer: BigNumber;
-        updatedAt: BigNumber;
+  decimals: TypedContractMethod<[], [bigint], "view">;
+
+  description: TypedContractMethod<[], [string], "view">;
+
+  latestRoundData: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint, bigint, bigint] & {
+        answer: bigint;
+        updatedAt: bigint;
       }
-    >;
-
-    priceFeedType(overrides?: CallOverrides): Promise<[number]>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<[boolean]>;
-
-    updatable(overrides?: CallOverrides): Promise<[boolean]>;
-
-    updatePrice(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  decimals(overrides?: CallOverrides): Promise<number>;
-
-  description(overrides?: CallOverrides): Promise<string>;
-
-  latestRoundData(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-      answer: BigNumber;
-      updatedAt: BigNumber;
-    }
+    ],
+    "view"
   >;
 
-  priceFeedType(overrides?: CallOverrides): Promise<number>;
+  priceFeedType: TypedContractMethod<[], [bigint], "view">;
 
-  skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
+  skipPriceCheck: TypedContractMethod<[], [boolean], "view">;
 
-  updatable(overrides?: CallOverrides): Promise<boolean>;
+  updatable: TypedContractMethod<[], [boolean], "view">;
 
-  updatePrice(
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  updatePrice: TypedContractMethod<[data: BytesLike], [void], "nonpayable">;
 
-  version(overrides?: CallOverrides): Promise<BigNumber>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  callStatic: {
-    decimals(overrides?: CallOverrides): Promise<number>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-    description(overrides?: CallOverrides): Promise<string>;
-
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        answer: BigNumber;
-        updatedAt: BigNumber;
+  getFunction(
+    nameOrSignature: "decimals"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "description"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "latestRoundData"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint, bigint, bigint] & {
+        answer: bigint;
+        updatedAt: bigint;
       }
-    >;
-
-    priceFeedType(overrides?: CallOverrides): Promise<number>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
-
-    updatable(overrides?: CallOverrides): Promise<boolean>;
-
-    updatePrice(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "priceFeedType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "skipPriceCheck"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "updatable"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "updatePrice"
+  ): TypedContractMethod<[data: BytesLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
-
-  estimateGas: {
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-    description(overrides?: CallOverrides): Promise<BigNumber>;
-
-    latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updatable(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updatePrice(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updatable(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updatePrice(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
 }

@@ -5,11 +5,8 @@ import {
   GaugeInfoStructOutput,
   GaugeQuotaParamsStructOutput,
 } from "../types/IDataCompressorV3";
-import { BigintifyProps } from "../utils/types";
 
-export type GaugeQuotaParams = BigintifyProps<
-  ExcludeArrayProps<GaugeQuotaParamsStructOutput>
->;
+export type GaugeQuotaParams = ExcludeArrayProps<GaugeQuotaParamsStructOutput>;
 
 export type GaugeDataPayload = ExcludeArrayProps<GaugeInfoStructOutput>;
 

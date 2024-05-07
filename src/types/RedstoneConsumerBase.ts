@@ -3,36 +3,27 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface RedstoneConsumerBaseInterface extends utils.Interface {
-  functions: {
-    "aggregateValues(uint256[])": FunctionFragment;
-    "extractTimestampsAndAssertAllAreEqual()": FunctionFragment;
-    "getAuthorisedSignerIndex(address)": FunctionFragment;
-    "getDataServiceId()": FunctionFragment;
-    "getUniqueSignersThreshold()": FunctionFragment;
-    "validateTimestamp(uint256)": FunctionFragment;
-  };
-
+export interface RedstoneConsumerBaseInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "aggregateValues"
       | "extractTimestampsAndAssertAllAreEqual"
       | "getAuthorisedSignerIndex"
@@ -43,7 +34,7 @@ export interface RedstoneConsumerBaseInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "aggregateValues",
-    values: [PromiseOrValue<BigNumberish>[]]
+    values: [BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "extractTimestampsAndAssertAllAreEqual",
@@ -51,7 +42,7 @@ export interface RedstoneConsumerBaseInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getAuthorisedSignerIndex",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getDataServiceId",
@@ -63,7 +54,7 @@ export interface RedstoneConsumerBaseInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "validateTimestamp",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -90,160 +81,105 @@ export interface RedstoneConsumerBaseInterface extends utils.Interface {
     functionFragment: "validateTimestamp",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface RedstoneConsumerBase extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): RedstoneConsumerBase;
+  waitForDeployment(): Promise<this>;
 
   interface: RedstoneConsumerBaseInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    aggregateValues(
-      values: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    extractTimestampsAndAssertAllAreEqual(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { extractedTimestamp: BigNumber }>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    getAuthorisedSignerIndex(
-      receivedSigner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+  aggregateValues: TypedContractMethod<
+    [values: BigNumberish[]],
+    [bigint],
+    "view"
+  >;
 
-    getDataServiceId(overrides?: CallOverrides): Promise<[string]>;
+  extractTimestampsAndAssertAllAreEqual: TypedContractMethod<
+    [],
+    [bigint],
+    "view"
+  >;
 
-    getUniqueSignersThreshold(overrides?: CallOverrides): Promise<[number]>;
+  getAuthorisedSignerIndex: TypedContractMethod<
+    [receivedSigner: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-    validateTimestamp(
-      receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
-  };
+  getDataServiceId: TypedContractMethod<[], [string], "view">;
 
-  aggregateValues(
-    values: PromiseOrValue<BigNumberish>[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getUniqueSignersThreshold: TypedContractMethod<[], [bigint], "view">;
 
-  extractTimestampsAndAssertAllAreEqual(
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  validateTimestamp: TypedContractMethod<
+    [receivedTimestampMilliseconds: BigNumberish],
+    [void],
+    "view"
+  >;
 
-  getAuthorisedSignerIndex(
-    receivedSigner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  getDataServiceId(overrides?: CallOverrides): Promise<string>;
-
-  getUniqueSignersThreshold(overrides?: CallOverrides): Promise<number>;
-
-  validateTimestamp(
-    receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<void>;
-
-  callStatic: {
-    aggregateValues(
-      values: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    extractTimestampsAndAssertAllAreEqual(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAuthorisedSignerIndex(
-      receivedSigner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    getDataServiceId(overrides?: CallOverrides): Promise<string>;
-
-    getUniqueSignersThreshold(overrides?: CallOverrides): Promise<number>;
-
-    validateTimestamp(
-      receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+  getFunction(
+    nameOrSignature: "aggregateValues"
+  ): TypedContractMethod<[values: BigNumberish[]], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "extractTimestampsAndAssertAllAreEqual"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getAuthorisedSignerIndex"
+  ): TypedContractMethod<[receivedSigner: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getDataServiceId"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getUniqueSignersThreshold"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "validateTimestamp"
+  ): TypedContractMethod<
+    [receivedTimestampMilliseconds: BigNumberish],
+    [void],
+    "view"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    aggregateValues(
-      values: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    extractTimestampsAndAssertAllAreEqual(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAuthorisedSignerIndex(
-      receivedSigner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getDataServiceId(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getUniqueSignersThreshold(overrides?: CallOverrides): Promise<BigNumber>;
-
-    validateTimestamp(
-      receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    aggregateValues(
-      values: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    extractTimestampsAndAssertAllAreEqual(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getAuthorisedSignerIndex(
-      receivedSigner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getDataServiceId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getUniqueSignersThreshold(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    validateTimestamp(
-      receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-  };
 }

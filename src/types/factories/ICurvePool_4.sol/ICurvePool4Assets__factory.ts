@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   ICurvePool4Assets,
   ICurvePool4AssetsInterface,
@@ -893,12 +892,12 @@ const _abi = [
 export class ICurvePool4Assets__factory {
   static readonly abi = _abi;
   static createInterface(): ICurvePool4AssetsInterface {
-    return new utils.Interface(_abi) as ICurvePool4AssetsInterface;
+    return new Interface(_abi) as ICurvePool4AssetsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): ICurvePool4Assets {
-    return new Contract(address, _abi, signerOrProvider) as ICurvePool4Assets;
+    return new Contract(address, _abi, runner) as unknown as ICurvePool4Assets;
   }
 }

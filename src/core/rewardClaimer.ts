@@ -5,7 +5,7 @@ import {
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
-import { providers } from "ethers";
+import { Provider } from "ethers";
 
 import { MultiCall } from "../pathfinder/core";
 import { CreditAccountData } from "./creditAccount";
@@ -32,7 +32,7 @@ export class RewardClaimer {
     ca: CreditAccountData,
     cm: CreditManagerData,
     network: NetworkType,
-    provider: providers.Provider,
+    provider: Provider,
   ): Promise<Array<Rewards>> {
     return RewardConvex.findRewards(ca, cm, network, provider);
   }

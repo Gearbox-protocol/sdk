@@ -3,10 +3,9 @@ import {
   NetworkType,
   RAY,
   SupportedToken,
-  toBigInt,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber, BigNumberish, providers, Signer } from "ethers";
+import { BigNumberish, Provider, Signer } from "ethers";
 
 import { CreditAccountData } from "../../core/creditAccount";
 import { CreditManagerData } from "../../core/creditManager";
@@ -44,7 +43,7 @@ export class PathFinderV1 {
 
   constructor(
     address: string,
-    provider: Signer | providers.Provider,
+    provider: Signer | Provider,
     network: NetworkType = "Mainnet",
     connectors = PathFinderV1.connectors,
   ) {
@@ -67,7 +66,7 @@ export class PathFinderV1 {
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
     const swapTask: SwapTaskV1 = {
-      swapOperation: swapOperation,
+      swapOperation: BigInt(swapOperation),
       creditAccount: creditAccount.addr,
       tokenIn:
         tokenDataByNetwork[this.network][tokenIn as SupportedToken] || tokenIn,
@@ -75,24 +74,24 @@ export class PathFinderV1 {
         tokenDataByNetwork[this.network][tokenOut as SupportedToken] ||
         tokenOut,
       connectors,
-      amount: BigNumber.from(amount),
-      slippage: BigNumber.from(slippage),
+      amount: BigInt(amount),
+      slippage: BigInt(slippage),
       externalSlippage: false,
     };
 
-    const results = await this.pathFinder.callStatic.findAllSwaps(swapTask, {
+    const results = await this.pathFinder.findAllSwaps.staticCall(swapTask, {
       gasLimit: GAS_PER_BLOCK,
     });
 
     const unique: Record<string, PathFinderV1Result> = {};
 
     results.forEach(r => {
-      const key = `${r.amount.toHexString()}${r.calls
+      const key = `${r.amount}${r.calls
         .map(c => `${c.target.toLowerCase()}${c.callData}`)
         .join("-")}`;
 
       unique[key] = {
-        amount: toBigInt(r.amount),
+        amount: r.amount,
         calls: r.calls,
       };
     });
@@ -112,7 +111,7 @@ export class PathFinderV1 {
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    const result = await this.pathFinder.callStatic.findOneTokenPath(
+    const result = await this.pathFinder.findOneTokenPath.staticCall(
       tokenInAddr,
       amount,
       tokenDataByNetwork[this.network][tokenOut as SupportedToken] || tokenOut,
@@ -125,7 +124,7 @@ export class PathFinderV1 {
     );
 
     return {
-      amount: toBigInt(result.amount),
+      amount: result.amount,
       calls: result.calls,
     };
   }
@@ -167,7 +166,7 @@ export class PathFinderV1 {
 
     const connectors = this.getAvailableConnectors(cm.supportedTokens);
 
-    const result = await this.pathFinder.callStatic.findOpenStrategyPath(
+    const result = await this.pathFinder.findOpenStrategyPath.staticCall(
       cm.address,
       balances,
       targetAddr,
@@ -179,7 +178,7 @@ export class PathFinderV1 {
     );
 
     const balancesAfter = result[0].reduce<Record<string, bigint>>((acc, b) => {
-      acc[b.token.toLowerCase()] = toBigInt(b.balance);
+      acc[b.token.toLowerCase()] = b.balance;
       return acc;
     }, {});
 
@@ -213,12 +212,12 @@ export class PathFinderV1 {
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    let results: Array<AwaitedRes<IRouter["callStatic"]["findBestClosePath"]>> =
+    let results: Array<AwaitedRes<IRouter["findBestClosePath"]["staticCall"]>> =
       [];
     if (noConcurency) {
       for (const po of pathOptions) {
         results.push(
-          await this.pathFinder.callStatic.findBestClosePath(
+          await this.pathFinder.findBestClosePath.staticCall(
             creditAccount.addr,
             connectors,
             slippage,
@@ -233,7 +232,7 @@ export class PathFinderV1 {
       }
     } else {
       const requests = pathOptions.map(po =>
-        this.pathFinder.callStatic.findBestClosePath(
+        this.pathFinder.findBestClosePath.staticCall(
           creditAccount.addr,
           connectors,
           slippage,
@@ -254,10 +253,10 @@ export class PathFinderV1 {
           best,
           {
             calls: pathFinderResult.calls,
-            amount: toBigInt(pathFinderResult.amount),
-            gasUsage: toBigInt(pathFinderResult.gasUsage),
+            amount: pathFinderResult.amount,
+            gasUsage: pathFinderResult.gasUsage,
           },
-          toBigInt(gasPriceRAY),
+          gasPriceRAY,
         ),
       {
         amount: 0n,

@@ -3,45 +3,36 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IBalancerV2VaultGettersInterface extends utils.Interface {
-  functions: {
-    "getPool(bytes32)": FunctionFragment;
-    "getPoolTokenInfo(bytes32,address)": FunctionFragment;
-    "getPoolTokens(bytes32)": FunctionFragment;
-  };
-
+export interface IBalancerV2VaultGettersInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic: "getPool" | "getPoolTokenInfo" | "getPoolTokens"
+    nameOrSignature: "getPool" | "getPoolTokenInfo" | "getPoolTokens"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "getPool",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
+  encodeFunctionData(functionFragment: "getPool", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "getPoolTokenInfo",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+    values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolTokens",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "getPool", data: BytesLike): Result;
@@ -53,162 +44,112 @@ export interface IBalancerV2VaultGettersInterface extends utils.Interface {
     functionFragment: "getPoolTokens",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface IBalancerV2VaultGetters extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IBalancerV2VaultGetters;
+  waitForDeployment(): Promise<this>;
 
   interface: IBalancerV2VaultGettersInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    getPool(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[string, number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    getPoolTokenInfo(
-      poolId: PromiseOrValue<BytesLike>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, string] & {
-        cash: BigNumber;
-        managed: BigNumber;
-        lastChangeBlock: BigNumber;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  getPool: TypedContractMethod<[poolId: BytesLike], [[string, bigint]], "view">;
+
+  getPoolTokenInfo: TypedContractMethod<
+    [poolId: BytesLike, token: AddressLike],
+    [
+      [bigint, bigint, bigint, string] & {
+        cash: bigint;
+        managed: bigint;
+        lastChangeBlock: bigint;
         assetManager: string;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    getPoolTokens(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[], BigNumber] & {
+  getPoolTokens: TypedContractMethod<
+    [poolId: BytesLike],
+    [
+      [string[], bigint[], bigint] & {
         tokens: string[];
-        balances: BigNumber[];
-        lastChangeBlock: BigNumber;
+        balances: bigint[];
+        lastChangeBlock: bigint;
       }
-    >;
-  };
-
-  getPool(
-    poolId: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<[string, number]>;
-
-  getPoolTokenInfo(
-    poolId: PromiseOrValue<BytesLike>,
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, string] & {
-      cash: BigNumber;
-      managed: BigNumber;
-      lastChangeBlock: BigNumber;
-      assetManager: string;
-    }
+    ],
+    "view"
   >;
 
-  getPoolTokens(
-    poolId: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[], BigNumber] & {
-      tokens: string[];
-      balances: BigNumber[];
-      lastChangeBlock: BigNumber;
-    }
-  >;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  callStatic: {
-    getPool(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[string, number]>;
-
-    getPoolTokenInfo(
-      poolId: PromiseOrValue<BytesLike>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, string] & {
-        cash: BigNumber;
-        managed: BigNumber;
-        lastChangeBlock: BigNumber;
+  getFunction(
+    nameOrSignature: "getPool"
+  ): TypedContractMethod<[poolId: BytesLike], [[string, bigint]], "view">;
+  getFunction(
+    nameOrSignature: "getPoolTokenInfo"
+  ): TypedContractMethod<
+    [poolId: BytesLike, token: AddressLike],
+    [
+      [bigint, bigint, bigint, string] & {
+        cash: bigint;
+        managed: bigint;
+        lastChangeBlock: bigint;
         assetManager: string;
       }
-    >;
-
-    getPoolTokens(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[], BigNumber] & {
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getPoolTokens"
+  ): TypedContractMethod<
+    [poolId: BytesLike],
+    [
+      [string[], bigint[], bigint] & {
         tokens: string[];
-        balances: BigNumber[];
-        lastChangeBlock: BigNumber;
+        balances: bigint[];
+        lastChangeBlock: bigint;
       }
-    >;
-  };
+    ],
+    "view"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    getPool(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPoolTokenInfo(
-      poolId: PromiseOrValue<BytesLike>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPoolTokens(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    getPool(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPoolTokenInfo(
-      poolId: PromiseOrValue<BytesLike>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPoolTokens(
-      poolId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-  };
 }

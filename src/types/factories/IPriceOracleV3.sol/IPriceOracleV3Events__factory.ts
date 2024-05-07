@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IPriceOracleV3Events,
   IPriceOracleV3EventsInterface,
@@ -102,16 +101,16 @@ const _abi = [
 export class IPriceOracleV3Events__factory {
   static readonly abi = _abi;
   static createInterface(): IPriceOracleV3EventsInterface {
-    return new utils.Interface(_abi) as IPriceOracleV3EventsInterface;
+    return new Interface(_abi) as IPriceOracleV3EventsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IPriceOracleV3Events {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IPriceOracleV3Events;
+      runner
+    ) as unknown as IPriceOracleV3Events;
   }
 }

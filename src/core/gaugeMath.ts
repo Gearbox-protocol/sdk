@@ -1,5 +1,3 @@
-import { toBigInt } from "@gearbox-protocol/sdk-gov";
-
 import { GaugeQuotaParams } from "../payload/gauge";
 import { BigIntMath } from "../utils/math";
 
@@ -174,11 +172,9 @@ export class GaugeMath {
     const lpPart = last?.type === "raise" ? last?.amount || 0n : 0n;
 
     const caImpact =
-      toBigInt(quota.minRate) *
-      (quota.totalVotesCaSide + caPart - removeCaPart);
+      quota.minRate * (quota.totalVotesCaSide + caPart - removeCaPart);
     const lpImpact =
-      toBigInt(quota.maxRate) *
-      (quota.totalVotesLpSide + lpPart - removeLpPart);
+      quota.maxRate * (quota.totalVotesLpSide + lpPart - removeLpPart);
     const total =
       quota.totalVotesCaSide +
       quota.totalVotesLpSide +

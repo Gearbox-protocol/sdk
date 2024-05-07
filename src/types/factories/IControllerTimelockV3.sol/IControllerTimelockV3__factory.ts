@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IControllerTimelockV3,
   IControllerTimelockV3Interface,
@@ -552,16 +551,16 @@ const _abi = [
 export class IControllerTimelockV3__factory {
   static readonly abi = _abi;
   static createInterface(): IControllerTimelockV3Interface {
-    return new utils.Interface(_abi) as IControllerTimelockV3Interface;
+    return new Interface(_abi) as IControllerTimelockV3Interface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IControllerTimelockV3 {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IControllerTimelockV3;
+      runner
+    ) as unknown as IControllerTimelockV3;
   }
 }

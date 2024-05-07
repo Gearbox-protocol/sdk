@@ -2,12 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
-import type {
-  IGasPricer,
-  IGasPricerInterface,
-} from "../../../contracts/interfaces/IGasPricer";
+import { Contract, Interface, type ContractRunner } from "ethers";
+import type { IGasPricer, IGasPricerInterface } from "../IGasPricer";
 
 const _abi = [
   {
@@ -34,12 +30,9 @@ const _abi = [
 export class IGasPricer__factory {
   static readonly abi = _abi;
   static createInterface(): IGasPricerInterface {
-    return new utils.Interface(_abi) as IGasPricerInterface;
+    return new Interface(_abi) as IGasPricerInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IGasPricer {
-    return new Contract(address, _abi, signerOrProvider) as IGasPricer;
+  static connect(address: string, runner?: ContractRunner | null): IGasPricer {
+    return new Contract(address, _abi, runner) as unknown as IGasPricer;
   }
 }

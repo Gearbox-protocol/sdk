@@ -3,35 +3,26 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface ILinearInterestRateModelV3Interface extends utils.Interface {
-  functions: {
-    "availableToBorrow(uint256,uint256)": FunctionFragment;
-    "calcBorrowRate(uint256,uint256,bool)": FunctionFragment;
-    "getModelParameters()": FunctionFragment;
-    "isBorrowingMoreU2Forbidden()": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface ILinearInterestRateModelV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "availableToBorrow"
       | "calcBorrowRate"
       | "getModelParameters"
@@ -41,15 +32,11 @@ export interface ILinearInterestRateModelV3Interface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "availableToBorrow",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calcBorrowRate",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
-    ]
+    values: [BigNumberish, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "getModelParameters",
@@ -78,175 +65,130 @@ export interface ILinearInterestRateModelV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {};
 }
 
 export interface ILinearInterestRateModelV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ILinearInterestRateModelV3;
+  waitForDeployment(): Promise<this>;
 
   interface: ILinearInterestRateModelV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    availableToBorrow(
-      expectedLiquidity: PromiseOrValue<BigNumberish>,
-      availableLiquidity: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    calcBorrowRate(
-      expectedLiquidity: PromiseOrValue<BigNumberish>,
-      availableLiquidity: PromiseOrValue<BigNumberish>,
-      checkOptimalBorrowing: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    getModelParameters(
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number, number, number, number, number] & {
-        U_1: number;
-        U_2: number;
-        R_base: number;
-        R_slope1: number;
-        R_slope2: number;
-        R_slope3: number;
-      }
-    >;
-
-    isBorrowingMoreU2Forbidden(overrides?: CallOverrides): Promise<[boolean]>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  availableToBorrow(
-    expectedLiquidity: PromiseOrValue<BigNumberish>,
-    availableLiquidity: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  calcBorrowRate(
-    expectedLiquidity: PromiseOrValue<BigNumberish>,
-    availableLiquidity: PromiseOrValue<BigNumberish>,
-    checkOptimalBorrowing: PromiseOrValue<boolean>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getModelParameters(
-    overrides?: CallOverrides
-  ): Promise<
-    [number, number, number, number, number, number] & {
-      U_1: number;
-      U_2: number;
-      R_base: number;
-      R_slope1: number;
-      R_slope2: number;
-      R_slope3: number;
-    }
+  availableToBorrow: TypedContractMethod<
+    [expectedLiquidity: BigNumberish, availableLiquidity: BigNumberish],
+    [bigint],
+    "view"
   >;
 
-  isBorrowingMoreU2Forbidden(overrides?: CallOverrides): Promise<boolean>;
+  calcBorrowRate: TypedContractMethod<
+    [
+      expectedLiquidity: BigNumberish,
+      availableLiquidity: BigNumberish,
+      checkOptimalBorrowing: boolean
+    ],
+    [bigint],
+    "view"
+  >;
 
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    availableToBorrow(
-      expectedLiquidity: PromiseOrValue<BigNumberish>,
-      availableLiquidity: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calcBorrowRate(
-      expectedLiquidity: PromiseOrValue<BigNumberish>,
-      availableLiquidity: PromiseOrValue<BigNumberish>,
-      checkOptimalBorrowing: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getModelParameters(
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number, number, number, number, number] & {
-        U_1: number;
-        U_2: number;
-        R_base: number;
-        R_slope1: number;
-        R_slope2: number;
-        R_slope3: number;
+  getModelParameters: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint, bigint, bigint, bigint] & {
+        U_1: bigint;
+        U_2: bigint;
+        R_base: bigint;
+        R_slope1: bigint;
+        R_slope2: bigint;
+        R_slope3: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    isBorrowingMoreU2Forbidden(overrides?: CallOverrides): Promise<boolean>;
+  isBorrowingMoreU2Forbidden: TypedContractMethod<[], [boolean], "view">;
 
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "availableToBorrow"
+  ): TypedContractMethod<
+    [expectedLiquidity: BigNumberish, availableLiquidity: BigNumberish],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "calcBorrowRate"
+  ): TypedContractMethod<
+    [
+      expectedLiquidity: BigNumberish,
+      availableLiquidity: BigNumberish,
+      checkOptimalBorrowing: boolean
+    ],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getModelParameters"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint, bigint, bigint, bigint] & {
+        U_1: bigint;
+        U_2: bigint;
+        R_base: bigint;
+        R_slope1: bigint;
+        R_slope2: bigint;
+        R_slope3: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "isBorrowingMoreU2Forbidden"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
-
-  estimateGas: {
-    availableToBorrow(
-      expectedLiquidity: PromiseOrValue<BigNumberish>,
-      availableLiquidity: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calcBorrowRate(
-      expectedLiquidity: PromiseOrValue<BigNumberish>,
-      availableLiquidity: PromiseOrValue<BigNumberish>,
-      checkOptimalBorrowing: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getModelParameters(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isBorrowingMoreU2Forbidden(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    availableToBorrow(
-      expectedLiquidity: PromiseOrValue<BigNumberish>,
-      availableLiquidity: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    calcBorrowRate(
-      expectedLiquidity: PromiseOrValue<BigNumberish>,
-      availableLiquidity: PromiseOrValue<BigNumberish>,
-      checkOptimalBorrowing: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getModelParameters(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isBorrowingMoreU2Forbidden(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
 }

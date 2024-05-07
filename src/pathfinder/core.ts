@@ -5,7 +5,6 @@ import {
   RouterResultStructOutput,
   SwapTaskStruct,
 } from "../types/IRouterV3";
-import { BigintifyProps } from "../utils/types";
 
 export enum SwapOperation {
   EXACT_INPUT,
@@ -17,7 +16,7 @@ export type MultiCall = ExcludeArrayProps<MultiCallStructOutput>;
 export type SwapTask = ExcludeArrayProps<SwapTaskStruct>;
 
 export type PathFinderResult = Omit<
-  BigintifyProps<ExcludeArrayProps<RouterResultStructOutput>>,
+  ExcludeArrayProps<RouterResultStructOutput>,
   "calls"
 > & {
   calls: Array<MultiCall>;

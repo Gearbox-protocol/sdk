@@ -3,48 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IBotListV3Interface extends utils.Interface {
-  functions: {
-    "activeBots(address,address)": FunctionFragment;
-    "approvedCreditManager(address)": FunctionFragment;
-    "botForbiddenStatus(address)": FunctionFragment;
-    "botPermissions(address,address,address)": FunctionFragment;
-    "botSpecialPermissions(address,address)": FunctionFragment;
-    "eraseAllBotPermissions(address,address)": FunctionFragment;
-    "getBotStatus(address,address,address)": FunctionFragment;
-    "setBotForbiddenStatus(address,bool)": FunctionFragment;
-    "setBotPermissions(address,address,address,uint192)": FunctionFragment;
-    "setBotSpecialPermissions(address,address,uint192)": FunctionFragment;
-    "setCreditManagerApprovedStatus(address,bool)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IBotListV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "activeBots"
       | "approvedCreditManager"
       | "botForbiddenStatus"
@@ -59,66 +40,58 @@ export interface IBotListV3Interface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "EraseBot"
+      | "SetBotForbiddenStatus"
+      | "SetBotPermissions"
+      | "SetBotSpecialPermissions"
+      | "SetCreditManagerApprovedStatus"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "activeBots",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "approvedCreditManager",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "botForbiddenStatus",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "botPermissions",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [AddressLike, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "botSpecialPermissions",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "eraseAllBotPermissions",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getBotStatus",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [AddressLike, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setBotForbiddenStatus",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setBotPermissions",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setBotSpecialPermissions",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setCreditManagerApprovedStatus",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -164,546 +137,403 @@ export interface IBotListV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "EraseBot(address,address,address)": EventFragment;
-    "SetBotForbiddenStatus(address,bool)": EventFragment;
-    "SetBotPermissions(address,address,address,uint192)": EventFragment;
-    "SetBotSpecialPermissions(address,address,uint192)": EventFragment;
-    "SetCreditManagerApprovedStatus(address,bool)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "EraseBot"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetBotForbiddenStatus"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetBotPermissions"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetBotSpecialPermissions"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "SetCreditManagerApprovedStatus"
-  ): EventFragment;
 }
 
-export interface EraseBotEventObject {
-  bot: string;
-  creditManager: string;
-  creditAccount: string;
+export namespace EraseBotEvent {
+  export type InputTuple = [
+    bot: AddressLike,
+    creditManager: AddressLike,
+    creditAccount: AddressLike
+  ];
+  export type OutputTuple = [
+    bot: string,
+    creditManager: string,
+    creditAccount: string
+  ];
+  export interface OutputObject {
+    bot: string;
+    creditManager: string;
+    creditAccount: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type EraseBotEvent = TypedEvent<
-  [string, string, string],
-  EraseBotEventObject
->;
 
-export type EraseBotEventFilter = TypedEventFilter<EraseBotEvent>;
-
-export interface SetBotForbiddenStatusEventObject {
-  bot: string;
-  forbidden: boolean;
+export namespace SetBotForbiddenStatusEvent {
+  export type InputTuple = [bot: AddressLike, forbidden: boolean];
+  export type OutputTuple = [bot: string, forbidden: boolean];
+  export interface OutputObject {
+    bot: string;
+    forbidden: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetBotForbiddenStatusEvent = TypedEvent<
-  [string, boolean],
-  SetBotForbiddenStatusEventObject
->;
 
-export type SetBotForbiddenStatusEventFilter =
-  TypedEventFilter<SetBotForbiddenStatusEvent>;
-
-export interface SetBotPermissionsEventObject {
-  bot: string;
-  creditManager: string;
-  creditAccount: string;
-  permissions: BigNumber;
+export namespace SetBotPermissionsEvent {
+  export type InputTuple = [
+    bot: AddressLike,
+    creditManager: AddressLike,
+    creditAccount: AddressLike,
+    permissions: BigNumberish
+  ];
+  export type OutputTuple = [
+    bot: string,
+    creditManager: string,
+    creditAccount: string,
+    permissions: bigint
+  ];
+  export interface OutputObject {
+    bot: string;
+    creditManager: string;
+    creditAccount: string;
+    permissions: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetBotPermissionsEvent = TypedEvent<
-  [string, string, string, BigNumber],
-  SetBotPermissionsEventObject
->;
 
-export type SetBotPermissionsEventFilter =
-  TypedEventFilter<SetBotPermissionsEvent>;
-
-export interface SetBotSpecialPermissionsEventObject {
-  bot: string;
-  creditManager: string;
-  permissions: BigNumber;
+export namespace SetBotSpecialPermissionsEvent {
+  export type InputTuple = [
+    bot: AddressLike,
+    creditManager: AddressLike,
+    permissions: BigNumberish
+  ];
+  export type OutputTuple = [
+    bot: string,
+    creditManager: string,
+    permissions: bigint
+  ];
+  export interface OutputObject {
+    bot: string;
+    creditManager: string;
+    permissions: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetBotSpecialPermissionsEvent = TypedEvent<
-  [string, string, BigNumber],
-  SetBotSpecialPermissionsEventObject
->;
 
-export type SetBotSpecialPermissionsEventFilter =
-  TypedEventFilter<SetBotSpecialPermissionsEvent>;
-
-export interface SetCreditManagerApprovedStatusEventObject {
-  creditManager: string;
-  approved: boolean;
+export namespace SetCreditManagerApprovedStatusEvent {
+  export type InputTuple = [creditManager: AddressLike, approved: boolean];
+  export type OutputTuple = [creditManager: string, approved: boolean];
+  export interface OutputObject {
+    creditManager: string;
+    approved: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetCreditManagerApprovedStatusEvent = TypedEvent<
-  [string, boolean],
-  SetCreditManagerApprovedStatusEventObject
->;
-
-export type SetCreditManagerApprovedStatusEventFilter =
-  TypedEventFilter<SetCreditManagerApprovedStatusEvent>;
 
 export interface IBotListV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IBotListV3;
+  waitForDeployment(): Promise<this>;
 
   interface: IBotListV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    activeBots(
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string[]]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    approvedCreditManager(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    botForbiddenStatus(
-      bot: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    botPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    botSpecialPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    eraseAllBotPermissions(
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getBotStatus(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, boolean, boolean] & {
-        permissions: BigNumber;
-        forbidden: boolean;
-        hasSpecialPermissions: boolean;
-      }
-    >;
-
-    setBotForbiddenStatus(
-      bot: PromiseOrValue<string>,
-      forbidden: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setBotPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setBotSpecialPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setCreditManagerApprovedStatus(
-      creditManager: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  activeBots(
-    creditManager: PromiseOrValue<string>,
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
-
-  approvedCreditManager(
-    creditManager: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  botForbiddenStatus(
-    bot: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  botPermissions(
-    bot: PromiseOrValue<string>,
-    creditManager: PromiseOrValue<string>,
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  botSpecialPermissions(
-    bot: PromiseOrValue<string>,
-    creditManager: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  eraseAllBotPermissions(
-    creditManager: PromiseOrValue<string>,
-    creditAccount: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getBotStatus(
-    bot: PromiseOrValue<string>,
-    creditManager: PromiseOrValue<string>,
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, boolean, boolean] & {
-      permissions: BigNumber;
-      forbidden: boolean;
-      hasSpecialPermissions: boolean;
-    }
+  activeBots: TypedContractMethod<
+    [creditManager: AddressLike, creditAccount: AddressLike],
+    [string[]],
+    "view"
   >;
 
-  setBotForbiddenStatus(
-    bot: PromiseOrValue<string>,
-    forbidden: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  approvedCreditManager: TypedContractMethod<
+    [creditManager: AddressLike],
+    [boolean],
+    "view"
+  >;
 
-  setBotPermissions(
-    bot: PromiseOrValue<string>,
-    creditManager: PromiseOrValue<string>,
-    creditAccount: PromiseOrValue<string>,
-    permissions: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  botForbiddenStatus: TypedContractMethod<
+    [bot: AddressLike],
+    [boolean],
+    "view"
+  >;
 
-  setBotSpecialPermissions(
-    bot: PromiseOrValue<string>,
-    creditManager: PromiseOrValue<string>,
-    permissions: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  botPermissions: TypedContractMethod<
+    [bot: AddressLike, creditManager: AddressLike, creditAccount: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-  setCreditManagerApprovedStatus(
-    creditManager: PromiseOrValue<string>,
-    approved: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  botSpecialPermissions: TypedContractMethod<
+    [bot: AddressLike, creditManager: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-  version(overrides?: CallOverrides): Promise<BigNumber>;
+  eraseAllBotPermissions: TypedContractMethod<
+    [creditManager: AddressLike, creditAccount: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-  callStatic: {
-    activeBots(
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string[]>;
-
-    approvedCreditManager(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    botForbiddenStatus(
-      bot: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    botPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    botSpecialPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    eraseAllBotPermissions(
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    getBotStatus(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, boolean, boolean] & {
-        permissions: BigNumber;
+  getBotStatus: TypedContractMethod<
+    [bot: AddressLike, creditManager: AddressLike, creditAccount: AddressLike],
+    [
+      [bigint, boolean, boolean] & {
+        permissions: bigint;
         forbidden: boolean;
         hasSpecialPermissions: boolean;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    setBotForbiddenStatus(
-      bot: PromiseOrValue<string>,
-      forbidden: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setBotForbiddenStatus: TypedContractMethod<
+    [bot: AddressLike, forbidden: boolean],
+    [void],
+    "nonpayable"
+  >;
 
-    setBotPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+  setBotPermissions: TypedContractMethod<
+    [
+      bot: AddressLike,
+      creditManager: AddressLike,
+      creditAccount: AddressLike,
+      permissions: BigNumberish
+    ],
+    [bigint],
+    "nonpayable"
+  >;
 
-    setBotSpecialPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setBotSpecialPermissions: TypedContractMethod<
+    [bot: AddressLike, creditManager: AddressLike, permissions: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setCreditManagerApprovedStatus(
-      creditManager: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setCreditManagerApprovedStatus: TypedContractMethod<
+    [creditManager: AddressLike, approved: boolean],
+    [void],
+    "nonpayable"
+  >;
 
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "activeBots"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, creditAccount: AddressLike],
+    [string[]],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "approvedCreditManager"
+  ): TypedContractMethod<[creditManager: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "botForbiddenStatus"
+  ): TypedContractMethod<[bot: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "botPermissions"
+  ): TypedContractMethod<
+    [bot: AddressLike, creditManager: AddressLike, creditAccount: AddressLike],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "botSpecialPermissions"
+  ): TypedContractMethod<
+    [bot: AddressLike, creditManager: AddressLike],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "eraseAllBotPermissions"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, creditAccount: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "getBotStatus"
+  ): TypedContractMethod<
+    [bot: AddressLike, creditManager: AddressLike, creditAccount: AddressLike],
+    [
+      [bigint, boolean, boolean] & {
+        permissions: bigint;
+        forbidden: boolean;
+        hasSpecialPermissions: boolean;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "setBotForbiddenStatus"
+  ): TypedContractMethod<
+    [bot: AddressLike, forbidden: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setBotPermissions"
+  ): TypedContractMethod<
+    [
+      bot: AddressLike,
+      creditManager: AddressLike,
+      creditAccount: AddressLike,
+      permissions: BigNumberish
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setBotSpecialPermissions"
+  ): TypedContractMethod<
+    [bot: AddressLike, creditManager: AddressLike, permissions: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setCreditManagerApprovedStatus"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, approved: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+
+  getEvent(
+    key: "EraseBot"
+  ): TypedContractEvent<
+    EraseBotEvent.InputTuple,
+    EraseBotEvent.OutputTuple,
+    EraseBotEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetBotForbiddenStatus"
+  ): TypedContractEvent<
+    SetBotForbiddenStatusEvent.InputTuple,
+    SetBotForbiddenStatusEvent.OutputTuple,
+    SetBotForbiddenStatusEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetBotPermissions"
+  ): TypedContractEvent<
+    SetBotPermissionsEvent.InputTuple,
+    SetBotPermissionsEvent.OutputTuple,
+    SetBotPermissionsEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetBotSpecialPermissions"
+  ): TypedContractEvent<
+    SetBotSpecialPermissionsEvent.InputTuple,
+    SetBotSpecialPermissionsEvent.OutputTuple,
+    SetBotSpecialPermissionsEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetCreditManagerApprovedStatus"
+  ): TypedContractEvent<
+    SetCreditManagerApprovedStatusEvent.InputTuple,
+    SetCreditManagerApprovedStatusEvent.OutputTuple,
+    SetCreditManagerApprovedStatusEvent.OutputObject
+  >;
 
   filters: {
-    "EraseBot(address,address,address)"(
-      bot?: PromiseOrValue<string> | null,
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null
-    ): EraseBotEventFilter;
-    EraseBot(
-      bot?: PromiseOrValue<string> | null,
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null
-    ): EraseBotEventFilter;
+    "EraseBot(address,address,address)": TypedContractEvent<
+      EraseBotEvent.InputTuple,
+      EraseBotEvent.OutputTuple,
+      EraseBotEvent.OutputObject
+    >;
+    EraseBot: TypedContractEvent<
+      EraseBotEvent.InputTuple,
+      EraseBotEvent.OutputTuple,
+      EraseBotEvent.OutputObject
+    >;
 
-    "SetBotForbiddenStatus(address,bool)"(
-      bot?: PromiseOrValue<string> | null,
-      forbidden?: null
-    ): SetBotForbiddenStatusEventFilter;
-    SetBotForbiddenStatus(
-      bot?: PromiseOrValue<string> | null,
-      forbidden?: null
-    ): SetBotForbiddenStatusEventFilter;
+    "SetBotForbiddenStatus(address,bool)": TypedContractEvent<
+      SetBotForbiddenStatusEvent.InputTuple,
+      SetBotForbiddenStatusEvent.OutputTuple,
+      SetBotForbiddenStatusEvent.OutputObject
+    >;
+    SetBotForbiddenStatus: TypedContractEvent<
+      SetBotForbiddenStatusEvent.InputTuple,
+      SetBotForbiddenStatusEvent.OutputTuple,
+      SetBotForbiddenStatusEvent.OutputObject
+    >;
 
-    "SetBotPermissions(address,address,address,uint192)"(
-      bot?: PromiseOrValue<string> | null,
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      permissions?: null
-    ): SetBotPermissionsEventFilter;
-    SetBotPermissions(
-      bot?: PromiseOrValue<string> | null,
-      creditManager?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      permissions?: null
-    ): SetBotPermissionsEventFilter;
+    "SetBotPermissions(address,address,address,uint192)": TypedContractEvent<
+      SetBotPermissionsEvent.InputTuple,
+      SetBotPermissionsEvent.OutputTuple,
+      SetBotPermissionsEvent.OutputObject
+    >;
+    SetBotPermissions: TypedContractEvent<
+      SetBotPermissionsEvent.InputTuple,
+      SetBotPermissionsEvent.OutputTuple,
+      SetBotPermissionsEvent.OutputObject
+    >;
 
-    "SetBotSpecialPermissions(address,address,uint192)"(
-      bot?: PromiseOrValue<string> | null,
-      creditManager?: PromiseOrValue<string> | null,
-      permissions?: null
-    ): SetBotSpecialPermissionsEventFilter;
-    SetBotSpecialPermissions(
-      bot?: PromiseOrValue<string> | null,
-      creditManager?: PromiseOrValue<string> | null,
-      permissions?: null
-    ): SetBotSpecialPermissionsEventFilter;
+    "SetBotSpecialPermissions(address,address,uint192)": TypedContractEvent<
+      SetBotSpecialPermissionsEvent.InputTuple,
+      SetBotSpecialPermissionsEvent.OutputTuple,
+      SetBotSpecialPermissionsEvent.OutputObject
+    >;
+    SetBotSpecialPermissions: TypedContractEvent<
+      SetBotSpecialPermissionsEvent.InputTuple,
+      SetBotSpecialPermissionsEvent.OutputTuple,
+      SetBotSpecialPermissionsEvent.OutputObject
+    >;
 
-    "SetCreditManagerApprovedStatus(address,bool)"(
-      creditManager?: PromiseOrValue<string> | null,
-      approved?: null
-    ): SetCreditManagerApprovedStatusEventFilter;
-    SetCreditManagerApprovedStatus(
-      creditManager?: PromiseOrValue<string> | null,
-      approved?: null
-    ): SetCreditManagerApprovedStatusEventFilter;
-  };
-
-  estimateGas: {
-    activeBots(
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    approvedCreditManager(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    botForbiddenStatus(
-      bot: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    botPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    botSpecialPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    eraseAllBotPermissions(
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getBotStatus(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    setBotForbiddenStatus(
-      bot: PromiseOrValue<string>,
-      forbidden: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setBotPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setBotSpecialPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setCreditManagerApprovedStatus(
-      creditManager: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    activeBots(
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    approvedCreditManager(
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    botForbiddenStatus(
-      bot: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    botPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    botSpecialPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    eraseAllBotPermissions(
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getBotStatus(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    setBotForbiddenStatus(
-      bot: PromiseOrValue<string>,
-      forbidden: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setBotPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      creditAccount: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setBotSpecialPermissions(
-      bot: PromiseOrValue<string>,
-      creditManager: PromiseOrValue<string>,
-      permissions: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setCreditManagerApprovedStatus(
-      creditManager: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "SetCreditManagerApprovedStatus(address,bool)": TypedContractEvent<
+      SetCreditManagerApprovedStatusEvent.InputTuple,
+      SetCreditManagerApprovedStatusEvent.OutputTuple,
+      SetCreditManagerApprovedStatusEvent.OutputObject
+    >;
+    SetCreditManagerApprovedStatus: TypedContractEvent<
+      SetCreditManagerApprovedStatusEvent.InputTuple,
+      SetCreditManagerApprovedStatusEvent.OutputTuple,
+      SetCreditManagerApprovedStatusEvent.OutputObject
+    >;
   };
 }

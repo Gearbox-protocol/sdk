@@ -29,8 +29,7 @@ import {
   supportedTokens,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/token";
-import { BigNumberish } from "ethers";
-import { Interface } from "ethers/lib/utils";
+import { BigNumberish, Interface } from "ethers";
 
 import {
   IBaseRewardPool,

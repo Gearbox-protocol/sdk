@@ -3,74 +3,36 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PayableOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export type MultiCallStruct = {
-  target: PromiseOrValue<string>;
-  callData: PromiseOrValue<BytesLike>;
-};
+export type MultiCallStruct = { target: AddressLike; callData: BytesLike };
 
-export type MultiCallStructOutput = [string, string] & {
+export type MultiCallStructOutput = [target: string, callData: string] & {
   target: string;
   callData: string;
 };
 
-export interface ICreditFacadeV2Interface extends utils.Interface {
-  functions: {
-    "addCollateral(address,address,uint256)": FunctionFragment;
-    "approveAccountTransfer(address,bool)": FunctionFragment;
-    "blacklistHelper()": FunctionFragment;
-    "calcCreditAccountHealthFactor(address)": FunctionFragment;
-    "calcTotalValue(address)": FunctionFragment;
-    "closeCreditAccount(address,uint256,(address,bytes)[])": FunctionFragment;
-    "closeCreditAccount(address,uint256,bool,(address,bytes)[])": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "degenNFT()": FunctionFragment;
-    "hasOpenedCreditAccount(address)": FunctionFragment;
-    "isBlacklistableUnderlying()": FunctionFragment;
-    "isTokenAllowed(address)": FunctionFragment;
-    "limits()": FunctionFragment;
-    "liquidateCreditAccount(address,address,uint256,(address,bytes)[])": FunctionFragment;
-    "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])": FunctionFragment;
-    "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])": FunctionFragment;
-    "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])": FunctionFragment;
-    "lossParams()": FunctionFragment;
-    "multicall((address,bytes)[])": FunctionFragment;
-    "openCreditAccount(uint256,address,uint16,uint16)": FunctionFragment;
-    "openCreditAccountMulticall(uint256,address,(address,bytes)[],uint16)": FunctionFragment;
-    "params()": FunctionFragment;
-    "totalDebt()": FunctionFragment;
-    "transferAccountOwnership(address)": FunctionFragment;
-    "transfersAllowed(address,address)": FunctionFragment;
-    "underlying()": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface ICreditFacadeV2Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "addCollateral"
       | "approveAccountTransfer"
       | "blacklistHelper"
@@ -100,17 +62,33 @@ export interface ICreditFacadeV2Interface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "AddCollateral"
+      | "BlacklistHelperSet"
+      | "CloseCreditAccount"
+      | "DecreaseBorrowedAmount"
+      | "IncreaseBorrowedAmount"
+      | "IncurLossOnLiquidation"
+      | "LiquidateCreditAccount"
+      | "LiquidateExpiredCreditAccount"
+      | "MultiCallFinished"
+      | "MultiCallStarted"
+      | "OpenCreditAccount"
+      | "TokenDisabled"
+      | "TokenEnabled"
+      | "TransferAccount"
+      | "TransferAccountAllowed"
+      | "UnderlyingSentToBlacklistHelper"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "addCollateral",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "approveAccountTransfer",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "blacklistHelper",
@@ -118,28 +96,19 @@ export interface ICreditFacadeV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "calcCreditAccountHealthFactor",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "calcTotalValue",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "closeCreditAccount(address,uint256,(address,bytes)[])",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      MultiCallStruct[]
-    ]
+    values: [AddressLike, BigNumberish, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "closeCreditAccount(address,uint256,bool,(address,bytes)[])",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>,
-      MultiCallStruct[]
-    ]
+    values: [AddressLike, BigNumberish, boolean, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManager",
@@ -148,7 +117,7 @@ export interface ICreditFacadeV2Interface extends utils.Interface {
   encodeFunctionData(functionFragment: "degenNFT", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "hasOpenedCreditAccount",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isBlacklistableUnderlying",
@@ -156,46 +125,24 @@ export interface ICreditFacadeV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isTokenAllowed",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "limits", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount(address,address,uint256,(address,bytes)[])",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      MultiCallStruct[]
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>,
-      MultiCallStruct[]
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, boolean, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      MultiCallStruct[]
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>,
-      MultiCallStruct[]
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, boolean, MultiCallStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "lossParams",
@@ -207,31 +154,21 @@ export interface ICreditFacadeV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "openCreditAccount",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, AddressLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "openCreditAccountMulticall",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      MultiCallStruct[],
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, AddressLike, MultiCallStruct[], BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "params", values?: undefined): string;
   encodeFunctionData(functionFragment: "totalDebt", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferAccountOwnership",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "transfersAllowed",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
@@ -323,1179 +260,971 @@ export interface ICreditFacadeV2Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "underlying", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "AddCollateral(address,address,uint256)": EventFragment;
-    "BlacklistHelperSet(address)": EventFragment;
-    "CloseCreditAccount(address,address)": EventFragment;
-    "DecreaseBorrowedAmount(address,uint256)": EventFragment;
-    "IncreaseBorrowedAmount(address,uint256)": EventFragment;
-    "IncurLossOnLiquidation(uint256)": EventFragment;
-    "LiquidateCreditAccount(address,address,address,uint256)": EventFragment;
-    "LiquidateExpiredCreditAccount(address,address,address,uint256)": EventFragment;
-    "MultiCallFinished()": EventFragment;
-    "MultiCallStarted(address)": EventFragment;
-    "OpenCreditAccount(address,address,uint256,uint16)": EventFragment;
-    "TokenDisabled(address,address)": EventFragment;
-    "TokenEnabled(address,address)": EventFragment;
-    "TransferAccount(address,address)": EventFragment;
-    "TransferAccountAllowed(address,address,bool)": EventFragment;
-    "UnderlyingSentToBlacklistHelper(address,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AddCollateral"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "BlacklistHelperSet"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CloseCreditAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "DecreaseBorrowedAmount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "IncreaseBorrowedAmount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "IncurLossOnLiquidation"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidateCreditAccount"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "LiquidateExpiredCreditAccount"
-  ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "MultiCallFinished"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "MultiCallStarted"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OpenCreditAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenDisabled"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenEnabled"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TransferAccount"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TransferAccountAllowed"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "UnderlyingSentToBlacklistHelper"
-  ): EventFragment;
 }
 
-export interface AddCollateralEventObject {
-  onBehalfOf: string;
-  token: string;
-  value: BigNumber;
+export namespace AddCollateralEvent {
+  export type InputTuple = [
+    onBehalfOf: AddressLike,
+    token: AddressLike,
+    value: BigNumberish
+  ];
+  export type OutputTuple = [onBehalfOf: string, token: string, value: bigint];
+  export interface OutputObject {
+    onBehalfOf: string;
+    token: string;
+    value: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddCollateralEvent = TypedEvent<
-  [string, string, BigNumber],
-  AddCollateralEventObject
->;
 
-export type AddCollateralEventFilter = TypedEventFilter<AddCollateralEvent>;
-
-export interface BlacklistHelperSetEventObject {
-  blacklistHelper: string;
+export namespace BlacklistHelperSetEvent {
+  export type InputTuple = [blacklistHelper: AddressLike];
+  export type OutputTuple = [blacklistHelper: string];
+  export interface OutputObject {
+    blacklistHelper: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type BlacklistHelperSetEvent = TypedEvent<
-  [string],
-  BlacklistHelperSetEventObject
->;
 
-export type BlacklistHelperSetEventFilter =
-  TypedEventFilter<BlacklistHelperSetEvent>;
-
-export interface CloseCreditAccountEventObject {
-  borrower: string;
-  to: string;
+export namespace CloseCreditAccountEvent {
+  export type InputTuple = [borrower: AddressLike, to: AddressLike];
+  export type OutputTuple = [borrower: string, to: string];
+  export interface OutputObject {
+    borrower: string;
+    to: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type CloseCreditAccountEvent = TypedEvent<
-  [string, string],
-  CloseCreditAccountEventObject
->;
 
-export type CloseCreditAccountEventFilter =
-  TypedEventFilter<CloseCreditAccountEvent>;
-
-export interface DecreaseBorrowedAmountEventObject {
-  borrower: string;
-  amount: BigNumber;
+export namespace DecreaseBorrowedAmountEvent {
+  export type InputTuple = [borrower: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [borrower: string, amount: bigint];
+  export interface OutputObject {
+    borrower: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type DecreaseBorrowedAmountEvent = TypedEvent<
-  [string, BigNumber],
-  DecreaseBorrowedAmountEventObject
->;
 
-export type DecreaseBorrowedAmountEventFilter =
-  TypedEventFilter<DecreaseBorrowedAmountEvent>;
-
-export interface IncreaseBorrowedAmountEventObject {
-  borrower: string;
-  amount: BigNumber;
+export namespace IncreaseBorrowedAmountEvent {
+  export type InputTuple = [borrower: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [borrower: string, amount: bigint];
+  export interface OutputObject {
+    borrower: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type IncreaseBorrowedAmountEvent = TypedEvent<
-  [string, BigNumber],
-  IncreaseBorrowedAmountEventObject
->;
 
-export type IncreaseBorrowedAmountEventFilter =
-  TypedEventFilter<IncreaseBorrowedAmountEvent>;
-
-export interface IncurLossOnLiquidationEventObject {
-  loss: BigNumber;
+export namespace IncurLossOnLiquidationEvent {
+  export type InputTuple = [loss: BigNumberish];
+  export type OutputTuple = [loss: bigint];
+  export interface OutputObject {
+    loss: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type IncurLossOnLiquidationEvent = TypedEvent<
-  [BigNumber],
-  IncurLossOnLiquidationEventObject
->;
 
-export type IncurLossOnLiquidationEventFilter =
-  TypedEventFilter<IncurLossOnLiquidationEvent>;
-
-export interface LiquidateCreditAccountEventObject {
-  borrower: string;
-  liquidator: string;
-  to: string;
-  remainingFunds: BigNumber;
+export namespace LiquidateCreditAccountEvent {
+  export type InputTuple = [
+    borrower: AddressLike,
+    liquidator: AddressLike,
+    to: AddressLike,
+    remainingFunds: BigNumberish
+  ];
+  export type OutputTuple = [
+    borrower: string,
+    liquidator: string,
+    to: string,
+    remainingFunds: bigint
+  ];
+  export interface OutputObject {
+    borrower: string;
+    liquidator: string;
+    to: string;
+    remainingFunds: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type LiquidateCreditAccountEvent = TypedEvent<
-  [string, string, string, BigNumber],
-  LiquidateCreditAccountEventObject
->;
 
-export type LiquidateCreditAccountEventFilter =
-  TypedEventFilter<LiquidateCreditAccountEvent>;
-
-export interface LiquidateExpiredCreditAccountEventObject {
-  borrower: string;
-  liquidator: string;
-  to: string;
-  remainingFunds: BigNumber;
+export namespace LiquidateExpiredCreditAccountEvent {
+  export type InputTuple = [
+    borrower: AddressLike,
+    liquidator: AddressLike,
+    to: AddressLike,
+    remainingFunds: BigNumberish
+  ];
+  export type OutputTuple = [
+    borrower: string,
+    liquidator: string,
+    to: string,
+    remainingFunds: bigint
+  ];
+  export interface OutputObject {
+    borrower: string;
+    liquidator: string;
+    to: string;
+    remainingFunds: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type LiquidateExpiredCreditAccountEvent = TypedEvent<
-  [string, string, string, BigNumber],
-  LiquidateExpiredCreditAccountEventObject
->;
 
-export type LiquidateExpiredCreditAccountEventFilter =
-  TypedEventFilter<LiquidateExpiredCreditAccountEvent>;
-
-export interface MultiCallFinishedEventObject {}
-export type MultiCallFinishedEvent = TypedEvent<
-  [],
-  MultiCallFinishedEventObject
->;
-
-export type MultiCallFinishedEventFilter =
-  TypedEventFilter<MultiCallFinishedEvent>;
-
-export interface MultiCallStartedEventObject {
-  borrower: string;
+export namespace MultiCallFinishedEvent {
+  export type InputTuple = [];
+  export type OutputTuple = [];
+  export interface OutputObject {}
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type MultiCallStartedEvent = TypedEvent<
-  [string],
-  MultiCallStartedEventObject
->;
 
-export type MultiCallStartedEventFilter =
-  TypedEventFilter<MultiCallStartedEvent>;
-
-export interface OpenCreditAccountEventObject {
-  onBehalfOf: string;
-  creditAccount: string;
-  borrowAmount: BigNumber;
-  referralCode: number;
+export namespace MultiCallStartedEvent {
+  export type InputTuple = [borrower: AddressLike];
+  export type OutputTuple = [borrower: string];
+  export interface OutputObject {
+    borrower: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type OpenCreditAccountEvent = TypedEvent<
-  [string, string, BigNumber, number],
-  OpenCreditAccountEventObject
->;
 
-export type OpenCreditAccountEventFilter =
-  TypedEventFilter<OpenCreditAccountEvent>;
-
-export interface TokenDisabledEventObject {
-  borrower: string;
-  token: string;
+export namespace OpenCreditAccountEvent {
+  export type InputTuple = [
+    onBehalfOf: AddressLike,
+    creditAccount: AddressLike,
+    borrowAmount: BigNumberish,
+    referralCode: BigNumberish
+  ];
+  export type OutputTuple = [
+    onBehalfOf: string,
+    creditAccount: string,
+    borrowAmount: bigint,
+    referralCode: bigint
+  ];
+  export interface OutputObject {
+    onBehalfOf: string;
+    creditAccount: string;
+    borrowAmount: bigint;
+    referralCode: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TokenDisabledEvent = TypedEvent<
-  [string, string],
-  TokenDisabledEventObject
->;
 
-export type TokenDisabledEventFilter = TypedEventFilter<TokenDisabledEvent>;
-
-export interface TokenEnabledEventObject {
-  borrower: string;
-  token: string;
+export namespace TokenDisabledEvent {
+  export type InputTuple = [borrower: AddressLike, token: AddressLike];
+  export type OutputTuple = [borrower: string, token: string];
+  export interface OutputObject {
+    borrower: string;
+    token: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TokenEnabledEvent = TypedEvent<
-  [string, string],
-  TokenEnabledEventObject
->;
 
-export type TokenEnabledEventFilter = TypedEventFilter<TokenEnabledEvent>;
-
-export interface TransferAccountEventObject {
-  oldOwner: string;
-  newOwner: string;
+export namespace TokenEnabledEvent {
+  export type InputTuple = [borrower: AddressLike, token: AddressLike];
+  export type OutputTuple = [borrower: string, token: string];
+  export interface OutputObject {
+    borrower: string;
+    token: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TransferAccountEvent = TypedEvent<
-  [string, string],
-  TransferAccountEventObject
->;
 
-export type TransferAccountEventFilter = TypedEventFilter<TransferAccountEvent>;
-
-export interface TransferAccountAllowedEventObject {
-  from: string;
-  to: string;
-  state: boolean;
+export namespace TransferAccountEvent {
+  export type InputTuple = [oldOwner: AddressLike, newOwner: AddressLike];
+  export type OutputTuple = [oldOwner: string, newOwner: string];
+  export interface OutputObject {
+    oldOwner: string;
+    newOwner: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TransferAccountAllowedEvent = TypedEvent<
-  [string, string, boolean],
-  TransferAccountAllowedEventObject
->;
 
-export type TransferAccountAllowedEventFilter =
-  TypedEventFilter<TransferAccountAllowedEvent>;
-
-export interface UnderlyingSentToBlacklistHelperEventObject {
-  borrower: string;
-  amount: BigNumber;
+export namespace TransferAccountAllowedEvent {
+  export type InputTuple = [from: AddressLike, to: AddressLike, state: boolean];
+  export type OutputTuple = [from: string, to: string, state: boolean];
+  export interface OutputObject {
+    from: string;
+    to: string;
+    state: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type UnderlyingSentToBlacklistHelperEvent = TypedEvent<
-  [string, BigNumber],
-  UnderlyingSentToBlacklistHelperEventObject
->;
 
-export type UnderlyingSentToBlacklistHelperEventFilter =
-  TypedEventFilter<UnderlyingSentToBlacklistHelperEvent>;
+export namespace UnderlyingSentToBlacklistHelperEvent {
+  export type InputTuple = [borrower: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [borrower: string, amount: bigint];
+  export interface OutputObject {
+    borrower: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
 
 export interface ICreditFacadeV2 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ICreditFacadeV2;
+  waitForDeployment(): Promise<this>;
 
   interface: ICreditFacadeV2Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    addCollateral(
-      onBehalfOf: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    approveAccountTransfer(
-      from: PromiseOrValue<string>,
-      state: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    blacklistHelper(overrides?: CallOverrides): Promise<[string]>;
+  addCollateral: TypedContractMethod<
+    [onBehalfOf: AddressLike, token: AddressLike, amount: BigNumberish],
+    [void],
+    "payable"
+  >;
 
-    calcCreditAccountHealthFactor(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { hf: BigNumber }>;
+  approveAccountTransfer: TypedContractMethod<
+    [from: AddressLike, state: boolean],
+    [void],
+    "nonpayable"
+  >;
 
-    calcTotalValue(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber] & { total: BigNumber; twv: BigNumber }>;
+  blacklistHelper: TypedContractMethod<[], [string], "view">;
 
-    "closeCreditAccount(address,uint256,(address,bytes)[])"(
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  calcCreditAccountHealthFactor: TypedContractMethod<
+    [creditAccount: AddressLike],
+    [bigint],
+    "view"
+  >;
 
-    "closeCreditAccount(address,uint256,bool,(address,bytes)[])"(
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  calcTotalValue: TypedContractMethod<
+    [creditAccount: AddressLike],
+    [[bigint, bigint] & { total: bigint; twv: bigint }],
+    "view"
+  >;
 
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
+  "closeCreditAccount(address,uint256,(address,bytes)[])": TypedContractMethod<
+    [to: AddressLike, skipTokenMask: BigNumberish, calls: MultiCallStruct[]],
+    [void],
+    "payable"
+  >;
 
-    degenNFT(overrides?: CallOverrides): Promise<[string]>;
+  "closeCreditAccount(address,uint256,bool,(address,bytes)[])": TypedContractMethod<
+    [
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
 
-    hasOpenedCreditAccount(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  creditManager: TypedContractMethod<[], [string], "view">;
 
-    isBlacklistableUnderlying(overrides?: CallOverrides): Promise<[boolean]>;
+  degenNFT: TypedContractMethod<[], [string], "view">;
 
-    isTokenAllowed(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+  hasOpenedCreditAccount: TypedContractMethod<
+    [borrower: AddressLike],
+    [boolean],
+    "view"
+  >;
 
-    limits(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        minBorrowedAmount: BigNumber;
-        maxBorrowedAmount: BigNumber;
+  isBlacklistableUnderlying: TypedContractMethod<[], [boolean], "view">;
+
+  isTokenAllowed: TypedContractMethod<[token: AddressLike], [boolean], "view">;
+
+  limits: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint] & {
+        minBorrowedAmount: bigint;
+        maxBorrowedAmount: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    "liquidateCreditAccount(address,address,uint256,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  "liquidateCreditAccount(address,address,uint256,(address,bytes)[])": TypedContractMethod<
+    [
+      borrower: AddressLike,
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
 
-    "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])": TypedContractMethod<
+    [
+      borrower: AddressLike,
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
 
-    "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])": TypedContractMethod<
+    [
+      borrower: AddressLike,
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
 
-    "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])": TypedContractMethod<
+    [
+      borrower: AddressLike,
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
 
-    lossParams(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        currentCumulativeLoss: BigNumber;
-        maxCumulativeLoss: BigNumber;
+  lossParams: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint] & {
+        currentCumulativeLoss: bigint;
+        maxCumulativeLoss: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    multicall(
+  multicall: TypedContractMethod<[calls: MultiCallStruct[]], [void], "payable">;
+
+  openCreditAccount: TypedContractMethod<
+    [
+      amount: BigNumberish,
+      onBehalfOf: AddressLike,
+      leverageFactor: BigNumberish,
+      referralCode: BigNumberish
+    ],
+    [void],
+    "payable"
+  >;
+
+  openCreditAccountMulticall: TypedContractMethod<
+    [
+      borrowedAmount: BigNumberish,
+      onBehalfOf: AddressLike,
       calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+      referralCode: BigNumberish
+    ],
+    [void],
+    "payable"
+  >;
 
-    openCreditAccount(
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      leverageFactor: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    openCreditAccountMulticall(
-      borrowedAmount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    params(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, boolean, number, number] & {
-        maxBorrowedAmountPerBlock: BigNumber;
+  params: TypedContractMethod<
+    [],
+    [
+      [bigint, boolean, bigint, bigint] & {
+        maxBorrowedAmountPerBlock: bigint;
         isIncreaseDebtForbidden: boolean;
-        expirationDate: number;
-        emergencyLiquidationDiscount: number;
+        expirationDate: bigint;
+        emergencyLiquidationDiscount: bigint;
       }
-    >;
-
-    totalDebt(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        currentTotalDebt: BigNumber;
-        totalDebtLimit: BigNumber;
-      }
-    >;
-
-    transferAccountOwnership(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    transfersAllowed(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    underlying(overrides?: CallOverrides): Promise<[string]>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  addCollateral(
-    onBehalfOf: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  approveAccountTransfer(
-    from: PromiseOrValue<string>,
-    state: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  blacklistHelper(overrides?: CallOverrides): Promise<string>;
-
-  calcCreditAccountHealthFactor(
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  calcTotalValue(
-    creditAccount: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber] & { total: BigNumber; twv: BigNumber }>;
-
-  "closeCreditAccount(address,uint256,(address,bytes)[])"(
-    to: PromiseOrValue<string>,
-    skipTokenMask: PromiseOrValue<BigNumberish>,
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "closeCreditAccount(address,uint256,bool,(address,bytes)[])"(
-    to: PromiseOrValue<string>,
-    skipTokenMask: PromiseOrValue<BigNumberish>,
-    convertWETH: PromiseOrValue<boolean>,
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  creditManager(overrides?: CallOverrides): Promise<string>;
-
-  degenNFT(overrides?: CallOverrides): Promise<string>;
-
-  hasOpenedCreditAccount(
-    borrower: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isBlacklistableUnderlying(overrides?: CallOverrides): Promise<boolean>;
-
-  isTokenAllowed(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  limits(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & {
-      minBorrowedAmount: BigNumber;
-      maxBorrowedAmount: BigNumber;
-    }
+    ],
+    "view"
   >;
 
-  "liquidateCreditAccount(address,address,uint256,(address,bytes)[])"(
-    borrower: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    skipTokenMask: PromiseOrValue<BigNumberish>,
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-    borrower: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    skipTokenMask: PromiseOrValue<BigNumberish>,
-    convertWETH: PromiseOrValue<boolean>,
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])"(
-    borrower: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    skipTokenMask: PromiseOrValue<BigNumberish>,
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-    borrower: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    skipTokenMask: PromiseOrValue<BigNumberish>,
-    convertWETH: PromiseOrValue<boolean>,
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  lossParams(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & {
-      currentCumulativeLoss: BigNumber;
-      maxCumulativeLoss: BigNumber;
-    }
+  totalDebt: TypedContractMethod<
+    [],
+    [[bigint, bigint] & { currentTotalDebt: bigint; totalDebtLimit: bigint }],
+    "view"
   >;
 
-  multicall(
-    calls: MultiCallStruct[],
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  openCreditAccount(
-    amount: PromiseOrValue<BigNumberish>,
-    onBehalfOf: PromiseOrValue<string>,
-    leverageFactor: PromiseOrValue<BigNumberish>,
-    referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  openCreditAccountMulticall(
-    borrowedAmount: PromiseOrValue<BigNumberish>,
-    onBehalfOf: PromiseOrValue<string>,
-    calls: MultiCallStruct[],
-    referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  params(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, boolean, number, number] & {
-      maxBorrowedAmountPerBlock: BigNumber;
-      isIncreaseDebtForbidden: boolean;
-      expirationDate: number;
-      emergencyLiquidationDiscount: number;
-    }
+  transferAccountOwnership: TypedContractMethod<
+    [to: AddressLike],
+    [void],
+    "nonpayable"
   >;
 
-  totalDebt(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & {
-      currentTotalDebt: BigNumber;
-      totalDebtLimit: BigNumber;
-    }
+  transfersAllowed: TypedContractMethod<
+    [from: AddressLike, to: AddressLike],
+    [boolean],
+    "view"
   >;
 
-  transferAccountOwnership(
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  underlying: TypedContractMethod<[], [string], "view">;
 
-  transfersAllowed(
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  underlying(overrides?: CallOverrides): Promise<string>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    addCollateral(
-      onBehalfOf: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    approveAccountTransfer(
-      from: PromiseOrValue<string>,
-      state: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    blacklistHelper(overrides?: CallOverrides): Promise<string>;
-
-    calcCreditAccountHealthFactor(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calcTotalValue(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber] & { total: BigNumber; twv: BigNumber }>;
-
-    "closeCreditAccount(address,uint256,(address,bytes)[])"(
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "closeCreditAccount(address,uint256,bool,(address,bytes)[])"(
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    degenNFT(overrides?: CallOverrides): Promise<string>;
-
-    hasOpenedCreditAccount(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isBlacklistableUnderlying(overrides?: CallOverrides): Promise<boolean>;
-
-    isTokenAllowed(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    limits(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        minBorrowedAmount: BigNumber;
-        maxBorrowedAmount: BigNumber;
+  getFunction(
+    nameOrSignature: "addCollateral"
+  ): TypedContractMethod<
+    [onBehalfOf: AddressLike, token: AddressLike, amount: BigNumberish],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "approveAccountTransfer"
+  ): TypedContractMethod<
+    [from: AddressLike, state: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "blacklistHelper"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "calcCreditAccountHealthFactor"
+  ): TypedContractMethod<[creditAccount: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "calcTotalValue"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike],
+    [[bigint, bigint] & { total: bigint; twv: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "closeCreditAccount(address,uint256,(address,bytes)[])"
+  ): TypedContractMethod<
+    [to: AddressLike, skipTokenMask: BigNumberish, calls: MultiCallStruct[]],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "closeCreditAccount(address,uint256,bool,(address,bytes)[])"
+  ): TypedContractMethod<
+    [
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "degenNFT"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "hasOpenedCreditAccount"
+  ): TypedContractMethod<[borrower: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "isBlacklistableUnderlying"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "isTokenAllowed"
+  ): TypedContractMethod<[token: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "limits"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint] & {
+        minBorrowedAmount: bigint;
+        maxBorrowedAmount: bigint;
       }
-    >;
-
-    "liquidateCreditAccount(address,address,uint256,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    lossParams(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        currentCumulativeLoss: BigNumber;
-        maxCumulativeLoss: BigNumber;
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "liquidateCreditAccount(address,address,uint256,(address,bytes)[])"
+  ): TypedContractMethod<
+    [
+      borrower: AddressLike,
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])"
+  ): TypedContractMethod<
+    [
+      borrower: AddressLike,
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])"
+  ): TypedContractMethod<
+    [
+      borrower: AddressLike,
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])"
+  ): TypedContractMethod<
+    [
+      borrower: AddressLike,
+      to: AddressLike,
+      skipTokenMask: BigNumberish,
+      convertWETH: boolean,
+      calls: MultiCallStruct[]
+    ],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "lossParams"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint] & {
+        currentCumulativeLoss: bigint;
+        maxCumulativeLoss: bigint;
       }
-    >;
-
-    multicall(
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "multicall"
+  ): TypedContractMethod<[calls: MultiCallStruct[]], [void], "payable">;
+  getFunction(
+    nameOrSignature: "openCreditAccount"
+  ): TypedContractMethod<
+    [
+      amount: BigNumberish,
+      onBehalfOf: AddressLike,
+      leverageFactor: BigNumberish,
+      referralCode: BigNumberish
+    ],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "openCreditAccountMulticall"
+  ): TypedContractMethod<
+    [
+      borrowedAmount: BigNumberish,
+      onBehalfOf: AddressLike,
       calls: MultiCallStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    openCreditAccount(
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      leverageFactor: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    openCreditAccountMulticall(
-      borrowedAmount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    params(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, boolean, number, number] & {
-        maxBorrowedAmountPerBlock: BigNumber;
+      referralCode: BigNumberish
+    ],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "params"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, boolean, bigint, bigint] & {
+        maxBorrowedAmountPerBlock: bigint;
         isIncreaseDebtForbidden: boolean;
-        expirationDate: number;
-        emergencyLiquidationDiscount: number;
+        expirationDate: bigint;
+        emergencyLiquidationDiscount: bigint;
       }
-    >;
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "totalDebt"
+  ): TypedContractMethod<
+    [],
+    [[bigint, bigint] & { currentTotalDebt: bigint; totalDebtLimit: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "transferAccountOwnership"
+  ): TypedContractMethod<[to: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "transfersAllowed"
+  ): TypedContractMethod<
+    [from: AddressLike, to: AddressLike],
+    [boolean],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "underlying"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
-    totalDebt(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        currentTotalDebt: BigNumber;
-        totalDebtLimit: BigNumber;
-      }
-    >;
-
-    transferAccountOwnership(
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    transfersAllowed(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    underlying(overrides?: CallOverrides): Promise<string>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getEvent(
+    key: "AddCollateral"
+  ): TypedContractEvent<
+    AddCollateralEvent.InputTuple,
+    AddCollateralEvent.OutputTuple,
+    AddCollateralEvent.OutputObject
+  >;
+  getEvent(
+    key: "BlacklistHelperSet"
+  ): TypedContractEvent<
+    BlacklistHelperSetEvent.InputTuple,
+    BlacklistHelperSetEvent.OutputTuple,
+    BlacklistHelperSetEvent.OutputObject
+  >;
+  getEvent(
+    key: "CloseCreditAccount"
+  ): TypedContractEvent<
+    CloseCreditAccountEvent.InputTuple,
+    CloseCreditAccountEvent.OutputTuple,
+    CloseCreditAccountEvent.OutputObject
+  >;
+  getEvent(
+    key: "DecreaseBorrowedAmount"
+  ): TypedContractEvent<
+    DecreaseBorrowedAmountEvent.InputTuple,
+    DecreaseBorrowedAmountEvent.OutputTuple,
+    DecreaseBorrowedAmountEvent.OutputObject
+  >;
+  getEvent(
+    key: "IncreaseBorrowedAmount"
+  ): TypedContractEvent<
+    IncreaseBorrowedAmountEvent.InputTuple,
+    IncreaseBorrowedAmountEvent.OutputTuple,
+    IncreaseBorrowedAmountEvent.OutputObject
+  >;
+  getEvent(
+    key: "IncurLossOnLiquidation"
+  ): TypedContractEvent<
+    IncurLossOnLiquidationEvent.InputTuple,
+    IncurLossOnLiquidationEvent.OutputTuple,
+    IncurLossOnLiquidationEvent.OutputObject
+  >;
+  getEvent(
+    key: "LiquidateCreditAccount"
+  ): TypedContractEvent<
+    LiquidateCreditAccountEvent.InputTuple,
+    LiquidateCreditAccountEvent.OutputTuple,
+    LiquidateCreditAccountEvent.OutputObject
+  >;
+  getEvent(
+    key: "LiquidateExpiredCreditAccount"
+  ): TypedContractEvent<
+    LiquidateExpiredCreditAccountEvent.InputTuple,
+    LiquidateExpiredCreditAccountEvent.OutputTuple,
+    LiquidateExpiredCreditAccountEvent.OutputObject
+  >;
+  getEvent(
+    key: "MultiCallFinished"
+  ): TypedContractEvent<
+    MultiCallFinishedEvent.InputTuple,
+    MultiCallFinishedEvent.OutputTuple,
+    MultiCallFinishedEvent.OutputObject
+  >;
+  getEvent(
+    key: "MultiCallStarted"
+  ): TypedContractEvent<
+    MultiCallStartedEvent.InputTuple,
+    MultiCallStartedEvent.OutputTuple,
+    MultiCallStartedEvent.OutputObject
+  >;
+  getEvent(
+    key: "OpenCreditAccount"
+  ): TypedContractEvent<
+    OpenCreditAccountEvent.InputTuple,
+    OpenCreditAccountEvent.OutputTuple,
+    OpenCreditAccountEvent.OutputObject
+  >;
+  getEvent(
+    key: "TokenDisabled"
+  ): TypedContractEvent<
+    TokenDisabledEvent.InputTuple,
+    TokenDisabledEvent.OutputTuple,
+    TokenDisabledEvent.OutputObject
+  >;
+  getEvent(
+    key: "TokenEnabled"
+  ): TypedContractEvent<
+    TokenEnabledEvent.InputTuple,
+    TokenEnabledEvent.OutputTuple,
+    TokenEnabledEvent.OutputObject
+  >;
+  getEvent(
+    key: "TransferAccount"
+  ): TypedContractEvent<
+    TransferAccountEvent.InputTuple,
+    TransferAccountEvent.OutputTuple,
+    TransferAccountEvent.OutputObject
+  >;
+  getEvent(
+    key: "TransferAccountAllowed"
+  ): TypedContractEvent<
+    TransferAccountAllowedEvent.InputTuple,
+    TransferAccountAllowedEvent.OutputTuple,
+    TransferAccountAllowedEvent.OutputObject
+  >;
+  getEvent(
+    key: "UnderlyingSentToBlacklistHelper"
+  ): TypedContractEvent<
+    UnderlyingSentToBlacklistHelperEvent.InputTuple,
+    UnderlyingSentToBlacklistHelperEvent.OutputTuple,
+    UnderlyingSentToBlacklistHelperEvent.OutputObject
+  >;
 
   filters: {
-    "AddCollateral(address,address,uint256)"(
-      onBehalfOf?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      value?: null
-    ): AddCollateralEventFilter;
-    AddCollateral(
-      onBehalfOf?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      value?: null
-    ): AddCollateralEventFilter;
-
-    "BlacklistHelperSet(address)"(
-      blacklistHelper?: PromiseOrValue<string> | null
-    ): BlacklistHelperSetEventFilter;
-    BlacklistHelperSet(
-      blacklistHelper?: PromiseOrValue<string> | null
-    ): BlacklistHelperSetEventFilter;
-
-    "CloseCreditAccount(address,address)"(
-      borrower?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
-    ): CloseCreditAccountEventFilter;
-    CloseCreditAccount(
-      borrower?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null
-    ): CloseCreditAccountEventFilter;
-
-    "DecreaseBorrowedAmount(address,uint256)"(
-      borrower?: PromiseOrValue<string> | null,
-      amount?: null
-    ): DecreaseBorrowedAmountEventFilter;
-    DecreaseBorrowedAmount(
-      borrower?: PromiseOrValue<string> | null,
-      amount?: null
-    ): DecreaseBorrowedAmountEventFilter;
-
-    "IncreaseBorrowedAmount(address,uint256)"(
-      borrower?: PromiseOrValue<string> | null,
-      amount?: null
-    ): IncreaseBorrowedAmountEventFilter;
-    IncreaseBorrowedAmount(
-      borrower?: PromiseOrValue<string> | null,
-      amount?: null
-    ): IncreaseBorrowedAmountEventFilter;
-
-    "IncurLossOnLiquidation(uint256)"(
-      loss?: null
-    ): IncurLossOnLiquidationEventFilter;
-    IncurLossOnLiquidation(loss?: null): IncurLossOnLiquidationEventFilter;
-
-    "LiquidateCreditAccount(address,address,address,uint256)"(
-      borrower?: PromiseOrValue<string> | null,
-      liquidator?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      remainingFunds?: null
-    ): LiquidateCreditAccountEventFilter;
-    LiquidateCreditAccount(
-      borrower?: PromiseOrValue<string> | null,
-      liquidator?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      remainingFunds?: null
-    ): LiquidateCreditAccountEventFilter;
-
-    "LiquidateExpiredCreditAccount(address,address,address,uint256)"(
-      borrower?: PromiseOrValue<string> | null,
-      liquidator?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      remainingFunds?: null
-    ): LiquidateExpiredCreditAccountEventFilter;
-    LiquidateExpiredCreditAccount(
-      borrower?: PromiseOrValue<string> | null,
-      liquidator?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      remainingFunds?: null
-    ): LiquidateExpiredCreditAccountEventFilter;
-
-    "MultiCallFinished()"(): MultiCallFinishedEventFilter;
-    MultiCallFinished(): MultiCallFinishedEventFilter;
-
-    "MultiCallStarted(address)"(
-      borrower?: PromiseOrValue<string> | null
-    ): MultiCallStartedEventFilter;
-    MultiCallStarted(
-      borrower?: PromiseOrValue<string> | null
-    ): MultiCallStartedEventFilter;
-
-    "OpenCreditAccount(address,address,uint256,uint16)"(
-      onBehalfOf?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      borrowAmount?: null,
-      referralCode?: null
-    ): OpenCreditAccountEventFilter;
-    OpenCreditAccount(
-      onBehalfOf?: PromiseOrValue<string> | null,
-      creditAccount?: PromiseOrValue<string> | null,
-      borrowAmount?: null,
-      referralCode?: null
-    ): OpenCreditAccountEventFilter;
-
-    "TokenDisabled(address,address)"(
-      borrower?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null
-    ): TokenDisabledEventFilter;
-    TokenDisabled(
-      borrower?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null
-    ): TokenDisabledEventFilter;
-
-    "TokenEnabled(address,address)"(
-      borrower?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null
-    ): TokenEnabledEventFilter;
-    TokenEnabled(
-      borrower?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null
-    ): TokenEnabledEventFilter;
-
-    "TransferAccount(address,address)"(
-      oldOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
-    ): TransferAccountEventFilter;
-    TransferAccount(
-      oldOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
-    ): TransferAccountEventFilter;
-
-    "TransferAccountAllowed(address,address,bool)"(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      state?: null
-    ): TransferAccountAllowedEventFilter;
-    TransferAccountAllowed(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      state?: null
-    ): TransferAccountAllowedEventFilter;
-
-    "UnderlyingSentToBlacklistHelper(address,uint256)"(
-      borrower?: PromiseOrValue<string> | null,
-      amount?: null
-    ): UnderlyingSentToBlacklistHelperEventFilter;
-    UnderlyingSentToBlacklistHelper(
-      borrower?: PromiseOrValue<string> | null,
-      amount?: null
-    ): UnderlyingSentToBlacklistHelperEventFilter;
-  };
-
-  estimateGas: {
-    addCollateral(
-      onBehalfOf: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    approveAccountTransfer(
-      from: PromiseOrValue<string>,
-      state: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    blacklistHelper(overrides?: CallOverrides): Promise<BigNumber>;
-
-    calcCreditAccountHealthFactor(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calcTotalValue(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "closeCreditAccount(address,uint256,(address,bytes)[])"(
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "closeCreditAccount(address,uint256,bool,(address,bytes)[])"(
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    degenNFT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    hasOpenedCreditAccount(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isBlacklistableUnderlying(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isTokenAllowed(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    limits(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "liquidateCreditAccount(address,address,uint256,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    lossParams(overrides?: CallOverrides): Promise<BigNumber>;
-
-    multicall(
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    openCreditAccount(
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      leverageFactor: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    openCreditAccountMulticall(
-      borrowedAmount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    params(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalDebt(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transferAccountOwnership(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    transfersAllowed(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    underlying(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    addCollateral(
-      onBehalfOf: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    approveAccountTransfer(
-      from: PromiseOrValue<string>,
-      state: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    blacklistHelper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    calcCreditAccountHealthFactor(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    calcTotalValue(
-      creditAccount: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "closeCreditAccount(address,uint256,(address,bytes)[])"(
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "closeCreditAccount(address,uint256,bool,(address,bytes)[])"(
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    degenNFT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    hasOpenedCreditAccount(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isBlacklistableUnderlying(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isTokenAllowed(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    limits(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "liquidateCreditAccount(address,address,uint256,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "liquidateCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "liquidateExpiredCreditAccount(address,address,uint256,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "liquidateExpiredCreditAccount(address,address,uint256,bool,(address,bytes)[])"(
-      borrower: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      skipTokenMask: PromiseOrValue<BigNumberish>,
-      convertWETH: PromiseOrValue<boolean>,
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    lossParams(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    multicall(
-      calls: MultiCallStruct[],
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    openCreditAccount(
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      leverageFactor: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    openCreditAccountMulticall(
-      borrowedAmount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      calls: MultiCallStruct[],
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    params(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalDebt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transferAccountOwnership(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transfersAllowed(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "AddCollateral(address,address,uint256)": TypedContractEvent<
+      AddCollateralEvent.InputTuple,
+      AddCollateralEvent.OutputTuple,
+      AddCollateralEvent.OutputObject
+    >;
+    AddCollateral: TypedContractEvent<
+      AddCollateralEvent.InputTuple,
+      AddCollateralEvent.OutputTuple,
+      AddCollateralEvent.OutputObject
+    >;
+
+    "BlacklistHelperSet(address)": TypedContractEvent<
+      BlacklistHelperSetEvent.InputTuple,
+      BlacklistHelperSetEvent.OutputTuple,
+      BlacklistHelperSetEvent.OutputObject
+    >;
+    BlacklistHelperSet: TypedContractEvent<
+      BlacklistHelperSetEvent.InputTuple,
+      BlacklistHelperSetEvent.OutputTuple,
+      BlacklistHelperSetEvent.OutputObject
+    >;
+
+    "CloseCreditAccount(address,address)": TypedContractEvent<
+      CloseCreditAccountEvent.InputTuple,
+      CloseCreditAccountEvent.OutputTuple,
+      CloseCreditAccountEvent.OutputObject
+    >;
+    CloseCreditAccount: TypedContractEvent<
+      CloseCreditAccountEvent.InputTuple,
+      CloseCreditAccountEvent.OutputTuple,
+      CloseCreditAccountEvent.OutputObject
+    >;
+
+    "DecreaseBorrowedAmount(address,uint256)": TypedContractEvent<
+      DecreaseBorrowedAmountEvent.InputTuple,
+      DecreaseBorrowedAmountEvent.OutputTuple,
+      DecreaseBorrowedAmountEvent.OutputObject
+    >;
+    DecreaseBorrowedAmount: TypedContractEvent<
+      DecreaseBorrowedAmountEvent.InputTuple,
+      DecreaseBorrowedAmountEvent.OutputTuple,
+      DecreaseBorrowedAmountEvent.OutputObject
+    >;
+
+    "IncreaseBorrowedAmount(address,uint256)": TypedContractEvent<
+      IncreaseBorrowedAmountEvent.InputTuple,
+      IncreaseBorrowedAmountEvent.OutputTuple,
+      IncreaseBorrowedAmountEvent.OutputObject
+    >;
+    IncreaseBorrowedAmount: TypedContractEvent<
+      IncreaseBorrowedAmountEvent.InputTuple,
+      IncreaseBorrowedAmountEvent.OutputTuple,
+      IncreaseBorrowedAmountEvent.OutputObject
+    >;
+
+    "IncurLossOnLiquidation(uint256)": TypedContractEvent<
+      IncurLossOnLiquidationEvent.InputTuple,
+      IncurLossOnLiquidationEvent.OutputTuple,
+      IncurLossOnLiquidationEvent.OutputObject
+    >;
+    IncurLossOnLiquidation: TypedContractEvent<
+      IncurLossOnLiquidationEvent.InputTuple,
+      IncurLossOnLiquidationEvent.OutputTuple,
+      IncurLossOnLiquidationEvent.OutputObject
+    >;
+
+    "LiquidateCreditAccount(address,address,address,uint256)": TypedContractEvent<
+      LiquidateCreditAccountEvent.InputTuple,
+      LiquidateCreditAccountEvent.OutputTuple,
+      LiquidateCreditAccountEvent.OutputObject
+    >;
+    LiquidateCreditAccount: TypedContractEvent<
+      LiquidateCreditAccountEvent.InputTuple,
+      LiquidateCreditAccountEvent.OutputTuple,
+      LiquidateCreditAccountEvent.OutputObject
+    >;
+
+    "LiquidateExpiredCreditAccount(address,address,address,uint256)": TypedContractEvent<
+      LiquidateExpiredCreditAccountEvent.InputTuple,
+      LiquidateExpiredCreditAccountEvent.OutputTuple,
+      LiquidateExpiredCreditAccountEvent.OutputObject
+    >;
+    LiquidateExpiredCreditAccount: TypedContractEvent<
+      LiquidateExpiredCreditAccountEvent.InputTuple,
+      LiquidateExpiredCreditAccountEvent.OutputTuple,
+      LiquidateExpiredCreditAccountEvent.OutputObject
+    >;
+
+    "MultiCallFinished()": TypedContractEvent<
+      MultiCallFinishedEvent.InputTuple,
+      MultiCallFinishedEvent.OutputTuple,
+      MultiCallFinishedEvent.OutputObject
+    >;
+    MultiCallFinished: TypedContractEvent<
+      MultiCallFinishedEvent.InputTuple,
+      MultiCallFinishedEvent.OutputTuple,
+      MultiCallFinishedEvent.OutputObject
+    >;
+
+    "MultiCallStarted(address)": TypedContractEvent<
+      MultiCallStartedEvent.InputTuple,
+      MultiCallStartedEvent.OutputTuple,
+      MultiCallStartedEvent.OutputObject
+    >;
+    MultiCallStarted: TypedContractEvent<
+      MultiCallStartedEvent.InputTuple,
+      MultiCallStartedEvent.OutputTuple,
+      MultiCallStartedEvent.OutputObject
+    >;
+
+    "OpenCreditAccount(address,address,uint256,uint16)": TypedContractEvent<
+      OpenCreditAccountEvent.InputTuple,
+      OpenCreditAccountEvent.OutputTuple,
+      OpenCreditAccountEvent.OutputObject
+    >;
+    OpenCreditAccount: TypedContractEvent<
+      OpenCreditAccountEvent.InputTuple,
+      OpenCreditAccountEvent.OutputTuple,
+      OpenCreditAccountEvent.OutputObject
+    >;
+
+    "TokenDisabled(address,address)": TypedContractEvent<
+      TokenDisabledEvent.InputTuple,
+      TokenDisabledEvent.OutputTuple,
+      TokenDisabledEvent.OutputObject
+    >;
+    TokenDisabled: TypedContractEvent<
+      TokenDisabledEvent.InputTuple,
+      TokenDisabledEvent.OutputTuple,
+      TokenDisabledEvent.OutputObject
+    >;
+
+    "TokenEnabled(address,address)": TypedContractEvent<
+      TokenEnabledEvent.InputTuple,
+      TokenEnabledEvent.OutputTuple,
+      TokenEnabledEvent.OutputObject
+    >;
+    TokenEnabled: TypedContractEvent<
+      TokenEnabledEvent.InputTuple,
+      TokenEnabledEvent.OutputTuple,
+      TokenEnabledEvent.OutputObject
+    >;
+
+    "TransferAccount(address,address)": TypedContractEvent<
+      TransferAccountEvent.InputTuple,
+      TransferAccountEvent.OutputTuple,
+      TransferAccountEvent.OutputObject
+    >;
+    TransferAccount: TypedContractEvent<
+      TransferAccountEvent.InputTuple,
+      TransferAccountEvent.OutputTuple,
+      TransferAccountEvent.OutputObject
+    >;
+
+    "TransferAccountAllowed(address,address,bool)": TypedContractEvent<
+      TransferAccountAllowedEvent.InputTuple,
+      TransferAccountAllowedEvent.OutputTuple,
+      TransferAccountAllowedEvent.OutputObject
+    >;
+    TransferAccountAllowed: TypedContractEvent<
+      TransferAccountAllowedEvent.InputTuple,
+      TransferAccountAllowedEvent.OutputTuple,
+      TransferAccountAllowedEvent.OutputObject
+    >;
+
+    "UnderlyingSentToBlacklistHelper(address,uint256)": TypedContractEvent<
+      UnderlyingSentToBlacklistHelperEvent.InputTuple,
+      UnderlyingSentToBlacklistHelperEvent.OutputTuple,
+      UnderlyingSentToBlacklistHelperEvent.OutputObject
+    >;
+    UnderlyingSentToBlacklistHelper: TypedContractEvent<
+      UnderlyingSentToBlacklistHelperEvent.InputTuple,
+      UnderlyingSentToBlacklistHelperEvent.OutputTuple,
+      UnderlyingSentToBlacklistHelperEvent.OutputObject
+    >;
   };
 }

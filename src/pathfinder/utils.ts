@@ -4,8 +4,7 @@ import {
   safeMulticall,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber, providers } from "ethers";
-import { Interface } from "ethers/lib/utils";
+import { Interface, Provider } from "ethers";
 
 import { ParsedObject } from "../parsers/abstractParser";
 import { BalancerV2VaultParser } from "../parsers/balancerV2VaultParser";
@@ -33,7 +32,7 @@ interface GetFeeState {
 
 interface FeeResponse {
   error?: Error | undefined;
-  value?: BigNumber | undefined;
+  value?: bigint | undefined;
 }
 
 type KnownFeeTypes =
@@ -66,7 +65,7 @@ export const BALANCER_VAULT_INTERFACE = new Interface(BALANCER_VAULT_ABI);
 
 interface FindPathFeesProps {
   calls: Array<MultiCall>;
-  provider: providers.Provider;
+  provider: Provider;
   contractsByAdapter: Record<string, string>;
 }
 
@@ -124,7 +123,7 @@ export class PathFinderUtils {
       },
     );
 
-    const response = await safeMulticall<BigNumber>(
+    const response = await safeMulticall<bigint>(
       [...curve, ...balancer],
       provider,
     );
@@ -208,7 +207,7 @@ export class PathFinderUtils {
   }
 
   private static getCurveFee({ value }: FeeResponse): FeeInfo {
-    const feeOriginal = toBigInt(value || 0n);
+    const feeOriginal = value || 0n;
     return {
       type: "curve",
       value: (feeOriginal * PERCENTAGE_FACTOR) / CURVE_FEE_DECIMALS,
@@ -240,7 +239,7 @@ export class PathFinderUtils {
   }
 
   private static getBalancerFee({ value }: FeeResponse): FeeInfo {
-    const feeOriginal = toBigInt(value || 0n);
+    const feeOriginal = value || 0n;
 
     return {
       type: "balancer",

@@ -3,59 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IControllerTimelockV3Interface extends utils.Interface {
-  functions: {
-    "GRACE_PERIOD()": FunctionFragment;
-    "cancelTransaction(bytes32)": FunctionFragment;
-    "executeTransaction(bytes32)": FunctionFragment;
-    "forbidAdapter(address,address)": FunctionFragment;
-    "forbidBoundsUpdate(address)": FunctionFragment;
-    "queuedTransactions(bytes32)": FunctionFragment;
-    "rampLiquidationThreshold(address,address,uint16,uint40,uint24)": FunctionFragment;
-    "setCreditManagerDebtLimit(address,uint256)": FunctionFragment;
-    "setExpirationDate(address,uint40)": FunctionFragment;
-    "setLPPriceFeedLimiter(address,uint256)": FunctionFragment;
-    "setMaxDebtLimit(address,uint128)": FunctionFragment;
-    "setMaxDebtPerBlockMultiplier(address,uint8)": FunctionFragment;
-    "setMaxQuotaRate(address,address,uint16)": FunctionFragment;
-    "setMinDebtLimit(address,uint128)": FunctionFragment;
-    "setMinQuotaRate(address,address,uint16)": FunctionFragment;
-    "setReservePriceFeedStatus(address,address,bool)": FunctionFragment;
-    "setTokenLimit(address,address,uint96)": FunctionFragment;
-    "setTokenQuotaIncreaseFee(address,address,uint16)": FunctionFragment;
-    "setTotalDebtLimit(address,uint256)": FunctionFragment;
-    "setVetoAdmin(address)": FunctionFragment;
-    "setWithdrawFee(address,uint256)": FunctionFragment;
-    "version()": FunctionFragment;
-    "vetoAdmin()": FunctionFragment;
-  };
-
+export interface IControllerTimelockV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "GRACE_PERIOD"
       | "cancelTransaction"
       | "executeTransaction"
@@ -81,115 +51,97 @@ export interface IControllerTimelockV3Interface extends utils.Interface {
       | "vetoAdmin"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "CancelTransaction"
+      | "ExecuteTransaction"
+      | "QueueTransaction"
+      | "SetVetoAdmin"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "GRACE_PERIOD",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "cancelTransaction",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "executeTransaction",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "forbidAdapter",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "forbidBoundsUpdate",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "queuedTransactions",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "rampLiquidationThreshold",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setCreditManagerDebtLimit",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setExpirationDate",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setLPPriceFeedLimiter",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMaxDebtLimit",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMaxDebtPerBlockMultiplier",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMaxQuotaRate",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMinDebtLimit",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMinQuotaRate",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setReservePriceFeedStatus",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<boolean>
-    ]
+    values: [AddressLike, AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setTokenLimit",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTokenQuotaIncreaseFee",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTotalDebtLimit",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setVetoAdmin",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setWithdrawFee",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(functionFragment: "vetoAdmin", values?: undefined): string;
@@ -280,814 +232,488 @@ export interface IControllerTimelockV3Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "vetoAdmin", data: BytesLike): Result;
-
-  events: {
-    "CancelTransaction(bytes32)": EventFragment;
-    "ExecuteTransaction(bytes32)": EventFragment;
-    "QueueTransaction(bytes32,address,address,string,bytes,uint40)": EventFragment;
-    "SetVetoAdmin(address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "CancelTransaction"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ExecuteTransaction"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "QueueTransaction"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetVetoAdmin"): EventFragment;
 }
 
-export interface CancelTransactionEventObject {
-  txHash: string;
+export namespace CancelTransactionEvent {
+  export type InputTuple = [txHash: BytesLike];
+  export type OutputTuple = [txHash: string];
+  export interface OutputObject {
+    txHash: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type CancelTransactionEvent = TypedEvent<
-  [string],
-  CancelTransactionEventObject
->;
 
-export type CancelTransactionEventFilter =
-  TypedEventFilter<CancelTransactionEvent>;
-
-export interface ExecuteTransactionEventObject {
-  txHash: string;
+export namespace ExecuteTransactionEvent {
+  export type InputTuple = [txHash: BytesLike];
+  export type OutputTuple = [txHash: string];
+  export interface OutputObject {
+    txHash: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ExecuteTransactionEvent = TypedEvent<
-  [string],
-  ExecuteTransactionEventObject
->;
 
-export type ExecuteTransactionEventFilter =
-  TypedEventFilter<ExecuteTransactionEvent>;
-
-export interface QueueTransactionEventObject {
-  txHash: string;
-  executor: string;
-  target: string;
-  signature: string;
-  data: string;
-  eta: number;
+export namespace QueueTransactionEvent {
+  export type InputTuple = [
+    txHash: BytesLike,
+    executor: AddressLike,
+    target: AddressLike,
+    signature: string,
+    data: BytesLike,
+    eta: BigNumberish
+  ];
+  export type OutputTuple = [
+    txHash: string,
+    executor: string,
+    target: string,
+    signature: string,
+    data: string,
+    eta: bigint
+  ];
+  export interface OutputObject {
+    txHash: string;
+    executor: string;
+    target: string;
+    signature: string;
+    data: string;
+    eta: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type QueueTransactionEvent = TypedEvent<
-  [string, string, string, string, string, number],
-  QueueTransactionEventObject
->;
 
-export type QueueTransactionEventFilter =
-  TypedEventFilter<QueueTransactionEvent>;
-
-export interface SetVetoAdminEventObject {
-  newAdmin: string;
+export namespace SetVetoAdminEvent {
+  export type InputTuple = [newAdmin: AddressLike];
+  export type OutputTuple = [newAdmin: string];
+  export interface OutputObject {
+    newAdmin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetVetoAdminEvent = TypedEvent<[string], SetVetoAdminEventObject>;
-
-export type SetVetoAdminEventFilter = TypedEventFilter<SetVetoAdminEvent>;
 
 export interface IControllerTimelockV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IControllerTimelockV3;
+  waitForDeployment(): Promise<this>;
 
   interface: IControllerTimelockV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    GRACE_PERIOD(overrides?: CallOverrides): Promise<[BigNumber]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    cancelTransaction(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    executeTransaction(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  GRACE_PERIOD: TypedContractMethod<[], [bigint], "view">;
 
-    forbidAdapter(
-      creditManager: PromiseOrValue<string>,
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    forbidBoundsUpdate(
-      priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    queuedTransactions(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<
-      [boolean, string, string, number, string, string, BigNumber, string] & {
-        queued: boolean;
-        executor: string;
-        target: string;
-        eta: number;
-        signature: string;
-        data: string;
-        sanityCheckValue: BigNumber;
-        sanityCheckCallData: string;
-      }
-    >;
-
-    rampLiquidationThreshold(
-      creditManager: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      liquidationThresholdFinal: PromiseOrValue<BigNumberish>,
-      rampStart: PromiseOrValue<BigNumberish>,
-      rampDuration: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setCreditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      debtLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setExpirationDate(
-      creditManager: PromiseOrValue<string>,
-      expirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setLPPriceFeedLimiter(
-      priceFeed: PromiseOrValue<string>,
-      lowerBound: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setMaxDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      maxDebt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setMaxDebtPerBlockMultiplier(
-      creditManager: PromiseOrValue<string>,
-      multiplier: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setMaxQuotaRate(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      rate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setMinDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      minDebt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setMinQuotaRate(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      rate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setReservePriceFeedStatus(
-      priceOracle: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      active: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setTokenLimit(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setTokenQuotaIncreaseFee(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      quotaIncreaseFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setTotalDebtLimit(
-      pool: PromiseOrValue<string>,
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setVetoAdmin(
-      newAdmin: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setWithdrawFee(
-      pool: PromiseOrValue<string>,
-      newFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    vetoAdmin(overrides?: CallOverrides): Promise<[string]>;
-  };
-
-  GRACE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
-  cancelTransaction(
-    txHash: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  executeTransaction(
-    txHash: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  forbidAdapter(
-    creditManager: PromiseOrValue<string>,
-    adapter: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  forbidBoundsUpdate(
-    priceFeed: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  queuedTransactions(
-    txHash: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<
-    [boolean, string, string, number, string, string, BigNumber, string] & {
-      queued: boolean;
-      executor: string;
-      target: string;
-      eta: number;
-      signature: string;
-      data: string;
-      sanityCheckValue: BigNumber;
-      sanityCheckCallData: string;
-    }
+  cancelTransaction: TypedContractMethod<
+    [txHash: BytesLike],
+    [void],
+    "nonpayable"
   >;
 
-  rampLiquidationThreshold(
-    creditManager: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    liquidationThresholdFinal: PromiseOrValue<BigNumberish>,
-    rampStart: PromiseOrValue<BigNumberish>,
-    rampDuration: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  executeTransaction: TypedContractMethod<
+    [txHash: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
-  setCreditManagerDebtLimit(
-    creditManager: PromiseOrValue<string>,
-    debtLimit: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  forbidAdapter: TypedContractMethod<
+    [creditManager: AddressLike, adapter: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-  setExpirationDate(
-    creditManager: PromiseOrValue<string>,
-    expirationDate: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  forbidBoundsUpdate: TypedContractMethod<
+    [priceFeed: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-  setLPPriceFeedLimiter(
-    priceFeed: PromiseOrValue<string>,
-    lowerBound: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setMaxDebtLimit(
-    creditManager: PromiseOrValue<string>,
-    maxDebt: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setMaxDebtPerBlockMultiplier(
-    creditManager: PromiseOrValue<string>,
-    multiplier: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setMaxQuotaRate(
-    pool: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    rate: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setMinDebtLimit(
-    creditManager: PromiseOrValue<string>,
-    minDebt: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setMinQuotaRate(
-    pool: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    rate: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setReservePriceFeedStatus(
-    priceOracle: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    active: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setTokenLimit(
-    pool: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    limit: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setTokenQuotaIncreaseFee(
-    pool: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    quotaIncreaseFee: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setTotalDebtLimit(
-    pool: PromiseOrValue<string>,
-    newLimit: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setVetoAdmin(
-    newAdmin: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setWithdrawFee(
-    pool: PromiseOrValue<string>,
-    newFee: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  vetoAdmin(overrides?: CallOverrides): Promise<string>;
-
-  callStatic: {
-    GRACE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
-    cancelTransaction(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    executeTransaction(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    forbidAdapter(
-      creditManager: PromiseOrValue<string>,
-      adapter: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    forbidBoundsUpdate(
-      priceFeed: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    queuedTransactions(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<
-      [boolean, string, string, number, string, string, BigNumber, string] & {
+  queuedTransactions: TypedContractMethod<
+    [txHash: BytesLike],
+    [
+      [boolean, string, string, bigint, string, string, bigint, string] & {
         queued: boolean;
         executor: string;
         target: string;
-        eta: number;
+        eta: bigint;
         signature: string;
         data: string;
-        sanityCheckValue: BigNumber;
+        sanityCheckValue: bigint;
         sanityCheckCallData: string;
       }
-    >;
+    ],
+    "view"
+  >;
 
-    rampLiquidationThreshold(
-      creditManager: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      liquidationThresholdFinal: PromiseOrValue<BigNumberish>,
-      rampStart: PromiseOrValue<BigNumberish>,
-      rampDuration: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  rampLiquidationThreshold: TypedContractMethod<
+    [
+      creditManager: AddressLike,
+      token: AddressLike,
+      liquidationThresholdFinal: BigNumberish,
+      rampStart: BigNumberish,
+      rampDuration: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    setCreditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      debtLimit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setCreditManagerDebtLimit: TypedContractMethod<
+    [creditManager: AddressLike, debtLimit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setExpirationDate(
-      creditManager: PromiseOrValue<string>,
-      expirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setExpirationDate: TypedContractMethod<
+    [creditManager: AddressLike, expirationDate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setLPPriceFeedLimiter(
-      priceFeed: PromiseOrValue<string>,
-      lowerBound: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setLPPriceFeedLimiter: TypedContractMethod<
+    [priceFeed: AddressLike, lowerBound: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setMaxDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      maxDebt: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setMaxDebtLimit: TypedContractMethod<
+    [creditManager: AddressLike, maxDebt: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setMaxDebtPerBlockMultiplier(
-      creditManager: PromiseOrValue<string>,
-      multiplier: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setMaxDebtPerBlockMultiplier: TypedContractMethod<
+    [creditManager: AddressLike, multiplier: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setMaxQuotaRate(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      rate: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setMaxQuotaRate: TypedContractMethod<
+    [pool: AddressLike, token: AddressLike, rate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setMinDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      minDebt: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setMinDebtLimit: TypedContractMethod<
+    [creditManager: AddressLike, minDebt: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setMinQuotaRate(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      rate: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setMinQuotaRate: TypedContractMethod<
+    [pool: AddressLike, token: AddressLike, rate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setReservePriceFeedStatus(
-      priceOracle: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      active: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setReservePriceFeedStatus: TypedContractMethod<
+    [priceOracle: AddressLike, token: AddressLike, active: boolean],
+    [void],
+    "nonpayable"
+  >;
 
-    setTokenLimit(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setTokenLimit: TypedContractMethod<
+    [pool: AddressLike, token: AddressLike, limit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setTokenQuotaIncreaseFee(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      quotaIncreaseFee: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setTokenQuotaIncreaseFee: TypedContractMethod<
+    [pool: AddressLike, token: AddressLike, quotaIncreaseFee: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setTotalDebtLimit(
-      pool: PromiseOrValue<string>,
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setTotalDebtLimit: TypedContractMethod<
+    [pool: AddressLike, newLimit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    setVetoAdmin(
-      newAdmin: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setVetoAdmin: TypedContractMethod<
+    [newAdmin: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-    setWithdrawFee(
-      pool: PromiseOrValue<string>,
-      newFee: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  setWithdrawFee: TypedContractMethod<
+    [pool: AddressLike, newFee: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-    version(overrides?: CallOverrides): Promise<BigNumber>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-    vetoAdmin(overrides?: CallOverrides): Promise<string>;
-  };
+  vetoAdmin: TypedContractMethod<[], [string], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "GRACE_PERIOD"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "cancelTransaction"
+  ): TypedContractMethod<[txHash: BytesLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "executeTransaction"
+  ): TypedContractMethod<[txHash: BytesLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "forbidAdapter"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, adapter: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "forbidBoundsUpdate"
+  ): TypedContractMethod<[priceFeed: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "queuedTransactions"
+  ): TypedContractMethod<
+    [txHash: BytesLike],
+    [
+      [boolean, string, string, bigint, string, string, bigint, string] & {
+        queued: boolean;
+        executor: string;
+        target: string;
+        eta: bigint;
+        signature: string;
+        data: string;
+        sanityCheckValue: bigint;
+        sanityCheckCallData: string;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "rampLiquidationThreshold"
+  ): TypedContractMethod<
+    [
+      creditManager: AddressLike,
+      token: AddressLike,
+      liquidationThresholdFinal: BigNumberish,
+      rampStart: BigNumberish,
+      rampDuration: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setCreditManagerDebtLimit"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, debtLimit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setExpirationDate"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, expirationDate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setLPPriceFeedLimiter"
+  ): TypedContractMethod<
+    [priceFeed: AddressLike, lowerBound: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setMaxDebtLimit"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, maxDebt: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setMaxDebtPerBlockMultiplier"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, multiplier: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setMaxQuotaRate"
+  ): TypedContractMethod<
+    [pool: AddressLike, token: AddressLike, rate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setMinDebtLimit"
+  ): TypedContractMethod<
+    [creditManager: AddressLike, minDebt: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setMinQuotaRate"
+  ): TypedContractMethod<
+    [pool: AddressLike, token: AddressLike, rate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setReservePriceFeedStatus"
+  ): TypedContractMethod<
+    [priceOracle: AddressLike, token: AddressLike, active: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setTokenLimit"
+  ): TypedContractMethod<
+    [pool: AddressLike, token: AddressLike, limit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setTokenQuotaIncreaseFee"
+  ): TypedContractMethod<
+    [pool: AddressLike, token: AddressLike, quotaIncreaseFee: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setTotalDebtLimit"
+  ): TypedContractMethod<
+    [pool: AddressLike, newLimit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setVetoAdmin"
+  ): TypedContractMethod<[newAdmin: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setWithdrawFee"
+  ): TypedContractMethod<
+    [pool: AddressLike, newFee: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "vetoAdmin"
+  ): TypedContractMethod<[], [string], "view">;
+
+  getEvent(
+    key: "CancelTransaction"
+  ): TypedContractEvent<
+    CancelTransactionEvent.InputTuple,
+    CancelTransactionEvent.OutputTuple,
+    CancelTransactionEvent.OutputObject
+  >;
+  getEvent(
+    key: "ExecuteTransaction"
+  ): TypedContractEvent<
+    ExecuteTransactionEvent.InputTuple,
+    ExecuteTransactionEvent.OutputTuple,
+    ExecuteTransactionEvent.OutputObject
+  >;
+  getEvent(
+    key: "QueueTransaction"
+  ): TypedContractEvent<
+    QueueTransactionEvent.InputTuple,
+    QueueTransactionEvent.OutputTuple,
+    QueueTransactionEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetVetoAdmin"
+  ): TypedContractEvent<
+    SetVetoAdminEvent.InputTuple,
+    SetVetoAdminEvent.OutputTuple,
+    SetVetoAdminEvent.OutputObject
+  >;
 
   filters: {
-    "CancelTransaction(bytes32)"(
-      txHash?: PromiseOrValue<BytesLike> | null
-    ): CancelTransactionEventFilter;
-    CancelTransaction(
-      txHash?: PromiseOrValue<BytesLike> | null
-    ): CancelTransactionEventFilter;
+    "CancelTransaction(bytes32)": TypedContractEvent<
+      CancelTransactionEvent.InputTuple,
+      CancelTransactionEvent.OutputTuple,
+      CancelTransactionEvent.OutputObject
+    >;
+    CancelTransaction: TypedContractEvent<
+      CancelTransactionEvent.InputTuple,
+      CancelTransactionEvent.OutputTuple,
+      CancelTransactionEvent.OutputObject
+    >;
 
-    "ExecuteTransaction(bytes32)"(
-      txHash?: PromiseOrValue<BytesLike> | null
-    ): ExecuteTransactionEventFilter;
-    ExecuteTransaction(
-      txHash?: PromiseOrValue<BytesLike> | null
-    ): ExecuteTransactionEventFilter;
+    "ExecuteTransaction(bytes32)": TypedContractEvent<
+      ExecuteTransactionEvent.InputTuple,
+      ExecuteTransactionEvent.OutputTuple,
+      ExecuteTransactionEvent.OutputObject
+    >;
+    ExecuteTransaction: TypedContractEvent<
+      ExecuteTransactionEvent.InputTuple,
+      ExecuteTransactionEvent.OutputTuple,
+      ExecuteTransactionEvent.OutputObject
+    >;
 
-    "QueueTransaction(bytes32,address,address,string,bytes,uint40)"(
-      txHash?: PromiseOrValue<BytesLike> | null,
-      executor?: PromiseOrValue<string> | null,
-      target?: null,
-      signature?: null,
-      data?: null,
-      eta?: null
-    ): QueueTransactionEventFilter;
-    QueueTransaction(
-      txHash?: PromiseOrValue<BytesLike> | null,
-      executor?: PromiseOrValue<string> | null,
-      target?: null,
-      signature?: null,
-      data?: null,
-      eta?: null
-    ): QueueTransactionEventFilter;
+    "QueueTransaction(bytes32,address,address,string,bytes,uint40)": TypedContractEvent<
+      QueueTransactionEvent.InputTuple,
+      QueueTransactionEvent.OutputTuple,
+      QueueTransactionEvent.OutputObject
+    >;
+    QueueTransaction: TypedContractEvent<
+      QueueTransactionEvent.InputTuple,
+      QueueTransactionEvent.OutputTuple,
+      QueueTransactionEvent.OutputObject
+    >;
 
-    "SetVetoAdmin(address)"(
-      newAdmin?: PromiseOrValue<string> | null
-    ): SetVetoAdminEventFilter;
-    SetVetoAdmin(
-      newAdmin?: PromiseOrValue<string> | null
-    ): SetVetoAdminEventFilter;
-  };
-
-  estimateGas: {
-    GRACE_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
-    cancelTransaction(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    executeTransaction(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    forbidAdapter(
-      creditManager: PromiseOrValue<string>,
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    forbidBoundsUpdate(
-      priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    queuedTransactions(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    rampLiquidationThreshold(
-      creditManager: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      liquidationThresholdFinal: PromiseOrValue<BigNumberish>,
-      rampStart: PromiseOrValue<BigNumberish>,
-      rampDuration: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setCreditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      debtLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setExpirationDate(
-      creditManager: PromiseOrValue<string>,
-      expirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setLPPriceFeedLimiter(
-      priceFeed: PromiseOrValue<string>,
-      lowerBound: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setMaxDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      maxDebt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setMaxDebtPerBlockMultiplier(
-      creditManager: PromiseOrValue<string>,
-      multiplier: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setMaxQuotaRate(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      rate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setMinDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      minDebt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setMinQuotaRate(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      rate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setReservePriceFeedStatus(
-      priceOracle: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      active: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setTokenLimit(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setTokenQuotaIncreaseFee(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      quotaIncreaseFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setTotalDebtLimit(
-      pool: PromiseOrValue<string>,
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setVetoAdmin(
-      newAdmin: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setWithdrawFee(
-      pool: PromiseOrValue<string>,
-      newFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    vetoAdmin(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    GRACE_PERIOD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    cancelTransaction(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    executeTransaction(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    forbidAdapter(
-      creditManager: PromiseOrValue<string>,
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    forbidBoundsUpdate(
-      priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    queuedTransactions(
-      txHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    rampLiquidationThreshold(
-      creditManager: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      liquidationThresholdFinal: PromiseOrValue<BigNumberish>,
-      rampStart: PromiseOrValue<BigNumberish>,
-      rampDuration: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setCreditManagerDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      debtLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setExpirationDate(
-      creditManager: PromiseOrValue<string>,
-      expirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setLPPriceFeedLimiter(
-      priceFeed: PromiseOrValue<string>,
-      lowerBound: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setMaxDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      maxDebt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setMaxDebtPerBlockMultiplier(
-      creditManager: PromiseOrValue<string>,
-      multiplier: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setMaxQuotaRate(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      rate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setMinDebtLimit(
-      creditManager: PromiseOrValue<string>,
-      minDebt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setMinQuotaRate(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      rate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setReservePriceFeedStatus(
-      priceOracle: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      active: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTokenLimit(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTokenQuotaIncreaseFee(
-      pool: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      quotaIncreaseFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTotalDebtLimit(
-      pool: PromiseOrValue<string>,
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setVetoAdmin(
-      newAdmin: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setWithdrawFee(
-      pool: PromiseOrValue<string>,
-      newFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    vetoAdmin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "SetVetoAdmin(address)": TypedContractEvent<
+      SetVetoAdminEvent.InputTuple,
+      SetVetoAdminEvent.OutputTuple,
+      SetVetoAdminEvent.OutputObject
+    >;
+    SetVetoAdmin: TypedContractEvent<
+      SetVetoAdminEvent.InputTuple,
+      SetVetoAdminEvent.OutputTuple,
+      SetVetoAdminEvent.OutputObject
+    >;
   };
 }

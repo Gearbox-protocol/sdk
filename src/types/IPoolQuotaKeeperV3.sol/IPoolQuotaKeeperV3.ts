@@ -3,59 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface IPoolQuotaKeeperV3Interface extends utils.Interface {
-  functions: {
-    "accrueQuotaInterest(address,address[])": FunctionFragment;
-    "addCreditManager(address)": FunctionFragment;
-    "addQuotaToken(address)": FunctionFragment;
-    "creditManagers()": FunctionFragment;
-    "cumulativeIndex(address)": FunctionFragment;
-    "gauge()": FunctionFragment;
-    "getQuota(address,address)": FunctionFragment;
-    "getQuotaAndOutstandingInterest(address,address)": FunctionFragment;
-    "getQuotaRate(address)": FunctionFragment;
-    "getTokenQuotaParams(address)": FunctionFragment;
-    "isQuotedToken(address)": FunctionFragment;
-    "lastQuotaRateUpdate()": FunctionFragment;
-    "pool()": FunctionFragment;
-    "poolQuotaRevenue()": FunctionFragment;
-    "quotedTokens()": FunctionFragment;
-    "removeQuotas(address,address[],bool)": FunctionFragment;
-    "setGauge(address)": FunctionFragment;
-    "setTokenLimit(address,uint96)": FunctionFragment;
-    "setTokenQuotaIncreaseFee(address,uint16)": FunctionFragment;
-    "underlying()": FunctionFragment;
-    "updateQuota(address,address,int96,uint96,uint96)": FunctionFragment;
-    "updateRates()": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface IPoolQuotaKeeperV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "accrueQuotaInterest"
       | "addCreditManager"
       | "addQuotaToken"
@@ -81,17 +51,28 @@ export interface IPoolQuotaKeeperV3Interface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "AddCreditManager"
+      | "AddQuotaToken"
+      | "SetGauge"
+      | "SetQuotaIncreaseFee"
+      | "SetTokenLimit"
+      | "UpdateQuota"
+      | "UpdateTokenQuotaRate"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "accrueQuotaInterest",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>[]]
+    values: [AddressLike, AddressLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "addCreditManager",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "addQuotaToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "creditManagers",
@@ -99,28 +80,28 @@ export interface IPoolQuotaKeeperV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "cumulativeIndex",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "gauge", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getQuota",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getQuotaAndOutstandingInterest",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getQuotaRate",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenQuotaParams",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isQuotedToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "lastQuotaRateUpdate",
@@ -137,23 +118,19 @@ export interface IPoolQuotaKeeperV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "removeQuotas",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<boolean>
-    ]
+    values: [AddressLike, AddressLike[], boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setGauge",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setTokenLimit",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTokenQuotaIncreaseFee",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
@@ -161,13 +138,7 @@ export interface IPoolQuotaKeeperV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateQuota",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "updateRates",
@@ -249,754 +220,518 @@ export interface IPoolQuotaKeeperV3Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "AddCreditManager(address)": EventFragment;
-    "AddQuotaToken(address)": EventFragment;
-    "SetGauge(address)": EventFragment;
-    "SetQuotaIncreaseFee(address,uint16)": EventFragment;
-    "SetTokenLimit(address,uint96)": EventFragment;
-    "UpdateQuota(address,address,int96)": EventFragment;
-    "UpdateTokenQuotaRate(address,uint16)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AddCreditManager"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AddQuotaToken"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetGauge"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetQuotaIncreaseFee"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetTokenLimit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "UpdateQuota"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "UpdateTokenQuotaRate"): EventFragment;
 }
 
-export interface AddCreditManagerEventObject {
-  creditManager: string;
+export namespace AddCreditManagerEvent {
+  export type InputTuple = [creditManager: AddressLike];
+  export type OutputTuple = [creditManager: string];
+  export interface OutputObject {
+    creditManager: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddCreditManagerEvent = TypedEvent<
-  [string],
-  AddCreditManagerEventObject
->;
 
-export type AddCreditManagerEventFilter =
-  TypedEventFilter<AddCreditManagerEvent>;
-
-export interface AddQuotaTokenEventObject {
-  token: string;
+export namespace AddQuotaTokenEvent {
+  export type InputTuple = [token: AddressLike];
+  export type OutputTuple = [token: string];
+  export interface OutputObject {
+    token: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddQuotaTokenEvent = TypedEvent<[string], AddQuotaTokenEventObject>;
 
-export type AddQuotaTokenEventFilter = TypedEventFilter<AddQuotaTokenEvent>;
-
-export interface SetGaugeEventObject {
-  newGauge: string;
+export namespace SetGaugeEvent {
+  export type InputTuple = [newGauge: AddressLike];
+  export type OutputTuple = [newGauge: string];
+  export interface OutputObject {
+    newGauge: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetGaugeEvent = TypedEvent<[string], SetGaugeEventObject>;
 
-export type SetGaugeEventFilter = TypedEventFilter<SetGaugeEvent>;
-
-export interface SetQuotaIncreaseFeeEventObject {
-  token: string;
-  fee: number;
+export namespace SetQuotaIncreaseFeeEvent {
+  export type InputTuple = [token: AddressLike, fee: BigNumberish];
+  export type OutputTuple = [token: string, fee: bigint];
+  export interface OutputObject {
+    token: string;
+    fee: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetQuotaIncreaseFeeEvent = TypedEvent<
-  [string, number],
-  SetQuotaIncreaseFeeEventObject
->;
 
-export type SetQuotaIncreaseFeeEventFilter =
-  TypedEventFilter<SetQuotaIncreaseFeeEvent>;
-
-export interface SetTokenLimitEventObject {
-  token: string;
-  limit: BigNumber;
+export namespace SetTokenLimitEvent {
+  export type InputTuple = [token: AddressLike, limit: BigNumberish];
+  export type OutputTuple = [token: string, limit: bigint];
+  export interface OutputObject {
+    token: string;
+    limit: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetTokenLimitEvent = TypedEvent<
-  [string, BigNumber],
-  SetTokenLimitEventObject
->;
 
-export type SetTokenLimitEventFilter = TypedEventFilter<SetTokenLimitEvent>;
-
-export interface UpdateQuotaEventObject {
-  creditAccount: string;
-  token: string;
-  quotaChange: BigNumber;
+export namespace UpdateQuotaEvent {
+  export type InputTuple = [
+    creditAccount: AddressLike,
+    token: AddressLike,
+    quotaChange: BigNumberish
+  ];
+  export type OutputTuple = [
+    creditAccount: string,
+    token: string,
+    quotaChange: bigint
+  ];
+  export interface OutputObject {
+    creditAccount: string;
+    token: string;
+    quotaChange: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type UpdateQuotaEvent = TypedEvent<
-  [string, string, BigNumber],
-  UpdateQuotaEventObject
->;
 
-export type UpdateQuotaEventFilter = TypedEventFilter<UpdateQuotaEvent>;
-
-export interface UpdateTokenQuotaRateEventObject {
-  token: string;
-  rate: number;
+export namespace UpdateTokenQuotaRateEvent {
+  export type InputTuple = [token: AddressLike, rate: BigNumberish];
+  export type OutputTuple = [token: string, rate: bigint];
+  export interface OutputObject {
+    token: string;
+    rate: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type UpdateTokenQuotaRateEvent = TypedEvent<
-  [string, number],
-  UpdateTokenQuotaRateEventObject
->;
-
-export type UpdateTokenQuotaRateEventFilter =
-  TypedEventFilter<UpdateTokenQuotaRateEvent>;
 
 export interface IPoolQuotaKeeperV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IPoolQuotaKeeperV3;
+  waitForDeployment(): Promise<this>;
 
   interface: IPoolQuotaKeeperV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    accrueQuotaInterest(
-      creditAccount: PromiseOrValue<string>,
-      tokens: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    addCreditManager(
-      _creditManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    addQuotaToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  accrueQuotaInterest: TypedContractMethod<
+    [creditAccount: AddressLike, tokens: AddressLike[]],
+    [void],
+    "nonpayable"
+  >;
 
-    creditManagers(overrides?: CallOverrides): Promise<[string[]]>;
+  addCreditManager: TypedContractMethod<
+    [_creditManager: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-    cumulativeIndex(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  addQuotaToken: TypedContractMethod<
+    [token: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-    gauge(overrides?: CallOverrides): Promise<[string]>;
+  creditManagers: TypedContractMethod<[], [string[]], "view">;
 
-    getQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        quota: BigNumber;
-        cumulativeIndexLU: BigNumber;
-      }
-    >;
+  cumulativeIndex: TypedContractMethod<[token: AddressLike], [bigint], "view">;
 
-    getQuotaAndOutstandingInterest(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        quoted: BigNumber;
-        outstandingInterest: BigNumber;
-      }
-    >;
+  gauge: TypedContractMethod<[], [string], "view">;
 
-    getQuotaRate(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+  getQuota: TypedContractMethod<
+    [creditAccount: AddressLike, token: AddressLike],
+    [[bigint, bigint] & { quota: bigint; cumulativeIndexLU: bigint }],
+    "view"
+  >;
 
-    getTokenQuotaParams(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [number, BigNumber, number, BigNumber, BigNumber, boolean] & {
-        rate: number;
-        cumulativeIndexLU: BigNumber;
-        quotaIncreaseFee: number;
-        totalQuoted: BigNumber;
-        limit: BigNumber;
+  getQuotaAndOutstandingInterest: TypedContractMethod<
+    [creditAccount: AddressLike, token: AddressLike],
+    [[bigint, bigint] & { quoted: bigint; outstandingInterest: bigint }],
+    "view"
+  >;
+
+  getQuotaRate: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+
+  getTokenQuotaParams: TypedContractMethod<
+    [token: AddressLike],
+    [
+      [bigint, bigint, bigint, bigint, bigint, boolean] & {
+        rate: bigint;
+        cumulativeIndexLU: bigint;
+        quotaIncreaseFee: bigint;
+        totalQuoted: bigint;
+        limit: bigint;
         isActive: boolean;
       }
-    >;
-
-    isQuotedToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    lastQuotaRateUpdate(overrides?: CallOverrides): Promise<[number]>;
-
-    pool(overrides?: CallOverrides): Promise<[string]>;
-
-    poolQuotaRevenue(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    quotedTokens(overrides?: CallOverrides): Promise<[string[]]>;
-
-    removeQuotas(
-      creditAccount: PromiseOrValue<string>,
-      tokens: PromiseOrValue<string>[],
-      setLimitsToZero: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setGauge(
-      _gauge: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setTokenLimit(
-      token: PromiseOrValue<string>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setTokenQuotaIncreaseFee(
-      token: PromiseOrValue<string>,
-      fee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    underlying(overrides?: CallOverrides): Promise<[string]>;
-
-    updateQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      requestedChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      maxQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    updateRates(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  accrueQuotaInterest(
-    creditAccount: PromiseOrValue<string>,
-    tokens: PromiseOrValue<string>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  addCreditManager(
-    _creditManager: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  addQuotaToken(
-    token: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  creditManagers(overrides?: CallOverrides): Promise<string[]>;
-
-  cumulativeIndex(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  gauge(overrides?: CallOverrides): Promise<string>;
-
-  getQuota(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & { quota: BigNumber; cumulativeIndexLU: BigNumber }
+    ],
+    "view"
   >;
 
-  getQuotaAndOutstandingInterest(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & {
-      quoted: BigNumber;
-      outstandingInterest: BigNumber;
-    }
+  isQuotedToken: TypedContractMethod<[token: AddressLike], [boolean], "view">;
+
+  lastQuotaRateUpdate: TypedContractMethod<[], [bigint], "view">;
+
+  pool: TypedContractMethod<[], [string], "view">;
+
+  poolQuotaRevenue: TypedContractMethod<[], [bigint], "view">;
+
+  quotedTokens: TypedContractMethod<[], [string[]], "view">;
+
+  removeQuotas: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      tokens: AddressLike[],
+      setLimitsToZero: boolean
+    ],
+    [void],
+    "nonpayable"
   >;
 
-  getQuotaRate(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  setGauge: TypedContractMethod<[_gauge: AddressLike], [void], "nonpayable">;
 
-  getTokenQuotaParams(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [number, BigNumber, number, BigNumber, BigNumber, boolean] & {
-      rate: number;
-      cumulativeIndexLU: BigNumber;
-      quotaIncreaseFee: number;
-      totalQuoted: BigNumber;
-      limit: BigNumber;
-      isActive: boolean;
-    }
+  setTokenLimit: TypedContractMethod<
+    [token: AddressLike, limit: BigNumberish],
+    [void],
+    "nonpayable"
   >;
 
-  isQuotedToken(
-    token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  setTokenQuotaIncreaseFee: TypedContractMethod<
+    [token: AddressLike, fee: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-  lastQuotaRateUpdate(overrides?: CallOverrides): Promise<number>;
+  underlying: TypedContractMethod<[], [string], "view">;
 
-  pool(overrides?: CallOverrides): Promise<string>;
-
-  poolQuotaRevenue(overrides?: CallOverrides): Promise<BigNumber>;
-
-  quotedTokens(overrides?: CallOverrides): Promise<string[]>;
-
-  removeQuotas(
-    creditAccount: PromiseOrValue<string>,
-    tokens: PromiseOrValue<string>[],
-    setLimitsToZero: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setGauge(
-    _gauge: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setTokenLimit(
-    token: PromiseOrValue<string>,
-    limit: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setTokenQuotaIncreaseFee(
-    token: PromiseOrValue<string>,
-    fee: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  underlying(overrides?: CallOverrides): Promise<string>;
-
-  updateQuota(
-    creditAccount: PromiseOrValue<string>,
-    token: PromiseOrValue<string>,
-    requestedChange: PromiseOrValue<BigNumberish>,
-    minQuota: PromiseOrValue<BigNumberish>,
-    maxQuota: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  updateRates(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    accrueQuotaInterest(
-      creditAccount: PromiseOrValue<string>,
-      tokens: PromiseOrValue<string>[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addCreditManager(
-      _creditManager: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addQuotaToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    creditManagers(overrides?: CallOverrides): Promise<string[]>;
-
-    cumulativeIndex(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    gauge(overrides?: CallOverrides): Promise<string>;
-
-    getQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        quota: BigNumber;
-        cumulativeIndexLU: BigNumber;
-      }
-    >;
-
-    getQuotaAndOutstandingInterest(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & {
-        quoted: BigNumber;
-        outstandingInterest: BigNumber;
-      }
-    >;
-
-    getQuotaRate(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    getTokenQuotaParams(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [number, BigNumber, number, BigNumber, BigNumber, boolean] & {
-        rate: number;
-        cumulativeIndexLU: BigNumber;
-        quotaIncreaseFee: number;
-        totalQuoted: BigNumber;
-        limit: BigNumber;
-        isActive: boolean;
-      }
-    >;
-
-    isQuotedToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    lastQuotaRateUpdate(overrides?: CallOverrides): Promise<number>;
-
-    pool(overrides?: CallOverrides): Promise<string>;
-
-    poolQuotaRevenue(overrides?: CallOverrides): Promise<BigNumber>;
-
-    quotedTokens(overrides?: CallOverrides): Promise<string[]>;
-
-    removeQuotas(
-      creditAccount: PromiseOrValue<string>,
-      tokens: PromiseOrValue<string>[],
-      setLimitsToZero: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setGauge(
-      _gauge: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setTokenLimit(
-      token: PromiseOrValue<string>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setTokenQuotaIncreaseFee(
-      token: PromiseOrValue<string>,
-      fee: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    underlying(overrides?: CallOverrides): Promise<string>;
-
-    updateQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      requestedChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      maxQuota: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, boolean, boolean] & {
-        caQuotaInterestChange: BigNumber;
-        fees: BigNumber;
+  updateQuota: TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      requestedChange: BigNumberish,
+      minQuota: BigNumberish,
+      maxQuota: BigNumberish
+    ],
+    [
+      [bigint, bigint, boolean, boolean] & {
+        caQuotaInterestChange: bigint;
+        fees: bigint;
         enableToken: boolean;
         disableToken: boolean;
       }
-    >;
+    ],
+    "nonpayable"
+  >;
 
-    updateRates(overrides?: CallOverrides): Promise<void>;
+  updateRates: TypedContractMethod<[], [void], "nonpayable">;
 
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "accrueQuotaInterest"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, tokens: AddressLike[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "addCreditManager"
+  ): TypedContractMethod<[_creditManager: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "addQuotaToken"
+  ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "creditManagers"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "cumulativeIndex"
+  ): TypedContractMethod<[token: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "gauge"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getQuota"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, token: AddressLike],
+    [[bigint, bigint] & { quota: bigint; cumulativeIndexLU: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getQuotaAndOutstandingInterest"
+  ): TypedContractMethod<
+    [creditAccount: AddressLike, token: AddressLike],
+    [[bigint, bigint] & { quoted: bigint; outstandingInterest: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getQuotaRate"
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getTokenQuotaParams"
+  ): TypedContractMethod<
+    [token: AddressLike],
+    [
+      [bigint, bigint, bigint, bigint, bigint, boolean] & {
+        rate: bigint;
+        cumulativeIndexLU: bigint;
+        quotaIncreaseFee: bigint;
+        totalQuoted: bigint;
+        limit: bigint;
+        isActive: boolean;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "isQuotedToken"
+  ): TypedContractMethod<[token: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "lastQuotaRateUpdate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "pool"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "poolQuotaRevenue"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "quotedTokens"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "removeQuotas"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      tokens: AddressLike[],
+      setLimitsToZero: boolean
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setGauge"
+  ): TypedContractMethod<[_gauge: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setTokenLimit"
+  ): TypedContractMethod<
+    [token: AddressLike, limit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setTokenQuotaIncreaseFee"
+  ): TypedContractMethod<
+    [token: AddressLike, fee: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "underlying"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "updateQuota"
+  ): TypedContractMethod<
+    [
+      creditAccount: AddressLike,
+      token: AddressLike,
+      requestedChange: BigNumberish,
+      minQuota: BigNumberish,
+      maxQuota: BigNumberish
+    ],
+    [
+      [bigint, bigint, boolean, boolean] & {
+        caQuotaInterestChange: bigint;
+        fees: bigint;
+        enableToken: boolean;
+        disableToken: boolean;
+      }
+    ],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "updateRates"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+
+  getEvent(
+    key: "AddCreditManager"
+  ): TypedContractEvent<
+    AddCreditManagerEvent.InputTuple,
+    AddCreditManagerEvent.OutputTuple,
+    AddCreditManagerEvent.OutputObject
+  >;
+  getEvent(
+    key: "AddQuotaToken"
+  ): TypedContractEvent<
+    AddQuotaTokenEvent.InputTuple,
+    AddQuotaTokenEvent.OutputTuple,
+    AddQuotaTokenEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetGauge"
+  ): TypedContractEvent<
+    SetGaugeEvent.InputTuple,
+    SetGaugeEvent.OutputTuple,
+    SetGaugeEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetQuotaIncreaseFee"
+  ): TypedContractEvent<
+    SetQuotaIncreaseFeeEvent.InputTuple,
+    SetQuotaIncreaseFeeEvent.OutputTuple,
+    SetQuotaIncreaseFeeEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetTokenLimit"
+  ): TypedContractEvent<
+    SetTokenLimitEvent.InputTuple,
+    SetTokenLimitEvent.OutputTuple,
+    SetTokenLimitEvent.OutputObject
+  >;
+  getEvent(
+    key: "UpdateQuota"
+  ): TypedContractEvent<
+    UpdateQuotaEvent.InputTuple,
+    UpdateQuotaEvent.OutputTuple,
+    UpdateQuotaEvent.OutputObject
+  >;
+  getEvent(
+    key: "UpdateTokenQuotaRate"
+  ): TypedContractEvent<
+    UpdateTokenQuotaRateEvent.InputTuple,
+    UpdateTokenQuotaRateEvent.OutputTuple,
+    UpdateTokenQuotaRateEvent.OutputObject
+  >;
 
   filters: {
-    "AddCreditManager(address)"(
-      creditManager?: PromiseOrValue<string> | null
-    ): AddCreditManagerEventFilter;
-    AddCreditManager(
-      creditManager?: PromiseOrValue<string> | null
-    ): AddCreditManagerEventFilter;
+    "AddCreditManager(address)": TypedContractEvent<
+      AddCreditManagerEvent.InputTuple,
+      AddCreditManagerEvent.OutputTuple,
+      AddCreditManagerEvent.OutputObject
+    >;
+    AddCreditManager: TypedContractEvent<
+      AddCreditManagerEvent.InputTuple,
+      AddCreditManagerEvent.OutputTuple,
+      AddCreditManagerEvent.OutputObject
+    >;
 
-    "AddQuotaToken(address)"(
-      token?: PromiseOrValue<string> | null
-    ): AddQuotaTokenEventFilter;
-    AddQuotaToken(
-      token?: PromiseOrValue<string> | null
-    ): AddQuotaTokenEventFilter;
+    "AddQuotaToken(address)": TypedContractEvent<
+      AddQuotaTokenEvent.InputTuple,
+      AddQuotaTokenEvent.OutputTuple,
+      AddQuotaTokenEvent.OutputObject
+    >;
+    AddQuotaToken: TypedContractEvent<
+      AddQuotaTokenEvent.InputTuple,
+      AddQuotaTokenEvent.OutputTuple,
+      AddQuotaTokenEvent.OutputObject
+    >;
 
-    "SetGauge(address)"(
-      newGauge?: PromiseOrValue<string> | null
-    ): SetGaugeEventFilter;
-    SetGauge(newGauge?: PromiseOrValue<string> | null): SetGaugeEventFilter;
+    "SetGauge(address)": TypedContractEvent<
+      SetGaugeEvent.InputTuple,
+      SetGaugeEvent.OutputTuple,
+      SetGaugeEvent.OutputObject
+    >;
+    SetGauge: TypedContractEvent<
+      SetGaugeEvent.InputTuple,
+      SetGaugeEvent.OutputTuple,
+      SetGaugeEvent.OutputObject
+    >;
 
-    "SetQuotaIncreaseFee(address,uint16)"(
-      token?: PromiseOrValue<string> | null,
-      fee?: null
-    ): SetQuotaIncreaseFeeEventFilter;
-    SetQuotaIncreaseFee(
-      token?: PromiseOrValue<string> | null,
-      fee?: null
-    ): SetQuotaIncreaseFeeEventFilter;
+    "SetQuotaIncreaseFee(address,uint16)": TypedContractEvent<
+      SetQuotaIncreaseFeeEvent.InputTuple,
+      SetQuotaIncreaseFeeEvent.OutputTuple,
+      SetQuotaIncreaseFeeEvent.OutputObject
+    >;
+    SetQuotaIncreaseFee: TypedContractEvent<
+      SetQuotaIncreaseFeeEvent.InputTuple,
+      SetQuotaIncreaseFeeEvent.OutputTuple,
+      SetQuotaIncreaseFeeEvent.OutputObject
+    >;
 
-    "SetTokenLimit(address,uint96)"(
-      token?: PromiseOrValue<string> | null,
-      limit?: null
-    ): SetTokenLimitEventFilter;
-    SetTokenLimit(
-      token?: PromiseOrValue<string> | null,
-      limit?: null
-    ): SetTokenLimitEventFilter;
+    "SetTokenLimit(address,uint96)": TypedContractEvent<
+      SetTokenLimitEvent.InputTuple,
+      SetTokenLimitEvent.OutputTuple,
+      SetTokenLimitEvent.OutputObject
+    >;
+    SetTokenLimit: TypedContractEvent<
+      SetTokenLimitEvent.InputTuple,
+      SetTokenLimitEvent.OutputTuple,
+      SetTokenLimitEvent.OutputObject
+    >;
 
-    "UpdateQuota(address,address,int96)"(
-      creditAccount?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      quotaChange?: null
-    ): UpdateQuotaEventFilter;
-    UpdateQuota(
-      creditAccount?: PromiseOrValue<string> | null,
-      token?: PromiseOrValue<string> | null,
-      quotaChange?: null
-    ): UpdateQuotaEventFilter;
+    "UpdateQuota(address,address,int96)": TypedContractEvent<
+      UpdateQuotaEvent.InputTuple,
+      UpdateQuotaEvent.OutputTuple,
+      UpdateQuotaEvent.OutputObject
+    >;
+    UpdateQuota: TypedContractEvent<
+      UpdateQuotaEvent.InputTuple,
+      UpdateQuotaEvent.OutputTuple,
+      UpdateQuotaEvent.OutputObject
+    >;
 
-    "UpdateTokenQuotaRate(address,uint16)"(
-      token?: PromiseOrValue<string> | null,
-      rate?: null
-    ): UpdateTokenQuotaRateEventFilter;
-    UpdateTokenQuotaRate(
-      token?: PromiseOrValue<string> | null,
-      rate?: null
-    ): UpdateTokenQuotaRateEventFilter;
-  };
-
-  estimateGas: {
-    accrueQuotaInterest(
-      creditAccount: PromiseOrValue<string>,
-      tokens: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    addCreditManager(
-      _creditManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    addQuotaToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    creditManagers(overrides?: CallOverrides): Promise<BigNumber>;
-
-    cumulativeIndex(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    gauge(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getQuotaAndOutstandingInterest(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getQuotaRate(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenQuotaParams(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isQuotedToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    lastQuotaRateUpdate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    pool(overrides?: CallOverrides): Promise<BigNumber>;
-
-    poolQuotaRevenue(overrides?: CallOverrides): Promise<BigNumber>;
-
-    quotedTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    removeQuotas(
-      creditAccount: PromiseOrValue<string>,
-      tokens: PromiseOrValue<string>[],
-      setLimitsToZero: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setGauge(
-      _gauge: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setTokenLimit(
-      token: PromiseOrValue<string>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setTokenQuotaIncreaseFee(
-      token: PromiseOrValue<string>,
-      fee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    underlying(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      requestedChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      maxQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    updateRates(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    accrueQuotaInterest(
-      creditAccount: PromiseOrValue<string>,
-      tokens: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addCreditManager(
-      _creditManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addQuotaToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    creditManagers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    cumulativeIndex(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    gauge(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getQuotaAndOutstandingInterest(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getQuotaRate(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenQuotaParams(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isQuotedToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    lastQuotaRateUpdate(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    poolQuotaRevenue(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    quotedTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    removeQuotas(
-      creditAccount: PromiseOrValue<string>,
-      tokens: PromiseOrValue<string>[],
-      setLimitsToZero: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setGauge(
-      _gauge: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTokenLimit(
-      token: PromiseOrValue<string>,
-      limit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTokenQuotaIncreaseFee(
-      token: PromiseOrValue<string>,
-      fee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updateQuota(
-      creditAccount: PromiseOrValue<string>,
-      token: PromiseOrValue<string>,
-      requestedChange: PromiseOrValue<BigNumberish>,
-      minQuota: PromiseOrValue<BigNumberish>,
-      maxQuota: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    updateRates(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "UpdateTokenQuotaRate(address,uint16)": TypedContractEvent<
+      UpdateTokenQuotaRateEvent.InputTuple,
+      UpdateTokenQuotaRateEvent.OutputTuple,
+      UpdateTokenQuotaRateEvent.OutputObject
+    >;
+    UpdateTokenQuotaRate: TypedContractEvent<
+      UpdateTokenQuotaRateEvent.InputTuple,
+      UpdateTokenQuotaRateEvent.OutputTuple,
+      UpdateTokenQuotaRateEvent.OutputObject
+    >;
   };
 }

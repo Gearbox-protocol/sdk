@@ -3,128 +3,151 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface IZapperRegisterInterface extends utils.Interface {
-  functions: {
-    "zappers(address)": FunctionFragment;
-  };
+export interface IZapperRegisterInterface extends Interface {
+  getFunction(nameOrSignature: "zappers"): FunctionFragment;
 
-  getFunction(nameOrSignatureOrTopic: "zappers"): FunctionFragment;
+  getEvent(nameOrSignatureOrTopic: "AddZapper" | "RemoveZapper"): EventFragment;
 
   encodeFunctionData(
     functionFragment: "zappers",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "zappers", data: BytesLike): Result;
-
-  events: {
-    "AddZapper(address)": EventFragment;
-    "RemoveZapper(address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AddZapper"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RemoveZapper"): EventFragment;
 }
 
-export interface AddZapperEventObject {
-  arg0: string;
+export namespace AddZapperEvent {
+  export type InputTuple = [arg0: AddressLike];
+  export type OutputTuple = [arg0: string];
+  export interface OutputObject {
+    arg0: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddZapperEvent = TypedEvent<[string], AddZapperEventObject>;
 
-export type AddZapperEventFilter = TypedEventFilter<AddZapperEvent>;
-
-export interface RemoveZapperEventObject {
-  arg0: string;
+export namespace RemoveZapperEvent {
+  export type InputTuple = [arg0: AddressLike];
+  export type OutputTuple = [arg0: string];
+  export interface OutputObject {
+    arg0: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RemoveZapperEvent = TypedEvent<[string], RemoveZapperEventObject>;
-
-export type RemoveZapperEventFilter = TypedEventFilter<RemoveZapperEvent>;
 
 export interface IZapperRegister extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IZapperRegister;
+  waitForDeployment(): Promise<this>;
 
   interface: IZapperRegisterInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    zappers(
-      pool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string[]]>;
-  };
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  zappers(
-    pool: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-  callStatic: {
-    zappers(
-      pool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string[]>;
-  };
+  zappers: TypedContractMethod<[pool: AddressLike], [string[]], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "zappers"
+  ): TypedContractMethod<[pool: AddressLike], [string[]], "view">;
+
+  getEvent(
+    key: "AddZapper"
+  ): TypedContractEvent<
+    AddZapperEvent.InputTuple,
+    AddZapperEvent.OutputTuple,
+    AddZapperEvent.OutputObject
+  >;
+  getEvent(
+    key: "RemoveZapper"
+  ): TypedContractEvent<
+    RemoveZapperEvent.InputTuple,
+    RemoveZapperEvent.OutputTuple,
+    RemoveZapperEvent.OutputObject
+  >;
 
   filters: {
-    "AddZapper(address)"(arg0?: null): AddZapperEventFilter;
-    AddZapper(arg0?: null): AddZapperEventFilter;
+    "AddZapper(address)": TypedContractEvent<
+      AddZapperEvent.InputTuple,
+      AddZapperEvent.OutputTuple,
+      AddZapperEvent.OutputObject
+    >;
+    AddZapper: TypedContractEvent<
+      AddZapperEvent.InputTuple,
+      AddZapperEvent.OutputTuple,
+      AddZapperEvent.OutputObject
+    >;
 
-    "RemoveZapper(address)"(arg0?: null): RemoveZapperEventFilter;
-    RemoveZapper(arg0?: null): RemoveZapperEventFilter;
-  };
-
-  estimateGas: {
-    zappers(
-      pool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    zappers(
-      pool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    "RemoveZapper(address)": TypedContractEvent<
+      RemoveZapperEvent.InputTuple,
+      RemoveZapperEvent.OutputTuple,
+      RemoveZapperEvent.OutputObject
+    >;
+    RemoveZapper: TypedContractEvent<
+      RemoveZapperEvent.InputTuple,
+      RemoveZapperEvent.OutputTuple,
+      RemoveZapperEvent.OutputObject
+    >;
   };
 }

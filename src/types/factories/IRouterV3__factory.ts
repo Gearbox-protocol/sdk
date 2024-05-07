@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type { IRouterV3, IRouterV3Interface } from "../IRouterV3";
 
 const _abi = [
@@ -669,12 +668,9 @@ const _abi = [
 export class IRouterV3__factory {
   static readonly abi = _abi;
   static createInterface(): IRouterV3Interface {
-    return new utils.Interface(_abi) as IRouterV3Interface;
+    return new Interface(_abi) as IRouterV3Interface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IRouterV3 {
-    return new Contract(address, _abi, signerOrProvider) as IRouterV3;
+  static connect(address: string, runner?: ContractRunner | null): IRouterV3 {
+    return new Contract(address, _abi, runner) as unknown as IRouterV3;
   }
 }

@@ -13,8 +13,14 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import { BigNumber, BigNumberish, ethers, providers, Signer } from "ethers";
-import { getAddress, Interface } from "ethers/lib/utils";
+import {
+  BigNumberish,
+  BytesLike,
+  getAddress,
+  Interface,
+  Provider,
+  Signer,
+} from "ethers";
 
 import { ChartsApi } from "../core/endpoint";
 import {
@@ -24,9 +30,9 @@ import {
   IFarmingPool__factory,
 } from "../types";
 import { FarmAccounting } from "../types/IFarmingPool";
+import { makeTransactionCall } from "../utils/calls";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
-import { BigintifyProps } from "../utils/types";
 import { MULTICALL_EXTENDED_INTERFACE } from "./abi";
 
 export interface GearboxExtraMerkleLmReward {
@@ -71,19 +77,19 @@ export interface MerkleDistributorInfo {
     {
       index: number;
       amount: string;
-      proof: Array<ethers.utils.BytesLike>;
+      proof: Array<BytesLike>;
     }
   >;
 }
 
 type FarmInfoOutput = ExcludeArrayProps<FarmAccounting.InfoStructOutput>;
-export type FarmInfo = BigintifyProps<FarmInfoOutput> & {
+export type FarmInfo = FarmInfoOutput & {
   symbol: SupportedToken;
 };
 
 export interface GetLmRewardsInfoProps {
   currentTokenData: Record<SupportedToken, string>;
-  provider: providers.Provider | Signer;
+  provider: Provider | Signer;
 
   multicallAddress: string;
 }
@@ -92,7 +98,7 @@ export interface GetLmRewardsProps {
   baseRewardPoolsInfo: Record<string, FarmInfo>;
   currentTokenData: Record<SupportedToken, string>;
   account: string;
-  provider: providers.Provider | Signer;
+  provider: Provider | Signer;
 
   airdropDistributorAddress: string | undefined;
   network: NetworkType;
@@ -101,7 +107,7 @@ export interface GetLmRewardsProps {
 export interface ClaimLmRewardsV2Props {
   signer: Signer;
   account: string;
-  provider: providers.Provider;
+  provider: Provider;
 
   airdropDistributorAddress: string | undefined;
   network: NetworkType;
@@ -114,7 +120,9 @@ export interface ClaimLmRewardsV3Props {
 
 const EXTRA_LM_MINING: PartialRecord<string, (timestamp: number) => FarmInfo> =
   {
-    [tokenDataByNetwork.Mainnet.sdGHOV3.toLowerCase()]: (timestamp: number) => {
+    [tokenDataByNetwork.Mainnet.sdGHOV3.toLowerCase()]: (
+      timestamp: number,
+    ): FarmInfo => {
       const REWARD_PERIOD = 14 * 24 * 60 * 60;
       // const REWARDS_FIRST_START = 1711641600;
       // const REWARDS_FIRST_END = 1712844000;
@@ -136,8 +144,8 @@ const EXTRA_LM_MINING: PartialRecord<string, (timestamp: number) => FarmInfo> =
 
       return {
         balance: 0n,
-        duration: REWARD_PERIOD,
-        finished,
+        duration: BigInt(REWARD_PERIOD),
+        finished: BigInt(finished),
         reward: reward,
         symbol: "GHO",
       };
@@ -200,7 +208,7 @@ export class GearboxRewardsApi {
     );
 
     const farmSupplyCallsEnd = farmInfoCallsEnd + farmSupplyCalls.length;
-    const farmSupply: Array<BigNumber> = mcResponse.slice(
+    const farmSupply: Array<bigint> = mcResponse.slice(
       farmInfoCallsEnd,
       farmSupplyCallsEnd,
     );
@@ -230,8 +238,8 @@ export class GearboxRewardsApi {
         const baseReward: FarmInfo = {
           duration: currentInfo.duration,
           finished: currentInfo.finished,
-          reward: toBigInt(currentInfo.reward),
-          balance: toBigInt(currentInfo.balance),
+          reward: currentInfo.reward,
+          balance: currentInfo.balance,
           symbol: symbol,
         };
         const extraReward = otherRewards
@@ -249,7 +257,7 @@ export class GearboxRewardsApi {
     const rewardPoolsSupply = Object.fromEntries(
       poolTokens.map(([, address], i): [string, bigint] => [
         address,
-        toBigInt(farmSupply[i] || 0),
+        farmSupply[i] || 0n,
       ]),
     );
 
@@ -326,7 +334,7 @@ export class GearboxRewardsApi {
       network === "Mainnet" && EXTRA_LM_MINING[currentTokenData.sdGHOV3];
 
     const [gearboxLmResponse, merkleXYZLMResponse] = await Promise.allSettled([
-      multicall<Array<BigNumber>>(farmedCalls, provider),
+      multicall<Array<bigint>>(farmedCalls, provider),
 
       hasGHOReward
         ? axios.get<MerkleXYZUserRewardsResponse>(
@@ -358,7 +366,7 @@ export class GearboxRewardsApi {
       return {
         poolToken: address,
         rewardToken: currentTokenData[baseRewardPoolsInfo[address].symbol],
-        amount: toBigInt(gearboxLm[i] || 0n),
+        amount: gearboxLm[i] || 0n,
         type: "stakedV3",
       };
     });
@@ -432,22 +440,26 @@ export class GearboxRewardsApi {
     const rewardFromMerkle = merkleData?.claims[account];
     if (!rewardFromMerkle) throw new Error("No rewards found");
 
-    return distributor.claim(
-      rewardFromMerkle.index,
-      account,
-      toBigInt(rewardFromMerkle.amount),
-      rewardFromMerkle.proof,
+    return makeTransactionCall(
+      distributor.claim,
+      [
+        rewardFromMerkle.index,
+        account,
+        rewardFromMerkle.amount,
+        rewardFromMerkle.proof,
+      ],
+      signer,
     );
   }
 
   static async claimLmRewardsV3({ reward, signer }: ClaimLmRewardsV3Props) {
     const pool = IFarmingPool__factory.connect(reward.poolToken, signer);
 
-    return pool.claim();
+    return makeTransactionCall(pool.claim, [], signer);
   }
 
   private static async getMerkle(
-    provider: providers.Provider | Signer,
+    provider: Provider | Signer,
     distributorAddress: string,
     network: NetworkType,
     account: string,
@@ -474,7 +486,7 @@ export class GearboxRewardsApi {
     );
 
     const claimedRewards = (claimedRewardsResponse || []).reduce(
-      (acc, r) => acc + toBigInt(r.args.amount),
+      (acc, r) => acc + r.args.amount,
       0n,
     );
     return claimedRewards;

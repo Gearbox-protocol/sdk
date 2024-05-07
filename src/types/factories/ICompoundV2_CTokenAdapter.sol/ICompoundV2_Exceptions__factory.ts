@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   ICompoundV2_Exceptions,
   ICompoundV2_ExceptionsInterface,
@@ -26,16 +25,16 @@ const _abi = [
 export class ICompoundV2_Exceptions__factory {
   static readonly abi = _abi;
   static createInterface(): ICompoundV2_ExceptionsInterface {
-    return new utils.Interface(_abi) as ICompoundV2_ExceptionsInterface;
+    return new Interface(_abi) as ICompoundV2_ExceptionsInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): ICompoundV2_Exceptions {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as ICompoundV2_Exceptions;
+      runner
+    ) as unknown as ICompoundV2_Exceptions;
   }
 }

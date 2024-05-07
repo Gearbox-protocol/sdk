@@ -3,88 +3,111 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  Signer,
-  utils,
+  FunctionFragment,
+  Interface,
+  EventFragment,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { EventFragment } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
 } from "../common";
 
-export interface IAddressProviderV3EventsInterface extends utils.Interface {
-  functions: {};
-
-  events: {
-    "SetAddress(bytes32,address,uint256)": EventFragment;
-  };
-
+export interface IAddressProviderV3EventsInterface extends Interface {
   getEvent(nameOrSignatureOrTopic: "SetAddress"): EventFragment;
 }
 
-export interface SetAddressEventObject {
-  key: string;
-  value: string;
-  version: BigNumber;
+export namespace SetAddressEvent {
+  export type InputTuple = [
+    key: BytesLike,
+    value: AddressLike,
+    version: BigNumberish
+  ];
+  export type OutputTuple = [key: string, value: string, version: bigint];
+  export interface OutputObject {
+    key: string;
+    value: string;
+    version: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetAddressEvent = TypedEvent<
-  [string, string, BigNumber],
-  SetAddressEventObject
->;
-
-export type SetAddressEventFilter = TypedEventFilter<SetAddressEvent>;
 
 export interface IAddressProviderV3Events extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IAddressProviderV3Events;
+  waitForDeployment(): Promise<this>;
 
   interface: IAddressProviderV3EventsInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {};
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  callStatic: {};
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getEvent(
+    key: "SetAddress"
+  ): TypedContractEvent<
+    SetAddressEvent.InputTuple,
+    SetAddressEvent.OutputTuple,
+    SetAddressEvent.OutputObject
+  >;
 
   filters: {
-    "SetAddress(bytes32,address,uint256)"(
-      key?: PromiseOrValue<BytesLike> | null,
-      value?: PromiseOrValue<string> | null,
-      version?: PromiseOrValue<BigNumberish> | null
-    ): SetAddressEventFilter;
-    SetAddress(
-      key?: PromiseOrValue<BytesLike> | null,
-      value?: PromiseOrValue<string> | null,
-      version?: PromiseOrValue<BigNumberish> | null
-    ): SetAddressEventFilter;
+    "SetAddress(bytes32,address,uint256)": TypedContractEvent<
+      SetAddressEvent.InputTuple,
+      SetAddressEvent.OutputTuple,
+      SetAddressEvent.OutputObject
+    >;
+    SetAddress: TypedContractEvent<
+      SetAddressEvent.InputTuple,
+      SetAddressEvent.OutputTuple,
+      SetAddressEvent.OutputObject
+    >;
   };
-
-  estimateGas: {};
-
-  populateTransaction: {};
 }

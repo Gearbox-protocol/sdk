@@ -3,70 +3,48 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
 export type MultiVoteStruct = {
-  votingContract: PromiseOrValue<string>;
-  voteAmount: PromiseOrValue<BigNumberish>;
-  isIncrease: PromiseOrValue<boolean>;
-  extraData: PromiseOrValue<BytesLike>;
+  votingContract: AddressLike;
+  voteAmount: BigNumberish;
+  isIncrease: boolean;
+  extraData: BytesLike;
 };
 
-export type MultiVoteStructOutput = [string, BigNumber, boolean, string] & {
+export type MultiVoteStructOutput = [
+  votingContract: string,
+  voteAmount: bigint,
+  isIncrease: boolean,
+  extraData: string
+] & {
   votingContract: string;
-  voteAmount: BigNumber;
+  voteAmount: bigint;
   isIncrease: boolean;
   extraData: string;
 };
 
-export interface IGearStakingV3Interface extends utils.Interface {
-  functions: {
-    "allowedVotingContract(address)": FunctionFragment;
-    "availableBalance(address)": FunctionFragment;
-    "balanceOf(address)": FunctionFragment;
-    "claimWithdrawals(address)": FunctionFragment;
-    "deposit(uint96,(address,uint96,bool,bytes)[])": FunctionFragment;
-    "depositOnMigration(uint96,address,(address,uint96,bool,bytes)[])": FunctionFragment;
-    "depositWithPermit(uint96,(address,uint96,bool,bytes)[],uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "firstEpochTimestamp()": FunctionFragment;
-    "gear()": FunctionFragment;
-    "getCurrentEpoch()": FunctionFragment;
-    "getWithdrawableAmounts(address)": FunctionFragment;
-    "migrate(uint96,(address,uint96,bool,bytes)[],(address,uint96,bool,bytes)[])": FunctionFragment;
-    "migrator()": FunctionFragment;
-    "multivote((address,uint96,bool,bytes)[])": FunctionFragment;
-    "setMigrator(address)": FunctionFragment;
-    "setSuccessor(address)": FunctionFragment;
-    "setVotingContractStatus(address,uint8)": FunctionFragment;
-    "successor()": FunctionFragment;
-    "version()": FunctionFragment;
-    "withdraw(uint96,address,(address,uint96,bool,bytes)[])": FunctionFragment;
-  };
-
+export interface IGearStakingV3Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "allowedVotingContract"
       | "availableBalance"
       | "balanceOf"
@@ -89,43 +67,50 @@ export interface IGearStakingV3Interface extends utils.Interface {
       | "withdraw"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "ClaimGearWithdrawal"
+      | "DepositGear"
+      | "MigrateGear"
+      | "ScheduleGearWithdrawal"
+      | "SetMigrator"
+      | "SetSuccessor"
+      | "SetVotingContractStatus"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "allowedVotingContract",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "availableBalance",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "claimWithdrawals",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, MultiVoteStruct[]]
+    values: [BigNumberish, MultiVoteStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "depositOnMigration",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      MultiVoteStruct[]
-    ]
+    values: [BigNumberish, AddressLike, MultiVoteStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "depositWithPermit",
     values: [
-      PromiseOrValue<BigNumberish>,
+      BigNumberish,
       MultiVoteStruct[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
   encodeFunctionData(
@@ -139,11 +124,11 @@ export interface IGearStakingV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getWithdrawableAmounts",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "migrate",
-    values: [PromiseOrValue<BigNumberish>, MultiVoteStruct[], MultiVoteStruct[]]
+    values: [BigNumberish, MultiVoteStruct[], MultiVoteStruct[]]
   ): string;
   encodeFunctionData(functionFragment: "migrator", values?: undefined): string;
   encodeFunctionData(
@@ -152,25 +137,21 @@ export interface IGearStakingV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setMigrator",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setSuccessor",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setVotingContractStatus",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "successor", values?: undefined): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      MultiVoteStruct[]
-    ]
+    values: [BigNumberish, AddressLike, MultiVoteStruct[]]
   ): string;
 
   decodeFunctionResult(
@@ -226,688 +207,489 @@ export interface IGearStakingV3Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "successor", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
-
-  events: {
-    "ClaimGearWithdrawal(address,address,uint256)": EventFragment;
-    "DepositGear(address,uint256)": EventFragment;
-    "MigrateGear(address,address,uint256)": EventFragment;
-    "ScheduleGearWithdrawal(address,uint256)": EventFragment;
-    "SetMigrator(address)": EventFragment;
-    "SetSuccessor(address)": EventFragment;
-    "SetVotingContractStatus(address,uint8)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "ClaimGearWithdrawal"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "DepositGear"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "MigrateGear"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ScheduleGearWithdrawal"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetMigrator"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetSuccessor"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetVotingContractStatus"): EventFragment;
 }
 
-export interface ClaimGearWithdrawalEventObject {
-  user: string;
-  to: string;
-  amount: BigNumber;
+export namespace ClaimGearWithdrawalEvent {
+  export type InputTuple = [
+    user: AddressLike,
+    to: AddressLike,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [user: string, to: string, amount: bigint];
+  export interface OutputObject {
+    user: string;
+    to: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ClaimGearWithdrawalEvent = TypedEvent<
-  [string, string, BigNumber],
-  ClaimGearWithdrawalEventObject
->;
 
-export type ClaimGearWithdrawalEventFilter =
-  TypedEventFilter<ClaimGearWithdrawalEvent>;
-
-export interface DepositGearEventObject {
-  user: string;
-  amount: BigNumber;
+export namespace DepositGearEvent {
+  export type InputTuple = [user: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [user: string, amount: bigint];
+  export interface OutputObject {
+    user: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type DepositGearEvent = TypedEvent<
-  [string, BigNumber],
-  DepositGearEventObject
->;
 
-export type DepositGearEventFilter = TypedEventFilter<DepositGearEvent>;
-
-export interface MigrateGearEventObject {
-  user: string;
-  successor: string;
-  amount: BigNumber;
+export namespace MigrateGearEvent {
+  export type InputTuple = [
+    user: AddressLike,
+    successor: AddressLike,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [user: string, successor: string, amount: bigint];
+  export interface OutputObject {
+    user: string;
+    successor: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type MigrateGearEvent = TypedEvent<
-  [string, string, BigNumber],
-  MigrateGearEventObject
->;
 
-export type MigrateGearEventFilter = TypedEventFilter<MigrateGearEvent>;
-
-export interface ScheduleGearWithdrawalEventObject {
-  user: string;
-  amount: BigNumber;
+export namespace ScheduleGearWithdrawalEvent {
+  export type InputTuple = [user: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [user: string, amount: bigint];
+  export interface OutputObject {
+    user: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ScheduleGearWithdrawalEvent = TypedEvent<
-  [string, BigNumber],
-  ScheduleGearWithdrawalEventObject
->;
 
-export type ScheduleGearWithdrawalEventFilter =
-  TypedEventFilter<ScheduleGearWithdrawalEvent>;
-
-export interface SetMigratorEventObject {
-  migrator: string;
+export namespace SetMigratorEvent {
+  export type InputTuple = [migrator: AddressLike];
+  export type OutputTuple = [migrator: string];
+  export interface OutputObject {
+    migrator: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetMigratorEvent = TypedEvent<[string], SetMigratorEventObject>;
 
-export type SetMigratorEventFilter = TypedEventFilter<SetMigratorEvent>;
-
-export interface SetSuccessorEventObject {
-  successor: string;
+export namespace SetSuccessorEvent {
+  export type InputTuple = [successor: AddressLike];
+  export type OutputTuple = [successor: string];
+  export interface OutputObject {
+    successor: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetSuccessorEvent = TypedEvent<[string], SetSuccessorEventObject>;
 
-export type SetSuccessorEventFilter = TypedEventFilter<SetSuccessorEvent>;
-
-export interface SetVotingContractStatusEventObject {
-  votingContract: string;
-  status: number;
+export namespace SetVotingContractStatusEvent {
+  export type InputTuple = [votingContract: AddressLike, status: BigNumberish];
+  export type OutputTuple = [votingContract: string, status: bigint];
+  export interface OutputObject {
+    votingContract: string;
+    status: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type SetVotingContractStatusEvent = TypedEvent<
-  [string, number],
-  SetVotingContractStatusEventObject
->;
-
-export type SetVotingContractStatusEventFilter =
-  TypedEventFilter<SetVotingContractStatusEvent>;
 
 export interface IGearStakingV3 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IGearStakingV3;
+  waitForDeployment(): Promise<this>;
 
   interface: IGearStakingV3Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    allowedVotingContract(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    availableBalance(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    balanceOf(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    claimWithdrawals(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    deposit(
-      amount: PromiseOrValue<BigNumberish>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    depositOnMigration(
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    depositWithPermit(
-      amount: PromiseOrValue<BigNumberish>,
-      votes: MultiVoteStruct[],
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    firstEpochTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    gear(overrides?: CallOverrides): Promise<[string]>;
-
-    getCurrentEpoch(overrides?: CallOverrides): Promise<[number]>;
-
-    getWithdrawableAmounts(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, [BigNumber, BigNumber, BigNumber, BigNumber]] & {
-        withdrawableNow: BigNumber;
-        withdrawableInEpochs: [BigNumber, BigNumber, BigNumber, BigNumber];
-      }
-    >;
-
-    migrate(
-      amount: PromiseOrValue<BigNumberish>,
-      votesBefore: MultiVoteStruct[],
-      votesAfter: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    migrator(overrides?: CallOverrides): Promise<[string]>;
-
-    multivote(
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setMigrator(
-      newMigrator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setSuccessor(
-      newSuccessor: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setVotingContractStatus(
-      votingContract: PromiseOrValue<string>,
-      status: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    successor(overrides?: CallOverrides): Promise<[string]>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
-
-  allowedVotingContract(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  availableBalance(
-    user: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  balanceOf(
-    user: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  claimWithdrawals(
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  deposit(
-    amount: PromiseOrValue<BigNumberish>,
-    votes: MultiVoteStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  depositOnMigration(
-    amount: PromiseOrValue<BigNumberish>,
-    onBehalfOf: PromiseOrValue<string>,
-    votes: MultiVoteStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  depositWithPermit(
-    amount: PromiseOrValue<BigNumberish>,
-    votes: MultiVoteStruct[],
-    deadline: PromiseOrValue<BigNumberish>,
-    v: PromiseOrValue<BigNumberish>,
-    r: PromiseOrValue<BytesLike>,
-    s: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  firstEpochTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
-
-  gear(overrides?: CallOverrides): Promise<string>;
-
-  getCurrentEpoch(overrides?: CallOverrides): Promise<number>;
-
-  getWithdrawableAmounts(
-    user: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, [BigNumber, BigNumber, BigNumber, BigNumber]] & {
-      withdrawableNow: BigNumber;
-      withdrawableInEpochs: [BigNumber, BigNumber, BigNumber, BigNumber];
-    }
+  allowedVotingContract: TypedContractMethod<
+    [arg0: AddressLike],
+    [bigint],
+    "view"
   >;
 
-  migrate(
-    amount: PromiseOrValue<BigNumberish>,
-    votesBefore: MultiVoteStruct[],
-    votesAfter: MultiVoteStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  availableBalance: TypedContractMethod<[user: AddressLike], [bigint], "view">;
 
-  migrator(overrides?: CallOverrides): Promise<string>;
+  balanceOf: TypedContractMethod<[user: AddressLike], [bigint], "view">;
 
-  multivote(
-    votes: MultiVoteStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  claimWithdrawals: TypedContractMethod<
+    [to: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-  setMigrator(
-    newMigrator: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  deposit: TypedContractMethod<
+    [amount: BigNumberish, votes: MultiVoteStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-  setSuccessor(
-    newSuccessor: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  depositOnMigration: TypedContractMethod<
+    [amount: BigNumberish, onBehalfOf: AddressLike, votes: MultiVoteStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-  setVotingContractStatus(
-    votingContract: PromiseOrValue<string>,
-    status: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  successor(overrides?: CallOverrides): Promise<string>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  withdraw(
-    amount: PromiseOrValue<BigNumberish>,
-    to: PromiseOrValue<string>,
-    votes: MultiVoteStruct[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    allowedVotingContract(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    availableBalance(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    balanceOf(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    claimWithdrawals(
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    deposit(
-      amount: PromiseOrValue<BigNumberish>,
+  depositWithPermit: TypedContractMethod<
+    [
+      amount: BigNumberish,
       votes: MultiVoteStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    depositOnMigration(
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      votes: MultiVoteStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+  firstEpochTimestamp: TypedContractMethod<[], [bigint], "view">;
 
-    depositWithPermit(
-      amount: PromiseOrValue<BigNumberish>,
-      votes: MultiVoteStruct[],
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+  gear: TypedContractMethod<[], [string], "view">;
 
-    firstEpochTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
+  getCurrentEpoch: TypedContractMethod<[], [bigint], "view">;
 
-    gear(overrides?: CallOverrides): Promise<string>;
-
-    getCurrentEpoch(overrides?: CallOverrides): Promise<number>;
-
-    getWithdrawableAmounts(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, [BigNumber, BigNumber, BigNumber, BigNumber]] & {
-        withdrawableNow: BigNumber;
-        withdrawableInEpochs: [BigNumber, BigNumber, BigNumber, BigNumber];
+  getWithdrawableAmounts: TypedContractMethod<
+    [user: AddressLike],
+    [
+      [bigint, [bigint, bigint, bigint, bigint]] & {
+        withdrawableNow: bigint;
+        withdrawableInEpochs: [bigint, bigint, bigint, bigint];
       }
-    >;
+    ],
+    "view"
+  >;
 
-    migrate(
-      amount: PromiseOrValue<BigNumberish>,
+  migrate: TypedContractMethod<
+    [
+      amount: BigNumberish,
       votesBefore: MultiVoteStruct[],
-      votesAfter: MultiVoteStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+      votesAfter: MultiVoteStruct[]
+    ],
+    [void],
+    "nonpayable"
+  >;
 
-    migrator(overrides?: CallOverrides): Promise<string>;
+  migrator: TypedContractMethod<[], [string], "view">;
 
-    multivote(
+  multivote: TypedContractMethod<
+    [votes: MultiVoteStruct[]],
+    [void],
+    "nonpayable"
+  >;
+
+  setMigrator: TypedContractMethod<
+    [newMigrator: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setSuccessor: TypedContractMethod<
+    [newSuccessor: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setVotingContractStatus: TypedContractMethod<
+    [votingContract: AddressLike, status: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  successor: TypedContractMethod<[], [string], "view">;
+
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  withdraw: TypedContractMethod<
+    [amount: BigNumberish, to: AddressLike, votes: MultiVoteStruct[]],
+    [void],
+    "nonpayable"
+  >;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "allowedVotingContract"
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "availableBalance"
+  ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "balanceOf"
+  ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "claimWithdrawals"
+  ): TypedContractMethod<[to: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "deposit"
+  ): TypedContractMethod<
+    [amount: BigNumberish, votes: MultiVoteStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "depositOnMigration"
+  ): TypedContractMethod<
+    [amount: BigNumberish, onBehalfOf: AddressLike, votes: MultiVoteStruct[]],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "depositWithPermit"
+  ): TypedContractMethod<
+    [
+      amount: BigNumberish,
       votes: MultiVoteStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "firstEpochTimestamp"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "gear"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getCurrentEpoch"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getWithdrawableAmounts"
+  ): TypedContractMethod<
+    [user: AddressLike],
+    [
+      [bigint, [bigint, bigint, bigint, bigint]] & {
+        withdrawableNow: bigint;
+        withdrawableInEpochs: [bigint, bigint, bigint, bigint];
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "migrate"
+  ): TypedContractMethod<
+    [
+      amount: BigNumberish,
+      votesBefore: MultiVoteStruct[],
+      votesAfter: MultiVoteStruct[]
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "migrator"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "multivote"
+  ): TypedContractMethod<[votes: MultiVoteStruct[]], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setMigrator"
+  ): TypedContractMethod<[newMigrator: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setSuccessor"
+  ): TypedContractMethod<[newSuccessor: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setVotingContractStatus"
+  ): TypedContractMethod<
+    [votingContract: AddressLike, status: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "successor"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "withdraw"
+  ): TypedContractMethod<
+    [amount: BigNumberish, to: AddressLike, votes: MultiVoteStruct[]],
+    [void],
+    "nonpayable"
+  >;
 
-    setMigrator(
-      newMigrator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setSuccessor(
-      newSuccessor: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setVotingContractStatus(
-      votingContract: PromiseOrValue<string>,
-      status: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    successor(overrides?: CallOverrides): Promise<string>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      votes: MultiVoteStruct[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+  getEvent(
+    key: "ClaimGearWithdrawal"
+  ): TypedContractEvent<
+    ClaimGearWithdrawalEvent.InputTuple,
+    ClaimGearWithdrawalEvent.OutputTuple,
+    ClaimGearWithdrawalEvent.OutputObject
+  >;
+  getEvent(
+    key: "DepositGear"
+  ): TypedContractEvent<
+    DepositGearEvent.InputTuple,
+    DepositGearEvent.OutputTuple,
+    DepositGearEvent.OutputObject
+  >;
+  getEvent(
+    key: "MigrateGear"
+  ): TypedContractEvent<
+    MigrateGearEvent.InputTuple,
+    MigrateGearEvent.OutputTuple,
+    MigrateGearEvent.OutputObject
+  >;
+  getEvent(
+    key: "ScheduleGearWithdrawal"
+  ): TypedContractEvent<
+    ScheduleGearWithdrawalEvent.InputTuple,
+    ScheduleGearWithdrawalEvent.OutputTuple,
+    ScheduleGearWithdrawalEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetMigrator"
+  ): TypedContractEvent<
+    SetMigratorEvent.InputTuple,
+    SetMigratorEvent.OutputTuple,
+    SetMigratorEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetSuccessor"
+  ): TypedContractEvent<
+    SetSuccessorEvent.InputTuple,
+    SetSuccessorEvent.OutputTuple,
+    SetSuccessorEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetVotingContractStatus"
+  ): TypedContractEvent<
+    SetVotingContractStatusEvent.InputTuple,
+    SetVotingContractStatusEvent.OutputTuple,
+    SetVotingContractStatusEvent.OutputObject
+  >;
 
   filters: {
-    "ClaimGearWithdrawal(address,address,uint256)"(
-      user?: PromiseOrValue<string> | null,
-      to?: null,
-      amount?: null
-    ): ClaimGearWithdrawalEventFilter;
-    ClaimGearWithdrawal(
-      user?: PromiseOrValue<string> | null,
-      to?: null,
-      amount?: null
-    ): ClaimGearWithdrawalEventFilter;
+    "ClaimGearWithdrawal(address,address,uint256)": TypedContractEvent<
+      ClaimGearWithdrawalEvent.InputTuple,
+      ClaimGearWithdrawalEvent.OutputTuple,
+      ClaimGearWithdrawalEvent.OutputObject
+    >;
+    ClaimGearWithdrawal: TypedContractEvent<
+      ClaimGearWithdrawalEvent.InputTuple,
+      ClaimGearWithdrawalEvent.OutputTuple,
+      ClaimGearWithdrawalEvent.OutputObject
+    >;
 
-    "DepositGear(address,uint256)"(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): DepositGearEventFilter;
-    DepositGear(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): DepositGearEventFilter;
+    "DepositGear(address,uint256)": TypedContractEvent<
+      DepositGearEvent.InputTuple,
+      DepositGearEvent.OutputTuple,
+      DepositGearEvent.OutputObject
+    >;
+    DepositGear: TypedContractEvent<
+      DepositGearEvent.InputTuple,
+      DepositGearEvent.OutputTuple,
+      DepositGearEvent.OutputObject
+    >;
 
-    "MigrateGear(address,address,uint256)"(
-      user?: PromiseOrValue<string> | null,
-      successor?: PromiseOrValue<string> | null,
-      amount?: null
-    ): MigrateGearEventFilter;
-    MigrateGear(
-      user?: PromiseOrValue<string> | null,
-      successor?: PromiseOrValue<string> | null,
-      amount?: null
-    ): MigrateGearEventFilter;
+    "MigrateGear(address,address,uint256)": TypedContractEvent<
+      MigrateGearEvent.InputTuple,
+      MigrateGearEvent.OutputTuple,
+      MigrateGearEvent.OutputObject
+    >;
+    MigrateGear: TypedContractEvent<
+      MigrateGearEvent.InputTuple,
+      MigrateGearEvent.OutputTuple,
+      MigrateGearEvent.OutputObject
+    >;
 
-    "ScheduleGearWithdrawal(address,uint256)"(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): ScheduleGearWithdrawalEventFilter;
-    ScheduleGearWithdrawal(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): ScheduleGearWithdrawalEventFilter;
+    "ScheduleGearWithdrawal(address,uint256)": TypedContractEvent<
+      ScheduleGearWithdrawalEvent.InputTuple,
+      ScheduleGearWithdrawalEvent.OutputTuple,
+      ScheduleGearWithdrawalEvent.OutputObject
+    >;
+    ScheduleGearWithdrawal: TypedContractEvent<
+      ScheduleGearWithdrawalEvent.InputTuple,
+      ScheduleGearWithdrawalEvent.OutputTuple,
+      ScheduleGearWithdrawalEvent.OutputObject
+    >;
 
-    "SetMigrator(address)"(
-      migrator?: PromiseOrValue<string> | null
-    ): SetMigratorEventFilter;
-    SetMigrator(
-      migrator?: PromiseOrValue<string> | null
-    ): SetMigratorEventFilter;
+    "SetMigrator(address)": TypedContractEvent<
+      SetMigratorEvent.InputTuple,
+      SetMigratorEvent.OutputTuple,
+      SetMigratorEvent.OutputObject
+    >;
+    SetMigrator: TypedContractEvent<
+      SetMigratorEvent.InputTuple,
+      SetMigratorEvent.OutputTuple,
+      SetMigratorEvent.OutputObject
+    >;
 
-    "SetSuccessor(address)"(
-      successor?: PromiseOrValue<string> | null
-    ): SetSuccessorEventFilter;
-    SetSuccessor(
-      successor?: PromiseOrValue<string> | null
-    ): SetSuccessorEventFilter;
+    "SetSuccessor(address)": TypedContractEvent<
+      SetSuccessorEvent.InputTuple,
+      SetSuccessorEvent.OutputTuple,
+      SetSuccessorEvent.OutputObject
+    >;
+    SetSuccessor: TypedContractEvent<
+      SetSuccessorEvent.InputTuple,
+      SetSuccessorEvent.OutputTuple,
+      SetSuccessorEvent.OutputObject
+    >;
 
-    "SetVotingContractStatus(address,uint8)"(
-      votingContract?: PromiseOrValue<string> | null,
-      status?: null
-    ): SetVotingContractStatusEventFilter;
-    SetVotingContractStatus(
-      votingContract?: PromiseOrValue<string> | null,
-      status?: null
-    ): SetVotingContractStatusEventFilter;
-  };
-
-  estimateGas: {
-    allowedVotingContract(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    availableBalance(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    balanceOf(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    claimWithdrawals(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    deposit(
-      amount: PromiseOrValue<BigNumberish>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    depositOnMigration(
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    depositWithPermit(
-      amount: PromiseOrValue<BigNumberish>,
-      votes: MultiVoteStruct[],
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    firstEpochTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
-
-    gear(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getWithdrawableAmounts(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    migrate(
-      amount: PromiseOrValue<BigNumberish>,
-      votesBefore: MultiVoteStruct[],
-      votesAfter: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    migrator(overrides?: CallOverrides): Promise<BigNumber>;
-
-    multivote(
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setMigrator(
-      newMigrator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setSuccessor(
-      newSuccessor: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setVotingContractStatus(
-      votingContract: PromiseOrValue<string>,
-      status: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    successor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    allowedVotingContract(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    availableBalance(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    balanceOf(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    claimWithdrawals(
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    deposit(
-      amount: PromiseOrValue<BigNumberish>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    depositOnMigration(
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    depositWithPermit(
-      amount: PromiseOrValue<BigNumberish>,
-      votes: MultiVoteStruct[],
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    firstEpochTimestamp(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    gear(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getCurrentEpoch(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getWithdrawableAmounts(
-      user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    migrate(
-      amount: PromiseOrValue<BigNumberish>,
-      votesBefore: MultiVoteStruct[],
-      votesAfter: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    migrator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    multivote(
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setMigrator(
-      newMigrator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setSuccessor(
-      newSuccessor: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setVotingContractStatus(
-      votingContract: PromiseOrValue<string>,
-      status: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    successor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      votes: MultiVoteStruct[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    "SetVotingContractStatus(address,uint8)": TypedContractEvent<
+      SetVotingContractStatusEvent.InputTuple,
+      SetVotingContractStatusEvent.OutputTuple,
+      SetVotingContractStatusEvent.OutputObject
+    >;
+    SetVotingContractStatus: TypedContractEvent<
+      SetVotingContractStatusEvent.InputTuple,
+      SetVotingContractStatusEvent.OutputTuple,
+      SetVotingContractStatusEvent.OutputObject
+    >;
   };
 }

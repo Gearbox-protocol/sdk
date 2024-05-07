@@ -3,65 +3,27 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface IBaseRewardPoolInterface extends utils.Interface {
-  functions: {
-    "balanceOf(address)": FunctionFragment;
-    "currentRewards()": FunctionFragment;
-    "donate(uint256)": FunctionFragment;
-    "duration()": FunctionFragment;
-    "earned(address)": FunctionFragment;
-    "extraRewards(uint256)": FunctionFragment;
-    "extraRewardsLength()": FunctionFragment;
-    "getReward()": FunctionFragment;
-    "getReward(address,bool)": FunctionFragment;
-    "historicalRewards()": FunctionFragment;
-    "lastTimeRewardApplicable()": FunctionFragment;
-    "lastUpdateTime()": FunctionFragment;
-    "newRewardRatio()": FunctionFragment;
-    "operator()": FunctionFragment;
-    "periodFinish()": FunctionFragment;
-    "pid()": FunctionFragment;
-    "queuedRewards()": FunctionFragment;
-    "rewardManager()": FunctionFragment;
-    "rewardPerToken()": FunctionFragment;
-    "rewardPerTokenStored()": FunctionFragment;
-    "rewardRate()": FunctionFragment;
-    "rewardToken()": FunctionFragment;
-    "rewards(address)": FunctionFragment;
-    "stake(uint256)": FunctionFragment;
-    "stakeAll()": FunctionFragment;
-    "stakeFor(address,uint256)": FunctionFragment;
-    "stakingToken()": FunctionFragment;
-    "totalSupply()": FunctionFragment;
-    "userRewardPerTokenPaid(address)": FunctionFragment;
-    "withdraw(uint256,bool)": FunctionFragment;
-    "withdrawAll(bool)": FunctionFragment;
-    "withdrawAllAndUnwrap(bool)": FunctionFragment;
-    "withdrawAndUnwrap(uint256,bool)": FunctionFragment;
-  };
-
+export interface IBaseRewardPoolInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "balanceOf"
       | "currentRewards"
       | "donate"
@@ -99,7 +61,7 @@ export interface IBaseRewardPoolInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "currentRewards",
@@ -107,16 +69,13 @@ export interface IBaseRewardPoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "donate",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "duration", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "earned",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "earned", values: [AddressLike]): string;
   encodeFunctionData(
     functionFragment: "extraRewards",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "extraRewardsLength",
@@ -128,7 +87,7 @@ export interface IBaseRewardPoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getReward(address,bool)",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "historicalRewards",
@@ -178,16 +137,13 @@ export interface IBaseRewardPoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "rewards",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "stake",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "stake", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "stakeAll", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stakeFor",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "stakingToken",
@@ -199,23 +155,23 @@ export interface IBaseRewardPoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "userRewardPerTokenPaid",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+    values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAll",
-    values: [PromiseOrValue<boolean>]
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAllAndUnwrap",
-    values: [PromiseOrValue<boolean>]
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAndUnwrap",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>]
+    values: [BigNumberish, boolean]
   ): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
@@ -314,610 +270,260 @@ export interface IBaseRewardPoolInterface extends utils.Interface {
     functionFragment: "withdrawAndUnwrap",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface IBaseRewardPool extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IBaseRewardPool;
+  waitForDeployment(): Promise<this>;
 
   interface: IBaseRewardPoolInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    currentRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    donate(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
 
-    duration(overrides?: CallOverrides): Promise<[BigNumber]>;
+  currentRewards: TypedContractMethod<[], [bigint], "view">;
 
-    earned(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  donate: TypedContractMethod<[_amount: BigNumberish], [boolean], "nonpayable">;
 
-    extraRewards(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+  duration: TypedContractMethod<[], [bigint], "view">;
 
-    extraRewardsLength(overrides?: CallOverrides): Promise<[BigNumber]>;
+  earned: TypedContractMethod<[account: AddressLike], [bigint], "view">;
 
-    "getReward()"(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  extraRewards: TypedContractMethod<[i: BigNumberish], [string], "view">;
 
-    "getReward(address,bool)"(
-      _account: PromiseOrValue<string>,
-      _claimExtras: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+  extraRewardsLength: TypedContractMethod<[], [bigint], "view">;
 
-    historicalRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
+  "getReward()": TypedContractMethod<[], [boolean], "nonpayable">;
 
-    lastTimeRewardApplicable(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    lastUpdateTime(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    newRewardRatio(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    operator(overrides?: CallOverrides): Promise<[string]>;
-
-    periodFinish(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    pid(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    queuedRewards(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    rewardManager(overrides?: CallOverrides): Promise<[string]>;
-
-    rewardPerToken(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    rewardPerTokenStored(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    rewardRate(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    rewardToken(overrides?: CallOverrides): Promise<[string]>;
-
-    rewards(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    stake(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    stakeAll(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    stakeFor(
-      _for: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    stakingToken(overrides?: CallOverrides): Promise<[string]>;
-
-    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    userRewardPerTokenPaid(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawAll(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawAllAndUnwrap(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawAndUnwrap(
-      amount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
-
-  balanceOf(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-  donate(
-    _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  duration(overrides?: CallOverrides): Promise<BigNumber>;
-
-  earned(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  extraRewards(
-    i: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  extraRewardsLength(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "getReward()"(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "getReward(address,bool)"(
-    _account: PromiseOrValue<string>,
-    _claimExtras: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-  lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
-
-  lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
-
-  newRewardRatio(overrides?: CallOverrides): Promise<BigNumber>;
-
-  operator(overrides?: CallOverrides): Promise<string>;
-
-  periodFinish(overrides?: CallOverrides): Promise<BigNumber>;
-
-  pid(overrides?: CallOverrides): Promise<BigNumber>;
-
-  queuedRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-  rewardManager(overrides?: CallOverrides): Promise<string>;
-
-  rewardPerToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-  rewardPerTokenStored(overrides?: CallOverrides): Promise<BigNumber>;
-
-  rewardRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-  rewardToken(overrides?: CallOverrides): Promise<string>;
-
-  rewards(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  stake(
-    _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  stakeAll(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  stakeFor(
-    _for: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  stakingToken(overrides?: CallOverrides): Promise<string>;
-
-  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  userRewardPerTokenPaid(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  withdraw(
-    amount: PromiseOrValue<BigNumberish>,
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawAll(
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawAllAndUnwrap(
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawAndUnwrap(
-    amount: PromiseOrValue<BigNumberish>,
-    claim: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-    donate(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    duration(overrides?: CallOverrides): Promise<BigNumber>;
-
-    earned(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    extraRewards(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    extraRewardsLength(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getReward()"(overrides?: CallOverrides): Promise<boolean>;
-
-    "getReward(address,bool)"(
-      _account: PromiseOrValue<string>,
-      _claimExtras: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
-
-    newRewardRatio(overrides?: CallOverrides): Promise<BigNumber>;
-
-    operator(overrides?: CallOverrides): Promise<string>;
-
-    periodFinish(overrides?: CallOverrides): Promise<BigNumber>;
-
-    pid(overrides?: CallOverrides): Promise<BigNumber>;
-
-    queuedRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardManager(overrides?: CallOverrides): Promise<string>;
-
-    rewardPerToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardPerTokenStored(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardToken(overrides?: CallOverrides): Promise<string>;
-
-    rewards(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    stake(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    stakeAll(overrides?: CallOverrides): Promise<boolean>;
-
-    stakeFor(
-      _for: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    stakingToken(overrides?: CallOverrides): Promise<string>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    userRewardPerTokenPaid(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    withdrawAll(
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdrawAllAndUnwrap(
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdrawAndUnwrap(
-      amount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-  };
+  "getReward(address,bool)": TypedContractMethod<
+    [_account: AddressLike, _claimExtras: boolean],
+    [boolean],
+    "nonpayable"
+  >;
+
+  historicalRewards: TypedContractMethod<[], [bigint], "view">;
+
+  lastTimeRewardApplicable: TypedContractMethod<[], [bigint], "view">;
+
+  lastUpdateTime: TypedContractMethod<[], [bigint], "view">;
+
+  newRewardRatio: TypedContractMethod<[], [bigint], "view">;
+
+  operator: TypedContractMethod<[], [string], "view">;
+
+  periodFinish: TypedContractMethod<[], [bigint], "view">;
+
+  pid: TypedContractMethod<[], [bigint], "view">;
+
+  queuedRewards: TypedContractMethod<[], [bigint], "view">;
+
+  rewardManager: TypedContractMethod<[], [string], "view">;
+
+  rewardPerToken: TypedContractMethod<[], [bigint], "view">;
+
+  rewardPerTokenStored: TypedContractMethod<[], [bigint], "view">;
+
+  rewardRate: TypedContractMethod<[], [bigint], "view">;
+
+  rewardToken: TypedContractMethod<[], [string], "view">;
+
+  rewards: TypedContractMethod<[account: AddressLike], [bigint], "view">;
+
+  stake: TypedContractMethod<[_amount: BigNumberish], [boolean], "nonpayable">;
+
+  stakeAll: TypedContractMethod<[], [boolean], "nonpayable">;
+
+  stakeFor: TypedContractMethod<
+    [_for: AddressLike, _amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+
+  stakingToken: TypedContractMethod<[], [string], "view">;
+
+  totalSupply: TypedContractMethod<[], [bigint], "view">;
+
+  userRewardPerTokenPaid: TypedContractMethod<
+    [account: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  withdraw: TypedContractMethod<
+    [amount: BigNumberish, claim: boolean],
+    [boolean],
+    "nonpayable"
+  >;
+
+  withdrawAll: TypedContractMethod<[claim: boolean], [void], "nonpayable">;
+
+  withdrawAllAndUnwrap: TypedContractMethod<
+    [claim: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  withdrawAndUnwrap: TypedContractMethod<
+    [amount: BigNumberish, claim: boolean],
+    [boolean],
+    "nonpayable"
+  >;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "balanceOf"
+  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "currentRewards"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "donate"
+  ): TypedContractMethod<[_amount: BigNumberish], [boolean], "nonpayable">;
+  getFunction(
+    nameOrSignature: "duration"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "earned"
+  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "extraRewards"
+  ): TypedContractMethod<[i: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "extraRewardsLength"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getReward()"
+  ): TypedContractMethod<[], [boolean], "nonpayable">;
+  getFunction(
+    nameOrSignature: "getReward(address,bool)"
+  ): TypedContractMethod<
+    [_account: AddressLike, _claimExtras: boolean],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "historicalRewards"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lastTimeRewardApplicable"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lastUpdateTime"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "newRewardRatio"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "operator"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "periodFinish"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "pid"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "queuedRewards"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "rewardManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "rewardPerToken"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "rewardPerTokenStored"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "rewardRate"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "rewardToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "rewards"
+  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "stake"
+  ): TypedContractMethod<[_amount: BigNumberish], [boolean], "nonpayable">;
+  getFunction(
+    nameOrSignature: "stakeAll"
+  ): TypedContractMethod<[], [boolean], "nonpayable">;
+  getFunction(
+    nameOrSignature: "stakeFor"
+  ): TypedContractMethod<
+    [_for: AddressLike, _amount: BigNumberish],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "stakingToken"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "totalSupply"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "userRewardPerTokenPaid"
+  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "withdraw"
+  ): TypedContractMethod<
+    [amount: BigNumberish, claim: boolean],
+    [boolean],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "withdrawAll"
+  ): TypedContractMethod<[claim: boolean], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "withdrawAllAndUnwrap"
+  ): TypedContractMethod<[claim: boolean], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "withdrawAndUnwrap"
+  ): TypedContractMethod<
+    [amount: BigNumberish, claim: boolean],
+    [boolean],
+    "nonpayable"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    currentRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-    donate(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    duration(overrides?: CallOverrides): Promise<BigNumber>;
-
-    earned(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    extraRewards(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    extraRewardsLength(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getReward()"(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "getReward(address,bool)"(
-      _account: PromiseOrValue<string>,
-      _claimExtras: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    historicalRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastTimeRewardApplicable(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
-
-    newRewardRatio(overrides?: CallOverrides): Promise<BigNumber>;
-
-    operator(overrides?: CallOverrides): Promise<BigNumber>;
-
-    periodFinish(overrides?: CallOverrides): Promise<BigNumber>;
-
-    pid(overrides?: CallOverrides): Promise<BigNumber>;
-
-    queuedRewards(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardPerToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardPerTokenStored(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardRate(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewardToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rewards(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    stake(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    stakeAll(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    stakeFor(
-      _for: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    stakingToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    userRewardPerTokenPaid(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawAll(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawAllAndUnwrap(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    withdrawAndUnwrap(
-      amount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    currentRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    donate(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    duration(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    earned(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    extraRewards(
-      i: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    extraRewardsLength(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getReward()"(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "getReward(address,bool)"(
-      _account: PromiseOrValue<string>,
-      _claimExtras: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    historicalRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    lastTimeRewardApplicable(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    lastUpdateTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    newRewardRatio(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    operator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    periodFinish(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    pid(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    queuedRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    rewardManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    rewardPerToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    rewardPerTokenStored(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    rewardRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    rewardToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    rewards(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    stake(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    stakeAll(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    stakeFor(
-      _for: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    stakingToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    userRewardPerTokenPaid(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawAll(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawAllAndUnwrap(
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawAndUnwrap(
-      amount: PromiseOrValue<BigNumberish>,
-      claim: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
 }

@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   IAaveV2_LendingPoolAdapter,
   IAaveV2_LendingPoolAdapterInterface,
@@ -211,16 +210,16 @@ const _abi = [
 export class IAaveV2_LendingPoolAdapter__factory {
   static readonly abi = _abi;
   static createInterface(): IAaveV2_LendingPoolAdapterInterface {
-    return new utils.Interface(_abi) as IAaveV2_LendingPoolAdapterInterface;
+    return new Interface(_abi) as IAaveV2_LendingPoolAdapterInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): IAaveV2_LendingPoolAdapter {
     return new Contract(
       address,
       _abi,
-      signerOrProvider
-    ) as IAaveV2_LendingPoolAdapter;
+      runner
+    ) as unknown as IAaveV2_LendingPoolAdapter;
   }
 }

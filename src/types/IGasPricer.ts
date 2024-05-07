@@ -3,10 +3,10 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
+  BytesLike,
   FunctionFragment,
+  Result,
   Interface,
-  EventFragment,
   AddressLike,
   ContractRunner,
   ContractMethod,
@@ -16,32 +16,29 @@ import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
   TypedEventLog,
-  TypedLogDescription,
   TypedListener,
-} from "../common";
+  TypedContractMethod,
+} from "./common";
 
-export interface IConvexV1BoosterAdapterEventsInterface extends Interface {
-  getEvent(nameOrSignatureOrTopic: "SetPidToPhantomToken"): EventFragment;
+export interface IGasPricerInterface extends Interface {
+  getFunction(nameOrSignature: "getGasPriceTokenOutRAY"): FunctionFragment;
+
+  encodeFunctionData(
+    functionFragment: "getGasPriceTokenOutRAY",
+    values: [AddressLike]
+  ): string;
+
+  decodeFunctionResult(
+    functionFragment: "getGasPriceTokenOutRAY",
+    data: BytesLike
+  ): Result;
 }
 
-export namespace SetPidToPhantomTokenEvent {
-  export type InputTuple = [pid: BigNumberish, phantomToken: AddressLike];
-  export type OutputTuple = [pid: bigint, phantomToken: string];
-  export interface OutputObject {
-    pid: bigint;
-    phantomToken: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export interface IConvexV1BoosterAdapterEvents extends BaseContract {
-  connect(runner?: ContractRunner | null): IConvexV1BoosterAdapterEvents;
+export interface IGasPricer extends BaseContract {
+  connect(runner?: ContractRunner | null): IGasPricer;
   waitForDeployment(): Promise<this>;
 
-  interface: IConvexV1BoosterAdapterEventsInterface;
+  interface: IGasPricerInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -80,28 +77,19 @@ export interface IConvexV1BoosterAdapterEvents extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  getGasPriceTokenOutRAY: TypedContractMethod<
+    [token: AddressLike],
+    [bigint],
+    "view"
+  >;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
-  getEvent(
-    key: "SetPidToPhantomToken"
-  ): TypedContractEvent<
-    SetPidToPhantomTokenEvent.InputTuple,
-    SetPidToPhantomTokenEvent.OutputTuple,
-    SetPidToPhantomTokenEvent.OutputObject
-  >;
+  getFunction(
+    nameOrSignature: "getGasPriceTokenOutRAY"
+  ): TypedContractMethod<[token: AddressLike], [bigint], "view">;
 
-  filters: {
-    "SetPidToPhantomToken(uint256,address)": TypedContractEvent<
-      SetPidToPhantomTokenEvent.InputTuple,
-      SetPidToPhantomTokenEvent.OutputTuple,
-      SetPidToPhantomTokenEvent.OutputObject
-    >;
-    SetPidToPhantomToken: TypedContractEvent<
-      SetPidToPhantomTokenEvent.InputTuple,
-      SetPidToPhantomTokenEvent.OutputTuple,
-      SetPidToPhantomTokenEvent.OutputObject
-    >;
-  };
+  filters: {};
 }

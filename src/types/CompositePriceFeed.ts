@@ -3,52 +3,37 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
 export type PriceFeedParamsStruct = {
-  priceFeed: PromiseOrValue<string>;
-  stalenessPeriod: PromiseOrValue<BigNumberish>;
+  priceFeed: AddressLike;
+  stalenessPeriod: BigNumberish;
 };
 
-export type PriceFeedParamsStructOutput = [string, number] & {
-  priceFeed: string;
-  stalenessPeriod: number;
-};
+export type PriceFeedParamsStructOutput = [
+  priceFeed: string,
+  stalenessPeriod: bigint
+] & { priceFeed: string; stalenessPeriod: bigint };
 
-export interface CompositePriceFeedInterface extends utils.Interface {
-  functions: {
-    "decimals()": FunctionFragment;
-    "description()": FunctionFragment;
-    "latestRoundData()": FunctionFragment;
-    "priceFeed0()": FunctionFragment;
-    "priceFeed1()": FunctionFragment;
-    "priceFeedType()": FunctionFragment;
-    "skipCheck1()": FunctionFragment;
-    "skipPriceCheck()": FunctionFragment;
-    "stalenessPeriod0()": FunctionFragment;
-    "stalenessPeriod1()": FunctionFragment;
-    "targetFeedScale()": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface CompositePriceFeedInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "decimals"
       | "description"
       | "latestRoundData"
@@ -139,181 +124,123 @@ export interface CompositePriceFeedInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {};
 }
 
 export interface CompositePriceFeed extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): CompositePriceFeed;
+  waitForDeployment(): Promise<this>;
 
   interface: CompositePriceFeedInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    decimals(overrides?: CallOverrides): Promise<[number]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    description(overrides?: CallOverrides): Promise<[string]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        answer: BigNumber;
-      }
-    >;
+  decimals: TypedContractMethod<[], [bigint], "view">;
 
-    priceFeed0(overrides?: CallOverrides): Promise<[string]>;
+  description: TypedContractMethod<[], [string], "view">;
 
-    priceFeed1(overrides?: CallOverrides): Promise<[string]>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<[number]>;
-
-    skipCheck1(overrides?: CallOverrides): Promise<[boolean]>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<[boolean]>;
-
-    stalenessPeriod0(overrides?: CallOverrides): Promise<[number]>;
-
-    stalenessPeriod1(overrides?: CallOverrides): Promise<[number]>;
-
-    targetFeedScale(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  decimals(overrides?: CallOverrides): Promise<number>;
-
-  description(overrides?: CallOverrides): Promise<string>;
-
-  latestRoundData(
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-      answer: BigNumber;
-    }
+  latestRoundData: TypedContractMethod<
+    [],
+    [[bigint, bigint, bigint, bigint, bigint] & { answer: bigint }],
+    "view"
   >;
 
-  priceFeed0(overrides?: CallOverrides): Promise<string>;
+  priceFeed0: TypedContractMethod<[], [string], "view">;
 
-  priceFeed1(overrides?: CallOverrides): Promise<string>;
+  priceFeed1: TypedContractMethod<[], [string], "view">;
 
-  priceFeedType(overrides?: CallOverrides): Promise<number>;
+  priceFeedType: TypedContractMethod<[], [bigint], "view">;
 
-  skipCheck1(overrides?: CallOverrides): Promise<boolean>;
+  skipCheck1: TypedContractMethod<[], [boolean], "view">;
 
-  skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
+  skipPriceCheck: TypedContractMethod<[], [boolean], "view">;
 
-  stalenessPeriod0(overrides?: CallOverrides): Promise<number>;
+  stalenessPeriod0: TypedContractMethod<[], [bigint], "view">;
 
-  stalenessPeriod1(overrides?: CallOverrides): Promise<number>;
+  stalenessPeriod1: TypedContractMethod<[], [bigint], "view">;
 
-  targetFeedScale(overrides?: CallOverrides): Promise<BigNumber>;
+  targetFeedScale: TypedContractMethod<[], [bigint], "view">;
 
-  version(overrides?: CallOverrides): Promise<BigNumber>;
+  version: TypedContractMethod<[], [bigint], "view">;
 
-  callStatic: {
-    decimals(overrides?: CallOverrides): Promise<number>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-    description(overrides?: CallOverrides): Promise<string>;
-
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
-        answer: BigNumber;
-      }
-    >;
-
-    priceFeed0(overrides?: CallOverrides): Promise<string>;
-
-    priceFeed1(overrides?: CallOverrides): Promise<string>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<number>;
-
-    skipCheck1(overrides?: CallOverrides): Promise<boolean>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
-
-    stalenessPeriod0(overrides?: CallOverrides): Promise<number>;
-
-    stalenessPeriod1(overrides?: CallOverrides): Promise<number>;
-
-    targetFeedScale(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  getFunction(
+    nameOrSignature: "decimals"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "description"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "latestRoundData"
+  ): TypedContractMethod<
+    [],
+    [[bigint, bigint, bigint, bigint, bigint] & { answer: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "priceFeed0"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "priceFeed1"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "priceFeedType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "skipCheck1"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "skipPriceCheck"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "stalenessPeriod0"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "stalenessPeriod1"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "targetFeedScale"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
-
-  estimateGas: {
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-    description(overrides?: CallOverrides): Promise<BigNumber>;
-
-    latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
-
-    priceFeed0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    priceFeed1(overrides?: CallOverrides): Promise<BigNumber>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    skipCheck1(overrides?: CallOverrides): Promise<BigNumber>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stalenessPeriod0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    stalenessPeriod1(overrides?: CallOverrides): Promise<BigNumber>;
-
-    targetFeedScale(overrides?: CallOverrides): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    priceFeed0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    priceFeed1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    skipCheck1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    stalenessPeriod0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    stalenessPeriod1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    targetFeedScale(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
 }

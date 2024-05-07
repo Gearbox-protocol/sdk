@@ -1,4 +1,4 @@
-import { Interface } from "ethers/lib/utils";
+import { Interface } from "ethers";
 
 export const AURA_BOOSTER_ABI = [
   {

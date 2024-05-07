@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
   ICreditAccountBase,
   ICreditAccountBaseInterface,
@@ -88,12 +87,12 @@ const _abi = [
 export class ICreditAccountBase__factory {
   static readonly abi = _abi;
   static createInterface(): ICreditAccountBaseInterface {
-    return new utils.Interface(_abi) as ICreditAccountBaseInterface;
+    return new Interface(_abi) as ICreditAccountBaseInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): ICreditAccountBase {
-    return new Contract(address, _abi, signerOrProvider) as ICreditAccountBase;
+    return new Contract(address, _abi, runner) as unknown as ICreditAccountBase;
   }
 }

@@ -12,12 +12,10 @@ import {
   Protocols,
   SupportedContract,
   SupportedToken,
-  toBigInt,
   tokenDataByNetwork,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumber, providers } from "ethers";
-import { Interface } from "ethers/lib/utils";
+import { Interface, Provider } from "ethers";
 
 import { getCVXMintAmount } from "../apy";
 import { AURA_BOOSTER_INTERFACE } from "../apy/auraAbi";
@@ -48,11 +46,11 @@ export interface RewardDistribution {
 }
 
 interface ParseProps {
-  convexResponse: Array<BigNumber>;
+  convexResponse: Array<bigint>;
   convexDistribution: DistributionList;
   convexTotalSupply: bigint;
 
-  auraResponse: Array<BigNumber>;
+  auraResponse: Array<bigint>;
   auraDistribution: DistributionList;
   auraTotalSupply: bigint;
 }
@@ -65,7 +63,7 @@ export class RewardConvex {
     ca: CreditAccountData,
     cm: CreditManagerData,
     network: NetworkType,
-    provider: providers.Provider,
+    provider: Provider,
   ): Promise<Array<Rewards>> {
     const prepared = RewardConvex.prepareMultiCalls(ca.addr, cm, network);
 
@@ -79,7 +77,7 @@ export class RewardConvex {
     const allCalls = [...auraTotal, ...convexTotal];
     if (allCalls.length === 0) return [];
 
-    const response = await multicall<Array<BigNumber>>(allCalls, provider);
+    const response = await multicall<Array<bigint>>(allCalls, provider);
 
     const auraEnd = auraTotal.length;
     const [auraTotalSupply, ...auraResponse] = response.slice(0, auraEnd);
@@ -93,11 +91,11 @@ export class RewardConvex {
     const results = RewardConvex.parseResults({
       auraDistribution,
       auraResponse,
-      auraTotalSupply: toBigInt(auraTotalSupply),
+      auraTotalSupply: auraTotalSupply,
 
       convexDistribution,
       convexResponse,
-      convexTotalSupply: toBigInt(convexTotalSupply),
+      convexTotalSupply: convexTotalSupply,
     });
 
     return results;
@@ -287,7 +285,7 @@ export class RewardConvex {
 
       // create base
       const rewardObject = this.getRewardObject(
-        toBigInt(baseRewardResp || 0n),
+        baseRewardResp || 0n,
         baseDistribution,
         boostedRewardToken,
 
@@ -312,7 +310,7 @@ export class RewardConvex {
       );
       start = end;
 
-      const multiplier = toBigInt(mp);
+      const multiplier = mp;
       const [baseDistribution, ...extraDistribution] = list;
 
       const boostedRewardToken = this.getBBoostedRewardToken(
@@ -336,7 +334,7 @@ export class RewardConvex {
 
       // create base
       const rewardObject = this.getRewardObject(
-        toBigInt(baseRewardResp || 0n),
+        baseRewardResp || 0n,
         baseDistribution,
         boostedRewardToken,
 
@@ -362,7 +360,7 @@ export class RewardConvex {
     boostedRewardToken: SupportedToken,
 
     extraDistribution: Array<RewardDistribution>,
-    rewardsResp: Array<BigNumber>,
+    rewardsResp: Array<bigint>,
 
     totalSupply: bigint,
     callData: string,
@@ -398,7 +396,7 @@ export class RewardConvex {
     extraDistribution.forEach((distribution, j) => {
       const token = distribution.token;
       const prevReward = base.rewards[token] || 0n;
-      const reward = toBigInt(rewardsResp[j] || 0n);
+      const reward = rewardsResp[j] || 0n;
 
       base.rewards = {
         ...base.rewards,

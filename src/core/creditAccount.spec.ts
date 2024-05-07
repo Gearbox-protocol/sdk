@@ -68,7 +68,7 @@ const caWithoutLP: CATestInfo = {
   },
   rates: {
     [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
-      rate: 38434,
+      rate: 38434n,
       isActive: true,
     },
   },
@@ -100,7 +100,7 @@ const caWithLP: CATestInfo = {
   },
   rates: {
     [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
-      rate: 38434,
+      rate: 38434n,
       isActive: true,
     },
   },
@@ -1475,15 +1475,15 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
       },
       quotaRates: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          rate: 5,
+          rate: 5n,
           isActive: true,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          rate: 10,
+          rate: 10n,
           isActive: true,
         },
         [tokenDataByNetwork.Mainnet.STETH]: {
-          rate: 15,
+          rate: 15n,
           isActive: true,
         },
       },
@@ -1509,15 +1509,15 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
       },
       quotaRates: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          rate: 10,
+          rate: 10n,
           isActive: true,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          rate: 10,
+          rate: 10n,
           isActive: true,
         },
         [tokenDataByNetwork.Mainnet.STETH]: {
-          rate: 10,
+          rate: 10n,
           isActive: true,
         },
       },
@@ -1543,15 +1543,15 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
       },
       quotaRates: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          rate: 10,
+          rate: 10n,
           isActive: true,
         },
         [tokenDataByNetwork.Mainnet.WETH]: {
-          rate: 10,
+          rate: 10n,
           isActive: false,
         },
         [tokenDataByNetwork.Mainnet.STETH]: {
-          rate: 10,
+          rate: 10n,
           isActive: true,
         },
       },
@@ -1572,7 +1572,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
       },
       quotaRates: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          rate: 5,
+          rate: 5n,
           isActive: true,
         },
       },
@@ -1590,7 +1590,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
       },
       quotaRates: {
         [tokenDataByNetwork.Mainnet.DAI]: {
-          rate: 5,
+          rate: 5n,
           isActive: true,
         },
       },

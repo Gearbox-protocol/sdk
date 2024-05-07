@@ -3,44 +3,33 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
+  FunctionFragment,
+  Result,
+  Interface,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
-export interface IOffchainOracleInterface extends utils.Interface {
-  functions: {
-    "getRate(address,address,bool)": FunctionFragment;
-    "getRateToEth(address,bool)": FunctionFragment;
-  };
-
-  getFunction(
-    nameOrSignatureOrTopic: "getRate" | "getRateToEth"
-  ): FunctionFragment;
+export interface IOffchainOracleInterface extends Interface {
+  getFunction(nameOrSignature: "getRate" | "getRateToEth"): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "getRate",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<boolean>
-    ]
+    values: [AddressLike, AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "getRateToEth",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
 
   decodeFunctionResult(functionFragment: "getRate", data: BytesLike): Result;
@@ -48,108 +37,81 @@ export interface IOffchainOracleInterface extends utils.Interface {
     functionFragment: "getRateToEth",
     data: BytesLike
   ): Result;
-
-  events: {};
 }
 
 export interface IOffchainOracle extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IOffchainOracle;
+  waitForDeployment(): Promise<this>;
 
   interface: IOffchainOracleInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    getRate(
-      srcToken: PromiseOrValue<string>,
-      dstToken: PromiseOrValue<string>,
-      useWrappers: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { weightedRate: BigNumber }>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    getRateToEth(
-      srcToken: PromiseOrValue<string>,
-      useSrcWrappers: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { weightedRate: BigNumber }>;
-  };
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-  getRate(
-    srcToken: PromiseOrValue<string>,
-    dstToken: PromiseOrValue<string>,
-    useWrappers: PromiseOrValue<boolean>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getRate: TypedContractMethod<
+    [srcToken: AddressLike, dstToken: AddressLike, useWrappers: boolean],
+    [bigint],
+    "view"
+  >;
 
-  getRateToEth(
-    srcToken: PromiseOrValue<string>,
-    useSrcWrappers: PromiseOrValue<boolean>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getRateToEth: TypedContractMethod<
+    [srcToken: AddressLike, useSrcWrappers: boolean],
+    [bigint],
+    "view"
+  >;
 
-  callStatic: {
-    getRate(
-      srcToken: PromiseOrValue<string>,
-      dstToken: PromiseOrValue<string>,
-      useWrappers: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
-    getRateToEth(
-      srcToken: PromiseOrValue<string>,
-      useSrcWrappers: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
+  getFunction(
+    nameOrSignature: "getRate"
+  ): TypedContractMethod<
+    [srcToken: AddressLike, dstToken: AddressLike, useWrappers: boolean],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getRateToEth"
+  ): TypedContractMethod<
+    [srcToken: AddressLike, useSrcWrappers: boolean],
+    [bigint],
+    "view"
+  >;
 
   filters: {};
-
-  estimateGas: {
-    getRate(
-      srcToken: PromiseOrValue<string>,
-      dstToken: PromiseOrValue<string>,
-      useWrappers: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getRateToEth(
-      srcToken: PromiseOrValue<string>,
-      useSrcWrappers: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    getRate(
-      srcToken: PromiseOrValue<string>,
-      dstToken: PromiseOrValue<string>,
-      useWrappers: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getRateToEth(
-      srcToken: PromiseOrValue<string>,
-      useSrcWrappers: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-  };
 }

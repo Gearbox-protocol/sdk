@@ -3,135 +3,188 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  Signer,
-  utils,
+  FunctionFragment,
+  Interface,
+  EventFragment,
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
 } from "ethers";
-import type { EventFragment } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
 } from "../common";
 
-export interface IAirdropDistributorEventsInterface extends utils.Interface {
-  functions: {};
-
-  events: {
-    "Claimed(address,uint256,bool)": EventFragment;
-    "RootUpdated(bytes32,bytes32)": EventFragment;
-    "TokenAllocated(address,uint8,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "Claimed"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RootUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenAllocated"): EventFragment;
+export interface IAirdropDistributorEventsInterface extends Interface {
+  getEvent(
+    nameOrSignatureOrTopic: "Claimed" | "RootUpdated" | "TokenAllocated"
+  ): EventFragment;
 }
 
-export interface ClaimedEventObject {
-  account: string;
-  amount: BigNumber;
-  historic: boolean;
+export namespace ClaimedEvent {
+  export type InputTuple = [
+    account: AddressLike,
+    amount: BigNumberish,
+    historic: boolean
+  ];
+  export type OutputTuple = [
+    account: string,
+    amount: bigint,
+    historic: boolean
+  ];
+  export interface OutputObject {
+    account: string;
+    amount: bigint;
+    historic: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ClaimedEvent = TypedEvent<
-  [string, BigNumber, boolean],
-  ClaimedEventObject
->;
 
-export type ClaimedEventFilter = TypedEventFilter<ClaimedEvent>;
-
-export interface RootUpdatedEventObject {
-  oldRoot: string;
-  newRoot: string;
+export namespace RootUpdatedEvent {
+  export type InputTuple = [oldRoot: BytesLike, newRoot: BytesLike];
+  export type OutputTuple = [oldRoot: string, newRoot: string];
+  export interface OutputObject {
+    oldRoot: string;
+    newRoot: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RootUpdatedEvent = TypedEvent<
-  [string, string],
-  RootUpdatedEventObject
->;
 
-export type RootUpdatedEventFilter = TypedEventFilter<RootUpdatedEvent>;
-
-export interface TokenAllocatedEventObject {
-  account: string;
-  campaignId: number;
-  amount: BigNumber;
+export namespace TokenAllocatedEvent {
+  export type InputTuple = [
+    account: AddressLike,
+    campaignId: BigNumberish,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [
+    account: string,
+    campaignId: bigint,
+    amount: bigint
+  ];
+  export interface OutputObject {
+    account: string;
+    campaignId: bigint;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TokenAllocatedEvent = TypedEvent<
-  [string, number, BigNumber],
-  TokenAllocatedEventObject
->;
-
-export type TokenAllocatedEventFilter = TypedEventFilter<TokenAllocatedEvent>;
 
 export interface IAirdropDistributorEvents extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): IAirdropDistributorEvents;
+  waitForDeployment(): Promise<this>;
 
   interface: IAirdropDistributorEventsInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {};
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  callStatic: {};
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getEvent(
+    key: "Claimed"
+  ): TypedContractEvent<
+    ClaimedEvent.InputTuple,
+    ClaimedEvent.OutputTuple,
+    ClaimedEvent.OutputObject
+  >;
+  getEvent(
+    key: "RootUpdated"
+  ): TypedContractEvent<
+    RootUpdatedEvent.InputTuple,
+    RootUpdatedEvent.OutputTuple,
+    RootUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "TokenAllocated"
+  ): TypedContractEvent<
+    TokenAllocatedEvent.InputTuple,
+    TokenAllocatedEvent.OutputTuple,
+    TokenAllocatedEvent.OutputObject
+  >;
 
   filters: {
-    "Claimed(address,uint256,bool)"(
-      account?: PromiseOrValue<string> | null,
-      amount?: null,
-      historic?: PromiseOrValue<boolean> | null
-    ): ClaimedEventFilter;
-    Claimed(
-      account?: PromiseOrValue<string> | null,
-      amount?: null,
-      historic?: PromiseOrValue<boolean> | null
-    ): ClaimedEventFilter;
+    "Claimed(address,uint256,bool)": TypedContractEvent<
+      ClaimedEvent.InputTuple,
+      ClaimedEvent.OutputTuple,
+      ClaimedEvent.OutputObject
+    >;
+    Claimed: TypedContractEvent<
+      ClaimedEvent.InputTuple,
+      ClaimedEvent.OutputTuple,
+      ClaimedEvent.OutputObject
+    >;
 
-    "RootUpdated(bytes32,bytes32)"(
-      oldRoot?: null,
-      newRoot?: PromiseOrValue<BytesLike> | null
-    ): RootUpdatedEventFilter;
-    RootUpdated(
-      oldRoot?: null,
-      newRoot?: PromiseOrValue<BytesLike> | null
-    ): RootUpdatedEventFilter;
+    "RootUpdated(bytes32,bytes32)": TypedContractEvent<
+      RootUpdatedEvent.InputTuple,
+      RootUpdatedEvent.OutputTuple,
+      RootUpdatedEvent.OutputObject
+    >;
+    RootUpdated: TypedContractEvent<
+      RootUpdatedEvent.InputTuple,
+      RootUpdatedEvent.OutputTuple,
+      RootUpdatedEvent.OutputObject
+    >;
 
-    "TokenAllocated(address,uint8,uint256)"(
-      account?: PromiseOrValue<string> | null,
-      campaignId?: PromiseOrValue<BigNumberish> | null,
-      amount?: null
-    ): TokenAllocatedEventFilter;
-    TokenAllocated(
-      account?: PromiseOrValue<string> | null,
-      campaignId?: PromiseOrValue<BigNumberish> | null,
-      amount?: null
-    ): TokenAllocatedEventFilter;
+    "TokenAllocated(address,uint8,uint256)": TypedContractEvent<
+      TokenAllocatedEvent.InputTuple,
+      TokenAllocatedEvent.OutputTuple,
+      TokenAllocatedEvent.OutputObject
+    >;
+    TokenAllocated: TypedContractEvent<
+      TokenAllocatedEvent.InputTuple,
+      TokenAllocatedEvent.OutputTuple,
+      TokenAllocatedEvent.OutputObject
+    >;
   };
-
-  estimateGas: {};
-
-  populateTransaction: {};
 }

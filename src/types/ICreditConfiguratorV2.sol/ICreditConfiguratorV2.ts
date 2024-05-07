@@ -3,60 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface ICreditConfiguratorV2Interface extends utils.Interface {
-  functions: {
-    "addCollateralToken(address,uint16)": FunctionFragment;
-    "addEmergencyLiquidator(address)": FunctionFragment;
-    "addressProvider()": FunctionFragment;
-    "allowContract(address,address)": FunctionFragment;
-    "allowToken(address)": FunctionFragment;
-    "allowedContracts()": FunctionFragment;
-    "creditFacade()": FunctionFragment;
-    "creditManager()": FunctionFragment;
-    "forbidAdapter(address)": FunctionFragment;
-    "forbidContract(address)": FunctionFragment;
-    "forbidToken(address)": FunctionFragment;
-    "removeEmergencyLiquidator(address)": FunctionFragment;
-    "setExpirationDate(uint40)": FunctionFragment;
-    "setFees(uint16,uint16,uint16,uint16,uint16)": FunctionFragment;
-    "setIncreaseDebtForbidden(bool)": FunctionFragment;
-    "setLimitPerBlock(uint128)": FunctionFragment;
-    "setLimits(uint128,uint128)": FunctionFragment;
-    "setLiquidationThreshold(address,uint16)": FunctionFragment;
-    "setMaxEnabledTokens(uint8)": FunctionFragment;
-    "underlying()": FunctionFragment;
-    "upgradeCreditConfigurator(address)": FunctionFragment;
-    "upgradeCreditFacade(address,bool)": FunctionFragment;
-    "upgradePriceOracle()": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface ICreditConfiguratorV2Interface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "addCollateralToken"
       | "addEmergencyLiquidator"
       | "addressProvider"
@@ -83,13 +52,40 @@ export interface ICreditConfiguratorV2Interface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "AdapterForbidden"
+      | "AddedToUpgradeable"
+      | "ContractAllowed"
+      | "ContractForbidden"
+      | "CreditConfiguratorUpgraded"
+      | "CreditFacadeUpgraded"
+      | "CumulativeLossReset"
+      | "EmergencyLiquidatorAdded"
+      | "EmergencyLiquidatorRemoved"
+      | "ExpirationDateUpdated"
+      | "FeesUpdated"
+      | "IncreaseDebtForbiddenModeChanged"
+      | "LimitPerBlockUpdated"
+      | "LimitsUpdated"
+      | "MaxEnabledTokensUpdated"
+      | "NewEmergencyLiquidationDiscount"
+      | "NewMaxCumulativeLoss"
+      | "NewTotalDebtLimit"
+      | "PriceOracleUpgraded"
+      | "RemovedFromUpgradeable"
+      | "TokenAllowed"
+      | "TokenForbidden"
+      | "TokenLiquidationThresholdUpdated"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "addCollateralToken",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "addEmergencyLiquidator",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "addressProvider",
@@ -97,11 +93,11 @@ export interface ICreditConfiguratorV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "allowContract",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "allowToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "allowedContracts",
@@ -117,53 +113,53 @@ export interface ICreditConfiguratorV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "forbidAdapter",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "forbidContract",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "forbidToken",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "removeEmergencyLiquidator",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setExpirationDate",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setFees",
     values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "setIncreaseDebtForbidden",
-    values: [PromiseOrValue<boolean>]
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setLimitPerBlock",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setLimits",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setLiquidationThreshold",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMaxEnabledTokens",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "underlying",
@@ -171,11 +167,11 @@ export interface ICreditConfiguratorV2Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeCreditConfigurator",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeCreditFacade",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "upgradePriceOracle",
@@ -264,1046 +260,1000 @@ export interface ICreditConfiguratorV2Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "AdapterForbidden(address)": EventFragment;
-    "AddedToUpgradeable(address)": EventFragment;
-    "ContractAllowed(address,address)": EventFragment;
-    "ContractForbidden(address)": EventFragment;
-    "CreditConfiguratorUpgraded(address)": EventFragment;
-    "CreditFacadeUpgraded(address)": EventFragment;
-    "CumulativeLossReset()": EventFragment;
-    "EmergencyLiquidatorAdded(address)": EventFragment;
-    "EmergencyLiquidatorRemoved(address)": EventFragment;
-    "ExpirationDateUpdated(uint40)": EventFragment;
-    "FeesUpdated(uint16,uint16,uint16,uint16,uint16)": EventFragment;
-    "IncreaseDebtForbiddenModeChanged(bool)": EventFragment;
-    "LimitPerBlockUpdated(uint128)": EventFragment;
-    "LimitsUpdated(uint256,uint256)": EventFragment;
-    "MaxEnabledTokensUpdated(uint8)": EventFragment;
-    "NewEmergencyLiquidationDiscount(uint16)": EventFragment;
-    "NewMaxCumulativeLoss(uint128)": EventFragment;
-    "NewTotalDebtLimit(uint128)": EventFragment;
-    "PriceOracleUpgraded(address)": EventFragment;
-    "RemovedFromUpgradeable(address)": EventFragment;
-    "TokenAllowed(address)": EventFragment;
-    "TokenForbidden(address)": EventFragment;
-    "TokenLiquidationThresholdUpdated(address,uint16)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "AdapterForbidden"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AddedToUpgradeable"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ContractAllowed"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ContractForbidden"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CreditConfiguratorUpgraded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CreditFacadeUpgraded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CumulativeLossReset"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "EmergencyLiquidatorRemoved"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ExpirationDateUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "FeesUpdated"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "IncreaseDebtForbiddenModeChanged"
-  ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LimitPerBlockUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LimitsUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "MaxEnabledTokensUpdated"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "NewEmergencyLiquidationDiscount"
-  ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewMaxCumulativeLoss"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewTotalDebtLimit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PriceOracleUpgraded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RemovedFromUpgradeable"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenAllowed"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenForbidden"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "TokenLiquidationThresholdUpdated"
-  ): EventFragment;
 }
 
-export interface AdapterForbiddenEventObject {
-  adapter: string;
+export namespace AdapterForbiddenEvent {
+  export type InputTuple = [adapter: AddressLike];
+  export type OutputTuple = [adapter: string];
+  export interface OutputObject {
+    adapter: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AdapterForbiddenEvent = TypedEvent<
-  [string],
-  AdapterForbiddenEventObject
->;
 
-export type AdapterForbiddenEventFilter =
-  TypedEventFilter<AdapterForbiddenEvent>;
-
-export interface AddedToUpgradeableEventObject {
-  arg0: string;
+export namespace AddedToUpgradeableEvent {
+  export type InputTuple = [arg0: AddressLike];
+  export type OutputTuple = [arg0: string];
+  export interface OutputObject {
+    arg0: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type AddedToUpgradeableEvent = TypedEvent<
-  [string],
-  AddedToUpgradeableEventObject
->;
 
-export type AddedToUpgradeableEventFilter =
-  TypedEventFilter<AddedToUpgradeableEvent>;
-
-export interface ContractAllowedEventObject {
-  protocol: string;
-  adapter: string;
+export namespace ContractAllowedEvent {
+  export type InputTuple = [protocol: AddressLike, adapter: AddressLike];
+  export type OutputTuple = [protocol: string, adapter: string];
+  export interface OutputObject {
+    protocol: string;
+    adapter: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ContractAllowedEvent = TypedEvent<
-  [string, string],
-  ContractAllowedEventObject
->;
 
-export type ContractAllowedEventFilter = TypedEventFilter<ContractAllowedEvent>;
-
-export interface ContractForbiddenEventObject {
-  protocol: string;
+export namespace ContractForbiddenEvent {
+  export type InputTuple = [protocol: AddressLike];
+  export type OutputTuple = [protocol: string];
+  export interface OutputObject {
+    protocol: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ContractForbiddenEvent = TypedEvent<
-  [string],
-  ContractForbiddenEventObject
->;
 
-export type ContractForbiddenEventFilter =
-  TypedEventFilter<ContractForbiddenEvent>;
-
-export interface CreditConfiguratorUpgradedEventObject {
-  newCreditConfigurator: string;
+export namespace CreditConfiguratorUpgradedEvent {
+  export type InputTuple = [newCreditConfigurator: AddressLike];
+  export type OutputTuple = [newCreditConfigurator: string];
+  export interface OutputObject {
+    newCreditConfigurator: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type CreditConfiguratorUpgradedEvent = TypedEvent<
-  [string],
-  CreditConfiguratorUpgradedEventObject
->;
 
-export type CreditConfiguratorUpgradedEventFilter =
-  TypedEventFilter<CreditConfiguratorUpgradedEvent>;
-
-export interface CreditFacadeUpgradedEventObject {
-  newCreditFacade: string;
+export namespace CreditFacadeUpgradedEvent {
+  export type InputTuple = [newCreditFacade: AddressLike];
+  export type OutputTuple = [newCreditFacade: string];
+  export interface OutputObject {
+    newCreditFacade: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type CreditFacadeUpgradedEvent = TypedEvent<
-  [string],
-  CreditFacadeUpgradedEventObject
->;
 
-export type CreditFacadeUpgradedEventFilter =
-  TypedEventFilter<CreditFacadeUpgradedEvent>;
-
-export interface CumulativeLossResetEventObject {}
-export type CumulativeLossResetEvent = TypedEvent<
-  [],
-  CumulativeLossResetEventObject
->;
-
-export type CumulativeLossResetEventFilter =
-  TypedEventFilter<CumulativeLossResetEvent>;
-
-export interface EmergencyLiquidatorAddedEventObject {
-  arg0: string;
+export namespace CumulativeLossResetEvent {
+  export type InputTuple = [];
+  export type OutputTuple = [];
+  export interface OutputObject {}
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type EmergencyLiquidatorAddedEvent = TypedEvent<
-  [string],
-  EmergencyLiquidatorAddedEventObject
->;
 
-export type EmergencyLiquidatorAddedEventFilter =
-  TypedEventFilter<EmergencyLiquidatorAddedEvent>;
-
-export interface EmergencyLiquidatorRemovedEventObject {
-  arg0: string;
+export namespace EmergencyLiquidatorAddedEvent {
+  export type InputTuple = [arg0: AddressLike];
+  export type OutputTuple = [arg0: string];
+  export interface OutputObject {
+    arg0: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type EmergencyLiquidatorRemovedEvent = TypedEvent<
-  [string],
-  EmergencyLiquidatorRemovedEventObject
->;
 
-export type EmergencyLiquidatorRemovedEventFilter =
-  TypedEventFilter<EmergencyLiquidatorRemovedEvent>;
-
-export interface ExpirationDateUpdatedEventObject {
-  arg0: number;
+export namespace EmergencyLiquidatorRemovedEvent {
+  export type InputTuple = [arg0: AddressLike];
+  export type OutputTuple = [arg0: string];
+  export interface OutputObject {
+    arg0: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ExpirationDateUpdatedEvent = TypedEvent<
-  [number],
-  ExpirationDateUpdatedEventObject
->;
 
-export type ExpirationDateUpdatedEventFilter =
-  TypedEventFilter<ExpirationDateUpdatedEvent>;
-
-export interface FeesUpdatedEventObject {
-  feeInterest: number;
-  feeLiquidation: number;
-  liquidationPremium: number;
-  feeLiquidationExpired: number;
-  liquidationPremiumExpired: number;
+export namespace ExpirationDateUpdatedEvent {
+  export type InputTuple = [arg0: BigNumberish];
+  export type OutputTuple = [arg0: bigint];
+  export interface OutputObject {
+    arg0: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type FeesUpdatedEvent = TypedEvent<
-  [number, number, number, number, number],
-  FeesUpdatedEventObject
->;
 
-export type FeesUpdatedEventFilter = TypedEventFilter<FeesUpdatedEvent>;
-
-export interface IncreaseDebtForbiddenModeChangedEventObject {
-  arg0: boolean;
+export namespace FeesUpdatedEvent {
+  export type InputTuple = [
+    feeInterest: BigNumberish,
+    feeLiquidation: BigNumberish,
+    liquidationPremium: BigNumberish,
+    feeLiquidationExpired: BigNumberish,
+    liquidationPremiumExpired: BigNumberish
+  ];
+  export type OutputTuple = [
+    feeInterest: bigint,
+    feeLiquidation: bigint,
+    liquidationPremium: bigint,
+    feeLiquidationExpired: bigint,
+    liquidationPremiumExpired: bigint
+  ];
+  export interface OutputObject {
+    feeInterest: bigint;
+    feeLiquidation: bigint;
+    liquidationPremium: bigint;
+    feeLiquidationExpired: bigint;
+    liquidationPremiumExpired: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type IncreaseDebtForbiddenModeChangedEvent = TypedEvent<
-  [boolean],
-  IncreaseDebtForbiddenModeChangedEventObject
->;
 
-export type IncreaseDebtForbiddenModeChangedEventFilter =
-  TypedEventFilter<IncreaseDebtForbiddenModeChangedEvent>;
-
-export interface LimitPerBlockUpdatedEventObject {
-  arg0: BigNumber;
+export namespace IncreaseDebtForbiddenModeChangedEvent {
+  export type InputTuple = [arg0: boolean];
+  export type OutputTuple = [arg0: boolean];
+  export interface OutputObject {
+    arg0: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type LimitPerBlockUpdatedEvent = TypedEvent<
-  [BigNumber],
-  LimitPerBlockUpdatedEventObject
->;
 
-export type LimitPerBlockUpdatedEventFilter =
-  TypedEventFilter<LimitPerBlockUpdatedEvent>;
-
-export interface LimitsUpdatedEventObject {
-  minBorrowedAmount: BigNumber;
-  maxBorrowedAmount: BigNumber;
+export namespace LimitPerBlockUpdatedEvent {
+  export type InputTuple = [arg0: BigNumberish];
+  export type OutputTuple = [arg0: bigint];
+  export interface OutputObject {
+    arg0: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type LimitsUpdatedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  LimitsUpdatedEventObject
->;
 
-export type LimitsUpdatedEventFilter = TypedEventFilter<LimitsUpdatedEvent>;
-
-export interface MaxEnabledTokensUpdatedEventObject {
-  arg0: number;
+export namespace LimitsUpdatedEvent {
+  export type InputTuple = [
+    minBorrowedAmount: BigNumberish,
+    maxBorrowedAmount: BigNumberish
+  ];
+  export type OutputTuple = [
+    minBorrowedAmount: bigint,
+    maxBorrowedAmount: bigint
+  ];
+  export interface OutputObject {
+    minBorrowedAmount: bigint;
+    maxBorrowedAmount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type MaxEnabledTokensUpdatedEvent = TypedEvent<
-  [number],
-  MaxEnabledTokensUpdatedEventObject
->;
 
-export type MaxEnabledTokensUpdatedEventFilter =
-  TypedEventFilter<MaxEnabledTokensUpdatedEvent>;
-
-export interface NewEmergencyLiquidationDiscountEventObject {
-  arg0: number;
+export namespace MaxEnabledTokensUpdatedEvent {
+  export type InputTuple = [arg0: BigNumberish];
+  export type OutputTuple = [arg0: bigint];
+  export interface OutputObject {
+    arg0: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type NewEmergencyLiquidationDiscountEvent = TypedEvent<
-  [number],
-  NewEmergencyLiquidationDiscountEventObject
->;
 
-export type NewEmergencyLiquidationDiscountEventFilter =
-  TypedEventFilter<NewEmergencyLiquidationDiscountEvent>;
-
-export interface NewMaxCumulativeLossEventObject {
-  arg0: BigNumber;
+export namespace NewEmergencyLiquidationDiscountEvent {
+  export type InputTuple = [arg0: BigNumberish];
+  export type OutputTuple = [arg0: bigint];
+  export interface OutputObject {
+    arg0: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type NewMaxCumulativeLossEvent = TypedEvent<
-  [BigNumber],
-  NewMaxCumulativeLossEventObject
->;
 
-export type NewMaxCumulativeLossEventFilter =
-  TypedEventFilter<NewMaxCumulativeLossEvent>;
-
-export interface NewTotalDebtLimitEventObject {
-  arg0: BigNumber;
+export namespace NewMaxCumulativeLossEvent {
+  export type InputTuple = [arg0: BigNumberish];
+  export type OutputTuple = [arg0: bigint];
+  export interface OutputObject {
+    arg0: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type NewTotalDebtLimitEvent = TypedEvent<
-  [BigNumber],
-  NewTotalDebtLimitEventObject
->;
 
-export type NewTotalDebtLimitEventFilter =
-  TypedEventFilter<NewTotalDebtLimitEvent>;
-
-export interface PriceOracleUpgradedEventObject {
-  newPriceOracle: string;
+export namespace NewTotalDebtLimitEvent {
+  export type InputTuple = [arg0: BigNumberish];
+  export type OutputTuple = [arg0: bigint];
+  export interface OutputObject {
+    arg0: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type PriceOracleUpgradedEvent = TypedEvent<
-  [string],
-  PriceOracleUpgradedEventObject
->;
 
-export type PriceOracleUpgradedEventFilter =
-  TypedEventFilter<PriceOracleUpgradedEvent>;
-
-export interface RemovedFromUpgradeableEventObject {
-  arg0: string;
+export namespace PriceOracleUpgradedEvent {
+  export type InputTuple = [newPriceOracle: AddressLike];
+  export type OutputTuple = [newPriceOracle: string];
+  export interface OutputObject {
+    newPriceOracle: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type RemovedFromUpgradeableEvent = TypedEvent<
-  [string],
-  RemovedFromUpgradeableEventObject
->;
 
-export type RemovedFromUpgradeableEventFilter =
-  TypedEventFilter<RemovedFromUpgradeableEvent>;
-
-export interface TokenAllowedEventObject {
-  token: string;
+export namespace RemovedFromUpgradeableEvent {
+  export type InputTuple = [arg0: AddressLike];
+  export type OutputTuple = [arg0: string];
+  export interface OutputObject {
+    arg0: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TokenAllowedEvent = TypedEvent<[string], TokenAllowedEventObject>;
 
-export type TokenAllowedEventFilter = TypedEventFilter<TokenAllowedEvent>;
-
-export interface TokenForbiddenEventObject {
-  token: string;
+export namespace TokenAllowedEvent {
+  export type InputTuple = [token: AddressLike];
+  export type OutputTuple = [token: string];
+  export interface OutputObject {
+    token: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TokenForbiddenEvent = TypedEvent<
-  [string],
-  TokenForbiddenEventObject
->;
 
-export type TokenForbiddenEventFilter = TypedEventFilter<TokenForbiddenEvent>;
-
-export interface TokenLiquidationThresholdUpdatedEventObject {
-  token: string;
-  liquidityThreshold: number;
+export namespace TokenForbiddenEvent {
+  export type InputTuple = [token: AddressLike];
+  export type OutputTuple = [token: string];
+  export interface OutputObject {
+    token: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TokenLiquidationThresholdUpdatedEvent = TypedEvent<
-  [string, number],
-  TokenLiquidationThresholdUpdatedEventObject
->;
 
-export type TokenLiquidationThresholdUpdatedEventFilter =
-  TypedEventFilter<TokenLiquidationThresholdUpdatedEvent>;
+export namespace TokenLiquidationThresholdUpdatedEvent {
+  export type InputTuple = [
+    token: AddressLike,
+    liquidityThreshold: BigNumberish
+  ];
+  export type OutputTuple = [token: string, liquidityThreshold: bigint];
+  export interface OutputObject {
+    token: string;
+    liquidityThreshold: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
 
 export interface ICreditConfiguratorV2 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): ICreditConfiguratorV2;
+  waitForDeployment(): Promise<this>;
 
   interface: ICreditConfiguratorV2Interface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
-
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
-
-  functions: {
-    addCollateralToken(
-      token: PromiseOrValue<string>,
-      liquidationThreshold: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    addEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<[string]>;
-
-    allowContract(
-      targetContract: PromiseOrValue<string>,
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    allowToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    allowedContracts(overrides?: CallOverrides): Promise<[string[]]>;
-
-    creditFacade(overrides?: CallOverrides): Promise<[string]>;
-
-    creditManager(overrides?: CallOverrides): Promise<[string]>;
-
-    forbidAdapter(
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    forbidContract(
-      targetContract: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    forbidToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    removeEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setExpirationDate(
-      newExpirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setFees(
-      _feeInterest: PromiseOrValue<BigNumberish>,
-      _feeLiquidation: PromiseOrValue<BigNumberish>,
-      _liquidationPremium: PromiseOrValue<BigNumberish>,
-      _feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-      _liquidationPremiumExpired: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setIncreaseDebtForbidden(
-      _mode: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setLimitPerBlock(
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setLimits(
-      _minBorrowedAmount: PromiseOrValue<BigNumberish>,
-      _maxBorrowedAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setLiquidationThreshold(
-      token: PromiseOrValue<string>,
-      liquidationThreshold: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setMaxEnabledTokens(
-      maxEnabledTokens: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    underlying(overrides?: CallOverrides): Promise<[string]>;
-
-    upgradeCreditConfigurator(
-      _creditConfigurator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    upgradeCreditFacade(
-      _creditFacade: PromiseOrValue<string>,
-      migrateParams: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    upgradePriceOracle(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  addCollateralToken(
-    token: PromiseOrValue<string>,
-    liquidationThreshold: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  addEmergencyLiquidator(
-    liquidator: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  addressProvider(overrides?: CallOverrides): Promise<string>;
-
-  allowContract(
-    targetContract: PromiseOrValue<string>,
-    adapter: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  allowToken(
-    token: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  allowedContracts(overrides?: CallOverrides): Promise<string[]>;
-
-  creditFacade(overrides?: CallOverrides): Promise<string>;
-
-  creditManager(overrides?: CallOverrides): Promise<string>;
-
-  forbidAdapter(
-    adapter: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  forbidContract(
-    targetContract: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  forbidToken(
-    token: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  removeEmergencyLiquidator(
-    liquidator: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setExpirationDate(
-    newExpirationDate: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFees(
-    _feeInterest: PromiseOrValue<BigNumberish>,
-    _feeLiquidation: PromiseOrValue<BigNumberish>,
-    _liquidationPremium: PromiseOrValue<BigNumberish>,
-    _feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-    _liquidationPremiumExpired: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setIncreaseDebtForbidden(
-    _mode: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setLimitPerBlock(
-    newLimit: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setLimits(
-    _minBorrowedAmount: PromiseOrValue<BigNumberish>,
-    _maxBorrowedAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setLiquidationThreshold(
-    token: PromiseOrValue<string>,
-    liquidationThreshold: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setMaxEnabledTokens(
-    maxEnabledTokens: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  underlying(overrides?: CallOverrides): Promise<string>;
-
-  upgradeCreditConfigurator(
-    _creditConfigurator: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  upgradeCreditFacade(
-    _creditFacade: PromiseOrValue<string>,
-    migrateParams: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  upgradePriceOracle(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    addCollateralToken(
-      token: PromiseOrValue<string>,
-      liquidationThreshold: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addressProvider(overrides?: CallOverrides): Promise<string>;
-
-    allowContract(
-      targetContract: PromiseOrValue<string>,
-      adapter: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    allowToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    allowedContracts(overrides?: CallOverrides): Promise<string[]>;
-
-    creditFacade(overrides?: CallOverrides): Promise<string>;
-
-    creditManager(overrides?: CallOverrides): Promise<string>;
-
-    forbidAdapter(
-      adapter: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    forbidContract(
-      targetContract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    forbidToken(
-      token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    removeEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setExpirationDate(
-      newExpirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFees(
-      _feeInterest: PromiseOrValue<BigNumberish>,
-      _feeLiquidation: PromiseOrValue<BigNumberish>,
-      _liquidationPremium: PromiseOrValue<BigNumberish>,
-      _feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-      _liquidationPremiumExpired: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setIncreaseDebtForbidden(
-      _mode: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setLimitPerBlock(
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setLimits(
-      _minBorrowedAmount: PromiseOrValue<BigNumberish>,
-      _maxBorrowedAmount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setLiquidationThreshold(
-      token: PromiseOrValue<string>,
-      liquidationThreshold: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setMaxEnabledTokens(
-      maxEnabledTokens: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    underlying(overrides?: CallOverrides): Promise<string>;
-
-    upgradeCreditConfigurator(
-      _creditConfigurator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    upgradeCreditFacade(
-      _creditFacade: PromiseOrValue<string>,
-      migrateParams: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    upgradePriceOracle(overrides?: CallOverrides): Promise<void>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  addCollateralToken: TypedContractMethod<
+    [token: AddressLike, liquidationThreshold: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  addEmergencyLiquidator: TypedContractMethod<
+    [liquidator: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  addressProvider: TypedContractMethod<[], [string], "view">;
+
+  allowContract: TypedContractMethod<
+    [targetContract: AddressLike, adapter: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  allowToken: TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+
+  allowedContracts: TypedContractMethod<[], [string[]], "view">;
+
+  creditFacade: TypedContractMethod<[], [string], "view">;
+
+  creditManager: TypedContractMethod<[], [string], "view">;
+
+  forbidAdapter: TypedContractMethod<
+    [adapter: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  forbidContract: TypedContractMethod<
+    [targetContract: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  forbidToken: TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+
+  removeEmergencyLiquidator: TypedContractMethod<
+    [liquidator: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setExpirationDate: TypedContractMethod<
+    [newExpirationDate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setFees: TypedContractMethod<
+    [
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationPremium: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationPremiumExpired: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  setIncreaseDebtForbidden: TypedContractMethod<
+    [_mode: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  setLimitPerBlock: TypedContractMethod<
+    [newLimit: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setLimits: TypedContractMethod<
+    [_minBorrowedAmount: BigNumberish, _maxBorrowedAmount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setLiquidationThreshold: TypedContractMethod<
+    [token: AddressLike, liquidationThreshold: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setMaxEnabledTokens: TypedContractMethod<
+    [maxEnabledTokens: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  underlying: TypedContractMethod<[], [string], "view">;
+
+  upgradeCreditConfigurator: TypedContractMethod<
+    [_creditConfigurator: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  upgradeCreditFacade: TypedContractMethod<
+    [_creditFacade: AddressLike, migrateParams: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  upgradePriceOracle: TypedContractMethod<[], [void], "nonpayable">;
+
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "addCollateralToken"
+  ): TypedContractMethod<
+    [token: AddressLike, liquidationThreshold: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "addEmergencyLiquidator"
+  ): TypedContractMethod<[liquidator: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "addressProvider"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "allowContract"
+  ): TypedContractMethod<
+    [targetContract: AddressLike, adapter: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "allowToken"
+  ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "allowedContracts"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "creditFacade"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "creditManager"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "forbidAdapter"
+  ): TypedContractMethod<[adapter: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "forbidContract"
+  ): TypedContractMethod<[targetContract: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "forbidToken"
+  ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "removeEmergencyLiquidator"
+  ): TypedContractMethod<[liquidator: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setExpirationDate"
+  ): TypedContractMethod<
+    [newExpirationDate: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setFees"
+  ): TypedContractMethod<
+    [
+      _feeInterest: BigNumberish,
+      _feeLiquidation: BigNumberish,
+      _liquidationPremium: BigNumberish,
+      _feeLiquidationExpired: BigNumberish,
+      _liquidationPremiumExpired: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setIncreaseDebtForbidden"
+  ): TypedContractMethod<[_mode: boolean], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setLimitPerBlock"
+  ): TypedContractMethod<[newLimit: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setLimits"
+  ): TypedContractMethod<
+    [_minBorrowedAmount: BigNumberish, _maxBorrowedAmount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setLiquidationThreshold"
+  ): TypedContractMethod<
+    [token: AddressLike, liquidationThreshold: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setMaxEnabledTokens"
+  ): TypedContractMethod<
+    [maxEnabledTokens: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "underlying"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "upgradeCreditConfigurator"
+  ): TypedContractMethod<
+    [_creditConfigurator: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "upgradeCreditFacade"
+  ): TypedContractMethod<
+    [_creditFacade: AddressLike, migrateParams: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "upgradePriceOracle"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+
+  getEvent(
+    key: "AdapterForbidden"
+  ): TypedContractEvent<
+    AdapterForbiddenEvent.InputTuple,
+    AdapterForbiddenEvent.OutputTuple,
+    AdapterForbiddenEvent.OutputObject
+  >;
+  getEvent(
+    key: "AddedToUpgradeable"
+  ): TypedContractEvent<
+    AddedToUpgradeableEvent.InputTuple,
+    AddedToUpgradeableEvent.OutputTuple,
+    AddedToUpgradeableEvent.OutputObject
+  >;
+  getEvent(
+    key: "ContractAllowed"
+  ): TypedContractEvent<
+    ContractAllowedEvent.InputTuple,
+    ContractAllowedEvent.OutputTuple,
+    ContractAllowedEvent.OutputObject
+  >;
+  getEvent(
+    key: "ContractForbidden"
+  ): TypedContractEvent<
+    ContractForbiddenEvent.InputTuple,
+    ContractForbiddenEvent.OutputTuple,
+    ContractForbiddenEvent.OutputObject
+  >;
+  getEvent(
+    key: "CreditConfiguratorUpgraded"
+  ): TypedContractEvent<
+    CreditConfiguratorUpgradedEvent.InputTuple,
+    CreditConfiguratorUpgradedEvent.OutputTuple,
+    CreditConfiguratorUpgradedEvent.OutputObject
+  >;
+  getEvent(
+    key: "CreditFacadeUpgraded"
+  ): TypedContractEvent<
+    CreditFacadeUpgradedEvent.InputTuple,
+    CreditFacadeUpgradedEvent.OutputTuple,
+    CreditFacadeUpgradedEvent.OutputObject
+  >;
+  getEvent(
+    key: "CumulativeLossReset"
+  ): TypedContractEvent<
+    CumulativeLossResetEvent.InputTuple,
+    CumulativeLossResetEvent.OutputTuple,
+    CumulativeLossResetEvent.OutputObject
+  >;
+  getEvent(
+    key: "EmergencyLiquidatorAdded"
+  ): TypedContractEvent<
+    EmergencyLiquidatorAddedEvent.InputTuple,
+    EmergencyLiquidatorAddedEvent.OutputTuple,
+    EmergencyLiquidatorAddedEvent.OutputObject
+  >;
+  getEvent(
+    key: "EmergencyLiquidatorRemoved"
+  ): TypedContractEvent<
+    EmergencyLiquidatorRemovedEvent.InputTuple,
+    EmergencyLiquidatorRemovedEvent.OutputTuple,
+    EmergencyLiquidatorRemovedEvent.OutputObject
+  >;
+  getEvent(
+    key: "ExpirationDateUpdated"
+  ): TypedContractEvent<
+    ExpirationDateUpdatedEvent.InputTuple,
+    ExpirationDateUpdatedEvent.OutputTuple,
+    ExpirationDateUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "FeesUpdated"
+  ): TypedContractEvent<
+    FeesUpdatedEvent.InputTuple,
+    FeesUpdatedEvent.OutputTuple,
+    FeesUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "IncreaseDebtForbiddenModeChanged"
+  ): TypedContractEvent<
+    IncreaseDebtForbiddenModeChangedEvent.InputTuple,
+    IncreaseDebtForbiddenModeChangedEvent.OutputTuple,
+    IncreaseDebtForbiddenModeChangedEvent.OutputObject
+  >;
+  getEvent(
+    key: "LimitPerBlockUpdated"
+  ): TypedContractEvent<
+    LimitPerBlockUpdatedEvent.InputTuple,
+    LimitPerBlockUpdatedEvent.OutputTuple,
+    LimitPerBlockUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "LimitsUpdated"
+  ): TypedContractEvent<
+    LimitsUpdatedEvent.InputTuple,
+    LimitsUpdatedEvent.OutputTuple,
+    LimitsUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "MaxEnabledTokensUpdated"
+  ): TypedContractEvent<
+    MaxEnabledTokensUpdatedEvent.InputTuple,
+    MaxEnabledTokensUpdatedEvent.OutputTuple,
+    MaxEnabledTokensUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "NewEmergencyLiquidationDiscount"
+  ): TypedContractEvent<
+    NewEmergencyLiquidationDiscountEvent.InputTuple,
+    NewEmergencyLiquidationDiscountEvent.OutputTuple,
+    NewEmergencyLiquidationDiscountEvent.OutputObject
+  >;
+  getEvent(
+    key: "NewMaxCumulativeLoss"
+  ): TypedContractEvent<
+    NewMaxCumulativeLossEvent.InputTuple,
+    NewMaxCumulativeLossEvent.OutputTuple,
+    NewMaxCumulativeLossEvent.OutputObject
+  >;
+  getEvent(
+    key: "NewTotalDebtLimit"
+  ): TypedContractEvent<
+    NewTotalDebtLimitEvent.InputTuple,
+    NewTotalDebtLimitEvent.OutputTuple,
+    NewTotalDebtLimitEvent.OutputObject
+  >;
+  getEvent(
+    key: "PriceOracleUpgraded"
+  ): TypedContractEvent<
+    PriceOracleUpgradedEvent.InputTuple,
+    PriceOracleUpgradedEvent.OutputTuple,
+    PriceOracleUpgradedEvent.OutputObject
+  >;
+  getEvent(
+    key: "RemovedFromUpgradeable"
+  ): TypedContractEvent<
+    RemovedFromUpgradeableEvent.InputTuple,
+    RemovedFromUpgradeableEvent.OutputTuple,
+    RemovedFromUpgradeableEvent.OutputObject
+  >;
+  getEvent(
+    key: "TokenAllowed"
+  ): TypedContractEvent<
+    TokenAllowedEvent.InputTuple,
+    TokenAllowedEvent.OutputTuple,
+    TokenAllowedEvent.OutputObject
+  >;
+  getEvent(
+    key: "TokenForbidden"
+  ): TypedContractEvent<
+    TokenForbiddenEvent.InputTuple,
+    TokenForbiddenEvent.OutputTuple,
+    TokenForbiddenEvent.OutputObject
+  >;
+  getEvent(
+    key: "TokenLiquidationThresholdUpdated"
+  ): TypedContractEvent<
+    TokenLiquidationThresholdUpdatedEvent.InputTuple,
+    TokenLiquidationThresholdUpdatedEvent.OutputTuple,
+    TokenLiquidationThresholdUpdatedEvent.OutputObject
+  >;
 
   filters: {
-    "AdapterForbidden(address)"(
-      adapter?: PromiseOrValue<string> | null
-    ): AdapterForbiddenEventFilter;
-    AdapterForbidden(
-      adapter?: PromiseOrValue<string> | null
-    ): AdapterForbiddenEventFilter;
-
-    "AddedToUpgradeable(address)"(arg0?: null): AddedToUpgradeableEventFilter;
-    AddedToUpgradeable(arg0?: null): AddedToUpgradeableEventFilter;
-
-    "ContractAllowed(address,address)"(
-      protocol?: PromiseOrValue<string> | null,
-      adapter?: PromiseOrValue<string> | null
-    ): ContractAllowedEventFilter;
-    ContractAllowed(
-      protocol?: PromiseOrValue<string> | null,
-      adapter?: PromiseOrValue<string> | null
-    ): ContractAllowedEventFilter;
-
-    "ContractForbidden(address)"(
-      protocol?: PromiseOrValue<string> | null
-    ): ContractForbiddenEventFilter;
-    ContractForbidden(
-      protocol?: PromiseOrValue<string> | null
-    ): ContractForbiddenEventFilter;
-
-    "CreditConfiguratorUpgraded(address)"(
-      newCreditConfigurator?: PromiseOrValue<string> | null
-    ): CreditConfiguratorUpgradedEventFilter;
-    CreditConfiguratorUpgraded(
-      newCreditConfigurator?: PromiseOrValue<string> | null
-    ): CreditConfiguratorUpgradedEventFilter;
-
-    "CreditFacadeUpgraded(address)"(
-      newCreditFacade?: PromiseOrValue<string> | null
-    ): CreditFacadeUpgradedEventFilter;
-    CreditFacadeUpgraded(
-      newCreditFacade?: PromiseOrValue<string> | null
-    ): CreditFacadeUpgradedEventFilter;
-
-    "CumulativeLossReset()"(): CumulativeLossResetEventFilter;
-    CumulativeLossReset(): CumulativeLossResetEventFilter;
-
-    "EmergencyLiquidatorAdded(address)"(
-      arg0?: null
-    ): EmergencyLiquidatorAddedEventFilter;
-    EmergencyLiquidatorAdded(arg0?: null): EmergencyLiquidatorAddedEventFilter;
-
-    "EmergencyLiquidatorRemoved(address)"(
-      arg0?: null
-    ): EmergencyLiquidatorRemovedEventFilter;
-    EmergencyLiquidatorRemoved(
-      arg0?: null
-    ): EmergencyLiquidatorRemovedEventFilter;
-
-    "ExpirationDateUpdated(uint40)"(
-      arg0?: null
-    ): ExpirationDateUpdatedEventFilter;
-    ExpirationDateUpdated(arg0?: null): ExpirationDateUpdatedEventFilter;
-
-    "FeesUpdated(uint16,uint16,uint16,uint16,uint16)"(
-      feeInterest?: null,
-      feeLiquidation?: null,
-      liquidationPremium?: null,
-      feeLiquidationExpired?: null,
-      liquidationPremiumExpired?: null
-    ): FeesUpdatedEventFilter;
-    FeesUpdated(
-      feeInterest?: null,
-      feeLiquidation?: null,
-      liquidationPremium?: null,
-      feeLiquidationExpired?: null,
-      liquidationPremiumExpired?: null
-    ): FeesUpdatedEventFilter;
-
-    "IncreaseDebtForbiddenModeChanged(bool)"(
-      arg0?: null
-    ): IncreaseDebtForbiddenModeChangedEventFilter;
-    IncreaseDebtForbiddenModeChanged(
-      arg0?: null
-    ): IncreaseDebtForbiddenModeChangedEventFilter;
-
-    "LimitPerBlockUpdated(uint128)"(
-      arg0?: null
-    ): LimitPerBlockUpdatedEventFilter;
-    LimitPerBlockUpdated(arg0?: null): LimitPerBlockUpdatedEventFilter;
-
-    "LimitsUpdated(uint256,uint256)"(
-      minBorrowedAmount?: null,
-      maxBorrowedAmount?: null
-    ): LimitsUpdatedEventFilter;
-    LimitsUpdated(
-      minBorrowedAmount?: null,
-      maxBorrowedAmount?: null
-    ): LimitsUpdatedEventFilter;
-
-    "MaxEnabledTokensUpdated(uint8)"(
-      arg0?: null
-    ): MaxEnabledTokensUpdatedEventFilter;
-    MaxEnabledTokensUpdated(arg0?: null): MaxEnabledTokensUpdatedEventFilter;
-
-    "NewEmergencyLiquidationDiscount(uint16)"(
-      arg0?: null
-    ): NewEmergencyLiquidationDiscountEventFilter;
-    NewEmergencyLiquidationDiscount(
-      arg0?: null
-    ): NewEmergencyLiquidationDiscountEventFilter;
-
-    "NewMaxCumulativeLoss(uint128)"(
-      arg0?: null
-    ): NewMaxCumulativeLossEventFilter;
-    NewMaxCumulativeLoss(arg0?: null): NewMaxCumulativeLossEventFilter;
-
-    "NewTotalDebtLimit(uint128)"(arg0?: null): NewTotalDebtLimitEventFilter;
-    NewTotalDebtLimit(arg0?: null): NewTotalDebtLimitEventFilter;
-
-    "PriceOracleUpgraded(address)"(
-      newPriceOracle?: PromiseOrValue<string> | null
-    ): PriceOracleUpgradedEventFilter;
-    PriceOracleUpgraded(
-      newPriceOracle?: PromiseOrValue<string> | null
-    ): PriceOracleUpgradedEventFilter;
-
-    "RemovedFromUpgradeable(address)"(
-      arg0?: null
-    ): RemovedFromUpgradeableEventFilter;
-    RemovedFromUpgradeable(arg0?: null): RemovedFromUpgradeableEventFilter;
-
-    "TokenAllowed(address)"(
-      token?: PromiseOrValue<string> | null
-    ): TokenAllowedEventFilter;
-    TokenAllowed(
-      token?: PromiseOrValue<string> | null
-    ): TokenAllowedEventFilter;
-
-    "TokenForbidden(address)"(
-      token?: PromiseOrValue<string> | null
-    ): TokenForbiddenEventFilter;
-    TokenForbidden(
-      token?: PromiseOrValue<string> | null
-    ): TokenForbiddenEventFilter;
-
-    "TokenLiquidationThresholdUpdated(address,uint16)"(
-      token?: PromiseOrValue<string> | null,
-      liquidityThreshold?: null
-    ): TokenLiquidationThresholdUpdatedEventFilter;
-    TokenLiquidationThresholdUpdated(
-      token?: PromiseOrValue<string> | null,
-      liquidityThreshold?: null
-    ): TokenLiquidationThresholdUpdatedEventFilter;
-  };
-
-  estimateGas: {
-    addCollateralToken(
-      token: PromiseOrValue<string>,
-      liquidationThreshold: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    addEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    addressProvider(overrides?: CallOverrides): Promise<BigNumber>;
-
-    allowContract(
-      targetContract: PromiseOrValue<string>,
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    allowToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    allowedContracts(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditFacade(overrides?: CallOverrides): Promise<BigNumber>;
-
-    creditManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    forbidAdapter(
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    forbidContract(
-      targetContract: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    forbidToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    removeEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setExpirationDate(
-      newExpirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFees(
-      _feeInterest: PromiseOrValue<BigNumberish>,
-      _feeLiquidation: PromiseOrValue<BigNumberish>,
-      _liquidationPremium: PromiseOrValue<BigNumberish>,
-      _feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-      _liquidationPremiumExpired: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setIncreaseDebtForbidden(
-      _mode: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setLimitPerBlock(
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setLimits(
-      _minBorrowedAmount: PromiseOrValue<BigNumberish>,
-      _maxBorrowedAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setLiquidationThreshold(
-      token: PromiseOrValue<string>,
-      liquidationThreshold: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setMaxEnabledTokens(
-      maxEnabledTokens: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    underlying(overrides?: CallOverrides): Promise<BigNumber>;
-
-    upgradeCreditConfigurator(
-      _creditConfigurator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    upgradeCreditFacade(
-      _creditFacade: PromiseOrValue<string>,
-      migrateParams: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    upgradePriceOracle(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    addCollateralToken(
-      token: PromiseOrValue<string>,
-      liquidationThreshold: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addressProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    allowContract(
-      targetContract: PromiseOrValue<string>,
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    allowToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    allowedContracts(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    creditFacade(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    creditManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    forbidAdapter(
-      adapter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    forbidContract(
-      targetContract: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    forbidToken(
-      token: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeEmergencyLiquidator(
-      liquidator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setExpirationDate(
-      newExpirationDate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFees(
-      _feeInterest: PromiseOrValue<BigNumberish>,
-      _feeLiquidation: PromiseOrValue<BigNumberish>,
-      _liquidationPremium: PromiseOrValue<BigNumberish>,
-      _feeLiquidationExpired: PromiseOrValue<BigNumberish>,
-      _liquidationPremiumExpired: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setIncreaseDebtForbidden(
-      _mode: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setLimitPerBlock(
-      newLimit: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setLimits(
-      _minBorrowedAmount: PromiseOrValue<BigNumberish>,
-      _maxBorrowedAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setLiquidationThreshold(
-      token: PromiseOrValue<string>,
-      liquidationThreshold: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setMaxEnabledTokens(
-      maxEnabledTokens: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    underlying(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    upgradeCreditConfigurator(
-      _creditConfigurator: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    upgradeCreditFacade(
-      _creditFacade: PromiseOrValue<string>,
-      migrateParams: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    upgradePriceOracle(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "AdapterForbidden(address)": TypedContractEvent<
+      AdapterForbiddenEvent.InputTuple,
+      AdapterForbiddenEvent.OutputTuple,
+      AdapterForbiddenEvent.OutputObject
+    >;
+    AdapterForbidden: TypedContractEvent<
+      AdapterForbiddenEvent.InputTuple,
+      AdapterForbiddenEvent.OutputTuple,
+      AdapterForbiddenEvent.OutputObject
+    >;
+
+    "AddedToUpgradeable(address)": TypedContractEvent<
+      AddedToUpgradeableEvent.InputTuple,
+      AddedToUpgradeableEvent.OutputTuple,
+      AddedToUpgradeableEvent.OutputObject
+    >;
+    AddedToUpgradeable: TypedContractEvent<
+      AddedToUpgradeableEvent.InputTuple,
+      AddedToUpgradeableEvent.OutputTuple,
+      AddedToUpgradeableEvent.OutputObject
+    >;
+
+    "ContractAllowed(address,address)": TypedContractEvent<
+      ContractAllowedEvent.InputTuple,
+      ContractAllowedEvent.OutputTuple,
+      ContractAllowedEvent.OutputObject
+    >;
+    ContractAllowed: TypedContractEvent<
+      ContractAllowedEvent.InputTuple,
+      ContractAllowedEvent.OutputTuple,
+      ContractAllowedEvent.OutputObject
+    >;
+
+    "ContractForbidden(address)": TypedContractEvent<
+      ContractForbiddenEvent.InputTuple,
+      ContractForbiddenEvent.OutputTuple,
+      ContractForbiddenEvent.OutputObject
+    >;
+    ContractForbidden: TypedContractEvent<
+      ContractForbiddenEvent.InputTuple,
+      ContractForbiddenEvent.OutputTuple,
+      ContractForbiddenEvent.OutputObject
+    >;
+
+    "CreditConfiguratorUpgraded(address)": TypedContractEvent<
+      CreditConfiguratorUpgradedEvent.InputTuple,
+      CreditConfiguratorUpgradedEvent.OutputTuple,
+      CreditConfiguratorUpgradedEvent.OutputObject
+    >;
+    CreditConfiguratorUpgraded: TypedContractEvent<
+      CreditConfiguratorUpgradedEvent.InputTuple,
+      CreditConfiguratorUpgradedEvent.OutputTuple,
+      CreditConfiguratorUpgradedEvent.OutputObject
+    >;
+
+    "CreditFacadeUpgraded(address)": TypedContractEvent<
+      CreditFacadeUpgradedEvent.InputTuple,
+      CreditFacadeUpgradedEvent.OutputTuple,
+      CreditFacadeUpgradedEvent.OutputObject
+    >;
+    CreditFacadeUpgraded: TypedContractEvent<
+      CreditFacadeUpgradedEvent.InputTuple,
+      CreditFacadeUpgradedEvent.OutputTuple,
+      CreditFacadeUpgradedEvent.OutputObject
+    >;
+
+    "CumulativeLossReset()": TypedContractEvent<
+      CumulativeLossResetEvent.InputTuple,
+      CumulativeLossResetEvent.OutputTuple,
+      CumulativeLossResetEvent.OutputObject
+    >;
+    CumulativeLossReset: TypedContractEvent<
+      CumulativeLossResetEvent.InputTuple,
+      CumulativeLossResetEvent.OutputTuple,
+      CumulativeLossResetEvent.OutputObject
+    >;
+
+    "EmergencyLiquidatorAdded(address)": TypedContractEvent<
+      EmergencyLiquidatorAddedEvent.InputTuple,
+      EmergencyLiquidatorAddedEvent.OutputTuple,
+      EmergencyLiquidatorAddedEvent.OutputObject
+    >;
+    EmergencyLiquidatorAdded: TypedContractEvent<
+      EmergencyLiquidatorAddedEvent.InputTuple,
+      EmergencyLiquidatorAddedEvent.OutputTuple,
+      EmergencyLiquidatorAddedEvent.OutputObject
+    >;
+
+    "EmergencyLiquidatorRemoved(address)": TypedContractEvent<
+      EmergencyLiquidatorRemovedEvent.InputTuple,
+      EmergencyLiquidatorRemovedEvent.OutputTuple,
+      EmergencyLiquidatorRemovedEvent.OutputObject
+    >;
+    EmergencyLiquidatorRemoved: TypedContractEvent<
+      EmergencyLiquidatorRemovedEvent.InputTuple,
+      EmergencyLiquidatorRemovedEvent.OutputTuple,
+      EmergencyLiquidatorRemovedEvent.OutputObject
+    >;
+
+    "ExpirationDateUpdated(uint40)": TypedContractEvent<
+      ExpirationDateUpdatedEvent.InputTuple,
+      ExpirationDateUpdatedEvent.OutputTuple,
+      ExpirationDateUpdatedEvent.OutputObject
+    >;
+    ExpirationDateUpdated: TypedContractEvent<
+      ExpirationDateUpdatedEvent.InputTuple,
+      ExpirationDateUpdatedEvent.OutputTuple,
+      ExpirationDateUpdatedEvent.OutputObject
+    >;
+
+    "FeesUpdated(uint16,uint16,uint16,uint16,uint16)": TypedContractEvent<
+      FeesUpdatedEvent.InputTuple,
+      FeesUpdatedEvent.OutputTuple,
+      FeesUpdatedEvent.OutputObject
+    >;
+    FeesUpdated: TypedContractEvent<
+      FeesUpdatedEvent.InputTuple,
+      FeesUpdatedEvent.OutputTuple,
+      FeesUpdatedEvent.OutputObject
+    >;
+
+    "IncreaseDebtForbiddenModeChanged(bool)": TypedContractEvent<
+      IncreaseDebtForbiddenModeChangedEvent.InputTuple,
+      IncreaseDebtForbiddenModeChangedEvent.OutputTuple,
+      IncreaseDebtForbiddenModeChangedEvent.OutputObject
+    >;
+    IncreaseDebtForbiddenModeChanged: TypedContractEvent<
+      IncreaseDebtForbiddenModeChangedEvent.InputTuple,
+      IncreaseDebtForbiddenModeChangedEvent.OutputTuple,
+      IncreaseDebtForbiddenModeChangedEvent.OutputObject
+    >;
+
+    "LimitPerBlockUpdated(uint128)": TypedContractEvent<
+      LimitPerBlockUpdatedEvent.InputTuple,
+      LimitPerBlockUpdatedEvent.OutputTuple,
+      LimitPerBlockUpdatedEvent.OutputObject
+    >;
+    LimitPerBlockUpdated: TypedContractEvent<
+      LimitPerBlockUpdatedEvent.InputTuple,
+      LimitPerBlockUpdatedEvent.OutputTuple,
+      LimitPerBlockUpdatedEvent.OutputObject
+    >;
+
+    "LimitsUpdated(uint256,uint256)": TypedContractEvent<
+      LimitsUpdatedEvent.InputTuple,
+      LimitsUpdatedEvent.OutputTuple,
+      LimitsUpdatedEvent.OutputObject
+    >;
+    LimitsUpdated: TypedContractEvent<
+      LimitsUpdatedEvent.InputTuple,
+      LimitsUpdatedEvent.OutputTuple,
+      LimitsUpdatedEvent.OutputObject
+    >;
+
+    "MaxEnabledTokensUpdated(uint8)": TypedContractEvent<
+      MaxEnabledTokensUpdatedEvent.InputTuple,
+      MaxEnabledTokensUpdatedEvent.OutputTuple,
+      MaxEnabledTokensUpdatedEvent.OutputObject
+    >;
+    MaxEnabledTokensUpdated: TypedContractEvent<
+      MaxEnabledTokensUpdatedEvent.InputTuple,
+      MaxEnabledTokensUpdatedEvent.OutputTuple,
+      MaxEnabledTokensUpdatedEvent.OutputObject
+    >;
+
+    "NewEmergencyLiquidationDiscount(uint16)": TypedContractEvent<
+      NewEmergencyLiquidationDiscountEvent.InputTuple,
+      NewEmergencyLiquidationDiscountEvent.OutputTuple,
+      NewEmergencyLiquidationDiscountEvent.OutputObject
+    >;
+    NewEmergencyLiquidationDiscount: TypedContractEvent<
+      NewEmergencyLiquidationDiscountEvent.InputTuple,
+      NewEmergencyLiquidationDiscountEvent.OutputTuple,
+      NewEmergencyLiquidationDiscountEvent.OutputObject
+    >;
+
+    "NewMaxCumulativeLoss(uint128)": TypedContractEvent<
+      NewMaxCumulativeLossEvent.InputTuple,
+      NewMaxCumulativeLossEvent.OutputTuple,
+      NewMaxCumulativeLossEvent.OutputObject
+    >;
+    NewMaxCumulativeLoss: TypedContractEvent<
+      NewMaxCumulativeLossEvent.InputTuple,
+      NewMaxCumulativeLossEvent.OutputTuple,
+      NewMaxCumulativeLossEvent.OutputObject
+    >;
+
+    "NewTotalDebtLimit(uint128)": TypedContractEvent<
+      NewTotalDebtLimitEvent.InputTuple,
+      NewTotalDebtLimitEvent.OutputTuple,
+      NewTotalDebtLimitEvent.OutputObject
+    >;
+    NewTotalDebtLimit: TypedContractEvent<
+      NewTotalDebtLimitEvent.InputTuple,
+      NewTotalDebtLimitEvent.OutputTuple,
+      NewTotalDebtLimitEvent.OutputObject
+    >;
+
+    "PriceOracleUpgraded(address)": TypedContractEvent<
+      PriceOracleUpgradedEvent.InputTuple,
+      PriceOracleUpgradedEvent.OutputTuple,
+      PriceOracleUpgradedEvent.OutputObject
+    >;
+    PriceOracleUpgraded: TypedContractEvent<
+      PriceOracleUpgradedEvent.InputTuple,
+      PriceOracleUpgradedEvent.OutputTuple,
+      PriceOracleUpgradedEvent.OutputObject
+    >;
+
+    "RemovedFromUpgradeable(address)": TypedContractEvent<
+      RemovedFromUpgradeableEvent.InputTuple,
+      RemovedFromUpgradeableEvent.OutputTuple,
+      RemovedFromUpgradeableEvent.OutputObject
+    >;
+    RemovedFromUpgradeable: TypedContractEvent<
+      RemovedFromUpgradeableEvent.InputTuple,
+      RemovedFromUpgradeableEvent.OutputTuple,
+      RemovedFromUpgradeableEvent.OutputObject
+    >;
+
+    "TokenAllowed(address)": TypedContractEvent<
+      TokenAllowedEvent.InputTuple,
+      TokenAllowedEvent.OutputTuple,
+      TokenAllowedEvent.OutputObject
+    >;
+    TokenAllowed: TypedContractEvent<
+      TokenAllowedEvent.InputTuple,
+      TokenAllowedEvent.OutputTuple,
+      TokenAllowedEvent.OutputObject
+    >;
+
+    "TokenForbidden(address)": TypedContractEvent<
+      TokenForbiddenEvent.InputTuple,
+      TokenForbiddenEvent.OutputTuple,
+      TokenForbiddenEvent.OutputObject
+    >;
+    TokenForbidden: TypedContractEvent<
+      TokenForbiddenEvent.InputTuple,
+      TokenForbiddenEvent.OutputTuple,
+      TokenForbiddenEvent.OutputObject
+    >;
+
+    "TokenLiquidationThresholdUpdated(address,uint16)": TypedContractEvent<
+      TokenLiquidationThresholdUpdatedEvent.InputTuple,
+      TokenLiquidationThresholdUpdatedEvent.OutputTuple,
+      TokenLiquidationThresholdUpdatedEvent.OutputObject
+    >;
+    TokenLiquidationThresholdUpdated: TypedContractEvent<
+      TokenLiquidationThresholdUpdatedEvent.InputTuple,
+      TokenLiquidationThresholdUpdatedEvent.OutputTuple,
+      TokenLiquidationThresholdUpdatedEvent.OutputObject
+    >;
   };
 }

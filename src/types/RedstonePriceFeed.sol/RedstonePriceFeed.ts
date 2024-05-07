@@ -3,64 +3,29 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "../common";
 
-export interface RedstonePriceFeedInterface extends utils.Interface {
-  functions: {
-    "aggregateValues(uint256[])": FunctionFragment;
-    "dataFeedId()": FunctionFragment;
-    "decimals()": FunctionFragment;
-    "description()": FunctionFragment;
-    "extractTimestampsAndAssertAllAreEqual()": FunctionFragment;
-    "getAuthorisedSignerIndex(address)": FunctionFragment;
-    "getDataServiceId()": FunctionFragment;
-    "getUniqueSignersThreshold()": FunctionFragment;
-    "lastPayloadTimestamp()": FunctionFragment;
-    "lastPrice()": FunctionFragment;
-    "latestRoundData()": FunctionFragment;
-    "priceFeedType()": FunctionFragment;
-    "signerAddress0()": FunctionFragment;
-    "signerAddress1()": FunctionFragment;
-    "signerAddress2()": FunctionFragment;
-    "signerAddress3()": FunctionFragment;
-    "signerAddress4()": FunctionFragment;
-    "signerAddress5()": FunctionFragment;
-    "signerAddress6()": FunctionFragment;
-    "signerAddress7()": FunctionFragment;
-    "signerAddress8()": FunctionFragment;
-    "signerAddress9()": FunctionFragment;
-    "skipPriceCheck()": FunctionFragment;
-    "token()": FunctionFragment;
-    "updatable()": FunctionFragment;
-    "updatePrice(bytes)": FunctionFragment;
-    "validateTimestamp(uint256)": FunctionFragment;
-    "version()": FunctionFragment;
-  };
-
+export interface RedstonePriceFeedInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "aggregateValues"
       | "dataFeedId"
       | "decimals"
@@ -91,9 +56,11 @@ export interface RedstonePriceFeedInterface extends utils.Interface {
       | "version"
   ): FunctionFragment;
 
+  getEvent(nameOrSignatureOrTopic: "UpdatePrice"): EventFragment;
+
   encodeFunctionData(
     functionFragment: "aggregateValues",
-    values: [PromiseOrValue<BigNumberish>[]]
+    values: [BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "dataFeedId",
@@ -110,7 +77,7 @@ export interface RedstonePriceFeedInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getAuthorisedSignerIndex",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getDataServiceId",
@@ -181,11 +148,11 @@ export interface RedstonePriceFeedInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "updatable", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "updatePrice",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "validateTimestamp",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
@@ -283,417 +250,254 @@ export interface RedstonePriceFeedInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
-
-  events: {
-    "UpdatePrice(uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "UpdatePrice"): EventFragment;
 }
 
-export interface UpdatePriceEventObject {
-  price: BigNumber;
+export namespace UpdatePriceEvent {
+  export type InputTuple = [price: BigNumberish];
+  export type OutputTuple = [price: bigint];
+  export interface OutputObject {
+    price: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type UpdatePriceEvent = TypedEvent<[BigNumber], UpdatePriceEventObject>;
-
-export type UpdatePriceEventFilter = TypedEventFilter<UpdatePriceEvent>;
 
 export interface RedstonePriceFeed extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): RedstonePriceFeed;
+  waitForDeployment(): Promise<this>;
 
   interface: RedstonePriceFeedInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-  functions: {
-    aggregateValues(
-      values: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
 
-    dataFeedId(overrides?: CallOverrides): Promise<[string]>;
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-    decimals(overrides?: CallOverrides): Promise<[number]>;
-
-    description(overrides?: CallOverrides): Promise<[string]>;
-
-    extractTimestampsAndAssertAllAreEqual(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { extractedTimestamp: BigNumber }>;
-
-    getAuthorisedSignerIndex(
-      signerAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
-    getDataServiceId(overrides?: CallOverrides): Promise<[string]>;
-
-    getUniqueSignersThreshold(overrides?: CallOverrides): Promise<[number]>;
-
-    lastPayloadTimestamp(overrides?: CallOverrides): Promise<[number]>;
-
-    lastPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<[number]>;
-
-    signerAddress0(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress1(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress2(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress3(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress4(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress5(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress6(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress7(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress8(overrides?: CallOverrides): Promise<[string]>;
-
-    signerAddress9(overrides?: CallOverrides): Promise<[string]>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<[boolean]>;
-
-    token(overrides?: CallOverrides): Promise<[string]>;
-
-    updatable(overrides?: CallOverrides): Promise<[boolean]>;
-
-    updatePrice(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    validateTimestamp(
-      receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
-
-    version(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
-
-  aggregateValues(
-    values: PromiseOrValue<BigNumberish>[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  dataFeedId(overrides?: CallOverrides): Promise<string>;
-
-  decimals(overrides?: CallOverrides): Promise<number>;
-
-  description(overrides?: CallOverrides): Promise<string>;
-
-  extractTimestampsAndAssertAllAreEqual(
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getAuthorisedSignerIndex(
-    signerAddress: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  getDataServiceId(overrides?: CallOverrides): Promise<string>;
-
-  getUniqueSignersThreshold(overrides?: CallOverrides): Promise<number>;
-
-  lastPayloadTimestamp(overrides?: CallOverrides): Promise<number>;
-
-  lastPrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-  latestRoundData(
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
-
-  priceFeedType(overrides?: CallOverrides): Promise<number>;
-
-  signerAddress0(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress1(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress2(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress3(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress4(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress5(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress6(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress7(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress8(overrides?: CallOverrides): Promise<string>;
-
-  signerAddress9(overrides?: CallOverrides): Promise<string>;
-
-  skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
-
-  token(overrides?: CallOverrides): Promise<string>;
-
-  updatable(overrides?: CallOverrides): Promise<boolean>;
-
-  updatePrice(
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  validateTimestamp(
-    receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<void>;
-
-  version(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    aggregateValues(
-      values: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    dataFeedId(overrides?: CallOverrides): Promise<string>;
-
-    decimals(overrides?: CallOverrides): Promise<number>;
-
-    description(overrides?: CallOverrides): Promise<string>;
-
-    extractTimestampsAndAssertAllAreEqual(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAuthorisedSignerIndex(
-      signerAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    getDataServiceId(overrides?: CallOverrides): Promise<string>;
-
-    getUniqueSignersThreshold(overrides?: CallOverrides): Promise<number>;
-
-    lastPayloadTimestamp(overrides?: CallOverrides): Promise<number>;
-
-    lastPrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-    latestRoundData(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber, BigNumber, BigNumber]>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<number>;
-
-    signerAddress0(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress1(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress2(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress3(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress4(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress5(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress6(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress7(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress8(overrides?: CallOverrides): Promise<string>;
-
-    signerAddress9(overrides?: CallOverrides): Promise<string>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<boolean>;
-
-    token(overrides?: CallOverrides): Promise<string>;
-
-    updatable(overrides?: CallOverrides): Promise<boolean>;
-
-    updatePrice(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    validateTimestamp(
-      receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  aggregateValues: TypedContractMethod<
+    [values: BigNumberish[]],
+    [bigint],
+    "view"
+  >;
+
+  dataFeedId: TypedContractMethod<[], [string], "view">;
+
+  decimals: TypedContractMethod<[], [bigint], "view">;
+
+  description: TypedContractMethod<[], [string], "view">;
+
+  extractTimestampsAndAssertAllAreEqual: TypedContractMethod<
+    [],
+    [bigint],
+    "view"
+  >;
+
+  getAuthorisedSignerIndex: TypedContractMethod<
+    [signerAddress: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  getDataServiceId: TypedContractMethod<[], [string], "view">;
+
+  getUniqueSignersThreshold: TypedContractMethod<[], [bigint], "view">;
+
+  lastPayloadTimestamp: TypedContractMethod<[], [bigint], "view">;
+
+  lastPrice: TypedContractMethod<[], [bigint], "view">;
+
+  latestRoundData: TypedContractMethod<
+    [],
+    [[bigint, bigint, bigint, bigint, bigint]],
+    "view"
+  >;
+
+  priceFeedType: TypedContractMethod<[], [bigint], "view">;
+
+  signerAddress0: TypedContractMethod<[], [string], "view">;
+
+  signerAddress1: TypedContractMethod<[], [string], "view">;
+
+  signerAddress2: TypedContractMethod<[], [string], "view">;
+
+  signerAddress3: TypedContractMethod<[], [string], "view">;
+
+  signerAddress4: TypedContractMethod<[], [string], "view">;
+
+  signerAddress5: TypedContractMethod<[], [string], "view">;
+
+  signerAddress6: TypedContractMethod<[], [string], "view">;
+
+  signerAddress7: TypedContractMethod<[], [string], "view">;
+
+  signerAddress8: TypedContractMethod<[], [string], "view">;
+
+  signerAddress9: TypedContractMethod<[], [string], "view">;
+
+  skipPriceCheck: TypedContractMethod<[], [boolean], "view">;
+
+  token: TypedContractMethod<[], [string], "view">;
+
+  updatable: TypedContractMethod<[], [boolean], "view">;
+
+  updatePrice: TypedContractMethod<[data: BytesLike], [void], "nonpayable">;
+
+  validateTimestamp: TypedContractMethod<
+    [receivedTimestampMilliseconds: BigNumberish],
+    [void],
+    "view"
+  >;
+
+  version: TypedContractMethod<[], [bigint], "view">;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "aggregateValues"
+  ): TypedContractMethod<[values: BigNumberish[]], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "dataFeedId"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "decimals"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "description"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "extractTimestampsAndAssertAllAreEqual"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getAuthorisedSignerIndex"
+  ): TypedContractMethod<[signerAddress: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getDataServiceId"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getUniqueSignersThreshold"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lastPayloadTimestamp"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lastPrice"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "latestRoundData"
+  ): TypedContractMethod<
+    [],
+    [[bigint, bigint, bigint, bigint, bigint]],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "priceFeedType"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress0"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress1"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress2"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress3"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress4"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress5"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress6"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress7"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress8"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "signerAddress9"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "skipPriceCheck"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "token"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "updatable"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "updatePrice"
+  ): TypedContractMethod<[data: BytesLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "validateTimestamp"
+  ): TypedContractMethod<
+    [receivedTimestampMilliseconds: BigNumberish],
+    [void],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [bigint], "view">;
+
+  getEvent(
+    key: "UpdatePrice"
+  ): TypedContractEvent<
+    UpdatePriceEvent.InputTuple,
+    UpdatePriceEvent.OutputTuple,
+    UpdatePriceEvent.OutputObject
+  >;
 
   filters: {
-    "UpdatePrice(uint256)"(price?: null): UpdatePriceEventFilter;
-    UpdatePrice(price?: null): UpdatePriceEventFilter;
-  };
-
-  estimateGas: {
-    aggregateValues(
-      values: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    dataFeedId(overrides?: CallOverrides): Promise<BigNumber>;
-
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-    description(overrides?: CallOverrides): Promise<BigNumber>;
-
-    extractTimestampsAndAssertAllAreEqual(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAuthorisedSignerIndex(
-      signerAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getDataServiceId(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getUniqueSignersThreshold(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastPayloadTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
-
-    lastPrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-    latestRoundData(overrides?: CallOverrides): Promise<BigNumber>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress0(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress1(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress2(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress3(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress4(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress5(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress6(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress7(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress8(overrides?: CallOverrides): Promise<BigNumber>;
-
-    signerAddress9(overrides?: CallOverrides): Promise<BigNumber>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<BigNumber>;
-
-    token(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updatable(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updatePrice(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    validateTimestamp(
-      receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    version(overrides?: CallOverrides): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    aggregateValues(
-      values: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    dataFeedId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    extractTimestampsAndAssertAllAreEqual(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getAuthorisedSignerIndex(
-      signerAddress: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getDataServiceId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getUniqueSignersThreshold(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    lastPayloadTimestamp(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    lastPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    latestRoundData(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    priceFeedType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress3(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress4(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress5(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress6(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress7(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress8(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    signerAddress9(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    skipPriceCheck(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updatable(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    updatePrice(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    validateTimestamp(
-      receivedTimestampMilliseconds: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "UpdatePrice(uint256)": TypedContractEvent<
+      UpdatePriceEvent.InputTuple,
+      UpdatePriceEvent.OutputTuple,
+      UpdatePriceEvent.OutputObject
+    >;
+    UpdatePrice: TypedContractEvent<
+      UpdatePriceEvent.InputTuple,
+      UpdatePriceEvent.OutputTuple,
+      UpdatePriceEvent.OutputObject
+    >;
   };
 }
