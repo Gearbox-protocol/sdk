@@ -338,7 +338,7 @@ describe("GaugeMath getGaugeApy() test", () => {
       quota,
     });
 
-    expect(r).to.be.eql(12);
+    expect(r).to.be.eql(12n);
   });
   it("should calculate quota without votes", () => {
     const quota: GetGaugeApyProps["quota"] = {
