@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@gearbox-protocol/bots-v3": "^1.5.1",
-    "@gearbox-protocol/sdk-gov": "^1.66.2",
+    "@gearbox-protocol/sdk-gov": "1.66.2",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
     "deep-eql": "^4.1.0",
