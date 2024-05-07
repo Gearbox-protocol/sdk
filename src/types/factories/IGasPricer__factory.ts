@@ -3,10 +3,7 @@
 /* eslint-disable */
 
 import { Contract, Interface, type ContractRunner } from "ethers";
-import type {
-  IGasPricer,
-  IGasPricerInterface,
-} from "../../../contracts/interfaces/IGasPricer";
+import type { IGasPricer, IGasPricerInterface } from "../IGasPricer";
 
 const _abi = [
   {
