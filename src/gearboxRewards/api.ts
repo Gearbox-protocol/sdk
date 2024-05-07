@@ -30,6 +30,7 @@ import {
   IFarmingPool__factory,
 } from "../types";
 import { FarmAccounting } from "../types/IFarmingPool";
+import { makeTransactionCall } from "../utils/calls";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { MULTICALL_EXTENDED_INTERFACE } from "./abi";
@@ -439,18 +440,22 @@ export class GearboxRewardsApi {
     const rewardFromMerkle = merkleData?.claims[account];
     if (!rewardFromMerkle) throw new Error("No rewards found");
 
-    return distributor.claim(
-      rewardFromMerkle.index,
-      account,
-      rewardFromMerkle.amount,
-      rewardFromMerkle.proof,
+    return makeTransactionCall(
+      distributor.claim,
+      [
+        rewardFromMerkle.index,
+        account,
+        rewardFromMerkle.amount,
+        rewardFromMerkle.proof,
+      ],
+      signer,
     );
   }
 
   static async claimLmRewardsV3({ reward, signer }: ClaimLmRewardsV3Props) {
     const pool = IFarmingPool__factory.connect(reward.poolToken, signer);
 
-    return pool.claim();
+    return makeTransactionCall(pool.claim, [], signer);
   }
 
   private static async getMerkle(
