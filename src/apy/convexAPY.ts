@@ -81,11 +81,11 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
   const apyList = parsedResponse.map(
     (
       [
-        cvxPoolRewardsFinish = 0n,
-        cvxPoolRate = 0n,
-        cvxPoolSupply = 0n,
-        crvVPrice = 0n,
-        cvxTokenSupply = 0n,
+        cvxPoolRewardsFinish,
+        cvxPoolRate,
+        cvxPoolSupply,
+        crvVPrice,
+        cvxTokenSupply,
         ...rest
       ],
       i,
@@ -102,11 +102,11 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
       const crvLpPrice = rest.slice(extraFinishEnd, lpPriceEnd);
 
       const apy = calculateConvexAPY({
-        cvxPoolRewardsFinish: toBigInt(cvxPoolRewardsFinish),
-        cvxPoolRate: toBigInt(cvxPoolRate),
-        cvxPoolSupply: toBigInt(cvxPoolSupply),
-        crvVPrice: toBigInt(crvVPrice),
-        cvxTokenSupply: toBigInt(cvxTokenSupply),
+        cvxPoolRewardsFinish: toBigInt(cvxPoolRewardsFinish || 0n),
+        cvxPoolRate: toBigInt(cvxPoolRate || 0n),
+        cvxPoolSupply: toBigInt(cvxPoolSupply || 0n),
+        crvVPrice: toBigInt(crvVPrice || 0n),
+        cvxTokenSupply: toBigInt(cvxTokenSupply || 0n),
         cvxExtraRewards: cvxExtraRewards.map(v => toBigInt(v || 0n)),
         cvxExtraRewardsFinish: cvxExtraRewardsFinish.map(v =>
           toBigInt(v || 0n),
