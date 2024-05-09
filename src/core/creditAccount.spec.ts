@@ -1606,27 +1606,24 @@ describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
       debt: 200n,
       baseRateWithFee: 250,
       assetAmountInUnderlying: 200n,
-      totalValue: 400n,
     });
 
-    expect(result).to.be.eq(25000n);
+    expect(result).to.be.eq(10000000n);
   });
   it("should calculate relative borrow rate if position asset === 0", () => {
     const result = CreditAccountData.calcRelativeBaseBorrowRate({
       debt: 200n,
       baseRateWithFee: 250,
       assetAmountInUnderlying: 1n,
-      totalValue: 400n,
     });
 
-    expect(result).to.be.eq(125n);
+    expect(result).to.be.eq(50000n);
   });
   it("should calculate relative borrow rate if position === 0", () => {
     const result = CreditAccountData.calcRelativeBaseBorrowRate({
       debt: 1n,
       baseRateWithFee: 250,
       assetAmountInUnderlying: 1n,
-      totalValue: 1n,
     });
 
     expect(result).to.be.eq(250n);
