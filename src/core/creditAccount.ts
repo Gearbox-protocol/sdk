@@ -92,13 +92,11 @@ export interface CalcRelativeBaseBorrowRateProps {
   debt: bigint;
   baseRateWithFee: number;
   assetAmountInUnderlying: bigint;
-  totalValue: bigint;
 }
 
 export interface CalcAvgQuotaBorrowRateProps {
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
-  totalValue: bigint;
 }
 
 interface LiquidationPriceProps {
@@ -674,12 +672,8 @@ export class CreditAccountData {
     debt,
     baseRateWithFee,
     assetAmountInUnderlying,
-    totalValue,
   }: CalcRelativeBaseBorrowRateProps) {
-    if (totalValue === 0n) return 0n;
-    return (
-      (debt * BigInt(baseRateWithFee) * assetAmountInUnderlying) / totalValue
-    );
+    return debt * BigInt(baseRateWithFee) * assetAmountInUnderlying;
   }
 
   static liquidationPrice({
