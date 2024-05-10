@@ -126,21 +126,19 @@ const EXTRA_LM_MINING: PartialRecord<string, (timestamp: number) => FarmInfo> =
       const REWARD_PERIOD = 14 * 24 * 60 * 60;
       // const REWARDS_FIRST_START = 1711641600;
       // const REWARDS_FIRST_END = 1712844000;
-      const REWARDS_SECOND_END = 1714150800;
-      const REWARDS_THIRD_END = REWARDS_SECOND_END + REWARD_PERIOD;
+      // const REWARDS_SECOND_END = 1714150800;
+      const REWARDS_THIRD_END = 1715374800;
+      const REWARDS_FOURTH_END = REWARDS_THIRD_END + REWARD_PERIOD;
 
       // const REWARD_FIRST_PART = toBN("15000", decimals.GHO);
-      const REWARD_SECOND_PART = toBN("15000", decimals.GHO);
+      // const REWARD_SECOND_PART = toBN("15000", decimals.GHO);
       const REWARD_THIRD_PART = toBN("15000", decimals.GHO);
+      const REWARD_FOURTH_PART = toBN("7500", decimals.GHO);
 
       const reward =
-        timestamp >= REWARDS_SECOND_END
-          ? REWARD_THIRD_PART
-          : REWARD_SECOND_PART;
+        timestamp >= REWARDS_THIRD_END ? REWARD_FOURTH_PART : REWARD_THIRD_PART;
       const finished =
-        timestamp >= REWARDS_SECOND_END
-          ? REWARDS_THIRD_END
-          : REWARDS_SECOND_END;
+        timestamp >= REWARDS_THIRD_END ? REWARDS_FOURTH_END : REWARDS_THIRD_END;
 
       return {
         balance: 0n,
@@ -528,6 +526,8 @@ interface MerkleXYZUserRewards {
 }
 
 type MerkleXYZUserRewardsResponse = Record<string, MerkleXYZUserRewards>;
+
+// https://api.merkl.xyz/v3/campaignsForMainParameter?chainId=1&mainParameter=0xE2037090f896A858E3168B978668F22026AC52e7
 
 class MerkleXYZApi {
   static domain = "https://api.merkl.xyz/v3";
