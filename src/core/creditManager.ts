@@ -56,6 +56,7 @@ export class CreditManagerData {
 
   readonly collateralTokens: Array<string> = [];
   readonly supportedTokens: Record<string, true> = {};
+  readonly usableTokens: Record<string, true> = {};
   readonly adapters: Record<string, string>;
   readonly contractsByAdapter: Record<string, string>;
   readonly liquidationThresholds: Record<string, bigint>;
@@ -98,13 +99,6 @@ export class CreditManagerData {
     this.liquidationDiscountExpired = Number(
       payload.liquidationDiscountExpired,
     );
-
-    payload.collateralTokens.forEach(t => {
-      const tLc = t.toLowerCase();
-
-      this.collateralTokens.push(tLc);
-      this.supportedTokens[tLc] = true;
-    });
 
     this.adapters = Object.fromEntries(
       payload.adapters.map(a => [
@@ -153,6 +147,19 @@ export class CreditManagerData {
       version: Number(payload?.lirm?.version),
       isBorrowingMoreU2Forbidden: payload?.lirm?.isBorrowingMoreU2Forbidden,
     };
+
+    payload.collateralTokens.forEach(t => {
+      const tLc = t.toLowerCase();
+
+      const zeroLt = this.liquidationThresholds[tLc] === 0n;
+      const quotaNotActive = this.quotas[tLc]?.isActive === false;
+
+      const allowed = !zeroLt && !quotaNotActive;
+      if (allowed) this.usableTokens[tLc] = true;
+
+      this.collateralTokens.push(tLc);
+      this.supportedTokens[tLc] = true;
+    });
 
     TxParser.addCreditManager(this.address, this.version);
     if (this.creditFacade !== "" && this.creditFacade !== ADDRESS_0X0) {
