@@ -1396,18 +1396,13 @@
     yarn "^1.22.19"
     zod "^3.22.2"
 
-"@gearbox-protocol/sdk-gov@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.0.0.tgz#42e9e614612fdff2533fc95d0c60ae5c1f0af1ec"
-  integrity sha512-qacAPShY8aCHxSYGMuqw/QtxICWM6dhh46Sr+iXhg1IZMrFOm9Ph3omr1i636jRBYfr0x4mgS7OGP5Oc2mXVtQ==
+"@gearbox-protocol/sdk-gov@^2.2.5":
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.2.5.tgz#040be4a36e2e793a44cd3b1bd6715d6ee90468e7"
+  integrity sha512-KfJiNPlkAjSsD153DNocZhf9J0RqU4Hpz9JVJtQ6GAKKLeZtU7hrJ2bxXE1UE9+qMixi/xiklcz68UIe9YO1yQ==
   dependencies:
-    "@types/yaml" "^1.9.7"
-    add "^2.0.6"
-    deep-object-diff "^1.1.9"
     ethers "6.12.1"
     humanize-duration-ts "^2.1.1"
-    yaml "^2.3.2"
-    yarn "^1.22.19"
     zod "^3.22.2"
 
 "@gearbox-protocol/sdk@^1.22.0":
