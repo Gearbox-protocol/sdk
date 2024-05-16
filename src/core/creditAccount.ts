@@ -8,7 +8,7 @@ import {
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 
-import { LpTokensAPY, TokensWithAPY } from "../apy";
+import { TokensWithAPY, TokensWithApyRecord } from "../apy";
 import {
   CaTokenBalance,
   CreditAccountDataPayload,
@@ -26,7 +26,7 @@ export const MAX_UINT256 =
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
-  lpAPY: LpTokensAPY | undefined;
+  lpAPY: TokensWithApyRecord | undefined;
 
   quotas: Record<string, Asset>;
   quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;

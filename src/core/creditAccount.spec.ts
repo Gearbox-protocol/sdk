@@ -6,7 +6,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 
-import { LpTokensAPY } from "../apy";
+import { TokensWithApyRecord } from "../apy";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetUtils } from "./assets";
@@ -43,7 +43,7 @@ const prices = {
   ),
 };
 
-const lpAPY = { STETH: 38434 } as LpTokensAPY;
+const lpAPY = { STETH: 38434 } as TokensWithApyRecord;
 
 const caWithoutLP: CATestInfo = {
   assets: [
