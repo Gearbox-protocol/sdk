@@ -1,33 +1,23 @@
 import {
+  isLPToken,
   LPTokens,
-  lpTokens,
   PartialRecord,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 
-export type AdditionalTokenWithAPY = Extract<
+type AdditionalTokensWithAPY = Extract<
   SupportedToken,
-  | "STETH"
-  | "weETH"
-  | "osETH"
-  | "rETH"
-  | "wstETH"
-  | "ezETH"
-  | "cbETH"
-  | "sfrxETH"
-  | "USDe"
-  | "rsETH"
-  | "rswETH"
-  | "pufETH"
+  "STETH" | "rETH" | "osETH" | "cbETH" | "wstETH" | "sfrxETH"
 >;
-export const additionalTokensWithAPY: Record<AdditionalTokenWithAPY, true> = {
-  STETH: true,
+
+type AdditionalLPTokens = Extract<
+  SupportedToken,
+  "weETH" | "ezETH" | "sfrxETH" | "USDe" | "rsETH" | "rswETH" | "pufETH"
+>;
+
+const ADDITIONAL_LP_TOKENS: Record<AdditionalLPTokens, true> = {
   weETH: true,
-  osETH: true,
-  rETH: true,
-  wstETH: true,
   ezETH: true,
-  cbETH: true,
   sfrxETH: true,
   USDe: true,
   rsETH: true,
@@ -35,13 +25,46 @@ export const additionalTokensWithAPY: Record<AdditionalTokenWithAPY, true> = {
   pufETH: true,
 };
 
-export type TokensWithAPY = LPTokens | AdditionalTokenWithAPY;
-export type LpTokensAPY = PartialRecord<TokensWithAPY, number>;
+const TOKENS_WITH_APY: Record<AdditionalTokensWithAPY, true> = {
+  STETH: true,
+  osETH: true,
+  rETH: true,
+  wstETH: true,
+  cbETH: true,
+  sfrxETH: true,
+};
 
-export const isTokenWithAPY = (t: unknown): t is TokensWithAPY =>
-  typeof t === "string" &&
-  (!!lpTokens[t as LPTokens] ||
-    !!additionalTokensWithAPY[t as AdditionalTokenWithAPY]);
+export const isAdditionalLPToken = (t: unknown): t is AdditionalLPTokens => {
+  if (typeof t !== "string") return false;
+  return !!ADDITIONAL_LP_TOKENS[t as AdditionalLPTokens];
+};
+
+export type TokensWithAPY = LPTokens | AdditionalTokensWithAPY;
+export type TokensWithApyRecord = PartialRecord<TokensWithAPY, number>;
+
+export const isAdditionalTokenWithAPY = (
+  t: unknown,
+): t is AdditionalTokensWithAPY => {
+  if (typeof t !== "string") return false;
+  return !!TOKENS_WITH_APY[t as AdditionalTokensWithAPY];
+};
+
+export const isExtraFarmToken = (t: unknown) =>
+  isAdditionalLPToken(t) || isAdditionalTokenWithAPY(t);
+
+export const isTokenWithAPY = (t: unknown): t is TokensWithAPY => {
+  if (typeof t !== "string") return false;
+  return isLPToken(t) || isAdditionalTokenWithAPY(t);
+};
+
+export type AllLPTokens =
+  | LPTokens
+  | AdditionalLPTokens
+  | AdditionalTokensWithAPY;
+
+export const isFarmToken = (t: unknown): t is AllLPTokens => {
+  return isLPToken(t) || isExtraFarmToken(t);
+};
 
 export * from "./convexAPY";
 export * from "./curveAPY";

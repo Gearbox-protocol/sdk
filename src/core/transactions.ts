@@ -46,7 +46,8 @@ export interface TxSerialized {
     | "TxGaugeVote"
     | "TxWithdrawCollateral"
     | "TxAddBot"
-    | "TxRemoveBot";
+    | "TxRemoveBot"
+    | "TxLiquidateAccount";
   content: string;
 }
 
@@ -105,6 +106,8 @@ export class TxSerializer {
           return new TxAddBot(params);
         case "TxRemoveBot":
           return new TxRemoveBot(params);
+        case "TxLiquidateAccount":
+          return new TxLiquidateAccount(params);
 
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
@@ -570,6 +573,35 @@ export class TxRepayAccount extends EVMTx implements CMEvent {
   serialize(): TxSerialized {
     return {
       type: "TxRepayAccount",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface LiquidateAccountProps extends EVMTxProps {
+  creditManager: string;
+  creditManagerName?: string;
+}
+
+export class TxLiquidateAccount extends EVMTx implements CMEvent {
+  readonly creditManager: string;
+  readonly creditManagerName?: string;
+
+  constructor(opts: LiquidateAccountProps) {
+    super(opts);
+    this.creditManager = opts.creditManager;
+    this.creditManagerName = opts.creditManagerName;
+  }
+
+  toString(): string {
+    return `Credit Account ${
+      this.creditManagerName || getContractName(this.creditManager)
+    }: Liquidated`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxLiquidateAccount",
       content: JSON.stringify(this),
     };
   }

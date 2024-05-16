@@ -4,12 +4,12 @@ import {
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 
-import { TokensWithAPY } from "../apy";
+import { AllLPTokens } from "../apy";
 import { CreditManagerData } from "./creditManager";
 
 export interface StrategyPayload {
   name: string;
-  lpTokenSymbol: TokensWithAPY;
+  lpTokenSymbol: AllLPTokens;
   protocolSymbol: string;
 
   creditManagers: Array<string>;
@@ -27,7 +27,7 @@ interface CalculateMaxAPYProps {
 
 export class Strategy {
   readonly name: string;
-  readonly lpTokenSymbol: TokensWithAPY;
+  readonly lpTokenSymbol: AllLPTokens;
   readonly protocolSymbol: string;
 
   readonly collateralTokens: Array<SupportedToken>;
