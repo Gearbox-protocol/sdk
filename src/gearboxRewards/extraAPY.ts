@@ -54,6 +54,7 @@ const POOL_POINTS: Record<
 > = {
   Mainnet: {
     [poolByNetwork.Mainnet.WETH_V3_TRADE]: {
+      // !& ezeth
       // ezETH: {
       //   amount: PERCENTAGE_FACTOR,
       //   symbol: "ezETH",

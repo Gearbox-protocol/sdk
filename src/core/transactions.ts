@@ -428,6 +428,7 @@ interface TxOpenMultitokenAccountProps extends EVMTxProps {
   creditManagerName?: string;
   underlyingToken: string;
   assets: Array<string>;
+  withdrawDebt: boolean;
 }
 
 export class TxOpenMultitokenAccount extends EVMTx implements CMEvent {
@@ -436,6 +437,7 @@ export class TxOpenMultitokenAccount extends EVMTx implements CMEvent {
   readonly creditManagerName?: string;
   readonly underlyingToken: string;
   readonly assets: Array<string>;
+  readonly withdrawDebt: boolean;
 
   constructor(opts: TxOpenMultitokenAccountProps) {
     super(opts);
@@ -444,26 +446,37 @@ export class TxOpenMultitokenAccount extends EVMTx implements CMEvent {
     this.creditManager = opts.creditManager;
     this.creditManagerName = opts.creditManagerName;
     this.assets = opts.assets;
+    this.withdrawDebt = opts.withdrawDebt;
   }
 
   toString(): string {
     const assetSymbols = this.assets.reduce<Array<string>>(
       (acc, assetAddress) => {
         const [tokenSymbol] = extractTokenData(assetAddress);
-        if (tokenSymbol) acc.push(tokenSymbol);
+        const skip = this.withdrawDebt && this.underlyingToken === assetAddress;
+
+        if (!skip && tokenSymbol) acc.push(tokenSymbol);
         return acc;
       },
       [],
     );
 
-    const [symbol, underlyingDecimals] = extractTokenData(this.underlyingToken);
+    const name = this.creditManagerName || getContractName(this.creditManager);
 
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: opening. Borrowed amount: ${formatBN(
+    const [symbol, underlyingDecimals] = extractTokenData(this.underlyingToken);
+    const borrowedAmount = `${formatBN(
       this.borrowedAmount,
       underlyingDecimals || 18,
-    )} ${symbol}; assets: ${assetSymbols.join(", ")}`;
+    )} ${symbol}`;
+
+    const assets = assetSymbols.join(", ");
+
+    const withdraw = this.withdrawDebt ? [`Withdrawn: ${borrowedAmount}`] : [];
+
+    return [
+      `Credit Account ${name}: opening. Borrowed amount: ${borrowedAmount}; assets: ${assets}`,
+      ...withdraw,
+    ].join("; ");
   }
 
   serialize(): TxSerialized {
