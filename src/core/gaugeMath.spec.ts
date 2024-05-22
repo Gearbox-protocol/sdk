@@ -354,7 +354,7 @@ describe("GaugeMath getGaugeApy() test", () => {
       quota,
     });
 
-    expect(r).to.be.eql(5000);
+    expect(r).to.be.eql(5000n);
   });
   it("should calculate quota with prev vote", () => {
     const quota: GetGaugeApyProps["quota"] = {
@@ -372,7 +372,7 @@ describe("GaugeMath getGaugeApy() test", () => {
       vote,
     });
 
-    expect(r).to.be.eql(5000);
+    expect(r).to.be.eql(5000n);
   });
   it("should calculate quota with same vote increase", () => {
     const quota: GetGaugeApyProps["quota"] = {
@@ -395,7 +395,7 @@ describe("GaugeMath getGaugeApy() test", () => {
       voteAfter,
     });
 
-    expect(r).to.be.eql(4761);
+    expect(r).to.be.eql(4761n);
   });
   it("should calculate quota with different vote increase", () => {
     const quota: GetGaugeApyProps["quota"] = {
@@ -421,7 +421,7 @@ describe("GaugeMath getGaugeApy() test", () => {
       voteAfter,
     });
 
-    expect(r).to.be.eql(6315);
+    expect(r).to.be.eql(6315n);
   });
   it("should calculate quota with vote remove", () => {
     const quota: GetGaugeApyProps["quota"] = {
@@ -444,6 +444,6 @@ describe("GaugeMath getGaugeApy() test", () => {
       voteAfter,
     });
 
-    expect(r).to.be.eql(5555);
+    expect(r).to.be.eql(5555n);
   });
 });

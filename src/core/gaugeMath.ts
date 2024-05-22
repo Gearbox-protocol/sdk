@@ -186,6 +186,6 @@ export class GaugeMath {
     if (total === 0n) return quota.minRate;
 
     const r = (caImpact + lpImpact) / total;
-    return Number(r);
+    return r;
   }
 }
