@@ -252,11 +252,13 @@ export class GearboxRewardsApi {
       { base: {}, all: {} },
     );
 
-    const rewardPoolsSupply = Object.fromEntries(
-      poolTokens.map(([, address], i): [string, bigint] => [
-        address,
-        farmSupply[i] || 0n,
-      ]),
+    const rewardPoolsSupply = poolTokens.reduce<Record<string, bigint>>(
+      (acc, [, address], i) => {
+        acc[address] = farmSupply[i] || 0n;
+
+        return acc;
+      },
+      {},
     );
 
     return {
@@ -354,9 +356,13 @@ export class GearboxRewardsApi {
         ? merkleXYZLMResponse.value?.data
         : undefined;
 
-    const merkleXYZLMLc = Object.fromEntries(
-      Object.entries(merkleXYZLM || {}).map(([k, v]) => [k.toLowerCase(), v]),
-    );
+    const merkleXYZLMLc = Object.entries(merkleXYZLM || {}).reduce<
+      Record<string, MerkleXYZUserRewards>
+    >((acc, [k, v]) => {
+      acc[k.toLowerCase()] = v;
+
+      return acc;
+    }, {});
 
     const ghoLM = merkleXYZLMLc[currentTokenData.GHO];
 

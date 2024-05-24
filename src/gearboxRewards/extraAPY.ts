@@ -84,18 +84,22 @@ const POOL_POINTS: Record<
 };
 
 // !& + STETH
-const TOKENS = TypedObjectUtils.fromEntries(
-  TypedObjectUtils.entries(POOL_POINTS).map(([network, pools]) => {
-    const r = Object.values(pools)
-      .map(tokens => {
-        const l = Object.keys(tokens) as Array<SupportedToken>;
-        return l;
-      })
-      .flat(1);
+const TOKENS = TypedObjectUtils.entries(POOL_POINTS).reduce<
+  Record<NetworkType, Array<SupportedToken>>
+>((acc, [network, pools]) => {
+  const r = Object.values(pools).reduce<Array<SupportedToken>>(
+    (acc, tokens) => {
+      const l = Object.keys(tokens) as Array<SupportedToken>;
+      acc.push(...l);
+      return acc;
+    },
+    [],
+  );
 
-    return [network, r];
-  }),
-);
+  acc[network] = r;
+
+  return acc;
+}, {} as Record<NetworkType, Array<SupportedToken>>);
 
 const REWARD = toBN("7.7", decimals.wstETH);
 const REWARD_PERIOD = BigInt(30 * 24 * 60 * 60);
@@ -149,36 +153,36 @@ export class GearboxRewardsExtraApy {
     currentTokenData,
     network,
   }: GetPointsByPoolProps) {
-    const r = Object.fromEntries(
-      pools.map(p => {
-        const poolPointsInfo = Object.values(
-          POOL_POINTS[network]?.[p.address] || [],
-        );
+    const r = pools.reduce<Record<string, Array<Asset>>>((acc, p) => {
+      const poolPointsInfo = Object.values(
+        POOL_POINTS[network]?.[p.address] || [],
+      );
 
-        const poolPointsList = poolPointsInfo.reduce<Array<Asset>>(
-          (acc, pointsInfo) => {
-            const tokenBalance =
-              totalTokenBalances[currentTokenData[pointsInfo.symbol] || ""];
+      const poolPointsList = poolPointsInfo.reduce<Array<Asset>>(
+        (acc, pointsInfo) => {
+          const tokenBalance =
+            totalTokenBalances[currentTokenData[pointsInfo.symbol] || ""];
 
-            const points = this.getPoolTokenPoints(
-              tokenBalance,
-              p,
-              tokensList,
-              pointsInfo,
-            );
+          const points = this.getPoolTokenPoints(
+            tokenBalance,
+            p,
+            tokensList,
+            pointsInfo,
+          );
 
-            if (points !== null) {
-              acc.push({ balance: points, token: tokenBalance.token });
-            }
+          if (points !== null) {
+            acc.push({ balance: points, token: tokenBalance.token });
+          }
 
-            return acc;
-          },
-          [],
-        );
+          return acc;
+        },
+        [],
+      );
 
-        return [p.address, poolPointsList];
-      }),
-    );
+      acc[p.address] = poolPointsList;
+
+      return acc;
+    }, {});
 
     return r;
   }
