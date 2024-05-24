@@ -40,15 +40,14 @@ export async function getDefiLamaAPY(
     {},
   );
 
-  const allAPY: PartialRecord<TokensWithAPY, number> =
-    TypedObjectUtils.fromEntries(
-      TypedObjectUtils.entries(
-        currentNormal as Record<TokensWithAPY, string>,
-      ).map(([symbol, pool]) => {
-        const { apy = 0 } = itemsRecord[pool] || {};
-        return [symbol, Math.round(apy * Number(PERCENTAGE_FACTOR))];
-      }),
-    );
+  const allAPY = TypedObjectUtils.entries(
+    currentNormal as Record<TokensWithAPY, string>,
+  ).reduce<PartialRecord<TokensWithAPY, number>>((acc, [symbol, pool]) => {
+    const { apy = 0 } = itemsRecord[pool] || {};
+    acc[symbol] = Math.round(apy * Number(PERCENTAGE_FACTOR));
+
+    return acc;
+  }, {});
 
   return allAPY;
 }

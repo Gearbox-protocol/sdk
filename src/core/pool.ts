@@ -94,36 +94,33 @@ export class PoolData {
 
     this.totalBorrowed = payload.totalBorrowed;
     this.totalDebtLimit = payload.totalDebtLimit;
-    this.creditManagerDebtParams = Object.fromEntries(
-      payload.creditManagerDebtParams.map(p => {
-        const creditManager = p.creditManager.toLowerCase();
-        return [
-          creditManager,
-          {
-            creditManager,
-            borrowed: p.borrowed,
-            limit: p.limit,
-            availableToBorrow: p.availableToBorrow,
-          },
-        ];
-      }),
-    );
-    this.quotas = Object.fromEntries(
-      payload.quotas.map(q => {
-        const token = q.token.toLowerCase();
-        return [
-          token,
-          {
-            token,
-            rate: q.rate * PERCENTAGE_DECIMALS,
-            quotaIncreaseFee: q.quotaIncreaseFee,
-            totalQuoted: q.totalQuoted,
-            limit: q.limit,
-            isActive: q.isActive,
-          },
-        ];
-      }),
-    );
+    this.creditManagerDebtParams = payload.creditManagerDebtParams.reduce<
+      Record<string, CreditManagerDebtParamsSDK>
+    >((acc, p) => {
+      const creditManager = p.creditManager.toLowerCase();
+      acc[creditManager] = {
+        creditManager,
+        borrowed: p.borrowed,
+        limit: p.limit,
+        availableToBorrow: p.availableToBorrow,
+      };
+
+      return acc;
+    }, {});
+
+    this.quotas = payload.quotas.reduce<Record<string, QuotaInfo>>((acc, q) => {
+      const token = q.token.toLowerCase();
+      acc[token] = {
+        token,
+        rate: q.rate * PERCENTAGE_DECIMALS,
+        quotaIncreaseFee: q.quotaIncreaseFee,
+        totalQuoted: q.totalQuoted,
+        limit: q.limit,
+        isActive: q.isActive,
+      };
+
+      return acc;
+    }, {});
 
     this.zappers = payload.zappers.reduce<PoolData["zappers"]>((acc, z) => {
       const tokenIn = z.tokenIn.toLowerCase();

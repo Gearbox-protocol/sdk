@@ -78,6 +78,9 @@ interface CurvePoolDataResponse {
   };
 }
 
+type PoolRecord = Record<string, CurvePoolData>;
+type VolumeRecord = Record<string, VolumesResponse["data"]["pools"][number]>;
+
 type CurveAPYTokens = CurveLPToken | GearboxToken;
 
 const GEAR_POOL = "0x5Be6C45e2d074fAa20700C49aDA3E88a1cc0025d".toLowerCase();
@@ -119,21 +122,23 @@ export async function getCurveAPY(network: NetworkType) {
   const { mainnetVolumes, mainnetFactoryPools, volumes, pools } =
     await getCurvePools(network);
 
-  const volumeByAddress = Object.fromEntries(
-    volumes.data.data.pools.map(v => [v.address.toLowerCase(), v]),
+  const volumeByAddress = volumes.data.data.pools.reduce<VolumeRecord>(
+    (acc, v) => {
+      acc[v.address.toLowerCase()] = v;
+      return acc;
+    },
+    {},
   );
 
-  const poolDataByAddress = Object.fromEntries(
-    pools
-      .map(poolCategory => {
-        const { poolData = [] } = poolCategory?.data?.data || {};
-        return poolData.map((p): [string, CurvePoolData] => [
-          p.lpTokenAddress.toLowerCase(),
-          p,
-        ]);
-      })
-      .flat(1),
-  );
+  const poolDataByAddress = pools.reduce<PoolRecord>((acc, poolCategory) => {
+    const { poolData = [] } = poolCategory?.data?.data || {};
+
+    poolData.forEach(p => {
+      acc[p.lpTokenAddress.toLowerCase()] = p;
+    });
+
+    return acc;
+  }, {});
 
   const curveAPY = TypedObjectUtils.entries(curveTokens).reduce<CurveAPYResult>(
     (acc, [curveSymbol]) => {
@@ -163,14 +168,19 @@ export async function getCurveAPY(network: NetworkType) {
     {},
   );
 
-  const poolFactoryByAddress = Object.fromEntries(
-    (mainnetFactoryPools?.data?.data?.poolData || []).map(
-      (p): [string, CurvePoolData] => [p.lpTokenAddress.toLowerCase(), p],
-    ),
-  );
-  const mainnetVolumeByAddress = Object.fromEntries(
-    mainnetVolumes.data.data.pools.map(v => [v.address.toLowerCase(), v]),
-  );
+  const poolFactoryByAddress = (
+    mainnetFactoryPools?.data?.data?.poolData || []
+  ).reduce<PoolRecord>((acc, p) => {
+    acc[p.lpTokenAddress.toLowerCase()] = p;
+
+    return acc;
+  }, {});
+
+  const mainnetVolumeByAddress =
+    mainnetVolumes.data.data.pools.reduce<VolumeRecord>((acc, v) => {
+      acc[v.address.toLowerCase()] = v;
+      return acc;
+    }, {});
 
   const gearPool = poolFactoryByAddress[GEAR_POOL];
   const gearVolume =
@@ -264,9 +274,11 @@ export async function getCurveGearPool(): Promise<CurvePoolData | undefined> {
   );
   const { poolData = [] } = resp?.data?.data || {};
 
-  const poolDataByAddress = Object.fromEntries(
-    poolData.map(p => [p.lpTokenAddress.toLowerCase(), p]),
-  );
+  const poolDataByAddress = poolData.reduce<PoolRecord>((acc, p) => {
+    acc[p.lpTokenAddress.toLowerCase()] = p;
+    return acc;
+  }, {});
+
   const gearPool = poolDataByAddress[GEAR_POOL];
   return gearPool;
 }

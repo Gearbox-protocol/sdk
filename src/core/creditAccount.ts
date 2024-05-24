@@ -189,8 +189,12 @@ export class CreditAccountData {
     this.cumulativeIndexLastUpdate = payload.cumulativeIndexLastUpdate;
     this.cumulativeQuotaInterest = payload.cumulativeQuotaInterest;
 
-    this.activeBots = Object.fromEntries(
-      payload.activeBots.map(b => [b.toLowerCase(), true]),
+    this.activeBots = payload.activeBots.reduce<Record<string, true>>(
+      (acc, b) => {
+        acc[b.toLowerCase()] = true;
+        return acc;
+      },
+      {},
     );
 
     payload.balances.forEach(b => {

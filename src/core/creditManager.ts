@@ -57,8 +57,8 @@ export class CreditManagerData {
   readonly collateralTokens: Array<string> = [];
   readonly supportedTokens: Record<string, true> = {};
   readonly usableTokens: Record<string, true> = {};
-  readonly adapters: Record<string, string>;
-  readonly contractsByAdapter: Record<string, string>;
+  readonly adapters: Record<string, string> = {};
+  readonly contractsByAdapter: Record<string, string> = {};
   readonly liquidationThresholds: Record<string, bigint>;
   readonly quotas: Record<string, QuotaInfo>;
   readonly interestModel: LinearModel;
@@ -100,19 +100,13 @@ export class CreditManagerData {
       payload.liquidationDiscountExpired,
     );
 
-    this.adapters = Object.fromEntries(
-      payload.adapters.map(a => [
-        a.targetContract.toLowerCase(),
-        a.adapter.toLowerCase(),
-      ]),
-    );
+    payload.adapters.forEach(a => {
+      const contractLc = a.targetContract.toLowerCase();
+      const adaptertLc = a.adapter.toLowerCase();
 
-    this.contractsByAdapter = Object.fromEntries(
-      payload.adapters.map(a => [
-        a.adapter.toLowerCase(),
-        a.targetContract.toLowerCase(),
-      ]),
-    );
+      this.adapters[contractLc] = adaptertLc;
+      this.contractsByAdapter[adaptertLc] = contractLc;
+    });
 
     this.liquidationThresholds = payload.liquidationThresholds.reduce<
       Record<string, bigint>
@@ -122,19 +116,18 @@ export class CreditManagerData {
       return acc;
     }, {});
 
-    this.quotas = Object.fromEntries(
-      payload.quotas.map(q => [
-        q.token.toLowerCase(),
-        {
-          token: q.token.toLowerCase(),
-          rate: q.rate * PERCENTAGE_DECIMALS,
-          quotaIncreaseFee: q.quotaIncreaseFee,
-          totalQuoted: q.totalQuoted,
-          limit: q.limit,
-          isActive: q.isActive,
-        },
-      ]),
-    );
+    this.quotas = payload.quotas.reduce<Record<string, QuotaInfo>>((acc, q) => {
+      acc[q.token.toLowerCase()] = {
+        token: q.token.toLowerCase(),
+        rate: q.rate * PERCENTAGE_DECIMALS,
+        quotaIncreaseFee: q.quotaIncreaseFee,
+        totalQuoted: q.totalQuoted,
+        limit: q.limit,
+        isActive: q.isActive,
+      };
+
+      return acc;
+    }, {});
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
@@ -494,12 +487,13 @@ export class ChartsCreditManagerData {
     this.availableLiquidity = toBigInt(payload.availableLiquidity || 0);
     this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
 
-    this.liquidationThresholds = Object.fromEntries(
-      Object.entries(payload.liquidityThresholds || {}).map(([t, tr]) => [
-        t.toLowerCase(),
-        BigInt(tr),
-      ]),
-    );
+    this.liquidationThresholds = Object.entries(
+      payload.liquidityThresholds || {},
+    ).reduce<Record<string, bigint>>((acc, [t, tr]) => {
+      acc[t.toLowerCase()] = BigInt(tr);
+
+      return acc;
+    }, {});
 
     this.totalBorrowed = toBigInt(payload.totalBorrowed || 0);
     this.totalBorrowedOld = toBigInt(payload.totalBorrowedBIOld || 0);

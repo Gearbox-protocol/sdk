@@ -28,30 +28,30 @@ export class GaugeData {
     this.currentEpoch = payload.currentEpoch;
     this.epochFrozen = payload.epochFrozen;
 
-    this.quotaParams = Object.fromEntries(
-      payload.quotaParams.map((q): [string, GaugeQuotaParams] => [
-        q.token.toLowerCase(),
-        {
-          token: q.token.toLowerCase(),
+    this.quotaParams = payload.quotaParams.reduce<
+      Record<string, GaugeQuotaParams>
+    >((acc, q) => {
+      acc[q.token.toLowerCase()] = {
+        token: q.token.toLowerCase(),
 
-          isActive: q.isActive,
+        isActive: q.isActive,
 
-          rate: q.rate * PERCENTAGE_DECIMALS,
-          minRate: q.minRate * PERCENTAGE_DECIMALS,
-          maxRate: q.maxRate * PERCENTAGE_DECIMALS,
+        rate: q.rate * PERCENTAGE_DECIMALS,
+        minRate: q.minRate * PERCENTAGE_DECIMALS,
+        maxRate: q.maxRate * PERCENTAGE_DECIMALS,
 
-          quotaIncreaseFee: q.quotaIncreaseFee,
-          totalQuoted: q.totalQuoted,
-          limit: q.limit,
+        quotaIncreaseFee: q.quotaIncreaseFee,
+        totalQuoted: q.totalQuoted,
+        limit: q.limit,
 
-          totalVotesLpSide: q.totalVotesLpSide,
-          totalVotesCaSide: q.totalVotesCaSide,
+        totalVotesLpSide: q.totalVotesLpSide,
+        totalVotesCaSide: q.totalVotesCaSide,
 
-          stakerVotesLpSide: q.stakerVotesLpSide,
-          stakerVotesCaSide: q.stakerVotesCaSide,
-        },
-      ]),
-    );
+        stakerVotesLpSide: q.stakerVotesLpSide,
+        stakerVotesCaSide: q.stakerVotesCaSide,
+      };
+      return acc;
+    }, {});
   }
 }
 

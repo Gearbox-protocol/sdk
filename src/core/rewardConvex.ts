@@ -1,6 +1,7 @@
 import {
   AdapterInterface,
   AuraPoolParams,
+  ContractParams,
   contractParams,
   contractsByAddress,
   contractsByNetwork,
@@ -102,12 +103,14 @@ export class RewardConvex {
   }
 
   static findAdapters(cm: CreditManagerData) {
-    const convexPools = TypedObjectUtils.fromEntries(
-      TypedObjectUtils.entries(contractParams).filter(
-        ([, params]) =>
-          params.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
-      ),
-    );
+    const convexPools = TypedObjectUtils.entries(contractParams).reduce<
+      Record<SupportedContract, ContractParams>
+    >((acc, [token, params]) => {
+      if (params.type === AdapterInterface.CONVEX_V1_BASE_REWARD_POOL) {
+        acc[token] = params;
+      }
+      return acc;
+    }, {} as Record<SupportedContract, ContractParams>);
 
     return Object.entries(cm.adapters)
       .filter(
