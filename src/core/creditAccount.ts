@@ -349,15 +349,14 @@ export class CreditAccountData {
     underlyingLT: number,
     minHf = Number(PERCENTAGE_FACTOR),
   ): bigint {
+    // HF = (TWV + d*lt) / (D + d) => d = (HF*D - TWV) / (l - HF)
+    // hf = TWV / D
+    // HF = (TVW * D / D + d*lt) / (D + d) = (hf*D + d*lt) / (d + D) => d = D * (hf-HF) / (HF - lt)
     const result =
       (debt * BigInt(healthFactor - minHf)) / BigInt(minHf - underlyingLT);
 
     return BigIntMath.max(0n, result);
   }
-
-  // HF = TWV / debt
-  // 1 = (TWV + (debtmax-debt)*LTunderl )/ debtmax
-  // For lending
 
   static calcMaxLendingDebt({
     assets,
