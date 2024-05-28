@@ -37,6 +37,10 @@ const prices = {
     "0.99941103",
     PRICE_DECIMALS_POW,
   ),
+  [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: toBN(
+    "0.999",
+    PRICE_DECIMALS_POW,
+  ),
   [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: toBN(
     "1703.87588096",
     PRICE_DECIMALS_POW,
@@ -258,7 +262,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
   });
 });
 
-describe("CreditAccount calcMaxIncreaseBorrow test", () => {
+describe("CreditAccount calcMaxDebtIncrease test", () => {
   it("health max increase borrow is zero if hf < 1", () => {
     const result = CreditAccountData.calcMaxDebtIncrease(
       9999,
@@ -290,9 +294,122 @@ describe("CreditAccount calcMaxIncreaseBorrow test", () => {
 });
 
 const liquidationThresholds = {
+  [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 9800n,
   [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 9300n,
   [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 8500n,
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: 8000n,
 };
+
+describe("CreditAccount calcMaxLendingDebt test", () => {
+  it("calcMaxLendingDebt for several collaterals with zero lt", () => {
+    const result = CreditAccountData.calcMaxLendingDebt({
+      assets: [
+        {
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          balance: toBN("1000", decimals.DAI),
+        },
+        {
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          balance: toBN("1", decimals.WETH),
+        },
+      ],
+      liquidationThresholds: {
+        ...liquidationThresholds,
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 0n,
+      },
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      prices: {
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 1000n,
+      },
+    });
+    expect(result).to.be.eq(toBN("850", decimals.USDC));
+  });
+  it("calcMaxLendingDebt for several collaterals with zero underlying price", () => {
+    const result = CreditAccountData.calcMaxLendingDebt({
+      assets: [
+        {
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          balance: toBN("1000", decimals.DAI),
+        },
+        {
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          balance: toBN("1", decimals.WETH),
+        },
+      ],
+      liquidationThresholds: liquidationThresholds,
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      prices: {
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 1000n,
+      },
+    });
+    expect(result).to.be.eq(0n);
+  });
+  it("calcMaxLendingDebt for simplest case", () => {
+    const result = CreditAccountData.calcMaxLendingDebt({
+      assets: [
+        {
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          balance: toBN("1000", decimals.DAI),
+        },
+      ],
+      liquidationThresholds,
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      prices: {
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 1n,
+      },
+    });
+    expect(result).to.be.eq(toBN("930", decimals.USDC));
+  });
+  it("calcMaxLendingDebt for several collaterals", () => {
+    const result = CreditAccountData.calcMaxLendingDebt({
+      assets: [
+        {
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          balance: toBN("1000", decimals.DAI),
+        },
+        {
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          balance: toBN("1", decimals.WETH),
+        },
+      ],
+      liquidationThresholds,
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      prices: {
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 1000n,
+      },
+    });
+    expect(result).to.be.eq(toBN("1780", decimals.USDC));
+  });
+  it("calcMaxLendingDebt for several collaterals with target HF", () => {
+    const result = CreditAccountData.calcMaxLendingDebt({
+      assets: [
+        {
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          balance: toBN("1000", decimals.DAI),
+        },
+        {
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          balance: toBN("1", decimals.WETH),
+        },
+      ],
+      liquidationThresholds,
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      prices: {
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 1000n,
+      },
+      targetHF: 12500n,
+    });
+    expect(result).to.be.eq(toBN("1424", decimals.USDC));
+  });
+});
 
 interface CAHfTestInfo {
   assets: Array<Asset>;
