@@ -4,8 +4,10 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
+  PRICE_DECIMALS_POW,
   tokenSymbolByAddress,
   WAD,
+  WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
 
 import { TokensWithAPY, TokensWithApyRecord } from "../apy";
@@ -37,6 +39,14 @@ export interface CalcOverallAPYProps {
   totalValue: bigint | undefined;
   debt: bigint | undefined;
   baseRateWithFee: number;
+  underlyingToken: string;
+}
+
+export interface CalcMaxLendingDebtIncreaseProps {
+  assets: Array<Asset>;
+
+  prices: Record<string, bigint>;
+  liquidationThresholds: Record<string, bigint>;
   underlyingToken: string;
 }
 
@@ -343,6 +353,52 @@ export class CreditAccountData {
     return BigIntMath.max(0n, result);
   }
 
+  // HF = TWV / debt
+  // 1 = (TWV + (debtmax-debt)*LTunderl )/ debtmax
+  // For lending
+
+  static calcMaxLendingDebtIncrease({
+    assets,
+
+    liquidationThresholds,
+    underlyingToken,
+
+    prices,
+  }: CalcMaxLendingDebtIncreaseProps) {
+    const assetsLTMoney = assets.reduce(
+      (acc, { token: tokenAddress, balance: amount }) => {
+        const [, tokenDecimals] = extractTokenData(tokenAddress);
+
+        const lt = liquidationThresholds[tokenAddress] || 0n;
+        const price = prices[tokenAddress] || 0n;
+
+        const tokenMoney = PriceUtils.calcTotalPrice(
+          price,
+          amount,
+          tokenDecimals,
+        );
+        const tokenLtMoney = tokenMoney * lt;
+        return acc + tokenLtMoney;
+      },
+      0n,
+    );
+
+    const underlyingPrice = prices[underlyingToken] || 0n;
+    const [, underlyingDecimals = 18] = extractTokenData(underlyingToken);
+
+    // HF = TWV / debt => 1 = TWV / debtMax
+    // Debtmax = sum (LTi * Asset_i * price_i) / price_underlying
+    const max =
+      underlyingPrice > 0
+        ? (assetsLTMoney * 10n ** BigInt(underlyingDecimals)) /
+          underlyingPrice /
+          PERCENTAGE_FACTOR /
+          10n ** BigInt(WAD_DECIMALS_POW - PRICE_DECIMALS_POW)
+        : 0n;
+
+    return max;
+  }
+
   static calcOverallAPY({
     caAssets,
     lpAPY,
@@ -374,11 +430,10 @@ export class CreditAccountData {
     const assetAPYMoney = caAssets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
         const tokenAddressLC = tokenAddress.toLowerCase();
-        const symbol = tokenSymbolByAddress[tokenAddressLC] || "";
+        const [symbol = "", tokenDecimals] = extractTokenData(tokenAddressLC);
 
         const apy = lpAPY[symbol as TokensWithAPY] || 0;
         const price = prices[tokenAddressLC] || 0n;
-        const tokenDecimals = decimals[symbol];
 
         const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
         const apyMoney = money * BigInt(apy);
