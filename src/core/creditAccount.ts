@@ -42,12 +42,14 @@ export interface CalcOverallAPYProps {
   underlyingToken: string;
 }
 
-export interface CalcMaxLendingDebtIncreaseProps {
+export interface CalcMaxLendingDebtProps {
   assets: Array<Asset>;
 
   prices: Record<string, bigint>;
   liquidationThresholds: Record<string, bigint>;
   underlyingToken: string;
+
+  targetHF?: bigint;
 }
 
 export interface CalcHealthFactorProps {
@@ -357,14 +359,16 @@ export class CreditAccountData {
   // 1 = (TWV + (debtmax-debt)*LTunderl )/ debtmax
   // For lending
 
-  static calcMaxLendingDebtIncrease({
+  static calcMaxLendingDebt({
     assets,
 
     liquidationThresholds,
     underlyingToken,
 
     prices,
-  }: CalcMaxLendingDebtIncreaseProps) {
+
+    targetHF = PERCENTAGE_FACTOR,
+  }: CalcMaxLendingDebtProps) {
     const assetsLTMoney = assets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
         const [, tokenDecimals] = extractTokenData(tokenAddress);
@@ -386,13 +390,13 @@ export class CreditAccountData {
     const underlyingPrice = prices[underlyingToken] || 0n;
     const [, underlyingDecimals = 18] = extractTokenData(underlyingToken);
 
-    // HF = TWV / debt => 1 = TWV / debtMax
-    // Debtmax = sum (LTi * Asset_i * price_i) / price_underlying
+    // HF = TWV / D => D = TWV / HF; D = amount * price
+    // Debt_max = sum(LT_i * Asset_i * price_i) / (price_underlying * HF)
     const max =
       underlyingPrice > 0
         ? (assetsLTMoney * 10n ** BigInt(underlyingDecimals)) /
           underlyingPrice /
-          PERCENTAGE_FACTOR /
+          targetHF /
           10n ** BigInt(WAD_DECIMALS_POW - PRICE_DECIMALS_POW)
         : 0n;
 
