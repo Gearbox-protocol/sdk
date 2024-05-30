@@ -950,6 +950,66 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       },
     });
   });
+  it("swap should buy additional quota with respect to debt", () => {
+    const result = CreditAccountData.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: caQuota,
+      calcModification: {
+        debt: 7n * PERCENTAGE_FACTOR,
+        type: "recommendedQuota",
+      },
+      assetsAfterUpdate: {
+        [tokenDataByNetwork.Mainnet.DAI]: {
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.DAI,
+        },
+        [tokenDataByNetwork.Mainnet.WETH]: {
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
+          balance: 0n,
+          token: tokenDataByNetwork.Mainnet.WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [tokenDataByNetwork.Mainnet.DAI]: {},
+      },
+      allowedToSpend: {
+        [tokenDataByNetwork.Mainnet.WETH]: {},
+      },
+
+      liquidationThresholds: DEFAULT_LT,
+    });
+
+    expect(result.quotaIncrease).to.be.deep.eq([
+      {
+        balance: 2n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+    ]);
+    expect(result.quotaDecrease).to.be.deep.eq([
+      {
+        balance: MIN_INT96,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+    ]);
+    expect(result.desiredQuota).to.be.deep.eq({
+      [tokenDataByNetwork.Mainnet.DAI]: {
+        balance: 7n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.DAI,
+      },
+      [tokenDataByNetwork.Mainnet.WETH]: {
+        balance: 0n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.WETH,
+      },
+      [tokenDataByNetwork.Mainnet.STETH]: {
+        balance: 0n * PERCENTAGE_FACTOR,
+        token: tokenDataByNetwork.Mainnet.STETH,
+      },
+    });
+  });
   it("swap shouldn't buy additional quota", () => {
     const result = CreditAccountData.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,

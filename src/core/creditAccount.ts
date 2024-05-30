@@ -82,6 +82,10 @@ export interface CalcQuotaUpdateProps {
   liquidationThresholds: Record<string, bigint>;
   assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
   maxDebt: bigint;
+  calcModification?: {
+    type: "recommendedQuota";
+    debt: bigint;
+  };
 
   allowedToSpend: Record<string, {}>;
   allowedToObtain: Record<string, {}>;
@@ -641,15 +645,9 @@ export class CreditAccountData {
             token,
           };
         } else {
-          const unsafeChange = quotaChange[token]?.balance || 0n;
-          const change =
-            unsafeChange === MIN_INT96
-              ? BigIntMath.neg(
-                  this.roundUpQuota(initialQuotas[cmQuota.token]?.quota || 0n),
-                )
-              : unsafeChange;
+          const change = quotaChange[token]?.balance || 0n;
+          const quotaAfter = change === MIN_INT96 ? 0n : initialQuota + change;
 
-          const quotaAfter = initialQuota + change;
           acc[token] = {
             balance: quotaAfter,
             token,
@@ -686,11 +684,20 @@ export class CreditAccountData {
     const maxQuotaIncrease = this.roundUpQuota(unsafeMaxQuotaIncrease);
     const initialQuota = this.roundUpQuota(unsafeInitialQuota);
 
-    const defaultQuota = this.calcDefaultQuota({
-      lt,
-      quotaReserve: props.quotaReserve,
-      amount: amountInTarget,
-    });
+    const defaultQuota =
+      props.calcModification?.type === "recommendedQuota" &&
+      props.calcModification.debt > 0
+        ? this.calcRecommendedQuota({
+            lt,
+            quotaReserve: props.quotaReserve,
+            amount: amountInTarget,
+            debt: props.calcModification.debt,
+          })
+        : this.calcDefaultQuota({
+            lt,
+            quotaReserve: props.quotaReserve,
+            amount: amountInTarget,
+          });
 
     const unsafeQuotaChange = this.roundUpQuota(defaultQuota - initialQuota);
     const quotaChange =
