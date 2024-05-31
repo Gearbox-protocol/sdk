@@ -121,24 +121,23 @@ export interface ClaimLmRewardsV3Props {
 const EXTRA_LM_MINING: PartialRecord<string, (timestamp: number) => FarmInfo> =
   {
     [tokenDataByNetwork.Mainnet.sdGHOV3.toLowerCase()]: (
-      timestamp: number,
+      _: number,
     ): FarmInfo => {
       const REWARD_PERIOD = 14 * 24 * 60 * 60;
-      // const REWARDS_FIRST_START = 1711641600;
-      // const REWARDS_FIRST_END = 1712844000;
-      // const REWARDS_SECOND_END = 1714150800;
-      const REWARDS_THIRD_END = 1715374800;
-      const REWARDS_FOURTH_END = REWARDS_THIRD_END + REWARD_PERIOD;
+      // const REWARDS_1_END = 1712844000;
+      // const REWARDS_2_END = 1714150800;
+      // const REWARDS_3_END = 1715374800;
+      // const REWARDS_4_END = 1716793200;
+      const REWARDS_5_END = 1718024669;
 
-      // const REWARD_FIRST_PART = toBN("15000", decimals.GHO);
-      // const REWARD_SECOND_PART = toBN("15000", decimals.GHO);
-      const REWARD_THIRD_PART = toBN("15000", decimals.GHO);
-      const REWARD_FOURTH_PART = toBN("7500", decimals.GHO);
+      // const REWARD_1_PART = toBN("15000", decimals.GHO);
+      // const REWARD_2_PART = toBN("15000", decimals.GHO);
+      // const REWARD_3_PART = toBN("15000", decimals.GHO);
+      // const REWARD_4_PART = toBN("7500", decimals.GHO);
+      const REWARD_5_PART = toBN("3750", decimals.GHO);
 
-      const reward =
-        timestamp >= REWARDS_THIRD_END ? REWARD_FOURTH_PART : REWARD_THIRD_PART;
-      const finished =
-        timestamp >= REWARDS_THIRD_END ? REWARDS_FOURTH_END : REWARDS_THIRD_END;
+      const reward = REWARD_5_PART;
+      const finished = REWARDS_5_END;
 
       return {
         balance: 0n,
