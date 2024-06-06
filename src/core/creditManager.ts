@@ -375,14 +375,14 @@ export class CreditManagerData {
   static getTier(name: string): number {
     const DEFAULT_TIER = 99;
     const l = name.split(" ") || [];
-    const [word, number] = l.slice(-2);
 
-    if (word.toLowerCase() === "tier") {
-      const n = Number(number || DEFAULT_TIER);
-      return Number.isNaN(n) ? DEFAULT_TIER : n;
-    }
+    const index = l.findIndex(w => w.toLowerCase() === "tier");
+    if (index < 0) return DEFAULT_TIER;
 
-    return DEFAULT_TIER;
+    const number = l[index + 1];
+
+    const n = Number(number || DEFAULT_TIER);
+    return Number.isNaN(n) ? DEFAULT_TIER : n;
   }
 
   static getType(name: string): CreditManagerType {
