@@ -282,6 +282,7 @@ export class GearboxRewardsApi {
 
     const rewardPoolsInfo = poolTokens.reduce<{
       base: Record<string, FarmInfo>;
+      extra: Record<string, Array<FarmInfo>>;
       all: Record<string, Array<FarmInfo>>;
     }>(
       (acc, [, address], i) => {
@@ -305,11 +306,11 @@ export class GearboxRewardsApi {
         const extra = extraRewards[address] || [];
 
         acc.base[address] = baseReward;
+        acc.extra[address] = extra;
         acc.all[address] = [baseReward, ...extra];
-
         return acc;
       },
-      { base: {}, all: {} },
+      { base: {}, extra: {}, all: {} },
     );
 
     const rewardPoolsSupply = poolTokens.reduce<Record<string, bigint>>(
@@ -324,6 +325,7 @@ export class GearboxRewardsApi {
     return {
       rewardPoolsInfo: rewardPoolsInfo.all,
       baseRewardPoolsInfo: rewardPoolsInfo.base,
+      extraRewardPoolsInfo: rewardPoolsInfo.extra,
       rewardPoolsSupply,
     };
   }
