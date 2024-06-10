@@ -330,7 +330,7 @@ export class GearboxRewardsApi {
       },
     ];
 
-    return { rewards: [rewards] };
+    return { rewards: rewards };
   }
 
   static async getLmRewardsV3({
@@ -381,15 +381,14 @@ export class GearboxRewardsApi {
     );
 
     const extraRewards = Object.entries(merkleXYZLM || {}).reduce<
-      Array<Array<GearboxLmReward>>
+      Array<GearboxLmReward>
     >((acc, [k, v]) => {
       const rewardToken = k.toLowerCase();
 
-      const group: Array<GearboxLmReward> = [];
       Object.entries(v.reasons).forEach(([key, reason]) => {
         const poolToken = REWARD_KEYS_RECORD[key];
         if (poolToken && tokenSymbolByAddress[rewardToken]) {
-          group.push({
+          acc.push({
             poolToken,
             rewardToken,
             amount: toBigInt(reason.unclaimed || 0n),
@@ -397,10 +396,6 @@ export class GearboxRewardsApi {
           });
         }
       });
-
-      if (group.length) {
-        acc.push(group);
-      }
 
       return acc;
     }, []);
@@ -415,13 +410,13 @@ export class GearboxRewardsApi {
     });
 
     const { zero, nonZero } = gearboxLmRewards.reduce<{
-      nonZero: Array<Array<GearboxLmReward>>;
+      nonZero: Array<GearboxLmReward>;
       zero: Array<GearboxLmReward>;
     }>(
       (acc, r) => {
         const amount = r.amount || 0n;
         if (amount > 0n) {
-          acc.nonZero.push([r]);
+          acc.nonZero.push(r);
         } else {
           acc.zero.push(r);
         }
