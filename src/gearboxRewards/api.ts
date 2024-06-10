@@ -1,28 +1,19 @@
 import {
-  decimals,
+  CHAINS,
   ExcludeArrayProps,
   extractTokenData,
   isDieselStakedToken,
   MCall,
   multicall,
   NetworkType,
-  PartialRecord,
   SupportedToken,
   toBigInt,
-  tokenDataByNetwork,
+  tokenSymbolByAddress,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import {
-  BigNumberish,
-  BytesLike,
-  getAddress,
-  Interface,
-  Provider,
-  Signer,
-} from "ethers";
+import { BytesLike, getAddress, Interface, Provider, Signer } from "ethers";
 
-import { ChartsApi } from "../core/endpoint";
 import {
   IAirdropDistributor,
   IAirdropDistributor__factory,
@@ -34,6 +25,11 @@ import { makeTransactionCall } from "../utils/calls";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { MULTICALL_EXTENDED_INTERFACE } from "./abi";
+import {
+  MerkleXYZApi,
+  MerkleXYZRewardsCampaignsResponse,
+  MerkleXYZUserRewardsResponse,
+} from "./merklAPI";
 
 export interface GearboxExtraMerkleLmReward {
   poolToken: string;
@@ -87,11 +83,23 @@ export type FarmInfo = FarmInfoOutput & {
   symbol: SupportedToken;
 };
 
+type PoolsWithExtraRewardsList = Record<NetworkType, Array<SupportedToken>>;
+
+const DEFAULT_POOLS_WITH_EXTRA_REWARDS: PoolsWithExtraRewardsList = {
+  Mainnet: ["sdGHOV3", "sdcrvUSDV3"],
+  Arbitrum: [],
+  Optimism: [],
+  Base: [],
+};
+
 export interface GetLmRewardsInfoProps {
   currentTokenData: Record<SupportedToken, string>;
   provider: Provider | Signer;
 
   multicallAddress: string;
+
+  poolsWithExtraRewards?: PoolsWithExtraRewardsList;
+  network: NetworkType;
 }
 
 export interface GetLmRewardsProps {
@@ -118,42 +126,14 @@ export interface ClaimLmRewardsV3Props {
   signer: Signer;
 }
 
-const EXTRA_LM_MINING: PartialRecord<string, (timestamp: number) => FarmInfo> =
-  {
-    [tokenDataByNetwork.Mainnet.sdGHOV3.toLowerCase()]: (
-      _: number,
-    ): FarmInfo => {
-      const REWARD_PERIOD = 14 * 24 * 60 * 60;
-      // const REWARDS_1_END = 1712844000;
-      // const REWARDS_2_END = 1714150800;
-      // const REWARDS_3_END = 1715374800;
-      // const REWARDS_4_END = 1716793200;
-      const REWARDS_5_END = 1718024669;
-
-      // const REWARD_1_PART = toBN("15000", decimals.GHO);
-      // const REWARD_2_PART = toBN("15000", decimals.GHO);
-      // const REWARD_3_PART = toBN("15000", decimals.GHO);
-      // const REWARD_4_PART = toBN("7500", decimals.GHO);
-      const REWARD_5_PART = toBN("3750", decimals.GHO);
-
-      const reward = REWARD_5_PART;
-      const finished = REWARDS_5_END;
-
-      return {
-        balance: 0n,
-        duration: BigInt(REWARD_PERIOD),
-        finished: BigInt(finished),
-        reward: reward,
-        symbol: "GHO",
-      };
-    },
-  };
-
 export class GearboxRewardsApi {
   static async getLmRewardsInfo({
     currentTokenData,
     provider,
     multicallAddress,
+
+    poolsWithExtraRewards = DEFAULT_POOLS_WITH_EXTRA_REWARDS,
+    network,
   }: GetLmRewardsInfoProps) {
     const poolTokens = TypedObjectUtils.entries(currentTokenData).filter(
       ([symbol]) => isDieselStakedToken(symbol),
@@ -188,15 +168,32 @@ export class GearboxRewardsApi {
       method: "getCurrentBlockTimestamp()",
     };
 
-    const [blockTimestamp, ...mcResponse] = await multicall(
-      [
-        blockTimestampCall,
-        ...farmInfoCalls,
-        ...farmSupplyCalls,
-        ...rewardTokenCalls,
-      ],
-      provider,
-    );
+    const tokenWithExtraRewards = poolsWithExtraRewards[network] || [];
+    const chainId = CHAINS[network];
+
+    const [[blockTimestamp, ...mcResponse], ...extraRewardsResponses] =
+      await Promise.all([
+        multicall(
+          [
+            blockTimestampCall,
+            ...farmInfoCalls,
+            ...farmSupplyCalls,
+            ...rewardTokenCalls,
+          ],
+          provider,
+        ),
+
+        ...tokenWithExtraRewards.map(symbol =>
+          axios.get<MerkleXYZRewardsCampaignsResponse>(
+            MerkleXYZApi.getRewardsCampaignsUrl({
+              params: {
+                chainId,
+                mainParameter: getAddress(currentTokenData[symbol]),
+              },
+            }),
+          ),
+        ),
+      ]);
 
     const farmInfoCallsEnd = farmInfoCalls.length;
     const farmInfo: Array<FarmInfoOutput> = mcResponse.slice(
@@ -216,8 +213,41 @@ export class GearboxRewardsApi {
       rewardTokenCallsEnd,
     );
 
+    const extraRewards = extraRewardsResponses.reduce<
+      Record<string, Array<FarmInfo>>
+    >((acc, r, index) => {
+      const stakedSymbol = tokenWithExtraRewards[index];
+
+      const l = r.data.reduce<Array<FarmInfo>>((infos, d) => {
+        const finished = toBigInt(d.endTimestamp || 0);
+
+        if (finished - blockTimestamp > 0) {
+          const rewardTokenLc = (d.rewardToken || "").toLowerCase();
+          const [rewardSymbol, decimals = 18] = extractTokenData(rewardTokenLc);
+          const reward = toBN(d.amountDecimal, decimals);
+
+          if (rewardSymbol && reward > 0) {
+            infos.push({
+              duration: toBigInt(d.endTimestamp - d.startTimestamp),
+              finished,
+              reward,
+              balance: 0n,
+              symbol: rewardSymbol,
+            });
+          }
+        }
+
+        return infos;
+      }, []);
+
+      acc[currentTokenData[stakedSymbol]] = l;
+
+      return acc;
+    }, {});
+
     const rewardPoolsInfo = poolTokens.reduce<{
       base: Record<string, FarmInfo>;
+      extra: Record<string, Array<FarmInfo>>;
       all: Record<string, Array<FarmInfo>>;
     }>(
       (acc, [, address], i) => {
@@ -230,8 +260,6 @@ export class GearboxRewardsApi {
             } [${address}]`,
           );
 
-        const otherRewards = EXTRA_LM_MINING[address];
-
         const baseReward: FarmInfo = {
           duration: currentInfo.duration,
           finished: currentInfo.finished,
@@ -239,16 +267,15 @@ export class GearboxRewardsApi {
           balance: currentInfo.balance,
           symbol: symbol,
         };
-        const extraReward = otherRewards
-          ? [otherRewards(Number(blockTimestamp))]
-          : [];
+
+        const extra = extraRewards[address] || [];
 
         acc.base[address] = baseReward;
-        acc.all[address] = [baseReward, ...extraReward];
-
+        acc.extra[address] = extra;
+        acc.all[address] = [baseReward, ...extra];
         return acc;
       },
-      { base: {}, all: {} },
+      { base: {}, extra: {}, all: {} },
     );
 
     const rewardPoolsSupply = poolTokens.reduce<Record<string, bigint>>(
@@ -263,6 +290,7 @@ export class GearboxRewardsApi {
     return {
       rewardPoolsInfo: rewardPoolsInfo.all,
       baseRewardPoolsInfo: rewardPoolsInfo.base,
+      extraRewardPoolsInfo: rewardPoolsInfo.extra,
       rewardPoolsSupply,
     };
   }
@@ -275,7 +303,7 @@ export class GearboxRewardsApi {
     network,
     airdropDistributorAddress,
   }: GetLmRewardsProps) {
-    if (!airdropDistributorAddress) return { rewards: [], totalAvailable: 0n };
+    if (!airdropDistributorAddress) return { rewards: [] };
 
     const distributor = IAirdropDistributor__factory.connect(
       airdropDistributorAddress,
@@ -302,12 +330,7 @@ export class GearboxRewardsApi {
       },
     ];
 
-    const totalAvailable = rewards.reduce(
-      (sum, r) => sum + (r.amount || 0n),
-      0n,
-    );
-
-    return { rewards: [rewards], totalAvailable };
+    return { rewards: rewards };
   }
 
   static async getLmRewardsV3({
@@ -329,24 +352,16 @@ export class GearboxRewardsApi {
       }),
     );
 
-    const hasGHOReward =
-      network === "Mainnet" && EXTRA_LM_MINING[currentTokenData.sdGHOV3];
-
     const [gearboxLmResponse, merkleXYZLMResponse] = await Promise.allSettled([
       multicall<Array<bigint>>(farmedCalls, provider),
-
-      hasGHOReward
-        ? axios.get<MerkleXYZUserRewardsResponse>(
-            MerkleXYZApi.getRewardsUrl({
-              params: {
-                chainId: 1,
-                user: getAddress(account),
-                mainParameter: getAddress(currentTokenData.sdGHOV3),
-                rewardToken: getAddress(currentTokenData.GHO),
-              },
-            }),
-          )
-        : undefined,
+      axios.get<MerkleXYZUserRewardsResponse>(
+        MerkleXYZApi.getUserRewardsUrl({
+          params: {
+            chainId: CHAINS[network],
+            user: getAddress(account),
+          },
+        }),
+      ),
     ]);
     const gearboxLm =
       gearboxLmResponse.status === "fulfilled" ? gearboxLmResponse.value : [];
@@ -355,15 +370,35 @@ export class GearboxRewardsApi {
         ? merkleXYZLMResponse.value?.data
         : undefined;
 
-    const merkleXYZLMLc = Object.entries(merkleXYZLM || {}).reduce<
-      Record<string, MerkleXYZUserRewards>
+    const PREFIX = "ERC20";
+    const REWARD_KEYS_RECORD = poolTokens.reduce<Record<string, string>>(
+      (acc, t) => {
+        const key = [PREFIX, getAddress(t)].join("_");
+        acc[key] = t;
+        return acc;
+      },
+      {},
+    );
+
+    const extraRewards = Object.entries(merkleXYZLM || {}).reduce<
+      Array<GearboxLmReward>
     >((acc, [k, v]) => {
-      acc[k.toLowerCase()] = v;
+      const rewardToken = k.toLowerCase();
+
+      Object.entries(v.reasons).forEach(([key, reason]) => {
+        const poolToken = REWARD_KEYS_RECORD[key];
+        if (poolToken && tokenSymbolByAddress[rewardToken]) {
+          acc.push({
+            poolToken,
+            rewardToken,
+            amount: toBigInt(reason.unclaimed || 0n),
+            type: "extraMerkle",
+          });
+        }
+      });
 
       return acc;
-    }, {});
-
-    const ghoLM = merkleXYZLMLc[currentTokenData.GHO];
+    }, []);
 
     const gearboxLmRewards = poolTokens.map((address, i): GearboxLmReward => {
       return {
@@ -374,47 +409,25 @@ export class GearboxRewardsApi {
       };
     });
 
-    const { zero, nonZero, total } = gearboxLmRewards.reduce<{
-      total: bigint;
-      nonZero: Array<Array<GearboxLmReward>>;
+    const { zero, nonZero } = gearboxLmRewards.reduce<{
+      nonZero: Array<GearboxLmReward>;
       zero: Array<GearboxLmReward>;
     }>(
       (acc, r) => {
         const amount = r.amount || 0n;
         if (amount > 0n) {
-          acc.nonZero.push([r]);
+          acc.nonZero.push(r);
         } else {
           acc.zero.push(r);
         }
-        acc.total = acc.total + amount;
 
         return acc;
       },
-      { total: 0n, nonZero: [], zero: [] },
+      { nonZero: [], zero: [] },
     );
-
-    const extraRewards: Array<Array<GearboxLmReward>> = ghoLM
-      ? [
-          [
-            {
-              poolToken: currentTokenData.sdGHOV3,
-              rewardToken: currentTokenData.GHO,
-              amount: toBigInt(ghoLM.unclaimed),
-              type: "extraMerkle",
-            },
-          ],
-        ]
-      : [];
-    const extraTotal = extraRewards.reduce((sum, group) => {
-      const groupTotal = group.reduce((groupSum, reward) => {
-        return groupSum + (reward.amount || 0n);
-      }, 0n);
-      return sum + groupTotal;
-    }, 0n);
 
     return {
       rewards: [...nonZero, ...extraRewards, zero],
-      totalAvailable: total + extraTotal,
     };
   }
 
@@ -504,41 +517,6 @@ export class GearboxRewardsApi {
 
     return BigInt(amount || 0);
   }
-}
-
-interface Options {
-  params: {
-    user: string;
-    chainId: number;
-
-    mainParameter?: string;
-    rewardToken?: string;
-  };
-}
-
-interface MerkleXYZUserRewards {
-  accumulated: BigNumberish;
-  decimals: number;
-  reasons: Record<
-    string,
-    {
-      accumulated: BigNumberish;
-      unclaimed: BigNumberish;
-    }
-  >;
-  symbol: string;
-  unclaimed: BigNumberish;
-}
-
-type MerkleXYZUserRewardsResponse = Record<string, MerkleXYZUserRewards>;
-
-// https://api.merkl.xyz/v3/campaignsForMainParameter?chainId=1&mainParameter=0xE2037090f896A858E3168B978668F22026AC52e7
-
-class MerkleXYZApi {
-  static domain = "https://api.merkl.xyz/v3";
-
-  static getRewardsUrl = (options: Options) =>
-    ChartsApi.getRelativeUrl([this.domain, "userRewards"].join("/"), options);
 }
 
 const POOL_REWARDS_ABI = [
