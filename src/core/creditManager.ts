@@ -405,6 +405,7 @@ export class ChartsCreditManagerData {
   readonly pool: string;
   readonly version: number;
   readonly name: string;
+  readonly tier: number;
 
   readonly borrowRate: number;
   readonly borrowRateOld: number;
@@ -458,6 +459,7 @@ export class ChartsCreditManagerData {
     this.pool = (payload.poolAddress || "").toLowerCase();
     this.version = payload.version || 2;
     this.name = payload.name || "";
+    this.tier = CreditManagerData.getTier(payload.name || "");
 
     this.borrowRate = Number(
       (toBigInt(payload.borrowRate || 0) *
