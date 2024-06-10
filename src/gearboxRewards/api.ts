@@ -1,4 +1,5 @@
 import {
+  CHAINS,
   decimals,
   ExcludeArrayProps,
   extractTokenData,
@@ -13,16 +14,8 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import {
-  BigNumberish,
-  BytesLike,
-  getAddress,
-  Interface,
-  Provider,
-  Signer,
-} from "ethers";
+import { BytesLike, getAddress, Interface, Provider, Signer } from "ethers";
 
-import { ChartsApi } from "../core/endpoint";
 import {
   IAirdropDistributor,
   IAirdropDistributor__factory,
@@ -34,6 +27,12 @@ import { makeTransactionCall } from "../utils/calls";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { MULTICALL_EXTENDED_INTERFACE } from "./abi";
+import {
+  MerkleXYZApi,
+  MerkleXYZRewardsCampaignsResponse,
+  MerkleXYZUserRewards,
+  MerkleXYZUserRewardsResponse,
+} from "./merklAPI";
 
 export interface GearboxExtraMerkleLmReward {
   poolToken: string;
@@ -87,11 +86,23 @@ export type FarmInfo = FarmInfoOutput & {
   symbol: SupportedToken;
 };
 
+type PoolsWithExtraRewardsList = Record<NetworkType, Array<SupportedToken>>;
+
+const DEFAULT_POOLS_WITH_EXTRA_REWARDS: PoolsWithExtraRewardsList = {
+  Mainnet: ["sdGHOV3", "sdcrvUSDV3"],
+  Arbitrum: [],
+  Optimism: [],
+  Base: [],
+};
+
 export interface GetLmRewardsInfoProps {
   currentTokenData: Record<SupportedToken, string>;
   provider: Provider | Signer;
 
   multicallAddress: string;
+
+  poolsWithExtraRewards?: PoolsWithExtraRewardsList;
+  network: NetworkType;
 }
 
 export interface GetLmRewardsProps {
@@ -154,6 +165,9 @@ export class GearboxRewardsApi {
     currentTokenData,
     provider,
     multicallAddress,
+
+    poolsWithExtraRewards = DEFAULT_POOLS_WITH_EXTRA_REWARDS,
+    network,
   }: GetLmRewardsInfoProps) {
     const poolTokens = TypedObjectUtils.entries(currentTokenData).filter(
       ([symbol]) => isDieselStakedToken(symbol),
@@ -188,15 +202,32 @@ export class GearboxRewardsApi {
       method: "getCurrentBlockTimestamp()",
     };
 
-    const [blockTimestamp, ...mcResponse] = await multicall(
-      [
-        blockTimestampCall,
-        ...farmInfoCalls,
-        ...farmSupplyCalls,
-        ...rewardTokenCalls,
-      ],
-      provider,
-    );
+    const tokenWithExtraRewards = poolsWithExtraRewards[network] || [];
+    const chainId = CHAINS[network];
+
+    const [[blockTimestamp, ...mcResponse], ...extraRewardsResponses] =
+      await Promise.all([
+        multicall(
+          [
+            blockTimestampCall,
+            ...farmInfoCalls,
+            ...farmSupplyCalls,
+            ...rewardTokenCalls,
+          ],
+          provider,
+        ),
+
+        ...tokenWithExtraRewards.map(symbol =>
+          axios.get<MerkleXYZRewardsCampaignsResponse>(
+            MerkleXYZApi.getRewardsCampaignsUrl({
+              params: {
+                chainId,
+                mainParameter: getAddress(currentTokenData[symbol]),
+              },
+            }),
+          ),
+        ),
+      ]);
 
     const farmInfoCallsEnd = farmInfoCalls.length;
     const farmInfo: Array<FarmInfoOutput> = mcResponse.slice(
@@ -216,6 +247,39 @@ export class GearboxRewardsApi {
       rewardTokenCallsEnd,
     );
 
+    const extraRewards = extraRewardsResponses.reduce<
+      Record<string, Array<FarmInfo>>
+    >((acc, r, index) => {
+      const stakedSymbol = tokenWithExtraRewards[index];
+
+      const l = r.data.reduce<Array<FarmInfo>>((infos, d) => {
+        const finished = toBigInt(d.endTimestamp || 0);
+
+        if (finished - blockTimestamp > 0) {
+          const rewardTokenLc = (d.rewardToken || "").toLowerCase();
+          const [rewardSymbol, decimals = 18] = extractTokenData(rewardTokenLc);
+
+          if (rewardSymbol) {
+            const reward = toBN(d.amountDecimal, decimals);
+
+            infos.push({
+              duration: toBigInt(d.endTimestamp - d.startTimestamp),
+              finished,
+              reward,
+              balance: 0n,
+              symbol: rewardSymbol,
+            });
+          }
+        }
+
+        return infos;
+      }, []);
+
+      acc[currentTokenData[stakedSymbol]] = l;
+
+      return acc;
+    }, {});
+
     const rewardPoolsInfo = poolTokens.reduce<{
       base: Record<string, FarmInfo>;
       all: Record<string, Array<FarmInfo>>;
@@ -230,8 +294,6 @@ export class GearboxRewardsApi {
             } [${address}]`,
           );
 
-        const otherRewards = EXTRA_LM_MINING[address];
-
         const baseReward: FarmInfo = {
           duration: currentInfo.duration,
           finished: currentInfo.finished,
@@ -239,12 +301,11 @@ export class GearboxRewardsApi {
           balance: currentInfo.balance,
           symbol: symbol,
         };
-        const extraReward = otherRewards
-          ? [otherRewards(Number(blockTimestamp))]
-          : [];
+
+        const extra = extraRewards[address] || [];
 
         acc.base[address] = baseReward;
-        acc.all[address] = [baseReward, ...extraReward];
+        acc.all[address] = [baseReward, ...extra];
 
         return acc;
       },
@@ -337,7 +398,7 @@ export class GearboxRewardsApi {
 
       hasGHOReward
         ? axios.get<MerkleXYZUserRewardsResponse>(
-            MerkleXYZApi.getRewardsUrl({
+            MerkleXYZApi.getUserRewardsUrl({
               params: {
                 chainId: 1,
                 user: getAddress(account),
@@ -504,41 +565,6 @@ export class GearboxRewardsApi {
 
     return BigInt(amount || 0);
   }
-}
-
-interface Options {
-  params: {
-    user: string;
-    chainId: number;
-
-    mainParameter?: string;
-    rewardToken?: string;
-  };
-}
-
-interface MerkleXYZUserRewards {
-  accumulated: BigNumberish;
-  decimals: number;
-  reasons: Record<
-    string,
-    {
-      accumulated: BigNumberish;
-      unclaimed: BigNumberish;
-    }
-  >;
-  symbol: string;
-  unclaimed: BigNumberish;
-}
-
-type MerkleXYZUserRewardsResponse = Record<string, MerkleXYZUserRewards>;
-
-// https://api.merkl.xyz/v3/campaignsForMainParameter?chainId=1&mainParameter=0xE2037090f896A858E3168B978668F22026AC52e7
-
-class MerkleXYZApi {
-  static domain = "https://api.merkl.xyz/v3";
-
-  static getRewardsUrl = (options: Options) =>
-    ChartsApi.getRelativeUrl([this.domain, "userRewards"].join("/"), options);
 }
 
 const POOL_REWARDS_ABI = [
