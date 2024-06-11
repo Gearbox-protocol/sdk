@@ -219,9 +219,10 @@ export class GearboxRewardsApi {
       const stakedSymbol = tokenWithExtraRewards[index];
 
       const l = r.data.reduce<Array<FarmInfo>>((infos, d) => {
+        const started = toBigInt(d.startTimestamp || 0);
         const finished = toBigInt(d.endTimestamp || 0);
 
-        if (finished - blockTimestamp > 0) {
+        if (blockTimestamp >= started && blockTimestamp <= finished) {
           const rewardTokenLc = (d.rewardToken || "").toLowerCase();
           const [rewardSymbol, decimals = 18] = extractTokenData(rewardTokenLc);
           const reward = toBN(d.amountDecimal, decimals);

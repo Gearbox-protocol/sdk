@@ -37,7 +37,8 @@ type MainnetCreditManagersV3 =
   | "USDT_V3_TIER_1_BROKEN"
   | "GHO_V3_TIER_1"
   | "DAI_V3_TIER_1"
-  | "USDT_V3_TIER_1";
+  | "USDT_V3_TIER_1"
+  | "CRVUSD_V3_TIER_1";
 
 export type MainnetCreditManagers =
   | MainnetCreditManagersV1
@@ -117,6 +118,8 @@ export const creditManagerByNetwork: CreditManagersListType = {
     USDT_V3_TIER_1: "0xe35eb22a349baba4f1a28a9cdba641d3b72c6203".toLowerCase(),
     GHO_V3_TIER_1: "0x58c8e983d9479b69b64970f79e8965ea347189c9".toLowerCase(),
     DAI_V3_TIER_1: "0x4582411643f9bbe6c736ed2114eda856b1c9ed40".toLowerCase(),
+    CRVUSD_V3_TIER_1:
+      "0x629f097996a5fb606470974bda1c3b6abc4d6857".toLowerCase(),
   },
   Arbitrum: {
     USDC_E_V3_TRADE_TIER_1:
@@ -175,7 +178,8 @@ export type MainnetPoolsV3 =
   | "USDT_V3_BROKEN"
   | "GHO_V3"
   | "DAI_V3"
-  | "USDT_V3";
+  | "USDT_V3"
+  | "CRVUSD_V3";
 
 export type MainnetPools = MainnetPoolsV1 | MainnetPoolsV3;
 
@@ -212,6 +216,7 @@ export const poolByNetwork: PoolsListType = {
     GHO_V3: "0x4d56c9cba373ad39df69eb18f076b7348000ae09".toLowerCase(),
     DAI_V3: "0xe7146f53dbcae9d6fa3555fe502648deb0b2f823".toLowerCase(),
     USDT_V3: "0x05a811275fe9b4de503b3311f51edf6a856d936e".toLowerCase(),
+    CRVUSD_V3: "0x8ef73f036feec873d0b2fd20892215df5b8bdd72".toLowerCase(),
   },
   Arbitrum: {
     USDC_V3: "0xa76c604145d7394dec36c49af494c144ff327861".toLowerCase(),
