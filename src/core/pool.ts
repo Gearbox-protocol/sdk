@@ -230,6 +230,7 @@ export class ChartsPoolData {
   readonly borrowAPY: number;
   readonly borrowAPYRay: bigint;
   readonly lmAPY: number;
+  readonly lmRewardAll: Array<{ apy: number; token: string }>;
 
   readonly availableLiquidity: bigint;
   readonly availableLiquidityChange: number;
@@ -291,6 +292,10 @@ export class ChartsPoolData {
       rayToNumber(payload.borrowAPY_RAY || 0) * Number(PERCENTAGE_DECIMALS);
     this.borrowAPYRay = toBigInt(payload.borrowAPY_RAY || 0);
     this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS);
+    this.lmRewardAll = (payload.lmRewardAll || []).map(r => ({
+      apy: (r.apy || 0) / Number(PERCENTAGE_DECIMALS),
+      token: (r.token || "").toLowerCase(),
+    }));
 
     const expected = toBigInt(payload.expectedLiquidity || 0);
     const available = toBigInt(payload.availableLiquidity || 0);
@@ -362,6 +367,7 @@ export class UserPoolData {
   readonly depositAPY: number;
   readonly depositAPYRay: bigint;
   readonly lmAPY: number;
+  readonly lmRewardAll: Array<{ apy: number; token: string }>;
 
   readonly providedLiquidity: bigint;
   readonly providedLiquidityInUSD: number;
@@ -391,6 +397,10 @@ export class UserPoolData {
       rayToNumber(payload.depositAPY_RAY || 0) * Number(PERCENTAGE_DECIMALS);
     this.depositAPYRay = toBigInt(payload.depositAPY_RAY || 0);
     this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS || 0);
+    this.lmRewardAll = (payload.lmRewardAll || []).map(r => ({
+      apy: (r.apy || 0) / Number(PERCENTAGE_DECIMALS),
+      token: (r.token || "").toLowerCase(),
+    }));
 
     this.providedLiquidity = toBigInt(payload.liqValue || 0);
     this.providedLiquidityInUSD = payload.liqValueInUSD;

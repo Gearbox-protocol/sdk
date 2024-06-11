@@ -39,6 +39,7 @@ export interface ChartsPoolDataPayload {
   depositAPY_RAY: BigNumberish;
   dieselRate_RAY: BigNumberish;
   lmAPY: number;
+  lmRewardAll: Array<{ apy: number; token: string }>;
 
   earned7D: number;
   earned7DInUSD: number;
@@ -138,6 +139,7 @@ export interface UserPoolPayload {
 
   depositAPY_RAY: BigNumberish;
   lmAPY: number;
+  lmRewardAll: Array<{ apy: number; token: string }>;
 }
 
 export interface UserPoolAggregatedStatsPayload {
