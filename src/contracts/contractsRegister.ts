@@ -49,6 +49,8 @@ export type MainnetCreditManagers =
 export type ArbitrumCreditManagers =
   | "USDC_E_V3_TRADE_TIER_1"
   | "USDC_E_V3_TRADE_TIER_2"
+  | "USDC_V3_TRADE_TIER_1"
+  | "USDC_V3_TRADE_TIER_2"
   | "WETH_V3_TRADE_TIER_1"
   | "WETH_V3_TRADE_TIER_2";
 export type OptimismCreditManagers =
@@ -127,6 +129,11 @@ export const creditManagerByNetwork: CreditManagersListType = {
     USDC_E_V3_TRADE_TIER_2:
       "0xb4bc02c0859b372c61abccfa5df91b1ccaa4dd1f".toLowerCase(),
 
+    USDC_V3_TRADE_TIER_1:
+      "0xe5e2d4bb15d26a6036805fce666c5488367623e2".toLowerCase(),
+    USDC_V3_TRADE_TIER_2:
+      "0xb780dd9cec259a0bbf7b32587802f33730353e86".toLowerCase(),
+
     WETH_V3_TRADE_TIER_1:
       "0xcedaa4b4a42c0a771f6c24a3745c3ca3ed73f17a".toLowerCase(),
     WETH_V3_TRADE_TIER_2:
@@ -183,7 +190,7 @@ export type MainnetPoolsV3 =
 
 export type MainnetPools = MainnetPoolsV1 | MainnetPoolsV3;
 
-export type ArbitrumPools = "USDC_V3" | "WETH_V3";
+export type ArbitrumPools = "USDC_V3" | "USDC_e_V3" | "WETH_V3";
 export type OptimismPools = "USDC_V3" | "WETH_V3";
 export type BasePools = never;
 
@@ -219,7 +226,8 @@ export const poolByNetwork: PoolsListType = {
     CRVUSD_V3: "0x8ef73f036feec873d0b2fd20892215df5b8bdd72".toLowerCase(),
   },
   Arbitrum: {
-    USDC_V3: "0xa76c604145d7394dec36c49af494c144ff327861".toLowerCase(),
+    USDC_e_V3: "0xa76c604145d7394dec36c49af494c144ff327861".toLowerCase(),
+    USDC_V3: "0x890a69ef363c9c7bdd5e36eb95ceb569f63acbf6".toLowerCase(),
     WETH_V3: "0x04419d3509f13054f60d253e0c79491d9e683399".toLowerCase(),
   },
   Optimism: {

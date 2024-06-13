@@ -9,6 +9,8 @@ import { TokenDataPayload } from "../payload/token";
 
 const ALIASES: PartialRecord<SupportedToken, string> = {
   USDC_e: "USDC.e",
+  dUSDC_eV3: "dUSDC.eV3",
+  sdUSDC_eV3: "sdUSDC.eV3",
 };
 
 const NETWROK_DEPENDENT_ALIASES: Record<
@@ -20,10 +22,7 @@ const NETWROK_DEPENDENT_ALIASES: Record<
     dUSDCV3: "dUSDC.eV3",
     sdUSDCV3: "sdUSDC.eV3",
   },
-  Arbitrum: {
-    dUSDCV3: "dUSDC.eV3",
-    sdUSDCV3: "sdUSDC.eV3",
-  },
+  Arbitrum: {},
   Base: {},
 };
 
