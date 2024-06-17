@@ -34,6 +34,7 @@ export class PoolData {
   readonly underlyingToken: string;
   readonly dieselToken: string;
   readonly stakedDieselToken: Array<string>;
+  readonly stakedDieselToken_broken: Array<string>;
   readonly isPaused: boolean;
   readonly version: number;
   readonly poolQuotaKeeper: string;
@@ -74,6 +75,9 @@ export class PoolData {
     this.dieselToken = payload.dieselToken.toLowerCase();
     this.stakedDieselToken = (extra.stakedDieselToken || []).map(t =>
       t.toLowerCase(),
+    );
+    this.stakedDieselToken_broken = (extra.stakedDieselToken_broken || []).map(
+      t => t.toLowerCase(),
     );
     this.isPaused = payload.isPaused;
     this.version = Number(payload.version);
