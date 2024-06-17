@@ -47,7 +47,9 @@ export interface TxSerialized {
     | "TxWithdrawCollateral"
     | "TxAddBot"
     | "TxRemoveBot"
-    | "TxLiquidateAccount";
+    | "TxLiquidateAccount"
+    | "TxStakeDiesel"
+    | "TxUnstakeDiesel";
   content: string;
 }
 
@@ -108,6 +110,10 @@ export class TxSerializer {
           return new TxRemoveBot(params);
         case "TxLiquidateAccount":
           return new TxLiquidateAccount(params);
+        case "TxStakeDiesel":
+          return new TxStakeDiesel(params);
+        case "TxUnstakeDiesel":
+          return new TxUnstakeDiesel(params);
 
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
@@ -189,6 +195,85 @@ export class TxRemoveLiquidity extends EVMTx implements PoolEvent {
   serialize(): TxSerialized {
     return {
       type: "TxRemoveLiquidity",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxStakeDieselProps extends EVMTxProps {
+  amount: bigint;
+  from: string;
+  to: string;
+
+  pool: string;
+  poolName?: string;
+}
+
+export class TxStakeDiesel extends EVMTx implements PoolEvent {
+  readonly amount: bigint;
+  readonly from: string;
+  readonly to: string;
+
+  readonly pool: string;
+  readonly poolName?: string;
+
+  constructor(opts: TxStakeDieselProps) {
+    super(opts);
+    this.amount = opts.amount;
+    this.from = opts.from;
+    this.to = opts.to;
+    this.pool = opts.pool;
+    this.poolName = opts.poolName;
+  }
+
+  toString(): string {
+    const [fromSymbol, fromDecimals] = extractTokenData(this.from);
+    const [toSymbol] = extractTokenData(this.to);
+
+    return `${this.poolName || getContractName(this.pool)}: Stake ${formatBN(
+      this.amount,
+      fromDecimals || 18,
+    )} ${fromSymbol} => ${toSymbol}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxStakeDiesel",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+export class TxUnstakeDiesel extends EVMTx implements PoolEvent {
+  readonly amount: bigint;
+  readonly from: string;
+  readonly to: string;
+
+  readonly pool: string;
+  readonly poolName?: string;
+
+  constructor(opts: TxStakeDieselProps) {
+    super(opts);
+    this.amount = opts.amount;
+    this.from = opts.from;
+    this.to = opts.to;
+    this.pool = opts.pool;
+    this.poolName = opts.poolName;
+  }
+
+  toString(): string {
+    const [fromSymbol, fromDecimals] = extractTokenData(this.from);
+    const [toSymbol] = extractTokenData(this.to);
+
+    return `${this.poolName || getContractName(this.pool)}: Unstake ${formatBN(
+      this.amount,
+      fromDecimals || 18,
+    )} ${fromSymbol} => ${toSymbol}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxUnstakeDiesel",
       content: JSON.stringify(this),
     };
   }
