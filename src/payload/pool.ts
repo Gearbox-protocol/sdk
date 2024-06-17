@@ -15,7 +15,7 @@ export type PoolDataPayload = Omit<
 };
 export interface PoolDataExtraPayload {
   stakedDieselToken: Array<string>;
-  stakedDieselToken_broken: Array<string>;
+  stakedDieselToken_old: Array<string>;
   supplyAPY7D: number | undefined;
 }
 
