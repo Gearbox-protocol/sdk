@@ -12,7 +12,6 @@ const ALIASES: PartialRecord<SupportedToken, string> = {
   dUSDC_eV3: "dUSDC.eV3",
   sdUSDC_eV3: "sdUSDC.eV3",
   sdWETHV3_OLD: "sdWETHV3 Old",
-  sdUSDC_eV3_OLD: "sdUSDC.eV3 Old",
 };
 
 const NETWROK_DEPENDENT_ALIASES: Record<
