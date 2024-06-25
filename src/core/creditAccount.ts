@@ -327,8 +327,11 @@ export class CreditAccountData {
   static tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
     const { symbol: symbol1 = "" } = t1 || {};
     const { symbol: symbol2 = "" } = t2 || {};
+    const symbol1LC = symbol1.toLowerCase();
+    const symbol2LC = symbol2.toLowerCase();
 
-    return symbol1 > symbol2 ? 1 : -1;
+    if (symbol1LC === symbol2LC) return 0;
+    return symbol1LC > symbol2LC ? 1 : -1;
   }
 
   static amountAbcComparator(t1: bigint, t2: bigint) {
