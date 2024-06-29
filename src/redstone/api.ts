@@ -578,6 +578,9 @@ export class RedstoneApi {
     return {
       main: mainPFData,
       reserve: reservePFData,
+      allReserve: TypedObjectUtils.fromEntries(
+        reservePF.map(([s, a]) => [currentTokenData[s], a]),
+      ),
     };
   };
 
