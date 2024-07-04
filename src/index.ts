@@ -31,6 +31,7 @@ export * from "./payload/token";
 export * from "./redstone";
 export * from "./tokens/tokenData";
 export * from "./types";
+export * from "./types-viem";
 export { callRepeater } from "./utils/calls";
 export * from "./utils/errors";
 export * from "./utils/formatter";

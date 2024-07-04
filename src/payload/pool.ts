@@ -1,17 +1,33 @@
-import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
+import { Address, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
-import { ZapperInfoStructOutput } from "../types/IDataCompressorV2_1";
 import {
   LinearModelStructOutput,
   PoolDataStructOutput,
 } from "../types/IDataCompressorV3";
 
-export type PoolDataPayload = Omit<
-  ExcludeArrayProps<PoolDataStructOutput>,
-  "zappers"
+export type Numberify<T> = {
+  [P in keyof T]: T[P] extends bigint ? number : T[P];
+};
+
+export type PoolDataPayload = ExcludeArrayProps<
+  Omit<
+    PoolDataStructOutput,
+    "zappers" | "quotas" | "lirm" | "creditManagerDebtParams"
+  >
 > & {
-  zappers: Array<PoolZapper>;
+  readonly lirm: Omit<
+    ExcludeArrayProps<Numberify<PoolDataStructOutput["lirm"]>>,
+    "version"
+  > & { version: bigint };
+  quotas: readonly (Omit<
+    ExcludeArrayProps<PoolDataStructOutput["quotas"][number]>,
+    "rate" | "quotaIncreaseFee"
+  > & { rate: number; quotaIncreaseFee: number })[];
+  zappers: readonly PoolZapper[];
+  creditManagerDebtParams: readonly ExcludeArrayProps<
+    PoolDataStructOutput["creditManagerDebtParams"][number]
+  >[];
 };
 export interface PoolDataExtraPayload {
   stakedDieselToken: Array<string>;
@@ -26,7 +42,11 @@ export type LinearModel = Omit<
   version: number;
 };
 
-export type PoolZapper = ExcludeArrayProps<ZapperInfoStructOutput>;
+export interface PoolZapper {
+  zapper: Address;
+  tokenIn: Address;
+  tokenOut: Address;
+}
 
 export interface ChartsPoolDataPayload {
   addr: string;
