@@ -1,4 +1,5 @@
 import {
+  Address,
   ADDRESS_0X0,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -25,13 +26,13 @@ import { Asset } from "./assets";
 export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
 
 export class CreditManagerData {
-  readonly address: string;
+  readonly address: Address;
   readonly type: CreditManagerType;
-  readonly underlyingToken: string;
-  readonly pool: string;
-  readonly creditFacade: string; // V2 only: address of creditFacade
-  readonly creditConfigurator: string; // V2 only: address of creditFacade
-  readonly degenNFT: string; // V2 only: degenNFT, address(0) if not in degen mode
+  readonly underlyingToken: Address;
+  readonly pool: Address;
+  readonly creditFacade: Address; // V2 only: address of creditFacade
+  readonly creditConfigurator: Address; // V2 only: address of creditFacade
+  readonly degenNFT: Address; // V2 only: degenNFT, address(0) if not in degen mode
   readonly isDegenMode: boolean;
   readonly version: number;
   readonly isPaused: boolean;
@@ -54,8 +55,8 @@ export class CreditManagerData {
   readonly feeLiquidationExpired: number;
   readonly liquidationDiscountExpired: number;
 
-  readonly collateralTokens: Array<string> = [];
-  readonly supportedTokens: Record<string, true> = {};
+  readonly collateralTokens: Array<Address> = [];
+  readonly supportedTokens: Record<Address, true> = {};
   readonly usableTokens: Record<string, true> = {};
   readonly adapters: Record<string, string> = {};
   readonly contractsByAdapter: Record<string, string> = {};
@@ -64,15 +65,16 @@ export class CreditManagerData {
   readonly interestModel: LinearModel;
 
   constructor(payload: CreditManagerDataPayload) {
-    this.address = payload.addr.toLowerCase();
-    this.underlyingToken = payload.underlying.toLowerCase();
+    this.address = payload.addr.toLowerCase() as Address;
+    this.underlyingToken = payload.underlying.toLowerCase() as Address;
     this.type = CreditManagerData.getType(payload.name || "");
     this.name = payload.name;
-    this.pool = payload.pool.toLowerCase();
+    this.pool = payload.pool.toLowerCase() as Address;
     this.tier = CreditManagerData.getTier(payload.name);
-    this.creditFacade = payload.creditFacade.toLowerCase();
-    this.creditConfigurator = payload.creditConfigurator.toLowerCase();
-    this.degenNFT = payload.degenNFT.toLowerCase();
+    this.creditFacade = payload.creditFacade.toLowerCase() as Address;
+    this.creditConfigurator =
+      payload.creditConfigurator.toLowerCase() as Address;
+    this.degenNFT = payload.degenNFT.toLowerCase() as Address;
     this.isDegenMode = payload.isDegenMode;
     this.version = Number(payload.cfVersion);
     this.isPaused = payload.isPaused;
@@ -118,7 +120,7 @@ export class CreditManagerData {
 
     this.quotas = payload.quotas.reduce<Record<string, QuotaInfo>>((acc, q) => {
       acc[q.token.toLowerCase()] = {
-        token: q.token.toLowerCase(),
+        token: q.token.toLowerCase() as Address,
         rate: q.rate * PERCENTAGE_DECIMALS,
         quotaIncreaseFee: q.quotaIncreaseFee,
         totalQuoted: q.totalQuoted,
@@ -142,7 +144,7 @@ export class CreditManagerData {
     };
 
     payload.collateralTokens.forEach(t => {
-      const tLc = t.toLowerCase();
+      const tLc = t.toLowerCase() as Address;
 
       const zeroLt = this.liquidationThresholds[tLc] === 0n;
       const quotaNotActive = this.quotas[tLc]?.isActive === false;
@@ -155,7 +157,7 @@ export class CreditManagerData {
     });
 
     TxParser.addCreditManager(this.address, this.version);
-    if (this.creditFacade !== "" && this.creditFacade !== ADDRESS_0X0) {
+    if (!!this.creditFacade && this.creditFacade !== ADDRESS_0X0) {
       TxParser.addCreditFacade(
         this.creditFacade,
         tokenSymbolByAddress[this.underlyingToken],

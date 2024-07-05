@@ -1,10 +1,12 @@
+import { Address } from "@gearbox-protocol/sdk-gov";
+
 import { TokenData } from "../tokens/tokenData";
 import { nonNegativeBn } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { CreditAccountData } from "./creditAccount";
 
 export interface Asset {
-  token: string;
+  token: Address;
   balance: bigint;
 }
 
@@ -33,17 +35,18 @@ export class AssetUtils {
     balances,
     tokensList,
     prices = {},
-  }: NextAssetProps<T>): string | undefined {
-    const selectedRecord = selectedAssets.reduce<Record<string, true>>(
+  }: NextAssetProps<T>): Address | undefined {
+    const selectedRecord = selectedAssets.reduce<Record<Address, true>>(
       (acc, { token }) => {
-        acc[token.toLowerCase()] = true;
+        acc[token.toLowerCase() as Address] = true;
         return acc;
       },
       {},
     );
 
     const notSelected = allowedTokens.filter(allowedToken => {
-      const alreadySelected = selectedRecord[allowedToken.toLowerCase()];
+      const alreadySelected =
+        selectedRecord[allowedToken.toLowerCase() as Address];
       return !alreadySelected;
     });
 
@@ -80,8 +83,8 @@ export class AssetUtils {
   }
 
   static memoWrap = (
-    unwrappedAddress: string,
-    wrappedAddress: string,
+    unwrappedAddress: Address,
+    wrappedAddress: Address,
     prices: Record<string, bigint>,
     tokensList: Record<string, TokenData>,
   ) =>

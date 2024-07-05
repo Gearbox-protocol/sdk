@@ -1,4 +1,5 @@
 import {
+  Address,
   PERCENTAGE_DECIMALS,
   toBigInt,
   TypedObjectUtils,
@@ -173,7 +174,7 @@ export class CreditSession {
       payload.cvxUnclaimedRewards || {},
     ).map(([t, b]): CreditSessionReward => {
       return {
-        token: t.toLowerCase(),
+        token: t.toLowerCase() as Address,
         balance: toBigInt(b.bi || 0),
         balanceView: b.f.toString(),
         pool: b.pool.toLowerCase(),
@@ -191,7 +192,7 @@ export class CreditSession {
       }
 
       this.balances.push({
-        token: token.toLowerCase(),
+        token: token.toLowerCase() as Address,
         balance: toBigInt(b.BI || 0),
         balanceView: b.F.toString(),
 
@@ -273,7 +274,7 @@ export class CreditSessionFiltered {
 
     this.balances = Object.entries(payload.balances || {}).map(
       ([token, balance]) => ({
-        token: token.toLowerCase(),
+        token: token.toLowerCase() as Address,
         balance: toBigInt(balance.BI || 0),
         balanceView: balance.F.toString(),
       }),

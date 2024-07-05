@@ -1,4 +1,5 @@
 import {
+  Address,
   AwaitedRes,
   getConnectors,
   NetworkType,
@@ -165,9 +166,11 @@ export class PathFinder {
     creditManager: cm,
     expectedBalances,
     leftoverBalances,
-    target,
+    target: targetUntyped,
     slippage,
   }: FindOpenStrategyPathProps): Promise<PathFinderOpenStrategyResult> {
+    const target = targetUntyped as Address;
+
     const input: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
       token,
       balance: expectedBalances[token]?.balance || 0n,
@@ -193,9 +196,9 @@ export class PathFinder {
         },
       );
 
-    const balancesAfter = outBalances.reduce<Record<string, bigint>>(
+    const balancesAfter = outBalances.reduce<Record<Address, bigint>>(
       (acc, b) => {
-        acc[b.token.toLowerCase()] = b.balance;
+        acc[b.token.toLowerCase() as Address] = b.balance;
         return acc;
       },
       {},

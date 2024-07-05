@@ -1,4 +1,5 @@
 import {
+  Address,
   decimals,
   NetworkType,
   PartialRecord,
@@ -35,7 +36,7 @@ interface GetBalanceAtResponse {
 }
 
 export interface GetTotalTokensOnProtocolProps {
-  currentTokenData: Record<SupportedToken, string>;
+  currentTokenData: Record<SupportedToken, Address>;
   tokensList: Record<string, TokenData>;
   chainId: number;
   network: NetworkType;
@@ -127,7 +128,7 @@ export class GearboxRewardsExtraApy {
   }
 
   private static async getTokenTotal(
-    token: string,
+    token: Address,
     chainId: number,
     tokensList: Record<string, TokenData>,
   ) {

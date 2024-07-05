@@ -1,4 +1,4 @@
-import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
+import { Address, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 
 import {
   MultiCallStructOutput,
@@ -23,8 +23,8 @@ export type PathFinderResult = Omit<
 };
 
 export interface PathFinderOpenStrategyResult extends PathFinderResult {
-  balances: Record<string, bigint>;
-  minBalances: Record<string, bigint>;
+  balances: Record<Address, bigint>;
+  minBalances: Record<Address, bigint>;
 }
 
 export interface PathFinderCloseResult extends PathFinderResult {

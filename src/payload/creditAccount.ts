@@ -1,12 +1,18 @@
-import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
+import { Address, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 
-import {
-  CreditAccountDataStructOutput,
-  TokenBalanceStructOutput,
-} from "../types/IDataCompressorV3";
+import { CreditAccountDataStructOutput } from "../types/IDataCompressorV3";
 import { PartialKeys } from "../utils/types";
 
-export type CaTokenBalance = ExcludeArrayProps<TokenBalanceStructOutput>;
+export interface CaTokenBalance {
+  token: Address;
+  balance: bigint;
+  isForbidden: boolean;
+  isEnabled: boolean;
+  isQuoted: boolean;
+  quota: bigint;
+  quotaRate: bigint;
+  quotaCumulativeIndexLU: bigint;
+}
 
 export type CreditAccountDataPayload = PartialKeys<
   ExcludeArrayProps<CreditAccountDataStructOutput>,

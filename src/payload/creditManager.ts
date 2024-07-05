@@ -1,21 +1,28 @@
-import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
+import { Address, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
 import { ICreditFacadeV2 } from "../types";
-import {
-  CreditManagerDataStructOutput,
-  CreditManagerDebtParamsStructOutput,
-  QuotaInfoStructOutput,
-} from "../types/IDataCompressorV3";
+import { CreditManagerDataStructOutput } from "../types/IDataCompressorV3";
 
-export type CreditManagerDebtParamsSDK =
-  ExcludeArrayProps<CreditManagerDebtParamsStructOutput>;
+export interface CreditManagerDebtParamsSDK {
+  creditManager: Address;
+  borrowed: bigint;
+  limit: bigint;
+  availableToBorrow: bigint;
+}
 
-export type QuotaInfo = ExcludeArrayProps<QuotaInfoStructOutput>;
+export interface QuotaInfo {
+  token: Address;
+  rate: bigint;
+  quotaIncreaseFee: bigint;
+  totalQuoted: bigint;
+  limit: bigint;
+  isActive: boolean;
+}
 
 export interface AdapterPayload {
-  allowedContract: string;
-  adapter: string;
+  allowedContract: Address;
+  adapter: Address;
 }
 
 export type TotalDebt = ExcludeArrayProps<

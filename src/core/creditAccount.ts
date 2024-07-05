@@ -1,4 +1,5 @@
 import {
+  Address,
   decimals,
   extractTokenData,
   PERCENTAGE_DECIMALS,
@@ -130,11 +131,11 @@ export class CreditAccountData {
   readonly isSuccessful: boolean;
   readonly priceFeedsNeeded: string[];
 
-  readonly addr: string;
-  readonly borrower: string;
-  readonly creditManager: string;
-  readonly creditFacade: string;
-  readonly underlyingToken: string;
+  readonly addr: Address;
+  readonly borrower: Address;
+  readonly creditManager: Address;
+  readonly creditFacade: Address;
+  readonly underlyingToken: Address;
   readonly since: number;
   readonly expirationDate: number;
   readonly version: number;
@@ -171,11 +172,11 @@ export class CreditAccountData {
     this.isSuccessful = payload.isSuccessful;
     this.priceFeedsNeeded = payload.priceFeedsNeeded;
 
-    this.addr = payload.addr.toLowerCase();
-    this.borrower = payload.borrower.toLowerCase();
-    this.creditManager = payload.creditManager.toLowerCase();
-    this.creditFacade = payload.creditFacade.toLowerCase();
-    this.underlyingToken = payload.underlying.toLowerCase();
+    this.addr = payload.addr.toLowerCase() as Address;
+    this.borrower = payload.borrower.toLowerCase() as Address;
+    this.creditManager = payload.creditManager.toLowerCase() as Address;
+    this.creditFacade = payload.creditFacade.toLowerCase() as Address;
+    this.underlyingToken = payload.underlying.toLowerCase() as Address;
     this.since = Number(payload.since);
     this.expirationDate = Number(payload.expirationDate);
     this.version = Number(payload.cfVersion);
@@ -214,7 +215,7 @@ export class CreditAccountData {
     );
 
     payload.balances.forEach(b => {
-      const token = b.token.toLowerCase();
+      const token = b.token.toLowerCase() as Address;
       const balance: CaTokenBalance = {
         token,
         balance: b.balance,
@@ -249,8 +250,8 @@ export class CreditAccountData {
     balances: Record<string, bigint>,
     prices: Record<string, bigint>,
     tokens: Record<string, TokenData>,
-  ): Array<[string, bigint]> {
-    return Object.entries(balances).sort(
+  ): Array<[Address, bigint]> {
+    return (Object.entries(balances) as Array<[Address, bigint]>).sort(
       ([addr1, amount1], [addr2, amount2]) => {
         const addr1Lc = addr1.toLowerCase();
         const addr2Lc = addr2.toLowerCase();
@@ -599,7 +600,7 @@ export class CreditAccountData {
     const quotaDecrease = Object.keys(allowedToSpend).reduce<
       Record<string, Asset>
     >((acc, token) => {
-      const ch = this.getSingleQuotaChange(token, 0n, props);
+      const ch = this.getSingleQuotaChange(token as Address, 0n, props);
       if (ch) acc[ch.token] = ch;
       return acc;
     }, {});
@@ -627,7 +628,11 @@ export class CreditAccountData {
     const quotaIncrease = Object.keys(allowedToObtain).reduce<
       Record<string, Asset>
     >((acc, token) => {
-      const ch = this.getSingleQuotaChange(token, maxQuotaIncrease, props);
+      const ch = this.getSingleQuotaChange(
+        token as Address,
+        maxQuotaIncrease,
+        props,
+      );
       if (ch) acc[ch.token] = ch;
       return acc;
     }, {});
@@ -669,7 +674,7 @@ export class CreditAccountData {
   }
 
   private static getSingleQuotaChange(
-    token: string,
+    token: Address,
     unsafeMaxQuotaIncrease: bigint,
     props: CalcQuotaUpdateProps,
   ) {
