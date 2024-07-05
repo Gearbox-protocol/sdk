@@ -1,10 +1,6 @@
 import { Address, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 
-import {
-  MultiCallStructOutput,
-  RouterResultStructOutput,
-  SwapTaskStruct,
-} from "../types/IRouterV3";
+import { RouterResultStructOutput, SwapTaskStruct } from "../types/IRouterV3";
 
 export enum SwapOperation {
   EXACT_INPUT,
@@ -12,7 +8,10 @@ export enum SwapOperation {
   EXACT_OUTPUT,
 }
 
-export type MultiCall = ExcludeArrayProps<MultiCallStructOutput>;
+export interface MultiCall {
+  target: Address;
+  callData: Address;
+}
 export type SwapTask = ExcludeArrayProps<SwapTaskStruct>;
 
 export type PathFinderResult = Omit<

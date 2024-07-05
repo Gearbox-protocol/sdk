@@ -7,6 +7,7 @@ import {
   toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
+import { encodeFunctionData } from "viem";
 
 import { TxParser } from "../parsers/txParser";
 import { MultiCall } from "../pathfinder/core";
@@ -21,6 +22,10 @@ import {
   ICreditFacadeV2Extended__factory,
   ICreditFacadeV3Multicall__factory,
 } from "../types";
+import {
+  iConvexV1BaseRewardPoolAdapterAbi,
+  iCreditFacadeV3MulticallAbi,
+} from "../types-viem";
 import { Asset } from "./assets";
 
 export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
@@ -58,7 +63,7 @@ export class CreditManagerData {
   readonly collateralTokens: Array<Address> = [];
   readonly supportedTokens: Record<Address, true> = {};
   readonly usableTokens: Record<string, true> = {};
-  readonly adapters: Record<string, string> = {};
+  readonly adapters: Record<string, Address> = {};
   readonly contractsByAdapter: Record<string, string> = {};
   readonly liquidationThresholds: Record<string, bigint>;
   readonly quotas: Record<string, QuotaInfo>;
@@ -103,8 +108,8 @@ export class CreditManagerData {
     );
 
     payload.adapters.forEach(a => {
-      const contractLc = a.targetContract.toLowerCase();
-      const adaptertLc = a.adapter.toLowerCase();
+      const contractLc = a.targetContract.toLowerCase() as Address;
+      const adaptertLc = a.adapter.toLowerCase() as Address;
 
       this.adapters[contractLc] = adaptertLc;
       this.contractsByAdapter[adaptertLc] = contractLc;
@@ -181,196 +186,135 @@ export class CreditManagerData {
     return !!this.quotas[token];
   }
 
-  encodeAddCollateralV2(tokenAddress: string, amount: bigint): MultiCall {
+  encodeAddCollateralV3(tokenAddress: Address, amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "addCollateral",
-          [tokenAddress, amount],
-        ),
-    };
-  }
-  encodeAddCollateralV3(tokenAddress: string, amount: bigint): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "addCollateral",
-          [tokenAddress, amount],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "addCollateral",
+        args: [tokenAddress, amount],
+      }),
     };
   }
 
   encodeAddCollateralWithPermitV3(
-    tokenAddress: string,
+    tokenAddress: Address,
     amount: bigint,
     deadline: bigint,
-    v: bigint | number,
-    r: string,
-    s: string,
+    v: number,
+    r: Address,
+    s: Address,
   ): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "addCollateralWithPermit",
-          [tokenAddress, amount, deadline, v, r, s],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "addCollateralWithPermit",
+        args: [tokenAddress, amount, deadline, v, r, s],
+      }),
     };
   }
 
-  encodeIncreaseDebtV2(amount: bigint): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "increaseDebt",
-          [amount],
-        ),
-    };
-  }
   encodeIncreaseDebtV3(amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "increaseDebt",
-          [amount],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "increaseDebt",
+        args: [amount],
+      }),
     };
   }
 
-  encodeDecreaseDebtV2(amount: bigint): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "decreaseDebt",
-          [amount],
-        ),
-    };
-  }
   encodeDecreaseDebtV3(amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "decreaseDebt",
-          [amount],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "decreaseDebt",
+        args: [amount],
+      }),
     };
   }
 
-  encodeEnableTokenV2(token: string): MultiCall {
+  encodeEnableTokenV3(token: Address): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "enableToken",
-          [token],
-        ),
-    };
-  }
-  encodeEnableTokenV3(token: string): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "enableToken",
-          [token],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "enableToken",
+        args: [token],
+      }),
     };
   }
 
-  encodeDisableTokenV2(token: string): MultiCall {
+  encodeDisableTokenV3(token: Address): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "disableToken",
-          [token],
-        ),
-    };
-  }
-  encodeDisableTokenV3(token: string): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "disableToken",
-          [token],
-        ),
-    };
-  }
-
-  encodeRevertIfReceivedLessThanV2(assets: Array<Asset>): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "revertIfReceivedLessThan",
-          [assets],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "disableToken",
+        args: [token],
+      }),
     };
   }
 
   encodeUpdateQuotaV3(
-    token: string,
+    token: Address,
     quotaChange: bigint,
     minQuota: bigint,
   ): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "updateQuota",
-          [token, quotaChange, minQuota],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "updateQuota",
+        args: [token, quotaChange, minQuota],
+      }),
     };
   }
 
   encodeWithdrawCollateralV3(
-    token: string,
+    token: Address,
     amount: bigint,
-    to: string,
+    to: Address,
   ): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "withdrawCollateral",
-          [token, amount, to],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "withdrawCollateral",
+        args: [token, amount, to],
+      }),
     };
   }
 
   static withdrawAllAndUnwrap_Convex(
-    address: string,
+    address: Address,
     claim: boolean,
   ): MultiCall {
     return {
       target: address,
-      callData:
-        IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
-          "withdrawDiffAndUnwrap",
-          [1, claim],
-        ),
+      callData: encodeFunctionData({
+        abi: iConvexV1BaseRewardPoolAdapterAbi,
+        functionName: "withdrawDiffAndUnwrap",
+        args: [1n, claim],
+      }),
     };
   }
 
   encodeOnDemandPriceUpdateV3(
-    token: string,
+    token: Address,
     reserve: boolean,
-    data: string,
+    data: Address,
   ): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "onDemandPriceUpdate",
-          [token, reserve, data],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "onDemandPriceUpdate",
+        args: [token, reserve, data],
+      }),
     };
   }
 
