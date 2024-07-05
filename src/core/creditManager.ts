@@ -18,15 +18,9 @@ import {
 } from "../payload/creditManager";
 import { LinearModel } from "../payload/pool";
 import {
-  IConvexV1BaseRewardPoolAdapter__factory,
-  ICreditFacadeV2Extended__factory,
-  ICreditFacadeV3Multicall__factory,
-} from "../types";
-import {
   iConvexV1BaseRewardPoolAdapterAbi,
   iCreditFacadeV3MulticallAbi,
 } from "../types-viem";
-import { Asset } from "./assets";
 
 export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
 

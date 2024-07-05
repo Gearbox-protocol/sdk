@@ -92,7 +92,7 @@ export class PathFinderV1 {
 
       unique[key] = {
         amount: r.amount,
-        calls: r.calls,
+        calls: r.calls as Array<MultiCall>,
       };
     });
 
@@ -125,7 +125,7 @@ export class PathFinderV1 {
 
     return {
       amount: result.amount,
-      calls: result.calls,
+      calls: result.calls as Array<MultiCall>,
     };
   }
 
@@ -184,7 +184,7 @@ export class PathFinderV1 {
 
     return {
       balances: balancesAfter,
-      calls: result[1].calls,
+      calls: result[1].calls as Array<MultiCall>,
     };
   }
 
@@ -252,7 +252,7 @@ export class PathFinderV1 {
         PathFinderV1.compare(
           best,
           {
-            calls: pathFinderResult.calls,
+            calls: pathFinderResult.calls as Array<MultiCall>,
             amount: pathFinderResult.amount,
             gasUsage: pathFinderResult.gasUsage,
           },

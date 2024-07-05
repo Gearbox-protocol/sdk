@@ -1,6 +1,4 @@
 import {
-  AwaitedRes,
-  ExcludeArrayProps,
   getPriceFeedsByToken,
   MCall,
   NetworkType,

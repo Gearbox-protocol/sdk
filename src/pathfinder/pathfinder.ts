@@ -12,6 +12,7 @@ import { CreditManagerData } from "../core/creditManager";
 import { IRouterV3, IRouterV3__factory } from "../types";
 import { BalanceStruct } from "../types/IRouterV3";
 import {
+  MultiCall,
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,
   PathFinderResult,
@@ -115,7 +116,7 @@ export class PathFinder {
       unique[key] = {
         amount: r.amount,
         minAmount: r.minAmount,
-        calls: r.calls,
+        calls: r.calls as Array<MultiCall>,
       };
     });
 
@@ -146,7 +147,7 @@ export class PathFinder {
     return {
       amount: result.amount,
       minAmount: result.minAmount,
-      calls: result.calls,
+      calls: result.calls as Array<MultiCall>,
     };
   }
 
@@ -213,7 +214,7 @@ export class PathFinder {
         ...balancesAfter,
         [target]: (expectedBalances[target]?.balance || 0n) + result.minAmount,
       },
-      calls: result.calls,
+      calls: result.calls as Array<MultiCall>,
       minAmount: result.minAmount,
       amount: result.amount,
     };
@@ -305,7 +306,7 @@ export class PathFinder {
     const bestResult = results.reduce<PathFinderResult>(
       (best, pathFinderResult) =>
         PathFinder.compare(best, {
-          calls: pathFinderResult.calls,
+          calls: pathFinderResult.calls as Array<MultiCall>,
           amount: pathFinderResult.amount,
           minAmount: pathFinderResult.minAmount,
         }),

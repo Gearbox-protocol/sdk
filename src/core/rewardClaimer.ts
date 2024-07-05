@@ -6,6 +6,7 @@ import {
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 import { Provider } from "ethers";
+import { Address } from "viem";
 
 import { MultiCall } from "../pathfinder/core";
 import { CreditAccountData } from "./creditAccount";
@@ -22,8 +23,8 @@ export interface Rewards {
 }
 
 export interface AdapterWithType {
-  contractAddress: string;
-  adapter: string;
+  contractAddress: Address;
+  adapter: Address;
   contract: SupportedContract;
 }
 

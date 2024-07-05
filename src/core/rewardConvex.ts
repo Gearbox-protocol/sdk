@@ -17,6 +17,7 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import { Interface, Provider } from "ethers";
+import { Address } from "viem";
 
 import { getCVXMintAmount } from "../apy";
 import { AURA_BOOSTER_INTERFACE } from "../apy/auraAbi";
@@ -42,8 +43,8 @@ export interface RewardDistribution {
   protocol: Rewards["protocol"];
   token: SupportedToken;
 
-  adapter: string;
-  contractAddress: string;
+  adapter: Address;
+  contractAddress: Address;
 }
 
 interface ParseProps {
@@ -120,7 +121,7 @@ export class RewardConvex {
       .map(
         ([contract, adapter]): AdapterWithType => ({
           adapter,
-          contractAddress: contract,
+          contractAddress: contract as Address,
           contract: contractsByAddress[contract.toLowerCase()],
         }),
       );
@@ -254,8 +255,9 @@ export class RewardConvex {
     auraResponse,
     auraTotalSupply,
   }: ParseProps): Array<Rewards> {
-    const callData =
-      RewardConvex.poolInterface.encodeFunctionData("getReward()");
+    const callData = RewardConvex.poolInterface.encodeFunctionData(
+      "getReward()",
+    ) as Address;
 
     const rewardsRecord: PartialRecord<SupportedContract, Rewards> = {};
 
@@ -366,7 +368,7 @@ export class RewardConvex {
     rewardsResp: Array<bigint>,
 
     totalSupply: bigint,
-    callData: string,
+    callData: Address,
     multiplier: bigint,
   ) {
     // create base

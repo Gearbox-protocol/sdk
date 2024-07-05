@@ -9,6 +9,7 @@ import {
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
+import { Address } from "viem";
 
 import { IConvexToken__factory } from "../types";
 import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
@@ -121,8 +122,9 @@ describe("RewardConvex test", () => {
       auraTotalSupply: 0n,
     });
 
-    const callData =
-      RewardConvex.poolInterface.encodeFunctionData("getReward()");
+    const callData = RewardConvex.poolInterface.encodeFunctionData(
+      "getReward()",
+    ) as Address;
 
     const expected: Array<Rewards> = [
       {
