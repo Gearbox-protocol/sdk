@@ -3,6 +3,7 @@ import { BigNumberish } from "ethers";
 
 import { ICreditFacadeV2 } from "../types";
 import { CreditManagerDataStructOutput } from "../types/IDataCompressorV3";
+import { PoolDataPayload } from "./pool";
 
 export interface CreditManagerDebtParamsSDK {
   creditManager: Address;
@@ -29,8 +30,37 @@ export type TotalDebt = ExcludeArrayProps<
   Awaited<ReturnType<ICreditFacadeV2["totalDebt"]>>
 >;
 
-export type CreditManagerDataPayload =
-  ExcludeArrayProps<CreditManagerDataStructOutput>;
+export type CreditManagerDataPayload = Omit<
+  ExcludeArrayProps<CreditManagerDataStructOutput>,
+  | "collateralTokens"
+  | "adapters"
+  | "liquidationThresholds"
+  | "maxEnabledTokensLength"
+  | "feeInterest"
+  | "feeLiquidation"
+  | "liquidationDiscount"
+  | "feeLiquidationExpired"
+  | "liquidationDiscountExpired"
+  | "quotas"
+  | "lirm"
+  | "maxEnabledTokensLength"
+> & {
+  collateralTokens: readonly Address[];
+
+  adapters: readonly { targetContract: Address; adapter: Address }[];
+
+  liquidationThresholds: readonly bigint[];
+
+  maxEnabledTokensLength: number;
+  feeInterest: number;
+  feeLiquidation: number;
+  liquidationDiscount: number;
+  feeLiquidationExpired: number;
+  liquidationDiscountExpired: number;
+
+  quotas: PoolDataPayload["quotas"];
+  lirm: PoolDataPayload["lirm"];
+};
 
 export interface ChartsCreditManagerPayload {
   addr: string;

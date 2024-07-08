@@ -1,14 +1,7 @@
 import { Address, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
 
-import {
-  LinearModelStructOutput,
-  PoolDataStructOutput,
-} from "../types/IDataCompressorV3";
-
-export type Numberify<T> = {
-  [P in keyof T]: T[P] extends bigint ? number : T[P];
-};
+import { PoolDataStructOutput } from "../types/IDataCompressorV3";
 
 export type PoolDataPayload = ExcludeArrayProps<
   Omit<
@@ -16,18 +9,35 @@ export type PoolDataPayload = ExcludeArrayProps<
     "zappers" | "quotas" | "lirm" | "creditManagerDebtParams"
   >
 > & {
-  readonly lirm: Omit<
-    ExcludeArrayProps<Numberify<PoolDataStructOutput["lirm"]>>,
-    "version"
-  > & { version: bigint };
-  quotas: readonly (Omit<
-    ExcludeArrayProps<PoolDataStructOutput["quotas"][number]>,
-    "rate" | "quotaIncreaseFee"
-  > & { rate: number; quotaIncreaseFee: number })[];
+  readonly lirm: {
+    interestModel: string;
+    version: bigint;
+    U_1: number;
+    U_2: number;
+    R_base: number;
+    R_slope1: number;
+    R_slope2: number;
+    R_slope3: number;
+    isBorrowingMoreU2Forbidden: boolean;
+  };
+
+  quotas: readonly {
+    token: string;
+    rate: number;
+    quotaIncreaseFee: number;
+    totalQuoted: bigint;
+    limit: bigint;
+    isActive: boolean;
+  }[];
+
   zappers: readonly PoolZapper[];
-  creditManagerDebtParams: readonly ExcludeArrayProps<
-    PoolDataStructOutput["creditManagerDebtParams"][number]
-  >[];
+
+  creditManagerDebtParams: readonly {
+    creditManager: string;
+    borrowed: bigint;
+    limit: bigint;
+    availableToBorrow: bigint;
+  }[];
 };
 export interface PoolDataExtraPayload {
   stakedDieselToken: Array<string>;
@@ -35,12 +45,17 @@ export interface PoolDataExtraPayload {
   supplyAPY7D: number | undefined;
 }
 
-export type LinearModel = Omit<
-  ExcludeArrayProps<LinearModelStructOutput>,
-  "version"
-> & {
+export interface LinearModel {
+  interestModel: string;
   version: number;
-};
+  U_1: bigint;
+  U_2: bigint;
+  R_base: bigint;
+  R_slope1: bigint;
+  R_slope2: bigint;
+  R_slope3: bigint;
+  isBorrowingMoreU2Forbidden: boolean;
+}
 
 export interface PoolZapper {
   zapper: Address;

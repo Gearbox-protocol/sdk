@@ -82,7 +82,7 @@ export class CreditManagerData {
 
     this.baseBorrowRate = Number(
       (payload.baseBorrowRate *
-        (payload.feeInterest + PERCENTAGE_FACTOR) *
+        (BigInt(payload.feeInterest) + PERCENTAGE_FACTOR) *
         PERCENTAGE_DECIMALS) /
         RAY,
     );
@@ -120,8 +120,8 @@ export class CreditManagerData {
     this.quotas = payload.quotas.reduce<Record<string, QuotaInfo>>((acc, q) => {
       acc[q.token.toLowerCase()] = {
         token: q.token.toLowerCase() as Address,
-        rate: q.rate * PERCENTAGE_DECIMALS,
-        quotaIncreaseFee: q.quotaIncreaseFee,
+        rate: BigInt(q.rate) * PERCENTAGE_DECIMALS,
+        quotaIncreaseFee: BigInt(q.quotaIncreaseFee),
         totalQuoted: q.totalQuoted,
         limit: q.limit,
         isActive: q.isActive,
@@ -132,12 +132,12 @@ export class CreditManagerData {
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase(),
-      U_1: payload.lirm.U_1,
-      U_2: payload.lirm.U_2,
-      R_base: payload.lirm.R_base,
-      R_slope1: payload.lirm.R_slope1,
-      R_slope2: payload.lirm.R_slope2,
-      R_slope3: payload.lirm.R_slope3,
+      U_1: BigInt(payload.lirm.U_1),
+      U_2: BigInt(payload.lirm.U_2),
+      R_base: BigInt(payload.lirm.R_base),
+      R_slope1: BigInt(payload.lirm.R_slope1),
+      R_slope2: BigInt(payload.lirm.R_slope2),
+      R_slope3: BigInt(payload.lirm.R_slope3),
       version: Number(payload?.lirm?.version),
       isBorrowingMoreU2Forbidden: payload?.lirm?.isBorrowingMoreU2Forbidden,
     };
