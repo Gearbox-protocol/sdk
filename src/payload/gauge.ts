@@ -1,5 +1,12 @@
 import { Address } from "viem";
 
+export interface MultiVote {
+  votingContract: Address;
+  voteAmount: bigint;
+  isIncrease: boolean;
+  extraData: Address;
+}
+
 export interface GaugeQuotaParams {
   token: Address;
   minRate: number;
