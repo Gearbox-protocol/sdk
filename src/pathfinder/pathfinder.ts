@@ -27,8 +27,8 @@ const GAS_PER_BLOCK = 400e6;
 interface FindAllSwapsProps {
   creditAccount: CreditAccountData;
   swapOperation: SwapOperation;
-  tokenIn: string;
-  tokenOut: string;
+  tokenIn: Address;
+  tokenOut: Address;
   amount: bigint;
   leftoverAmount: bigint;
   slippage: number;
@@ -36,8 +36,8 @@ interface FindAllSwapsProps {
 
 interface FindOneTokenPathProps {
   creditAccount: CreditAccountData;
-  tokenIn: string;
-  tokenOut: string;
+  tokenIn: Address;
+  tokenOut: Address;
   amount: bigint;
   slippage: number;
 }
@@ -56,7 +56,7 @@ interface FindOpenStrategyPathProps {
   creditManager: CreditManagerData;
   expectedBalances: Record<string, Asset>;
   leftoverBalances: Record<string, Asset>;
-  target: string;
+  target: Address;
   slippage: number;
 }
 
