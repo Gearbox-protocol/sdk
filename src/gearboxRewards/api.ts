@@ -33,20 +33,20 @@ import {
 } from "./merklAPI";
 
 export interface GearboxExtraMerkleLmReward {
-  poolToken: string;
-  rewardToken: string;
+  poolToken: Address;
+  rewardToken: Address;
   amount: bigint;
   type: "extraMerkle";
 }
 export interface GearboxStakedV3LmReward {
-  poolToken: string;
-  rewardToken: string;
+  poolToken: Address;
+  rewardToken: Address;
   amount: bigint;
   type: "stakedV3";
 }
 export interface GearboxMerkleV2LmReward {
-  poolToken?: string;
-  rewardToken: string;
+  poolToken?: Address;
+  rewardToken: Address;
   amount: bigint;
   type: "merkleV2";
 }
@@ -57,12 +57,12 @@ export type GearboxLmReward =
   | GearboxExtraMerkleLmReward;
 
 interface GetTotalClaimedProps {
-  account: string;
+  account: Address;
   distributor: IAirdropDistributor;
 }
 
 interface GetAmountOnContractProps {
-  account: string;
+  account: Address;
   merkleData: MerkleDistributorInfo | undefined;
 }
 
@@ -96,10 +96,10 @@ const DEFAULT_POOLS_WITH_EXTRA_REWARDS: PoolsWithExtraRewardsList = {
 type ReportHandler = (e: unknown, description?: string) => void;
 
 export interface GetLmRewardsInfoProps {
-  currentTokenData: Record<SupportedToken, string>;
+  currentTokenData: Record<SupportedToken, Address>;
   provider: Provider | Signer;
 
-  multicallAddress: string;
+  multicallAddress: Address;
 
   poolsWithExtraRewards?: PoolsWithExtraRewardsList;
   network: NetworkType;
@@ -108,21 +108,21 @@ export interface GetLmRewardsInfoProps {
 
 export interface GetLmRewardsProps {
   baseRewardPoolsInfo: Record<string, FarmInfo>;
-  currentTokenData: Record<SupportedToken, string>;
-  account: string;
+  currentTokenData: Record<SupportedToken, Address>;
+  account: Address;
   provider: Provider | Signer;
 
-  airdropDistributorAddress: string | undefined;
+  airdropDistributorAddress: Address | undefined;
   network: NetworkType;
   reportError?: ReportHandler;
 }
 
 export interface ClaimLmRewardsV2Props {
   signer: Signer;
-  account: string;
+  account: Address;
   provider: Provider;
 
-  airdropDistributorAddress: string | undefined;
+  airdropDistributorAddress: Address | undefined;
   network: NetworkType;
 }
 
@@ -359,7 +359,7 @@ export class GearboxRewardsApi {
     network,
     reportError,
   }: GetLmRewardsProps) {
-    const poolTokens = Object.keys(baseRewardPoolsInfo);
+    const poolTokens = Object.keys(baseRewardPoolsInfo) as Array<Address>;
 
     const farmedCalls: Array<MCall<IFarmingPool["interface"]>> = poolTokens.map(
       address => ({
@@ -391,7 +391,7 @@ export class GearboxRewardsApi {
     )?.data;
 
     const PREFIX = "ERC20";
-    const REWARD_KEYS_RECORD = poolTokens.reduce<Record<string, string>>(
+    const REWARD_KEYS_RECORD = poolTokens.reduce<Record<string, Address>>(
       (acc, t) => {
         const key = [PREFIX, getAddress(t)].join("_");
         acc[key] = t;
@@ -403,7 +403,7 @@ export class GearboxRewardsApi {
     const extraRewards = Object.entries(merkleXYZLM || {}).reduce<
       Array<GearboxLmReward>
     >((acc, [k, v]) => {
-      const rewardToken = k.toLowerCase();
+      const rewardToken = k.toLowerCase() as Address;
 
       Object.entries(v.reasons).forEach(([key, reason]) => {
         const poolToken = REWARD_KEYS_RECORD[key];
