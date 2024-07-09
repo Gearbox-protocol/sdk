@@ -16,7 +16,6 @@ import {
   StateMutability,
   TypedContractMethod,
 } from "../types/common";
-import { iMulticall3Abi } from "../types-viem";
 
 export async function callRepeater<T>(
   call: () => Promise<T>,
