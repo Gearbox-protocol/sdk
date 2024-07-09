@@ -20,11 +20,12 @@ import {
   AuraStakedToken,
   auraTokens,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
+import { Address } from "viem";
 
 import { CaTokenBalance } from "../payload/creditAccount";
 
 export interface PathOption {
-  target: string;
+  target: Address;
   option: number;
   totalOptions: number;
 }

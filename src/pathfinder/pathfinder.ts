@@ -1,16 +1,15 @@
+import { getConnectors, NetworkType } from "@gearbox-protocol/sdk-gov";
 import {
   Address,
-  AwaitedRes,
-  getConnectors,
-  NetworkType,
-} from "@gearbox-protocol/sdk-gov";
-import { Provider, Signer } from "ethers";
+  getContract,
+  GetContractReturnType,
+  PublicClient,
+} from "viem";
 
 import { Asset } from "../core/assets";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
-import { IRouterV3, IRouterV3__factory } from "../types";
-import { BalanceStruct } from "../types/IRouterV3";
+import { iRouterV3Abi } from "../types-viem";
 import {
   MultiCall,
   PathFinderCloseResult,
@@ -21,8 +20,8 @@ import {
 } from "./core";
 import { PathOptionFactory } from "./pathOptions";
 
-const MAX_GAS_PER_ROUTE = 200e6;
-const GAS_PER_BLOCK = 400e6;
+const MAX_GAS_PER_ROUTE = 200000000n;
+const GAS_PER_BLOCK = 400000000n;
 
 interface FindAllSwapsProps {
   creditAccount: CreditAccountData;
@@ -48,7 +47,6 @@ interface FindBestClosePathProps {
   expectedBalances: Record<string, Asset>;
   leftoverBalances: Record<string, Asset>;
   slippage: number;
-  noConcurrency?: boolean;
   network: NetworkType;
 }
 
@@ -60,18 +58,27 @@ interface FindOpenStrategyPathProps {
   slippage: number;
 }
 
+interface Balance {
+  token: Address;
+  balance: bigint;
+}
+
 export class PathFinder {
-  pathFinder: IRouterV3;
+  pathFinder: GetContractReturnType<typeof iRouterV3Abi, PublicClient>;
   network: NetworkType;
 
-  protected readonly _connectors: Array<string>;
+  protected readonly _connectors: Array<Address>;
 
   constructor(
-    address: string,
-    provider: Signer | Provider,
+    address: Address,
+    provider: PublicClient,
     network: NetworkType = "Mainnet",
   ) {
-    this.pathFinder = IRouterV3__factory.connect(address, provider);
+    this.pathFinder = getContract({
+      address,
+      abi: iRouterV3Abi,
+      client: provider,
+    });
     this.network = network;
 
     this._connectors = getConnectors(network);
@@ -98,11 +105,10 @@ export class PathFinder {
       leftoverAmount,
     };
 
-    const results = await this.pathFinder.findAllSwaps.staticCall(
-      swapTask,
-      slippage,
+    const { result: results } = await this.pathFinder.simulate.findAllSwaps(
+      [swapTask, BigInt(slippage)],
       {
-        gasLimit: GAS_PER_BLOCK,
+        gas: GAS_PER_BLOCK,
       },
     );
 
@@ -132,15 +138,17 @@ export class PathFinder {
   }: FindOneTokenPathProps): Promise<PathFinderResult> {
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    const result = await this.pathFinder.findOneTokenPath.staticCall(
-      tokenIn,
-      amount,
-      tokenOut,
-      creditAccount.addr,
-      connectors,
-      slippage,
+    const { result } = await this.pathFinder.simulate.findOneTokenPath(
+      [
+        tokenIn,
+        amount,
+        tokenOut,
+        creditAccount.addr,
+        connectors,
+        BigInt(slippage),
+      ],
       {
-        gasLimit: GAS_PER_BLOCK,
+        gas: GAS_PER_BLOCK,
       },
     );
 
@@ -172,30 +180,26 @@ export class PathFinder {
   }: FindOpenStrategyPathProps): Promise<PathFinderOpenStrategyResult> {
     const target = targetUntyped as Address;
 
-    const input: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
+    const input: Array<Balance> = cm.collateralTokens.map(token => ({
       token,
       balance: expectedBalances[token]?.balance || 0n,
     }));
 
-    const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
+    const leftover: Array<Balance> = cm.collateralTokens.map(token => ({
       token,
       balance: leftoverBalances[token]?.balance || 1n,
     }));
 
     const connectors = this.getAvailableConnectors(cm.supportedTokens);
 
-    const [outBalances, result] =
-      await this.pathFinder.findOpenStrategyPath.staticCall(
-        cm.address,
-        input,
-        leftover,
-        target,
-        connectors,
-        slippage,
-        {
-          gasLimit: GAS_PER_BLOCK,
-        },
-      );
+    const {
+      result: [outBalances, result],
+    } = await this.pathFinder.simulate.findOpenStrategyPath(
+      [cm.address, input, leftover, target, connectors, BigInt(slippage)],
+      {
+        gas: GAS_PER_BLOCK,
+      },
+    );
 
     const balancesAfter = outBalances.reduce<Record<Address, bigint>>(
       (acc, b) => {
@@ -235,17 +239,16 @@ export class PathFinder {
     expectedBalances,
     leftoverBalances,
     slippage,
-    noConcurrency = false,
     network,
   }: FindBestClosePathProps): Promise<PathFinderCloseResult> {
-    const loopsPerTx = Math.floor(GAS_PER_BLOCK / MAX_GAS_PER_ROUTE);
+    const loopsPerTx = GAS_PER_BLOCK / MAX_GAS_PER_ROUTE;
     const pathOptions = PathOptionFactory.generatePathOptions(
       creditAccount.allBalances,
-      loopsPerTx,
+      Number(loopsPerTx),
       network,
     );
 
-    const expected: Array<BalanceStruct> = cm.collateralTokens.map(token => {
+    const expected: Array<Balance> = cm.collateralTokens.map(token => {
       // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
       // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
       // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
@@ -256,59 +259,39 @@ export class PathFinder {
       };
     });
 
-    const leftover: Array<BalanceStruct> = cm.collateralTokens.map(token => ({
+    const leftover: Array<Balance> = cm.collateralTokens.map(token => ({
       token,
       balance: leftoverBalances[token]?.balance || 1n,
     }));
 
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    let results: Array<
-      AwaitedRes<IRouterV3["findBestClosePath"]["staticCall"]>
-    > = [];
-    if (noConcurrency) {
-      for (const po of pathOptions) {
-        results.push(
-          await this.pathFinder.findBestClosePath.staticCall(
+    const results = await Promise.all(
+      pathOptions.map(po =>
+        this.pathFinder.simulate.findBestClosePath(
+          [
             creditAccount.addr,
             expected,
             leftover,
             connectors,
-            slippage,
+            BigInt(slippage),
             po,
             loopsPerTx,
             false,
-            {
-              gasLimit: GAS_PER_BLOCK,
-            },
-          ),
-        );
-      }
-    } else {
-      const requests = pathOptions.map(po =>
-        this.pathFinder.findBestClosePath.staticCall(
-          creditAccount.addr,
-          expected,
-          leftover,
-          connectors,
-          slippage,
-          po,
-          loopsPerTx,
-          false,
+          ],
           {
-            gasLimit: GAS_PER_BLOCK,
+            gas: GAS_PER_BLOCK,
           },
         ),
-      );
-      results = await Promise.all(requests);
-    }
+      ),
+    );
 
     const bestResult = results.reduce<PathFinderResult>(
       (best, pathFinderResult) =>
         PathFinder.compare(best, {
-          calls: pathFinderResult.calls as Array<MultiCall>,
-          amount: pathFinderResult.amount,
-          minAmount: pathFinderResult.minAmount,
+          calls: pathFinderResult.result.calls as Array<MultiCall>,
+          amount: pathFinderResult.result.amount,
+          minAmount: pathFinderResult.result.minAmount,
         }),
       {
         amount: 0n,
@@ -342,7 +325,7 @@ export class PathFinder {
 
   static getAvailableConnectors(
     availableList: Record<string, bigint> | Record<string, true>,
-    connectors: string[],
+    connectors: Address[],
   ) {
     return connectors.filter(t => availableList[t] !== undefined);
   }
