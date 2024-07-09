@@ -1,10 +1,10 @@
 import {
   CHAINS,
-  ExcludeArrayProps,
   extractTokenData,
   isDieselStakedToken,
   MCall,
   multicall,
+  MULTICALL_ADDRESS,
   NetworkType,
   SupportedToken,
   toBigInt,
@@ -12,8 +12,8 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import { BytesLike, getAddress, Interface, Provider, Signer } from "ethers";
-import { Address } from "viem";
+import { getAddress, Interface, Provider, Signer } from "ethers";
+import { Address, PublicClient } from "viem";
 
 import {
   IAirdropDistributor,
@@ -21,11 +21,10 @@ import {
   IFarmingPool,
   IFarmingPool__factory,
 } from "../types";
-import { FarmAccounting } from "../types/IFarmingPool";
+import { iFarmingPoolAbi, iMulticall3Abi } from "../types-viem";
 import { makeTransactionCall } from "../utils/calls";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
-import { MULTICALL_EXTENDED_INTERFACE } from "./abi";
 import {
   MerkleXYZApi,
   MerkleXYZRewardsCampaignsResponse,
@@ -79,10 +78,19 @@ export interface MerkleDistributorInfo {
   >;
 }
 
-type FarmInfoOutput = ExcludeArrayProps<FarmAccounting.InfoStructOutput>;
-export type FarmInfo = FarmInfoOutput & {
+interface FarmInfoOutput {
+  finished: number;
+  duration: number;
+  reward: bigint;
+  balance: bigint;
+}
+export interface FarmInfo {
+  finished: bigint;
+  duration: bigint;
+  reward: bigint;
+  balance: bigint;
   symbol: SupportedToken;
-};
+}
 
 type PoolsWithExtraRewardsList = Record<NetworkType, Array<SupportedToken>>;
 
@@ -97,7 +105,7 @@ type ReportHandler = (e: unknown, description?: string) => void;
 
 export interface GetLmRewardsInfoProps {
   currentTokenData: Record<SupportedToken, Address>;
-  provider: Provider | Signer;
+  provider: PublicClient;
 
   multicallAddress: Address;
 
@@ -145,48 +153,47 @@ export class GearboxRewardsApi {
       ([symbol]) => isDieselStakedToken(symbol),
     );
 
-    const farmInfoCalls: Array<MCall<IFarmingPool["interface"]>> =
-      poolTokens.map(([, address]) => ({
-        address: address,
-        interface: IFarmingPool__factory.createInterface(),
-        method: "farmInfo()",
-      }));
+    const farmInfoCalls = poolTokens.map(([, address]) => ({
+      address,
+      abi: iFarmingPoolAbi,
+      functionName: "farmInfo",
+      args: [],
+    }));
 
-    const rewardTokenCalls: Array<MCall<Interface>> = poolTokens.map(
-      ([, address]) => ({
-        address: address,
-        interface: POOL_REWARD_INTERFACE,
-        method: "rewardsToken()",
-      }),
-    );
+    const farmSupplyCalls = poolTokens.map(([, address]) => ({
+      address,
+      abi: iFarmingPoolAbi,
+      functionName: "totalSupply",
+      args: [],
+    }));
 
-    const farmSupplyCalls: Array<MCall<IFarmingPool["interface"]>> =
-      poolTokens.map(([, address]) => ({
-        address: address,
-        interface: IFarmingPool__factory.createInterface(),
-        method: "totalSupply()",
-        params: [],
-      }));
-
-    const blockTimestampCall: MCall<Interface> = {
-      address: multicallAddress,
-      interface: MULTICALL_EXTENDED_INTERFACE,
-      method: "getCurrentBlockTimestamp()",
-    };
+    const rewardTokenCalls = poolTokens.map(([, address]) => ({
+      address,
+      abi: POOL_REWARDS_ABI,
+      functionName: "rewardsToken",
+      args: [],
+    }));
 
     const tokenWithExtraRewards = poolsWithExtraRewards[network] || [];
     const chainId = CHAINS[network];
 
     const [mc, ...extra] = await Promise.allSettled([
-      multicall(
-        [
-          blockTimestampCall,
+      provider.multicall({
+        allowFailure: false,
+        multicallAddress: MULTICALL_ADDRESS,
+        contracts: [
+          {
+            address: multicallAddress,
+            abi: iMulticall3Abi as any,
+            functionName: "getCurrentBlockTimestamp",
+            args: [],
+          },
+
           ...farmInfoCalls,
           ...farmSupplyCalls,
           ...rewardTokenCalls,
         ],
-        provider,
-      ),
+      }),
 
       ...tokenWithExtraRewards.map(symbol =>
         axios.get<MerkleXYZRewardsCampaignsResponse>(
@@ -202,25 +209,26 @@ export class GearboxRewardsApi {
 
     const mcResponse =
       this.extractFulfilled(mc, reportError, "rewardsInfoMulticall") || [];
-    const [blockTimestamp = 0n, ...restMCResponse] = mcResponse;
+    const [ts = 0n, ...restMCResponse] = mcResponse;
+    const blockTimestamp = (ts as bigint) || 0n;
 
     const farmInfoCallsEnd = farmInfoCalls.length;
-    const farmInfo: Array<FarmInfoOutput> = restMCResponse.slice(
+    const farmInfo = restMCResponse.slice(
       0,
       farmInfoCallsEnd,
-    );
+    ) as Array<FarmInfoOutput>;
 
     const farmSupplyCallsEnd = farmInfoCallsEnd + farmSupplyCalls.length;
-    const farmSupply: Array<bigint> = restMCResponse.slice(
+    const farmSupply = restMCResponse.slice(
       farmInfoCallsEnd,
       farmSupplyCallsEnd,
-    );
+    ) as Array<bigint>;
 
     const rewardTokenCallsEnd = farmSupplyCallsEnd + rewardTokenCalls.length;
-    const rewardTokens: Array<string> = restMCResponse.slice(
+    const rewardTokens = restMCResponse.slice(
       farmSupplyCallsEnd,
       rewardTokenCallsEnd,
-    );
+    ) as Array<string>;
 
     const extraRewards = extra.reduce<Record<string, Array<FarmInfo>>>(
       (acc, r, index) => {
@@ -276,8 +284,8 @@ export class GearboxRewardsApi {
 
         if (symbol) {
           const baseReward: FarmInfo = {
-            duration: currentInfo.duration,
-            finished: currentInfo.finished,
+            duration: BigInt(currentInfo.duration),
+            finished: BigInt(currentInfo.finished),
             reward: currentInfo.reward,
             balance: currentInfo.balance,
             symbol: symbol,
@@ -570,6 +578,6 @@ const POOL_REWARDS_ABI = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;
 
 const POOL_REWARD_INTERFACE = new Interface(POOL_REWARDS_ABI);
