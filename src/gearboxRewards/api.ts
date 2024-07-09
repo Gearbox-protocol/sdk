@@ -13,6 +13,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
 import { BytesLike, getAddress, Interface, Provider, Signer } from "ethers";
+import { Address } from "viem";
 
 import {
   IAirdropDistributor,
@@ -73,7 +74,7 @@ export interface MerkleDistributorInfo {
     {
       index: number;
       amount: string;
-      proof: Array<BytesLike>;
+      proof: Array<Address>;
     }
   >;
 }
