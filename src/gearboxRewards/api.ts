@@ -10,16 +10,19 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import { Signer } from "ethers";
-import { Address, getAddress, getContract, PublicClient } from "viem";
+import {
+  Address,
+  getAddress,
+  getContract,
+  PublicClient,
+  WalletClient,
+} from "viem";
 
-import { IAirdropDistributor__factory, IFarmingPool__factory } from "../types";
 import {
   iAirdropDistributorAbi,
   iFarmingPoolAbi,
   iMulticall3Abi,
 } from "../types-viem";
-import { makeTransactionCall } from "../utils/calls";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import {
@@ -124,7 +127,7 @@ export interface GetLmRewardsProps {
 }
 
 export interface ClaimLmRewardsV2Props {
-  signer: Signer;
+  signer: WalletClient;
   account: Address;
   provider: PublicClient;
 
@@ -134,7 +137,8 @@ export interface ClaimLmRewardsV2Props {
 
 export interface ClaimLmRewardsV3Props {
   reward: GearboxStakedV3LmReward;
-  signer: Signer;
+  account: Address;
+  signer: WalletClient;
 }
 
 export class GearboxRewardsApi {
@@ -483,10 +487,6 @@ export class GearboxRewardsApi {
     if (!airdropDistributorAddress)
       throw new Error(`V2 rewards are not supported on chain: ${network}`);
 
-    const distributor = IAirdropDistributor__factory.connect(
-      airdropDistributorAddress,
-      signer,
-    );
     const merkleData = await this.getMerkle(
       provider,
       airdropDistributorAddress,
@@ -497,22 +497,41 @@ export class GearboxRewardsApi {
     const rewardFromMerkle = merkleData?.claims[account];
     if (!rewardFromMerkle) throw new Error("No rewards found");
 
-    return makeTransactionCall(
-      distributor.claim,
+    const distributor = getContract({
+      address: airdropDistributorAddress,
+      abi: iAirdropDistributorAbi,
+      client: signer,
+    });
+
+    return distributor.write.claim(
       [
-        rewardFromMerkle.index,
+        BigInt(rewardFromMerkle.index),
         account,
-        rewardFromMerkle.amount,
+        toBigInt(rewardFromMerkle.amount),
         rewardFromMerkle.proof,
       ],
-      signer,
+      {
+        account: account,
+        chain: signer.chain,
+      },
     );
   }
 
-  static async claimLmRewardsV3({ reward, signer }: ClaimLmRewardsV3Props) {
-    const pool = IFarmingPool__factory.connect(reward.poolToken, signer);
+  static async claimLmRewardsV3({
+    reward,
+    signer,
+    account,
+  }: ClaimLmRewardsV3Props) {
+    const pool = getContract({
+      address: reward.poolToken,
+      abi: iFarmingPoolAbi,
+      client: signer,
+    });
 
-    return makeTransactionCall(pool.claim, [], signer);
+    return pool.write.claim({
+      account: account,
+      chain: signer.chain,
+    });
   }
 
   private static async getMerkle(
