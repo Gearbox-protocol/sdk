@@ -62,7 +62,7 @@ export interface PoolDataExtraPayload {
 }
 
 export interface LinearModel {
-  interestModel: string;
+  interestModel: Address;
   version: number;
   U_1: bigint;
   U_2: bigint;

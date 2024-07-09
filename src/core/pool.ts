@@ -4,7 +4,7 @@ import {
   PERCENTAGE_FACTOR,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { Provider } from "ethers";
+import { getContract, PublicClient } from "viem";
 
 import {
   ChartsPoolDataPayload,
@@ -13,7 +13,7 @@ import {
   PoolDataPayload,
   UserPoolPayload,
 } from "../payload/pool";
-import { IInterestRateModel__factory } from "../types";
+import { iInterestRateModelAbi } from "../types-viem";
 import { rayToNumber } from "../utils/formatter";
 
 export type PoolType = "universal" | "trade" | "farm";
@@ -171,7 +171,7 @@ export class PoolData {
     this.supplyAPY7D = extra.supplyAPY7D;
 
     this.interestModel = {
-      interestModel: payload.lirm.interestModel.toLowerCase(),
+      interestModel: payload.lirm.interestModel.toLowerCase() as Address,
       U_1: toBigInt(payload.lirm.U_1),
       U_2: toBigInt(payload.lirm.U_2),
       R_base: toBigInt(payload.lirm.R_base),
@@ -193,11 +193,13 @@ export class PoolData {
     expectedLiquidity,
     availableLiquidity,
   }: CalculateBorrowRateProps) {
-    const model = IInterestRateModel__factory.connect(
-      this.interestModel.interestModel,
-      provider,
-    );
-    return model.calcBorrowRate(expectedLiquidity, availableLiquidity);
+    const model = getContract({
+      address: this.interestModel.interestModel,
+      abi: iInterestRateModelAbi,
+      client: provider,
+    });
+
+    return model.read.calcBorrowRate([expectedLiquidity, availableLiquidity]);
   }
 
   static getPoolType(name: string): PoolType {
@@ -219,7 +221,7 @@ export class PoolData {
 }
 
 interface CalculateBorrowRateProps {
-  provider: Provider;
+  provider: PublicClient;
   expectedLiquidity: bigint;
   availableLiquidity: bigint;
 }
