@@ -1,16 +1,32 @@
-import { Address, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
+import { Address } from "viem";
 
-import { PoolDataStructOutput } from "../types/IDataCompressorV3";
+export interface PoolDataPayload {
+  addr: Address;
+  underlying: Address;
+  dieselToken: Address;
+  symbol: string;
+  name: string;
+  baseInterestIndex: bigint;
+  availableLiquidity: bigint;
+  expectedLiquidity: bigint;
+  totalBorrowed: bigint;
+  totalDebtLimit: bigint;
+  totalAssets: bigint;
+  totalSupply: bigint;
+  supplyRate: bigint;
+  baseInterestRate: bigint;
+  dieselRate_RAY: bigint;
+  withdrawFee: bigint;
+  lastBaseInterestUpdate: bigint;
+  baseInterestIndexLU: bigint;
+  version: bigint;
+  poolQuotaKeeper: Address;
+  gauge: Address;
+  isPaused: boolean;
 
-export type PoolDataPayload = ExcludeArrayProps<
-  Omit<
-    PoolDataStructOutput,
-    "zappers" | "quotas" | "lirm" | "creditManagerDebtParams"
-  >
-> & {
   readonly lirm: {
-    interestModel: string;
+    interestModel: Address;
     version: bigint;
     U_1: number;
     U_2: number;
@@ -22,7 +38,7 @@ export type PoolDataPayload = ExcludeArrayProps<
   };
 
   quotas: readonly {
-    token: string;
+    token: Address;
     rate: number;
     quotaIncreaseFee: number;
     totalQuoted: bigint;
@@ -33,15 +49,15 @@ export type PoolDataPayload = ExcludeArrayProps<
   zappers: readonly PoolZapper[];
 
   creditManagerDebtParams: readonly {
-    creditManager: string;
+    creditManager: Address;
     borrowed: bigint;
     limit: bigint;
     availableToBorrow: bigint;
   }[];
-};
+}
 export interface PoolDataExtraPayload {
-  stakedDieselToken: Array<string>;
-  stakedDieselToken_old: Array<string>;
+  stakedDieselToken: Array<Address>;
+  stakedDieselToken_old: Array<Address>;
   supplyAPY7D: number | undefined;
 }
 

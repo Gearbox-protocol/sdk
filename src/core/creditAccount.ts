@@ -170,7 +170,7 @@ export class CreditAccountData {
 
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
-    this.priceFeedsNeeded = payload.priceFeedsNeeded;
+    this.priceFeedsNeeded = payload.priceFeedsNeeded.map(t => t);
 
     this.addr = payload.addr.toLowerCase() as Address;
     this.borrower = payload.borrower.toLowerCase() as Address;
@@ -223,7 +223,7 @@ export class CreditAccountData {
         isEnabled: b.isEnabled,
         isQuoted: b.isQuoted,
         quota: b.quota,
-        quotaRate: b.quotaRate * PERCENTAGE_DECIMALS,
+        quotaRate: BigInt(b.quotaRate) * PERCENTAGE_DECIMALS,
         quotaCumulativeIndexLU: b.quotaCumulativeIndexLU,
       };
 

@@ -1,8 +1,6 @@
-import { Address, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
 import { BigNumberish } from "ethers";
+import { Address } from "viem";
 
-import { ICreditFacadeV2 } from "../types";
-import { CreditManagerDataStructOutput } from "../types/IDataCompressorV3";
 import { PoolDataPayload } from "./pool";
 
 export interface CreditManagerDebtParamsSDK {
@@ -21,30 +19,25 @@ export interface QuotaInfo {
   isActive: boolean;
 }
 
-export interface AdapterPayload {
-  allowedContract: Address;
-  adapter: Address;
-}
+export interface CreditManagerDataPayload {
+  addr: Address;
+  name: string;
+  cfVersion: bigint;
+  creditFacade: Address;
+  creditConfigurator: Address;
+  underlying: Address;
+  pool: Address;
+  totalDebt: bigint;
+  totalDebtLimit: bigint;
+  baseBorrowRate: bigint;
+  minDebt: bigint;
+  maxDebt: bigint;
+  availableToBorrow: bigint;
+  isDegenMode: boolean;
+  degenNFT: Address;
+  forbiddenTokenMask: bigint;
+  isPaused: boolean;
 
-export type TotalDebt = ExcludeArrayProps<
-  Awaited<ReturnType<ICreditFacadeV2["totalDebt"]>>
->;
-
-export type CreditManagerDataPayload = Omit<
-  ExcludeArrayProps<CreditManagerDataStructOutput>,
-  | "collateralTokens"
-  | "adapters"
-  | "liquidationThresholds"
-  | "maxEnabledTokensLength"
-  | "feeInterest"
-  | "feeLiquidation"
-  | "liquidationDiscount"
-  | "feeLiquidationExpired"
-  | "liquidationDiscountExpired"
-  | "quotas"
-  | "lirm"
-  | "maxEnabledTokensLength"
-> & {
   collateralTokens: readonly Address[];
 
   adapters: readonly { targetContract: Address; adapter: Address }[];
@@ -60,7 +53,7 @@ export type CreditManagerDataPayload = Omit<
 
   quotas: PoolDataPayload["quotas"];
   lirm: PoolDataPayload["lirm"];
-};
+}
 
 export interface ChartsCreditManagerPayload {
   addr: string;

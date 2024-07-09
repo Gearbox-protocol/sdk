@@ -47,7 +47,7 @@ export type TokenBalanceStructOutput = [
   isQuoted: boolean,
   quota: bigint,
   quotaRate: bigint,
-  quotaCumulativeIndexLU: bigint
+  quotaCumulativeIndexLU: bigint,
 ] & {
   token: string;
   balance: bigint;
@@ -114,7 +114,7 @@ export type CreditAccountDataStructOutput = [
   since: bigint,
   cfVersion: bigint,
   expirationDate: bigint,
-  activeBots: string[]
+  activeBots: string[],
 ] & {
   isSuccessful: boolean;
   priceFeedsNeeded: string[];
@@ -151,7 +151,7 @@ export type ContractAdapterStruct = {
 
 export type ContractAdapterStructOutput = [
   targetContract: string,
-  adapter: string
+  adapter: string,
 ] & { targetContract: string; adapter: string };
 
 export type QuotaInfoStruct = {
@@ -169,7 +169,7 @@ export type QuotaInfoStructOutput = [
   quotaIncreaseFee: bigint,
   totalQuoted: bigint,
   limit: bigint,
-  isActive: boolean
+  isActive: boolean,
 ] & {
   token: string;
   rate: bigint;
@@ -200,7 +200,7 @@ export type LinearModelStructOutput = [
   R_slope1: bigint,
   R_slope2: bigint,
   R_slope3: bigint,
-  isBorrowingMoreU2Forbidden: boolean
+  isBorrowingMoreU2Forbidden: boolean,
 ] & {
   interestModel: string;
   version: bigint;
@@ -272,7 +272,7 @@ export type CreditManagerDataStructOutput = [
   liquidationDiscountExpired: bigint,
   quotas: QuotaInfoStructOutput[],
   lirm: LinearModelStructOutput,
-  isPaused: boolean
+  isPaused: boolean,
 ] & {
   addr: string;
   name: string;
@@ -331,7 +331,7 @@ export type GaugeQuotaParamsStructOutput = [
   limit: bigint,
   isActive: boolean,
   stakerVotesLpSide: bigint,
-  stakerVotesCaSide: bigint
+  stakerVotesCaSide: bigint,
 ] & {
   token: string;
   minRate: bigint;
@@ -366,7 +366,7 @@ export type GaugeInfoStructOutput = [
   underlying: string,
   currentEpoch: bigint,
   epochFrozen: boolean,
-  quotaParams: GaugeQuotaParamsStructOutput[]
+  quotaParams: GaugeQuotaParamsStructOutput[],
 ] & {
   addr: string;
   pool: string;
@@ -389,7 +389,7 @@ export type CreditManagerDebtParamsStructOutput = [
   creditManager: string,
   borrowed: bigint,
   limit: bigint,
-  availableToBorrow: bigint
+  availableToBorrow: bigint,
 ] & {
   creditManager: string;
   borrowed: bigint;
@@ -406,7 +406,7 @@ export type ZapperInfoStruct = {
 export type ZapperInfoStructOutput = [
   zapper: string,
   tokenIn: string,
-  tokenOut: string
+  tokenOut: string,
 ] & { zapper: string; tokenIn: string; tokenOut: string };
 
 export type PoolDataStruct = {
@@ -464,7 +464,7 @@ export type PoolDataStructOutput = [
   quotas: QuotaInfoStructOutput[],
   zappers: ZapperInfoStructOutput[],
   lirm: LinearModelStructOutput,
-  isPaused: boolean
+  isPaused: boolean,
 ] & {
   addr: string;
   underlying: string;
@@ -506,82 +506,82 @@ export interface IDataCompressorV3Interface extends Interface {
       | "getLiquidatableCreditAccounts"
       | "getPoolData"
       | "getPoolsV3List"
-      | "version"
+      | "version",
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "getCreditAccountData",
-    values: [AddressLike, PriceOnDemandStruct[]]
+    values: [AddressLike, PriceOnDemandStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountsByBorrower",
-    values: [AddressLike, PriceOnDemandStruct[]]
+    values: [AddressLike, PriceOnDemandStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditAccountsByCreditManager",
-    values: [AddressLike, PriceOnDemandStruct[]]
+    values: [AddressLike, PriceOnDemandStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditManagerData",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "getCreditManagersV3List",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(
     functionFragment: "getGaugesV3Data",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "getLiquidatableCreditAccounts",
-    values: [PriceOnDemandStruct[]]
+    values: [PriceOnDemandStruct[]],
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolData",
-    values: [AddressLike]
+    values: [AddressLike],
   ): string;
   encodeFunctionData(
     functionFragment: "getPoolsV3List",
-    values?: undefined
+    values?: undefined,
   ): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "getCreditAccountData",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountsByBorrower",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditAccountsByCreditManager",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditManagerData",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getCreditManagersV3List",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getGaugesV3Data",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getLiquidatableCreditAccounts",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPoolData",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPoolsV3List",
-    data: BytesLike
+    data: BytesLike,
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 }
@@ -595,38 +595,38 @@ export interface IDataCompressorV3 extends BaseContract {
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
   queryFilter<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TypedEventLog<TCEvent>>>;
 
   on<TCEvent extends TypedContractEvent>(
     event: TCEvent,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
   on<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
   once<TCEvent extends TypedContractEvent>(
     event: TCEvent,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
   once<TCEvent extends TypedContractEvent>(
     filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
+    listener: TypedListener<TCEvent>,
   ): Promise<this>;
 
   listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
+    event: TCEvent,
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
   removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
+    event?: TCEvent,
   ): Promise<this>;
 
   getCreditAccountData: TypedContractMethod<
@@ -682,62 +682,62 @@ export interface IDataCompressorV3 extends BaseContract {
   version: TypedContractMethod<[], [bigint], "view">;
 
   getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
+    key: string | FunctionFragment,
   ): T;
 
   getFunction(
-    nameOrSignature: "getCreditAccountData"
+    nameOrSignature: "getCreditAccountData",
   ): TypedContractMethod<
     [creditAccount: AddressLike, priceUpdates: PriceOnDemandStruct[]],
     [CreditAccountDataStructOutput],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "getCreditAccountsByBorrower"
+    nameOrSignature: "getCreditAccountsByBorrower",
   ): TypedContractMethod<
     [borrower: AddressLike, priceUpdates: PriceOnDemandStruct[]],
     [CreditAccountDataStructOutput[]],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "getCreditAccountsByCreditManager"
+    nameOrSignature: "getCreditAccountsByCreditManager",
   ): TypedContractMethod<
     [creditManager: AddressLike, priceUpdates: PriceOnDemandStruct[]],
     [CreditAccountDataStructOutput[]],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "getCreditManagerData"
+    nameOrSignature: "getCreditManagerData",
   ): TypedContractMethod<
     [creditManager: AddressLike],
     [CreditManagerDataStructOutput],
     "view"
   >;
   getFunction(
-    nameOrSignature: "getCreditManagersV3List"
+    nameOrSignature: "getCreditManagersV3List",
   ): TypedContractMethod<[], [CreditManagerDataStructOutput[]], "view">;
   getFunction(
-    nameOrSignature: "getGaugesV3Data"
+    nameOrSignature: "getGaugesV3Data",
   ): TypedContractMethod<
     [staker: AddressLike],
     [GaugeInfoStructOutput[]],
     "view"
   >;
   getFunction(
-    nameOrSignature: "getLiquidatableCreditAccounts"
+    nameOrSignature: "getLiquidatableCreditAccounts",
   ): TypedContractMethod<
     [priceUpdates: PriceOnDemandStruct[]],
     [CreditAccountDataStructOutput[]],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "getPoolData"
+    nameOrSignature: "getPoolData",
   ): TypedContractMethod<[_pool: AddressLike], [PoolDataStructOutput], "view">;
   getFunction(
-    nameOrSignature: "getPoolsV3List"
+    nameOrSignature: "getPoolsV3List",
   ): TypedContractMethod<[], [PoolDataStructOutput[]], "view">;
   getFunction(
-    nameOrSignature: "version"
+    nameOrSignature: "version",
   ): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
