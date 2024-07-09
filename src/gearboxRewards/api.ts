@@ -2,8 +2,6 @@ import {
   CHAINS,
   extractTokenData,
   isDieselStakedToken,
-  MCall,
-  multicall,
   MULTICALL_ADDRESS,
   NetworkType,
   SupportedToken,
@@ -12,16 +10,15 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import { getAddress, Interface, Provider, Signer } from "ethers";
-import { Address, PublicClient } from "viem";
+import { Signer } from "ethers";
+import { Address, getAddress, getContract, PublicClient } from "viem";
 
+import { IAirdropDistributor__factory, IFarmingPool__factory } from "../types";
 import {
-  IAirdropDistributor,
-  IAirdropDistributor__factory,
-  IFarmingPool,
-  IFarmingPool__factory,
-} from "../types";
-import { iFarmingPoolAbi, iMulticall3Abi } from "../types-viem";
+  iAirdropDistributorAbi,
+  iFarmingPoolAbi,
+  iMulticall3Abi,
+} from "../types-viem";
 import { makeTransactionCall } from "../utils/calls";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
@@ -57,7 +54,8 @@ export type GearboxLmReward =
 
 interface GetTotalClaimedProps {
   account: Address;
-  distributor: IAirdropDistributor;
+  provider: PublicClient;
+  airdropDistributorAddress: Address;
 }
 
 interface GetAmountOnContractProps {
@@ -118,7 +116,7 @@ export interface GetLmRewardsProps {
   baseRewardPoolsInfo: Record<string, FarmInfo>;
   currentTokenData: Record<SupportedToken, Address>;
   account: Address;
-  provider: Provider | Signer;
+  provider: PublicClient;
 
   airdropDistributorAddress: Address | undefined;
   network: NetworkType;
@@ -128,7 +126,7 @@ export interface GetLmRewardsProps {
 export interface ClaimLmRewardsV2Props {
   signer: Signer;
   account: Address;
-  provider: Provider;
+  provider: PublicClient;
 
   airdropDistributorAddress: Address | undefined;
   network: NetworkType;
@@ -330,13 +328,8 @@ export class GearboxRewardsApi {
   }: GetLmRewardsProps) {
     if (!airdropDistributorAddress) return { rewards: [] };
 
-    const distributor = IAirdropDistributor__factory.connect(
-      airdropDistributorAddress,
-      provider,
-    );
-
     const [claimedResp, merkleDataResp] = await Promise.all([
-      this.getClaimed({ distributor, account }),
+      this.getClaimed({ airdropDistributorAddress, provider, account }),
       this.getMerkle(provider, airdropDistributorAddress, network, account),
     ]);
 
@@ -369,17 +362,17 @@ export class GearboxRewardsApi {
   }: GetLmRewardsProps) {
     const poolTokens = Object.keys(baseRewardPoolsInfo) as Array<Address>;
 
-    const farmedCalls: Array<MCall<IFarmingPool["interface"]>> = poolTokens.map(
-      address => ({
-        address: address,
-        interface: IFarmingPool__factory.createInterface(),
-        method: "farmed(address)",
-        params: [account],
-      }),
-    );
-
     const [gearboxLmResponse, merkleXYZLMResponse] = await Promise.allSettled([
-      multicall<Array<bigint>>(farmedCalls, provider),
+      provider.multicall({
+        allowFailure: false,
+        multicallAddress: MULTICALL_ADDRESS,
+        contracts: poolTokens.map(address => ({
+          address: address,
+          abi: iFarmingPoolAbi,
+          functionName: "farmed",
+          args: [account],
+        })),
+      }),
       axios.get<MerkleXYZUserRewardsResponse>(
         MerkleXYZApi.getUserRewardsUrl({
           params: {
@@ -390,8 +383,11 @@ export class GearboxRewardsApi {
       ),
     ]);
 
-    const gearboxLm =
-      this.extractFulfilled(gearboxLmResponse, reportError, "v3Rewards") || [];
+    const gearboxLm = (this.extractFulfilled(
+      gearboxLmResponse,
+      reportError,
+      "v3Rewards",
+    ) || []) as Array<bigint>;
     const merkleXYZLM = this.extractFulfilled(
       merkleXYZLMResponse,
       reportError,
@@ -520,16 +516,18 @@ export class GearboxRewardsApi {
   }
 
   private static async getMerkle(
-    provider: Provider | Signer,
-    distributorAddress: string,
+    provider: PublicClient,
+    distributorAddress: Address,
     network: NetworkType,
-    account: string,
+    account: Address,
   ): Promise<MerkleDistributorInfo> {
-    const distributor = IAirdropDistributor__factory.connect(
-      distributorAddress,
-      provider,
-    );
-    const root = await distributor.merkleRoot();
+    const distributor = getContract({
+      address: distributorAddress,
+      abi: iAirdropDistributorAbi,
+      client: provider,
+    });
+
+    const root = await distributor.read.merkleRoot();
 
     const path = `${network}_${root.slice(2)}/${account.slice(2, 4)}`;
     const url = `https://am.gearbox.finance/${path.toLowerCase()}.json`;
@@ -539,15 +537,28 @@ export class GearboxRewardsApi {
   }
 
   private static async getClaimed({
-    distributor,
+    provider,
+    airdropDistributorAddress,
     account,
   }: GetTotalClaimedProps) {
-    const claimedRewardsResponse = await distributor.queryFilter(
-      distributor.filters.Claimed(account, undefined, false),
+    const distributor = getContract({
+      address: airdropDistributorAddress,
+      abi: iAirdropDistributorAbi,
+      client: provider,
+    });
+
+    const claimedRewardsResponse = await distributor.getEvents.Claimed(
+      {
+        account,
+        historic: false,
+      },
+      {
+        fromBlock: 0n,
+      },
     );
 
     const claimedRewards = (claimedRewardsResponse || []).reduce(
-      (acc, r) => acc + r.args.amount,
+      (acc, r) => acc + (r.args.amount || 0n),
       0n,
     );
     return claimedRewards;
@@ -579,5 +590,3 @@ const POOL_REWARDS_ABI = [
     type: "function",
   },
 ] as const;
-
-const POOL_REWARD_INTERFACE = new Interface(POOL_REWARDS_ABI);
