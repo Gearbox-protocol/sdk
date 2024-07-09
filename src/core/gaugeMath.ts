@@ -1,5 +1,5 @@
-import { GaugeQuotaParams } from "../payload/gauge";
 import { BigIntMath } from "../utils/math";
+import { GaugeData } from "./gauge";
 
 export type BaseVoteType = "raise" | "lower";
 export type VoteType = BaseVoteType | "remove";
@@ -47,7 +47,7 @@ interface RemoveProps {
 export interface GetGaugeApyProps {
   quota:
     | Pick<
-        GaugeQuotaParams,
+        GaugeData["quotaParams"][string],
         | "totalVotesCaSide"
         | "totalVotesLpSide"
         | "stakerVotesCaSide"
@@ -139,7 +139,9 @@ export class GaugeMath {
     return prevUnvoted + addPart - removePart;
   }
 
-  static getBaseVote = (v: GaugeQuotaParams): BaseVote | undefined => {
+  static getBaseVote = (
+    v: GaugeData["quotaParams"][string],
+  ): BaseVote | undefined => {
     const voteDown = v.stakerVotesCaSide;
     const voteUp = v.stakerVotesLpSide;
 

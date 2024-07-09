@@ -1,57 +1,72 @@
 import { PERCENTAGE_DECIMALS } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import {
-  GaugeDataPayload,
-  GaugeQuotaParams,
-  GaugeStakingDataPayload,
-} from "../payload/gauge";
+import { GaugeDataPayload, GaugeStakingDataPayload } from "../payload/gauge";
 
 export class GaugeData {
-  readonly address: string;
-  readonly pool: string;
-  readonly poolUnderlying: string;
+  readonly address: Address;
+  readonly pool: Address;
+  readonly poolUnderlying: Address;
   readonly name: string;
   readonly symbol: string;
 
   readonly currentEpoch: bigint;
   readonly epochFrozen: boolean;
 
-  readonly quotaParams: Record<string, GaugeQuotaParams>;
+  readonly quotaParams: Record<
+    string,
+    {
+      token: Address;
+      minRate: bigint;
+      maxRate: bigint;
+      totalVotesLpSide: bigint;
+      totalVotesCaSide: bigint;
+      rate: bigint;
+      quotaIncreaseFee: bigint;
+      totalQuoted: bigint;
+      limit: bigint;
+      isActive: boolean;
+      stakerVotesLpSide: bigint;
+      stakerVotesCaSide: bigint;
+    }
+  >;
 
   constructor(payload: GaugeDataPayload) {
-    this.address = payload.addr.toLowerCase();
-    this.pool = payload.pool.toLowerCase();
-    this.poolUnderlying = payload.underlying.toLowerCase();
+    this.address = payload.addr.toLowerCase() as Address;
+    this.pool = payload.pool.toLowerCase() as Address;
+    this.poolUnderlying = payload.underlying.toLowerCase() as Address;
     this.name = payload.name;
     this.symbol = payload.symbol;
 
-    this.currentEpoch = payload.currentEpoch;
+    this.currentEpoch = BigInt(payload.currentEpoch);
     this.epochFrozen = payload.epochFrozen;
 
-    this.quotaParams = payload.quotaParams.reduce<
-      Record<string, GaugeQuotaParams>
-    >((acc, q) => {
-      acc[q.token.toLowerCase()] = {
-        token: q.token.toLowerCase(),
+    this.quotaParams = payload.quotaParams.reduce<GaugeData["quotaParams"]>(
+      (acc, q) => {
+        const tokenLc = q.token.toLowerCase() as Address;
+        acc[tokenLc] = {
+          token: tokenLc,
 
-        isActive: q.isActive,
+          isActive: q.isActive,
 
-        rate: q.rate * PERCENTAGE_DECIMALS,
-        minRate: q.minRate * PERCENTAGE_DECIMALS,
-        maxRate: q.maxRate * PERCENTAGE_DECIMALS,
+          rate: BigInt(q.rate) * PERCENTAGE_DECIMALS,
+          minRate: BigInt(q.minRate) * PERCENTAGE_DECIMALS,
+          maxRate: BigInt(q.maxRate) * PERCENTAGE_DECIMALS,
 
-        quotaIncreaseFee: q.quotaIncreaseFee,
-        totalQuoted: q.totalQuoted,
-        limit: q.limit,
+          quotaIncreaseFee: BigInt(q.quotaIncreaseFee),
+          totalQuoted: q.totalQuoted,
+          limit: q.limit,
 
-        totalVotesLpSide: q.totalVotesLpSide,
-        totalVotesCaSide: q.totalVotesCaSide,
+          totalVotesLpSide: q.totalVotesLpSide,
+          totalVotesCaSide: q.totalVotesCaSide,
 
-        stakerVotesLpSide: q.stakerVotesLpSide,
-        stakerVotesCaSide: q.stakerVotesCaSide,
-      };
-      return acc;
-    }, {});
+          stakerVotesLpSide: q.stakerVotesLpSide,
+          stakerVotesCaSide: q.stakerVotesCaSide,
+        };
+        return acc;
+      },
+      {},
+    );
   }
 }
 
@@ -72,7 +87,7 @@ export class GaugeStakingData {
   constructor(payload: GaugeStakingDataPayload) {
     this.availableBalance = payload.availableBalance;
     this.totalBalance = payload.totalBalance;
-    this.epoch = payload.epoch;
+    this.epoch = BigInt(payload.epoch);
     this.withdrawableNow = payload.withdrawableAmounts.withdrawableNow;
 
     const { total, list } =
