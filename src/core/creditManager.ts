@@ -131,7 +131,7 @@ export class CreditManagerData {
     }, {});
 
     this.interestModel = {
-      interestModel: payload.lirm.interestModel.toLowerCase(),
+      interestModel: payload.lirm.interestModel.toLowerCase() as Address,
       U_1: BigInt(payload.lirm.U_1),
       U_2: BigInt(payload.lirm.U_2),
       R_base: BigInt(payload.lirm.R_base),

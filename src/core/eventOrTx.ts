@@ -1,3 +1,5 @@
+import { Address } from "viem";
+
 import { TokenData } from "../tokens/tokenData";
 import { PartialKeys } from "../utils/types";
 import type { TxSerialized } from "./transactions";
@@ -10,7 +12,7 @@ export type TxStatus = "pending" | "success" | "reverted";
 
 export interface EventOrTxProps {
   block: number;
-  txHash: string;
+  txHash: Address;
   txStatus: TxStatus;
   timestamp: number;
 }
@@ -18,7 +20,7 @@ export interface EventOrTxProps {
 export abstract class EventOrTx implements Display {
   public block: number;
 
-  public readonly txHash: string;
+  public readonly txHash: Address;
 
   public readonly timestamp: number;
 
