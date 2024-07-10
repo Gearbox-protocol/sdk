@@ -6,8 +6,7 @@ import {
   contractsByAddress,
   contractsByNetwork,
   ConvexPoolParams,
-  MCall,
-  multicall,
+  MULTICALL_ADDRESS,
   NetworkType,
   PartialRecord,
   Protocols,
@@ -16,26 +15,24 @@ import {
   tokenDataByNetwork,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { Interface, Provider } from "ethers";
-import { Address } from "viem";
+import { Abi, Address, encodeFunctionData, PublicClient } from "viem";
 
 import { getCVXMintAmount } from "../apy";
-import { AURA_BOOSTER_INTERFACE } from "../apy/auraAbi";
+import { AURA_BOOSTER_ABI } from "../apy/auraAbi";
 import { getAURAMintAmount } from "../apy/auraAPY";
-import { IBaseRewardPool__factory, IConvexToken__factory } from "../types";
-import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
-import { IConvexTokenInterface } from "../types/IConvexToken";
+import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../types-viem";
 import { CreditAccountData } from "./creditAccount";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
 
 type DistributionList = Array<Array<RewardDistribution>>;
 type CallsList = Array<
-  Array<
-    | MCall<IConvexTokenInterface>
-    | MCall<IBaseRewardPoolInterface>
-    | MCall<Interface>
-  >
+  Array<{
+    address: Address;
+    abi: Abi;
+    functionName: string;
+    args: unknown[];
+  }>
 >;
 
 export interface RewardDistribution {
@@ -59,13 +56,11 @@ interface ParseProps {
 
 // convex[totalSupply, ...tokens] aura[totalSupply, multiplier, ...tokens]
 export class RewardConvex {
-  static poolInterface = IBaseRewardPool__factory.createInterface();
-
   static async findRewards(
     ca: CreditAccountData,
     cm: CreditManagerData,
     network: NetworkType,
-    provider: Provider,
+    provider: PublicClient,
   ): Promise<Array<Rewards>> {
     const prepared = RewardConvex.prepareMultiCalls(ca.addr, cm, network);
 
@@ -79,7 +74,11 @@ export class RewardConvex {
     const allCalls = [...auraTotal, ...convexTotal];
     if (allCalls.length === 0) return [];
 
-    const response = await multicall<Array<bigint>>(allCalls, provider);
+    const response = (await provider.multicall({
+      allowFailure: false,
+      multicallAddress: MULTICALL_ADDRESS,
+      contracts: allCalls,
+    })) as Array<bigint>;
 
     const auraEnd = auraTotal.length;
     const [auraTotalSupply, ...auraResponse] = response.slice(0, auraEnd);
@@ -128,7 +127,7 @@ export class RewardConvex {
   }
 
   static prepareMultiCalls(
-    creditAccount: string,
+    creditAccount: Address,
     cm: CreditManagerData,
     network: NetworkType,
   ) {
@@ -168,9 +167,9 @@ export class RewardConvex {
             ? [
                 {
                   address: contracts.AURA_BOOSTER,
-                  interface: AURA_BOOSTER_INTERFACE,
-                  method: "getRewardMultipliers(address)",
-                  params: [tokens[currentContract.stakedToken]],
+                  abi: AURA_BOOSTER_ABI,
+                  functionName: "getRewardMultipliers",
+                  args: [tokens[currentContract.stakedToken]],
                 },
               ]
             : []),
@@ -179,9 +178,9 @@ export class RewardConvex {
 
         currentCalls.push({
           address: a.contractAddress,
-          interface: RewardConvex.poolInterface,
-          method: "earned(address)",
-          params: [creditAccount],
+          abi: iBaseRewardPoolAbi,
+          functionName: "earned",
+          args: [creditAccount],
         });
         currentDistribution.push({
           protocol: currentContract.protocol,
@@ -195,9 +194,9 @@ export class RewardConvex {
         currentContract.extraRewards.forEach(extra => {
           currentCalls.push({
             address: extra.poolAddress[network],
-            interface: RewardConvex.poolInterface,
-            method: "earned(address)",
-            params: [creditAccount],
+            abi: iBaseRewardPoolAbi,
+            functionName: "earned",
+            args: [creditAccount],
           });
 
           currentDistribution.push({
@@ -227,8 +226,9 @@ export class RewardConvex {
           [
             {
               address: tokens.CVX,
-              interface: IConvexToken__factory.createInterface(),
-              method: "totalSupply()",
+              abi: iConvexTokenAbi,
+              functionName: "totalSupply",
+              args: [],
             },
           ],
         ],
@@ -236,8 +236,9 @@ export class RewardConvex {
           [
             {
               address: tokens.AURA,
-              interface: IConvexToken__factory.createInterface(),
-              method: "totalSupply()",
+              abi: iConvexTokenAbi,
+              functionName: "totalSupply",
+              args: [],
             },
           ],
         ],
@@ -255,9 +256,11 @@ export class RewardConvex {
     auraResponse,
     auraTotalSupply,
   }: ParseProps): Array<Rewards> {
-    const callData = RewardConvex.poolInterface.encodeFunctionData(
-      "getReward()",
-    ) as Address;
+    const callData = encodeFunctionData({
+      abi: iBaseRewardPoolAbi,
+      functionName: "getReward",
+      args: [],
+    });
 
     const rewardsRecord: PartialRecord<SupportedContract, Rewards> = {};
 

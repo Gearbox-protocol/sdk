@@ -4,16 +4,13 @@ import {
   DUMB_ADDRESS2,
   DUMB_ADDRESS3,
   DUMB_ADDRESS4,
-  MCall,
   Protocols,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { Address } from "viem";
+import { Abi, Address, encodeFunctionData } from "viem";
 
-import { IConvexToken__factory } from "../types";
-import { IBaseRewardPoolInterface } from "../types/IBaseRewardPool";
-import { IConvexTokenInterface } from "../types/IConvexToken";
+import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../types-viem";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
 import { RewardConvex, RewardDistribution } from "./rewardConvex";
@@ -58,23 +55,28 @@ describe("RewardConvex test", () => {
       },
     } as unknown as CreditManagerData;
 
-    const calls: [
-      Array<MCall<IConvexTokenInterface>>,
-      Array<MCall<IBaseRewardPoolInterface>>,
-    ] = [
+    const calls: Array<
+      Array<{
+        address: Address;
+        abi: Abi;
+        functionName: string;
+        args: unknown[];
+      }>
+    > = [
       [
         {
           address: tokenDataByNetwork.Mainnet.CVX,
-          interface: IConvexToken__factory.createInterface(),
-          method: "totalSupply()",
+          abi: iConvexTokenAbi,
+          functionName: "totalSupply",
+          args: [],
         },
       ],
       [
         {
           address: contractsByNetwork.Mainnet.CONVEX_3CRV_POOL,
-          interface: RewardConvex.poolInterface,
-          method: "earned(address)",
-          params: [CREDIT_ACCOUNT],
+          abi: iBaseRewardPoolAbi,
+          functionName: "earned",
+          args: [CREDIT_ACCOUNT],
         },
       ],
     ];
@@ -122,9 +124,11 @@ describe("RewardConvex test", () => {
       auraTotalSupply: 0n,
     });
 
-    const callData = RewardConvex.poolInterface.encodeFunctionData(
-      "getReward()",
-    ) as Address;
+    const callData = encodeFunctionData({
+      abi: iBaseRewardPoolAbi,
+      functionName: "getReward",
+      args: [],
+    });
 
     const expected: Array<Rewards> = [
       {
