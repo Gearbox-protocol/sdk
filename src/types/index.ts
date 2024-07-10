@@ -1,5 +1,4 @@
 export * from "./CompositePriceFeed";
-export * from "./ERC20";
 export * from "./IAaveV2_LendingPoolAdapter";
 export * from "./IAaveV2_WrappedATokenAdapter";
 export * from "./IAddressProviderV3";
@@ -48,6 +47,5 @@ export * from "./IwstETH";
 export * from "./IwstETHV1Adapter";
 export * from "./IYearnV2Adapter";
 export * from "./IZapper";
-export * from "./PartialLiquidationBotV3";
 export * from "./RedstonePriceFeed";
 export * from "./SignUpRepository";
