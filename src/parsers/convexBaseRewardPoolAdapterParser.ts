@@ -5,7 +5,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { iConvexV1BaseRewardPoolAdapterAbi } from "../types-viem";
+import { iConvexV1BaseRewardPoolAdapterAbi } from "../types";
 import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";

@@ -1,7 +1,7 @@
 import { SupportedContract } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { iAaveV2WrappedATokenAdapterAbi } from "../types-viem";
+import { iAaveV2WrappedATokenAdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

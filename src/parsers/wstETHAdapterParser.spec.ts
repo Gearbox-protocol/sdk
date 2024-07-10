@@ -2,7 +2,7 @@ import { WAD } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 import { encodeFunctionData } from "viem";
 
-import { iwstEthv1AdapterAbi } from "../types-viem";
+import { iwstEthv1AdapterAbi } from "../types";
 import { WstETHAdapterParser } from "./wstETHAdapterParser";
 
 describe("WstETHAdapterParser test", () => {

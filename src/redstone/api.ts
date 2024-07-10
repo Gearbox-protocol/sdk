@@ -28,7 +28,7 @@ import {
   iPriceFeedAbi,
   iPriceOracleV3Abi,
   redstonePriceFeedAbi,
-} from "../types-viem";
+} from "../types";
 import { ViemFailableMulticallRes } from "../utils/calls";
 
 export const DEFAULT_DATA_SERVICE_ID = "redstone-primary-prod";

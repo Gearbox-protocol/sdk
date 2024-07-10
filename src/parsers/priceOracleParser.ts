@@ -1,6 +1,6 @@
 import { Address } from "viem";
 
-import { iPriceOracleBaseAbi } from "../types-viem";
+import { iPriceOracleBaseAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

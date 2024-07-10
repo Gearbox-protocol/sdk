@@ -4,7 +4,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { iYearnV2AdapterAbi } from "../types-viem";
+import { iYearnV2AdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

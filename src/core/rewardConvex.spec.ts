@@ -10,7 +10,7 @@ import {
 import { expect } from "chai";
 import { Abi, Address, encodeFunctionData } from "viem";
 
-import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../types-viem";
+import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../types";
 import { CreditManagerData } from "./creditManager";
 import { AdapterWithType, Rewards } from "./rewardClaimer";
 import { RewardConvex, RewardDistribution } from "./rewardConvex";

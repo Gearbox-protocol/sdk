@@ -1,7 +1,7 @@
 import { formatBN, SupportedContract } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { iUniswapV3AdapterAbi } from "../types-viem";
+import { iUniswapV3AdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

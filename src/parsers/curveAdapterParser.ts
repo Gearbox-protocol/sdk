@@ -11,7 +11,7 @@ import {
   iCurveV1_2AssetsAdapterAbi,
   iCurveV1_3AssetsAdapterAbi,
   iCurveV1_4AssetsAdapterAbi,
-} from "../types-viem";
+} from "../types";
 import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";

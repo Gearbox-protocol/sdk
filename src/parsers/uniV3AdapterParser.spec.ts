@@ -7,7 +7,7 @@ import {
 import { expect } from "chai";
 import { Address, encodeFunctionData, encodePacked } from "viem";
 
-import { iUniswapV3AdapterAbi } from "../types-viem";
+import { iUniswapV3AdapterAbi } from "../types";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
 
 const pathToUniV3Path = (path: Array<Address>): Address => {

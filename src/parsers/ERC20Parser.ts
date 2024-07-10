@@ -1,7 +1,7 @@
 import { SupportedToken, toBigInt } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { ierc20Abi } from "../types-viem";
+import { ierc20Abi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

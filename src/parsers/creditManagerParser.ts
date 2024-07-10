@@ -1,6 +1,6 @@
 import { Address } from "viem";
 
-import { iCreditManagerV2Abi, iCreditManagerV3Abi } from "../types-viem";
+import { iCreditManagerV2Abi, iCreditManagerV3Abi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

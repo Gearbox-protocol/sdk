@@ -30,11 +30,7 @@ import {
 } from "@gearbox-protocol/sdk-gov/lib/tokens/token";
 import { Address, parseAbi } from "viem";
 
-import {
-  iBaseRewardPoolAbi,
-  iConvexTokenAbi,
-  iCurvePoolAbi,
-} from "../types-viem";
+import { iBaseRewardPoolAbi, iConvexTokenAbi, iCurvePoolAbi } from "../types";
 import { CurveAPYResult } from "./curveAPY";
 
 const V2_POOLS: Record<number, true> = { 20: true };

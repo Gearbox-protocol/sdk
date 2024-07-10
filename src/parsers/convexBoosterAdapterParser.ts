@@ -5,7 +5,7 @@ import {
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
 
-import { iConvexV1BoosterAdapterAbi } from "../types-viem";
+import { iConvexV1BoosterAdapterAbi } from "../types";
 import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";

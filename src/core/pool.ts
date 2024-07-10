@@ -12,7 +12,7 @@ import {
   PoolDataPayload,
   UserPoolPayload,
 } from "../payload/pool";
-import { iInterestRateModelAbi } from "../types-viem";
+import { iInterestRateModelAbi } from "../types";
 import { rayToNumber } from "../utils/formatter";
 
 export type PoolType = "universal" | "trade" | "farm";

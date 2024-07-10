@@ -4,7 +4,7 @@ import { Address } from "viem";
 import {
   iCreditFacadeV2ExtendedAbi,
   iCreditFacadeV3MulticallAbi,
-} from "../types-viem";
+} from "../types";
 import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";

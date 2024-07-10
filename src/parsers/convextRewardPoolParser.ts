@@ -1,7 +1,7 @@
 import { NormalToken } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { iBaseRewardPoolAbi } from "../types-viem";
+import { iBaseRewardPoolAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

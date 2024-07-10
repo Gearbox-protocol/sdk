@@ -12,7 +12,7 @@ import { LidoAdapterParser } from "../parsers/lidoAdapterParser";
 import { TxParser } from "../parsers/txParser";
 import { UniswapV2AdapterParser } from "../parsers/uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "../parsers/uniV3AdapterParser";
-import { iCurvePoolAbi } from "../types-viem";
+import { iCurvePoolAbi } from "../types";
 import { splitPoolId } from "./balancerVault";
 import { MultiCall } from "./core";
 

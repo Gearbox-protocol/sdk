@@ -30,7 +30,7 @@ export * from "./payload/pool";
 export * from "./payload/token";
 export * from "./redstone";
 export * from "./tokens/tokenData";
-export * from "./types-viem";
+export * from "./types";
 export * from "./utils/errors";
 export * from "./utils/formatter";
 export * from "./utils/loading";

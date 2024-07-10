@@ -22,7 +22,7 @@ import {
   iAirdropDistributorAbi,
   iFarmingPoolAbi,
   iMulticall3Abi,
-} from "../types-viem";
+} from "../types";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import {

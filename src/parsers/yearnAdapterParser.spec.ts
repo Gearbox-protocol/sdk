@@ -2,7 +2,7 @@ import { DUMB_ADDRESS, WAD } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 import { encodeFunctionData } from "viem";
 
-import { iYearnV2AdapterAbi } from "../types-viem";
+import { iYearnV2AdapterAbi } from "../types";
 import { YearnV2AdapterParser } from "./yearnV2AdapterParser";
 
 describe("YearnV2AdapterParser test", () => {

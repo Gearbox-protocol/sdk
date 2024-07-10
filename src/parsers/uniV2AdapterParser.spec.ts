@@ -7,7 +7,7 @@ import {
 import { expect } from "chai";
 import { encodeFunctionData } from "viem";
 
-import { iUniswapV2AdapterAbi } from "../types-viem";
+import { iUniswapV2AdapterAbi } from "../types";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 
 describe("UniswapV2AdapterParser test", () => {

@@ -1,7 +1,7 @@
 import { SupportedContract, toBigInt } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { iwstEthAbi, iwstEthv1AdapterAbi } from "../types-viem";
+import { iwstEthAbi, iwstEthv1AdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

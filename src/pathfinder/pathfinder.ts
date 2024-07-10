@@ -9,7 +9,7 @@ import {
 import { Asset } from "../core/assets";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
-import { iRouterV3Abi } from "../types-viem";
+import { iRouterV3Abi } from "../types";
 import {
   MultiCall,
   PathFinderCloseResult,
