@@ -88,7 +88,7 @@ type PoolsWithExtraRewardsList = Record<NetworkType, Array<SupportedToken>>;
 const DEFAULT_POOLS_WITH_EXTRA_REWARDS: PoolsWithExtraRewardsList = {
   Mainnet: ["sdcrvUSDV3"],
   Arbitrum: [],
-  Optimism: [],
+  Optimism: ["sdUSDCV3", "sdWETHV3"],
   Base: [],
 };
 
