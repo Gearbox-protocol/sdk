@@ -98,6 +98,8 @@ const SKIP_ABI: Record<string, true> = {
   RedstoneDefaultsLib: true,
   SafeERC20: true,
   SignUpRepositoryEvents: true,
+  ERC20: true,
+  PartialLiquidationBotV3: true,
 };
 
 const indexPath = path.join("src", "types", "index.ts");
