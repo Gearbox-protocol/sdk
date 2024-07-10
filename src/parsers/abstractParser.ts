@@ -8,7 +8,6 @@ import {
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
 import {
-  BigNumberish,
   BytesLike,
   dataSlice,
   FunctionFragment,
@@ -16,6 +15,8 @@ import {
   Result,
 } from "ethers";
 import { Address } from "viem";
+
+import { BigNumberish } from "../utils/formatter";
 
 interface ParseSelectorResult {
   functionFragment: FunctionFragment;

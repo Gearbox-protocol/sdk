@@ -3,9 +3,9 @@ import {
   convexPoolByPid,
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
 
 import { IConvexV1BoosterAdapter__factory } from "../types";
+import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

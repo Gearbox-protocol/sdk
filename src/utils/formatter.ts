@@ -4,8 +4,9 @@ import {
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
 import { Decimal } from "decimal.js-light";
-import { BigNumberish } from "ethers";
 import { unix } from "moment";
+
+export type BigNumberish = bigint | number | string;
 
 export function rayToNumber(num: BigNumberish): number {
   return Number(toBigInt(num) / 10n ** 21n) / 1000000;

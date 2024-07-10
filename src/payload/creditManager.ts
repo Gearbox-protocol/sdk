@@ -1,6 +1,6 @@
-import { BigNumberish } from "ethers";
 import { Address } from "viem";
 
+import { BigNumberish } from "../utils/formatter";
 import { PoolDataPayload } from "./pool";
 
 export interface CreditManagerDebtParamsSDK {

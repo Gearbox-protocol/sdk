@@ -1,5 +1,6 @@
-import { BigNumberish } from "ethers";
 import { Address } from "viem";
+
+import { BigNumberish } from "../utils/formatter";
 
 export interface PoolDataPayload {
   addr: Address;

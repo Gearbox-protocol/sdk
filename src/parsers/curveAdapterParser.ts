@@ -5,13 +5,13 @@ import {
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
 
 import {
   ICurveV1_2AssetsAdapter__factory,
   ICurveV1_3AssetsAdapter__factory,
   ICurveV1_4AssetsAdapter__factory,
 } from "../types";
+import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 

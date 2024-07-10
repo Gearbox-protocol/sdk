@@ -1,4 +1,4 @@
-import { BigNumberish } from "ethers";
+import { BigNumberish } from "../utils/formatter";
 
 export interface CreditSessionBalancePayload {
   BI: string;

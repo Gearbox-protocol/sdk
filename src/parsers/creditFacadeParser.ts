@@ -1,5 +1,4 @@
 import { SupportedToken } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
 
 import {
   ICreditFacadeV2Extended__factory,
@@ -7,6 +6,7 @@ import {
 } from "../types";
 import { BalanceStructOutput } from "../types/ICreditFacadeV2.sol/ICreditFacadeV2Extended";
 import { BalanceDeltaStructOutput } from "../types/ICreditFacadeV3Multicall";
+import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
