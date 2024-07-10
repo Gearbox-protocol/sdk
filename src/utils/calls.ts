@@ -103,3 +103,16 @@ function unwrapArray<V>(data: unknown): V {
   }
   return data as V;
 }
+
+export type ViemFailableMulticallRes<T> = (
+  | {
+      error?: undefined;
+      result: T;
+      status: "success";
+    }
+  | {
+      error: Error;
+      result?: undefined;
+      status: "failure";
+    }
+)[];
