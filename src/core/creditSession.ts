@@ -1,10 +1,10 @@
 import {
-  Address,
   PERCENTAGE_DECIMALS,
   toBigInt,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import moment from "moment";
+import { Address } from "viem";
 
 import {
   CreditSessionFilteredPayload,

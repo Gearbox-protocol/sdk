@@ -1,9 +1,9 @@
 import {
-  Address,
   NetworkType,
   PartialRecord,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { STATIC_TOKEN } from "../config";
 import { TokenDataPayload } from "../payload/token";

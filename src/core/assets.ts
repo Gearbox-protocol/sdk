@@ -1,4 +1,4 @@
-import { Address } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { TokenData } from "../tokens/tokenData";
 import { nonNegativeBn } from "../utils/math";

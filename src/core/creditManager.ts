@@ -1,5 +1,4 @@
 import {
-  Address,
   ADDRESS_0X0,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -7,7 +6,7 @@ import {
   toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
-import { encodeFunctionData } from "viem";
+import { Address, encodeFunctionData } from "viem";
 
 import { TxParser } from "../parsers/txParser";
 import { MultiCall } from "../pathfinder/core";

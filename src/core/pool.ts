@@ -1,10 +1,9 @@
 import {
-  Address,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { getContract, PublicClient } from "viem";
+import { Address, getContract, PublicClient } from "viem";
 
 import {
   ChartsPoolDataPayload,

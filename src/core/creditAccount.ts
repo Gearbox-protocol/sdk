@@ -1,5 +1,4 @@
 import {
-  Address,
   decimals,
   extractTokenData,
   PERCENTAGE_DECIMALS,
@@ -10,6 +9,7 @@ import {
   WAD,
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { TokensWithAPY, TokensWithApyRecord } from "../apy";
 import {

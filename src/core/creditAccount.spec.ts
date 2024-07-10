@@ -1,11 +1,11 @@
 import {
-  Address,
   decimals,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
+import { Address } from "viem";
 
 import { TokensWithApyRecord } from "../apy";
 import { toBN } from "../utils/formatter";

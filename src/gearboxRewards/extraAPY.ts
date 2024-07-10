@@ -1,5 +1,4 @@
 import {
-  Address,
   decimals,
   NetworkType,
   PartialRecord,
@@ -8,6 +7,7 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
+import { Address } from "viem";
 
 import { poolByNetwork } from "../contracts/contractsRegister";
 import { Asset } from "../core/assets";

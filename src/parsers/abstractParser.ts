@@ -1,5 +1,4 @@
 import {
-  Address,
   decimals,
   formatBN,
   getTokenSymbolOrTicker,
@@ -16,6 +15,7 @@ import {
   Interface,
   Result,
 } from "ethers";
+import { Address } from "viem";
 
 interface ParseSelectorResult {
   functionFragment: FunctionFragment;
