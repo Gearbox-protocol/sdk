@@ -12,7 +12,6 @@ import {
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   SECONDS_PER_YEAR,
-  toBigInt,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 import {
@@ -94,16 +93,14 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
       const crvLpPrice = rest.slice(extraFinishEnd, lpPriceEnd);
 
       const apy = calculateConvexAPY({
-        cvxPoolRewardsFinish: toBigInt(cvxPoolRewardsFinish || 0n),
-        cvxPoolRate: toBigInt(cvxPoolRate || 0n),
-        cvxPoolSupply: toBigInt(cvxPoolSupply || 0n),
-        crvVPrice: toBigInt(crvVPrice || 0n),
-        cvxTokenSupply: toBigInt(cvxTokenSupply || 0n),
-        cvxExtraRewards: cvxExtraRewards.map(v => toBigInt(v || 0n)),
-        cvxExtraRewardsFinish: cvxExtraRewardsFinish.map(v =>
-          toBigInt(v || 0n),
-        ),
-        crvLpPrice: crvLpPrice.map(v => toBigInt(v || 0n)),
+        cvxPoolRewardsFinish: cvxPoolRewardsFinish || 0n,
+        cvxPoolRate: cvxPoolRate || 0n,
+        cvxPoolSupply: cvxPoolSupply || 0n,
+        crvVPrice: crvVPrice || 0n,
+        cvxTokenSupply: cvxTokenSupply || 0n,
+        cvxExtraRewards: cvxExtraRewards.map(v => v || 0n),
+        cvxExtraRewardsFinish: cvxExtraRewardsFinish.map(v => v || 0n),
+        crvLpPrice: crvLpPrice.map(v => v || 0n),
 
         info: poolsInfo[i],
         getTokenPrice: props.getTokenPrice,
