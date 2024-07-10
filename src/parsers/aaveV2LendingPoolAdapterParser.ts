@@ -1,6 +1,7 @@
 import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IAaveV2_LendingPoolAdapter__factory } from "../types";
+import { iAaveV2LendingPoolAdapterAbi } from "../types-viem";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -10,18 +11,18 @@ export class AaveV2LendingPoolAdapterParser
 {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IAaveV2_LendingPoolAdapter__factory.createInterface();
+    this.abi = iAaveV2LendingPoolAdapterAbi;
     if (!isContract) this.adapterName = "AaveV2_LendingPoolAdapter";
   }
 
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

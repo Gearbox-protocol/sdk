@@ -1,28 +1,26 @@
 import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { ILidoV1Adapter__factory } from "../types";
+import { iLidoV1AdapterAbi } from "../types-viem";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class LidoAdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = ILidoV1Adapter__factory.createInterface();
+    this.abi = iLidoV1AdapterAbi;
     if (!isContract) this.adapterName = "LidoV1Adapter";
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "submit": {
-        const [amount] = this.decodeFunctionData(functionFragment, calldata);
+        const [amount] = functionData.args || [];
         return `${functionName}(amount: ${this.formatBN(amount, "STETH")})`;
       }
       case "submitDiff": {
-        const [leftoverAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount] = functionData.args || [];
         return `${functionName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           "STETH",
@@ -31,8 +29,8 @@ export class LidoAdapterParser extends AbstractParser implements IParser {
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

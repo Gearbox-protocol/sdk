@@ -2,28 +2,26 @@ import {
   contractsByNetwork,
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IYearnV2Adapter__factory } from "../types";
+import { iYearnV2AdapterAbi } from "../types-viem";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class YearnV2AdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IYearnV2Adapter__factory.createInterface();
+    this.abi = iYearnV2AdapterAbi;
     if (!isContract) this.adapterName = "YearnV2Adapter";
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "deposit":
       case "withdraw":
       case "withdraw(uint256,address,uint256)": {
-        const [amount, address, maxLoss] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [amount, address, maxLoss] = functionData.args || [];
 
         const yvSym = this.tokenSymbol(
           contractsByNetwork.Mainnet[this.contract as SupportedContract],
@@ -39,10 +37,7 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
       }
 
       case "depositDiff": {
-        const [leftoverAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount] = functionData.args || [];
 
         const yvSym = this.tokenSymbol(
           contractsByNetwork.Mainnet[this.contract as SupportedContract],
@@ -54,10 +49,7 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
       }
 
       case "withdrawDiff": {
-        const [leftoverAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount] = functionData.args || [];
 
         const yvSym = this.tokenSymbol(
           contractsByNetwork.Mainnet[this.contract as SupportedContract],
@@ -72,22 +64,19 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
         return `${functionName}()`;
       }
       case "balanceOf": {
-        const [address] = this.decodeFunctionData(functionFragment, calldata);
+        const [address] = functionData.args || [];
         return `${functionName}(${address})`;
       }
 
       case "allowance": {
-        const [account, to] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [account, to] = functionData.args || [];
         return `${functionName}(account: ${account}, to: ${to})`;
       }
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

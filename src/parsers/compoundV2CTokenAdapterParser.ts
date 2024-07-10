@@ -1,6 +1,7 @@
 import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { ICompoundV2_CTokenAdapter__factory } from "../types";
+import { iCompoundV2CTokenAdapterAbi } from "../types-viem";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -10,18 +11,18 @@ export class CompoundV2CTokenAdapterParser
 {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = ICompoundV2_CTokenAdapter__factory.createInterface();
+    this.abi = iCompoundV2CTokenAdapterAbi;
     if (!isContract) this.adapterName = "CompoundV2_CTokenAdapter";
   }
 
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

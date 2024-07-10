@@ -1,22 +1,23 @@
 import { formatBN, SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IUniswapV3Adapter__factory } from "../types";
+import { iUniswapV3AdapterAbi } from "../types-viem";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class UniswapV3AdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IUniswapV3Adapter__factory.createInterface();
+    this.abi = iUniswapV3AdapterAbi;
     if (!isContract) this.adapterName = "UniswapV3Adapter";
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionData, functionName } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "exactInputSingle": {
-        const [[tokenIn, tokenOut, fee, , , amountIn, amountOutMinimum]] =
-          this.decodeFunctionData(functionFragment, calldata);
+        const [{ tokenIn, tokenOut, fee, amountIn, amountOutMinimum }] =
+          functionData.args || [{}];
         const tokenInSym = this.tokenSymbol(tokenIn);
         const tokenOutSym = this.tokenSymbol(tokenOut);
 
@@ -26,9 +27,8 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         return `${functionName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
       }
       case "exactDiffInputSingle": {
-        const {
-          params: { tokenIn, tokenOut, fee, leftoverAmount, rateMinRAY },
-        } = this.decodeFunctionData(functionFragment, calldata);
+        const [{ tokenIn, tokenOut, fee, leftoverAmount, rateMinRAY }] =
+          functionData.args || [{}];
         const tokenInSym = this.tokenSymbol(tokenIn);
         const tokenOutSym = this.tokenSymbol(tokenOut);
 
@@ -39,9 +39,9 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         )},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
       }
       case "exactInput": {
-        const {
-          params: { amountIn, amountOutMinimum, path },
-        } = this.decodeFunctionData(functionFragment, calldata);
+        const [{ path, amountIn, amountOutMinimum }] = functionData.args || [
+          {},
+        ];
 
         const pathStr = this.trackInputPath(path);
         const amountInStr = this.formatBN(
@@ -57,9 +57,9 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         return `${functionName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${pathStr}`;
       }
       case "exactDiffInput": {
-        const {
-          params: { leftoverAmount, rateMinRAY, path },
-        } = this.decodeFunctionData(functionFragment, calldata);
+        const [{ path, leftoverAmount, rateMinRAY }] = functionData.args || [
+          {},
+        ];
 
         const leftoverAmountStr = this.formatBN(
           leftoverAmount,
@@ -74,10 +74,9 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         )},  path: ${pathStr}`;
       }
       case "exactOutput": {
-        const {
-          params: { amountInMaximum, amountOut, path },
-        } = this.decodeFunctionData(functionFragment, calldata);
-
+        const [{ path, amountOut, amountInMaximum }] = functionData.args || [
+          {},
+        ];
         const pathStr = this.trackOutputPath(path);
         const amountInMaximumStr = this.formatBN(
           amountInMaximum,
@@ -92,8 +91,8 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         return `${functionName}(amountInMaximum: ${amountInMaximumStr}, amountOut: ${amountOutStr},  path: ${pathStr}`;
       }
       case "exactOutputSingle": {
-        const [[tokenIn, tokenOut, fee, , , amountOut, amountInMaximum]] =
-          this.decodeFunctionData(functionFragment, calldata);
+        const [{ tokenIn, tokenOut, fee, amountOut, amountInMaximum }] =
+          functionData.args || [{}];
 
         const tokenInSym = this.tokenSymbol(tokenIn);
         const tokenOutSym = this.tokenSymbol(tokenOut);
@@ -106,19 +105,19 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }
   }
 
-  trackInputPath(path: string): string {
+  trackInputPath(path: Address): string {
     let result = "";
     let pointer = path.startsWith("0x") ? 2 : 0;
     while (pointer <= path.length - 40) {
       const from = `0x${path.slice(pointer, pointer + 40)}`.toLowerCase();
-      result += this.tokenSymbol(from) || from;
+      result += this.tokenSymbol(from as Address) || from;
       pointer += 40;
 
       if (pointer > path.length - 6) return result;
@@ -132,13 +131,13 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
     return result;
   }
 
-  trackOutputPath(path: string): string {
+  trackOutputPath(path: Address): string {
     let result = "";
     let pointer = path.length;
     while (pointer >= 40) {
       pointer -= 40;
       const from = `0x${path.slice(pointer, pointer + 40)}`;
-      result += this.tokenSymbol(from) || from;
+      result += this.tokenSymbol(from as Address) || from;
 
       if (pointer < 6) return result;
       pointer -= 6;

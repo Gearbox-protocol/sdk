@@ -1,25 +1,26 @@
 import { NormalToken } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IBaseRewardPool__factory } from "../types";
+import { iBaseRewardPoolAbi } from "../types-viem";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class ConvexRewardPoolParser extends AbstractParser implements IParser {
   constructor(token: NormalToken) {
     super(`ConvexRewardPool_${token}`);
-    this.ifc = IBaseRewardPool__factory.createInterface();
+    this.abi = iBaseRewardPoolAbi;
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "rewardRate":
         return `${functionName}()`;
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

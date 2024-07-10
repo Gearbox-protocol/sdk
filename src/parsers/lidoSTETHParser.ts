@@ -1,49 +1,44 @@
 import { SupportedToken, toBigInt } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IstETH__factory } from "../types";
+import { istEthAbi } from "../types-viem";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class LidoSTETHParser extends AbstractParser implements IParser {
   constructor(symbol: SupportedToken) {
     super(`LIDO_${symbol}`);
-    this.ifc = IstETH__factory.createInterface();
+    this.abi = istEthAbi;
   }
 
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "getFee":
       case "totalSupply": {
         return `${functionName}()`;
       }
 
       case "balanceOf": {
-        const [address] = this.decodeFunctionData(functionFragment, calldata);
+        const [address] = functionData.args || [];
 
         return `${functionName}(${address})`;
       }
 
       case "allowance": {
-        const [account, to] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [account, to] = functionData.args || [];
         return `${functionName}(account: ${account}, to: ${to})`;
       }
       case "approve": {
-        const [spender, amount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [spender, amount] = functionData.args || [];
         return `${functionName}(${spender}, [${toBigInt(amount).toString()}])`;
       }
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

@@ -25,7 +25,7 @@ describe("PathFinder test", () => {
   it("has all expected connectors", () => {
     const pf = new PathFinder(
       "" as Address,
-      createPublicClient({ transport: http() }),
+      createPublicClient({ transport: http("https://mainnet.infura.io/v3/") }),
       "Mainnet",
     );
     const allowedTokens = {
@@ -46,7 +46,7 @@ describe("PathFinder test", () => {
   it("has all expected connectors, when gew are disabled", () => {
     const pf = new PathFinder(
       "" as Address,
-      createPublicClient({ transport: http() }),
+      createPublicClient({ transport: http("https://mainnet.infura.io/v3/") }),
       "Mainnet",
     );
     const allowedTokens = {

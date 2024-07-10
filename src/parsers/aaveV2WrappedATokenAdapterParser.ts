@@ -1,6 +1,7 @@
 import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IAaveV2_WrappedATokenAdapter__factory } from "../types";
+import { iAaveV2WrappedATokenAdapterAbi } from "../types-viem";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -10,18 +11,18 @@ export class AaveV2WrappedATokenAdapterParser
 {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IAaveV2_WrappedATokenAdapter__factory.createInterface();
+    this.abi = iAaveV2WrappedATokenAdapterAbi;
     if (!isContract) this.adapterName = "AaveV2_WrappedATokenAdapter";
   }
 
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

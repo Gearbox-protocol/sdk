@@ -10,12 +10,12 @@ import {
   tokenDataByNetwork,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { MultiCall } from "../pathfinder/core";
 import { AaveV2LendingPoolAdapterParser } from "./aaveV2LendingPoolAdapterParser";
 import { AaveV2WrappedATokenAdapterParser } from "./aaveV2WrappedATokenAdapterParser";
 import { AbstractParser } from "./abstractParser";
-import { AddressProviderParser } from "./addressProviderParser";
 import { BalancerV2VaultParser } from "./balancerV2VaultParser";
 import { CompoundV2CTokenAdapterParser } from "./compoundV2CTokenAdapterParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
@@ -29,7 +29,6 @@ import { ERC4626AdapterParser } from "./erc626AdapterParser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { LidoSTETHParser } from "./lidoSTETHParser";
-import { PoolParser } from "./poolParser";
 import { PriceOracleParser } from "./priceOracleParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
@@ -49,7 +48,7 @@ interface ParseData {
 export class TxParser {
   protected static parsers: Record<string, IParser & AbstractParser> = {};
 
-  public static parse(address: string, calldata: string) {
+  public static parse(address: Address, calldata: Address) {
     let parser: (IParser & AbstractParser) | undefined;
     try {
       parser = TxParser.getParser(address);
@@ -61,7 +60,7 @@ export class TxParser {
     }
   }
 
-  public static parseToObject(address: string, calldata: string) {
+  public static parseToObject(address: Address, calldata: Address) {
     let parser: (IParser & AbstractParser) | undefined;
     try {
       parser = TxParser.getParser(address);
@@ -79,14 +78,12 @@ export class TxParser {
   }
 
   public static parseMultiCall(calls: Array<MultiCall>) {
-    return calls.map(call =>
-      TxParser.parse(call.target, call.callData.toString()),
-    );
+    return calls.map(call => TxParser.parse(call.target, call.callData));
   }
 
   public static parseToObjectMultiCall(calls: Array<MultiCall>) {
     return calls.map(call =>
-      TxParser.parseToObject(call.target, call.callData.toString()),
+      TxParser.parseToObject(call.target, call.callData),
     );
   }
 
@@ -169,14 +166,8 @@ export class TxParser {
     TxParser._addParser(address, new PriceOracleParser());
   }
 
-  public static addAddressProvider(address: string) {
-    TxParser._addParser(address, new AddressProviderParser());
-  }
   public static addCreditManager(address: string, version: number) {
     TxParser._addParser(address, new CreditManagerParser(version));
-  }
-  public static addPool(address: string, version: number) {
-    TxParser._addParser(address, new PoolParser(version));
   }
 
   public static getParser(address: string) {

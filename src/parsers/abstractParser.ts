@@ -7,31 +7,19 @@ import {
   toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
-import {
-  BytesLike,
-  dataSlice,
-  FunctionFragment,
-  Interface,
-  Result,
-} from "ethers";
-import { Address } from "viem";
+import { Abi, Address, decodeFunctionData } from "viem";
 
 import { BigNumberish } from "../utils/formatter";
 
-interface ParseSelectorResult {
-  functionFragment: FunctionFragment;
-  functionName: string;
-}
-
 export interface ParsedObject {
-  address: string;
-  functionFragment: FunctionFragment;
-  args: Result;
+  address: Address;
+  functionName: string;
+  args: readonly any[];
 }
 
 export class AbstractParser {
   public readonly contract: string;
-  protected ifc!: Interface;
+  protected abi!: Abi;
   public adapterName: string;
 
   constructor(contract: string) {
@@ -39,37 +27,39 @@ export class AbstractParser {
     this.adapterName = "Contract";
   }
 
-  parseSelector(calldata: BytesLike): ParseSelectorResult {
-    const functionFragment = this.ifc.getFunction(
-      dataSlice(calldata, 0, 4) as any,
-    );
-    if (!functionFragment) throw new Error("Function fragment not found");
+  parseSelector(calldata: Address) {
+    const functionData = decodeFunctionData({
+      abi: this.abi,
+      data: calldata,
+    });
 
-    const functionName = `${this.adapterName}[${this.contract}].${functionFragment?.name}`;
-    return { functionFragment, functionName };
+    if (!functionData.functionName)
+      throw new Error("Function fragment not found");
+
+    const functionName = `${this.adapterName}[${this.contract}].${functionData.functionName}`;
+    return {
+      functionData: functionData as {
+        args: Array<any> | undefined;
+        functionName: string;
+      },
+      functionName,
+    };
   }
 
-  decodeFunctionData(
-    functionFragment: FunctionFragment | string,
-    data: BytesLike,
-  ): Result {
-    return this.ifc.decodeFunctionData(functionFragment, data);
+  decodeFunctionData(data: Address) {
+    return decodeFunctionData({
+      abi: this.abi,
+      data,
+    });
   }
 
-  encodeFunctionResult(
-    functionFragment: FunctionFragment | string,
-    data: Array<any>,
-  ) {
-    return this.ifc.encodeFunctionResult(functionFragment, data);
-  }
-
-  tokenSymbol(address: string): SupportedToken {
+  tokenSymbol(address: Address): SupportedToken {
     const symbol = tokenSymbolByAddress[address.toLowerCase()];
     if (!symbol) throw new Error(`Unknown token: ${address}`);
     return symbol;
   }
 
-  tokenOrTickerSymbol(address: string): SupportedToken | TickerToken {
+  tokenOrTickerSymbol(address: Address): SupportedToken | TickerToken {
     const symbol = getTokenSymbolOrTicker(address as Address);
     if (!symbol) {
       throw new Error(`Unknown token or ticker: ${address}`);
@@ -83,23 +73,21 @@ export class AbstractParser {
     ).toString()}]`;
   }
 
-  parseToObject(address: string, calldata: string): ParsedObject {
-    const { functionFragment } = this.parseSelector(calldata);
-
-    const args = this.decodeFunctionData(functionFragment, calldata);
+  parseToObject(address: Address, calldata: Address): ParsedObject {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
     return {
       address,
-      functionFragment,
-      args,
+      functionName,
+      args: functionData.args || [],
     };
   }
 
   reportUnknownFragment(
+    parserName: string,
     functionName: string,
-    functionFragment: FunctionFragment,
     calldata: string,
   ) {
-    return `${functionName}: Unknown operation ${functionFragment.name} with calldata ${calldata}`;
+    return `${parserName}: Unknown operation ${functionName} with calldata ${calldata}`;
   }
 }

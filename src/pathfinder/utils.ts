@@ -151,9 +151,9 @@ export class PathFinderUtils {
   }
 
   private static getUniswapV2Fee(callObject: ParsedObject): FeeInfo | null {
-    const { name } = callObject.functionFragment;
+    const { functionName } = callObject;
 
-    switch (name) {
+    switch (functionName) {
       case "swapExactTokensForTokens":
       case "swapTokensForExactTokens":
       case "swapDiffTokensForTokens": {
@@ -169,14 +169,14 @@ export class PathFinderUtils {
   }
 
   private static getUniswapV3Fee(callObject: ParsedObject): FeeInfo | null {
-    const { name } = callObject.functionFragment;
+    const { functionName, args } = callObject;
 
-    switch (name) {
+    switch (functionName) {
       case "exactInputSingle":
       case "exactDiffInputSingle":
       case "exactOutputSingle": {
-        const { params } = callObject.args || {};
-        const { fee = 0 } = params || {};
+        const [first] = args;
+        const { fee = 0 } = first || {};
 
         return {
           type: "uniswap_v3",
@@ -192,9 +192,9 @@ export class PathFinderUtils {
     callObject: ParsedObject,
     contractsByAdapter: Record<string, string>,
   ) {
-    const { name } = callObject.functionFragment;
+    const { functionName } = callObject;
 
-    switch (name) {
+    switch (functionName) {
       case "exchange":
       case "exchange_underlying":
       case "exchange_diff":
@@ -224,12 +224,14 @@ export class PathFinderUtils {
   }
 
   private static getBalancerFeeCall(callObject: ParsedObject) {
-    const { name } = callObject.functionFragment;
+    const { functionName } = callObject;
 
-    switch (name) {
+    switch (functionName) {
       case "swapDiff":
       case "swap": {
-        const { poolId = "" } = callObject.args?.[0] || {};
+        const [first] = callObject.args;
+        const { poolId = "" } = first || {};
+
         const { address } = splitPoolId(poolId);
 
         return address
