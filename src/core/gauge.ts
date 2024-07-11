@@ -14,7 +14,7 @@ export class GaugeData {
   readonly epochFrozen: boolean;
 
   readonly quotaParams: Record<
-    string,
+    Address,
     {
       token: Address;
       minRate: bigint;

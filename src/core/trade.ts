@@ -6,6 +6,7 @@ import {
   tokenSymbolByAddress,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { TxParser } from "../parsers/txParser";
 import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
@@ -13,7 +14,7 @@ import { CreditManagerData } from "./creditManager";
 
 interface Info {
   name: string;
-  creditManager: string;
+  creditManager: Address;
   creditManagerName: string;
 }
 
@@ -21,8 +22,8 @@ interface TradeProps {
   adapter: Info;
   tradePath: PathFinderResult;
 
-  tokenIn: string;
-  tokenOut: string;
+  tokenIn: Address;
+  tokenOut: Address;
   sourceAmount: bigint;
   minExpectedAmount: bigint;
   averageExpectedAmount: bigint;
@@ -33,8 +34,8 @@ interface TradeProps {
 export type TradeOperations = "farmWithdraw" | "farmDeposit" | "swap";
 
 export interface GetTradesProps {
-  tokenIn: string;
-  tokenOut: string;
+  tokenIn: Address;
+  tokenOut: Address;
 
   amount: bigint;
   results: Array<PathFinderResult>;
@@ -54,8 +55,8 @@ export class Trade {
   readonly minExpectedAmount: bigint;
   readonly averageExpectedAmount: bigint;
   readonly rate: bigint;
-  readonly tokenIn: string;
-  readonly tokenOut: string;
+  readonly tokenIn: Address;
+  readonly tokenOut: Address;
   readonly operationName: TradeOperations;
 
   private constructor(props: TradeProps) {
@@ -140,11 +141,13 @@ export class Trade {
 
   static getCallInfo(
     calls: Array<MultiCall>,
-    creditManager: string,
+    creditManager: Address,
     creditManagerName: string,
   ) {
     const callAdapters = calls.reduce<Array<Info>>((acc, call) => {
-      const contractSymbol = this.getContractSymbol(call.target.toLowerCase());
+      const contractSymbol = this.getContractSymbol(
+        call.target.toLowerCase() as Address,
+      );
 
       if (!isSupportedContract(contractSymbol)) {
         return acc;
@@ -164,7 +167,7 @@ export class Trade {
     return callAdapters;
   }
 
-  private static getContractSymbol(address: string) {
+  private static getContractSymbol(address: Address) {
     try {
       const { contract } = TxParser.getParseData(address);
       return contract;

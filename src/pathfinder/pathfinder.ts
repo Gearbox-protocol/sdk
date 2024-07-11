@@ -304,8 +304,9 @@ export class PathFinder {
       ...bestResult,
       underlyingBalance:
         bestResult.minAmount +
-        creditAccount.allBalances[creditAccount.underlyingToken.toLowerCase()]
-          .balance,
+        creditAccount.allBalances[
+          creditAccount.underlyingToken.toLowerCase() as Address
+        ].balance,
     };
   }
 

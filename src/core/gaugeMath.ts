@@ -1,3 +1,5 @@
+import { Address } from "viem";
+
 import { BigIntMath } from "../utils/math";
 import { GaugeData } from "./gauge";
 
@@ -47,7 +49,7 @@ interface RemoveProps {
 export interface GetGaugeApyProps {
   quota:
     | Pick<
-        GaugeData["quotaParams"][string],
+        GaugeData["quotaParams"][Address],
         | "totalVotesCaSide"
         | "totalVotesLpSide"
         | "stakerVotesCaSide"
@@ -140,7 +142,7 @@ export class GaugeMath {
   }
 
   static getBaseVote = (
-    v: GaugeData["quotaParams"][string],
+    v: GaugeData["quotaParams"][Address],
   ): BaseVote | undefined => {
     const voteDown = v.stakerVotesCaSide;
     const voteUp = v.stakerVotesLpSide;

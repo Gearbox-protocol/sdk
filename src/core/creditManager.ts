@@ -55,11 +55,11 @@ export class CreditManagerData {
 
   readonly collateralTokens: Array<Address> = [];
   readonly supportedTokens: Record<Address, true> = {};
-  readonly usableTokens: Record<string, true> = {};
-  readonly adapters: Record<string, Address> = {};
-  readonly contractsByAdapter: Record<string, string> = {};
-  readonly liquidationThresholds: Record<string, bigint>;
-  readonly quotas: Record<string, QuotaInfo>;
+  readonly usableTokens: Record<Address, true> = {};
+  readonly adapters: Record<Address, Address> = {};
+  readonly contractsByAdapter: Record<Address, Address> = {};
+  readonly liquidationThresholds: Record<Address, bigint>;
+  readonly quotas: Record<Address, QuotaInfo>;
   readonly interestModel: LinearModel;
 
   constructor(payload: CreditManagerDataPayload) {
@@ -109,25 +109,30 @@ export class CreditManagerData {
     });
 
     this.liquidationThresholds = payload.liquidationThresholds.reduce<
-      Record<string, bigint>
+      CreditManagerData["liquidationThresholds"]
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
-      if (address) acc[address.toLowerCase()] = threshold;
+      if (address) acc[address.toLowerCase() as Address] = threshold;
       return acc;
     }, {});
 
-    this.quotas = payload.quotas.reduce<Record<string, QuotaInfo>>((acc, q) => {
-      acc[q.token.toLowerCase()] = {
-        token: q.token.toLowerCase() as Address,
-        rate: BigInt(q.rate) * PERCENTAGE_DECIMALS,
-        quotaIncreaseFee: BigInt(q.quotaIncreaseFee),
-        totalQuoted: q.totalQuoted,
-        limit: q.limit,
-        isActive: q.isActive,
-      };
+    this.quotas = payload.quotas.reduce<CreditManagerData["quotas"]>(
+      (acc, q) => {
+        const addressLc = q.token.toLowerCase() as Address;
 
-      return acc;
-    }, {});
+        acc[addressLc] = {
+          token: addressLc,
+          rate: BigInt(q.rate) * PERCENTAGE_DECIMALS,
+          quotaIncreaseFee: BigInt(q.quotaIncreaseFee),
+          totalQuoted: q.totalQuoted,
+          limit: q.limit,
+          isActive: q.isActive,
+        };
+
+        return acc;
+      },
+      {},
+    );
 
     this.interestModel = {
       interestModel: payload.lirm.interestModel.toLowerCase() as Address,
@@ -171,11 +176,11 @@ export class CreditManagerData {
     }
   }
 
-  get id(): string {
+  get id(): Address {
     return this.address;
   }
 
-  isQuoted(token: string) {
+  isQuoted(token: Address) {
     return !!this.quotas[token];
   }
 

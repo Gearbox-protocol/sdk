@@ -129,7 +129,7 @@ const MAX_UINT16 = 65535;
 
 export class CreditAccountData {
   readonly isSuccessful: boolean;
-  readonly priceFeedsNeeded: string[];
+  readonly priceFeedsNeeded: Address[];
 
   readonly addr: Address;
   readonly borrower: Address;
@@ -160,13 +160,13 @@ export class CreditAccountData {
   readonly cumulativeIndexLastUpdate: bigint;
   readonly cumulativeQuotaInterest: bigint;
 
-  readonly activeBots: Record<string, true>;
+  readonly activeBots: Record<Address, true>;
 
-  readonly balances: Record<string, bigint> = {};
-  readonly collateralTokens: Array<string> = [];
-  readonly allBalances: Record<string, CaTokenBalance> = {};
-  readonly forbiddenTokens: Record<string, true> = {};
-  readonly quotedTokens: Record<string, true> = {};
+  readonly balances: Record<Address, bigint> = {};
+  readonly collateralTokens: Array<Address> = [];
+  readonly allBalances: Record<Address, CaTokenBalance> = {};
+  readonly forbiddenTokens: Record<Address, true> = {};
+  readonly quotedTokens: Record<Address, true> = {};
 
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
@@ -206,13 +206,13 @@ export class CreditAccountData {
     this.cumulativeIndexLastUpdate = payload.cumulativeIndexLastUpdate;
     this.cumulativeQuotaInterest = payload.cumulativeQuotaInterest;
 
-    this.activeBots = payload.activeBots.reduce<Record<string, true>>(
-      (acc, b) => {
-        acc[b.toLowerCase()] = true;
-        return acc;
-      },
-      {},
-    );
+    this.activeBots = payload.activeBots.reduce<
+      CreditAccountData["activeBots"]
+    >((acc, b) => {
+      const botLc = b.toLowerCase() as Address;
+      acc[botLc] = true;
+      return acc;
+    }, {});
 
     payload.balances.forEach(b => {
       const token = b.token.toLowerCase() as Address;
@@ -339,15 +339,15 @@ export class CreditAccountData {
     return t1 > t2 ? -1 : 1;
   }
 
-  isForbidden(token: string) {
+  isForbidden(token: Address) {
     return !!this.forbiddenTokens[token];
   }
 
-  isQuoted(token: string) {
+  isQuoted(token: Address) {
     return !!this.quotedTokens[token];
   }
 
-  isTokenEnabled(token: string) {
+  isTokenEnabled(token: Address) {
     return this.allBalances[token].isEnabled;
   }
 
@@ -492,7 +492,7 @@ export class CreditAccountData {
     return CreditAccountData.hash(this.creditManager, this.borrower);
   }
 
-  static hash(creditManager: string, borrower: string): string {
+  static hash(creditManager: Address, borrower: Address): string {
     return `${creditManager.toLowerCase()}:${borrower.toLowerCase()}`;
   }
 
@@ -642,7 +642,7 @@ export class CreditAccountData {
       ...quotaIncrease,
     };
 
-    const desiredQuota = Object.values(quotas).reduce<Record<string, Asset>>(
+    const desiredQuota = Object.values(quotas).reduce<Record<Address, Asset>>(
       (acc, cmQuota) => {
         const { token, isActive } = cmQuota;
         const { quota: initialQuota = 0n } = initialQuotas[token] || {};
