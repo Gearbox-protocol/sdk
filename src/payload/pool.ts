@@ -81,9 +81,9 @@ export interface PoolZapper {
 }
 
 export interface ChartsPoolDataPayload {
-  addr: string;
-  dieselToken: string;
-  underlyingToken: string;
+  addr: Address;
+  dieselToken: Address;
+  underlyingToken: Address;
   isWETH: boolean;
   version: number;
   name: string;
@@ -92,7 +92,7 @@ export interface ChartsPoolDataPayload {
   depositAPY_RAY: BigNumberish;
   dieselRate_RAY: BigNumberish;
   lmAPY: number;
-  lmRewardAll: Array<{ apy: number; token: string }>;
+  lmRewardAll: Array<{ apy: number; token: Address }>;
 
   earned7D: number;
   earned7DInUSD: number;
@@ -167,10 +167,10 @@ export interface ChartsAggregatedPoolPayload extends ChartsAggregatedStats {
 }
 
 export interface UserPoolPayload {
-  pool: string;
+  pool: Address;
   dieselSym: string;
-  dieselToken: string;
-  underlyingToken: string;
+  dieselToken: Address;
+  underlyingToken: Address;
 
   liqValue: BigNumberish;
   liqValueInUSD: number;
@@ -192,7 +192,7 @@ export interface UserPoolPayload {
 
   depositAPY_RAY: BigNumberish;
   lmAPY: number;
-  lmRewardAll: Array<{ apy: number; token: string }>;
+  lmRewardAll: Array<{ apy: number; token: Address }>;
 }
 
 export interface UserPoolAggregatedStatsPayload {
@@ -200,6 +200,6 @@ export interface UserPoolAggregatedStatsPayload {
   totalLiqInUSD: number;
   totalLiqt7DInUSD: number;
   totalLiqt10kBasis: number;
-  user: string;
+  user: Address;
   pools: Array<UserPoolPayload>;
 }

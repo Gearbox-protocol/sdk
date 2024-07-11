@@ -1,5 +1,6 @@
 import { CurveLPToken, tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
+import { Address } from "viem";
 
 import {
   BalanceInterface,
@@ -69,7 +70,7 @@ describe("PathOptionFactory test", () => {
   });
 
   it("generatePathOptions works correctly", () => {
-    const balances: Record<string, BalanceInterface> = {
+    const balances: Record<Address, BalanceInterface> = {
       [tokenDataByNetwork.Mainnet["1INCH"]]: { balance: 100n },
       [tokenDataByNetwork.Mainnet["3Crv"]]: { balance: 200n },
       [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
@@ -108,7 +109,7 @@ describe("PathOptionFactory test", () => {
   });
 
   it(" getCurvePools works correctly", () => {
-    let balances: Record<string, BalanceInterface> = {
+    let balances: Record<Address, BalanceInterface> = {
       [tokenDataByNetwork.Mainnet["1INCH"]]: { balance: 100n },
       [tokenDataByNetwork.Mainnet["3Crv"]]: { balance: 200n },
       [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },

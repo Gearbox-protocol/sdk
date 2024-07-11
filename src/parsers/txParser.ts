@@ -36,8 +36,8 @@ import { WstETHAdapterParser } from "./wstETHAdapterParser";
 import { YearnV2AdapterParser } from "./yearnV2AdapterParser";
 
 export interface AdapterForParser {
-  adapter: string;
-  contract: string;
+  adapter: Address;
+  contract: Address;
 }
 
 interface ParseData {
@@ -46,7 +46,7 @@ interface ParseData {
 }
 
 export class TxParser {
-  protected static parsers: Record<string, IParser & AbstractParser> = {};
+  protected static parsers: Record<Address, IParser & AbstractParser> = {};
 
   public static parse(address: Address, calldata: Address) {
     let parser: (IParser & AbstractParser) | undefined;
@@ -72,7 +72,7 @@ export class TxParser {
     }
   }
 
-  public static getParseData(address: string): ParseData {
+  public static getParseData(address: Address): ParseData {
     const parser = TxParser.getParser(address);
     return { contract: parser.contract, adapterName: parser.adapterName };
   }
@@ -131,7 +131,7 @@ export class TxParser {
   }
 
   public static addCreditFacade(
-    creditFacade: string,
+    creditFacade: Address,
     underlying: SupportedToken,
     version: number,
   ) {
@@ -162,27 +162,27 @@ export class TxParser {
     });
   }
 
-  public static addPriceOracle(address: string) {
+  public static addPriceOracle(address: Address) {
     TxParser._addParser(address, new PriceOracleParser());
   }
 
-  public static addCreditManager(address: string, version: number) {
+  public static addCreditManager(address: Address, version: number) {
     TxParser._addParser(address, new CreditManagerParser(version));
   }
 
-  public static getParser(address: string) {
-    const parser = TxParser.parsers[address.toLowerCase()];
+  public static getParser(address: Address) {
+    const parser = TxParser.parsers[address.toLowerCase() as Address];
     if (!parser) throw new Error(`Can't find parser for ${address}`);
     return parser;
   }
 
   protected static chooseContractParser(
-    address: string,
+    address: Address,
     contract: SupportedContract,
     adapterType: number,
     isContract: boolean,
   ) {
-    const addressLC = address.toLowerCase();
+    const addressLC = address.toLowerCase() as Address;
     switch (AdapterInterface[adapterType]) {
       case "UNISWAP_V2_ROUTER":
         TxParser._addParser(
@@ -287,9 +287,9 @@ export class TxParser {
   }
 
   protected static _addParser(
-    address: string,
+    address: Address,
     parser: IParser & AbstractParser,
   ) {
-    TxParser.parsers[address.toLowerCase()] = parser;
+    TxParser.parsers[address.toLowerCase() as Address] = parser;
   }
 }

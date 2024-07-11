@@ -9,12 +9,13 @@ import {
 import { CurveLPToken } from "@gearbox-protocol/sdk-gov/lib/tokens/curveLP";
 import { GearboxToken } from "@gearbox-protocol/sdk-gov/lib/tokens/gear";
 import axios from "axios";
+import { Address } from "viem";
 
 interface VolumesResponse {
   data: {
     pools: [
       {
-        address: string;
+        address: Address;
         includedApyPcentFromLsts: number;
         latestDailyApyPcent: number;
         latestWeeklyApyPcent: number;
@@ -27,36 +28,36 @@ interface VolumesResponse {
 }
 
 interface CurvePoolData {
-  address: string;
+  address: Address;
   amplificationCoefficient: string;
   assetType?: string;
   assetTypeName: string;
   coins: Array<{
-    address: string;
+    address: Address;
     decimals: string;
     isBasePoolLpToken: boolean;
     poolBalance: string;
     symbol: string;
     usdPrice: number;
   }>;
-  coinsAddresses: Array<string>;
+  coinsAddresses: Array<Address>;
   decimals: Array<string>;
-  gaugeAddress: string;
+  gaugeAddress: Address;
   gaugeCrvApy: Array<number>;
   gaugeRewards: Array<{
     apy: number;
     decimals: string;
-    gaugeAddress: string;
+    gaugeAddress: Address;
     name: string;
     symbol: string;
-    tokenAddress: string;
+    tokenAddress: Address;
     tokenPrice: number;
   }>;
   id: string;
   implementation: string;
-  implementationAddress: string;
+  implementationAddress: Address;
   isMetaPool: boolean;
-  lpTokenAddress: string;
+  lpTokenAddress: Address;
   name: string;
   poolUrls: {
     deposit: Array<string>;

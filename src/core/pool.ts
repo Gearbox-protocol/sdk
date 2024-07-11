@@ -224,9 +224,9 @@ interface CalculateBorrowRateProps {
 }
 
 export class ChartsPoolData {
-  readonly address: string;
-  readonly underlyingToken: string;
-  readonly dieselToken: string;
+  readonly address: Address;
+  readonly underlyingToken: Address;
+  readonly dieselToken: Address;
   readonly type: PoolType;
   readonly version: number;
   readonly name: string;
@@ -247,7 +247,7 @@ export class ChartsPoolData {
   readonly borrowAPY: number;
   readonly borrowAPYRay: bigint;
   readonly lmAPY: number;
-  readonly lmRewardAll: Array<{ apy: number; token: string }>;
+  readonly lmRewardAll: Array<{ apy: number; token: Address }>;
 
   readonly availableLiquidity: bigint;
   readonly availableLiquidityChange: number;
@@ -290,9 +290,11 @@ export class ChartsPoolData {
   readonly uniqueLPsChange: number;
 
   constructor(payload: ChartsPoolDataPayload) {
-    this.address = (payload.addr || "").toLowerCase();
-    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
-    this.dieselToken = (payload.dieselToken || "").toLowerCase();
+    this.address = (payload.addr || "").toLowerCase() as Address;
+    this.underlyingToken = (
+      payload.underlyingToken || ""
+    ).toLowerCase() as Address;
+    this.dieselToken = (payload.dieselToken || "").toLowerCase() as Address;
     this.type = PoolData.getPoolType(payload.name || "");
     this.version = payload.version || 1;
     this.name = payload.name || "";
@@ -311,7 +313,7 @@ export class ChartsPoolData {
     this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS);
     this.lmRewardAll = (payload.lmRewardAll || []).map(r => ({
       apy: (r.apy || 0) / Number(PERCENTAGE_DECIMALS),
-      token: (r.token || "").toLowerCase(),
+      token: (r.token || "").toLowerCase() as Address,
     }));
 
     const expected = toBigInt(payload.expectedLiquidity || 0);
@@ -377,14 +379,14 @@ export class ChartsPoolData {
 
 export class UserPoolData {
   readonly id: string;
-  readonly address: string;
-  readonly dieselToken: string;
-  readonly underlyingToken: string;
+  readonly address: Address;
+  readonly dieselToken: Address;
+  readonly underlyingToken: Address;
 
   readonly depositAPY: number;
   readonly depositAPYRay: bigint;
   readonly lmAPY: number;
-  readonly lmRewardAll: Array<{ apy: number; token: string }>;
+  readonly lmRewardAll: Array<{ apy: number; token: Address }>;
 
   readonly providedLiquidity: bigint;
   readonly providedLiquidityInUSD: number;
@@ -406,9 +408,11 @@ export class UserPoolData {
 
   constructor(payload: UserPoolPayload) {
     this.id = (payload.pool || "").toLowerCase();
-    this.address = payload.pool || "";
-    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
-    this.dieselToken = (payload.dieselToken || "").toLowerCase();
+    this.address = (payload.pool || "").toLowerCase() as Address;
+    this.underlyingToken = (
+      payload.underlyingToken || ""
+    ).toLowerCase() as Address;
+    this.dieselToken = (payload.dieselToken || "").toLowerCase() as Address;
 
     this.depositAPY =
       rayToNumber(payload.depositAPY_RAY || 0) * Number(PERCENTAGE_DECIMALS);
@@ -416,7 +420,7 @@ export class UserPoolData {
     this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS || 0);
     this.lmRewardAll = (payload.lmRewardAll || []).map(r => ({
       apy: (r.apy || 0) / Number(PERCENTAGE_DECIMALS),
-      token: (r.token || "").toLowerCase(),
+      token: (r.token || "").toLowerCase() as Address,
     }));
 
     this.providedLiquidity = toBigInt(payload.liqValue || 0);

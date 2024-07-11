@@ -26,7 +26,7 @@ export interface CreditSessionAsset extends AssetWithView {
 }
 
 export interface CreditSessionReward extends AssetWithView {
-  pool: string;
+  pool: Address;
 }
 
 export type CreditSessionStatus =
@@ -54,10 +54,10 @@ export const CREDIT_SESSION_ID_BY_STATUS = TypedObjectUtils.swapKeyValue(
 export class CreditSession {
   readonly id: string;
   readonly status: CreditSessionStatus;
-  readonly borrower: string;
-  readonly creditManager: string;
-  readonly account: string;
-  readonly underlyingToken: string;
+  readonly borrower: Address;
+  readonly creditManager: Address;
+  readonly account: Address;
+  readonly underlyingToken: Address;
   readonly version: number;
 
   readonly since: number;
@@ -81,13 +81,13 @@ export class CreditSession {
 
   readonly baseBorrowAPY7DAverage: number;
   readonly baseBorrowAPY_RAY: bigint;
-  readonly baseToken: string;
-  readonly pool: string;
+  readonly baseToken: Address;
+  readonly pool: Address;
 
   readonly entryPrice: number;
   readonly closePrice: number;
-  readonly quoteToken: string;
-  readonly tradingToken: string;
+  readonly quoteToken: Address;
+  readonly tradingToken: Address;
 
   readonly sinceTimestamp: number;
   readonly closedAtTimestamp: number;
@@ -114,10 +114,12 @@ export class CreditSession {
     this.id = (payload.id || "").toLowerCase();
     this.teritaryStatus = payload.teritaryStatus || { secStatus: [] };
     this.status = CREDIT_SESSION_STATUS_BY_ID[payload.status || 0];
-    this.borrower = (payload.borrower || "").toLowerCase();
-    this.creditManager = (payload.creditManager || "").toLowerCase();
-    this.account = (payload.account || "").toLowerCase();
-    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.borrower = (payload.borrower || "").toLowerCase() as Address;
+    this.creditManager = (payload.creditManager || "").toLowerCase() as Address;
+    this.account = (payload.account || "").toLowerCase() as Address;
+    this.underlyingToken = (
+      payload.underlyingToken || ""
+    ).toLowerCase() as Address;
     this.version = payload.version || 2;
 
     this.initialAmount = toBigInt(payload.initialAmount || 0);
@@ -143,13 +145,13 @@ export class CreditSession {
 
     this.baseBorrowAPY7DAverage = payload.baseBorrowAPY7DAverage || 0;
     this.baseBorrowAPY_RAY = toBigInt(payload.baseBorrowAPY_RAY || 0);
-    this.baseToken = (payload.tradingToken || "").toLowerCase();
-    this.pool = (payload.tradingToken || "").toLowerCase();
+    this.baseToken = (payload.tradingToken || "").toLowerCase() as Address;
+    this.pool = (payload.tradingToken || "").toLowerCase() as Address;
 
     this.entryPrice = payload.entryPrice || 0;
     this.closePrice = payload.closePrice || 0;
-    this.tradingToken = (payload.tradingToken || "").toLowerCase();
-    this.quoteToken = (payload.quoteToken || "").toLowerCase();
+    this.tradingToken = (payload.tradingToken || "").toLowerCase() as Address;
+    this.quoteToken = (payload.quoteToken || "").toLowerCase() as Address;
 
     this.borrowAPY_RAY = toBigInt(payload.borrowAPY_RAY || 0);
     this.borrowAPY7DAverage =
@@ -177,7 +179,7 @@ export class CreditSession {
         token: t.toLowerCase() as Address,
         balance: toBigInt(b.bi || 0),
         balanceView: b.f.toString(),
-        pool: b.pool.toLowerCase(),
+        pool: b.pool.toLowerCase() as Address,
       };
     });
 
@@ -211,10 +213,10 @@ export class CreditSession {
 
 export class CreditSessionFiltered {
   readonly id: string;
-  readonly borrower: string;
-  readonly account: string;
-  readonly creditManager: string;
-  readonly underlyingToken: string;
+  readonly borrower: Address;
+  readonly account: Address;
+  readonly creditManager: Address;
+  readonly underlyingToken: Address;
 
   readonly status: CreditSessionStatus;
   readonly since: number;
@@ -243,10 +245,12 @@ export class CreditSessionFiltered {
 
   constructor(payload: CreditSessionFilteredPayload) {
     this.id = (payload.id || "").toLowerCase();
-    this.borrower = (payload.borrower || "").toLowerCase();
-    this.account = (payload.account || "").toLowerCase();
-    this.creditManager = (payload.creditManager || "").toLowerCase();
-    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
+    this.borrower = (payload.borrower || "").toLowerCase() as Address;
+    this.account = (payload.account || "").toLowerCase() as Address;
+    this.creditManager = (payload.creditManager || "").toLowerCase() as Address;
+    this.underlyingToken = (
+      payload.underlyingToken || ""
+    ).toLowerCase() as Address;
 
     this.teritaryStatus = payload.teritaryStatus || { secStatus: [] };
     this.status = CREDIT_SESSION_STATUS_BY_ID[payload.status || 0];

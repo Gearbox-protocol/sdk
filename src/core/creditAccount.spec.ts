@@ -24,8 +24,8 @@ interface CATestInfo {
   totalValue: bigint;
   debt: bigint;
   borrowRate: number;
-  underlyingToken: string;
-  quotas: Record<string, Asset>;
+  underlyingToken: Address;
+  quotas: Record<Address, Asset>;
   rates: CalcOverallAPYProps["quotaRates"];
 }
 
@@ -415,10 +415,10 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
 interface CAHfTestInfo {
   assets: Array<Asset>;
   debt: bigint;
-  underlyingToken: string;
+  underlyingToken: Address;
   healthFactor: number;
   underlyingDecimals: number;
-  quotas: Record<string, Asset>;
+  quotas: Record<Address, Asset>;
   quotasInfo: CalcHealthFactorProps["quotasInfo"];
 }
 
@@ -471,7 +471,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       assets: [],
       prices: {},
       liquidationThresholds: {},
-      underlyingToken: "",
+      underlyingToken: "" as Address,
       debt: 0n,
     });
 

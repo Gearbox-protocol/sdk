@@ -44,16 +44,16 @@ interface FindOneTokenPathProps {
 interface FindBestClosePathProps {
   creditAccount: CreditAccountData;
   creditManager: CreditManagerData;
-  expectedBalances: Record<string, Asset>;
-  leftoverBalances: Record<string, Asset>;
+  expectedBalances: Record<Address, Asset>;
+  leftoverBalances: Record<Address, Asset>;
   slippage: number;
   network: NetworkType;
 }
 
 interface FindOpenStrategyPathProps {
   creditManager: CreditManagerData;
-  expectedBalances: Record<string, Asset>;
-  leftoverBalances: Record<string, Asset>;
+  expectedBalances: Record<Address, Asset>;
+  leftoverBalances: Record<Address, Asset>;
   target: Address;
   slippage: number;
 }
@@ -315,7 +315,7 @@ export class PathFinder {
   }
 
   getAvailableConnectors(
-    availableList: Record<string, bigint> | Record<string, true>,
+    availableList: Record<Address, bigint> | Record<Address, true>,
   ) {
     const connectors = PathFinder.getAvailableConnectors(
       availableList,
@@ -325,7 +325,7 @@ export class PathFinder {
   }
 
   static getAvailableConnectors(
-    availableList: Record<string, bigint> | Record<string, true>,
+    availableList: Record<Address, bigint> | Record<Address, true>,
     connectors: Address[],
   ) {
     return connectors.filter(t => availableList[t] !== undefined);

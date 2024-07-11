@@ -14,7 +14,7 @@ export interface MinimalTxInfo {
 }
 
 interface ViemMcall {
-  address: string;
+  address: Address;
   abi: Abi;
   functionName: string;
   args: Array<any>;

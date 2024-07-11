@@ -35,7 +35,7 @@ import { CurveAPYResult } from "./curveAPY";
 const V2_POOLS: Record<number, true> = { 20: true };
 
 type GetTokenPriceCallback = (
-  tokenAddress: string,
+  tokenAddress: Address,
   currency?: string,
 ) => bigint;
 

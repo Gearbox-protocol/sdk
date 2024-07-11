@@ -19,11 +19,11 @@ export interface AssetWithAmountInTarget extends Asset {
 }
 
 interface NextAssetProps<T extends Asset> {
-  allowedTokens: Array<string>;
+  allowedTokens: Array<Address>;
   selectedAssets: Array<T>;
-  balances: Record<string, bigint>;
-  tokensList: Record<string, TokenData>;
-  prices?: Record<string, bigint>;
+  balances: Record<Address, bigint>;
+  tokensList: Record<Address, TokenData>;
+  prices?: Record<Address, bigint>;
 }
 
 export type WrapResult = [Array<Asset>, bigint, bigint];
@@ -62,11 +62,11 @@ export class AssetUtils {
   }
 
   static getBalances(
-    allowedTokens: Array<string>,
-    externalBalances: Record<string, bigint>,
-  ): Record<string, bigint> {
+    allowedTokens: Array<Address>,
+    externalBalances: Record<Address, bigint>,
+  ): Record<Address, bigint> {
     return allowedTokens.reduce((acc, address) => {
-      const addressLc = address.toLowerCase();
+      const addressLc = address.toLowerCase() as Address;
       return {
         ...acc,
         [addressLc]: externalBalances[addressLc] || 0n,
@@ -75,7 +75,7 @@ export class AssetUtils {
   }
 
   static constructAssetRecord<A extends Asset>(a: Array<A>) {
-    const record = a.reduce<Record<string, A>>((acc, asset) => {
+    const record = a.reduce<Record<Address, A>>((acc, asset) => {
       acc[asset.token] = asset;
       return acc;
     }, {});
@@ -85,8 +85,8 @@ export class AssetUtils {
   static memoWrap = (
     unwrappedAddress: Address,
     wrappedAddress: Address,
-    prices: Record<string, bigint>,
-    tokensList: Record<string, TokenData>,
+    prices: Record<Address, bigint>,
+    tokensList: Record<Address, TokenData>,
   ) =>
     function wrap(assets: Array<Asset>): WrapResult {
       const assetsRecord = AssetUtils.constructAssetRecord(assets);
@@ -143,7 +143,7 @@ export class AssetUtils {
   ): Array<A | B> {
     const aRecord = AssetUtils.constructAssetRecord(a);
 
-    const resRecord = b.reduce<Record<string, A | B>>((acc, bAsset) => {
+    const resRecord = b.reduce<Record<Address, A | B>>((acc, bAsset) => {
       const aAsset = acc[bAsset.token];
       const { balance: amount = 0n } = aAsset || {};
 

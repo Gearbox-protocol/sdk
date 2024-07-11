@@ -73,7 +73,7 @@ export const BALANCER_VAULT_ABI = [
 export interface FindPathFeesProps {
   calls: Array<MultiCall>;
   provider: PublicClient;
-  contractsByAdapter: Record<string, string>;
+  contractsByAdapter: Record<Address, Address>;
 }
 
 export class PathFinderUtils {
@@ -190,7 +190,7 @@ export class PathFinderUtils {
 
   private static getCurveFeeCall(
     callObject: ParsedObject,
-    contractsByAdapter: Record<string, string>,
+    contractsByAdapter: Record<Address, Address>,
   ) {
     const { functionName } = callObject;
 
@@ -199,7 +199,7 @@ export class PathFinderUtils {
       case "exchange_underlying":
       case "exchange_diff":
       case "exchange_diff_underlying": {
-        const adapter = (callObject.address || "").toLowerCase();
+        const adapter = (callObject.address || "").toLowerCase() as Address;
         const contract = contractsByAdapter[adapter];
 
         return contract

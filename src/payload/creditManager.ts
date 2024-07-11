@@ -56,13 +56,13 @@ export interface CreditManagerDataPayload {
 }
 
 export interface ChartsCreditManagerPayload {
-  addr: string;
-  underlyingToken: string;
-  configurator: string;
-  creditFacade: string;
+  addr: Address;
+  underlyingToken: Address;
+  configurator: Address;
+  creditFacade: Address;
 
   isWeth: boolean;
-  poolAddress: string;
+  poolAddress: Address;
   name: string;
 
   maxAmount: BigNumberish;
@@ -113,7 +113,7 @@ export interface ChartsCreditManagerPayload {
   totalClosedAccountsChange: number;
 
   totalRepaidAccounts: number;
-  liquidityThresholds: Record<string, number>;
+  liquidityThresholds: Record<Address, number>;
 
   totalDebtLimit: BigNumberish;
 }

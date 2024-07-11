@@ -1,3 +1,5 @@
+import { Address } from "viem";
+
 import { BigNumberish } from "../utils/formatter";
 
 export interface CreditSessionBalancePayload {
@@ -16,7 +18,7 @@ export interface CreditSessionBalancePayload {
 interface CreditSessionReward {
   bi: BigNumberish;
   f: number;
-  pool: string;
+  pool: Address;
   symbol: string;
 }
 
@@ -27,10 +29,10 @@ export interface SecondaryStatus {
 export interface CreditSessionPayload {
   id: string;
   status: number;
-  borrower: string;
-  account: string;
-  creditManager: string;
-  underlyingToken: string;
+  borrower: Address;
+  account: Address;
+  creditManager: Address;
+  underlyingToken: Address;
   version: number;
 
   borrowAPY_RAY: BigNumberish;
@@ -38,8 +40,8 @@ export interface CreditSessionPayload {
 
   entryPrice?: number;
   closePrice?: number;
-  quoteToken?: string;
-  tradingToken?: string;
+  quoteToken?: Address;
+  tradingToken?: Address;
 
   healthFactor: BigNumberish;
   leverage: number;
@@ -74,25 +76,25 @@ export interface CreditSessionPayload {
   currentBlock: number;
   currentTimestamp: number;
 
-  cvxUnclaimedRewards: Record<string, CreditSessionReward>;
-  balances: Record<string, CreditSessionBalancePayload>;
+  cvxUnclaimedRewards: Record<Address, CreditSessionReward>;
+  balances: Record<Address, CreditSessionBalancePayload>;
 
   baseBorrowAPY7DAverage: number;
   baseBorrowAPY_RAY: string;
-  baseToken: string;
-  pool: string;
+  baseToken: Address;
+  pool: Address;
 
   teritaryStatus: null | SecondaryStatus;
 }
 
 export interface CreditSessionFilteredPayload {
-  balances: Record<string, CreditSessionBalancePayload>;
+  balances: Record<Address, CreditSessionBalancePayload>;
 
   id: string;
-  borrower: string;
-  account: string;
-  creditManager: string;
-  underlyingToken: string;
+  borrower: Address;
+  account: Address;
+  creditManager: Address;
+  underlyingToken: Address;
 
   status: number;
   closedAt: number;

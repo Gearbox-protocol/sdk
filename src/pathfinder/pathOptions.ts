@@ -36,7 +36,7 @@ export type BalanceInterface = Pick<CaTokenBalance, "balance">;
 
 export class PathOptionFactory {
   static generatePathOptions(
-    balances: Record<string, BalanceInterface>,
+    balances: Record<Address, BalanceInterface>,
     loopsInTx: number,
     network: NetworkType,
   ): Array<PathOptionSerie> {
@@ -82,7 +82,7 @@ export class PathOptionFactory {
   }
 
   static getCurvePools(
-    balances: Record<string, BalanceInterface>,
+    balances: Record<Address, BalanceInterface>,
   ): Array<CurveLPToken> {
     const nonZeroBalances = Object.entries(balances).filter(
       ([, balance]) => balance.balance > 1,
@@ -121,7 +121,7 @@ export class PathOptionFactory {
   }
 
   static getBalancerPools(
-    balances: Record<string, BalanceInterface>,
+    balances: Record<Address, BalanceInterface>,
   ): Array<BalancerLPToken> {
     const nonZeroBalances = Object.entries(balances).filter(
       ([, balance]) => balance.balance > 1,

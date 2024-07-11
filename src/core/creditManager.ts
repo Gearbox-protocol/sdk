@@ -342,11 +342,11 @@ export class CreditManagerData {
 }
 
 export class ChartsCreditManagerData {
-  readonly address: string;
-  readonly underlyingToken: string;
-  readonly configurator: string;
-  readonly creditFacade: string;
-  readonly pool: string;
+  readonly address: Address;
+  readonly underlyingToken: Address;
+  readonly configurator: Address;
+  readonly creditFacade: Address;
+  readonly pool: Address;
   readonly version: number;
   readonly name: string;
   readonly tier: number;
@@ -396,11 +396,13 @@ export class ChartsCreditManagerData {
   readonly liquidationThresholds: Record<string, bigint>;
 
   constructor(payload: ChartsCreditManagerPayload) {
-    this.address = (payload.addr || "").toLowerCase();
-    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
-    this.configurator = (payload.configurator || "").toLowerCase();
-    this.creditFacade = (payload.creditFacade || "").toLowerCase();
-    this.pool = (payload.poolAddress || "").toLowerCase();
+    this.address = (payload.addr || "").toLowerCase() as Address;
+    this.underlyingToken = (
+      payload.underlyingToken || ""
+    ).toLowerCase() as Address;
+    this.configurator = (payload.configurator || "").toLowerCase() as Address;
+    this.creditFacade = (payload.creditFacade || "").toLowerCase() as Address;
+    this.pool = (payload.poolAddress || "").toLowerCase() as Address;
     this.version = payload.version || 2;
     this.name = payload.name || "";
     this.tier = CreditManagerData.getTier(payload.name || "");
