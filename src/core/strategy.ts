@@ -13,8 +13,6 @@ export interface StrategyPayload {
   lpTokenSymbol: AllLPTokens;
   protocolSymbol: string;
 
-  creditManagers: Array<Address>;
-
   collateralTokens: Array<SupportedToken>;
   liquidationTokens: Array<SupportedToken>;
 }
@@ -34,15 +32,10 @@ export class Strategy {
   readonly collateralTokens: Array<SupportedToken>;
   readonly liquidationTokens: Array<SupportedToken>;
 
-  readonly creditManagers: Array<Address>;
-
   constructor(payload: StrategyPayload) {
     this.name = payload.name;
     this.lpTokenSymbol = payload.lpTokenSymbol;
     this.protocolSymbol = payload.protocolSymbol;
-    this.creditManagers = payload.creditManagers.map(
-      addr => addr.toLowerCase() as Address,
-    );
     this.collateralTokens = payload.collateralTokens;
     this.liquidationTokens = payload.liquidationTokens;
   }
