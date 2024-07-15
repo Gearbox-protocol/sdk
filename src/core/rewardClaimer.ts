@@ -5,7 +5,7 @@ import {
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
-import { Provider } from "ethers";
+import { Address, PublicClient } from "viem";
 
 import { MultiCall } from "../pathfinder/core";
 import { CreditAccountData } from "./creditAccount";
@@ -22,8 +22,8 @@ export interface Rewards {
 }
 
 export interface AdapterWithType {
-  contractAddress: string;
-  adapter: string;
+  contractAddress: Address;
+  adapter: Address;
   contract: SupportedContract;
 }
 
@@ -32,7 +32,7 @@ export class RewardClaimer {
     ca: CreditAccountData,
     cm: CreditManagerData,
     network: NetworkType,
-    provider: Provider,
+    provider: PublicClient,
   ): Promise<Array<Rewards>> {
     return RewardConvex.findRewards(ca, cm, network, provider);
   }

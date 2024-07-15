@@ -1,37 +1,89 @@
-import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
+import { Address } from "viem";
 
-import { ZapperInfoStructOutput } from "../types/IDataCompressorV2_1";
-import {
-  LinearModelStructOutput,
-  PoolDataStructOutput,
-} from "../types/IDataCompressorV3";
+import { BigNumberish } from "../utils/formatter";
 
-export type PoolDataPayload = Omit<
-  ExcludeArrayProps<PoolDataStructOutput>,
-  "zappers"
-> & {
-  zappers: Array<PoolZapper>;
-};
+export interface PoolDataPayload {
+  addr: Address;
+  underlying: Address;
+  dieselToken: Address;
+  symbol: string;
+  name: string;
+  baseInterestIndex: bigint;
+  availableLiquidity: bigint;
+  expectedLiquidity: bigint;
+  totalBorrowed: bigint;
+  totalDebtLimit: bigint;
+  totalAssets: bigint;
+  totalSupply: bigint;
+  supplyRate: bigint;
+  baseInterestRate: bigint;
+  dieselRate_RAY: bigint;
+  withdrawFee: bigint;
+  lastBaseInterestUpdate: bigint;
+  baseInterestIndexLU: bigint;
+  version: bigint;
+  poolQuotaKeeper: Address;
+  gauge: Address;
+  isPaused: boolean;
+
+  readonly lirm: {
+    interestModel: Address;
+    version: bigint;
+    U_1: number;
+    U_2: number;
+    R_base: number;
+    R_slope1: number;
+    R_slope2: number;
+    R_slope3: number;
+    isBorrowingMoreU2Forbidden: boolean;
+  };
+
+  quotas: readonly {
+    token: Address;
+    rate: number;
+    quotaIncreaseFee: number;
+    totalQuoted: bigint;
+    limit: bigint;
+    isActive: boolean;
+  }[];
+
+  zappers: readonly PoolZapper[];
+
+  creditManagerDebtParams: readonly {
+    creditManager: Address;
+    borrowed: bigint;
+    limit: bigint;
+    availableToBorrow: bigint;
+  }[];
+}
 export interface PoolDataExtraPayload {
-  stakedDieselToken: Array<string>;
-  stakedDieselToken_old: Array<string>;
+  stakedDieselToken: Array<Address>;
+  stakedDieselToken_old: Array<Address>;
   supplyAPY7D: number | undefined;
 }
 
-export type LinearModel = Omit<
-  ExcludeArrayProps<LinearModelStructOutput>,
-  "version"
-> & {
+export interface LinearModel {
+  interestModel: Address;
   version: number;
-};
+  U_1: bigint;
+  U_2: bigint;
+  R_base: bigint;
+  R_slope1: bigint;
+  R_slope2: bigint;
+  R_slope3: bigint;
+  isBorrowingMoreU2Forbidden: boolean;
+}
 
-export type PoolZapper = ExcludeArrayProps<ZapperInfoStructOutput>;
+export interface PoolZapper {
+  zapper: Address;
+  tokenIn: Address;
+  tokenOut: Address;
+}
 
 export interface ChartsPoolDataPayload {
-  addr: string;
-  dieselToken: string;
-  underlyingToken: string;
+  addr: Address;
+  dieselToken: Address;
+  underlyingToken: Address;
   isWETH: boolean;
   version: number;
   name: string;
@@ -40,7 +92,7 @@ export interface ChartsPoolDataPayload {
   depositAPY_RAY: BigNumberish;
   dieselRate_RAY: BigNumberish;
   lmAPY: number;
-  lmRewardAll: Array<{ apy: number; token: string }>;
+  lmRewardAll: Array<{ apy: number; token: Address }>;
 
   earned7D: number;
   earned7DInUSD: number;
@@ -115,10 +167,10 @@ export interface ChartsAggregatedPoolPayload extends ChartsAggregatedStats {
 }
 
 export interface UserPoolPayload {
-  pool: string;
+  pool: Address;
   dieselSym: string;
-  dieselToken: string;
-  underlyingToken: string;
+  dieselToken: Address;
+  underlyingToken: Address;
 
   liqValue: BigNumberish;
   liqValueInUSD: number;
@@ -140,7 +192,7 @@ export interface UserPoolPayload {
 
   depositAPY_RAY: BigNumberish;
   lmAPY: number;
-  lmRewardAll: Array<{ apy: number; token: string }>;
+  lmRewardAll: Array<{ apy: number; token: Address }>;
 }
 
 export interface UserPoolAggregatedStatsPayload {
@@ -148,6 +200,6 @@ export interface UserPoolAggregatedStatsPayload {
   totalLiqInUSD: number;
   totalLiqt7DInUSD: number;
   totalLiqt10kBasis: number;
-  user: string;
+  user: Address;
   pools: Array<UserPoolPayload>;
 }

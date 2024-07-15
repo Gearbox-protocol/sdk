@@ -1,6 +1,5 @@
-import { BigNumberish } from "ethers";
-
 import { ChartsApi } from "../core/endpoint";
+import { BigNumberish } from "../utils/formatter";
 
 interface UserOptions {
   params: {

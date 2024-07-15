@@ -1,35 +1,28 @@
 import { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IBalancerV2VaultAdapter__factory } from "../types";
-import {
-  SingleSwapDiffStructOutput,
-  SingleSwapStructOutput,
-} from "../types/IBalancerV2VaultAdapter.sol/IBalancerV2VaultAdapter";
+import { iBalancerV2VaultAdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class BalancerV2VaultParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IBalancerV2VaultAdapter__factory.createInterface();
+    this.abi = iBalancerV2VaultAdapterAbi;
     if (!isContract) this.adapterName = "BalancerV2Vault";
   }
 
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "batchSwap": {
         return `${functionName}(undefined)`;
       }
 
       case "swapDiff": {
-        const d = this.decodeFunctionData(functionFragment, calldata);
-        const {
-          assetIn = "",
-          assetOut = "",
-          leftoverAmount = 0,
-        } = (d?.[0] || {}) as SingleSwapDiffStructOutput;
+        const [{ leftoverAmount = 0, assetIn = "", assetOut = "" }] =
+          functionData.args || [{}];
 
         return `${functionName}(${this.tokenSymbol(
           assetIn,
@@ -40,12 +33,8 @@ export class BalancerV2VaultParser extends AbstractParser implements IParser {
       }
 
       case "swap": {
-        const d = this.decodeFunctionData(functionFragment, calldata);
-        const {
-          assetIn = "",
-          assetOut = "",
-          amount = 0,
-        } = (d?.[0] || {}) as SingleSwapStructOutput;
+        const [{ assetIn = "", assetOut = "", amount = 0 }] =
+          functionData.args || [{}];
 
         return `${functionName}(${this.tokenSymbol(
           assetIn,
@@ -57,8 +46,8 @@ export class BalancerV2VaultParser extends AbstractParser implements IParser {
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

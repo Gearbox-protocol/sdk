@@ -3,6 +3,7 @@ import {
   PartialRecord,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { STATIC_TOKEN } from "../config";
 import { TokenDataPayload } from "../payload/token";
@@ -30,7 +31,7 @@ const NETWROK_DEPENDENT_ALIASES: Record<
 export class TokenData {
   readonly title: string;
   readonly symbol: SupportedToken;
-  readonly address: string;
+  readonly address: Address;
   readonly decimals: number;
   readonly icon: string;
 
@@ -41,7 +42,7 @@ export class TokenData {
       : undefined;
 
     this.title = networkAlias || ALIASES[symbol] || payload.title || symbol;
-    this.address = payload.addr.toLowerCase();
+    this.address = payload.addr.toLowerCase() as Address;
     this.symbol = symbol;
     this.decimals = payload.decimals;
     this.icon = `${STATIC_TOKEN}${symbol.toLowerCase()}.svg`;

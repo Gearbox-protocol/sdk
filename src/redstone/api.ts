@@ -1,43 +1,45 @@
 import {
-  AwaitedRes,
-  ExcludeArrayProps,
   getPriceFeedsByToken,
-  MCall,
+  MULTICALL_ADDRESS,
   NetworkType,
   PriceFeedData,
   PriceFeedType,
   REDSTONE_SIGNERS,
-  safeMulticall,
   SupportedToken,
   TickerInfo,
   tickerInfoTokensByNetwork,
+  toBigInt,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import { DataServiceWrapper } from "@redstone-finance/evm-connector/dist/src/wrappers/DataServiceWrapper";
 import { SignedDataPackage } from "@redstone-finance/protocol";
-import { AbiCoder, getBytes, Provider, toUtf8String } from "ethers";
 import { RedstonePayload } from "redstone-protocol";
+import {
+  Address,
+  bytesToString,
+  encodeAbiParameters,
+  hexToBytes,
+  parseAbiParameters,
+  PublicClient,
+} from "viem";
 
 import {
-  CompositePriceFeed,
-  CompositePriceFeed__factory,
-  IPriceFeed,
-  IPriceFeed__factory,
-  IPriceOracleV3,
-  IPriceOracleV3__factory,
-  RedstonePriceFeed,
-  RedstonePriceFeed__factory,
+  compositePriceFeedAbi,
+  iPriceFeedAbi,
+  iPriceOracleV3Abi,
+  redstonePriceFeedAbi,
 } from "../types";
+import { ViemFailableMulticallRes } from "../utils/calls";
 
 export const DEFAULT_DATA_SERVICE_ID = "redstone-primary-prod";
 export const REDSTONE_SIGNERS_THRESHOLD = REDSTONE_SIGNERS.signersThreshold;
 
 interface RedstonePriceFeedInfo {
-  tokenAddress: string;
-  tickedTokenAddress: string;
+  tokenAddress: Address;
+  tickedTokenAddress: Address;
   symbol: SupportedToken;
 
-  feedAddress: string;
+  feedAddress: Address;
   dataFeedId: string;
   tickedDataFeedId: string;
   dataServiceId: string;
@@ -49,15 +51,13 @@ interface RedstonePriceFeedInfo {
 export type RedstonePriceFeeds = Array<RedstonePriceFeedInfo>;
 
 export interface GetRedstoneFeedsProps {
-  provider: Provider;
-  currentTokenData: Record<SupportedToken, string>;
-  priceOracleAddress: string;
+  provider: PublicClient;
+  currentTokenData: Record<SupportedToken, Address>;
+  priceOracleAddress: Address;
   network: NetworkType;
 }
 
-type PriceFeedParams = ExcludeArrayProps<
-  AwaitedRes<IPriceOracleV3["priceFeedParams"]>
->;
+type PriceFeedParams = [Address, number, boolean, number, boolean];
 
 type RedstonePriceFeedData = Omit<
   Extract<PriceFeedData, { type: PriceFeedType.REDSTONE_ORACLE }>,
@@ -66,7 +66,7 @@ type RedstonePriceFeedData = Omit<
 
 type SafeMulticallResponse = Array<{
   error?: Error | undefined;
-  value?: string | undefined;
+  result?: Address | undefined;
 }>;
 
 const REDSTONE_DICTIONARY: Record<string, string> = {
@@ -100,7 +100,7 @@ export class RedstoneApi {
     const dataPayload = await wrapper.prepareRedstonePayload(true);
 
     const { signedDataPackages, unsignedMetadata } = RedstonePayload.parse(
-      getBytes(`0x${dataPayload}`),
+      hexToBytes(`0x${dataPayload}`),
     );
 
     const dataPackagesList = this.splitResponse(
@@ -109,7 +109,10 @@ export class RedstoneApi {
     );
 
     const result = dataPackagesList.map(list => {
-      const payload = new RedstonePayload(list, toUtf8String(unsignedMetadata));
+      const payload = new RedstonePayload(
+        list,
+        bytesToString(unsignedMetadata),
+      );
 
       let ts = 0;
       list.forEach(p => {
@@ -121,10 +124,10 @@ export class RedstoneApi {
         }
       });
 
-      return AbiCoder.defaultAbiCoder().encode(
-        ["uint256", "bytes"],
-        [ts, getBytes(`0x${payload.toBytesHexWithout0xPrefix()}`)],
-      );
+      return encodeAbiParameters(parseAbiParameters("uint256, bytes"), [
+        toBigInt(ts),
+        `0x${payload.toBytesHexWithout0xPrefix()}`,
+      ]) as Address;
     });
 
     return result[0];
@@ -262,29 +265,24 @@ export class RedstoneApi {
       { main: [], reserve: [] },
     );
 
-    const priceFeedsResp = await safeMulticall<
-      AwaitedRes<IPriceOracleV3["priceFeedsRaw"]>
-    >(
-      [
-        ...mainRedstone.map(
-          ([symbol]): MCall<IPriceOracleV3["interface"]> => ({
-            address: priceOracleAddress,
-            interface: IPriceOracleV3__factory.createInterface(),
-            method: "priceFeedsRaw(address,bool)",
-            params: [currentTokenData[symbol], false],
-          }),
-        ),
-        ...reserveRedstone.map(
-          ([symbol]): MCall<IPriceOracleV3["interface"]> => ({
-            address: priceOracleAddress,
-            interface: IPriceOracleV3__factory.createInterface(),
-            method: "priceFeedsRaw(address,bool)",
-            params: [currentTokenData[symbol], true],
-          }),
-        ),
+    const priceFeedsResp = (await provider.multicall({
+      allowFailure: true,
+      multicallAddress: MULTICALL_ADDRESS,
+      contracts: [
+        ...mainRedstone.map(([symbol]) => ({
+          address: priceOracleAddress,
+          abi: iPriceOracleV3Abi,
+          functionName: "priceFeedsRaw",
+          args: [currentTokenData[symbol], false],
+        })),
+        ...reserveRedstone.map(([symbol]) => ({
+          address: priceOracleAddress,
+          abi: iPriceOracleV3Abi,
+          functionName: "priceFeedsRaw",
+          args: [currentTokenData[symbol], true],
+        })),
       ],
-      provider,
-    );
+    })) as ViemFailableMulticallRes<Address>;
 
     const mainPFEnd = mainRedstone.length;
     const mainPFAddresses = priceFeedsResp.slice(0, mainPFEnd);
@@ -314,7 +312,7 @@ export class RedstoneApi {
   private static getRedstonePF_SDK(
     sdkPF: Array<[SupportedToken, RedstonePriceFeedData]>,
     addressResponse: SafeMulticallResponse,
-    currentTokenData: Record<SupportedToken, string>,
+    currentTokenData: Record<SupportedToken, Address>,
     reserve: boolean,
     network: NetworkType,
   ) {
@@ -324,9 +322,9 @@ export class RedstoneApi {
       (acc, [symbol, feedData], index) => {
         const { dataId: dataFeedId, dataServiceId } = feedData || {};
 
-        const { value: feedAddress, error: feedError } =
+        const { result: feedAddress, error: feedError } =
           addressResponse[index] || {};
-        const feedAddressLc = feedAddress?.toLowerCase();
+        const feedAddressLc = feedAddress?.toLowerCase() as Address;
         const hasId = !feedError && typeof feedAddressLc === "string";
 
         if (hasId && dataFeedId && dataServiceId) {
@@ -338,7 +336,9 @@ export class RedstoneApi {
           const tokenAddress = currentTokenData[symbol];
 
           acc.push({
-            tickedTokenAddress: (ticker?.address || tokenAddress).toLowerCase(),
+            tickedTokenAddress: (
+              ticker?.address || tokenAddress
+            ).toLowerCase() as Address,
             tokenAddress,
             symbol,
 
@@ -372,27 +372,24 @@ export class RedstoneApi {
   }: GetRedstoneFeedsProps) => {
     const allTokens = TypedObjectUtils.entries(currentTokenData);
 
-    const feeds = await safeMulticall<PriceFeedParams>(
-      [
-        ...allTokens.map(
-          ([, a]): MCall<IPriceOracleV3["interface"]> => ({
-            address: priceOracleAddress,
-            interface: IPriceOracleV3__factory.createInterface(),
-            method: "priceFeedParams(address)",
-            params: [a],
-          }),
-        ),
-        ...allTokens.map(
-          ([symbol]): MCall<IPriceOracleV3["interface"]> => ({
-            address: priceOracleAddress,
-            interface: IPriceOracleV3__factory.createInterface(),
-            method: "priceFeedsRaw(address,bool)",
-            params: [currentTokenData[symbol], true],
-          }),
-        ),
+    const feeds = (await provider.multicall({
+      allowFailure: true,
+      multicallAddress: MULTICALL_ADDRESS,
+      contracts: [
+        ...allTokens.map(([, a]) => ({
+          address: priceOracleAddress,
+          abi: iPriceOracleV3Abi,
+          functionName: "priceFeedParams",
+          args: [a],
+        })),
+        ...allTokens.map(([symbol]) => ({
+          address: priceOracleAddress,
+          abi: iPriceOracleV3Abi,
+          functionName: "priceFeedsRaw",
+          args: [currentTokenData[symbol], true],
+        })),
       ],
-      provider,
-    );
+    })) as ViemFailableMulticallRes<PriceFeedParams | Address>;
 
     const mainFeedsEnd = allTokens.length;
     const mainFeedsUnsafe = feeds.slice(0, mainFeedsEnd);
@@ -401,12 +398,13 @@ export class RedstoneApi {
     const reserveFeedsUnsafe = feeds.slice(mainFeedsEnd, reserveFeedsEnd);
 
     const notTrustedMainPF = mainFeedsUnsafe.reduce<
-      Array<[SupportedToken, string]>
+      Array<[SupportedToken, Address]>
     >((acc, p, index) => {
       const symbol = allTokens[index][0];
 
-      if (!p.error && p.value?.trusted === false) {
-        acc.push([symbol, p.value.priceFeed]);
+      if (!p.error && typeof p.result === "object" && p.result[4] === false) {
+        const [priceFeed] = p.result;
+        acc.push([symbol, priceFeed]);
       }
       return acc;
     }, []);
@@ -414,59 +412,50 @@ export class RedstoneApi {
       TypedObjectUtils.fromEntries(notTrustedMainPF);
 
     const reservePF = reserveFeedsUnsafe.reduce<
-      Array<[SupportedToken, string]>
+      Array<[SupportedToken, Address]>
     >((acc, p, index) => {
       const symbol = allTokens[index][0];
 
       if (
         !p.error &&
-        typeof p.value === "string" &&
+        typeof p.result === "string" &&
         notTrustedMainPFRecord[symbol]
       ) {
-        acc.push([symbol, p.value]);
+        acc.push([symbol, p.result]);
       }
       return acc;
     }, []);
 
-    const typeResponse = await safeMulticall<
-      AwaitedRes<IPriceOracleV3["priceFeedsRaw"]>
-    >(
-      [
-        ...notTrustedMainPF.map(
-          ([, address]): MCall<IPriceFeed["interface"]> => ({
-            address,
-            interface: IPriceFeed__factory.createInterface(),
-            method: "priceFeedType()",
-            params: [],
-          }),
-        ),
-        ...notTrustedMainPF.map(
-          ([, address]): MCall<CompositePriceFeed["interface"]> => ({
-            address,
-            interface: CompositePriceFeed__factory.createInterface(),
-            method: "priceFeed0()",
-            params: [],
-          }),
-        ),
-        ...reservePF.map(
-          ([, address]): MCall<IPriceFeed["interface"]> => ({
-            address,
-            interface: IPriceFeed__factory.createInterface(),
-            method: "priceFeedType()",
-            params: [],
-          }),
-        ),
-        ...reservePF.map(
-          ([, address]): MCall<CompositePriceFeed["interface"]> => ({
-            address,
-            interface: CompositePriceFeed__factory.createInterface(),
-            method: "priceFeed0()",
-            params: [],
-          }),
-        ),
+    const typeResponse = (await provider.multicall({
+      allowFailure: true,
+      multicallAddress: MULTICALL_ADDRESS,
+      contracts: [
+        ...notTrustedMainPF.map(([, address]) => ({
+          address,
+          abi: iPriceFeedAbi,
+          functionName: "priceFeedType",
+          args: [],
+        })),
+        ...notTrustedMainPF.map(([, address]) => ({
+          address,
+          abi: compositePriceFeedAbi,
+          functionName: "priceFeed0",
+          args: [],
+        })),
+        ...reservePF.map(([, address]) => ({
+          address,
+          abi: iPriceFeedAbi,
+          functionName: "priceFeedType",
+          args: [],
+        })),
+        ...reservePF.map(([, address]) => ({
+          address,
+          abi: compositePriceFeedAbi,
+          functionName: "priceFeed0",
+          args: [],
+        })),
       ],
-      provider,
-    );
+    })) as ViemFailableMulticallRes<Address>;
 
     const mainFeedsTypeEnd = notTrustedMainPF.length;
     const mainFeedsTypeUnsafe = typeResponse.slice(0, mainFeedsTypeEnd);
@@ -499,45 +488,36 @@ export class RedstoneApi {
       reservePriceFeed0Unsafe,
     );
 
-    const response = await safeMulticall<
-      AwaitedRes<IPriceOracleV3["priceFeedsRaw"]>
-    >(
-      [
-        ...realNotTrustedMainPriceFeeds.map(
-          ([, address]): MCall<IPriceFeed["interface"]> => ({
-            address,
-            interface: IPriceFeed__factory.createInterface(),
-            method: "priceFeedType()",
-            params: [],
-          }),
-        ),
-        ...realNotTrustedMainPriceFeeds.map(
-          ([, address]): MCall<RedstonePriceFeed["interface"]> => ({
-            address,
-            interface: RedstonePriceFeed__factory.createInterface(),
-            method: "dataFeedId()",
-            params: [],
-          }),
-        ),
-        ...realReservePriceFeeds.map(
-          ([, address]): MCall<IPriceFeed["interface"]> => ({
-            address,
-            interface: IPriceFeed__factory.createInterface(),
-            method: "priceFeedType()",
-            params: [],
-          }),
-        ),
-        ...realReservePriceFeeds.map(
-          ([, address]): MCall<RedstonePriceFeed["interface"]> => ({
-            address,
-            interface: RedstonePriceFeed__factory.createInterface(),
-            method: "dataFeedId()",
-            params: [],
-          }),
-        ),
+    const response = (await provider.multicall({
+      allowFailure: true,
+      multicallAddress: MULTICALL_ADDRESS,
+      contracts: [
+        ...realNotTrustedMainPriceFeeds.map(([, address]) => ({
+          address,
+          abi: iPriceFeedAbi,
+          functionName: "priceFeedType",
+          args: [],
+        })),
+        ...realNotTrustedMainPriceFeeds.map(([, address]) => ({
+          address,
+          abi: redstonePriceFeedAbi,
+          functionName: "dataFeedId",
+          args: [],
+        })),
+        ...realReservePriceFeeds.map(([, address]) => ({
+          address,
+          abi: iPriceFeedAbi,
+          functionName: "priceFeedType",
+          args: [],
+        })),
+        ...realReservePriceFeeds.map(([, address]) => ({
+          address,
+          abi: redstonePriceFeedAbi,
+          functionName: "dataFeedId",
+          args: [],
+        })),
       ],
-      provider,
-    );
+    })) as ViemFailableMulticallRes<Address>;
 
     const mainTypeEnd = realNotTrustedMainPriceFeeds.length;
     const mainTypeType = response.slice(0, mainTypeEnd);
@@ -585,14 +565,14 @@ export class RedstoneApi {
   };
 
   private static getPriceFeedsOfInterest_Onchain(
-    priceFeeds: Array<[SupportedToken, string]>,
+    priceFeeds: Array<[SupportedToken, Address]>,
     feedsTypeResponse: SafeMulticallResponse,
     priceFeed0Response: SafeMulticallResponse,
   ) {
-    const result = priceFeeds.reduce<Array<[SupportedToken, string]>>(
+    const result = priceFeeds.reduce<Array<[SupportedToken, Address]>>(
       (acc, [symbol, baseAddress], index) => {
-        const { error: typeError, value: feedType } = feedsTypeResponse[index];
-        const { error: feed0Error, value: feed0 } = priceFeed0Response[index];
+        const { error: typeError, result: feedType } = feedsTypeResponse[index];
+        const { error: feed0Error, result: feed0 } = priceFeed0Response[index];
 
         const isRedstone =
           !typeError && Number(feedType) === PriceFeedType.REDSTONE_ORACLE;
@@ -617,11 +597,11 @@ export class RedstoneApi {
   }
 
   private static getRedstonePF_Onchain(
-    feeds: Array<[SupportedToken, string]>,
+    feeds: Array<[SupportedToken, Address]>,
     typeResponse: SafeMulticallResponse,
     idResponse: SafeMulticallResponse,
     getFeedInfo: (symbol: SupportedToken) => PriceFeedData | undefined,
-    currentTokenData: Record<SupportedToken, string>,
+    currentTokenData: Record<SupportedToken, Address>,
     reserve: boolean,
     network: NetworkType,
   ) {
@@ -629,12 +609,12 @@ export class RedstoneApi {
 
     const r = feeds.reduce<RedstonePriceFeeds>(
       (acc, [symbol, feedAddress], index) => {
-        const feedAddressLc = feedAddress.toLowerCase();
-        const { error: typeError, value: feedType } = typeResponse[index];
+        const feedAddressLc = feedAddress.toLowerCase() as Address;
+        const { error: typeError, result: feedType } = typeResponse[index];
         const isRedstone =
           !typeError && Number(feedType) === PriceFeedType.REDSTONE_ORACLE;
 
-        const { value: dataFeedId, error: idError } = idResponse[index];
+        const { result: dataFeedId, error: idError } = idResponse[index];
         const hasId = !idError && typeof dataFeedId === "string";
 
         if (isRedstone) {
@@ -644,7 +624,7 @@ export class RedstoneApi {
               | undefined;
             const dataServiceId = feedData?.dataServiceId;
 
-            const id = toUtf8String(dataFeedId)
+            const id = bytesToString(hexToBytes(dataFeedId))
               .trim()
               .replace(/\u0000/g, "");
 
@@ -659,7 +639,7 @@ export class RedstoneApi {
             acc.push({
               tickedTokenAddress: (
                 ticker?.address || tokenAddress
-              ).toLowerCase(),
+              ).toLowerCase() as Address,
               tokenAddress: tokenAddress,
               symbol,
 

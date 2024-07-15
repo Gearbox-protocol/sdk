@@ -3,6 +3,7 @@ import {
   PERCENTAGE_FACTOR,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { AllLPTokens } from "../apy";
 import { CreditManagerData } from "./creditManager";
@@ -12,7 +13,7 @@ export interface StrategyPayload {
   lpTokenSymbol: AllLPTokens;
   protocolSymbol: string;
 
-  creditManagers: Array<string>;
+  creditManagers: Array<Address>;
 
   collateralTokens: Array<SupportedToken>;
   liquidationTokens: Array<SupportedToken>;
@@ -33,20 +34,20 @@ export class Strategy {
   readonly collateralTokens: Array<SupportedToken>;
   readonly liquidationTokens: Array<SupportedToken>;
 
-  readonly creditManagers: Array<string>;
+  readonly creditManagers: Array<Address>;
 
   constructor(payload: StrategyPayload) {
     this.name = payload.name;
     this.lpTokenSymbol = payload.lpTokenSymbol;
     this.protocolSymbol = payload.protocolSymbol;
-    this.creditManagers = payload.creditManagers.map(addr =>
-      addr.toLowerCase(),
+    this.creditManagers = payload.creditManagers.map(
+      addr => addr.toLowerCase() as Address,
     );
     this.collateralTokens = payload.collateralTokens;
     this.liquidationTokens = payload.liquidationTokens;
   }
 
-  static maxLeverage(lpToken: string, cms: Array<PartialCM>) {
+  static maxLeverage(lpToken: Address, cms: Array<PartialCM>) {
     const [maxThreshold] = Strategy.maxLeverageThreshold(lpToken, cms);
 
     const maxLeverage =
@@ -72,11 +73,11 @@ export class Strategy {
   }
 
   protected static maxLeverageThreshold(
-    lpToken: string,
+    lpToken: Address,
     cms: Array<PartialCM>,
   ) {
-    const lpTokenLC = lpToken.toLowerCase();
-    const ltByCM: Array<[string, bigint]> = cms.map(cm => {
+    const lpTokenLC = lpToken.toLowerCase() as Address;
+    const ltByCM: Array<[Address, bigint]> = cms.map(cm => {
       const lt = cm.liquidationThresholds[lpTokenLC] || 0n;
       return [cm.address, lt];
     });

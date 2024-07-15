@@ -5,6 +5,7 @@ import {
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
+import { Address } from "viem";
 
 import { TokensWithApyRecord } from "../apy";
 import { toBN } from "../utils/formatter";
@@ -23,25 +24,25 @@ interface CATestInfo {
   totalValue: bigint;
   debt: bigint;
   borrowRate: number;
-  underlyingToken: string;
-  quotas: Record<string, Asset>;
+  underlyingToken: Address;
+  quotas: Record<Address, Asset>;
   rates: CalcOverallAPYProps["quotaRates"];
 }
 
 const prices = {
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: toBN(
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: toBN(
     "1738.11830000",
     PRICE_DECIMALS_POW,
   ),
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: toBN(
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: toBN(
     "0.99941103",
     PRICE_DECIMALS_POW,
   ),
-  [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: toBN(
+  [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: toBN(
     "0.999",
     PRICE_DECIMALS_POW,
   ),
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: toBN(
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: toBN(
     "1703.87588096",
     PRICE_DECIMALS_POW,
   ),
@@ -53,25 +54,25 @@ const caWithoutLP: CATestInfo = {
   assets: [
     {
       balance: toBN("54780", decimals.DAI),
-      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
     },
     {
       balance: toBN("3.5", decimals.WETH),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     },
   ],
   totalValue: toBN("60860", decimals.DAI),
   debt: toBN("54780", decimals.DAI),
   borrowRate: 7712,
-  underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+  underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
   quotas: {
-    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
       balance: toBN("173811.830000", decimals.WETH),
-      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
     },
   },
   rates: {
-    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
       rate: 38434n,
       isActive: true,
     },
@@ -82,28 +83,28 @@ const caWithLP: CATestInfo = {
   assets: [
     {
       balance: toBN("119.999999999999999997", decimals.STETH),
-      token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address,
     },
     {
       balance: toBN("3.5", decimals.WETH),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     },
   ],
   totalValue: toBN("117.635897231615362429", decimals.WETH),
   debt: toBN("90.000000000000000000", decimals.WETH),
   borrowRate: 5736,
-  underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+  underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
   quotas: {
-    [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+    [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: {
       balance: toBN(
         String((1703.87588096 * 119.9999999999999) / 1738.1183),
         decimals.WETH,
       ),
-      token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address,
     },
   },
   rates: {
-    [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+    [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: {
       rate: 38434n,
       isActive: true,
     },
@@ -247,9 +248,9 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       quotaRates: caWithLP.rates,
       quotas: {
-        [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: {
+        [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: {
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.STETH.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address,
         },
       },
       feeInterest: 0,
@@ -294,10 +295,10 @@ describe("CreditAccount calcMaxDebtIncrease test", () => {
 });
 
 const liquidationThresholds = {
-  [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 9800n,
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 9300n,
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 8500n,
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: 8000n,
+  [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 9800n,
+  [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 9300n,
+  [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 8500n,
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: 8000n,
 };
 
 describe("CreditAccount calcMaxLendingDebt test", () => {
@@ -305,23 +306,23 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
           balance: toBN("1000", decimals.DAI),
         },
         {
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
           balance: toBN("1", decimals.WETH),
         },
       ],
       liquidationThresholds: {
         ...liquidationThresholds,
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 0n,
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 0n,
       },
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
-        [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 1n,
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 1000n,
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
+        [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
       },
     });
     expect(result).to.be.eq(toBN("850", decimals.USDC));
@@ -330,19 +331,19 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
           balance: toBN("1000", decimals.DAI),
         },
         {
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
           balance: toBN("1", decimals.WETH),
         },
       ],
       liquidationThresholds: liquidationThresholds,
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 1000n,
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
       },
     });
     expect(result).to.be.eq(0n);
@@ -351,15 +352,15 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
           balance: toBN("1000", decimals.DAI),
         },
       ],
       liquidationThresholds,
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
-        [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 1n,
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
+        [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
       },
     });
     expect(result).to.be.eq(toBN("930", decimals.USDC));
@@ -368,20 +369,20 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
           balance: toBN("1000", decimals.DAI),
         },
         {
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
           balance: toBN("1", decimals.WETH),
         },
       ],
       liquidationThresholds,
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
-        [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 1n,
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 1000n,
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
+        [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
       },
     });
     expect(result).to.be.eq(toBN("1780", decimals.USDC));
@@ -390,20 +391,20 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
           balance: toBN("1000", decimals.DAI),
         },
         {
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
           balance: toBN("1", decimals.WETH),
         },
       ],
       liquidationThresholds,
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase(),
+      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase()]: 1n,
-        [tokenDataByNetwork.Mainnet.USDC.toLowerCase()]: 1n,
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: 1000n,
+        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
+        [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
       },
       targetHF: 12500n,
     });
@@ -414,10 +415,10 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
 interface CAHfTestInfo {
   assets: Array<Asset>;
   debt: bigint;
-  underlyingToken: string;
+  underlyingToken: Address;
   healthFactor: number;
   underlyingDecimals: number;
-  quotas: Record<string, Asset>;
+  quotas: Record<Address, Asset>;
   quotasInfo: CalcHealthFactorProps["quotasInfo"];
 }
 
@@ -425,25 +426,25 @@ const defaultCA: CAHfTestInfo = {
   assets: [
     {
       balance: toBN("156552", decimals.DAI),
-      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
     },
     {
       balance: toBN("10", decimals.WETH),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     },
   ],
   debt: toBN("156552", decimals.DAI),
   healthFactor: 10244,
-  underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase(),
+  underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
   underlyingDecimals: decimals.DAI,
   quotas: {
-    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
       balance: toBN(String(1750 * 10), decimals.DAI),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     },
   },
   quotasInfo: {
-    [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+    [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
       isActive: true,
     },
   },
@@ -470,7 +471,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       assets: [],
       prices: {},
       liquidationThresholds: {},
-      underlyingToken: "",
+      underlyingToken: "" as Address,
       debt: 0n,
     });
 
@@ -479,7 +480,7 @@ describe("CreditAccount calcHealthFactor test", () => {
   it("health factor after add collateral is calculated  correctly", () => {
     const collateral: Asset = {
       balance: toBN("10", decimals.WETH),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     };
 
     const afterAdd = AssetUtils.sumAssets(defaultCA.assets, [collateral]);
@@ -499,7 +500,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     const amountDecrease = toBN("10000", defaultCA.underlyingDecimals);
     const debtDecrease: Asset = {
       balance: amountDecrease,
-      token: defaultCA.underlyingToken,
+      token: defaultCA.underlyingToken as Address,
     };
 
     const afterDecrease = AssetUtils.subAssets(defaultCA.assets, [
@@ -521,7 +522,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     const amountIncrease = toBN("20000", defaultCA.underlyingDecimals);
     const debtIncrease: Asset = {
       balance: amountIncrease,
-      token: defaultCA.underlyingToken,
+      token: defaultCA.underlyingToken as Address,
     };
 
     const afterIncrease = AssetUtils.sumAssets(defaultCA.assets, [
@@ -542,10 +543,11 @@ describe("CreditAccount calcHealthFactor test", () => {
   it("health factor after swap is calculated  correctly", () => {
     const swapAsset: Asset = {
       balance: defaultCA.debt,
-      token: defaultCA.underlyingToken,
+      token: defaultCA.underlyingToken as Address,
     };
     const underlyingPrice = prices[defaultCA.underlyingToken];
-    const wethPrice = prices[tokenDataByNetwork.Mainnet.WETH.toLowerCase()];
+    const wethPrice =
+      prices[tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address];
 
     const getAmount = PriceUtils.convertByPrice(
       PriceUtils.calcTotalPrice(
@@ -558,7 +560,7 @@ describe("CreditAccount calcHealthFactor test", () => {
 
     const getAsset: Asset = {
       balance: getAmount,
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     };
 
     const afterSub = AssetUtils.subAssets(defaultCA.assets, [swapAsset]);
@@ -592,9 +594,9 @@ describe("CreditAccount calcHealthFactor test", () => {
   it("health factor with insufficient quotas is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
       quotas: {
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase(),
+          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
         },
       },
       quotasInfo: defaultCA.quotasInfo,
@@ -611,7 +613,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     const result = CreditAccountData.calcHealthFactor({
       quotas: defaultCA.quotas,
       quotasInfo: {
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase()]: {
+        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
           isActive: false,
         },
       },

@@ -6,14 +6,12 @@ import {
   CurveGEARPoolParams,
   CurveParams,
   CurveSteCRVPoolParams,
-  MCall,
   NetworkType,
   PartialRecord,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   SECONDS_PER_YEAR,
-  toBigInt,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 import {
@@ -29,22 +27,15 @@ import {
   supportedTokens,
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/token";
-import { BigNumberish, Interface } from "ethers";
+import { Address, parseAbi } from "viem";
 
-import {
-  IBaseRewardPool,
-  IBaseRewardPool__factory,
-  IConvexToken,
-  IConvexToken__factory,
-  ICurvePool,
-  ICurvePool__factory,
-} from "../types";
+import { iBaseRewardPoolAbi, iConvexTokenAbi, iCurvePoolAbi } from "../types";
 import { CurveAPYResult } from "./curveAPY";
 
 const V2_POOLS: Record<number, true> = { 20: true };
 
 type GetTokenPriceCallback = (
-  tokenAddress: string,
+  tokenAddress: Address,
   currency?: string,
 ) => bigint;
 
@@ -52,7 +43,7 @@ export interface GetConvexAPYBulkProps {
   getTokenPrice: GetTokenPriceCallback;
   curveAPY: CurveAPYResult | undefined;
   generated: GetConvexAPYBulkCallsReturns;
-  response: Array<BigNumberish>;
+  response: Array<bigint>;
   network: NetworkType;
   currentTimestamp: number;
 }
@@ -65,7 +56,7 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
   const { poolsInfo, calls } = props.generated;
 
   const [parsedResponse] = calls.reduce<
-    [Array<Array<BigNumberish | undefined>>, number]
+    [Array<Array<bigint | undefined>>, number]
   >(
     ([acc, start], call) => {
       const end = start + call.length;
@@ -102,16 +93,14 @@ export function getConvexAPYBulk(props: GetConvexAPYBulkProps) {
       const crvLpPrice = rest.slice(extraFinishEnd, lpPriceEnd);
 
       const apy = calculateConvexAPY({
-        cvxPoolRewardsFinish: toBigInt(cvxPoolRewardsFinish || 0n),
-        cvxPoolRate: toBigInt(cvxPoolRate || 0n),
-        cvxPoolSupply: toBigInt(cvxPoolSupply || 0n),
-        crvVPrice: toBigInt(crvVPrice || 0n),
-        cvxTokenSupply: toBigInt(cvxTokenSupply || 0n),
-        cvxExtraRewards: cvxExtraRewards.map(v => toBigInt(v || 0n)),
-        cvxExtraRewardsFinish: cvxExtraRewardsFinish.map(v =>
-          toBigInt(v || 0n),
-        ),
-        crvLpPrice: crvLpPrice.map(v => toBigInt(v || 0n)),
+        cvxPoolRewardsFinish: cvxPoolRewardsFinish || 0n,
+        cvxPoolRate: cvxPoolRate || 0n,
+        cvxPoolSupply: cvxPoolSupply || 0n,
+        crvVPrice: crvVPrice || 0n,
+        cvxTokenSupply: cvxTokenSupply || 0n,
+        cvxExtraRewards: cvxExtraRewards.map(v => v || 0n),
+        cvxExtraRewardsFinish: cvxExtraRewardsFinish.map(v => v || 0n),
+        crvLpPrice: crvLpPrice.map(v => v || 0n),
 
         info: poolsInfo[i],
         getTokenPrice: props.getTokenPrice,
@@ -134,15 +123,15 @@ interface GetPoolInfoProps {
 
 interface PoolInfo {
   cvxPool: ConvexPoolParams;
-  cvxPoolAddress: string;
-  cvxExtraPools: string[];
+  cvxPoolAddress: Address;
+  cvxExtraPools: Address[];
 
-  crvPoolAddress: string;
+  crvPoolAddress: Address;
   crvToken: CurveLPToken;
   crvPool: CrvParams;
-  crvLpPrice: Array<string>;
+  crvLpPrice: Array<Address>;
 
-  tokenList: Record<SupportedToken, string>;
+  tokenList: Record<SupportedToken, Address>;
 }
 
 type CrvParams = CurveParams | CurveSteCRVPoolParams | CurveGEARPoolParams;
@@ -206,67 +195,59 @@ export function getConvexAPYBulkCalls({
   return { poolsInfo, calls };
 }
 
-type IBaseRewardPoolInterface = IBaseRewardPool["interface"];
-type IConvexTokenInterface = IConvexToken["interface"];
-type CurveV1AdapterStETHInterface = ICurvePool["interface"];
-
 function getPoolDataCalls(props: PoolInfo) {
-  const calls: [
-    MCall<IBaseRewardPoolInterface>,
-    MCall<IBaseRewardPoolInterface>,
-    MCall<IBaseRewardPoolInterface>,
-    MCall<CurveV1AdapterStETHInterface>,
-    MCall<IConvexTokenInterface>,
-    ...Array<MCall<IBaseRewardPoolInterface>>,
-    ...Array<MCall<any>>,
-  ] = [
+  const calls = [
     {
       address: props.cvxPoolAddress,
-      interface: IBaseRewardPool__factory.createInterface(),
-      method: "periodFinish()",
+      abi: iBaseRewardPoolAbi,
+      functionName: "periodFinish",
+      args: [],
     },
     {
       address: props.cvxPoolAddress,
-      interface: IBaseRewardPool__factory.createInterface(),
-      method: "rewardRate()",
+      abi: iBaseRewardPoolAbi,
+      functionName: "rewardRate",
+      args: [],
     },
     {
       address: props.cvxPoolAddress,
-      interface: IBaseRewardPool__factory.createInterface(),
-      method: "totalSupply()",
+      abi: iBaseRewardPoolAbi,
+      functionName: "totalSupply",
+      args: [],
     },
     {
       address: props.crvPoolAddress,
-      interface: ICurvePool__factory.createInterface(),
-      method: "get_virtual_price()",
+      abi: iCurvePoolAbi,
+      functionName: "get_virtual_price",
+      args: [],
     },
     {
       address: props.tokenList.CVX,
-      interface: IConvexToken__factory.createInterface(),
-      method: "totalSupply()",
+      abi: iConvexTokenAbi,
+      functionName: "totalSupply",
+      args: [],
     },
-    ...props.cvxExtraPools.map(
-      (extraPoolAddress): MCall<IBaseRewardPoolInterface> => ({
-        address: extraPoolAddress,
-        interface: IBaseRewardPool__factory.createInterface(),
-        method: "rewardRate()",
-      }),
-    ),
-    ...props.cvxExtraPools.map(
-      (extraPoolAddress): MCall<IBaseRewardPoolInterface> => ({
-        address: extraPoolAddress,
-        interface: IBaseRewardPool__factory.createInterface(),
-        method: "periodFinish()",
-      }),
-    ),
+
+    ...props.cvxExtraPools.map(extraPoolAddress => ({
+      address: extraPoolAddress,
+      abi: iBaseRewardPoolAbi,
+      functionName: "rewardRate",
+      args: [],
+    })),
+    ...props.cvxExtraPools.map(extraPoolAddress => ({
+      address: extraPoolAddress,
+      abi: iBaseRewardPoolAbi,
+      functionName: "periodFinish",
+      args: [],
+    })),
+
     ...(V2_POOLS[props.crvPool["version"]]
       ? [
           {
             address: props.crvPoolAddress,
-            interface: new Interface([
-              "function lp_price() view returns (uint256)",
-            ]),
-            method: "lp_price()",
+            abi: parseAbi(["function lp_price() view returns (uint256)"]),
+            functionName: "lp_price",
+            args: [],
           },
         ]
       : []),

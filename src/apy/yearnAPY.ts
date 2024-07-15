@@ -10,13 +10,14 @@ import {
   yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
+import { Address } from "viem";
 
 interface YearnAPYData {
   apr: {
     netAPR: number;
   };
 
-  address: string;
+  address: Address;
   symbol: string;
   display_name: string;
 }

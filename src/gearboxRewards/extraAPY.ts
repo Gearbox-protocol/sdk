@@ -7,6 +7,7 @@ import {
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
+import { Address } from "viem";
 
 import { poolByNetwork } from "../contracts/contractsRegister";
 import { Asset } from "../core/assets";
@@ -18,15 +19,15 @@ import { BigIntMath } from "../utils/math";
 import { GearboxRewardsApy } from "./apy";
 
 export interface GetPointsByPoolProps {
-  totalTokenBalances: Record<string, Asset>;
+  totalTokenBalances: Record<Address, Asset>;
   pools: Array<PoolData>;
-  currentTokenData: Record<SupportedToken, string>;
-  tokensList: Record<string, TokenData>;
+  currentTokenData: Record<SupportedToken, Address>;
+  tokensList: Record<Address, TokenData>;
   network: NetworkType;
 }
 
 interface WalletResult {
-  borrower: string;
+  borrower: Address;
   effective_balance: number;
 }
 
@@ -35,8 +36,8 @@ interface GetBalanceAtResponse {
 }
 
 export interface GetTotalTokensOnProtocolProps {
-  currentTokenData: Record<SupportedToken, string>;
-  tokensList: Record<string, TokenData>;
+  currentTokenData: Record<SupportedToken, Address>;
+  tokensList: Record<Address, TokenData>;
   chainId: number;
   network: NetworkType;
 }
@@ -50,7 +51,7 @@ interface PoolPointsInfo {
 
 const POOL_POINTS: Record<
   NetworkType,
-  Record<string, PartialRecord<SupportedToken, PoolPointsInfo>>
+  Record<Address, PartialRecord<SupportedToken, PoolPointsInfo>>
 > = {
   Mainnet: {
     [poolByNetwork.Mainnet.WETH_V3_TRADE]: {
@@ -127,9 +128,9 @@ export class GearboxRewardsExtraApy {
   }
 
   private static async getTokenTotal(
-    token: string,
+    token: Address,
     chainId: number,
-    tokensList: Record<string, TokenData>,
+    tokensList: Record<Address, TokenData>,
   ) {
     const url = ChartsApi.getUrl("getBalanceAt", chainId, {
       params: {
@@ -154,7 +155,7 @@ export class GearboxRewardsExtraApy {
     currentTokenData,
     network,
   }: GetPointsByPoolProps) {
-    const r = pools.reduce<Record<string, Array<Asset>>>((acc, p) => {
+    const r = pools.reduce<Record<Address, Array<Asset>>>((acc, p) => {
       const poolPointsInfo = Object.values(
         POOL_POINTS[network]?.[p.address] || [],
       );
@@ -191,7 +192,7 @@ export class GearboxRewardsExtraApy {
   private static getPoolTokenPoints(
     tokenBalanceInPool: Asset | undefined,
     pool: PoolData,
-    tokensList: Record<string, TokenData>,
+    tokensList: Record<Address, TokenData>,
     pointsInfo: PoolPointsInfo,
   ) {
     if (!tokenBalanceInPool) return null;
@@ -215,7 +216,7 @@ export class GearboxRewardsExtraApy {
 
   static getPoolPointsTip(
     network: NetworkType,
-    pool: string,
+    pool: Address,
     token: SupportedToken,
   ) {
     const p = POOL_POINTS[network]?.[pool]?.[token];

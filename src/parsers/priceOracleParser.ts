@@ -1,26 +1,27 @@
-import { IPriceOracleBase__factory } from "../types";
+import { Address } from "viem";
+
+import { iPriceOracleBaseAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class PriceOracleParser extends AbstractParser implements IParser {
   constructor() {
     super("PriceOracle");
-    this.ifc = IPriceOracleBase__factory.createInterface();
+    this.abi = iPriceOracleBaseAbi;
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "getPrice": {
-        const [token] = this.decodeFunctionData(functionFragment, calldata);
-
+        const [token] = functionData.args || [];
         return `${functionName}(${this.tokenSymbol(token)})`;
       }
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

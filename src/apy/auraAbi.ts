@@ -1,5 +1,3 @@
-import { Interface } from "ethers";
-
 export const AURA_BOOSTER_ABI = [
   {
     inputs: [
@@ -20,6 +18,4 @@ export const AURA_BOOSTER_ABI = [
     stateMutability: "view",
     type: "function",
   },
-];
-
-export const AURA_BOOSTER_INTERFACE = new Interface(AURA_BOOSTER_ABI);
+] as const;

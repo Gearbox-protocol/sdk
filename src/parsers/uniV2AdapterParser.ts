@@ -1,29 +1,23 @@
 import { formatBN, SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IUniswapV2Adapter__factory } from "../types";
+import { iUniswapV2AdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class UniswapV2AdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IUniswapV2Adapter__factory.createInterface();
+    this.abi = iUniswapV2AdapterAbi;
     if (!isContract) this.adapterName = "UniswapV2Adapter";
   }
-  parse(calldata: string): string {
-    return this._parse(calldata);
-  }
+  parse(calldata: Address): string {
+    const { functionData, functionName } = this.parseSelector(calldata);
 
-  protected _parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
-
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "swapExactTokensForTokens": {
-        const [amountIn, amountOutMin, path] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
-        const pathStr = (path as Array<string>)
+        const [amountIn, amountOutMin, path] = functionData.args || [];
+        const pathStr = (path as Array<Address>)
           .map(r => this.tokenSymbol(r))
           .join(" => ");
 
@@ -35,12 +29,9 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
       }
 
       case "swapTokensForExactTokens": {
-        const [amountOut, amountInMax, path] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [amountOut, amountInMax, path] = functionData.args || [];
 
-        const pathStr = (path as Array<string>)
+        const pathStr = (path as Array<Address>)
           .map(r => this.tokenSymbol(r))
           .join(" => ");
 
@@ -53,25 +44,22 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
       }
 
       case "swapDiffTokensForTokens": {
-        const [leftoverAmount, rateMinRAY, path] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount, rateMinRAY, path] = functionData.args || [];
 
         const tokenIn = this.tokenSymbol(path[0]);
 
         return `${functionName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           tokenIn,
-        )}, rate: ${formatBN(rateMinRAY, 27)}, path: [${(path as Array<string>)
+        )}, rate: ${formatBN(rateMinRAY, 27)}, path: [${(path as Array<Address>)
           .map(r => this.tokenSymbol(r))
           .join(" => ")}])`;
       }
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

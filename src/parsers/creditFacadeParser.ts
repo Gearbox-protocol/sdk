@@ -1,14 +1,23 @@
 import { SupportedToken } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
+import { Address } from "viem";
 
 import {
-  ICreditFacadeV2Extended__factory,
-  ICreditFacadeV3Multicall__factory,
+  iCreditFacadeV2ExtendedAbi,
+  iCreditFacadeV3MulticallAbi,
 } from "../types";
-import { BalanceStructOutput } from "../types/ICreditFacadeV2.sol/ICreditFacadeV2Extended";
-import { BalanceDeltaStructOutput } from "../types/ICreditFacadeV3Multicall";
+import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
+
+interface BalanceDeltaStructOutput {
+  amount: bigint;
+  token: Address;
+}
+
+interface BalanceStructOutput {
+  balance: bigint;
+  token: Address;
+}
 
 export class CreditFacadeParser extends AbstractParser implements IParser {
   version: number;
@@ -16,18 +25,16 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
   constructor(token: SupportedToken, version: number) {
     super(token);
     this.version = version;
-    this.ifc =
-      version >= 300
-        ? ICreditFacadeV3Multicall__factory.createInterface()
-        : ICreditFacadeV2Extended__factory.createInterface();
+    this.abi =
+      version >= 300 ? iCreditFacadeV3MulticallAbi : iCreditFacadeV2ExtendedAbi;
     this.adapterName = "CreditFacade";
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "addCollateral": {
-        const r = this.decodeFunctionData(functionFragment, calldata);
+        const r = functionData.args || [];
 
         const token = r[0];
         const amount = r[1];
@@ -38,20 +45,17 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       }
       case "increaseDebt":
       case "decreaseDebt": {
-        const [amount] = this.decodeFunctionData(functionFragment, calldata);
+        const [amount] = functionData.args || [];
         return `${functionName}(amount: ${this.formatAmount(amount)})`;
       }
       case "enableToken":
       case "disableToken": {
-        const [address] = this.decodeFunctionData(functionFragment, calldata);
+        const [address] = functionData.args || [];
         return `${functionName}(token: ${this.tokenSymbol(address)})`;
       }
 
       case "updateQuota": {
-        const [address, quotaUpdate, minQuota] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [address, quotaUpdate, minQuota] = functionData.args || [];
         return `${functionName}(token: ${this.tokenSymbol(
           address,
         )}, quotaUpdate: ${this.formatAmount(
@@ -60,7 +64,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       }
 
       case "revertIfReceivedLessThan": {
-        const [balances] = this.decodeFunctionData(functionFragment, calldata);
+        const [balances] = functionData.args || [];
 
         const balancesStr = (
           balances as Array<BalanceDeltaStructOutput | BalanceStructOutput>
@@ -77,10 +81,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       }
 
       case "withdrawCollateral": {
-        const [token, amount, to] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [token, amount, to] = functionData.args || [];
 
         return `${functionName}(token: ${this.tokenSymbol(
           token,
@@ -92,7 +93,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
 
       case "addCollateralWithPermit": {
         const [tokenAddress, amount, deadline, v, r, s] =
-          this.decodeFunctionData(functionFragment, calldata);
+          functionData.args || [];
 
         return `${functionName}(token: ${this.tokenSymbol(
           tokenAddress,
@@ -107,10 +108,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       }
 
       case "setFullCheckParams": {
-        const [collateralHints, minHealthFactor] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [collateralHints, minHealthFactor] = functionData.args || [];
 
         return `${functionName}(token: ${collateralHints
           .map((a: BigNumberish) => this.formatAmount(a))
@@ -118,10 +116,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       }
 
       case "storeExpectedBalances": {
-        const [balanceDeltas] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [balanceDeltas] = functionData.args || [];
 
         return `${functionName}(balanceDeltas: ${balanceDeltas
           .map(
@@ -135,10 +130,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       }
 
       case "onDemandPriceUpdate": {
-        const [token, reserve, data] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [token, reserve, data] = functionData.args || [];
 
         return `${functionName}(token: ${this.tokenOrTickerSymbol(
           token,
@@ -147,8 +139,8 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

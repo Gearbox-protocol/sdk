@@ -1,30 +1,26 @@
 import { SupportedContract, toBigInt } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IwstETH__factory, IwstETHV1Adapter__factory } from "../types";
+import { iwstEthAbi, iwstEthv1AdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
 export class WstETHAdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = !isContract
-      ? IwstETHV1Adapter__factory.createInterface()
-      : IwstETH__factory.createInterface();
+    this.abi = !isContract ? iwstEthv1AdapterAbi : iwstEthAbi;
     if (!isContract) this.adapterName = "wstETHAdapter";
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionData, functionName } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "wrap": {
-        const [amount] = this.decodeFunctionData(functionFragment, calldata);
+        const [amount] = functionData.args || [];
         return `${functionName}(amount: ${this.formatBN(amount, "STETH")})`;
       }
       case "wrapDiff": {
-        const [leftoverAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount] = functionData.args || [];
         return `${functionName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           "STETH",
@@ -32,14 +28,11 @@ export class WstETHAdapterParser extends AbstractParser implements IParser {
       }
 
       case "unwrap": {
-        const [amount] = this.decodeFunctionData(functionFragment, calldata);
+        const [amount] = functionData.args || [];
         return `${functionName}(amount: ${this.formatBN(amount, "wstETH")})`;
       }
       case "unwrapDiff": {
-        const [leftoverAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount] = functionData.args || [];
         return `${functionName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           "STETH",
@@ -47,28 +40,22 @@ export class WstETHAdapterParser extends AbstractParser implements IParser {
       }
 
       case "balanceOf": {
-        const [address] = this.decodeFunctionData(functionFragment, calldata);
+        const [address] = functionData.args || [];
         return `${functionName}(${address})`;
       }
       case "allowance": {
-        const [account, to] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [account, to] = functionData.args || [];
         return `${functionName}(account: ${account}, to: ${to})`;
       }
       case "approve": {
-        const [spender, amount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [spender, amount] = functionData.args || [];
         return `${functionName}(${spender}, [${toBigInt(amount).toString()}])`;
       }
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

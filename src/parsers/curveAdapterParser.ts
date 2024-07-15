@@ -5,13 +5,14 @@ import {
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
+import { Address } from "viem";
 
 import {
-  ICurveV1_2AssetsAdapter__factory,
-  ICurveV1_3AssetsAdapter__factory,
-  ICurveV1_4AssetsAdapter__factory,
+  iCurveV1_2AssetsAdapterAbi,
+  iCurveV1_3AssetsAdapterAbi,
+  iCurveV1_4AssetsAdapterAbi,
 } from "../types";
+import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -26,15 +27,15 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
     const nCoins = (contractParams[contract] as CurveParams).tokens.length;
     switch (nCoins) {
       case 2:
-        this.ifc = ICurveV1_2AssetsAdapter__factory.createInterface();
+        this.abi = iCurveV1_2AssetsAdapterAbi;
         contractName = `Curve2AssetsAdapter`;
         break;
       case 3:
-        this.ifc = ICurveV1_3AssetsAdapter__factory.createInterface();
+        this.abi = iCurveV1_3AssetsAdapterAbi;
         contractName = `Curve3AssetsAdapter`;
         break;
       case 4:
-        this.ifc = ICurveV1_4AssetsAdapter__factory.createInterface();
+        this.abi = iCurveV1_4AssetsAdapterAbi;
         contractName = `Curve4AssetsAdapter`;
         break;
       default:
@@ -43,24 +44,21 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
     this.lpToken = (contractParams[contract] as CurveParams).lpToken;
     if (!isContract) this.adapterName = contractName;
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "exchange":
       case "exchange_underlying": {
-        const [i, j, dx, min_dy] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [i, j, dx, min_dy] = functionData.args || [];
 
         const iSym =
-          functionFragment.name === "exchange_underlying"
+          functionData.functionName === "exchange_underlying"
             ? this.getUnderlyingTokenByIndex(i)
             : this.getTokenByIndex(i);
 
         const jSym =
-          functionFragment.name === "exchange_underlying"
+          functionData.functionName === "exchange_underlying"
             ? this.getUnderlyingTokenByIndex(j)
             : this.getTokenByIndex(j);
 
@@ -72,18 +70,15 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
 
       case "exchange_diff":
       case "exchange_diff_underlying": {
-        const [i, j, leftoverAmount, rateMinRAY] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [i, j, leftoverAmount, rateMinRAY] = functionData.args || [];
 
         const iSym =
-          functionFragment.name === "exchange_diff_underlying"
+          functionData.functionName === "exchange_diff_underlying"
             ? this.getUnderlyingTokenByIndex(i)
             : this.getTokenByIndex(i);
 
         const jSym =
-          functionFragment.name === "exchange_diff_underlying"
+          functionData.functionName === "exchange_diff_underlying"
             ? this.getUnderlyingTokenByIndex(j)
             : this.getTokenByIndex(j);
 
@@ -94,10 +89,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       }
 
       case "add_liquidity_one_coin": {
-        const [amount, i, minAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [amount, i, minAmount] = functionData.args || [];
 
         const iSym = this.getTokenByIndex(i);
 
@@ -109,10 +101,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
 
       case "add_diff_liquidity_one_coin":
       case "remove_diff_liquidity_one_coin": {
-        const [leftoverAmount, i, rateMinRAY] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount, i, rateMinRAY] = functionData.args || [];
 
         return `${functionName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
@@ -124,10 +113,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       }
 
       case "add_liquidity": {
-        const [amounts, minAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [amounts, minAmount] = functionData.args || [];
 
         return `${functionName}(amounts: [${this.convertAmounts(
           amounts,
@@ -135,10 +121,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       }
 
       case "remove_liquidity": {
-        const [amount, min_amounts] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [amount, min_amounts] = functionData.args || [];
 
         return `${functionName}(amount: ${this.formatBN(
           amount,
@@ -147,10 +130,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       }
 
       case "remove_liquidity_imbalance": {
-        const [amounts, maxBurnAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [amounts, maxBurnAmount] = functionData.args || [];
 
         return `${functionName}(amounts: [${this.convertAmounts(
           amounts,
@@ -158,10 +138,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       }
 
       case "remove_liquidity_one_coin": {
-        const [amount, i, min_amount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [amount, i, min_amount] = functionData.args || [];
 
         const iSym = this.getTokenByIndex(i);
 
@@ -176,11 +153,11 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       }
 
       case "balances": {
-        const [i] = this.decodeFunctionData(functionFragment, calldata);
+        const [i] = functionData.args || [];
         return `${functionName}(${this.getTokenByIndex(i)})`;
       }
       case "balanceOf": {
-        const [address] = this.decodeFunctionData(functionFragment, calldata);
+        const [address] = functionData.args || [];
         return `${functionName}(${address})`;
       }
       case "get_virtual_price": {
@@ -188,17 +165,14 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       }
 
       case "allowance": {
-        const [account, to] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [account, to] = functionData.args || [];
         return `${functionName}(account: ${account}, to: ${to})`;
       }
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

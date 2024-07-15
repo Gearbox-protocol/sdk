@@ -1,18 +1,44 @@
-import { AwaitedRes, ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
-import { IGearStakingV3 } from "../types";
-import {
-  GaugeInfoStructOutput,
-  GaugeQuotaParamsStructOutput,
-} from "../types/IDataCompressorV3";
+export interface MultiVote {
+  votingContract: Address;
+  voteAmount: bigint;
+  isIncrease: boolean;
+  extraData: Address;
+}
 
-export type GaugeQuotaParams = ExcludeArrayProps<GaugeQuotaParamsStructOutput>;
+export interface GaugeQuotaParams {
+  token: Address;
+  minRate: number;
+  maxRate: number;
+  totalVotesLpSide: bigint;
+  totalVotesCaSide: bigint;
+  rate: number;
+  quotaIncreaseFee: number;
+  totalQuoted: bigint;
+  limit: bigint;
+  isActive: boolean;
+  stakerVotesLpSide: bigint;
+  stakerVotesCaSide: bigint;
+}
 
-export type GaugeDataPayload = ExcludeArrayProps<GaugeInfoStructOutput>;
+export interface GaugeDataPayload {
+  addr: Address;
+  pool: Address;
+  symbol: string;
+  name: string;
+  underlying: Address;
+  currentEpoch: number;
+  epochFrozen: boolean;
+  quotaParams: readonly GaugeQuotaParams[];
+}
 
 export interface GaugeStakingDataPayload {
-  availableBalance: AwaitedRes<IGearStakingV3["availableBalance"]>;
-  totalBalance: AwaitedRes<IGearStakingV3["balanceOf"]>;
-  epoch: AwaitedRes<IGearStakingV3["getCurrentEpoch"]>;
-  withdrawableAmounts: AwaitedRes<IGearStakingV3["getWithdrawableAmounts"]>;
+  availableBalance: bigint;
+  totalBalance: bigint;
+  epoch: number;
+  withdrawableAmounts: {
+    withdrawableNow: bigint;
+    withdrawableInEpochs: readonly [bigint, bigint, bigint, bigint];
+  };
 }

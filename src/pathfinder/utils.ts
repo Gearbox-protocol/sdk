@@ -1,10 +1,9 @@
 import {
-  MCall,
+  MULTICALL_ADDRESS,
   PERCENTAGE_FACTOR,
-  safeMulticall,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { Interface, Provider } from "ethers";
+import { Abi, Address, PublicClient } from "viem";
 
 import { ParsedObject } from "../parsers/abstractParser";
 import { BalancerV2VaultParser } from "../parsers/balancerV2VaultParser";
@@ -13,8 +12,7 @@ import { LidoAdapterParser } from "../parsers/lidoAdapterParser";
 import { TxParser } from "../parsers/txParser";
 import { UniswapV2AdapterParser } from "../parsers/uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "../parsers/uniV3AdapterParser";
-import { ICurvePool__factory } from "../types";
-import { ICurvePoolInterface } from "../types/ICurvePool";
+import { iCurvePoolAbi } from "../types";
 import { splitPoolId } from "./balancerVault";
 import { MultiCall } from "./core";
 
@@ -26,13 +24,24 @@ export interface FeeInfo {
 interface GetFeeState {
   simpleFees: Array<FeeInfo>;
 
-  curve: Array<MCall<ICurvePoolInterface>>;
-  balancer: Array<MCall<Interface>>;
+  curve: Array<{
+    address: Address;
+    abi: Abi;
+    functionName: string;
+    args: readonly unknown[];
+  }>;
+  balancer: Array<{
+    address: Address;
+    abi: Abi;
+    functionName: string;
+    args: readonly unknown[];
+  }>;
 }
 
 interface FeeResponse {
   error?: Error | undefined;
-  value?: bigint | undefined;
+  result?: bigint | undefined;
+  status: "failure" | "success";
 }
 
 type KnownFeeTypes =
@@ -59,14 +68,12 @@ export const BALANCER_VAULT_ABI = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;
 
-export const BALANCER_VAULT_INTERFACE = new Interface(BALANCER_VAULT_ABI);
-
-interface FindPathFeesProps {
+export interface FindPathFeesProps {
   calls: Array<MultiCall>;
-  provider: Provider;
-  contractsByAdapter: Record<string, string>;
+  provider: PublicClient;
+  contractsByAdapter: Record<Address, Address>;
 }
 
 export class PathFinderUtils {
@@ -123,10 +130,11 @@ export class PathFinderUtils {
       },
     );
 
-    const response = await safeMulticall<bigint>(
-      [...curve, ...balancer],
-      provider,
-    );
+    const response = (await provider.multicall({
+      allowFailure: true,
+      multicallAddress: MULTICALL_ADDRESS,
+      contracts: [...curve, ...balancer],
+    })) as Array<FeeResponse>;
 
     const curveEnds = curve.length;
     const curveResponse = response.slice(0, curveEnds);
@@ -143,9 +151,9 @@ export class PathFinderUtils {
   }
 
   private static getUniswapV2Fee(callObject: ParsedObject): FeeInfo | null {
-    const { name } = callObject.functionFragment;
+    const { functionName } = callObject;
 
-    switch (name) {
+    switch (functionName) {
       case "swapExactTokensForTokens":
       case "swapTokensForExactTokens":
       case "swapDiffTokensForTokens": {
@@ -161,14 +169,14 @@ export class PathFinderUtils {
   }
 
   private static getUniswapV3Fee(callObject: ParsedObject): FeeInfo | null {
-    const { name } = callObject.functionFragment;
+    const { functionName, args } = callObject;
 
-    switch (name) {
+    switch (functionName) {
       case "exactInputSingle":
       case "exactDiffInputSingle":
       case "exactOutputSingle": {
-        const { params } = callObject.args || {};
-        const { fee = 0 } = params || {};
+        const [first] = args;
+        const { fee = 0 } = first || {};
 
         return {
           type: "uniswap_v3",
@@ -182,22 +190,24 @@ export class PathFinderUtils {
 
   private static getCurveFeeCall(
     callObject: ParsedObject,
-    contractsByAdapter: Record<string, string>,
-  ): MCall<ICurvePoolInterface> | null {
-    const { name } = callObject.functionFragment;
+    contractsByAdapter: Record<Address, Address>,
+  ) {
+    const { functionName } = callObject;
 
-    switch (name) {
+    switch (functionName) {
       case "exchange":
       case "exchange_underlying":
       case "exchange_diff":
       case "exchange_diff_underlying": {
-        const adapter = (callObject.address || "").toLowerCase();
+        const adapter = (callObject.address || "").toLowerCase() as Address;
         const contract = contractsByAdapter[adapter];
+
         return contract
           ? {
-              address: contract,
-              interface: ICurvePool__factory.createInterface(),
-              method: "fee()",
+              address: contract as Address,
+              abi: iCurvePoolAbi,
+              functionName: "fee",
+              args: [],
             }
           : null;
       }
@@ -205,31 +215,31 @@ export class PathFinderUtils {
         return null;
     }
   }
-
-  private static getCurveFee({ value }: FeeResponse): FeeInfo {
-    const feeOriginal = value || 0n;
+  private static getCurveFee({ result }: FeeResponse): FeeInfo {
+    const feeOriginal = result || 0n;
     return {
       type: "curve",
       value: (feeOriginal * PERCENTAGE_FACTOR) / CURVE_FEE_DECIMALS,
     };
   }
 
-  private static getBalancerFeeCall(
-    callObject: ParsedObject,
-  ): MCall<Interface> | null {
-    const { name } = callObject.functionFragment;
+  private static getBalancerFeeCall(callObject: ParsedObject) {
+    const { functionName } = callObject;
 
-    switch (name) {
+    switch (functionName) {
       case "swapDiff":
       case "swap": {
-        const { poolId = "" } = callObject.args?.[0] || {};
+        const [first] = callObject.args;
+        const { poolId = "" } = first || {};
+
         const { address } = splitPoolId(poolId);
 
         return address
           ? {
-              address,
-              interface: BALANCER_VAULT_INTERFACE,
-              method: "getSwapFeePercentage()",
+              address: address as Address,
+              abi: BALANCER_VAULT_ABI,
+              functionName: "getSwapFeePercentage",
+              args: [],
             }
           : null;
       }
@@ -237,9 +247,8 @@ export class PathFinderUtils {
         return null;
     }
   }
-
-  private static getBalancerFee({ value }: FeeResponse): FeeInfo {
-    const feeOriginal = value || 0n;
+  private static getBalancerFee({ result }: FeeResponse): FeeInfo {
+    const feeOriginal = result || 0n;
 
     return {
       type: "balancer",

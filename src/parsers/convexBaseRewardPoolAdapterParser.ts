@@ -3,9 +3,10 @@ import {
   ConvexPoolParams,
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
+import { Address } from "viem";
 
-import { IConvexV1BaseRewardPoolAdapter__factory } from "../types";
+import { iConvexV1BaseRewardPoolAdapterAbi } from "../types";
+import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -15,23 +16,20 @@ export class ConvexBaseRewardPoolAdapterParser
 {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IConvexV1BaseRewardPoolAdapter__factory.createInterface();
+    this.abi = iConvexV1BaseRewardPoolAdapterAbi;
     if (!isContract) this.adapterName = "ConvexV1BaseRewardPoolAdapter";
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "stake": {
-        const [amount] = this.decodeFunctionData(functionFragment, calldata);
+        const [amount] = functionData.args || [];
         return `${functionName}(amount: ${this.formatAmount(amount)})`;
       }
 
       case "stakeDiff": {
-        const [leftoverAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount] = functionData.args || [];
         return `${functionName}(leftoverAmount: ${this.formatAmount(
           leftoverAmount,
         )})`;
@@ -39,20 +37,14 @@ export class ConvexBaseRewardPoolAdapterParser
 
       case "withdraw":
       case "withdrawAndUnwrap": {
-        const [amount, claim] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [amount, claim] = functionData.args || [];
         return `${functionName}(amount: ${this.formatAmount(
           amount,
         )}, claim: ${claim})`;
       }
       case "withdrawDiff":
       case "withdrawDiffAndUnwrap": {
-        const [leftoverAmount, claim] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [leftoverAmount, claim] = functionData.args || [];
         return `${functionName}(leftoverAmount: ${this.formatAmount(
           leftoverAmount,
         )}, claim: ${claim})`;
@@ -68,8 +60,8 @@ export class ConvexBaseRewardPoolAdapterParser
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

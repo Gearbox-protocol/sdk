@@ -1,10 +1,4 @@
-import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
-
-import {
-  MultiCallStructOutput,
-  RouterResultStructOutput,
-  SwapTaskStruct,
-} from "../types/IRouterV3";
+import { Address } from "viem";
 
 export enum SwapOperation {
   EXACT_INPUT,
@@ -12,19 +6,29 @@ export enum SwapOperation {
   EXACT_OUTPUT,
 }
 
-export type MultiCall = ExcludeArrayProps<MultiCallStructOutput>;
-export type SwapTask = ExcludeArrayProps<SwapTaskStruct>;
+export interface MultiCall {
+  target: Address;
+  callData: Address;
+}
+export interface SwapTask {
+  swapOperation: number;
+  creditAccount: Address;
+  tokenIn: Address;
+  tokenOut: Address;
+  connectors: Address[];
+  amount: bigint;
+  leftoverAmount: bigint;
+}
 
-export type PathFinderResult = Omit<
-  ExcludeArrayProps<RouterResultStructOutput>,
-  "calls"
-> & {
-  calls: Array<MultiCall>;
-};
+export interface PathFinderResult {
+  amount: bigint;
+  minAmount: bigint;
+  calls: MultiCall[];
+}
 
 export interface PathFinderOpenStrategyResult extends PathFinderResult {
-  balances: Record<string, bigint>;
-  minBalances: Record<string, bigint>;
+  balances: Record<Address, bigint>;
+  minBalances: Record<Address, bigint>;
 }
 
 export interface PathFinderCloseResult extends PathFinderResult {

@@ -1,11 +1,12 @@
 import {
+  Address,
   convexLpTokenByPid,
   convexPoolByPid,
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
 
-import { IConvexV1BoosterAdapter__factory } from "../types";
+import { iConvexV1BoosterAdapterAbi } from "../types";
+import { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
 import { IParser } from "./iParser";
 
@@ -15,28 +16,22 @@ export class ConvexBoosterAdapterParser
 {
   constructor(contract: SupportedContract, isContract: boolean) {
     super(contract);
-    this.ifc = IConvexV1BoosterAdapter__factory.createInterface();
+    this.abi = iConvexV1BoosterAdapterAbi;
     if (!isContract) this.adapterName = "ConvexV1BoosterAdapter";
   }
-  parse(calldata: string): string {
-    const { functionFragment, functionName } = this.parseSelector(calldata);
+  parse(calldata: Address): string {
+    const { functionName, functionData } = this.parseSelector(calldata);
 
-    switch (functionFragment.name) {
+    switch (functionData.functionName) {
       case "deposit": {
-        const [pid, amount, stake] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [pid, amount, stake] = functionData.args || [];
         return `${functionName}(pid: ${this.formatPid(
           pid,
         )}, amount: ${this.formatAmount(amount, pid)}, stake: ${stake})`;
       }
 
       case "depositDiff": {
-        const [pid, leftoverAmount, stake] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [pid, leftoverAmount, stake] = functionData.args || [];
         return `${functionName}(pid: ${this.formatPid(
           pid,
         )}, leftoverAmount: ${this.formatAmount(
@@ -46,20 +41,14 @@ export class ConvexBoosterAdapterParser
       }
 
       case "withdraw": {
-        const [pid, amount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [pid, amount] = functionData.args || [];
         return `${functionName}(pid: ${this.formatPid(
           pid,
         )}, amount: ${this.formatAmount(amount, pid)})`;
       }
 
       case "withdrawDiff": {
-        const [pid, leftoverAmount] = this.decodeFunctionData(
-          functionFragment,
-          calldata,
-        );
+        const [pid, leftoverAmount] = functionData.args || [];
         return `${functionName}(pid: ${this.formatPid(
           pid,
         )}, leftoverAmount: ${this.formatAmount(leftoverAmount, pid)})`;
@@ -67,8 +56,8 @@ export class ConvexBoosterAdapterParser
 
       default:
         return this.reportUnknownFragment(
+          this.adapterName || this.contract,
           functionName,
-          functionFragment,
           calldata,
         );
     }

@@ -9,6 +9,7 @@ import {
   WAD,
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { TokensWithAPY, TokensWithApyRecord } from "../apy";
 import {
@@ -30,36 +31,36 @@ export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
   lpAPY: TokensWithApyRecord | undefined;
 
-  quotas: Record<string, Asset>;
-  quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
+  quotas: Record<Address, Asset>;
+  quotaRates: Record<Address, Pick<QuotaInfo, "isActive" | "rate">>;
   feeInterest: number;
 
-  prices: Record<string, bigint>;
+  prices: Record<Address, bigint>;
 
   totalValue: bigint | undefined;
   debt: bigint | undefined;
   baseRateWithFee: number;
-  underlyingToken: string;
+  underlyingToken: Address;
 }
 
 export interface CalcMaxLendingDebtProps {
   assets: Array<Asset>;
 
-  prices: Record<string, bigint>;
-  liquidationThresholds: Record<string, bigint>;
-  underlyingToken: string;
+  prices: Record<Address, bigint>;
+  liquidationThresholds: Record<Address, bigint>;
+  underlyingToken: Address;
 
   targetHF?: bigint;
 }
 
 export interface CalcHealthFactorProps {
   assets: Array<Asset>;
-  quotas: Record<string, Asset>;
-  quotasInfo: Record<string, Pick<QuotaInfo, "isActive">>;
+  quotas: Record<Address, Asset>;
+  quotasInfo: Record<Address, Pick<QuotaInfo, "isActive">>;
 
-  prices: Record<string, bigint>;
-  liquidationThresholds: Record<string, bigint>;
-  underlyingToken: string;
+  prices: Record<Address, bigint>;
+  liquidationThresholds: Record<Address, bigint>;
+  underlyingToken: Address;
   debt: bigint;
 }
 
@@ -77,31 +78,31 @@ export interface CalcRecommendedQuotaProps {
 }
 
 export interface CalcQuotaUpdateProps {
-  quotas: Record<string, Pick<QuotaInfo, "isActive" | "token">>;
-  initialQuotas: Record<string, Pick<CaTokenBalance, "quota">>;
-  liquidationThresholds: Record<string, bigint>;
-  assetsAfterUpdate: Record<string, AssetWithAmountInTarget>;
+  quotas: Record<Address, Pick<QuotaInfo, "isActive" | "token">>;
+  initialQuotas: Record<Address, Pick<CaTokenBalance, "quota">>;
+  liquidationThresholds: Record<Address, bigint>;
+  assetsAfterUpdate: Record<Address, AssetWithAmountInTarget>;
   maxDebt: bigint;
   calcModification?: {
     type: "recommendedQuota";
     debt: bigint;
   };
 
-  allowedToSpend: Record<string, {}>;
-  allowedToObtain: Record<string, {}>;
+  allowedToSpend: Record<Address, {}>;
+  allowedToObtain: Record<Address, {}>;
 
   quotaReserve: bigint;
 }
 
 interface CalcQuotaUpdateReturnType {
-  desiredQuota: Record<string, Asset>;
+  desiredQuota: Record<Address, Asset>;
   quotaIncrease: Array<Asset>;
   quotaDecrease: Array<Asset>;
 }
 
 export interface CalcQuotaBorrowRateProps {
-  quotas: Record<string, Asset>;
-  quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
+  quotas: Record<Address, Asset>;
+  quotaRates: Record<Address, Pick<QuotaInfo, "isActive" | "rate">>;
 }
 
 export interface CalcRelativeBaseBorrowRateProps {
@@ -111,30 +112,30 @@ export interface CalcRelativeBaseBorrowRateProps {
 }
 
 export interface CalcAvgQuotaBorrowRateProps {
-  quotas: Record<string, Asset>;
-  quotaRates: Record<string, Pick<QuotaInfo, "isActive" | "rate">>;
+  quotas: Record<Address, Asset>;
+  quotaRates: Record<Address, Pick<QuotaInfo, "isActive" | "rate">>;
 }
 
 interface LiquidationPriceProps {
-  liquidationThresholds: Record<string, bigint>;
+  liquidationThresholds: Record<Address, bigint>;
 
   debt: bigint;
-  underlyingToken: string;
-  targetToken: string;
-  assets: Record<string, Asset>;
+  underlyingToken: Address;
+  targetToken: Address;
+  assets: Record<Address, Asset>;
 }
 
 const MAX_UINT16 = 65535;
 
 export class CreditAccountData {
   readonly isSuccessful: boolean;
-  readonly priceFeedsNeeded: string[];
+  readonly priceFeedsNeeded: Address[];
 
-  readonly addr: string;
-  readonly borrower: string;
-  readonly creditManager: string;
-  readonly creditFacade: string;
-  readonly underlyingToken: string;
+  readonly addr: Address;
+  readonly borrower: Address;
+  readonly creditManager: Address;
+  readonly creditFacade: Address;
+  readonly underlyingToken: Address;
   readonly since: number;
   readonly expirationDate: number;
   readonly version: number;
@@ -159,23 +160,23 @@ export class CreditAccountData {
   readonly cumulativeIndexLastUpdate: bigint;
   readonly cumulativeQuotaInterest: bigint;
 
-  readonly activeBots: Record<string, true>;
+  readonly activeBots: Record<Address, true>;
 
-  readonly balances: Record<string, bigint> = {};
-  readonly collateralTokens: Array<string> = [];
-  readonly allBalances: Record<string, CaTokenBalance> = {};
-  readonly forbiddenTokens: Record<string, true> = {};
-  readonly quotedTokens: Record<string, true> = {};
+  readonly balances: Record<Address, bigint> = {};
+  readonly collateralTokens: Array<Address> = [];
+  readonly allBalances: Record<Address, CaTokenBalance> = {};
+  readonly forbiddenTokens: Record<Address, true> = {};
+  readonly quotedTokens: Record<Address, true> = {};
 
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
-    this.priceFeedsNeeded = payload.priceFeedsNeeded;
+    this.priceFeedsNeeded = payload.priceFeedsNeeded.map(t => t);
 
-    this.addr = payload.addr.toLowerCase();
-    this.borrower = payload.borrower.toLowerCase();
-    this.creditManager = payload.creditManager.toLowerCase();
-    this.creditFacade = payload.creditFacade.toLowerCase();
-    this.underlyingToken = payload.underlying.toLowerCase();
+    this.addr = payload.addr.toLowerCase() as Address;
+    this.borrower = payload.borrower.toLowerCase() as Address;
+    this.creditManager = payload.creditManager.toLowerCase() as Address;
+    this.creditFacade = payload.creditFacade.toLowerCase() as Address;
+    this.underlyingToken = payload.underlying.toLowerCase() as Address;
     this.since = Number(payload.since);
     this.expirationDate = Number(payload.expirationDate);
     this.version = Number(payload.cfVersion);
@@ -205,16 +206,16 @@ export class CreditAccountData {
     this.cumulativeIndexLastUpdate = payload.cumulativeIndexLastUpdate;
     this.cumulativeQuotaInterest = payload.cumulativeQuotaInterest;
 
-    this.activeBots = payload.activeBots.reduce<Record<string, true>>(
-      (acc, b) => {
-        acc[b.toLowerCase()] = true;
-        return acc;
-      },
-      {},
-    );
+    this.activeBots = payload.activeBots.reduce<
+      CreditAccountData["activeBots"]
+    >((acc, b) => {
+      const botLc = b.toLowerCase() as Address;
+      acc[botLc] = true;
+      return acc;
+    }, {});
 
     payload.balances.forEach(b => {
-      const token = b.token.toLowerCase();
+      const token = b.token.toLowerCase() as Address;
       const balance: CaTokenBalance = {
         token,
         balance: b.balance,
@@ -222,7 +223,7 @@ export class CreditAccountData {
         isEnabled: b.isEnabled,
         isQuoted: b.isQuoted,
         quota: b.quota,
-        quotaRate: b.quotaRate * PERCENTAGE_DECIMALS,
+        quotaRate: BigInt(b.quotaRate) * PERCENTAGE_DECIMALS,
         quotaCumulativeIndexLU: b.quotaCumulativeIndexLU,
       };
 
@@ -246,14 +247,14 @@ export class CreditAccountData {
   }
 
   static sortBalances(
-    balances: Record<string, bigint>,
-    prices: Record<string, bigint>,
-    tokens: Record<string, TokenData>,
-  ): Array<[string, bigint]> {
-    return Object.entries(balances).sort(
+    balances: Record<Address, bigint>,
+    prices: Record<Address, bigint>,
+    tokens: Record<Address, TokenData>,
+  ): Array<[Address, bigint]> {
+    return (Object.entries(balances) as Array<[Address, bigint]>).sort(
       ([addr1, amount1], [addr2, amount2]) => {
-        const addr1Lc = addr1.toLowerCase();
-        const addr2Lc = addr2.toLowerCase();
+        const addr1Lc = addr1.toLowerCase() as Address;
+        const addr2Lc = addr2.toLowerCase() as Address;
 
         const token1 = tokens[addr1Lc];
         const token2 = tokens[addr2Lc];
@@ -285,16 +286,16 @@ export class CreditAccountData {
 
   static sortAssets(
     balances: Array<Asset>,
-    prices: Record<string, bigint>,
-    tokens: Record<string, TokenData>,
+    prices: Record<Address, bigint>,
+    tokens: Record<Address, TokenData>,
   ) {
     return balances.sort(
       (
         { token: addr1, balance: amount1 },
         { token: addr2, balance: amount2 },
       ) => {
-        const addr1Lc = addr1.toLowerCase();
-        const addr2Lc = addr2.toLowerCase();
+        const addr1Lc = addr1.toLowerCase() as Address;
+        const addr2Lc = addr2.toLowerCase() as Address;
 
         const token1 = tokens[addr1Lc];
         const token2 = tokens[addr2Lc];
@@ -338,15 +339,15 @@ export class CreditAccountData {
     return t1 > t2 ? -1 : 1;
   }
 
-  isForbidden(token: string) {
+  isForbidden(token: Address) {
     return !!this.forbiddenTokens[token];
   }
 
-  isQuoted(token: string) {
+  isQuoted(token: Address) {
     return !!this.quotedTokens[token];
   }
 
-  isTokenEnabled(token: string) {
+  isTokenEnabled(token: Address) {
     return this.allBalances[token].isEnabled;
   }
 
@@ -431,7 +432,7 @@ export class CreditAccountData {
     )
       return undefined;
 
-    const underlyingTokenAddressLC = underlyingToken.toLowerCase();
+    const underlyingTokenAddressLC = underlyingToken.toLowerCase() as Address;
     const underlyingTokenSymbol =
       tokenSymbolByAddress[underlyingTokenAddressLC] || "";
     const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
@@ -439,7 +440,7 @@ export class CreditAccountData {
 
     const assetAPYMoney = caAssets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
-        const tokenAddressLC = tokenAddress.toLowerCase();
+        const tokenAddressLC = tokenAddress.toLowerCase() as Address;
         const [symbol = "", tokenDecimals] = extractTokenData(tokenAddressLC);
 
         const apy = lpAPY[symbol as TokensWithAPY] || 0;
@@ -491,7 +492,7 @@ export class CreditAccountData {
     return CreditAccountData.hash(this.creditManager, this.borrower);
   }
 
-  static hash(creditManager: string, borrower: string): string {
+  static hash(creditManager: Address, borrower: Address): string {
     return `${creditManager.toLowerCase()}:${borrower.toLowerCase()}`;
   }
 
@@ -597,9 +598,9 @@ export class CreditAccountData {
     const { quotas, initialQuotas, maxDebt, allowedToSpend, allowedToObtain } =
       props;
     const quotaDecrease = Object.keys(allowedToSpend).reduce<
-      Record<string, Asset>
+      Record<Address, Asset>
     >((acc, token) => {
-      const ch = this.getSingleQuotaChange(token, 0n, props);
+      const ch = this.getSingleQuotaChange(token as Address, 0n, props);
       if (ch) acc[ch.token] = ch;
       return acc;
     }, {});
@@ -625,9 +626,13 @@ export class CreditAccountData {
     );
 
     const quotaIncrease = Object.keys(allowedToObtain).reduce<
-      Record<string, Asset>
+      Record<Address, Asset>
     >((acc, token) => {
-      const ch = this.getSingleQuotaChange(token, maxQuotaIncrease, props);
+      const ch = this.getSingleQuotaChange(
+        token as Address,
+        maxQuotaIncrease,
+        props,
+      );
       if (ch) acc[ch.token] = ch;
       return acc;
     }, {});
@@ -637,7 +642,7 @@ export class CreditAccountData {
       ...quotaIncrease,
     };
 
-    const desiredQuota = Object.values(quotas).reduce<Record<string, Asset>>(
+    const desiredQuota = Object.values(quotas).reduce<Record<Address, Asset>>(
       (acc, cmQuota) => {
         const { token, isActive } = cmQuota;
         const { quota: initialQuota = 0n } = initialQuotas[token] || {};
@@ -669,7 +674,7 @@ export class CreditAccountData {
   }
 
   private static getSingleQuotaChange(
-    token: string,
+    token: Address,
     unsafeMaxQuotaIncrease: bigint,
     props: CalcQuotaUpdateProps,
   ) {
@@ -756,7 +761,7 @@ export class CreditAccountData {
     targetToken,
     assets,
   }: LiquidationPriceProps) {
-    const underlyingTokenLC = underlyingToken.toLowerCase();
+    const underlyingTokenLC = underlyingToken.toLowerCase() as Address;
     const [, underlyingDecimals = 18] = extractTokenData(underlyingTokenLC);
     const { balance: underlyingBalance = 0n } = assets[underlyingTokenLC] || {};
 
@@ -766,7 +771,7 @@ export class CreditAccountData {
       ((debt - (underlyingBalance * ltUnderlying) / PERCENTAGE_FACTOR) * WAD) /
       10n ** BigInt(underlyingDecimals);
 
-    const targetTokenLC = targetToken.toLowerCase();
+    const targetTokenLC = targetToken.toLowerCase() as Address;
     const [, targetDecimals = 18] = extractTokenData(targetTokenLC);
     const { balance: targetBalance = 0n } = assets[targetTokenLC] || {};
     const effectiveTargetBalance =

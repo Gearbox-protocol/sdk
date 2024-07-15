@@ -1,4 +1,3 @@
-import { pack } from "@ethersproject/solidity";
 import {
   DUMB_ADDRESS,
   RAY,
@@ -6,11 +5,12 @@ import {
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
+import { Address, encodeFunctionData, encodePacked } from "viem";
 
-import { IUniswapV3Adapter__factory } from "../types";
+import { iUniswapV3AdapterAbi } from "../types";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
 
-const pathToUniV3Path = (path: Array<string>): string => {
+const pathToUniV3Path = (path: Array<Address>): Address => {
   const pathWithFees: Array<string | number> = [];
   const types: Array<string> = [];
 
@@ -23,69 +23,31 @@ const pathToUniV3Path = (path: Array<string>): string => {
     }
   });
 
-  return pack(types, pathWithFees);
+  return encodePacked(types, pathWithFees);
 };
 
 describe("UniswapV3AdapterParser test", () => {
   it("swap functions works well", () => {
     let parser = new UniswapV3AdapterParser("UNISWAP_V3_ROUTER", false);
 
-    const ifc = IUniswapV3Adapter__factory.createInterface();
-
-    let parsed;
-
-    // let parsed = parser.parse(
-    //   ifc.encodeFunctionData("exactInputSingle", [
-    //     {
-    //       tokenIn: tokenDataByNetwork.Arbitrum["1INCH"],
-    //       tokenOut: tokenDataByNetwork.Arbitrum["3Crv"],
-    //       fee: 3000,
-    //       recipient: DUMB_ADDRESS,
-    //       deadline: 12300,
-    //       amountIn: WAD * 1299000n,
-    //       amountOutMinimum: WAD * 10200n,
-    //       sqrtPriceLimitX96: 0,
-    //     },
-    //   ]),
-    // );
-
-    // expect(parsed).to.be.eq(
-    //   "UniswapV3Adapter[UNISWAP_V3_ROUTER].exactInputSingle(amountIn: 1.29M [1299000000000000000000000], amountOutMinimum: 10.20K [10200000000000000000000],  path: 1INCH ==(fee: 3000)==> 3Crv)",
-    //   "Incorrect parse swapExactTokensForTokens",
-    // );
-
-    // parsed = parser.parse(
-    //   ifc.encodeFunctionData("exactAllInputSingle", [
-    //     {
-    //       tokenIn: tokenDataByNetwork.Arbitrum["1INCH"],
-    //       tokenOut: tokenDataByNetwork.Arbitrum["3Crv"],
-    //       fee: 3000,
-    //       deadline: 12300,
-    //       rateMinRAY: RAY * 1200n,
-    //       sqrtPriceLimitX96: 0,
-    //     },
-    //   ]),
-    // );
-
-    // expect(parsed).to.be.eq(
-    //   "UniswapV3Adapter[UNISWAP_V3_ROUTER].exactAllInputSingle(rate: 1.20K,  path: 1INCH ==(fee: 3000)==> 3Crv)",
-    //   "Incorrect parse swapExactTokensForTokens",
-    // );
-
-    parsed = parser.parse(
-      ifc.encodeFunctionData("exactInput", [
-        {
-          path: pathToUniV3Path([
-            tokenDataByNetwork.Mainnet.AAVE,
-            tokenDataByNetwork.Mainnet.LINK,
-            tokenDataByNetwork.Mainnet.USDC,
-          ]),
-          recipient: DUMB_ADDRESS,
-          deadline: 1232131,
-          amountIn: WAD * 12399n,
-          amountOutMinimum: BigInt(1e6) * 122n,
-        },
-      ]),
+    let parsed = parser.parse(
+      encodeFunctionData({
+        abi: iUniswapV3AdapterAbi,
+        functionName: "exactInput",
+        args: [
+          {
+            path: pathToUniV3Path([
+              tokenDataByNetwork.Mainnet.AAVE,
+              tokenDataByNetwork.Mainnet.LINK,
+              tokenDataByNetwork.Mainnet.USDC,
+            ]),
+            recipient: DUMB_ADDRESS,
+            deadline: 1232131n,
+            amountIn: WAD * 12399n,
+            amountOutMinimum: BigInt(1e6) * 122n,
+          },
+        ],
+      }),
     );
 
     expect(parsed).to.be.eq(
@@ -94,18 +56,22 @@ describe("UniswapV3AdapterParser test", () => {
     );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("exactDiffInput", [
-        {
-          path: pathToUniV3Path([
-            tokenDataByNetwork.Mainnet.AAVE,
-            tokenDataByNetwork.Mainnet.LINK,
-            tokenDataByNetwork.Mainnet.USDC,
-          ]),
-          leftoverAmount: WAD * 12399n,
-          rateMinRAY: RAY * 1200n,
-          deadline: 1232131,
-        },
-      ]),
+      encodeFunctionData({
+        abi: iUniswapV3AdapterAbi,
+        functionName: "exactDiffInput",
+        args: [
+          {
+            path: pathToUniV3Path([
+              tokenDataByNetwork.Mainnet.AAVE,
+              tokenDataByNetwork.Mainnet.LINK,
+              tokenDataByNetwork.Mainnet.USDC,
+            ]),
+            leftoverAmount: WAD * 12399n,
+            rateMinRAY: RAY * 1200n,
+            deadline: 1232131n,
+          },
+        ],
+      }),
     );
 
     expect(parsed).to.be.eq(
@@ -134,19 +100,23 @@ describe("UniswapV3AdapterParser test", () => {
     // );
 
     parsed = parser.parse(
-      ifc.encodeFunctionData("exactOutput", [
-        {
-          path: pathToUniV3Path([
-            tokenDataByNetwork.Mainnet.AAVE,
-            tokenDataByNetwork.Mainnet.LINK,
-            tokenDataByNetwork.Mainnet.USDC,
-          ]),
-          recipient: DUMB_ADDRESS,
-          deadline: 1232131,
-          amountInMaximum: 123e6,
-          amountOut: WAD * 122n,
-        },
-      ]),
+      encodeFunctionData({
+        abi: iUniswapV3AdapterAbi,
+        functionName: "exactOutput",
+        args: [
+          {
+            path: pathToUniV3Path([
+              tokenDataByNetwork.Mainnet.AAVE,
+              tokenDataByNetwork.Mainnet.LINK,
+              tokenDataByNetwork.Mainnet.USDC,
+            ]),
+            recipient: DUMB_ADDRESS,
+            deadline: 1232131n,
+            amountInMaximum: 123000000n,
+            amountOut: WAD * 122n,
+          },
+        ],
+      }),
     );
 
     expect(parsed).to.be.eq(

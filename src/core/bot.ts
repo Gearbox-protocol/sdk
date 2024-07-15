@@ -1,9 +1,10 @@
 import { toBigInt } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { BotBaseType, BotDataPayload, BotDetailedType } from "../payload/bot";
 
 export class BotData {
-  readonly address: string;
+  readonly address: Address;
   readonly baseType: BotBaseType;
   readonly detailedType: BotDetailedType;
 
@@ -13,7 +14,7 @@ export class BotData {
   readonly feeScaleFactor: bigint;
 
   constructor(payload: BotDataPayload) {
-    this.address = payload.address.toLowerCase();
+    this.address = payload.address.toLowerCase() as Address;
     this.baseType = payload.baseType;
     this.detailedType = payload.detailedType;
 

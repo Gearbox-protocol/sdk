@@ -7,6 +7,7 @@ import {
   toBigInt,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { PoolData } from "../core/pool";
 import { TokenData } from "../tokens/tokenData";
@@ -38,15 +39,15 @@ export interface PoolExtraRewardApy {
 }
 
 interface GetPoolExtraAPY_V3Props {
-  stakedDieselToken: string | undefined;
+  stakedDieselToken: Address | undefined;
   pool: PoolData;
-  prices: Record<string, bigint>;
+  prices: Record<Address, bigint>;
 
-  rewardPoolsInfo: Record<string, Array<FarmInfo>>;
-  rewardPoolsSupply: Record<string, bigint>;
+  rewardPoolsInfo: Record<Address, Array<FarmInfo>>;
+  rewardPoolsSupply: Record<Address, bigint>;
 
-  tokensList: Record<string, TokenData>;
-  currentTokenData: Record<SupportedToken, string>;
+  tokensList: Record<Address, TokenData>;
+  currentTokenData: Record<SupportedToken, Address>;
 
   currentTimestamp: number;
 }
@@ -56,7 +57,7 @@ interface GetPoolExtraLmAPYProps
     GetPoolExtraAPY_V3Props,
     "rewardPoolsInfo" | "stakedDieselToken"
   > {
-  stakedDieselToken: string;
+  stakedDieselToken: Address;
   rewardPoolsInfo: FarmInfo;
 }
 

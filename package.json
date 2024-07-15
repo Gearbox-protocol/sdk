@@ -13,14 +13,12 @@
   "scripts": {
     "clean": "rm -rf lib",
     "build": "tsc --p tsconfig.build.json",
-    "bindings": "yarn ts-node ./scripts/generate.ts && forge b && forge fmt",
-    "decimals": "yarn ts-node ./scripts/generate_decimals.ts",
     "dev": "tsc -w --p tsconfig.build.json",
-    "pub": "rm -rf ./src/types/hardhat.ts && cp ./src/types/*.d.ts ./lib/types && tsc --p tsconfig.build.json && yarn publish",
     "types:clean": "rm -rf forge-out src/types",
     "types:build": "forge build",
-    "types:generate": "typechain --target ethers-v6 --out-dir src/types ./forge-out/**/*.json",
-    "types": "yarn types:clean && yarn types:build && yarn types:generate",
+    "types:split": "ts-node ./scripts/split-index.ts",
+    "types:index": "ts-node ./scripts/create-index.ts",
+    "types": "yarn types:clean && yarn types:build && npx wagmi generate && yarn types:split && yarn types:index",
     "prepare": "husky install",
     "prettier": "prettier --write .",
     "prettier:ci": "npx prettier --check .",
@@ -32,6 +30,7 @@
   "dependencies": {
     "@gearbox-protocol/bots-v3": "^1.5.1",
     "@gearbox-protocol/sdk-gov": "^2.8.1",
+    "@wagmi/cli": "^2.1.13",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
     "deep-eql": "^4.1.0",
@@ -73,7 +72,8 @@
     "ts-node": "^10.9.1",
     "tslog": "^3.3.3",
     "typechain": "^8.1.0",
-    "typescript": "5.0.4"
+    "typescript": "5.0.4",
+    "viem": "^2.4.0"
   },
   "prettier": "@gearbox-protocol/prettier-config",
   "lint-staged": {

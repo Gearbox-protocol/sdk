@@ -1,13 +1,8 @@
-import { FunctionFragment } from "ethers";
+import { Address } from "viem";
+
+import { ParsedObject } from "./abstractParser";
 
 export interface IParser {
-  parse: (calldata: string) => string;
-  parseToObject?: (
-    address: string,
-    calldata: string,
-  ) => {
-    address: string;
-    functionFragment: FunctionFragment;
-    args: any;
-  };
+  parse: (calldata: Address) => string;
+  parseToObject?: (address: Address, calldata: Address) => ParsedObject;
 }

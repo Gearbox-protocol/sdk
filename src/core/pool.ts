@@ -3,42 +3,31 @@ import {
   PERCENTAGE_FACTOR,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { Provider, Signer } from "ethers";
+import { Address, getContract, PublicClient } from "viem";
 
-import {
-  CreditManagerDebtParamsSDK,
-  QuotaInfo,
-} from "../payload/creditManager";
 import {
   ChartsPoolDataPayload,
   LinearModel,
   PoolDataExtraPayload,
   PoolDataPayload,
-  PoolZapper,
   UserPoolPayload,
 } from "../payload/pool";
-import {
-  IInterestRateModel__factory,
-  IPoolService,
-  IPoolService__factory,
-  IPoolV3,
-  IPoolV3__factory,
-} from "../types";
+import { iInterestRateModelAbi } from "../types";
 import { rayToNumber } from "../utils/formatter";
 
 export type PoolType = "universal" | "trade" | "farm";
 
 export class PoolData {
-  readonly address: string;
+  readonly address: Address;
   readonly type: PoolType;
-  readonly underlyingToken: string;
-  readonly dieselToken: string;
-  readonly stakedDieselToken: Array<string>;
-  readonly stakedDieselToken_old: Array<string>;
+  readonly underlyingToken: Address;
+  readonly dieselToken: Address;
+  readonly stakedDieselToken: Array<Address>;
+  readonly stakedDieselToken_old: Array<Address>;
   readonly isPaused: boolean;
   readonly version: number;
-  readonly poolQuotaKeeper: string;
-  readonly gauge: string;
+  readonly poolQuotaKeeper: Address;
+  readonly gauge: Address;
   readonly name: string;
   readonly symbol: string;
 
@@ -51,9 +40,37 @@ export class PoolData {
 
   readonly totalBorrowed: bigint;
   readonly totalDebtLimit: bigint;
-  readonly creditManagerDebtParams: Record<string, CreditManagerDebtParamsSDK>;
-  readonly quotas: Record<string, QuotaInfo>;
-  readonly zappers: Record<string, Record<string, PoolZapper>>;
+  readonly creditManagerDebtParams: Record<
+    Address,
+    {
+      creditManager: Address;
+      borrowed: bigint;
+      limit: bigint;
+      availableToBorrow: bigint;
+    }
+  >;
+  readonly quotas: Record<
+    Address,
+    {
+      token: Address;
+      rate: bigint;
+      quotaIncreaseFee: bigint;
+      totalQuoted: bigint;
+      limit: bigint;
+      isActive: boolean;
+    }
+  >;
+  readonly zappers: Record<
+    Address,
+    Record<
+      Address,
+      {
+        zapper: Address;
+        tokenIn: Address;
+        tokenOut: Address;
+      }
+    >
+  >;
 
   readonly totalAssets: bigint;
   readonly totalSupply: bigint;
@@ -69,20 +86,20 @@ export class PoolData {
   readonly lastBaseInterestUpdate: bigint;
 
   constructor(payload: PoolDataPayload, extra: PoolDataExtraPayload) {
-    this.address = payload.addr.toLowerCase();
+    this.address = payload.addr.toLowerCase() as Address;
     this.type = PoolData.getPoolType(payload.name || "");
-    this.underlyingToken = payload.underlying.toLowerCase();
-    this.dieselToken = payload.dieselToken.toLowerCase();
-    this.stakedDieselToken = (extra.stakedDieselToken || []).map(t =>
-      t.toLowerCase(),
+    this.underlyingToken = payload.underlying.toLowerCase() as Address;
+    this.dieselToken = payload.dieselToken.toLowerCase() as Address;
+    this.stakedDieselToken = (extra.stakedDieselToken || []).map(
+      t => t.toLowerCase() as Address,
     );
-    this.stakedDieselToken_old = (extra.stakedDieselToken_old || []).map(t =>
-      t.toLowerCase(),
+    this.stakedDieselToken_old = (extra.stakedDieselToken_old || []).map(
+      t => t.toLowerCase() as Address,
     );
     this.isPaused = payload.isPaused;
     this.version = Number(payload.version);
-    this.poolQuotaKeeper = payload.poolQuotaKeeper.toLowerCase();
-    this.gauge = payload.gauge.toLowerCase();
+    this.poolQuotaKeeper = payload.poolQuotaKeeper.toLowerCase() as Address;
+    this.gauge = payload.gauge.toLowerCase() as Address;
     this.name = payload.name;
     this.symbol = payload.symbol;
 
@@ -99,9 +116,9 @@ export class PoolData {
     this.totalBorrowed = payload.totalBorrowed;
     this.totalDebtLimit = payload.totalDebtLimit;
     this.creditManagerDebtParams = payload.creditManagerDebtParams.reduce<
-      Record<string, CreditManagerDebtParamsSDK>
+      PoolData["creditManagerDebtParams"]
     >((acc, p) => {
-      const creditManager = p.creditManager.toLowerCase();
+      const creditManager = p.creditManager.toLowerCase() as Address;
       acc[creditManager] = {
         creditManager,
         borrowed: p.borrowed,
@@ -112,12 +129,12 @@ export class PoolData {
       return acc;
     }, {});
 
-    this.quotas = payload.quotas.reduce<Record<string, QuotaInfo>>((acc, q) => {
-      const token = q.token.toLowerCase();
+    this.quotas = payload.quotas.reduce<PoolData["quotas"]>((acc, q) => {
+      const token = q.token.toLowerCase() as Address;
       acc[token] = {
         token,
-        rate: q.rate * PERCENTAGE_DECIMALS,
-        quotaIncreaseFee: q.quotaIncreaseFee,
+        rate: toBigInt(q.rate) * PERCENTAGE_DECIMALS,
+        quotaIncreaseFee: toBigInt(q.quotaIncreaseFee),
         totalQuoted: q.totalQuoted,
         limit: q.limit,
         isActive: q.isActive,
@@ -127,15 +144,16 @@ export class PoolData {
     }, {});
 
     this.zappers = payload.zappers.reduce<PoolData["zappers"]>((acc, z) => {
-      const tokenIn = z.tokenIn.toLowerCase();
-      const tokenOut = z.tokenOut.toLowerCase();
+      const tokenIn = z.tokenIn.toLowerCase() as Address;
+      const tokenOut = z.tokenOut.toLowerCase() as Address;
+      const zapper = z.zapper.toLowerCase() as Address;
       const old = acc[tokenIn] || {};
 
       return {
         ...acc,
         [tokenIn]: {
           ...old,
-          [tokenOut]: { tokenIn, tokenOut, zapper: z.zapper.toLowerCase() },
+          [tokenOut]: { tokenIn, tokenOut, zapper },
         },
       };
     }, {});
@@ -150,13 +168,13 @@ export class PoolData {
     this.supplyAPY7D = extra.supplyAPY7D;
 
     this.interestModel = {
-      interestModel: payload.lirm.interestModel.toLowerCase(),
-      U_1: payload.lirm.U_1,
-      U_2: payload.lirm.U_2,
-      R_base: payload.lirm.R_base,
-      R_slope1: payload.lirm.R_slope1,
-      R_slope2: payload.lirm.R_slope2,
-      R_slope3: payload.lirm.R_slope3,
+      interestModel: payload.lirm.interestModel.toLowerCase() as Address,
+      U_1: toBigInt(payload.lirm.U_1),
+      U_2: toBigInt(payload.lirm.U_2),
+      R_base: toBigInt(payload.lirm.R_base),
+      R_slope1: toBigInt(payload.lirm.R_slope1),
+      R_slope2: toBigInt(payload.lirm.R_slope2),
+      R_slope3: toBigInt(payload.lirm.R_slope3),
       version: Number(payload?.lirm?.version),
       isBorrowingMoreU2Forbidden: payload?.lirm?.isBorrowingMoreU2Forbidden,
     };
@@ -167,23 +185,18 @@ export class PoolData {
       Number(payload.withdrawFee) / Number(PERCENTAGE_DECIMALS);
   }
 
-  getPoolContractV1(signer: Signer): IPoolService {
-    return IPoolService__factory.connect(this.address, signer);
-  }
-  getPoolContractV3(signer: Signer): IPoolV3 {
-    return IPoolV3__factory.connect(this.address, signer);
-  }
-
   async calculateBorrowRate({
     provider,
     expectedLiquidity,
     availableLiquidity,
   }: CalculateBorrowRateProps) {
-    const model = IInterestRateModel__factory.connect(
-      this.interestModel.interestModel,
-      provider,
-    );
-    return model.calcBorrowRate(expectedLiquidity, availableLiquidity);
+    const model = getContract({
+      address: this.interestModel.interestModel,
+      abi: iInterestRateModelAbi,
+      client: provider,
+    });
+
+    return model.read.calcBorrowRate([expectedLiquidity, availableLiquidity]);
   }
 
   static getPoolType(name: string): PoolType {
@@ -205,15 +218,15 @@ export class PoolData {
 }
 
 interface CalculateBorrowRateProps {
-  provider: Provider;
+  provider: PublicClient;
   expectedLiquidity: bigint;
   availableLiquidity: bigint;
 }
 
 export class ChartsPoolData {
-  readonly address: string;
-  readonly underlyingToken: string;
-  readonly dieselToken: string;
+  readonly address: Address;
+  readonly underlyingToken: Address;
+  readonly dieselToken: Address;
   readonly type: PoolType;
   readonly version: number;
   readonly name: string;
@@ -234,7 +247,7 @@ export class ChartsPoolData {
   readonly borrowAPY: number;
   readonly borrowAPYRay: bigint;
   readonly lmAPY: number;
-  readonly lmRewardAll: Array<{ apy: number; token: string }>;
+  readonly lmRewardAll: Array<{ apy: number; token: Address }>;
 
   readonly availableLiquidity: bigint;
   readonly availableLiquidityChange: number;
@@ -277,9 +290,11 @@ export class ChartsPoolData {
   readonly uniqueLPsChange: number;
 
   constructor(payload: ChartsPoolDataPayload) {
-    this.address = (payload.addr || "").toLowerCase();
-    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
-    this.dieselToken = (payload.dieselToken || "").toLowerCase();
+    this.address = (payload.addr || "").toLowerCase() as Address;
+    this.underlyingToken = (
+      payload.underlyingToken || ""
+    ).toLowerCase() as Address;
+    this.dieselToken = (payload.dieselToken || "").toLowerCase() as Address;
     this.type = PoolData.getPoolType(payload.name || "");
     this.version = payload.version || 1;
     this.name = payload.name || "";
@@ -298,7 +313,7 @@ export class ChartsPoolData {
     this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS);
     this.lmRewardAll = (payload.lmRewardAll || []).map(r => ({
       apy: (r.apy || 0) / Number(PERCENTAGE_DECIMALS),
-      token: (r.token || "").toLowerCase(),
+      token: (r.token || "").toLowerCase() as Address,
     }));
 
     const expected = toBigInt(payload.expectedLiquidity || 0);
@@ -364,14 +379,14 @@ export class ChartsPoolData {
 
 export class UserPoolData {
   readonly id: string;
-  readonly address: string;
-  readonly dieselToken: string;
-  readonly underlyingToken: string;
+  readonly address: Address;
+  readonly dieselToken: Address;
+  readonly underlyingToken: Address;
 
   readonly depositAPY: number;
   readonly depositAPYRay: bigint;
   readonly lmAPY: number;
-  readonly lmRewardAll: Array<{ apy: number; token: string }>;
+  readonly lmRewardAll: Array<{ apy: number; token: Address }>;
 
   readonly providedLiquidity: bigint;
   readonly providedLiquidityInUSD: number;
@@ -393,9 +408,11 @@ export class UserPoolData {
 
   constructor(payload: UserPoolPayload) {
     this.id = (payload.pool || "").toLowerCase();
-    this.address = payload.pool || "";
-    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
-    this.dieselToken = (payload.dieselToken || "").toLowerCase();
+    this.address = (payload.pool || "").toLowerCase() as Address;
+    this.underlyingToken = (
+      payload.underlyingToken || ""
+    ).toLowerCase() as Address;
+    this.dieselToken = (payload.dieselToken || "").toLowerCase() as Address;
 
     this.depositAPY =
       rayToNumber(payload.depositAPY_RAY || 0) * Number(PERCENTAGE_DECIMALS);
@@ -403,7 +420,7 @@ export class UserPoolData {
     this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS || 0);
     this.lmRewardAll = (payload.lmRewardAll || []).map(r => ({
       apy: (r.apy || 0) / Number(PERCENTAGE_DECIMALS),
-      token: (r.token || "").toLowerCase(),
+      token: (r.token || "").toLowerCase() as Address,
     }));
 
     this.providedLiquidity = toBigInt(payload.liqValue || 0);

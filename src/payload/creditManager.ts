@@ -1,38 +1,68 @@
-import { ExcludeArrayProps } from "@gearbox-protocol/sdk-gov";
-import { BigNumberish } from "ethers";
+import { Address } from "viem";
 
-import { ICreditFacadeV2 } from "../types";
-import {
-  CreditManagerDataStructOutput,
-  CreditManagerDebtParamsStructOutput,
-  QuotaInfoStructOutput,
-} from "../types/IDataCompressorV3";
+import { BigNumberish } from "../utils/formatter";
+import { PoolDataPayload } from "./pool";
 
-export type CreditManagerDebtParamsSDK =
-  ExcludeArrayProps<CreditManagerDebtParamsStructOutput>;
-
-export type QuotaInfo = ExcludeArrayProps<QuotaInfoStructOutput>;
-
-export interface AdapterPayload {
-  allowedContract: string;
-  adapter: string;
+export interface CreditManagerDebtParamsSDK {
+  creditManager: Address;
+  borrowed: bigint;
+  limit: bigint;
+  availableToBorrow: bigint;
 }
 
-export type TotalDebt = ExcludeArrayProps<
-  Awaited<ReturnType<ICreditFacadeV2["totalDebt"]>>
->;
+export interface QuotaInfo {
+  token: Address;
+  rate: bigint;
+  quotaIncreaseFee: bigint;
+  totalQuoted: bigint;
+  limit: bigint;
+  isActive: boolean;
+}
 
-export type CreditManagerDataPayload =
-  ExcludeArrayProps<CreditManagerDataStructOutput>;
+export interface CreditManagerDataPayload {
+  addr: Address;
+  name: string;
+  cfVersion: bigint;
+  creditFacade: Address;
+  creditConfigurator: Address;
+  underlying: Address;
+  pool: Address;
+  totalDebt: bigint;
+  totalDebtLimit: bigint;
+  baseBorrowRate: bigint;
+  minDebt: bigint;
+  maxDebt: bigint;
+  availableToBorrow: bigint;
+  isDegenMode: boolean;
+  degenNFT: Address;
+  forbiddenTokenMask: bigint;
+  isPaused: boolean;
+
+  collateralTokens: readonly Address[];
+
+  adapters: readonly { targetContract: Address; adapter: Address }[];
+
+  liquidationThresholds: readonly bigint[];
+
+  maxEnabledTokensLength: number;
+  feeInterest: number;
+  feeLiquidation: number;
+  liquidationDiscount: number;
+  feeLiquidationExpired: number;
+  liquidationDiscountExpired: number;
+
+  quotas: PoolDataPayload["quotas"];
+  lirm: PoolDataPayload["lirm"];
+}
 
 export interface ChartsCreditManagerPayload {
-  addr: string;
-  underlyingToken: string;
-  configurator: string;
-  creditFacade: string;
+  addr: Address;
+  underlyingToken: Address;
+  configurator: Address;
+  creditFacade: Address;
 
   isWeth: boolean;
-  poolAddress: string;
+  poolAddress: Address;
   name: string;
 
   maxAmount: BigNumberish;
@@ -83,7 +113,7 @@ export interface ChartsCreditManagerPayload {
   totalClosedAccountsChange: number;
 
   totalRepaidAccounts: number;
-  liquidityThresholds: Record<string, number>;
+  liquidityThresholds: Record<Address, number>;
 
   totalDebtLimit: BigNumberish;
 }

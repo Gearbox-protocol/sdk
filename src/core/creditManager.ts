@@ -6,6 +6,7 @@ import {
   toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
+import { Address, encodeFunctionData } from "viem";
 
 import { TxParser } from "../parsers/txParser";
 import { MultiCall } from "../pathfinder/core";
@@ -16,22 +17,20 @@ import {
 } from "../payload/creditManager";
 import { LinearModel } from "../payload/pool";
 import {
-  IConvexV1BaseRewardPoolAdapter__factory,
-  ICreditFacadeV2Extended__factory,
-  ICreditFacadeV3Multicall__factory,
+  iConvexV1BaseRewardPoolAdapterAbi,
+  iCreditFacadeV3MulticallAbi,
 } from "../types";
-import { Asset } from "./assets";
 
 export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
 
 export class CreditManagerData {
-  readonly address: string;
+  readonly address: Address;
   readonly type: CreditManagerType;
-  readonly underlyingToken: string;
-  readonly pool: string;
-  readonly creditFacade: string; // V2 only: address of creditFacade
-  readonly creditConfigurator: string; // V2 only: address of creditFacade
-  readonly degenNFT: string; // V2 only: degenNFT, address(0) if not in degen mode
+  readonly underlyingToken: Address;
+  readonly pool: Address;
+  readonly creditFacade: Address; // V2 only: address of creditFacade
+  readonly creditConfigurator: Address; // V2 only: address of creditFacade
+  readonly degenNFT: Address; // V2 only: degenNFT, address(0) if not in degen mode
   readonly isDegenMode: boolean;
   readonly version: number;
   readonly isPaused: boolean;
@@ -54,25 +53,26 @@ export class CreditManagerData {
   readonly feeLiquidationExpired: number;
   readonly liquidationDiscountExpired: number;
 
-  readonly collateralTokens: Array<string> = [];
-  readonly supportedTokens: Record<string, true> = {};
-  readonly usableTokens: Record<string, true> = {};
-  readonly adapters: Record<string, string> = {};
-  readonly contractsByAdapter: Record<string, string> = {};
-  readonly liquidationThresholds: Record<string, bigint>;
-  readonly quotas: Record<string, QuotaInfo>;
+  readonly collateralTokens: Array<Address> = [];
+  readonly supportedTokens: Record<Address, true> = {};
+  readonly usableTokens: Record<Address, true> = {};
+  readonly adapters: Record<Address, Address> = {};
+  readonly contractsByAdapter: Record<Address, Address> = {};
+  readonly liquidationThresholds: Record<Address, bigint>;
+  readonly quotas: Record<Address, QuotaInfo>;
   readonly interestModel: LinearModel;
 
   constructor(payload: CreditManagerDataPayload) {
-    this.address = payload.addr.toLowerCase();
-    this.underlyingToken = payload.underlying.toLowerCase();
+    this.address = payload.addr.toLowerCase() as Address;
+    this.underlyingToken = payload.underlying.toLowerCase() as Address;
     this.type = CreditManagerData.getType(payload.name || "");
     this.name = payload.name;
-    this.pool = payload.pool.toLowerCase();
+    this.pool = payload.pool.toLowerCase() as Address;
     this.tier = CreditManagerData.getTier(payload.name);
-    this.creditFacade = payload.creditFacade.toLowerCase();
-    this.creditConfigurator = payload.creditConfigurator.toLowerCase();
-    this.degenNFT = payload.degenNFT.toLowerCase();
+    this.creditFacade = payload.creditFacade.toLowerCase() as Address;
+    this.creditConfigurator =
+      payload.creditConfigurator.toLowerCase() as Address;
+    this.degenNFT = payload.degenNFT.toLowerCase() as Address;
     this.isDegenMode = payload.isDegenMode;
     this.version = Number(payload.cfVersion);
     this.isPaused = payload.isPaused;
@@ -81,7 +81,7 @@ export class CreditManagerData {
 
     this.baseBorrowRate = Number(
       (payload.baseBorrowRate *
-        (payload.feeInterest + PERCENTAGE_FACTOR) *
+        (BigInt(payload.feeInterest) + PERCENTAGE_FACTOR) *
         PERCENTAGE_DECIMALS) /
         RAY,
     );
@@ -101,48 +101,53 @@ export class CreditManagerData {
     );
 
     payload.adapters.forEach(a => {
-      const contractLc = a.targetContract.toLowerCase();
-      const adaptertLc = a.adapter.toLowerCase();
+      const contractLc = a.targetContract.toLowerCase() as Address;
+      const adaptertLc = a.adapter.toLowerCase() as Address;
 
       this.adapters[contractLc] = adaptertLc;
       this.contractsByAdapter[adaptertLc] = contractLc;
     });
 
     this.liquidationThresholds = payload.liquidationThresholds.reduce<
-      Record<string, bigint>
+      CreditManagerData["liquidationThresholds"]
     >((acc, threshold, index) => {
       const address = payload.collateralTokens[index];
-      if (address) acc[address.toLowerCase()] = threshold;
+      if (address) acc[address.toLowerCase() as Address] = threshold;
       return acc;
     }, {});
 
-    this.quotas = payload.quotas.reduce<Record<string, QuotaInfo>>((acc, q) => {
-      acc[q.token.toLowerCase()] = {
-        token: q.token.toLowerCase(),
-        rate: q.rate * PERCENTAGE_DECIMALS,
-        quotaIncreaseFee: q.quotaIncreaseFee,
-        totalQuoted: q.totalQuoted,
-        limit: q.limit,
-        isActive: q.isActive,
-      };
+    this.quotas = payload.quotas.reduce<CreditManagerData["quotas"]>(
+      (acc, q) => {
+        const addressLc = q.token.toLowerCase() as Address;
 
-      return acc;
-    }, {});
+        acc[addressLc] = {
+          token: addressLc,
+          rate: BigInt(q.rate) * PERCENTAGE_DECIMALS,
+          quotaIncreaseFee: BigInt(q.quotaIncreaseFee),
+          totalQuoted: q.totalQuoted,
+          limit: q.limit,
+          isActive: q.isActive,
+        };
+
+        return acc;
+      },
+      {},
+    );
 
     this.interestModel = {
-      interestModel: payload.lirm.interestModel.toLowerCase(),
-      U_1: payload.lirm.U_1,
-      U_2: payload.lirm.U_2,
-      R_base: payload.lirm.R_base,
-      R_slope1: payload.lirm.R_slope1,
-      R_slope2: payload.lirm.R_slope2,
-      R_slope3: payload.lirm.R_slope3,
+      interestModel: payload.lirm.interestModel.toLowerCase() as Address,
+      U_1: BigInt(payload.lirm.U_1),
+      U_2: BigInt(payload.lirm.U_2),
+      R_base: BigInt(payload.lirm.R_base),
+      R_slope1: BigInt(payload.lirm.R_slope1),
+      R_slope2: BigInt(payload.lirm.R_slope2),
+      R_slope3: BigInt(payload.lirm.R_slope3),
       version: Number(payload?.lirm?.version),
       isBorrowingMoreU2Forbidden: payload?.lirm?.isBorrowingMoreU2Forbidden,
     };
 
     payload.collateralTokens.forEach(t => {
-      const tLc = t.toLowerCase();
+      const tLc = t.toLowerCase() as Address;
 
       const zeroLt = this.liquidationThresholds[tLc] === 0n;
       const quotaNotActive = this.quotas[tLc]?.isActive === false;
@@ -155,7 +160,7 @@ export class CreditManagerData {
     });
 
     TxParser.addCreditManager(this.address, this.version);
-    if (this.creditFacade !== "" && this.creditFacade !== ADDRESS_0X0) {
+    if (!!this.creditFacade && this.creditFacade !== ADDRESS_0X0) {
       TxParser.addCreditFacade(
         this.creditFacade,
         tokenSymbolByAddress[this.underlyingToken],
@@ -171,204 +176,143 @@ export class CreditManagerData {
     }
   }
 
-  get id(): string {
+  get id(): Address {
     return this.address;
   }
 
-  isQuoted(token: string) {
+  isQuoted(token: Address) {
     return !!this.quotas[token];
   }
 
-  encodeAddCollateralV2(tokenAddress: string, amount: bigint): MultiCall {
+  encodeAddCollateralV3(tokenAddress: Address, amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "addCollateral",
-          [tokenAddress, amount],
-        ),
-    };
-  }
-  encodeAddCollateralV3(tokenAddress: string, amount: bigint): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "addCollateral",
-          [tokenAddress, amount],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "addCollateral",
+        args: [tokenAddress, amount],
+      }),
     };
   }
 
   encodeAddCollateralWithPermitV3(
-    tokenAddress: string,
+    tokenAddress: Address,
     amount: bigint,
     deadline: bigint,
-    v: bigint | number,
-    r: string,
-    s: string,
+    v: number,
+    r: Address,
+    s: Address,
   ): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "addCollateralWithPermit",
-          [tokenAddress, amount, deadline, v, r, s],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "addCollateralWithPermit",
+        args: [tokenAddress, amount, deadline, v, r, s],
+      }),
     };
   }
 
-  encodeIncreaseDebtV2(amount: bigint): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "increaseDebt",
-          [amount],
-        ),
-    };
-  }
   encodeIncreaseDebtV3(amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "increaseDebt",
-          [amount],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "increaseDebt",
+        args: [amount],
+      }),
     };
   }
 
-  encodeDecreaseDebtV2(amount: bigint): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "decreaseDebt",
-          [amount],
-        ),
-    };
-  }
   encodeDecreaseDebtV3(amount: bigint): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "decreaseDebt",
-          [amount],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "decreaseDebt",
+        args: [amount],
+      }),
     };
   }
 
-  encodeEnableTokenV2(token: string): MultiCall {
+  encodeEnableTokenV3(token: Address): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "enableToken",
-          [token],
-        ),
-    };
-  }
-  encodeEnableTokenV3(token: string): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "enableToken",
-          [token],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "enableToken",
+        args: [token],
+      }),
     };
   }
 
-  encodeDisableTokenV2(token: string): MultiCall {
+  encodeDisableTokenV3(token: Address): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "disableToken",
-          [token],
-        ),
-    };
-  }
-  encodeDisableTokenV3(token: string): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "disableToken",
-          [token],
-        ),
-    };
-  }
-
-  encodeRevertIfReceivedLessThanV2(assets: Array<Asset>): MultiCall {
-    return {
-      target: this.creditFacade,
-      callData:
-        ICreditFacadeV2Extended__factory.createInterface().encodeFunctionData(
-          "revertIfReceivedLessThan",
-          [assets],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "disableToken",
+        args: [token],
+      }),
     };
   }
 
   encodeUpdateQuotaV3(
-    token: string,
+    token: Address,
     quotaChange: bigint,
     minQuota: bigint,
   ): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "updateQuota",
-          [token, quotaChange, minQuota],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "updateQuota",
+        args: [token, quotaChange, minQuota],
+      }),
     };
   }
 
   encodeWithdrawCollateralV3(
-    token: string,
+    token: Address,
     amount: bigint,
-    to: string,
+    to: Address,
   ): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "withdrawCollateral",
-          [token, amount, to],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "withdrawCollateral",
+        args: [token, amount, to],
+      }),
     };
   }
 
   static withdrawAllAndUnwrap_Convex(
-    address: string,
+    address: Address,
     claim: boolean,
   ): MultiCall {
     return {
       target: address,
-      callData:
-        IConvexV1BaseRewardPoolAdapter__factory.createInterface().encodeFunctionData(
-          "withdrawDiffAndUnwrap",
-          [1, claim],
-        ),
+      callData: encodeFunctionData({
+        abi: iConvexV1BaseRewardPoolAdapterAbi,
+        functionName: "withdrawDiffAndUnwrap",
+        args: [1n, claim],
+      }),
     };
   }
 
   encodeOnDemandPriceUpdateV3(
-    token: string,
+    token: Address,
     reserve: boolean,
-    data: string,
+    data: Address,
   ): MultiCall {
     return {
       target: this.creditFacade,
-      callData:
-        ICreditFacadeV3Multicall__factory.createInterface().encodeFunctionData(
-          "onDemandPriceUpdate",
-          [token, reserve, data],
-        ),
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "onDemandPriceUpdate",
+        args: [token, reserve, data],
+      }),
     };
   }
 
@@ -398,11 +342,11 @@ export class CreditManagerData {
 }
 
 export class ChartsCreditManagerData {
-  readonly address: string;
-  readonly underlyingToken: string;
-  readonly configurator: string;
-  readonly creditFacade: string;
-  readonly pool: string;
+  readonly address: Address;
+  readonly underlyingToken: Address;
+  readonly configurator: Address;
+  readonly creditFacade: Address;
+  readonly pool: Address;
   readonly version: number;
   readonly name: string;
   readonly tier: number;
@@ -452,11 +396,13 @@ export class ChartsCreditManagerData {
   readonly liquidationThresholds: Record<string, bigint>;
 
   constructor(payload: ChartsCreditManagerPayload) {
-    this.address = (payload.addr || "").toLowerCase();
-    this.underlyingToken = (payload.underlyingToken || "").toLowerCase();
-    this.configurator = (payload.configurator || "").toLowerCase();
-    this.creditFacade = (payload.creditFacade || "").toLowerCase();
-    this.pool = (payload.poolAddress || "").toLowerCase();
+    this.address = (payload.addr || "").toLowerCase() as Address;
+    this.underlyingToken = (
+      payload.underlyingToken || ""
+    ).toLowerCase() as Address;
+    this.configurator = (payload.configurator || "").toLowerCase() as Address;
+    this.creditFacade = (payload.creditFacade || "").toLowerCase() as Address;
+    this.pool = (payload.poolAddress || "").toLowerCase() as Address;
     this.version = payload.version || 2;
     this.name = payload.name || "";
     this.tier = CreditManagerData.getTier(payload.name || "");

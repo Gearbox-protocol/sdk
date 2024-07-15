@@ -72,6 +72,8 @@ import {ICurveV1_3AssetsAdapter} from
 import {ICurveV1_4AssetsAdapter} from
     "@gearbox-protocol/integrations-v3/contracts/interfaces/curve/ICurveV1_4AssetsAdapter.sol";
 
+
+import {IMulticall3} from "@gearbox-protocol/router-v3/lib/forge-std/src/interfaces/IMulticall3.sol";
 import {IRouterV3} from "@gearbox-protocol/router-v3/contracts/interfaces/IRouterV3.sol";
 import {IRouter} from "@gearbox-protocol/router/contracts/interfaces/IRouter.sol";
 

@@ -1,10 +1,12 @@
+import { Address } from "viem";
+
 import { TokenData } from "../tokens/tokenData";
 import { nonNegativeBn } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { CreditAccountData } from "./creditAccount";
 
 export interface Asset {
-  token: string;
+  token: Address;
   balance: bigint;
 }
 
@@ -17,11 +19,11 @@ export interface AssetWithAmountInTarget extends Asset {
 }
 
 interface NextAssetProps<T extends Asset> {
-  allowedTokens: Array<string>;
+  allowedTokens: Array<Address>;
   selectedAssets: Array<T>;
-  balances: Record<string, bigint>;
-  tokensList: Record<string, TokenData>;
-  prices?: Record<string, bigint>;
+  balances: Record<Address, bigint>;
+  tokensList: Record<Address, TokenData>;
+  prices?: Record<Address, bigint>;
 }
 
 export type WrapResult = [Array<Asset>, bigint, bigint];
@@ -33,17 +35,18 @@ export class AssetUtils {
     balances,
     tokensList,
     prices = {},
-  }: NextAssetProps<T>): string | undefined {
-    const selectedRecord = selectedAssets.reduce<Record<string, true>>(
+  }: NextAssetProps<T>): Address | undefined {
+    const selectedRecord = selectedAssets.reduce<Record<Address, true>>(
       (acc, { token }) => {
-        acc[token.toLowerCase()] = true;
+        acc[token.toLowerCase() as Address] = true;
         return acc;
       },
       {},
     );
 
     const notSelected = allowedTokens.filter(allowedToken => {
-      const alreadySelected = selectedRecord[allowedToken.toLowerCase()];
+      const alreadySelected =
+        selectedRecord[allowedToken.toLowerCase() as Address];
       return !alreadySelected;
     });
 
@@ -59,11 +62,11 @@ export class AssetUtils {
   }
 
   static getBalances(
-    allowedTokens: Array<string>,
-    externalBalances: Record<string, bigint>,
-  ): Record<string, bigint> {
+    allowedTokens: Array<Address>,
+    externalBalances: Record<Address, bigint>,
+  ): Record<Address, bigint> {
     return allowedTokens.reduce((acc, address) => {
-      const addressLc = address.toLowerCase();
+      const addressLc = address.toLowerCase() as Address;
       return {
         ...acc,
         [addressLc]: externalBalances[addressLc] || 0n,
@@ -72,7 +75,7 @@ export class AssetUtils {
   }
 
   static constructAssetRecord<A extends Asset>(a: Array<A>) {
-    const record = a.reduce<Record<string, A>>((acc, asset) => {
+    const record = a.reduce<Record<Address, A>>((acc, asset) => {
       acc[asset.token] = asset;
       return acc;
     }, {});
@@ -80,10 +83,10 @@ export class AssetUtils {
   }
 
   static memoWrap = (
-    unwrappedAddress: string,
-    wrappedAddress: string,
-    prices: Record<string, bigint>,
-    tokensList: Record<string, TokenData>,
+    unwrappedAddress: Address,
+    wrappedAddress: Address,
+    prices: Record<Address, bigint>,
+    tokensList: Record<Address, TokenData>,
   ) =>
     function wrap(assets: Array<Asset>): WrapResult {
       const assetsRecord = AssetUtils.constructAssetRecord(assets);
@@ -140,7 +143,7 @@ export class AssetUtils {
   ): Array<A | B> {
     const aRecord = AssetUtils.constructAssetRecord(a);
 
-    const resRecord = b.reduce<Record<string, A | B>>((acc, bAsset) => {
+    const resRecord = b.reduce<Record<Address, A | B>>((acc, bAsset) => {
       const aAsset = acc[bAsset.token];
       const { balance: amount = 0n } = aAsset || {};
 

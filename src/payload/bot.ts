@@ -1,4 +1,4 @@
-import type { BigNumberish } from "ethers";
+import { Address } from "viem";
 
 export type BotBaseType = "liquidationProtection";
 export type LiquidationBotType =
@@ -10,10 +10,10 @@ export type BotDetailedType = LiquidationBotType;
 export interface BotDataPayload {
   baseType: BotBaseType;
   detailedType: BotDetailedType;
-  address: string;
+  address: Address;
 
-  minHealthFactor: BigNumberish;
-  maxHealthFactor: BigNumberish;
-  premiumScaleFactor: BigNumberish;
-  feeScaleFactor: BigNumberish;
+  minHealthFactor: number;
+  maxHealthFactor: number;
+  premiumScaleFactor: number;
+  feeScaleFactor: number;
 }

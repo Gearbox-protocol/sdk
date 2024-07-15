@@ -10,12 +10,12 @@ import {
   tokenDataByNetwork,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 import { MultiCall } from "../pathfinder/core";
 import { AaveV2LendingPoolAdapterParser } from "./aaveV2LendingPoolAdapterParser";
 import { AaveV2WrappedATokenAdapterParser } from "./aaveV2WrappedATokenAdapterParser";
 import { AbstractParser } from "./abstractParser";
-import { AddressProviderParser } from "./addressProviderParser";
 import { BalancerV2VaultParser } from "./balancerV2VaultParser";
 import { CompoundV2CTokenAdapterParser } from "./compoundV2CTokenAdapterParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
@@ -29,7 +29,6 @@ import { ERC4626AdapterParser } from "./erc626AdapterParser";
 import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { LidoSTETHParser } from "./lidoSTETHParser";
-import { PoolParser } from "./poolParser";
 import { PriceOracleParser } from "./priceOracleParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
@@ -37,8 +36,8 @@ import { WstETHAdapterParser } from "./wstETHAdapterParser";
 import { YearnV2AdapterParser } from "./yearnV2AdapterParser";
 
 export interface AdapterForParser {
-  adapter: string;
-  contract: string;
+  adapter: Address;
+  contract: Address;
 }
 
 interface ParseData {
@@ -47,9 +46,9 @@ interface ParseData {
 }
 
 export class TxParser {
-  protected static parsers: Record<string, IParser & AbstractParser> = {};
+  protected static parsers: Record<Address, IParser & AbstractParser> = {};
 
-  public static parse(address: string, calldata: string) {
+  public static parse(address: Address, calldata: Address) {
     let parser: (IParser & AbstractParser) | undefined;
     try {
       parser = TxParser.getParser(address);
@@ -61,7 +60,7 @@ export class TxParser {
     }
   }
 
-  public static parseToObject(address: string, calldata: string) {
+  public static parseToObject(address: Address, calldata: Address) {
     let parser: (IParser & AbstractParser) | undefined;
     try {
       parser = TxParser.getParser(address);
@@ -73,20 +72,18 @@ export class TxParser {
     }
   }
 
-  public static getParseData(address: string): ParseData {
+  public static getParseData(address: Address): ParseData {
     const parser = TxParser.getParser(address);
     return { contract: parser.contract, adapterName: parser.adapterName };
   }
 
   public static parseMultiCall(calls: Array<MultiCall>) {
-    return calls.map(call =>
-      TxParser.parse(call.target, call.callData.toString()),
-    );
+    return calls.map(call => TxParser.parse(call.target, call.callData));
   }
 
   public static parseToObjectMultiCall(calls: Array<MultiCall>) {
     return calls.map(call =>
-      TxParser.parseToObject(call.target, call.callData.toString()),
+      TxParser.parseToObject(call.target, call.callData),
     );
   }
 
@@ -134,7 +131,7 @@ export class TxParser {
   }
 
   public static addCreditFacade(
-    creditFacade: string,
+    creditFacade: Address,
     underlying: SupportedToken,
     version: number,
   ) {
@@ -165,33 +162,27 @@ export class TxParser {
     });
   }
 
-  public static addPriceOracle(address: string) {
+  public static addPriceOracle(address: Address) {
     TxParser._addParser(address, new PriceOracleParser());
   }
 
-  public static addAddressProvider(address: string) {
-    TxParser._addParser(address, new AddressProviderParser());
-  }
-  public static addCreditManager(address: string, version: number) {
+  public static addCreditManager(address: Address, version: number) {
     TxParser._addParser(address, new CreditManagerParser(version));
   }
-  public static addPool(address: string, version: number) {
-    TxParser._addParser(address, new PoolParser(version));
-  }
 
-  public static getParser(address: string) {
-    const parser = TxParser.parsers[address.toLowerCase()];
+  public static getParser(address: Address) {
+    const parser = TxParser.parsers[address.toLowerCase() as Address];
     if (!parser) throw new Error(`Can't find parser for ${address}`);
     return parser;
   }
 
   protected static chooseContractParser(
-    address: string,
+    address: Address,
     contract: SupportedContract,
     adapterType: number,
     isContract: boolean,
   ) {
-    const addressLC = address.toLowerCase();
+    const addressLC = address.toLowerCase() as Address;
     switch (AdapterInterface[adapterType]) {
       case "UNISWAP_V2_ROUTER":
         TxParser._addParser(
@@ -296,9 +287,9 @@ export class TxParser {
   }
 
   protected static _addParser(
-    address: string,
+    address: Address,
     parser: IParser & AbstractParser,
   ) {
-    TxParser.parsers[address.toLowerCase()] = parser;
+    TxParser.parsers[address.toLowerCase() as Address] = parser;
   }
 }
