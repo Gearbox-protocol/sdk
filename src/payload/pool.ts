@@ -1,7 +1,5 @@
 import { Address } from "viem";
 
-import { BigNumberish } from "../utils/formatter";
-
 export interface PoolDataPayload {
   addr: Address;
   underlying: Address;
@@ -88,26 +86,26 @@ export interface ChartsPoolDataPayload {
   version: number;
   name: string;
 
-  borrowAPY_RAY: BigNumberish;
-  depositAPY_RAY: BigNumberish;
-  dieselRate_RAY: BigNumberish;
+  borrowAPY_RAY: string;
+  depositAPY_RAY: string;
+  dieselRate_RAY: string;
   lmAPY: number;
   lmRewardAll: Array<{ apy: number; token: Address }>;
 
   earned7D: number;
   earned7DInUSD: number;
 
-  availableLiquidity: BigNumberish;
-  availableLiquidityOld: BigNumberish;
+  availableLiquidity: string;
+  availableLiquidityOld: string;
   availableLiquidity10kBasis: number;
   availableLiquidityInUSD: number;
 
   expectedLiqWeekAgo: number;
-  expectedLiquidity: BigNumberish;
-  expectedLiquidityOld: BigNumberish;
+  expectedLiquidity: string;
+  expectedLiquidityOld: string;
   expectedLiquidity10kBasis: number;
   expectedLiquidityInUSD: number;
-  expectedLiquidityLimit: BigNumberish;
+  expectedLiquidityLimit: string;
   expectedLiquidityLimitInUSD: number;
 
   caLockedValue: number;
@@ -115,15 +113,15 @@ export interface ChartsPoolDataPayload {
   caLockedValue10kBasis: number;
   caLockedValueUSD: number;
 
-  totalBorrowed: BigNumberish;
-  totalBorrowedOld: BigNumberish;
+  totalBorrowed: string;
+  totalBorrowedOld: string;
   totalBorrowed10kBasis: number;
   totalBorrowedInUSD: number;
 
-  debtWithInterest: BigNumberish;
+  debtWithInterest: string;
   debtWithInterest10kBasis: number;
   debtWithInterestInUSD: number;
-  debtWithInterestOld: BigNumberish;
+  debtWithInterestOld: string;
 
   withdrawFee: number;
 
@@ -172,14 +170,20 @@ export interface UserPoolPayload {
   dieselToken: Address;
   underlyingToken: Address;
 
-  liqValue: BigNumberish;
+  liqValue: string;
   liqValueInUSD: number;
 
   dieselBalance: number;
-  dieselBalanceBI: BigNumberish;
+  dieselBalanceBI: string;
 
-  lmRewards: BigNumberish;
+  lmRewards: string;
   lmRewardsInUSD: number;
+  userRewards: Array<{
+    lmRewards: string;
+    lmRewardsInUSD: number;
+    pool: Address;
+    rewardToken: Address;
+  }>;
 
   liqPnlInNativeToken: number;
   liqPnlInUSD: number;
@@ -190,7 +194,7 @@ export interface UserPoolPayload {
   removeLiqCount: number;
   removedLiq: number;
 
-  depositAPY_RAY: BigNumberish;
+  depositAPY_RAY: string;
   lmAPY: number;
   lmRewardAll: Array<{ apy: number; token: Address }>;
 }
