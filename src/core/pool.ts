@@ -385,7 +385,6 @@ export class UserPoolData {
 
   readonly depositAPY: number;
   readonly depositAPYRay: bigint;
-  readonly lmAPY: number;
   readonly lmRewardAll: Array<{ apy: number; token: Address }>;
 
   readonly providedLiquidity: bigint;
@@ -394,8 +393,12 @@ export class UserPoolData {
   readonly dieselBalance: bigint;
   readonly dieselBalanceInUSD: number;
 
-  readonly lmRewards: bigint;
-  readonly lmRewardsInUSD: number;
+  readonly userRewards: Array<{
+    token: Address;
+    pool: Address;
+    lmRewards: bigint;
+    lmRewardsInUSD: number;
+  }>;
 
   readonly pnlInNativeToken: number;
   readonly pnlInUSD: number;
@@ -417,7 +420,6 @@ export class UserPoolData {
     this.depositAPY =
       rayToNumber(payload.depositAPY_RAY || 0) * Number(PERCENTAGE_DECIMALS);
     this.depositAPYRay = toBigInt(payload.depositAPY_RAY || 0);
-    this.lmAPY = (payload.lmAPY || 0) / Number(PERCENTAGE_DECIMALS || 0);
     this.lmRewardAll = (payload.lmRewardAll || []).map(r => ({
       apy: (r.apy || 0) / Number(PERCENTAGE_DECIMALS),
       token: (r.token || "").toLowerCase() as Address,
@@ -429,8 +431,12 @@ export class UserPoolData {
     this.dieselBalance = toBigInt(payload.dieselBalanceBI || 0);
     this.dieselBalanceInUSD = payload.dieselBalance;
 
-    this.lmRewards = toBigInt(payload.lmRewards || 0);
-    this.lmRewardsInUSD = payload.lmRewardsInUSD;
+    this.userRewards = (payload.userRewards || []).map(r => ({
+      token: (r.rewardToken || "").toLowerCase() as Address,
+      pool: (r.pool || "").toLowerCase() as Address,
+      lmRewards: toBigInt(r.lmRewards || 0),
+      lmRewardsInUSD: r.lmRewardsInUSD,
+    }));
 
     this.pnlInNativeToken = payload.liqPnlInNativeToken;
     this.pnlInUSD = payload.liqPnlInUSD;
