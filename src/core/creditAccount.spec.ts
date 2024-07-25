@@ -1808,3 +1808,31 @@ describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
     expect(result).to.be.eq(250n);
   });
 });
+
+describe("CreditAccount getTimeToLiquidation test", () => {
+  it("should return 0 when HF < 1", () => {
+    const result = CreditAccountData.getTimeToLiquidation({
+      healthFactor: 9000,
+      totalBorrowRate_debt: 250n,
+    });
+
+    expect(result).to.be.eq(0n);
+  });
+  it("should return 0 when br_debt === 0", () => {
+    const result = CreditAccountData.getTimeToLiquidation({
+      healthFactor: 9000,
+      totalBorrowRate_debt: 0n,
+    });
+
+    expect(result).to.be.eq(0n);
+  });
+  it("should calculate time to liquidation correctly", () => {
+    const result = CreditAccountData.getTimeToLiquidation({
+      healthFactor: 13750,
+      totalBorrowRate_debt: 20n * 10000n,
+    });
+
+    // 59_130_000
+    expect(result).to.be.eq(59130000n * 1000n);
+  });
+});

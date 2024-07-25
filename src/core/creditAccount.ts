@@ -5,6 +5,7 @@ import {
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   PRICE_DECIMALS_POW,
+  SECONDS_PER_YEAR,
   tokenSymbolByAddress,
   WAD,
   WAD_DECIMALS_POW,
@@ -123,6 +124,11 @@ interface LiquidationPriceProps {
   underlyingToken: Address;
   targetToken: Address;
   assets: Record<Address, Asset>;
+}
+
+export interface TimeToLiquidationProps {
+  totalBorrowRate_debt: bigint;
+  healthFactor: number;
 }
 
 const MAX_UINT16 = 65535;
@@ -786,5 +792,24 @@ export class CreditAccountData {
       (effectiveDebt * PRICE_DECIMALS * PERCENTAGE_FACTOR) /
       (effectiveTargetBalance * lpLT)
     );
+  }
+
+  /**
+   * Calculates the time remaining until liquidation for a credit account.
+   * @returns The time remaining until liquidation in milliseconds.
+   */
+  static getTimeToLiquidation({
+    healthFactor,
+    totalBorrowRate_debt,
+  }: TimeToLiquidationProps) {
+    if (healthFactor <= PERCENTAGE_FACTOR || totalBorrowRate_debt === 0n)
+      return 0n;
+
+    // (HF - 1) / (br_D / year) or (HF - 1) * (year / br_D)
+    const HF_1 = BigInt(healthFactor) - PERCENTAGE_FACTOR;
+    const brPerYear =
+      (BigInt(SECONDS_PER_YEAR) * PERCENTAGE_FACTOR * PERCENTAGE_DECIMALS) /
+      totalBorrowRate_debt;
+    return (HF_1 * brPerYear * 1000n) / PERCENTAGE_FACTOR;
   }
 }
