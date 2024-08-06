@@ -1502,15 +1502,6 @@
     "@gearbox-protocol/integrations-v3" "1.7.0-legacy.4"
     "@gearbox-protocol/sdk-gov" "^1.10.3"
 
-"@gearbox-protocol/sdk-gov@2.12.0":
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.12.0.tgz#87a993bf7f18246f1dc406954cf981e1dc6a5c96"
-  integrity sha512-clFaZ/nrTdZD8H4tRMXbrnauTklaU+amYzet0HBj+0VX3xF15E3NBqlLwhfh69XXX55OcjWzLyWz508S359u5A==
-  dependencies:
-    ethers "6.12.1"
-    humanize-duration-ts "^2.1.1"
-    zod "^3.22.2"
-
 "@gearbox-protocol/sdk-gov@^1.10.3":
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-1.16.0.tgz#0a4795333175f93afa43331fc1d52c9a73c79e7e"
@@ -1523,6 +1514,15 @@
     humanize-duration-ts "^2.1.1"
     yaml "^2.3.2"
     yarn "^1.22.19"
+    zod "^3.22.2"
+
+"@gearbox-protocol/sdk-gov@^2.13.6":
+  version "2.13.6"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.13.6.tgz#02cc6ab7050f16c027d98667585fcf9c12465108"
+  integrity sha512-A1y8O75eAsqJE4Frx1AHPzWaWU9dDajHWr4lBPoCtvVEfmXfcavSx3gOo2rN1oRkdEFnqM0019bUpo2hEOF+ig==
+  dependencies:
+    ethers "6.12.1"
+    humanize-duration-ts "^2.1.1"
     zod "^3.22.2"
 
 "@gearbox-protocol/sdk@^1.22.0":

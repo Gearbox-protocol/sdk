@@ -1,8 +1,4 @@
-import {
-  NetworkType,
-  PartialRecord,
-  SupportedToken,
-} from "@gearbox-protocol/sdk-gov";
+import { PartialRecord, SupportedToken } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
 import { STATIC_TOKEN } from "../config";
@@ -15,19 +11,6 @@ const ALIASES: PartialRecord<SupportedToken, string> = {
   sdWETHV3_OLD: "sdWETHV3 Old",
 };
 
-const NETWROK_DEPENDENT_ALIASES: Record<
-  NetworkType,
-  PartialRecord<SupportedToken, string>
-> = {
-  Mainnet: {},
-  Optimism: {
-    dUSDCV3: "dUSDC.eV3",
-    sdUSDCV3: "sdUSDC.eV3",
-  },
-  Arbitrum: {},
-  Base: {},
-};
-
 export class TokenData {
   readonly title: string;
   readonly symbol: SupportedToken;
@@ -35,13 +18,10 @@ export class TokenData {
   readonly decimals: number;
   readonly icon: string;
 
-  constructor(payload: TokenDataPayload, network?: NetworkType) {
+  constructor(payload: TokenDataPayload) {
     const symbol = payload.symbol;
-    const networkAlias = network
-      ? NETWROK_DEPENDENT_ALIASES[network][symbol]
-      : undefined;
 
-    this.title = networkAlias || ALIASES[symbol] || payload.title || symbol;
+    this.title = ALIASES[symbol] || payload.title || symbol;
     this.address = payload.addr.toLowerCase() as Address;
     this.symbol = symbol;
     this.decimals = payload.decimals;
