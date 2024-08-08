@@ -98,7 +98,7 @@ type PoolsWithExtraRewardsList = Record<NetworkType, Array<SupportedToken>>;
 const DEFAULT_POOLS_WITH_EXTRA_REWARDS: PoolsWithExtraRewardsList = {
   Mainnet: ["sdcrvUSDV3"],
   Arbitrum: [],
-  Optimism: ["sdUSDCV3", "sdWETHV3"],
+  Optimism: ["sdUSDC_eV3", "sdWETHV3"],
   Base: [],
 };
 
@@ -197,16 +197,23 @@ export class GearboxRewardsApi {
         ],
       }),
 
-      ...tokenWithExtraRewards.map(symbol =>
-        axios.get<MerkleXYZRewardsCampaignsResponse>(
+      ...tokenWithExtraRewards.map(symbol => {
+        const addr = currentTokenData[symbol];
+
+        if (!addr)
+          return (async () => {
+            getAddress(addr);
+          })();
+
+        return axios.get<MerkleXYZRewardsCampaignsResponse>(
           MerkleXYZApi.getRewardsCampaignsUrl({
             params: {
               chainId,
-              mainParameter: getAddress(currentTokenData[symbol]),
+              mainParameter: getAddress(addr),
             },
           }),
-        ),
-      ),
+        );
+      }),
     ]);
 
     const mcResponse =
