@@ -12,7 +12,17 @@ type AdditionalTokensWithAPY = Extract<
 
 type AdditionalLPTokens = Extract<
   SupportedToken,
-  "weETH" | "ezETH" | "sfrxETH" | "USDe" | "rsETH" | "rswETH" | "pufETH"
+  | "weETH"
+  | "ezETH"
+  | "sfrxETH"
+  | "USDe"
+  | "rsETH"
+  | "rswETH"
+  | "pufETH"
+  | "pzETH"
+  | "rstETH"
+  | "steakLRT"
+  | "amphrETH"
 >;
 
 type ExtraFarmTokens = AdditionalTokensWithAPY | AdditionalLPTokens;
@@ -44,6 +54,10 @@ const ADDITIONAL_LP_TOKENS: Record<AdditionalLPTokens, true> = {
   rsETH: true,
   rswETH: true,
   pufETH: true,
+  pzETH: true,
+  rstETH: true,
+  steakLRT: true,
+  amphrETH: true,
 };
 
 const TOKENS_WITH_APY: Record<AdditionalTokensWithAPY, true> = {
