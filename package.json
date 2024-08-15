@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@gearbox-protocol/bots-v3": "^1.5.1",
-    "@gearbox-protocol/sdk-gov": "^2.14.1",
+    "@gearbox-protocol/sdk-gov": "^2.15.1",
     "@wagmi/cli": "^2.1.13",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
