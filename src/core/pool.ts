@@ -210,10 +210,15 @@ export class PoolData {
   }
 
   static calculateUtilization(expected: bigint, available: bigint) {
-    return expected > 0
-      ? Number(((expected - available) * PERCENTAGE_FACTOR) / expected) /
-          Number(PERCENTAGE_DECIMALS)
-      : 0;
+    if (expected === 0n) return 0;
+
+    const borrowed = expected - available;
+
+    const u =
+      Number((borrowed * PERCENTAGE_FACTOR) / expected) /
+      Number(PERCENTAGE_DECIMALS);
+
+    return Math.max(0, u);
   }
 }
 
