@@ -5,12 +5,12 @@ import {
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 
-type AdditionalTokensWithAPY = Extract<
+type ExtraTokensWithAPY = Extract<
   SupportedToken,
   "STETH" | "rETH" | "osETH" | "cbETH" | "wstETH" | "sfrxETH"
 >;
 
-type AdditionalLPTokens = Extract<
+type ExtraLPTokens = Extract<
   SupportedToken,
   | "weETH"
   | "ezETH"
@@ -25,7 +25,7 @@ type AdditionalLPTokens = Extract<
   | "amphrETH"
 >;
 
-type ExtraFarmTokens = AdditionalTokensWithAPY | AdditionalLPTokens;
+type ExtraFarmTokens = ExtraTokensWithAPY | ExtraLPTokens;
 export type LRTAndLSDTokens = Extract<
   ExtraFarmTokens,
   | "weETH"
@@ -41,12 +41,12 @@ export type LRTAndLSDTokens = Extract<
   | "rETH"
 >;
 
-export type TokensWithAPY = LPTokens | AdditionalTokensWithAPY;
+export type TokensWithAPY = LPTokens | ExtraTokensWithAPY;
 export type TokensWithApyRecord = PartialRecord<TokensWithAPY, number>;
 
 export type AllLPTokens = LPTokens | ExtraFarmTokens;
 
-const ADDITIONAL_LP_TOKENS: Record<AdditionalLPTokens, true> = {
+const EXTRA_LP_TOKENS: Record<ExtraLPTokens, true> = {
   weETH: true,
   ezETH: true,
   sfrxETH: true,
@@ -60,13 +60,23 @@ const ADDITIONAL_LP_TOKENS: Record<AdditionalLPTokens, true> = {
   amphrETH: true,
 };
 
-const TOKENS_WITH_APY: Record<AdditionalTokensWithAPY, true> = {
+const isExtraLPToken = (t: unknown): t is ExtraLPTokens => {
+  if (typeof t !== "string") return false;
+  return !!EXTRA_LP_TOKENS[t as ExtraLPTokens];
+};
+
+const TOKENS_WITH_APY: Record<ExtraTokensWithAPY, true> = {
   STETH: true,
   osETH: true,
   rETH: true,
   wstETH: true,
   cbETH: true,
   sfrxETH: true,
+};
+
+export const isExtraTokenWithAPY = (t: unknown): t is ExtraTokensWithAPY => {
+  if (typeof t !== "string") return false;
+  return !!TOKENS_WITH_APY[t as ExtraTokensWithAPY];
 };
 
 const LRT_LSD: Record<LRTAndLSDTokens, true> = {
@@ -88,25 +98,13 @@ export const isLRT_LSDToken = (t: unknown): t is LRTAndLSDTokens => {
   return !!LRT_LSD[t as LRTAndLSDTokens];
 };
 
-export const isAdditionalLPToken = (t: unknown): t is AdditionalLPTokens => {
+export const isTokenWithAPY = (t: unknown): t is TokensWithAPY => {
   if (typeof t !== "string") return false;
-  return !!ADDITIONAL_LP_TOKENS[t as AdditionalLPTokens];
-};
-
-export const isAdditionalTokenWithAPY = (
-  t: unknown,
-): t is AdditionalTokensWithAPY => {
-  if (typeof t !== "string") return false;
-  return !!TOKENS_WITH_APY[t as AdditionalTokensWithAPY];
+  return isLPToken(t) || isExtraTokenWithAPY(t);
 };
 
 export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens =>
-  isAdditionalLPToken(t) || isAdditionalTokenWithAPY(t);
-
-export const isTokenWithAPY = (t: unknown): t is TokensWithAPY => {
-  if (typeof t !== "string") return false;
-  return isLPToken(t) || isAdditionalTokenWithAPY(t);
-};
+  isExtraLPToken(t) || isExtraTokenWithAPY(t);
 
 export const isFarmToken = (t: unknown): t is AllLPTokens => {
   return isLPToken(t) || isExtraFarmToken(t);
