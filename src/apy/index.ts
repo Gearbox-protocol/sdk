@@ -5,13 +5,14 @@ import {
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 
-type AdditionalTokensWithAPY = Extract<
+// all extra tokens
+type ExtraFarmTokens = Extract<
   SupportedToken,
-  "STETH" | "rETH" | "osETH" | "cbETH" | "wstETH" | "sfrxETH"
->;
-
-type AdditionalLPTokens = Extract<
-  SupportedToken,
+  | "STETH"
+  | "rETH"
+  | "osETH"
+  | "cbETH"
+  | "wstETH"
   | "weETH"
   | "ezETH"
   | "sfrxETH"
@@ -23,30 +24,24 @@ type AdditionalLPTokens = Extract<
   | "rstETH"
   | "steakLRT"
   | "amphrETH"
+  | "LBTC"
 >;
 
-type ExtraFarmTokens = AdditionalTokensWithAPY | AdditionalLPTokens;
-export type LRTAndLSDTokens = Extract<
+// tokens with apy among them
+type ExtraTokensWithAPY = Extract<
   ExtraFarmTokens,
-  | "weETH"
-  | "rsETH"
-  | "rswETH"
-  | "pufETH"
-  | "ezETH"
-  | "STETH"
-  | "wstETH"
-  | "sfrxETH"
-  | "osETH"
-  | "cbETH"
-  | "rETH"
+  "STETH" | "rETH" | "osETH" | "cbETH" | "wstETH" | "sfrxETH"
 >;
 
-export type TokensWithAPY = LPTokens | AdditionalTokensWithAPY;
-export type TokensWithApyRecord = PartialRecord<TokensWithAPY, number>;
+// LRT & LST tokens among them
+type LRTAndLSTTokens = Exclude<ExtraFarmTokens, "USDe">;
 
-export type AllLPTokens = LPTokens | ExtraFarmTokens;
-
-const ADDITIONAL_LP_TOKENS: Record<AdditionalLPTokens, true> = {
+const EXTRA_FARM_TOKENS: Record<ExtraFarmTokens, true> = {
+  STETH: true,
+  rETH: true,
+  osETH: true,
+  cbETH: true,
+  wstETH: true,
   weETH: true,
   ezETH: true,
   sfrxETH: true,
@@ -58,9 +53,15 @@ const ADDITIONAL_LP_TOKENS: Record<AdditionalLPTokens, true> = {
   rstETH: true,
   steakLRT: true,
   amphrETH: true,
+  LBTC: true,
 };
 
-const TOKENS_WITH_APY: Record<AdditionalTokensWithAPY, true> = {
+export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens => {
+  if (typeof t !== "string") return false;
+  return !!EXTRA_FARM_TOKENS[t as ExtraFarmTokens];
+};
+
+const EXTRA_TOKENS_WITH_APY: Record<ExtraTokensWithAPY, true> = {
   STETH: true,
   osETH: true,
   rETH: true,
@@ -69,44 +70,28 @@ const TOKENS_WITH_APY: Record<AdditionalTokensWithAPY, true> = {
   sfrxETH: true,
 };
 
-const LRT_LSD: Record<LRTAndLSDTokens, true> = {
-  weETH: true,
-  rsETH: true,
-  rswETH: true,
-  pufETH: true,
-  ezETH: true,
-  STETH: true,
-  wstETH: true,
-  sfrxETH: true,
-  osETH: true,
-  cbETH: true,
-  rETH: true,
-};
-
-export const isLRT_LSDToken = (t: unknown): t is LRTAndLSDTokens => {
+const isExtraTokenWithAPY = (t: unknown): t is ExtraTokensWithAPY => {
   if (typeof t !== "string") return false;
-  return !!LRT_LSD[t as LRTAndLSDTokens];
+  return !!EXTRA_TOKENS_WITH_APY[t as ExtraTokensWithAPY];
 };
 
-export const isAdditionalLPToken = (t: unknown): t is AdditionalLPTokens => {
+const { USDe, ...rest } = EXTRA_FARM_TOKENS;
+const LRT_LST: Record<LRTAndLSTTokens, true> = rest;
+
+export const isLRT_LSTToken = (t: unknown): t is LRTAndLSTTokens => {
   if (typeof t !== "string") return false;
-  return !!ADDITIONAL_LP_TOKENS[t as AdditionalLPTokens];
+  return !!LRT_LST[t as LRTAndLSTTokens];
 };
 
-export const isAdditionalTokenWithAPY = (
-  t: unknown,
-): t is AdditionalTokensWithAPY => {
-  if (typeof t !== "string") return false;
-  return !!TOKENS_WITH_APY[t as AdditionalTokensWithAPY];
-};
-
-export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens =>
-  isAdditionalLPToken(t) || isAdditionalTokenWithAPY(t);
+export type TokensWithAPY = LPTokens | ExtraTokensWithAPY;
+export type TokensWithApyRecord = PartialRecord<TokensWithAPY, number>;
 
 export const isTokenWithAPY = (t: unknown): t is TokensWithAPY => {
   if (typeof t !== "string") return false;
-  return isLPToken(t) || isAdditionalTokenWithAPY(t);
+  return isLPToken(t) || isExtraTokenWithAPY(t);
 };
+
+export type AllLPTokens = LPTokens | ExtraFarmTokens;
 
 export const isFarmToken = (t: unknown): t is AllLPTokens => {
   return isLPToken(t) || isExtraFarmToken(t);
