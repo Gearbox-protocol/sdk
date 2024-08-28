@@ -11,6 +11,7 @@ export * from "./core/events";
 export * from "./core/gauge";
 export * from "./core/gaugeMath";
 export * from "./core/pool";
+export * from "./core/protocols";
 export * from "./core/rewardClaimer";
 export * from "./core/strategy";
 export * from "./core/tokenDistributor";
