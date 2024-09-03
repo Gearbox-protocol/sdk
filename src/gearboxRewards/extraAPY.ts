@@ -11,7 +11,7 @@ import { Address } from "viem";
 
 import { poolByNetwork } from "../contracts/contractsRegister";
 import { Asset } from "../core/assets";
-import { ChartsApi } from "../core/endpoint";
+import { GearboxBackendApi } from "../core/endpoint";
 import { PoolData } from "../core/pool";
 import { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
@@ -132,7 +132,7 @@ export class GearboxRewardsExtraApy {
     chainId: number,
     tokensList: Record<Address, TokenData>,
   ) {
-    const url = ChartsApi.getUrl("getBalanceAt", chainId, {
+    const url = GearboxBackendApi.getChartsUrl("getBalanceAt", chainId, {
       params: {
         asset: token,
       },

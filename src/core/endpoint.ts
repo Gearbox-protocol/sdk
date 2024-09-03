@@ -3,6 +3,7 @@ import {
   isSupportedNetwork,
   NetworkType,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Mainnet: 7878,
@@ -29,6 +30,19 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
 const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
 
 const STATIC_TOKEN = "https://static.gearbox.fi/tokens/";
+
+const LEADERBOARD_APIS: Record<number, string> = {
+  [CHAINS.Mainnet]: "https://gpointbot.fly.dev",
+  [CHAINS.Optimism]: "https://gpointbot.fly.dev",
+  [CHAINS.Arbitrum]: "https://gpointbot.fly.dev",
+
+  [CHAINS.Local]: "https://gpointbot.fly.dev",
+  [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
+  [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation/gpointbot",
+  [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation/gpointbot",
+};
+
+const REFERRAL_API = "https://referral-gen.fly.dev/generate";
 
 export class GearboxBackendApi {
   static getChartsUrl = (
@@ -61,6 +75,29 @@ export class GearboxBackendApi {
   };
 
   static getStaticTokenUrl = () => STATIC_TOKEN;
+
+  static getRewardsMerkleUrl = (
+    network: NetworkType,
+    root: Address,
+    account: Address,
+  ) => {
+    const path = `${network}_${root.slice(2)}/${account.slice(2, 4)}`;
+    const url = `https://am.gearbox.finance/${path.toLowerCase()}.json`;
+
+    return url;
+  };
+
+  static getNFTMerkleUrl = (network: NetworkType, root: Address) => {
+    const url = `https://dm.gearbox.finance/${network.toLowerCase()}_${root}.json`;
+
+    return url;
+  };
+
+  static getLeaderboardUrl = (url: string, chainId: number) => {
+    return `${LEADERBOARD_APIS[chainId]}${url}`;
+  };
+
+  static getReferralUrl = () => REFERRAL_API;
 }
 
 interface Options {
