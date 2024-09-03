@@ -25,6 +25,7 @@ type ExtraFarmTokens = Extract<
   | "steakLRT"
   | "amphrETH"
   | "LBTC"
+  | "Re7LRT"
 >;
 
 // tokens with apy among them
@@ -54,6 +55,7 @@ const EXTRA_FARM_TOKENS: Record<ExtraFarmTokens, true> = {
   steakLRT: true,
   amphrETH: true,
   LBTC: true,
+  Re7LRT: true,
 };
 
 export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens => {
