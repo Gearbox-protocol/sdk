@@ -26,24 +26,12 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   // !& Base
 };
 
-interface Options {
-  params?: Record<string, string | number>;
-}
+const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
 
-export class URLApi {
-  static getRelativeUrl = (url: string, options?: Options) => {
-    const { params = {} } = options || {};
+const STATIC_TOKEN = "https://static.gearbox.fi/tokens/";
 
-    const paramsString = Object.entries(params)
-      .map<string>(([key, value]) => `${key}=${value}`)
-      .join("&");
-
-    return [url, ...(paramsString ? [paramsString] : [])].join("?");
-  };
-}
-
-export class ChartsApi {
-  static getUrl = (
+export class GearboxBackendApi {
+  static getChartsUrl = (
     url: string,
     chainId: number,
     options: Options = { params: {} },
@@ -66,5 +54,21 @@ export class ChartsApi {
     );
 
     return [domain, "api", ...priceSourceArr, relativePath].join("/");
+  };
+}
+
+interface Options {
+  params?: Record<string, string | number>;
+}
+
+export class URLApi {
+  static getRelativeUrl = (url: string, options?: Options) => {
+    const { params = {} } = options || {};
+
+    const paramsString = Object.entries(params)
+      .map<string>(([key, value]) => `${key}=${value}`)
+      .join("&");
+
+    return [url, ...(paramsString ? [paramsString] : [])].join("?");
   };
 }
