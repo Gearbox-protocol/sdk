@@ -55,6 +55,10 @@ export class GearboxBackendApi {
 
     return [domain, "api", ...priceSourceArr, relativePath].join("/");
   };
+
+  static getLlamaAPYUrl = (idList: Array<string>) => {
+    return `${LAMA_URL}${idList.join(",")}`;
+  };
 }
 
 interface Options {

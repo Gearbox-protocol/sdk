@@ -6,6 +6,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
 
+import { GearboxBackendApi } from "../core/endpoint";
 import { TokensWithAPY } from ".";
 
 interface LamaItem {
@@ -22,8 +23,6 @@ interface LamaResponse {
   data: Array<LamaItem>;
 }
 
-const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
-
 export async function getDefiLamaAPY(
   networkType: NetworkType,
 ): Promise<PartialRecord<TokensWithAPY, number>> {
@@ -31,7 +30,9 @@ export async function getDefiLamaAPY(
   const idList = Object.values(currentNormal);
   if (idList.length === 0) return {};
 
-  const res = await axios.get<LamaResponse>(`${LAMA_URL}${idList.join(",")}`);
+  const res = await axios.get<LamaResponse>(
+    GearboxBackendApi.getLlamaAPYUrl(idList),
+  );
   const itemsRecord = res.data.data.reduce<Record<string, LamaItem>>(
     (acc, item) => {
       acc[item.pool] = item;
