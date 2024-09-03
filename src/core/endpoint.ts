@@ -42,6 +42,56 @@ const LEADERBOARD_APIS: Record<number, string> = {
   [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation/gpointbot",
 };
 
+const TRADING_GRAPHS_API: Record<number, string> = {
+  [CHAINS.Mainnet]: "https://trading-price.fly.dev/api/tradingview",
+  [CHAINS.Optimism]: "https://trading-price.fly.dev/api/tradingview",
+  [CHAINS.Arbitrum]: "https://trading-price.fly.dev/api/tradingview",
+
+  [CHAINS.Local]: "https://trading-price.fly.dev/api/tradingview",
+  [TESTNET_CHAINS.Mainnet]:
+    "https://testnet.gearbox.foundation/api/tradingview",
+  [TESTNET_CHAINS.Optimism]:
+    "https://testnet.gearbox.foundation/api/tradingview",
+  [TESTNET_CHAINS.Arbitrum]:
+    "https://testnet.gearbox.foundation/api/tradingview",
+};
+
+const TRADING_PRICES_API_WS: Record<number, string> = {
+  [CHAINS.Mainnet]: "wss://trading-price.fly.dev/api/tradingview/ws",
+  [CHAINS.Optimism]: "wss://trading-price.fly.dev/api/tradingview/ws",
+  [CHAINS.Arbitrum]: "wss://trading-price.fly.dev/api/tradingview/ws",
+
+  [CHAINS.Local]: "wss://trading-price.fly.dev/api/tradingview/ws",
+  [TESTNET_CHAINS.Mainnet]:
+    "wss://testnet.gearbox.foundation/api/tradingview/ws",
+  [TESTNET_CHAINS.Optimism]:
+    "wss://testnet.gearbox.foundation/api/tradingview/ws",
+  [TESTNET_CHAINS.Arbitrum]:
+    "wss://testnet.gearbox.foundation/api/tradingview/ws",
+};
+
+const TRADING_SESSIONS_API_WS: Record<number, string> = {
+  [CHAINS.Mainnet]: "wss://gearbox-ws.fly.dev/ws",
+  [CHAINS.Optimism]: "wss://optimism.gearbox.foundation/gearbox-ws/ws",
+  [CHAINS.Arbitrum]: "wss://arbitrum.gearbox.foundation/gearbox-ws/ws",
+
+  [CHAINS.Local]: "wss://gearbox-ws.fly.dev/ws",
+  [TESTNET_CHAINS.Mainnet]: "wss://testnet.gearbox.foundation/gearbox-ws/ws",
+  [TESTNET_CHAINS.Optimism]: "wss://opttest.gearbox.foundation/gearbox-ws/ws",
+  [TESTNET_CHAINS.Arbitrum]: "wss://arbtest.gearbox.foundation/gearbox-ws/ws",
+};
+
+const TRADING_SESSIONS_API: Record<number, string> = {
+  [CHAINS.Mainnet]: "https://gearbox-ws.fly.dev",
+  [CHAINS.Optimism]: "https://optimism.gearbox.foundation/gearbox-ws",
+  [CHAINS.Arbitrum]: "https://arbitrum.gearbox.foundation/gearbox-ws",
+
+  [CHAINS.Local]: "https://gearbox-ws.fly.dev",
+  [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gearbox-ws",
+  [TESTNET_CHAINS.Optimism]: "https://opttest.gearbox.foundation/gearbox-ws",
+  [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation/gearbox-ws",
+};
+
 const REFERRAL_API = "https://referral-gen.fly.dev/generate";
 
 export class GearboxBackendApi {
@@ -95,6 +145,22 @@ export class GearboxBackendApi {
 
   static getLeaderboardUrl = (url: string, chainId: number) => {
     return `${LEADERBOARD_APIS[chainId]}${url}`;
+  };
+
+  static getTradingGraphsUrl = (url: string, chainId: number) => {
+    return `${TRADING_GRAPHS_API[chainId]}${url}`;
+  };
+
+  static getTradingPricesWSUrl = (url: string, chainId: number) => {
+    return `${TRADING_PRICES_API_WS[chainId]}${url}`;
+  };
+
+  static getTradingSessionsWSUrl = (url: string, chainId: number) => {
+    return `${TRADING_SESSIONS_API_WS[chainId]}${url}`;
+  };
+
+  static getTradingSessionsUrl = (url: string, chainId: number) => {
+    return `${TRADING_SESSIONS_API[chainId]}${url}`;
   };
 
   static getReferralUrl = () => REFERRAL_API;
