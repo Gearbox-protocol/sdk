@@ -18,6 +18,7 @@ import {
   WalletClient,
 } from "viem";
 
+import { GearboxBackendApi } from "../core/endpoint";
 import {
   iAirdropDistributorAbi,
   iFarmingPoolAbi,
@@ -555,10 +556,9 @@ export class GearboxRewardsApi {
 
     const root = await distributor.read.merkleRoot();
 
-    const path = `${network}_${root.slice(2)}/${account.slice(2, 4)}`;
-    const url = `https://am.gearbox.finance/${path.toLowerCase()}.json`;
-
-    const result = await axios.get<MerkleDistributorInfo>(url);
+    const result = await axios.get<MerkleDistributorInfo>(
+      GearboxBackendApi.getRewardsMerkleUrl(network, root, account),
+    );
     return result.data;
   }
 

@@ -1,4 +1,4 @@
-import { ChartsApi } from "../core/endpoint";
+import { URLApi } from "../core/endpoint";
 import { BigNumberish } from "../utils/formatter";
 
 interface UserOptions {
@@ -53,9 +53,9 @@ export class MerkleXYZApi {
   static domain = "https://api.merkl.xyz/v3";
 
   static getUserRewardsUrl = (options: UserOptions) =>
-    ChartsApi.getRelativeUrl([this.domain, "userRewards"].join("/"), options);
+    URLApi.getRelativeUrl([this.domain, "userRewards"].join("/"), options);
   static getRewardsCampaignsUrl = (options: CampaignsOptions) =>
-    ChartsApi.getRelativeUrl(
+    URLApi.getRelativeUrl(
       [this.domain, "campaignsForMainParameter"].join("/"),
       options,
     );
