@@ -1,4 +1,8 @@
-import { CHAINS, NetworkType } from "@gearbox-protocol/sdk-gov";
+import {
+  CHAINS,
+  isSupportedNetwork,
+  NetworkType,
+} from "@gearbox-protocol/sdk-gov";
 
 export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Mainnet: 7878,
@@ -11,11 +15,11 @@ type ChartsPriceSource = "chainlink" | "spot";
 
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [CHAINS.Mainnet]: "https://charts-server.fly.dev",
-  [CHAINS.Arbitrum]: "https://arbitrum.gearbox.foundation",
-  [CHAINS.Optimism]: "https://optimism.gearbox.foundation",
-  // !& Base
-
+  [CHAINS.Arbitrum]: "https://charts-server.fly.dev",
+  [CHAINS.Optimism]: "https://charts-server.fly.dev",
+  [CHAINS.Base]: "https://charts-server.fly.dev",
   [CHAINS.Local]: "https://charts-server.fly.dev",
+
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
   [TESTNET_CHAINS.Optimism]: "https://opttest.gearbox.foundation",
@@ -26,20 +30,7 @@ interface Options {
   params?: Record<string, string | number>;
 }
 
-export class ChartsApi {
-  static getUrl = (
-    url: string,
-    chainId: number,
-    options?: Options,
-    priceSource?: ChartsPriceSource,
-  ) =>
-    [
-      CHARTS_BACKEND_ADDRESSES[chainId],
-      "api",
-      ...(priceSource ? [priceSource] : []),
-      this.getRelativeUrl(url, options),
-    ].join("/");
-
+export class URLApi {
   static getRelativeUrl = (url: string, options?: Options) => {
     const { params = {} } = options || {};
 
@@ -48,5 +39,32 @@ export class ChartsApi {
       .join("&");
 
     return [url, ...(paramsString ? [paramsString] : [])].join("?");
+  };
+}
+
+export class ChartsApi {
+  static getUrl = (
+    url: string,
+    chainId: number,
+    options: Options = { params: {} },
+    priceSource?: ChartsPriceSource,
+  ) => {
+    const domain = CHARTS_BACKEND_ADDRESSES[chainId];
+    const priceSourceArr = priceSource ? [priceSource] : [];
+
+    const isMain = isSupportedNetwork(chainId);
+    const isLocal = CHAINS.Local === chainId;
+
+    const relativePath = URLApi.getRelativeUrl(
+      url,
+      isMain
+        ? {
+            ...options,
+            params: { ...options.params, chainId: isLocal ? 1 : chainId },
+          }
+        : options,
+    );
+
+    return [domain, "api", ...priceSourceArr, relativePath].join("/");
   };
 }
