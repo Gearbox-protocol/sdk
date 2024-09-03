@@ -1,7 +1,7 @@
 import { PartialRecord, SupportedToken } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { STATIC_TOKEN } from "../config";
+import { GearboxBackendApi } from "../core/endpoint";
 import { TokenDataPayload } from "../payload/token";
 
 const ALIASES: PartialRecord<SupportedToken, string> = {
@@ -25,7 +25,7 @@ export class TokenData {
     this.address = payload.addr.toLowerCase() as Address;
     this.symbol = symbol;
     this.decimals = payload.decimals;
-    this.icon = `${STATIC_TOKEN}${symbol.toLowerCase()}.svg`;
+    this.icon = `${GearboxBackendApi.getStaticTokenUrl()}${symbol.toLowerCase()}.svg`;
   }
 
   compareBySymbol(b: TokenData): number {

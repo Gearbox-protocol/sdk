@@ -59,6 +59,8 @@ export class GearboxBackendApi {
   static getLlamaAPYUrl = (idList: Array<string>) => {
     return `${LAMA_URL}${idList.join(",")}`;
   };
+
+  static getStaticTokenUrl = () => STATIC_TOKEN;
 }
 
 interface Options {
