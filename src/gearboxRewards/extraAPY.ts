@@ -47,6 +47,7 @@ interface PoolPointsInfo {
   symbol: SupportedToken;
   duration: string;
   name: string;
+  estimation: "absolute" | "relative";
 }
 
 const POOL_POINTS: Record<
@@ -67,25 +68,24 @@ const POOL_POINTS: Record<
         symbol: "rsETH",
         duration: "hour",
         name: "Kelp Mile",
+        estimation: "relative",
+      },
+    },
+    [poolByNetwork.Mainnet.WBTC_V3_TRADE]: {
+      LBTC: {
+        amount: 2000n * 10000n,
+        symbol: "LBTC",
+        duration: "day",
+        name: "Lombard LUX",
+        estimation: "absolute",
       },
     },
   },
-  Arbitrum: {
-    // !& ezETH
-    // [poolByNetwork.Arbitrum.WETH_V3]: {
-    //   ezETH: {
-    //     amount: PERCENTAGE_FACTOR,
-    //     symbol: "ezETH",
-    //     duration: "hour",
-    //     name: "ezPoint",
-    //   },
-    // },
-  },
+  Arbitrum: {},
   Optimism: {},
   Base: {},
 };
 
-// !& + STETH
 const TOKENS = TypedObjectUtils.entries(POOL_POINTS).reduce<
   Record<NetworkType, Array<SupportedToken>>
 >((acc, [network, pools]) => {
@@ -102,9 +102,6 @@ const TOKENS = TypedObjectUtils.entries(POOL_POINTS).reduce<
 
   return acc;
 }, {} as Record<NetworkType, Array<SupportedToken>>);
-
-const REWARD = toBN("7.7", decimals.wstETH);
-const REWARD_PERIOD = BigInt(30 * 24 * 60 * 60);
 
 export class GearboxRewardsExtraApy {
   static async getTotalTokensOnProtocol({
@@ -208,8 +205,10 @@ export class GearboxRewardsExtraApy {
       (pointsInfo.amount * targetFactor) / PERCENTAGE_FACTOR;
 
     const points =
-      (tokenBalanceInPool.balance * defaultPoints) /
-      ((pool.expectedLiquidity * targetFactor) / underlyingFactor);
+      pointsInfo.estimation === "absolute"
+        ? defaultPoints
+        : (tokenBalanceInPool.balance * defaultPoints) /
+          ((pool.expectedLiquidity * targetFactor) / underlyingFactor);
 
     return BigIntMath.min(points, defaultPoints);
   }
@@ -222,31 +221,4 @@ export class GearboxRewardsExtraApy {
     const p = POOL_POINTS[network]?.[pool]?.[token];
     return p;
   }
-
-  static getExtraLidoAPY = (
-    supply: bigint,
-    supplyPrice: bigint,
-    rewardPrice: bigint,
-    currentTimestamp: number,
-  ) =>
-    GearboxRewardsApy.calculateAPY_V3({
-      info: {
-        balance: 0n,
-        duration: REWARD_PERIOD,
-        // !& + STETH
-        finished: BigInt(Math.floor(Date.now() / 1000) + 10000),
-        reward: REWARD,
-        symbol: "STETH",
-      },
-      supply: {
-        amount: supply,
-        decimals: decimals.wstETH,
-        price: supplyPrice,
-      },
-      reward: {
-        price: rewardPrice,
-        decimals: decimals.wstETH,
-      },
-      currentTimestamp,
-    });
 }
