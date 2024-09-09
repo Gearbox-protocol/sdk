@@ -1,5 +1,4 @@
 import {
-  decimals,
   NetworkType,
   PartialRecord,
   PERCENTAGE_FACTOR,
@@ -16,7 +15,6 @@ import { PoolData } from "../core/pool";
 import { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
-import { GearboxRewardsApy } from "./apy";
 
 export interface GetPointsByPoolProps {
   totalTokenBalances: Record<Address, Asset>;
