@@ -1,5 +1,7 @@
 import {
   LEVERAGE_DECIMALS,
+  NetworkType,
+  PartialRecord,
   PERCENTAGE_FACTOR,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
@@ -8,6 +10,8 @@ import { Address } from "viem";
 import { AllLPTokens } from "../apy";
 import { CreditManagerData } from "./creditManager";
 
+type ReleaseAt = undefined | number | PartialRecord<NetworkType, number>;
+
 export interface StrategyPayload {
   name: string;
   lpTokenSymbol: AllLPTokens;
@@ -15,6 +19,8 @@ export interface StrategyPayload {
 
   collateralTokens: Array<SupportedToken>;
   liquidationTokens: Array<SupportedToken>;
+
+  releaseAt?: ReleaseAt;
 }
 
 interface CalculateMaxAPYProps {
@@ -29,6 +35,8 @@ export class Strategy {
   readonly lpTokenSymbol: AllLPTokens;
   readonly protocolSymbol: string;
 
+  readonly releaseAt: ReleaseAt;
+
   readonly collateralTokens: Array<SupportedToken>;
   readonly liquidationTokens: Array<SupportedToken>;
 
@@ -38,6 +46,8 @@ export class Strategy {
     this.protocolSymbol = payload.protocolSymbol;
     this.collateralTokens = payload.collateralTokens;
     this.liquidationTokens = payload.liquidationTokens;
+
+    this.releaseAt = payload.releaseAt;
   }
 
   static maxLeverage(lpToken: Address, cms: Array<PartialCM>) {
@@ -84,6 +94,20 @@ export class Strategy {
     const [cm = "", lt = 0n] = sorted[0] || [];
 
     return [lt, cm] as const;
+  }
+
+  static isStrategyReleased(
+    releaseAt: ReleaseAt,
+    currentTimestamp: number,
+    network: NetworkType,
+  ) {
+    if (releaseAt === undefined) return true;
+    if (typeof releaseAt === "number") return currentTimestamp > releaseAt;
+
+    const releaseAtNetwork = releaseAt[network];
+    if (releaseAtNetwork === undefined) return true;
+
+    return currentTimestamp > releaseAtNetwork;
   }
 }
 
