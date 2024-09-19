@@ -803,7 +803,7 @@ export class CreditAccountData {
     totalBorrowRate_debt,
   }: TimeToLiquidationProps) {
     if (healthFactor <= PERCENTAGE_FACTOR || totalBorrowRate_debt === 0n)
-      return 0n;
+      return null;
 
     // (HF - 1) / (br_D / year) or (HF - 1) * (year / br_D)
     const HF_1 = BigInt(healthFactor) - PERCENTAGE_FACTOR;
