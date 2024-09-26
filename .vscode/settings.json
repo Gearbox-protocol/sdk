@@ -1,4 +1,10 @@
 {
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[solidity]": {
+    "editor.defaultFormatter": "JuanBlanco.solidity"
+  },
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
@@ -6,8 +12,5 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "eslint.validate": ["javascript", "typescript"],
-  "files.eol": "\n",
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  "files.eol": "\n"
 }

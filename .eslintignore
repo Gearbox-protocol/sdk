@@ -1,5 +1,0 @@
-node_modules
-lib
-src/types
-*.d.ts
-wagmi.config.ts
