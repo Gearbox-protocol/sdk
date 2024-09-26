@@ -4,7 +4,6 @@ import type {
   ConvexLPToken,
   CurveLPToken,
   CurveParams,
-  NetworkType,
   YearnLPToken,
 } from "@gearbox-protocol/sdk-gov";
 import {
@@ -24,6 +23,8 @@ import type {
   AuraStakedToken,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 import { auraTokens } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
+
+import type { NetworkType } from "../chain";
 
 export interface PathOption {
   target: Address;

@@ -5,3 +5,4 @@
 /forge-out/
 /cache/
 .env
+.eslint.local.json

@@ -35,7 +35,7 @@ export class MarketFactory {
     this.priceFeedFactory = PriceFeedFactory.attachMarket(marketData, service);
 
     for (const t of marketData.tokens) {
-      service.v3.addressLabels.set(t.addr as Address, t.symbol);
+      service.provider.addressLabels.set(t.addr as Address, t.symbol);
     }
   }
 }

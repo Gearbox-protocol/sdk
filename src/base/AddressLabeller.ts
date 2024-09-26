@@ -1,4 +1,3 @@
-import type { Address, NetworkType } from "@gearbox-protocol/sdk-gov";
 import {
   contractsByNetwork,
   emergencyLiquidators,
@@ -10,7 +9,9 @@ import {
   TREASURY,
   VETO_ADMIN,
 } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
+import type { NetworkType } from "../chain";
 import { AddressMap } from "../utils";
 import type { IAddressLabeller } from "./IAddressLabeller";
 

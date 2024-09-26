@@ -1,5 +1,9 @@
-import { formatBN, TIMELOCK } from "@gearbox-protocol/sdk-gov";
-import type { Address } from "viem";
+import {
+  ADDRESS_PROVIDER,
+  formatBN,
+  TIMELOCK,
+} from "@gearbox-protocol/sdk-gov";
+import { type Address, http } from "viem";
 
 import { CreditAccountCompressorV3Contract } from "../contracts/periphery/CreditAccountCompressorV3Contract";
 import { MarketCompressorV3Contract } from "../contracts/periphery/MarketCompressorV3Contract";
@@ -14,16 +18,41 @@ import {
 import { RouterFactoryDeploy } from "../factories/RouterFactoryDeploy";
 import { getAddressProvider } from "../utils/get-address-provider";
 import { BaseContract } from "./base/BaseContract";
-import type { Provider } from "./chain/Provider";
+import type { NetworkType } from "./chain";
+import { Provider } from "./chain/Provider";
 import { AddressProviderContractV3_1 } from "./core/AddressProviderV3_1Contract";
 import { BotListContract } from "./core/BotListV3Contract";
 import { GearStakingContract } from "./core/GearStakingV3Contract";
 import { MarketRegister } from "./market/MarketRegister";
 import type { GearboxState } from "./state/state";
+import { createAnvilClient } from "./utils/viem";
+
+export interface SDKOptions {
+  /**
+   * RPC URL to use
+   */
+  rpcURL: string;
+  /**
+   * Actual chain id of rpc, if not set, will be determined
+   */
+  chainId?: number;
+  /**
+   * If not set, will be detected automatically
+   */
+  networkType?: NetworkType;
+  /**
+   * If not set, address provider address is determinted automatically from networkType
+   */
+  addressProvider?: Address;
+  /**
+   * RPC client timeout in milliseconds
+   */
+  timeout?: number;
+}
 
 export class GearboxSDK {
   // Represents chain object
-  v3: Provider;
+  public readonly provider: Provider;
 
   // Block which was use for data query
   currentBlock: bigint;
@@ -46,14 +75,41 @@ export class GearboxSDK {
   // Router contract
   routerFactory: RouterFactoryDeploy | undefined;
 
-  public static async attach(v3: Provider): Promise<GearboxSDK> {
-    const service = new GearboxSDK(v3);
+  public static async attach(options: SDKOptions): Promise<GearboxSDK> {
+    const { rpcURL, timeout = 120_000 } = options;
+    let { networkType, addressProvider, chainId } = options;
+    const attachClient = createAnvilClient({
+      transport: http(rpcURL, { timeout }),
+    });
+    if (!networkType) {
+      networkType = await attachClient.detectNetwork();
+    }
+    if (!chainId) {
+      chainId = await attachClient.getChainId();
+    }
+    if (!addressProvider) {
+      addressProvider = ADDRESS_PROVIDER[networkType];
+    }
+
+    const service = new GearboxSDK({
+      addressProvider,
+      chainId,
+      networkType,
+      rpcURL,
+      timeout,
+    });
     await service.attach();
     return service;
   }
 
+  constructor(options: Required<SDKOptions>) {
+    this.provider = new Provider(options);
+  }
+
   async updateBlock() {
-    const block = await this.v3.publicClient.getBlock({ blockTag: "latest" });
+    const block = await this.provider.publicClient.getBlock({
+      blockTag: "latest",
+    });
 
     this.currentBlock = block.number;
     this.timestamp = block.timestamp;
@@ -66,16 +122,18 @@ export class GearboxSDK {
 
     // Attaching address provider contract
 
-    const addressProviderAddress = getAddressProvider(this.v3.networkType);
+    const addressProviderAddress = getAddressProvider(
+      this.provider.networkType,
+    );
 
-    this.v3.logger.bold(
+    this.provider.logger.info(
       "Attaching to address provider",
       addressProviderAddress,
     );
 
     this.addressProvider = new AddressProviderContractV3_1({
       address: addressProviderAddress,
-      chainClient: this.v3,
+      chainClient: this.provider,
     });
 
     await this.addressProvider.fetchState(this.currentBlock);
@@ -88,7 +146,7 @@ export class GearboxSDK {
 
     this.botListContract = new BotListContract({
       address: botListAddress,
-      chainClient: this.v3,
+      chainClient: this.provider,
     });
 
     await this.botListContract.fetchState(this.currentBlock);
@@ -101,7 +159,7 @@ export class GearboxSDK {
 
     this.gearStakingContract = new GearStakingContract({
       address: gearStakingAddress,
-      chainClient: this.v3,
+      chainClient: this.provider,
     });
 
     // Attaching market compressor
@@ -112,7 +170,7 @@ export class GearboxSDK {
 
     this.marketCompressor = new MarketCompressorV3Contract({
       address: marketCompressorAddress,
-      chainClient: this.v3,
+      chainClient: this.provider,
     });
 
     // Attaching credit account compressor
@@ -123,7 +181,7 @@ export class GearboxSDK {
 
     this.creditAccountCompressor = new CreditAccountCompressorV3Contract({
       address: creditAccountCompressorAddress,
-      chainClient: this.v3,
+      chainClient: this.provider,
     });
 
     this.marketRegister = new MarketRegister(this);
@@ -138,14 +196,12 @@ export class GearboxSDK {
       const router = this.addressProvider.getLatestVersion(AP_ROUTER);
       this.routerFactory = await RouterFactoryDeploy.attach(router, this);
     } catch (e) {
-      this.v3.logger.warn("Router not found", e);
+      this.provider.logger.warn("Router not found", e);
     }
 
-    this.v3.logger.info(`MgmtService attach time: ${Date.now() - time} ms`);
-  }
-
-  constructor(v3: Provider) {
-    this.v3 = v3;
+    this.provider.logger.info(
+      `MgmtService attach time: ${Date.now() - time} ms`,
+    );
   }
 
   public get state(): GearboxState {
@@ -159,23 +215,23 @@ export class GearboxSDK {
       },
       markets: this.marketRegister.state,
       routerState: this.routerFactory?.state,
-      contractLabels: this.v3.addressLabels.all,
+      contractLabels: this.provider.addressLabels.all,
     };
   }
 
   async tvl() {
     const { tvl, tvlUSD } = await this.marketRegister.tvl();
 
-    this.v3.logger.info(tvl);
-    this.v3.logger.info(`Total TVL: ${formatBN(tvlUSD, 8)}`);
+    this.provider.logger.info(tvl);
+    this.provider.logger.info(`Total TVL: ${formatBN(tvlUSD, 8)}`);
   }
 
   async syncState(toBlock: bigint, timestamp: bigint) {
     if (toBlock <= this.currentBlock) return;
 
-    this.v3.logger.debug(`Syncing state to block ${toBlock}`);
+    this.provider.logger.debug(`Syncing state to block ${toBlock}`);
 
-    const events = await this.v3.publicClient.getLogs({
+    const events = await this.provider.publicClient.getLogs({
       fromBlock: BigInt(this.currentBlock),
       toBlock: BigInt(toBlock),
     });
