@@ -35,6 +35,7 @@ export class CreditManagerData {
   readonly version: number;
   readonly isPaused: boolean;
   readonly forbiddenTokenMask: bigint; // V2 only: mask which forbids some particular tokens
+  readonly isBorrowingForbidden: boolean;
   readonly maxEnabledTokensLength: number;
   readonly name: string;
   readonly tier: number;
@@ -78,6 +79,7 @@ export class CreditManagerData {
     this.isPaused = payload.isPaused;
     this.forbiddenTokenMask = payload.forbiddenTokenMask;
     this.maxEnabledTokensLength = Number(payload.maxEnabledTokensLength);
+    this.isBorrowingForbidden = payload.isBorrowingForbidden;
 
     this.baseBorrowRate = Number(
       (payload.baseBorrowRate *
