@@ -8,7 +8,6 @@
     "lib",
     "contracts"
   ],
-  "author": "Mikael Lazarev",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf lib",
@@ -37,27 +36,16 @@
     "moment": "^2.29.4"
   },
   "devDependencies": {
-    "@1inch/farming": "^3.1.0",
-    "@1inch/solidity-utils": "^2.2.27",
+   
     "@commitlint/cli": "^17.6.3",
     "@commitlint/config-conventional": "^17.0.3",
-    "@gearbox-protocol/core-v2": "1.19.0-base.17",
-    "@gearbox-protocol/core-v3": "^1.49.7",
-    "@gearbox-protocol/eslint-config": "^1.4.1",
-    "@gearbox-protocol/integrations-v3": "^1.40.4",
-    "@gearbox-protocol/oracles-v3": "^1.10.3",
-    "@gearbox-protocol/periphery-v3": "^1.6.1",
-    "@gearbox-protocol/prettier-config": "^1.4.1",
-    "@gearbox-protocol/router": "^1.5.5",
-    "@gearbox-protocol/router-v3": "^1.27.1",
-    "@openzeppelin/contracts": "^4.9.3",
-    "@redstone-finance/evm-connector": "^0.5.4",
+       "@redstone-finance/evm-connector": "^0.5.4",
     "@types/chai": "^4.3.3",
     "@types/deep-eql": "^4.0.0",
     "@types/jest": "^28.1.7",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.7.6",
-    "@types/rimraf": "^3.0.2",
+   
     "chai": "^4.3.6",
     "dotenv": "^16.0.1",
     "eslint": "^8.22.0",
@@ -66,12 +54,10 @@
     "lint-staged": ">=10",
     "mocha": "^10.0.0",
     "prettier": "^2.7.1",
-    "rimraf": "^3.0.2",
     "ts-node": "^10.9.1",
-    "tslog": "^3.3.3",
-    "typechain": "^8.1.0",
+      "tslog": "^4.9.2",
     "typescript": "5.0.4",
-    "viem": "^2.4.0"
+    "viem": "2.13.2"
   },
   "prettier": "@gearbox-protocol/prettier-config",
   "lint-staged": {
