@@ -1,19 +1,30 @@
-import type { Address } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
-import { CreditFactory } from "../../factories/CreditFactory";
-import { PoolFactory } from "../../factories/PoolFactory";
-import type { MarketDataStruct } from "../base/types";
-import type { GearboxSDK } from "../SDKService";
+import type { MarketDataStruct } from "../base";
+import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketState } from "../state/marketState";
 import { PriceFeedFactory } from "./PriceFeedFactory";
 
 export class MarketFactory {
-  riskCurator: Address;
+  public readonly riskCurator: Address;
+  public readonly poolFactory: PoolFactory;
+  public readonly priceFeedFactory: PriceFeedFactory;
+  public readonly creditManagers: CreditFactory[] = [];
 
-  public poolFactory: PoolFactory;
+  constructor(marketData: MarketDataStruct, sdk: GearboxSDK) {
+    this.riskCurator = marketData.owner;
+    this.poolFactory = PoolFactory.attachMarket(marketData, sdk);
 
-  protected priceFeedFactory: PriceFeedFactory;
-  public creditManagers: Array<CreditFactory> = [];
+    for (let i = 0; i < marketData.creditManagers.length; i++) {
+      this.creditManagers.push(CreditFactory.attachMarket(marketData, i, sdk));
+    }
+
+    this.priceFeedFactory = PriceFeedFactory.attachMarket(marketData, sdk);
+
+    for (const t of marketData.tokens) {
+      sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
+    }
+  }
 
   public get state(): MarketState {
     return {
@@ -21,21 +32,5 @@ export class MarketFactory {
       creditManagers: this.creditManagers.map(cm => cm.state),
       priceOracle: this.priceFeedFactory.state,
     };
-  }
-
-  constructor(marketData: MarketDataStruct, service: GearboxSDK) {
-    this.poolFactory = PoolFactory.attachMarket(marketData, service);
-
-    for (let i = 0; i < marketData.creditManagers.length; i++) {
-      this.creditManagers.push(
-        CreditFactory.attachMarket(marketData, i, service),
-      );
-    }
-
-    this.priceFeedFactory = PriceFeedFactory.attachMarket(marketData, service);
-
-    for (const t of marketData.tokens) {
-      service.provider.addressLabels.set(t.addr as Address, t.symbol);
-    }
   }
 }

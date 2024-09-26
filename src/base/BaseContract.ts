@@ -1,8 +1,7 @@
-import type { Address } from "@gearbox-protocol/sdk-gov";
-import { ADDRESS_0X0 } from "@gearbox-protocol/sdk-gov";
 import type {
   Abi,
   AbiFunction,
+  Address,
   Client,
   ContractFunctionName,
   DecodeFunctionDataReturnType,
@@ -13,18 +12,28 @@ import type {
 } from "viem";
 import { decodeFunctionData, getContract } from "viem";
 
-import type { MultiCall, RawTx } from "../../core/transactions";
-import type { EncodeFunctionDataParams } from "../../core/types";
-import type { Provider } from "../../deployer/Provider";
-import { iVersionAbi } from "../../generated";
-import { json_stringify } from "../../utils/bigint-serializer";
-import { createRawTx } from "../../utils/create-raw-tx";
-import type { BaseContractState } from "../state/state";
+import { iVersionAbi } from "../abi";
+import type { Provider } from "../chain";
+import { ADDRESS_0X0 } from "../constants";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { BaseContractState } from "../state";
+import type { ILogger, MultiCall, RawTx } from "../types";
+import { childLogger, createRawTx, json_stringify } from "../utils";
 import type { IAddressLabeller } from "./IAddressLabeller";
 
-export abstract class BaseContract<const abi extends Abi | readonly unknown[]> {
+export interface BaseContractOptions<abi extends Abi | readonly unknown[]> {
+  abi: abi;
+  address: Address;
+  sdk: GearboxSDK;
+  name: string;
+  version?: number;
+  contractType?: string;
+}
+
+export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
   contract: GetContractReturnType<abi, Client, Address>;
-  readonly abi: abi;
+  public readonly abi: abi;
+  public readonly logger?: ILogger;
 
   protected static register: Record<Address, BaseContract<any>> = {};
 
@@ -32,20 +41,13 @@ export abstract class BaseContract<const abi extends Abi | readonly unknown[]> {
   contractType: string;
   #name: string;
   #address: Address;
-  v3: Provider;
+  public readonly provider: Provider;
 
   static contractByAddress(address: Address): BaseContract<any> {
     return BaseContract.register[address.toLowerCase() as Address];
   }
 
-  constructor(args: {
-    abi: abi;
-    address: Address;
-    chainClient: Provider;
-    name: string;
-    version?: number;
-    contractType?: string;
-  }) {
+  constructor(args: BaseContractOptions<abi>) {
     this.abi = args.abi;
     this.#address = args.address.toLowerCase() as Address;
 
@@ -53,15 +55,14 @@ export abstract class BaseContract<const abi extends Abi | readonly unknown[]> {
       address: this.address,
       abi: this.abi,
       client: {
-        public: args.chainClient.publicClient,
-        wallet: args.chainClient.walletClient,
+        public: args.sdk.provider.publicClient,
       },
     });
-
-    this.v3 = args.chainClient;
-    this.name = args.name || args.contractType || this.#address;
+    this.provider = args.sdk.provider;
+    this.#name = args.name || args.contractType || this.#address;
     this.version = args.version || 0;
     this.contractType = args.contractType || "";
+    this.logger = childLogger(this.#name, args.sdk.logger);
 
     BaseContract.register[this.#address.toLowerCase() as Address] = this;
   }
@@ -169,7 +170,7 @@ export abstract class BaseContract<const abi extends Abi | readonly unknown[]> {
 
   async getVersion(): Promise<number> {
     this.version = Number(
-      await this.v3.publicClient.readContract({
+      await this.provider.publicClient.readContract({
         abi: iVersionAbi,
         functionName: "version",
         address: this.address,
@@ -181,21 +182,24 @@ export abstract class BaseContract<const abi extends Abi | readonly unknown[]> {
 
   public createRawTx<
     functionName extends ContractFunctionName<abi> | undefined = undefined,
-  >(parameters: EncodeFunctionDataParams<abi, functionName>): RawTx {
-    const { args, description: argsDescription } =
-      parameters as EncodeFunctionDataParams;
+  >(
+    parameters: EncodeFunctionDataParameters<abi, functionName> & {
+      description?: string;
+    },
+  ): RawTx {
+    const { description: argsDescription } = parameters;
 
     const tx = createRawTx<abi, functionName>(
       this.address,
       {
-        abi: this.abi,
         ...parameters,
-      } as unknown as EncodeFunctionDataParameters<abi, functionName>,
+        abi: this.abi,
+      },
       argsDescription,
     );
 
     tx.description = argsDescription || this.parseFunctionData(tx.callData); // `${this.name}.${parameters.functionName}(${argsDescription || (args && args.length > 0) ? args!.join(", ") : ""})`;
-    this.v3.logger.debug(tx.description);
+    this.logger?.debug(tx.description);
 
     return tx;
   }
@@ -204,6 +208,6 @@ export abstract class BaseContract<const abi extends Abi | readonly unknown[]> {
    * Expose this as getter for ease of refactoring
    */
   public get addressLabels(): IAddressLabeller {
-    return this.v3.addressLabels;
+    return this.provider.addressLabels;
   }
 }

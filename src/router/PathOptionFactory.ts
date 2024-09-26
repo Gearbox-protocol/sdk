@@ -1,9 +1,9 @@
 import type {
-  Address,
   BalancerLPToken,
   ConvexLPToken,
   CurveLPToken,
   CurveParams,
+  NetworkType,
   YearnLPToken,
 } from "@gearbox-protocol/sdk-gov";
 import {
@@ -23,8 +23,9 @@ import type {
   AuraStakedToken,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 import { auraTokens } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
+import type { Address } from "viem";
 
-import type { NetworkType } from "../chain";
+import type { Asset } from "./types";
 
 export interface PathOption {
   target: Address;
@@ -32,19 +33,15 @@ export interface PathOption {
   totalOptions: number;
 }
 
-export type PathOptionSerie = Array<PathOption>;
-
-export interface TokenBalance {
-  token: Address;
-  balance: bigint;
-}
+export type PathOptionSerie = PathOption[];
 
 export class PathOptionFactory {
+  // TODO: get rid of token data from SDK
   static generatePathOptions(
-    balances: Array<TokenBalance>,
+    balances: readonly Asset[],
     network: NetworkType,
     loopsInTx: number,
-  ): Array<PathOptionSerie> {
+  ): PathOptionSerie[] {
     const curvePools = PathOptionFactory.getCurvePools(balances);
     const balancerPools = PathOptionFactory.getBalancerPools(balances);
 
@@ -70,7 +67,7 @@ export class PathOptionFactory {
       1,
     );
 
-    const result: Array<PathOptionSerie> = [];
+    const result: PathOptionSerie[] = [];
 
     let currentPo = [...initPO];
 
@@ -86,12 +83,12 @@ export class PathOptionFactory {
     return result;
   }
 
-  static getCurvePools(balances: Array<TokenBalance>): Array<CurveLPToken> {
+  static getCurvePools(balances: readonly Asset[]): CurveLPToken[] {
     const nonZeroBalances = balances.filter(b => b.balance > 1n);
 
     const curvePools = nonZeroBalances
       .map(b => getTokenSymbol(b.token))
-      .filter(symbol => isCurveLPToken(symbol)) as Array<CurveLPToken>;
+      .filter(symbol => isCurveLPToken(symbol)) as CurveLPToken[];
 
     const yearnCurveTokens = Object.entries(yearnTokens)
       .filter(([, data]) => isCurveLPToken(data.underlying))
@@ -102,7 +99,7 @@ export class PathOptionFactory {
       .filter(symbol => yearnCurveTokens.includes(symbol))
       .map(
         symbol => yearnTokens[symbol as YearnLPToken].underlying,
-      ) as Array<CurveLPToken>;
+      ) as CurveLPToken[];
 
     const convexCurveTokens = Object.entries(convexTokens)
       .filter(([, data]) => isCurveLPToken(data.underlying))
@@ -121,16 +118,14 @@ export class PathOptionFactory {
     return Array.from(curveSet.values());
   }
 
-  static getBalancerPools(
-    balances: Array<TokenBalance>,
-  ): Array<BalancerLPToken> {
+  static getBalancerPools(balances: readonly Asset[]): BalancerLPToken[] {
     const nonZeroBalances = Object.entries(balances).filter(
       ([, balance]) => toBigInt(balance.balance) > 1,
     );
 
     const balancerPools = nonZeroBalances
       .map(([token]) => getTokenSymbol(token as Address)!)
-      .filter(symbol => isBalancerLPToken(symbol)) as Array<BalancerLPToken>;
+      .filter(symbol => isBalancerLPToken(symbol)) as BalancerLPToken[];
 
     const balancerAuraTokens = Object.entries(auraTokens)
       .filter(([, data]) => isBalancerLPToken(data.underlying))

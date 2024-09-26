@@ -1,11 +1,11 @@
 import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
 import { bytesToString, parseEventLogs, toBytes } from "viem";
 
-import { iAddressProviderV3_1Abi } from "../../compressors";
-import { NO_VERSION } from "../../core/addresses";
-import type { Provider } from "../../deployer/Provider";
-import { BaseContract } from "../../sdk/base/BaseContract";
-import type { AddressProviderV3State } from "../../sdk/state/coreState";
+import { iAddressProviderV3_1Abi } from "../abi";
+import { BaseContract } from "../base";
+import { NO_VERSION } from "../constants";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { AddressProviderV3State } from "../state";
 
 type abi = typeof iAddressProviderV3_1Abi;
 
@@ -14,7 +14,7 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
   versions: Record<string, Set<number>> = {};
   latest: Record<string, number> = {};
 
-  constructor(args: { address: Address; chainClient: Provider }) {
+  constructor(args: { address: Address; sdk: GearboxSDK }) {
     super({ ...args, name: "AddressProviderV3", abi: iAddressProviderV3_1Abi });
   }
 
@@ -22,13 +22,14 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
     params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {
-      case "setAddress":
+      case "setAddress": {
         if (params.args.length !== 3) {
           const [key, saveVersion] = params.args;
           return [key, `${saveVersion}`];
         }
         const [key, value, saveVersion] = params.args;
         return [bytesToString(toBytes(key)), value, `${saveVersion}`];
+      }
       default:
         return undefined;
     }
@@ -69,7 +70,7 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
       throw new Error(`Latest version for ${contract} not found`);
     }
 
-    this.v3.logger.debug(
+    this.logger?.debug(
       `Latest version found for ${contract} : ${this.latest[contract]}`,
     );
 
@@ -102,7 +103,7 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
     })[0];
 
     switch (parsedLog.eventName) {
-      case "SetAddress":
+      case "SetAddress": {
         const parsedLog2 = parseEventLogs({
           abi: this.abi,
           eventName: "SetAddress",
@@ -116,9 +117,9 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
           Number(parsedLog2.args.version),
         );
         break;
-
+      }
       default:
-        this.v3.logger.warn(`Unknown event: ${parsedLog.eventName}`);
+        this.logger?.warn(`Unknown event: ${parsedLog.eventName}`);
         break;
     }
   }

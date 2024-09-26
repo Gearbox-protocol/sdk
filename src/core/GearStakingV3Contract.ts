@@ -1,16 +1,15 @@
-import { ADDRESS_0X0 } from "@gearbox-protocol/sdk-gov";
 import type { Address, DecodeFunctionDataReturnType } from "viem";
 
-import type { Provider } from "../../deployer/Provider";
-import { gearStakingV3Abi } from "../../generated";
-import { BaseContract } from "../../sdk/base/BaseContract";
-import { VotingContractStatus } from "../../sdk/base/types";
-import type { GearStakingV3State } from "../../sdk/state/coreState";
+import { gearStakingV3Abi } from "../abi";
+import { BaseContract, VotingContractStatus } from "../base";
+import { ADDRESS_0X0 } from "../constants";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { GearStakingV3State } from "../state";
 
 type abi = typeof gearStakingV3Abi;
 
 export class GearStakingContract extends BaseContract<abi> {
-  constructor(args: { address: Address; chainClient: Provider }) {
+  constructor(args: { address: Address; sdk: GearboxSDK }) {
     super({ ...args, name: "GearStakingV3", abi: gearStakingV3Abi });
   }
 
@@ -18,9 +17,10 @@ export class GearStakingContract extends BaseContract<abi> {
     params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {
-      case "setVotingContractStatus":
+      case "setVotingContractStatus": {
         const [address, status] = params.args;
         return [this.addressLabels.get(address), VotingContractStatus[status]];
+      }
       default:
         return undefined;
     }

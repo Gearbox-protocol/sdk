@@ -2,10 +2,10 @@ import { botPermissionsToString } from "@gearbox-protocol/sdk-gov";
 import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
 import { parseEventLogs } from "viem";
 
-import type { Provider } from "../../deployer/Provider";
-import { botListV3Abi } from "../../generated";
-import { BaseContract } from "../../sdk/base/BaseContract";
-import type { BotListState } from "../../sdk/state/coreState";
+import { botListV3Abi } from "../abi";
+import { BaseContract } from "../base";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { BotListState } from "../state";
 
 type abi = typeof botListV3Abi;
 
@@ -18,7 +18,7 @@ export class BotListContract extends BaseContract<abi> {
     };
   }
 
-  constructor(args: { address: Address; chainClient: Provider }) {
+  constructor(args: { address: Address; sdk: GearboxSDK }) {
     super({ ...args, name: "BotListV3", abi: botListV3Abi });
   }
 
@@ -44,7 +44,7 @@ export class BotListContract extends BaseContract<abi> {
   }
 
   async fetchState(toBlock: bigint) {
-    const logs = await this.v3.publicClient.getContractEvents({
+    const logs = await this.provider.publicClient.getContractEvents({
       address: this.address,
       abi: this.abi,
       fromBlock: 0n,
@@ -70,14 +70,14 @@ export class BotListContract extends BaseContract<abi> {
         break;
 
       case "SetBotSpecialPermissions":
-        this.v3.logger.debug(
+        this.logger?.debug(
           `Bot ${parsedLog.args.bot} has been given permissions ${botPermissionsToString(
             parsedLog.args.permissions,
           )} for credit manager ${parsedLog.args.creditManager}`,
         );
         break;
       default:
-        this.v3.logger.warn(`Unknown event: ${parsedLog.eventName}`);
+        this.logger?.warn(`Unknown event: ${parsedLog.eventName}`);
         break;
     }
   }

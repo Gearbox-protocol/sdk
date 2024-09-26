@@ -2,7 +2,6 @@ import {
   contractsByNetwork,
   emergencyLiquidators,
   MULTISIG,
-  NOT_DEPLOYED,
   ROUTER_MULTISIG_ADDRESS,
   tickerTokensByNetwork,
   tokenDataByNetwork,
@@ -12,6 +11,7 @@ import {
 import type { Address } from "viem";
 
 import type { NetworkType } from "../chain";
+import { NOT_DEPLOYED } from "../constants";
 import { AddressMap } from "../utils";
 import type { IAddressLabeller } from "./IAddressLabeller";
 

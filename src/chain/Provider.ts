@@ -7,10 +7,10 @@ import type { IAddressLabeller } from "../base/IAddressLabeller";
 import { chains } from "./chains";
 
 export interface ProviderOptions {
-  chainId: number;
-  networkType: NetworkType;
   rpcURL: string;
   timeout?: number;
+  chainId: number;
+  networkType: NetworkType;
 }
 
 export class Provider {

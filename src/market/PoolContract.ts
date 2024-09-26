@@ -2,14 +2,11 @@ import { decimals, formatBN, getTokenSymbol } from "@gearbox-protocol/sdk-gov";
 import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
 import { parseEventLogs } from "viem";
 
-import type { Provider } from "../../deployer/Provider";
-import { poolV3Abi } from "../../generated";
-import { BaseContract } from "../base/BaseContract";
-import type {
-  CreditManagerDebtParamsStruct,
-  MarketDataStruct,
-} from "../base/types";
-import type { PoolState } from "../state/poolState";
+import { poolV3Abi } from "../abi";
+import type { CreditManagerDebtParamsStruct, PoolStruct } from "../base";
+import { BaseContract } from "../base";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { PoolState } from "../state";
 
 const abi = poolV3Abi;
 
@@ -19,20 +16,20 @@ export class PoolContract extends BaseContract<typeof abi> {
   // Contracts
   hasOperation = false;
 
-  public static attachMarket(
-    marketData: MarketDataStruct,
-    chainClient: Provider,
-  ): PoolContract {
-    const contract = new PoolContract({
-      address: marketData.pool.baseParams.addr as Address,
-      name: marketData.pool.name,
-      chainClient,
+  constructor(data: PoolStruct, sdk: GearboxSDK) {
+    super({
+      sdk,
+      version: Number(data.baseParams.version),
+      address: data.baseParams.addr,
+      contractType: data.baseParams.contractType,
+      name: `PoolV3(${data.name})`,
+      abi,
     });
 
     const creditManagerDebtParams: Record<
       Address,
       CreditManagerDebtParamsStruct
-    > = marketData.pool.creditManagerDebtParams.reduce(
+    > = data.creditManagerDebtParams.reduce(
       (acc, params) => {
         acc[params.creditManager.toLowerCase() as Address] =
           params as CreditManagerDebtParamsStruct;
@@ -42,28 +39,17 @@ export class PoolContract extends BaseContract<typeof abi> {
     );
 
     // TODO: avoid reading decimals from sdk-gov
-    contract.state = {
-      ...marketData.pool,
-      contractType: marketData.pool.baseParams.contractType,
-      lastBaseInterestUpdate: marketData.pool.lastBaseInterestUpdate,
-      underlying: marketData.pool.underlying as Address,
-      decimals:
-        decimals[getTokenSymbol(marketData.pool.underlying as Address)!],
+    this.state = {
+      ...data,
+      contractType: data.baseParams.contractType,
+      lastBaseInterestUpdate: data.lastBaseInterestUpdate,
+      underlying: data.underlying as Address,
+      decimals: decimals[getTokenSymbol(data.underlying as Address)!],
       creditManagerDebtParams,
-      withdrawFee: Number(marketData.pool.withdrawFee),
-      address: marketData.pool.baseParams.addr as Address,
-      version: Number(marketData.baseParams.version),
+      withdrawFee: Number(data.withdrawFee),
+      address: data.baseParams.addr as Address,
+      version: Number(data.baseParams.version),
     };
-
-    return contract;
-  }
-
-  constructor(args: { address: Address; chainClient: Provider; name: string }) {
-    super({
-      ...args,
-      name: `PoolV3(${args.name})`,
-      abi,
-    });
   }
 
   // LOGS
@@ -91,12 +77,13 @@ export class PoolContract extends BaseContract<typeof abi> {
     params: DecodeFunctionDataReturnType<typeof abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {
-      case "deposit":
+      case "deposit": {
         const [amount, onBehalfOf] = params.args;
         return [
           formatBN(amount, this.state.decimals),
           this.addressLabels.get(onBehalfOf),
         ];
+      }
       default:
         return undefined;
     }

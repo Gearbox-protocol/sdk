@@ -1,75 +1,93 @@
-import type { Address } from "@gearbox-protocol/sdk-gov";
 import { getConnectors } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
-import type { MultiCall } from "../../core/transactions";
-import { routerV3Abi } from "../../router";
-import { BaseContract } from "../base/BaseContract";
-import type { TokenBalance } from "./pathOptions";
-import { PathOptionFactory } from "./pathOptions";
-import type { RouterFactory } from "./RouterFactory";
+import { routerV3Abi } from "../abi";
+import { BaseContract } from "../base";
+import type { CreditAccountStruct } from "../base/types";
+import type { GearboxSDK } from "../GearboxSDK";
+import { AddressMap } from "../utils";
+import type { PathOptionSerie } from "./PathOptionFactory";
+import { PathOptionFactory } from "./PathOptionFactory";
 import type {
-  PathFinderCloseResult,
-  PathFinderOpenStrategyResult,
-  PathFinderResult,
+  Asset,
+  OpenStrategyResult,
+  RouterCloseResult,
   RouterResult,
   SwapOperation,
 } from "./types";
 
-const MAX_GAS_PER_ROUTE = BigInt(200e6);
-const GAS_PER_BLOCK = BigInt(400e6);
+const MAX_GAS_PER_ROUTE = 200_000_000n;
+const GAS_PER_BLOCK = 400_000_000n;
+const LOOPS_PER_TX = Number(GAS_PER_BLOCK / MAX_GAS_PER_ROUTE);
 
-export interface BalanceStruct {
-  token: Address;
-  balance: bigint;
-}
+/**
+ * Mapping to enums used by smart contract
+ */
+const SWAP_OPERATIONS: Record<SwapOperation, number> = {
+  EXACT_INPUT: 0,
+  EXACT_INPUT_ALL: 1,
+  EXACT_OUTPUT: 2,
+};
 
 type abi = typeof routerV3Abi;
 
+interface FindBestClosePathInterm {
+  pathOptions: PathOptionSerie[];
+  expected: Asset[];
+  leftover: Asset[];
+  connectors: Address[];
+}
+
+/**
+ * Slice of credit manager data required for router operations
+ */
+interface CreditManagerSlice {
+  address: Address;
+  collateralTokens: Address[];
+}
+
 export class RouterV3Contract extends BaseContract<abi> {
-  factory: RouterFactory;
-  protected readonly connectors: Array<Address>;
+  readonly #connectors: Address[];
+  readonly #sdk: GearboxSDK;
 
-  public static async attach(
-    address: Address,
-    factory: RouterFactory,
-  ): Promise<RouterV3Contract> {
-    const contact = new RouterV3Contract({
-      factory,
-      address,
-    });
-
-    return contact;
-  }
-
-  protected constructor(args: { factory: RouterFactory; address: Address }) {
+  constructor(address: Address, sdk: GearboxSDK) {
     super({
-      ...args,
+      address: address,
+      chainClient: sdk.provider,
       name: "RouterV3",
       abi: routerV3Abi,
-      chainClient: args.factory.sdk.v3,
     });
-
-    this.factory = args.factory;
-
-    this.connectors = getConnectors(args.factory.v3.networkType);
+    this.#connectors = getConnectors(sdk.provider.networkType);
+    this.#sdk = sdk;
   }
 
-  // USER FUNCTIONS
-  async findAllSwaps(
-    creditAccount: Address,
-    collateralTokens: Array<Address>,
+  /**
+   * Finds all available swaps for NORMAL tokens
+   * @param ca
+   * @param cm
+   * @param swapOperation
+   * @param tokenIn
+   * @param tokenOut
+   * @param amount
+   * @param leftoverAmount
+   * @param slippage
+   * @returns
+   */
+  public async findAllSwaps(
+    ca: CreditAccountStruct,
+    cm: CreditManagerSlice,
     swapOperation: SwapOperation,
     tokenIn: Address,
     tokenOut: Address,
     amount: bigint,
     leftoverAmount: bigint,
-    slippage: number,
-  ): Promise<Array<PathFinderResult>> {
-    const connectors = this.getAvailableConnectors(collateralTokens);
+    slippage: number | bigint,
+  ): Promise<RouterResult[]> {
+    const connectors = this.getAvailableConnectors(cm.collateralTokens);
 
     const swapTask = {
-      swapOperation: swapOperation,
-      creditAccount,
+      swapOperation: SWAP_OPERATIONS[swapOperation],
+      creditAccount: ca.creditAccount as Address,
       tokenIn,
       tokenOut,
       connectors,
@@ -84,7 +102,7 @@ export class RouterV3Contract extends BaseContract<abi> {
       },
     );
 
-    const unique: Record<string, PathFinderResult> = {};
+    const unique: Record<string, RouterResult> = {};
 
     result.forEach(r => {
       const key = `${r.minAmount.toString()}${r.calls
@@ -101,18 +119,35 @@ export class RouterV3Contract extends BaseContract<abi> {
     return Object.values(unique);
   }
 
-  async findOneTokenPath(
-    creditAccount: Address,
-    collateralTokens: Array<Address>,
+  /**
+   * Finds best path to swap all Normal tokens and tokens "on the way" to target one and vice versa
+   * @param ca
+   * @param cm
+   * @param tokenIn
+   * @param tokenOut
+   * @param amount
+   * @param slippage
+   * @returns
+   */
+  public async findOneTokenPath(
+    ca: CreditAccountStruct,
+    cm: CreditManagerSlice,
     tokenIn: Address,
     tokenOut: Address,
     amount: bigint,
-    slippage: number,
-  ): Promise<PathFinderResult> {
-    const connectors = this.getAvailableConnectors(collateralTokens);
+    slippage: number | bigint,
+  ): Promise<RouterResult> {
+    const connectors = this.getAvailableConnectors(cm.collateralTokens);
 
     const { result } = await this.contract.simulate.findOneTokenPath(
-      [tokenIn, amount, tokenOut, creditAccount, connectors, BigInt(slippage)],
+      [
+        tokenIn,
+        amount,
+        tokenOut,
+        ca.creditAccount as Address,
+        connectors,
+        BigInt(slippage),
+      ],
       {
         gas: GAS_PER_BLOCK,
       },
@@ -131,36 +166,38 @@ export class RouterV3Contract extends BaseContract<abi> {
    * @param expectedBalances Expected balances which would be on account accounting also debt. For example,
    *    if you open an USDC Credit Account, borrow 50_000 USDC and provide 10 WETH and 10_USDC as collateral
    *    from your own funds, expectedBalances should be: { "USDC": 60_000 * (10**6), "<address of WETH>": WAD.mul(10) }
-   *
+   * @param leftoverBalances Balances to keep on account after opening
    * @param target Address of symbol of desired token
    * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
    * @returns PathFinderOpenStrategyResult which
    */
-
-  async findOpenStrategyPath(
-    creditManager: Address,
-    collateralTokens: Array<Address>,
-    expectedBalances: Record<Address, bigint>,
-    leftoverBalances: Record<Address, bigint>,
+  public async findOpenStrategyPath(
+    cm: CreditManagerSlice,
+    expectedBalances: Asset[],
+    leftoverBalances: Asset[],
     target: Address,
-    slippage: number,
-  ): Promise<PathFinderOpenStrategyResult> {
-    const input: Array<BalanceStruct> = collateralTokens.map(token => ({
+    slippage: number | bigint,
+  ): Promise<OpenStrategyResult> {
+    const [expectedMap, leftoverMap] = [
+      assetsMap(expectedBalances),
+      assetsMap(leftoverBalances),
+    ];
+    const input: Asset[] = cm.collateralTokens.map(token => ({
       token,
-      balance: expectedBalances[token] || 0n,
+      balance: expectedMap.get(token) ?? 0n,
     }));
 
-    const leftover: Array<BalanceStruct> = collateralTokens.map(token => ({
+    const leftover: Asset[] = cm.collateralTokens.map(token => ({
       token,
-      balance: leftoverBalances[token] || 1n,
+      balance: leftoverMap.get(token) ?? 0n,
     }));
 
-    const connectors = this.getAvailableConnectors(collateralTokens);
+    const connectors = this.getAvailableConnectors(cm.collateralTokens);
 
     const {
       result: [outBalances, result],
     } = await this.contract.simulate.findOpenStrategyPath(
-      [creditManager, input, leftover, target, connectors, BigInt(slippage)],
+      [cm.address, input, leftover, target, connectors, BigInt(slippage)],
       {
         gas: GAS_PER_BLOCK,
       },
@@ -173,11 +210,11 @@ export class RouterV3Contract extends BaseContract<abi> {
     return {
       balances: {
         ...balancesAfter,
-        [target]: (expectedBalances[target] || 0n) + result.amount,
+        [target]: (expectedMap.get(target) ?? 0n) + result.amount,
       },
       minBalances: {
         ...balancesAfter,
-        [target]: (expectedBalances[target] || 0n) + result.minAmount,
+        [target]: (expectedMap.get(target) ?? 0n) + result.minAmount,
       },
       amount: result.amount,
       minAmount: result.minAmount,
@@ -188,94 +225,127 @@ export class RouterV3Contract extends BaseContract<abi> {
   /**
    * @dev Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
    *   Can bu used for closing Credit Account and for liquidations as well.
-   * @param creditAccount CreditAccountData object used for close path computation
+   * @param ca CreditAccountStruct object used for close path computation
+   * @param cm CreditManagerSlice for corresponging credit manager
    * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
    * @return The best option in PathFinderCloseResult format, which
    *          - underlyingBalance - total balance of underlying token
    *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
    */
-  async findBestClosePath(
-    creditAccount: Address,
-    collateralTokens: Array<Address>,
-    underlying: Address,
-    expectedBalances: Record<Address, bigint>,
-    leftoverBalances: Record<Address, bigint>,
-    slippage: number,
-  ): Promise<PathFinderCloseResult> {
-    const expected: Array<TokenBalance> = collateralTokens.map(token => {
+  public async findBestClosePath(
+    ca: CreditAccountStruct,
+    cm: CreditManagerSlice,
+    slippage: bigint | number,
+  ): Promise<RouterCloseResult> {
+    const { pathOptions, expected, leftover, connectors } =
+      this.#getBestClosePathInput(ca, cm);
+    this.#sdk.emit("foundPathOptions", { pathOptions });
+    let results: RouterResult[] = [];
+    for (const po of pathOptions) {
+      // TODO: maybe Promise.all?
+      const { result } = await this.contract.simulate.findBestClosePath(
+        [
+          ca.creditAccount as Address,
+          expected,
+          leftover,
+          connectors,
+          BigInt(slippage),
+          po,
+          BigInt(LOOPS_PER_TX),
+          false,
+        ],
+        {
+          gas: GAS_PER_BLOCK,
+        },
+      );
+      results.push(result);
+    }
+
+    const bestResult = results.reduce(compareRouterResults, {
+      amount: 0n,
+      minAmount: 0n,
+      calls: [],
+    });
+    const underlyingBalance =
+      ca.tokens.find(t => t.token === ca.underlying)?.balance ?? 0n;
+
+    const result = {
+      amount: bestResult.amount,
+      minAmount: bestResult.minAmount,
+      calls: bestResult.calls.map(c => ({
+        callData: c.callData,
+        target: c.target,
+      })),
+      underlyingBalance: underlyingBalance + bestResult.minAmount,
+    };
+    this.#sdk.emit("foundBestClosePath", {
+      creditAccount: ca.creditAccount as Address,
+      ...result,
+    });
+    return result;
+  }
+
+  #getBestClosePathInput(
+    ca: CreditAccountStruct,
+    cm: CreditManagerSlice,
+  ): FindBestClosePathInterm {
+    const expectedBalances: Record<Address, Asset> = {};
+    const leftoverBalances: Record<Address, Asset> = {};
+    for (const { token: t, balance, mask } of ca.tokens) {
+      const token = t as Address;
+      const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
+      expectedBalances[token] = { token, balance };
+      const decimals =
+        this.#sdk.marketRegister.tokensMeta.mustGet(token).decimals;
+      // filter out dust, we don't want to swap it
+      const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
+      // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
+      if (balance < minBalance || !isEnabled) {
+        leftoverBalances[token] = { token, balance };
+      }
+    }
+
+    // TODO: PathOptionFactory deals with token data from SDK
+    // it needs to accept market data
+    const pathOptions = PathOptionFactory.generatePathOptions(
+      ca.tokens as readonly Asset[],
+      this.provider.networkType,
+      LOOPS_PER_TX,
+    );
+
+    const expected: Asset[] = cm.collateralTokens.map(token => {
       // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
       // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
       // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
-      const actual = expectedBalances[token] || 0n;
+      const actual = expectedBalances[token]?.balance || 0n;
       return {
         token,
         balance: actual > 10n ? actual : 0n,
       };
     });
 
-    const loopsPerTx = GAS_PER_BLOCK / MAX_GAS_PER_ROUTE;
-    const pathOptions = PathOptionFactory.generatePathOptions(
-      expected,
-      this.factory.v3.networkType,
-      Number(loopsPerTx),
-    );
-
-    const leftover: Array<TokenBalance> = collateralTokens.map(token => ({
-      token,
-      balance: leftoverBalances[token] || 1n,
+    const leftover: Asset[] = cm.collateralTokens.map(token => ({
+      token: token,
+      balance: leftoverBalances[token]?.balance || 1n,
     }));
 
-    const connectors = this.getAvailableConnectors(collateralTokens);
-
-    const requests = pathOptions.map(po =>
-      this.contract.simulate.findBestClosePath(
-        [
-          creditAccount,
-          expected,
-          leftover,
-          connectors,
-          BigInt(slippage),
-          po,
-          loopsPerTx,
-          false,
-        ],
-        {
-          gas: GAS_PER_BLOCK,
-        },
-      ),
+    const connectors = this.getAvailableConnectors(
+      ca.tokens.map(t => t.token as Address),
     );
-    const results = (await Promise.all(requests)).map(r => ({
-      calls: r.result.calls.map(c => ({
-        target: c.target as Address,
-        callData: c.callData,
-      })) as Array<MultiCall>,
-      amount: r.result.amount,
-      minAmount: r.result.minAmount,
-    }));
-
-    const bestResult = results.reduce<RouterResult>(
-      (best, pathFinderResult) => this.compare(best, pathFinderResult),
-      {
-        amount: 0n,
-        minAmount: 0n,
-        calls: [],
-      },
-    );
-
-    return {
-      ...bestResult,
-      underlyingBalance:
-        BigInt(bestResult.minAmount) + (expectedBalances[underlying] || 0n),
-    };
+    return { expected, leftover, connectors, pathOptions };
   }
 
-  compare(r1: RouterResult, r2: RouterResult): RouterResult {
-    return r1.amount > r2.amount ? r1 : r2;
-  }
-
-  getAvailableConnectors(collateralTokens: Array<Address>) {
+  public getAvailableConnectors(collateralTokens: Address[]): Address[] {
     return collateralTokens.filter(t =>
-      this.connectors.includes(t.toLowerCase() as Address),
+      this.#connectors.includes(t.toLowerCase() as Address),
     );
   }
+}
+
+function compareRouterResults(a: RouterResult, b: RouterResult): RouterResult {
+  return a.amount > b.amount ? a : b;
+}
+
+function assetsMap(assets: Asset[]): AddressMap<bigint> {
+  return new AddressMap(assets.map(({ token, balance }) => [token, balance]));
 }

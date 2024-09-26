@@ -1,10 +1,7 @@
-import type { LinearIRMParams } from "@gearbox-protocol/sdk-gov/lib/config/linearIRM";
 import type { Address, Hex } from "viem";
 import { decodeAbiParameters } from "viem";
 
-import type { Provider } from "../../deployer/Provider";
-import { V3Tool } from "../../deployer/V3Tool";
-import { linearInterestRateModelV3Abi } from "../../generated";
+import { linearInterestRateModelV3Abi } from "../abi";
 import { BaseContract } from "../base/BaseContract";
 import type { MarketDataStruct } from "../base/types";
 import type { LinearModelState } from "../state/poolState";

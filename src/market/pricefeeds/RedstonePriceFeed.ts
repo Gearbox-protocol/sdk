@@ -1,4 +1,3 @@
-import { PriceFeedType } from "@gearbox-protocol/sdk-gov";
 import { DataServiceWrapper } from "@redstone-finance/evm-connector/dist/src/wrappers/DataServiceWrapper";
 import type { SignedDataPackage } from "redstone-protocol";
 import { RedstonePayload } from "redstone-protocol";
@@ -10,19 +9,23 @@ import {
   toBytes,
 } from "viem";
 
-import { redstonePriceFeedAbi } from "../../oracles";
-import { DefaultLogger } from "../../utils/Logger";
-import type { PriceFeedFactory } from "../market/PriceFeedFactory";
-import type { RedstonePriceFeedState } from "../state/priceFactoryState";
-import type { PriceFeedAttachArgs } from "./AbstractPriceFeed";
+import { redstonePriceFeedAbi } from "../../abi";
+import type { RedstonePriceFeedState } from "../../state";
+import type { RawTx } from "../../types";
+import type { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
-import type { UpdatePFTask } from "./types";
 
 type abi = typeof redstonePriceFeedAbi;
 
 interface TimestampedCalldata {
   dataFeedId: string;
   data: `0x${string}`;
+  timestamp: number;
+}
+
+interface UpdatePFTask {
+  priceFeed: Address;
+  tx: RawTx;
   timestamp: number;
 }
 
@@ -47,8 +50,12 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
     };
   }
 
-  public static attach(args: PriceFeedAttachArgs): RedstonePriceFeedContract {
-    const data = args.factory.getPriceFeedData(args.address);
+  protected constructor(args: PriceFeedConstructorArgs<abi>) {
+    super({
+      ...args,
+      name: `RedstonePriceFeed`,
+      abi: redstonePriceFeedAbi,
+    });
     const decoder = decodeAbiParameters(
       [
         { type: "address" }, //  [0]: pf.token(),
@@ -67,47 +74,15 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
         { type: "uint128" }, // [13]: pf.lastPrice(),
         { type: "uint40" }, //  [14]: pf.lastPayloadTimestamp()
       ],
-      data.serializedParams,
+      args.baseParams.serializedParams,
     );
 
-    // TODO: add lastPrice & ;astPayloadTimestamp
-
-    const dataId = bytesToString(toBytes(decoder[1])).replaceAll("\x00", "");
-
-    const signers = decoder.slice(2, 11) as Array<Hex>;
-    const signersThreshold = Number(decoder[12]);
-
-    // TODO: change to load real signers from contract
-    return new RedstonePriceFeedContract({
-      ...args,
-      dataId,
-      signers,
-      signersThreshold,
-    });
-  }
-
-  protected constructor(args: {
-    factory: PriceFeedFactory;
-    address: Address;
-    dataId: string;
-    signers: Array<Address>;
-    signersThreshold: number;
-  }) {
-    super({
-      ...args,
-      name: `RedstonePriceFeed`,
-      abi: redstonePriceFeedAbi,
-      updatable: true,
-    });
-    this.dataId = args.dataId;
-
-    // TODO
-    this.dataServiceId = ["GMX", "BAL"].includes(args.dataId)
+    this.dataId = bytesToString(toBytes(decoder[1])).replaceAll("\x00", "");
+    this.signers = decoder.slice(2, 11) as Array<Hex>;
+    this.signersThreshold = Number(decoder[12]);
+    this.dataServiceId = ["GMX", "BAL"].includes(this.dataId)
       ? "redstone-arbitrum-prod"
       : "redstone-primary-prod";
-
-    this.signers = args.signers;
-    this.signersThreshold = args.signersThreshold;
   }
 
   public static async getUpdateTxs(

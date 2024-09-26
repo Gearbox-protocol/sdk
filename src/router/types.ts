@@ -1,12 +1,8 @@
 import type { Address } from "viem";
 
-import type { MultiCall } from "../../core/transactions";
+import type { MultiCall } from "../types";
 
-export enum SwapOperation {
-  EXACT_INPUT,
-  EXACT_INPUT_ALL,
-  EXACT_OUTPUT,
-}
+export type SwapOperation = "EXACT_INPUT" | "EXACT_INPUT_ALL" | "EXACT_OUTPUT";
 
 export interface SwapTask {
   swapOperation: bigint;
@@ -18,29 +14,27 @@ export interface SwapTask {
   leftoverAmount: bigint;
 }
 
-export interface PathFinderResult {
-  amount: bigint;
-  minAmount: bigint;
-  calls: Array<MultiCall>;
-}
-
-export interface PathFinderOpenStrategyResult extends PathFinderResult {
-  balances: Record<string, bigint>;
-  minBalances: Record<string, bigint>;
-}
-
 export interface RouterResult {
   amount: bigint;
   minAmount: bigint;
-
-  calls: Array<MultiCall>;
+  calls: readonly MultiCall[];
 }
 
-export interface PathFinderCloseResult extends RouterResult {
+export interface OpenStrategyResult extends RouterResult {
+  balances: Record<Address, bigint>;
+  minBalances: Record<Address, bigint>;
+}
+
+export interface RouterCloseResult extends RouterResult {
   underlyingBalance: bigint;
 }
 
 export interface CurvePoolStruct {
   curvePool: Address;
   metapoolBase: Address;
+}
+
+export interface Asset {
+  token: Address;
+  balance: bigint;
 }

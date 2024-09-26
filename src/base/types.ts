@@ -1,11 +1,15 @@
-import { AbiParametersToPrimitiveTypes, ExtractAbiFunction } from "abitype";
-import { Address } from "viem";
-import { dataCompressorV3Abi } from "../../periphery";
-import {
+import type {
+  AbiParametersToPrimitiveTypes,
+  ExtractAbiFunction,
+} from "abitype";
+import type { Address } from "viem";
+
+import type {
+  dataCompressorV3Abi,
   iCreditAccountCompressorAbi,
   iMarketCompressorAbi,
   iPriceFeedCompressorAbi,
-} from "../../compressors";
+} from "../abi";
 
 type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
 
@@ -27,11 +31,19 @@ export type CreditAccountStruct = Unarray<
   >
 >;
 
+export type TokenInfoStruct = Unarray<CreditAccountStruct["tokens"]>;
+
 export type MarketDataStruct = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<typeof iMarketCompressorAbi, "getMarketData">["outputs"]
   >
 >;
+
+export type CreditManagerStruct = Unarray<MarketDataStruct["creditManagers"]>;
+export type TokenMetaStruct = Unarray<MarketDataStruct["tokens"]>;
+export type PoolStruct = MarketDataStruct["pool"];
+export type PoolQuotaKeeperStruct = MarketDataStruct["poolQuotaKeeper"];
+export type RateKeeperStruct = MarketDataStruct["rateKeeper"];
 
 export type PoolDataStruct = Unarray<
   AbiParametersToPrimitiveTypes<
@@ -46,7 +58,7 @@ export type GetPriceFeedsResult = AbiParametersToPrimitiveTypes<
 export type PriceFeedMapEntry = Unarray<GetPriceFeedsResult[0]>;
 export type PriceFeedTreeNode = Unarray<GetPriceFeedsResult[1]>;
 
-export type MarketData = {
+export interface MarketData {
   riskCuratorManager: Address;
   acl: {
     addr: Address;
@@ -192,76 +204,7 @@ export type MarketData = {
     priceFeedStructure: PriceFeedTreeNode[];
   };
   emergencyLiquidators: Array<Address>;
-};
-
-// export type PoolDataStruct = {
-//   addr: Address;
-//   underlying: Address;
-//   dieselToken: Address;
-//   symbol: string;
-//   name: string;
-//   baseInterestIndex: bigint;
-//   availableLiquidity: bigint;
-//   expectedLiquidity: bigint;
-//   totalBorrowed: bigint;
-//   totalDebtLimit: bigint;
-//   creditManagerDebtParams: [
-//     {
-//       creditManager: Address;
-//       borrowed: bigint;
-//       limit: bigint;
-//       availableToBorrow: bigint;
-//     },
-//   ];
-
-//   totalAssets: bigint;
-//   totalSupply: bigint;
-//   supplyRate: bigint;
-//   baseInterestRate: bigint;
-
-//   dieselRate_RAY: bigint;
-//   withdrawFee: bigint;
-//   lastBaseInterestUpdate: bigint;
-
-//   baseInterestIndexLU: bigint;
-
-//   version: bigint;
-//   poolQuotaKeeper: Address;
-//   gauge: Address;
-//   quotas: [
-//     {
-//       token: Address;
-//       rate: bigint;
-//       quotaIncreaseFee: bigint;
-
-//       totalQuoted: bigint;
-//       limit: bigint;
-//       isActive: boolean;
-//     },
-//   ];
-
-//   zappers: [
-//     {
-//       zapper: Address;
-//       tokenIn: Address;
-//       tokenOut: Address;
-//     },
-//   ];
-
-//   lirm: {
-//     interestModel: Address;
-//     version: bigint;
-//     U_1: bigint;
-//     U_2: bigint;
-//     R_base: bigint;
-//     R_slope1: bigint;
-//     R_slope2: bigint;
-//     R_slope3: bigint;
-//     isBorrowingMoreU2Forbidden: boolean;
-//   };
-
-//   isPaused: boolean;
-// };
+}
 
 export type GaugeInfoStruct = Unarray<
   AbiParametersToPrimitiveTypes<
@@ -285,16 +228,16 @@ export interface CreditManagerDebtParamsStruct {
   availableToBorrow: bigint;
 }
 
-export type QuotaInfoStruct = {
+export interface QuotaInfoStruct {
   token: Address;
   rate: bigint;
   quotaIncreaseFee: bigint;
   totalQuoted: bigint;
   limit: bigint;
   isActive: boolean;
-};
+}
 
-export type LinearModelStruct = {
+export interface LinearModelStruct {
   interestModel: Address;
   version: bigint;
   U_1: number;
@@ -304,9 +247,9 @@ export type LinearModelStruct = {
   R_slope2: number;
   R_slope3: number;
   isBorrowingMoreU2Forbidden: boolean;
-};
+}
 
-export type GaugeQuotaParamsStruct = {
+export interface GaugeQuotaParamsStruct {
   token: Address;
   minRate: number;
   maxRate: number;
@@ -319,7 +262,7 @@ export type GaugeQuotaParamsStruct = {
   isActive: boolean;
   stakerVotesLpSide: bigint;
   stakerVotesCaSide: bigint;
-};
+}
 
 export enum VotingContractStatus {
   NOT_ALLOWED = 0,

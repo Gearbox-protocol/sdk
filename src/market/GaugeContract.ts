@@ -1,62 +1,27 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import { decodeAbiParameters } from "viem";
 
-import { ControllerTraitContract } from "../../core/controllerTrait";
-import type { PoolFactory } from "../../factories/PoolFactory";
-import { gaugeV3Abi } from "../../generated";
-import type { GaugeInfoStruct, MarketDataStruct } from "../base/types";
-import type { GaugeParams, GaugeState } from "../state/poolState";
+import { gaugeV3Abi } from "../abi";
+import type { PoolStruct, RateKeeperStruct } from "../base";
+import { BaseContract } from "../base";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { GaugeParams, GaugeState } from "../state";
 
 type abi = typeof gaugeV3Abi;
 
-export class GaugeContract extends ControllerTraitContract<abi> {
+export class GaugeContract extends BaseContract<abi> {
   state: GaugeState;
 
-  public static attach(args: {
-    gaugeData: GaugeInfoStruct;
-    factory: PoolFactory;
-    name: string;
-  }): GaugeContract {
-    const { factory, gaugeData } = args;
-
-    const contract = new GaugeContract({
-      address: gaugeData.addr as Address,
-      name: args.name,
-      factory,
+  constructor(pool: PoolStruct, gauge: RateKeeperStruct, sdk: GearboxSDK) {
+    super({
+      sdk,
+      address: gauge.baseParams.addr,
+      contractType: gauge.baseParams.contractType,
+      version: Number(gauge.baseParams.version),
+      name: `Gauge(${pool.name})`,
+      abi: gaugeV3Abi,
     });
 
-    return GaugeContract.attachInt(gaugeData, contract);
-  }
-
-  protected static attachInt<T extends GaugeContract>(
-    gaugeData: GaugeInfoStruct,
-    contract: T,
-  ): T {
-    contract.state = {
-      ...contract.contractData,
-      currentEpoch: Number(gaugeData.currentEpoch),
-      epochFrozen: gaugeData.epochFrozen,
-      quotaParams: Object.fromEntries(
-        gaugeData.quotaParams.map(g => [
-          g.token as Address,
-          {
-            minRate: g.minRate,
-            maxRate: g.maxRate,
-            totalVotesLpSide: Number(g.totalVotesLpSide),
-            totalVotesCaSide: Number(g.totalVotesCaSide),
-            rate: g.rate,
-          },
-        ]) as [Address, GaugeParams][],
-      ),
-    };
-
-    return contract;
-  }
-
-  protected static attachMarketInt<T extends GaugeContract>(
-    marketData: MarketDataStruct,
-    contract: T,
-  ): T {
     const [voter, currentEpoch, epochFrozen, gaugeParams] = decodeAbiParameters(
       [
         { name: "voter", type: "address" },
@@ -74,12 +39,10 @@ export class GaugeContract extends ControllerTraitContract<abi> {
           ],
         },
       ],
-      marketData.rateKeeper.baseParams.serializedParams as Hex,
+      gauge.baseParams.serializedParams,
     );
 
-    const rates = Object.fromEntries(
-      marketData.rateKeeper.rates.map(r => [r.token, r.rate]),
-    );
+    const rates = Object.fromEntries(gauge.rates.map(r => [r.token, r.rate]));
 
     const quotaParams: Record<Address, GaugeParams> = {};
 
@@ -93,26 +56,13 @@ export class GaugeContract extends ControllerTraitContract<abi> {
       };
     }
 
-    contract.state = {
-      ...contract.contractData,
+    this.state = {
+      address: gauge.baseParams.addr,
+      contractType: gauge.baseParams.contractType,
+      version: Number(gauge.baseParams.version),
       currentEpoch: Number(currentEpoch),
       epochFrozen,
       quotaParams,
     };
-
-    return contract;
-  }
-
-  protected constructor(args: {
-    address: Address;
-    factory: PoolFactory;
-    name: string;
-  }) {
-    super({
-      ...args,
-      chainClient: args.factory.sdk.v3,
-      name: `Gauge(${args.name})`,
-      abi: gaugeV3Abi,
-    });
   }
 }

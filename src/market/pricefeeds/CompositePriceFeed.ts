@@ -1,17 +1,22 @@
-import { compositePriceFeedAbi } from "../../oracles";
-import type { AssetPriceFeedState } from "../state/priceFactoryState";
+import { compositePriceFeedAbi } from "../../abi";
+import type { AssetPriceFeedState } from "../../state";
 import { AbstractDependentPriceFeed } from "./AbstractDependentPriceFeed";
-import type {
-  PriceFeedAttachArgs,
-  PriceFeedConstructorArgs,
-} from "./AbstractPriceFeed";
+import type { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
 import type { IPriceFeedContract } from "./types";
 
 type abi = typeof compositePriceFeedAbi;
 
 export class CompositePriceFeedContract extends AbstractDependentPriceFeed<abi> {
   readonly priceFeedType = "PF_COMPOSITE_ORACLE";
-  decimals = 8;
+
+  protected constructor(args: PriceFeedConstructorArgs<abi>) {
+    super({
+      ...args,
+      name: "CompositePriceFeed",
+      abi: compositePriceFeedAbi,
+      decimals: 8,
+    });
+  }
 
   get targetToBasePriceFeed(): IPriceFeedContract {
     return this.underlyingPricefeeds[0];
@@ -32,16 +37,5 @@ export class CompositePriceFeedContract extends AbstractDependentPriceFeed<abi> 
       stalenessPeriod: this.stalenessPeriod,
       skipCheck: true,
     };
-  }
-
-  public static attach(args: PriceFeedAttachArgs): CompositePriceFeedContract {
-    const contract = new CompositePriceFeedContract(args);
-    contract.attach();
-
-    return contract;
-  }
-
-  protected constructor(args: PriceFeedConstructorArgs) {
-    super({ ...args, name: `CompositePriceFeed`, abi: compositePriceFeedAbi });
   }
 }
