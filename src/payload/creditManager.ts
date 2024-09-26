@@ -53,6 +53,8 @@ export interface CreditManagerDataPayload {
 
   quotas: PoolDataPayload["quotas"];
   lirm: PoolDataPayload["lirm"];
+
+  isBorrowingForbidden: boolean;
 }
 
 export interface ChartsCreditManagerPayload {
