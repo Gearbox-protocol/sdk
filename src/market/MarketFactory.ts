@@ -1,10 +1,10 @@
-import { Address } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "@gearbox-protocol/sdk-gov";
 
 import { CreditFactory } from "../../factories/CreditFactory";
 import { PoolFactory } from "../../factories/PoolFactory";
-import { MarketDataStruct } from "../base/types";
-import { GearboxSDK } from "../SDKService";
-import { MarketState } from "../state/marketState";
+import type { MarketDataStruct } from "../base/types";
+import type { GearboxSDK } from "../SDKService";
+import type { MarketState } from "../state/marketState";
 import { PriceFeedFactory } from "./PriceFeedFactory";
 
 export class MarketFactory {

@@ -1,23 +1,22 @@
 import { PriceFeedType } from "@gearbox-protocol/sdk-gov";
 import { DataServiceWrapper } from "@redstone-finance/evm-connector/dist/src/wrappers/DataServiceWrapper";
-import { RedstonePayload, SignedDataPackage } from "redstone-protocol";
+import type { SignedDataPackage } from "redstone-protocol";
+import { RedstonePayload } from "redstone-protocol";
+import type { Address, Hex } from "viem";
 import {
-  Address,
-  Hex,
   bytesToString,
   decodeAbiParameters,
   encodeAbiParameters,
   toBytes,
 } from "viem";
+
 import { redstonePriceFeedAbi } from "../../oracles";
 import { DefaultLogger } from "../../utils/Logger";
-import { PriceFeedFactory } from "../market/PriceFeedFactory";
-import {
-  AbstractPriceFeedContract,
-  PriceFeedAttachArgs,
-} from "./AbstractPriceFeed";
-import { UpdatePFTask } from "./types";
-import { RedstonePriceFeedState } from "../state/priceFactoryState";
+import type { PriceFeedFactory } from "../market/PriceFeedFactory";
+import type { RedstonePriceFeedState } from "../state/priceFactoryState";
+import type { PriceFeedAttachArgs } from "./AbstractPriceFeed";
+import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
+import type { UpdatePFTask } from "./types";
 
 type abi = typeof redstonePriceFeedAbi;
 

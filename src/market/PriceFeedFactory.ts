@@ -1,14 +1,14 @@
-import { Address, getTokenSymbolOrTicker } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "@gearbox-protocol/sdk-gov";
+import { getTokenSymbolOrTicker } from "@gearbox-protocol/sdk-gov";
+import type { Hex } from "viem";
 
-import { Hex } from "viem";
 import { PriceOracleV3Contract } from "../../contracts/priceOracle/PriceOracleV3Contract";
 import { AP_ZERO_PRICE_FEED } from "../../core/addresses";
 import { Factory } from "../../core/factory";
-import { RawTx } from "../../core/transactions";
+import type { RawTx } from "../../core/transactions";
 import { bytes32ToString } from "../../utils/enumerate";
-import { GearboxSDK } from "../SDKService";
 import { BaseContract } from "../base/BaseContract";
-import {
+import type {
   MarketDataStruct,
   PriceFeedMapEntry,
   PriceFeedTreeNode,
@@ -24,16 +24,17 @@ import { CurveUSDPriceFeedContract } from "../pricefeeds/CurveUSDPriceFeed";
 import { Erc4626PriceFeedContract } from "../pricefeeds/Erc4626PriceFeed";
 import { MellowLRTPriceFeedContract } from "../pricefeeds/MellowLRTPriceFeed";
 import { RedstonePriceFeedContract } from "../pricefeeds/RedstonePriceFeed";
-import { WstETHPriceFeedContract } from "../pricefeeds/WstETHPriceFeed";
-import { YearnPriceFeedContract } from "../pricefeeds/YearnPriceFeed";
-import { ZeroPriceFeedContract } from "../pricefeeds/ZeroPriceFeed";
-import {
+import type {
   IPriceFeedContract,
   PriceFeedCompressorData,
   PriceFeedContractType,
   PriceFeedUsageType,
 } from "../pricefeeds/types";
-import { PriceOracleState } from "../state/priceFactoryState";
+import { WstETHPriceFeedContract } from "../pricefeeds/WstETHPriceFeed";
+import { YearnPriceFeedContract } from "../pricefeeds/YearnPriceFeed";
+import { ZeroPriceFeedContract } from "../pricefeeds/ZeroPriceFeed";
+import type { GearboxSDK } from "../SDKService";
+import type { PriceOracleState } from "../state/priceFactoryState";
 
 export interface UpdatePriceFeedsResult {
   txs: RawTx[];

@@ -1,14 +1,11 @@
 import { botPermissionsToString } from "@gearbox-protocol/sdk-gov";
-import {
-  Address,
-  DecodeFunctionDataReturnType,
-  Log,
-  parseEventLogs,
-} from "viem";
-import { Provider } from "../../deployer/Provider";
+import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
+import { parseEventLogs } from "viem";
+
+import type { Provider } from "../../deployer/Provider";
 import { botListV3Abi } from "../../generated";
 import { BaseContract } from "../../sdk/base/BaseContract";
-import { BotListState } from "../../sdk/state/coreState";
+import type { BotListState } from "../../sdk/state/coreState";
 
 type abi = typeof botListV3Abi;
 

@@ -1,6 +1,8 @@
-import { Address } from "viem";
-import { CoreState } from "./coreState";
-import { BaseContractStateHuman, convertBaseContractState } from "./stateHuman";
+import type { Address } from "viem";
+
+import type { CoreState } from "./coreState";
+import type { BaseContractStateHuman } from "./stateHuman";
+import { convertBaseContractState } from "./stateHuman";
 
 export interface AddressProviderV3StateHuman extends BaseContractStateHuman {
   addresses: Record<string, Record<number, string>>;
@@ -12,7 +14,7 @@ export interface ACLStateHuman extends BaseContractStateHuman {
   unpausableAdmins: Array<string>;
 }
 
-export type PolicyStructHuman = {
+export interface PolicyStructHuman {
   enabled: boolean;
   admin: string;
   delay: string;
@@ -29,23 +31,23 @@ export type PolicyStructHuman = {
   maxPctChangeUp: string;
   minChange: string;
   maxChange: string;
-};
+}
 
 export interface ControllerTimelockV3StateHuman extends BaseContractStateHuman {
   policies: Record<string, PolicyStructHuman>;
   groups: Record<string, Array<string>>;
 }
 
-export interface DegenNFT2StateHuman extends BaseContractStateHuman {}
+export type DegenNFT2StateHuman = BaseContractStateHuman;
 
 export interface GearStakingV3StateHuman extends BaseContractStateHuman {
   successor: string;
   migrator: string;
 }
 
-export interface AccountFactoryStateHuman extends BaseContractStateHuman {}
-export interface BotListStateHuman extends BaseContractStateHuman {}
-export interface ContractsRegisterStateHuman extends BaseContractStateHuman {}
+export type AccountFactoryStateHuman = BaseContractStateHuman;
+export type BotListStateHuman = BaseContractStateHuman;
+export type ContractsRegisterStateHuman = BaseContractStateHuman;
 
 export interface CoreStateHuman {
   addressProviderV3: AddressProviderV3StateHuman;

@@ -1,12 +1,13 @@
-import { Address } from "viem";
+import type { Address } from "viem";
+
 import contractsRegister from "../../../forge-out/default/ContractsRegister.sol/ContractsRegister.json";
 import { AP_CONTRACTS_REGISTER } from "../../core/addresses";
-import { RawTx } from "../../core/transactions";
-import { ContractInfo } from "../../deployer/types";
-import { CoreFactory } from "../../factories/CoreFactory";
+import type { RawTx } from "../../core/transactions";
+import type { ContractInfo } from "../../deployer/types";
+import type { CoreFactory } from "../../factories/CoreFactory";
 import { contractsRegisterAbi } from "../../generated";
 import { BaseContract } from "../base/BaseContract";
-import { ContractsRegisterState } from "../state/coreState";
+import type { ContractsRegisterState } from "../state/coreState";
 
 type abi = typeof contractsRegisterAbi;
 

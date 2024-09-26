@@ -1,9 +1,11 @@
-import { Address, decimals, getTokenSymbol } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "@gearbox-protocol/sdk-gov";
+import { decimals, getTokenSymbol } from "@gearbox-protocol/sdk-gov";
+
 import { ControllerTraitContract } from "../../core/controllerTrait";
-import { PoolFactory } from "../../factories/PoolFactory";
+import type { PoolFactory } from "../../factories/PoolFactory";
 import { poolQuotaKeeperV3Abi } from "../../generated";
-import { MarketDataStruct, PoolDataStruct } from "../base/types";
-import { PoolQuotaKeeperState } from "../state/poolState";
+import type { MarketDataStruct, PoolDataStruct } from "../base/types";
+import type { PoolQuotaKeeperState } from "../state/poolState";
 
 type abi = typeof poolQuotaKeeperV3Abi;
 

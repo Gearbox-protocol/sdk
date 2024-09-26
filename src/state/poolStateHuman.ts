@@ -1,14 +1,15 @@
 import { formatBNvalue, percentFmt } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
-import { Address } from "viem";
-import {
+import type {
   GaugeState,
   LinearModelState,
   PoolFactoryState,
   PoolQuotaKeeperState,
   PoolState,
 } from "./poolState";
-import { BaseContractStateHuman, convertBaseContractState } from "./stateHuman";
+import type { BaseContractStateHuman } from "./stateHuman";
+import { convertBaseContractState } from "./stateHuman";
 
 export interface CreditManagerDebtParamsHuman {
   borrowed: string;

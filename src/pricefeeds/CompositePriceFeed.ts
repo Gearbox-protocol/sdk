@@ -1,12 +1,11 @@
 import { compositePriceFeedAbi } from "../../oracles";
-
-import { AssetPriceFeedState } from "../state/priceFactoryState";
+import type { AssetPriceFeedState } from "../state/priceFactoryState";
 import { AbstractDependentPriceFeed } from "./AbstractDependentPriceFeed";
-import {
+import type {
   PriceFeedAttachArgs,
   PriceFeedConstructorArgs,
 } from "./AbstractPriceFeed";
-import { IPriceFeedContract } from "./types";
+import type { IPriceFeedContract } from "./types";
 
 type abi = typeof compositePriceFeedAbi;
 

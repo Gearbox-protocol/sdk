@@ -1,14 +1,15 @@
 import { ADDRESS_0X0 } from "@gearbox-protocol/sdk-gov";
-import { Abi, Address, Hex } from "viem";
-import { BaseContract } from "../base/BaseContract";
-import { PriceFeedFactory } from "../market/PriceFeedFactory";
+import type { Abi, Address, Hex } from "viem";
+
 import { ilpPriceFeedAbi } from "../../oracles";
-import {
+import { BaseContract } from "../base/BaseContract";
+import type { PriceFeedFactory } from "../market/PriceFeedFactory";
+import type { PriceFeedState } from "../state/priceFactoryState";
+import type {
   IPriceFeedContract,
-  PriceFeedParamsStruct,
   PriceFeedContractType,
+  PriceFeedParamsStruct,
 } from "./types";
-import { PriceFeedState } from "../state/priceFactoryState";
 
 export interface PriceFeedConstructorArgs {
   factory: PriceFeedFactory;

@@ -1,18 +1,18 @@
-import { Address } from "viem";
-import { CoreStateHuman, convertCoreStateToHuman } from "./coreStateHuman";
+import type { Address } from "viem";
+
+import type { CoreStateHuman } from "./coreStateHuman";
+import { convertCoreStateToHuman } from "./coreStateHuman";
 import { convertCreditFactoryStateToHuman } from "./creditStateHuman";
-import { MarketStateHuman } from "./marketStateHuman";
+import type { MarketStateHuman } from "./marketStateHuman";
 import {
-  PeripheryStateHuman,
   convertPeripheryStateToHuman,
+  PeripheryStateHuman,
 } from "./peripheryStateHuman";
 import { convertPoolFactoryStateToHuman } from "./poolStateHuman";
 import { convertPriceOracleStateToHuman } from "./priceFactoryStateHuman";
-import {
-  RouterStateHuman,
-  convertRouterStateToHuman,
-} from "./routerStateHuman";
-import { BaseContractState, GearboxState } from "./state";
+import type { RouterStateHuman } from "./routerStateHuman";
+import { convertRouterStateToHuman } from "./routerStateHuman";
+import type { BaseContractState, GearboxState } from "./state";
 
 export interface BaseContractStateHuman {
   address: string;

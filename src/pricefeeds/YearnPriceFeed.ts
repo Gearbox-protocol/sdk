@@ -1,11 +1,10 @@
 import { ADDRESS_0X0, PriceFeedType } from "@gearbox-protocol/sdk-gov";
+
 import { iyVaultAbi, yearnPriceFeedAbi } from "../../oracles";
-import {
-  AbstractLPPriceFeedContract,
-  LPPriceFeedConstructorArgs,
-} from "./AbstractLPPriceFeed";
-import { PriceFeedAttachArgs } from "./AbstractPriceFeed";
-import { AssetPriceFeedState } from "../state/priceFactoryState";
+import type { AssetPriceFeedState } from "../state/priceFactoryState";
+import type { LPPriceFeedConstructorArgs } from "./AbstractLPPriceFeed";
+import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
+import type { PriceFeedAttachArgs } from "./AbstractPriceFeed";
 
 type abi = typeof yearnPriceFeedAbi;
 export class YearnPriceFeedContract extends AbstractLPPriceFeedContract<abi> {

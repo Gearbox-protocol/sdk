@@ -1,16 +1,11 @@
-import {
-  Address,
-  DecodeFunctionDataReturnType,
-  Log,
-  bytesToString,
-  parseEventLogs,
-  toBytes,
-} from "viem";
+import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
+import { bytesToString, parseEventLogs, toBytes } from "viem";
+
 import { iAddressProviderV3_1Abi } from "../../compressors";
 import { NO_VERSION } from "../../core/addresses";
-import { Provider } from "../../deployer/Provider";
+import type { Provider } from "../../deployer/Provider";
 import { BaseContract } from "../../sdk/base/BaseContract";
-import { AddressProviderV3State } from "../../sdk/state/coreState";
+import type { AddressProviderV3State } from "../../sdk/state/coreState";
 
 type abi = typeof iAddressProviderV3_1Abi;
 

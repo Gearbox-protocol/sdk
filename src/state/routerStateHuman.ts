@@ -1,7 +1,9 @@
 import { RouterComponent, TokenType } from "@gearbox-protocol/sdk-gov";
-import { BaseContractStateHuman, convertBaseContractState } from "./stateHuman";
-import { RouterState, RouterV3ContractState } from "./routerState";
-import { Address } from "viem";
+import type { Address } from "viem";
+
+import type { RouterState, RouterV3ContractState } from "./routerState";
+import type { BaseContractStateHuman } from "./stateHuman";
+import { convertBaseContractState } from "./stateHuman";
 
 export interface RouterComponentRegisterHuman {
   routerComponent: string;

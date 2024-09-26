@@ -1,11 +1,13 @@
-import { Address, Hex } from "viem";
-import { CoreState } from "./coreState";
+import type { Address } from "viem";
+import { Hex } from "viem";
+
+import type { CoreState } from "./coreState";
 import { CreditFactoryState } from "./creditState";
+import type { MarketState } from "./marketState";
 import { PeripheryState } from "./peripheryState";
 import { PoolFactoryState } from "./poolState";
 import { PriceOracleState } from "./priceFactoryState";
-import { RouterState } from "./routerState";
-import { MarketState } from "./marketState";
+import type { RouterState } from "./routerState";
 
 export interface BaseContractState {
   address: Address;

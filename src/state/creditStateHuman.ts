@@ -5,14 +5,16 @@ import {
   getTokenSymbol,
   percentFmt,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
-import {
+import type { Address } from "viem";
+
+import type {
   CreditConfiguratorState,
   CreditFacadeState,
   CreditFactoryState,
   CreditManagerState,
 } from "./creditState";
-import { BaseContractStateHuman, convertBaseContractState } from "./stateHuman";
+import type { BaseContractStateHuman } from "./stateHuman";
+import { convertBaseContractState } from "./stateHuman";
 
 export interface CreditFacadeStateHuman extends BaseContractStateHuman {
   maxQuotaMultiplier: number;

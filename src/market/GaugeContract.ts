@@ -1,9 +1,11 @@
+import type { Address, Hex } from "viem";
+import { decodeAbiParameters } from "viem";
+
 import { ControllerTraitContract } from "../../core/controllerTrait";
-import { PoolFactory } from "../../factories/PoolFactory";
+import type { PoolFactory } from "../../factories/PoolFactory";
 import { gaugeV3Abi } from "../../generated";
-import { GaugeInfoStruct, MarketDataStruct } from "../base/types";
-import { Address, decodeAbiParameters, Hex } from "viem";
-import { GaugeParams, GaugeState } from "../state/poolState";
+import type { GaugeInfoStruct, MarketDataStruct } from "../base/types";
+import type { GaugeParams, GaugeState } from "../state/poolState";
 
 type abi = typeof gaugeV3Abi;
 

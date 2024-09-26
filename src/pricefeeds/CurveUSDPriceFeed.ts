@@ -1,11 +1,10 @@
 import { ADDRESS_0X0 } from "@gearbox-protocol/sdk-gov";
+
 import { curveUsdPriceFeedAbi, iCurvePoolAbi } from "../../oracles";
-import { AssetPriceFeedState } from "../state/priceFactoryState";
-import {
-  AbstractLPPriceFeedContract,
-  LPPriceFeedConstructorArgs,
-} from "./AbstractLPPriceFeed";
-import { PriceFeedAttachArgs } from "./AbstractPriceFeed";
+import type { AssetPriceFeedState } from "../state/priceFactoryState";
+import type { LPPriceFeedConstructorArgs } from "./AbstractLPPriceFeed";
+import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
+import type { PriceFeedAttachArgs } from "./AbstractPriceFeed";
 
 export class CurveUSDPriceFeedContract extends AbstractLPPriceFeedContract<
   typeof curveUsdPriceFeedAbi

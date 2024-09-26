@@ -1,6 +1,7 @@
-import { Abi } from "viem";
+import type { Abi } from "viem";
+
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
-import { IPriceFeedContract } from "./types";
+import type { IPriceFeedContract } from "./types";
 
 export abstract class AbstractDependentPriceFeed<
   const abi extends Abi | readonly unknown[],

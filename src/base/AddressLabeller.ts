@@ -1,18 +1,18 @@
+import type { Address, NetworkType } from "@gearbox-protocol/sdk-gov";
 import {
-  Address,
-  MULTISIG,
-  NOT_DEPLOYED,
-  NetworkType,
-  ROUTER_MULTISIG_ADDRESS,
-  TREASURY,
-  VETO_ADMIN,
   contractsByNetwork,
   emergencyLiquidators,
+  MULTISIG,
+  NOT_DEPLOYED,
+  ROUTER_MULTISIG_ADDRESS,
   tickerTokensByNetwork,
   tokenDataByNetwork,
+  TREASURY,
+  VETO_ADMIN,
 } from "@gearbox-protocol/sdk-gov";
-import { IAddressLabeller } from "./IAddressLabeller";
-import AddressMap from "../../utils/AddressMap";
+
+import { AddressMap } from "../utils";
+import type { IAddressLabeller } from "./IAddressLabeller";
 
 /**
  * Helper class to be used during transition from v3 to v3.1

@@ -1,9 +1,10 @@
 import { formatDuration } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
-import { Address } from "viem";
-import { PriceFeedContractType } from "../pricefeeds";
-import { PriceFeedState, PriceOracleState } from "./priceFactoryState";
-import { BaseContractStateHuman, convertBaseContractState } from "./stateHuman";
+import type { PriceFeedContractType } from "../pricefeeds";
+import type { PriceFeedState, PriceOracleState } from "./priceFactoryState";
+import type { BaseContractStateHuman } from "./stateHuman";
+import { convertBaseContractState } from "./stateHuman";
 
 export interface PriceFactoryStateHuman {
   priceOracleV3: PriceOracleV3StateHuman;
@@ -11,7 +12,7 @@ export interface PriceFactoryStateHuman {
   reservePriceFeeds: Record<string, PriceFeedStateHuman>;
 }
 
-export interface PriceOracleV3StateHuman extends BaseContractStateHuman {}
+export type PriceOracleV3StateHuman = BaseContractStateHuman;
 
 export type PriceFeedStateHuman =
   | BoundedOracleStateHuman

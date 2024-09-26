@@ -1,6 +1,6 @@
-import { CreditFactoryStateHuman } from "./creditStateHuman";
-import { PoolFactoryStateHuman } from "./poolStateHuman";
-import { PriceFactoryStateHuman } from "./priceFactoryStateHuman";
+import type { CreditFactoryStateHuman } from "./creditStateHuman";
+import type { PoolFactoryStateHuman } from "./poolStateHuman";
+import type { PriceFactoryStateHuman } from "./priceFactoryStateHuman";
 
 export interface MarketStateHuman {
   pool: PoolFactoryStateHuman;

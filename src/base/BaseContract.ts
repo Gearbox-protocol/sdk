@@ -1,29 +1,26 @@
-import { ADDRESS_0X0, Address } from "@gearbox-protocol/sdk-gov";
-import {
-  AbiFunction,
-  DecodeFunctionDataReturnType,
-  Hex,
-  Log,
-  decodeFunctionData,
-} from "viem";
-import { MultiCall, RawTx } from "../../core/transactions";
-import { createRawTx } from "../../utils/create-raw-tx";
-
-import {
+import type { Address } from "@gearbox-protocol/sdk-gov";
+import { ADDRESS_0X0 } from "@gearbox-protocol/sdk-gov";
+import type {
   Abi,
+  AbiFunction,
   Client,
   ContractFunctionName,
+  DecodeFunctionDataReturnType,
   EncodeFunctionDataParameters,
   GetContractReturnType,
-  getContract,
+  Hex,
+  Log,
 } from "viem";
+import { decodeFunctionData, getContract } from "viem";
 
-import { EncodeFunctionDataParams } from "../../core/types";
-import { Provider } from "../../deployer/Provider";
+import type { MultiCall, RawTx } from "../../core/transactions";
+import type { EncodeFunctionDataParams } from "../../core/types";
+import type { Provider } from "../../deployer/Provider";
 import { iVersionAbi } from "../../generated";
 import { json_stringify } from "../../utils/bigint-serializer";
-import { BaseContractState } from "../state/state";
-import { IAddressLabeller } from "./IAddressLabeller";
+import { createRawTx } from "../../utils/create-raw-tx";
+import type { BaseContractState } from "../state/state";
+import type { IAddressLabeller } from "./IAddressLabeller";
 
 export abstract class BaseContract<const abi extends Abi | readonly unknown[]> {
   contract: GetContractReturnType<abi, Client, Address>;
@@ -197,7 +194,7 @@ export abstract class BaseContract<const abi extends Abi | readonly unknown[]> {
       argsDescription,
     );
 
-    tx.description = argsDescription || this.parseFunctionData(tx.callData); //`${this.name}.${parameters.functionName}(${argsDescription || (args && args.length > 0) ? args!.join(", ") : ""})`;
+    tx.description = argsDescription || this.parseFunctionData(tx.callData); // `${this.name}.${parameters.functionName}(${argsDescription || (args && args.length > 0) ? args!.join(", ") : ""})`;
     this.v3.logger.debug(tx.description);
 
     return tx;

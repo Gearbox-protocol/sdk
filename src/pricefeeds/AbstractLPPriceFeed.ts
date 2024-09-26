@@ -1,8 +1,11 @@
-import { Address, PRICE_FEED_GROUP } from "@gearbox-protocol/sdk-gov";
-import { Abi, Hex, decodeAbiParameters, hexToBytes, parseAbi } from "viem";
+import type { Address } from "@gearbox-protocol/sdk-gov";
+import { PRICE_FEED_GROUP } from "@gearbox-protocol/sdk-gov";
+import type { Abi, Hex } from "viem";
+import { decodeAbiParameters, hexToBytes, parseAbi } from "viem";
+
 import { createRawTx } from "../../utils/create-raw-tx";
 import { AbstractDependentPriceFeed } from "./AbstractDependentPriceFeed";
-import { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
+import type { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
 
 const LOWER_BOUND_FACTOR = 99n;
 
@@ -90,7 +93,7 @@ export abstract class AbstractLPPriceFeedContract<
     this.lpToken = decoder[1];
     this.lowerBound = decoder[2];
     this.upperBound = decoder[3];
-    //(uint40);
+    // (uint40);
 
     // function getAggregatePrice() external view returns (int256 answer);
     // function getLPExchangeRate() external view returns (uint256 exchangeRate);

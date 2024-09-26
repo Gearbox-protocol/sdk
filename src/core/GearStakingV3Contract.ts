@@ -1,10 +1,11 @@
 import { ADDRESS_0X0 } from "@gearbox-protocol/sdk-gov";
-import { Address, DecodeFunctionDataReturnType } from "viem";
-import { Provider } from "../../deployer/Provider";
+import type { Address, DecodeFunctionDataReturnType } from "viem";
+
+import type { Provider } from "../../deployer/Provider";
 import { gearStakingV3Abi } from "../../generated";
 import { BaseContract } from "../../sdk/base/BaseContract";
 import { VotingContractStatus } from "../../sdk/base/types";
-import { GearStakingV3State } from "../../sdk/state/coreState";
+import type { GearStakingV3State } from "../../sdk/state/coreState";
 
 type abi = typeof gearStakingV3Abi;
 

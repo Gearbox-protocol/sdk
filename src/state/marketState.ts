@@ -1,6 +1,6 @@
-import { CreditFactoryState } from "./creditState";
-import { PoolFactoryState } from "./poolState";
-import { PriceOracleState } from "./priceFactoryState";
+import type { CreditFactoryState } from "./creditState";
+import type { PoolFactoryState } from "./poolState";
+import type { PriceOracleState } from "./priceFactoryState";
 
 export interface MarketState {
   pool: PoolFactoryState;

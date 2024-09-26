@@ -1,7 +1,8 @@
-import { PeripheryState, ZapperRegisterState } from "./peripheryState";
+import type { Address } from "viem";
 
-import { BaseContractStateHuman, convertBaseContractState } from "./stateHuman";
-import { Address } from "viem";
+import type { PeripheryState, ZapperRegisterState } from "./peripheryState";
+import type { BaseContractStateHuman } from "./stateHuman";
+import { convertBaseContractState } from "./stateHuman";
 
 export interface PeripheryStateHuman {
   dataCompressorV3?: BaseContractStateHuman;
@@ -10,7 +11,7 @@ export interface PeripheryStateHuman {
   zapperRegister: ZapperRegisterStateHuman;
 }
 
-export interface DegenDistributorStateHuman extends BaseContractStateHuman {}
+export type DegenDistributorStateHuman = BaseContractStateHuman;
 
 export interface ZapperInfoHuman {
   address: string;

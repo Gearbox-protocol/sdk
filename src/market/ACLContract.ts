@@ -1,13 +1,14 @@
-import { Address, Log, parseEventLogs } from "viem";
-import { AP_ACL } from "../../core/addresses";
-import { RawTx } from "../../core/transactions";
-import { CoreFactory } from "../../factories/CoreFactory";
-import { aclAbi } from "../../generated";
-import { BaseContract } from "../base/BaseContract";
+import type { Address, Log } from "viem";
+import { parseEventLogs } from "viem";
 
 import aCLContract from "../../../forge-out/default/ACL.sol/ACL.json";
-import { ContractInfo } from "../../deployer/types";
-import { ACLState } from "../state/coreState";
+import { AP_ACL } from "../../core/addresses";
+import type { RawTx } from "../../core/transactions";
+import type { ContractInfo } from "../../deployer/types";
+import type { CoreFactory } from "../../factories/CoreFactory";
+import { aclAbi } from "../../generated";
+import { BaseContract } from "../base/BaseContract";
+import type { ACLState } from "../state/coreState";
 
 type abi = typeof aclAbi;
 

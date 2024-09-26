@@ -1,14 +1,13 @@
 import { ADDRESS_0X0, PriceFeedType } from "@gearbox-protocol/sdk-gov";
-import { PriceFeedAttachArgs } from ".";
+
 import {
   bptWeightedPriceFeedAbi,
   iBalancerWeightedPoolAbi,
 } from "../../oracles";
-import {
-  AbstractLPPriceFeedContract,
-  LPPriceFeedConstructorArgs,
-} from "./AbstractLPPriceFeed";
-import { AssetPriceFeedState } from "../state/priceFactoryState";
+import type { AssetPriceFeedState } from "../state/priceFactoryState";
+import type { PriceFeedAttachArgs } from ".";
+import type { LPPriceFeedConstructorArgs } from "./AbstractLPPriceFeed";
+import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 
 type abi = typeof bptWeightedPriceFeedAbi;
 

@@ -1,21 +1,27 @@
-import { Address, getConnectors } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "@gearbox-protocol/sdk-gov";
+import { getConnectors } from "@gearbox-protocol/sdk-gov";
+
+import type { MultiCall } from "../../core/transactions";
 import { routerV3Abi } from "../../router";
 import { BaseContract } from "../base/BaseContract";
-import { RouterFactory } from "./RouterFactory";
-import { PathOptionFactory, TokenBalance } from "./pathOptions";
-import {
+import type { TokenBalance } from "./pathOptions";
+import { PathOptionFactory } from "./pathOptions";
+import type { RouterFactory } from "./RouterFactory";
+import type {
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,
   PathFinderResult,
   RouterResult,
   SwapOperation,
 } from "./types";
-import { MultiCall } from "../../core/transactions";
 
 const MAX_GAS_PER_ROUTE = BigInt(200e6);
 const GAS_PER_BLOCK = BigInt(400e6);
 
-export type BalanceStruct = { token: Address; balance: bigint };
+export interface BalanceStruct {
+  token: Address;
+  balance: bigint;
+}
 
 type abi = typeof routerV3Abi;
 

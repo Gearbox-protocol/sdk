@@ -1,16 +1,13 @@
-import {
-  ADDRESS_0X0,
-  PartialRecord,
-  TIMELOCK,
-} from "@gearbox-protocol/sdk-gov";
+import type { PartialRecord } from "@gearbox-protocol/sdk-gov";
+import { ADDRESS_0X0, TIMELOCK } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
-import { Address } from "viem";
-import { GearboxSDK } from "../SDKService";
-import { CreditFactoryState } from "../state/creditState";
-import { MarketState } from "../state/marketState";
-import { PoolFactoryState } from "../state/poolState";
+import type { CreditFactory } from "../../factories/CreditFactory";
+import type { GearboxSDK } from "../SDKService";
+import type { CreditFactoryState } from "../state/creditState";
+import type { MarketState } from "../state/marketState";
+import type { PoolFactoryState } from "../state/poolState";
 import { MarketFactory } from "./MarketFactory";
-import { CreditFactory } from "../../factories/CreditFactory";
 
 export class MarketRegister {
   protected markets: PartialRecord<string, MarketFactory> = {};

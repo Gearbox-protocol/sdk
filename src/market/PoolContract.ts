@@ -1,16 +1,15 @@
 import { decimals, formatBN, getTokenSymbol } from "@gearbox-protocol/sdk-gov";
-import {
-  Address,
-  DecodeFunctionDataReturnType,
-  Log,
-  parseEventLogs,
-} from "viem";
-import { BaseContract } from "../base/BaseContract";
+import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
+import { parseEventLogs } from "viem";
 
-import { Provider } from "../../deployer/Provider";
+import type { Provider } from "../../deployer/Provider";
 import { poolV3Abi } from "../../generated";
-import { CreditManagerDebtParamsStruct, MarketDataStruct } from "../base/types";
-import { PoolState } from "../state/poolState";
+import { BaseContract } from "../base/BaseContract";
+import type {
+  CreditManagerDebtParamsStruct,
+  MarketDataStruct,
+} from "../base/types";
+import type { PoolState } from "../state/poolState";
 
 const abi = poolV3Abi;
 
@@ -18,7 +17,7 @@ export class PoolContract extends BaseContract<typeof abi> {
   state: PoolState;
 
   // Contracts
-  hasOperation: boolean = false;
+  hasOperation = false;
 
   public static attachMarket(
     marketData: MarketDataStruct,

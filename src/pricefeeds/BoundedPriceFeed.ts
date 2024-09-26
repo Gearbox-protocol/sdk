@@ -1,7 +1,7 @@
 import { boundedPriceFeedAbi } from "../../oracles";
-import { BoundedOracleState } from "../state/priceFactoryState";
+import type { BoundedOracleState } from "../state/priceFactoryState";
 import { AbstractDependentPriceFeed } from "./AbstractDependentPriceFeed";
-import {
+import type {
   PriceFeedAttachArgs,
   PriceFeedConstructorArgs,
 } from "./AbstractPriceFeed";

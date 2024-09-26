@@ -1,12 +1,11 @@
 import { ADDRESS_0X0 } from "@gearbox-protocol/sdk-gov";
 import { erc4626Abi } from "viem";
+
 import { erc20Abi, erc4626PriceFeedAbi } from "../../oracles";
-import {
-  AbstractLPPriceFeedContract,
-  LPPriceFeedConstructorArgs,
-} from "./AbstractLPPriceFeed";
-import { PriceFeedAttachArgs } from "./AbstractPriceFeed";
-import { AssetPriceFeedState } from "../state/priceFactoryState";
+import type { AssetPriceFeedState } from "../state/priceFactoryState";
+import type { LPPriceFeedConstructorArgs } from "./AbstractLPPriceFeed";
+import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
+import type { PriceFeedAttachArgs } from "./AbstractPriceFeed";
 
 export class Erc4626PriceFeedContract extends AbstractLPPriceFeedContract<
   typeof erc4626PriceFeedAbi

@@ -1,15 +1,10 @@
-import { NetworkType } from "@gearbox-protocol/sdk-gov";
+import type { NetworkType } from "@gearbox-protocol/sdk-gov";
+import type { Chain, PublicClient } from "viem";
+import { createPublicClient, defineChain, http } from "viem";
 
-import {
-  Chain,
-  PublicClient,
-  createPublicClient,
-  defineChain,
-  http,
-} from "viem";
 import { AddressLabeller } from "../base/AddressLabeller";
-import { IAddressLabeller } from "../base/IAddressLabeller";
-import { Logged } from "../utils/Logger";
+import type { IAddressLabeller } from "../base/IAddressLabeller";
+import { Logged } from "../utils";
 import { chains } from "./chains";
 
 export class Provider extends Logged {

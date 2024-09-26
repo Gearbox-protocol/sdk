@@ -1,7 +1,8 @@
-import { Address, Hex } from "viem";
-import { RawTx } from "../../core/transactions";
-import { PriceFeedState } from "../state/priceFactoryState";
-import { BaseContractState } from "../state/state";
+import type { Address, Hex } from "viem";
+
+import type { RawTx } from "../../core/transactions";
+import type { PriceFeedState } from "../state/priceFactoryState";
+import type { BaseContractState } from "../state/state";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
 
@@ -50,9 +51,9 @@ export interface IPriceFeedContract {
 
   params: PriceFeedParamsStruct;
 
-  answer(overrides?: { blockNumber?: bigint }): Promise<bigint>;
+  answer: (overrides?: { blockNumber?: bigint }) => Promise<bigint>;
 
-  test_setAddress(address: Address): void;
+  test_setAddress: (address: Address) => void;
 }
 
 export interface UpdatePFTask {
@@ -62,11 +63,11 @@ export interface UpdatePFTask {
 }
 
 export interface ILPPriceFeedContract extends IPriceFeedContract {
-  getValue(): Promise<bigint>;
+  getValue: () => Promise<bigint>;
 
-  getLowerBound(): Promise<bigint>;
+  getLowerBound: () => Promise<bigint>;
 
-  currentLowerBound(): Promise<bigint>;
+  currentLowerBound: () => Promise<bigint>;
 }
 
 export interface PriceFeedCompressorData extends BaseContractState {

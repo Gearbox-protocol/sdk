@@ -1,5 +1,6 @@
 import { formatBN, TIMELOCK } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
+
 import { CreditAccountCompressorV3Contract } from "../contracts/periphery/CreditAccountCompressorV3Contract";
 import { MarketCompressorV3Contract } from "../contracts/periphery/MarketCompressorV3Contract";
 import {
@@ -10,15 +11,15 @@ import {
   AP_MARKET_COMPRESSOR,
   AP_ROUTER,
 } from "../core/addresses";
-import { Provider } from "./chain/Provider";
 import { RouterFactoryDeploy } from "../factories/RouterFactoryDeploy";
 import { getAddressProvider } from "../utils/get-address-provider";
 import { BaseContract } from "./base/BaseContract";
+import type { Provider } from "./chain/Provider";
 import { AddressProviderContractV3_1 } from "./core/AddressProviderV3_1Contract";
 import { BotListContract } from "./core/BotListV3Contract";
 import { GearStakingContract } from "./core/GearStakingV3Contract";
 import { MarketRegister } from "./market/MarketRegister";
-import { GearboxState } from "./state/state";
+import type { GearboxState } from "./state/state";
 
 export class GearboxSDK {
   // Represents chain object

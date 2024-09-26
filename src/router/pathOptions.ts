@@ -1,27 +1,29 @@
-import {
+import type {
   Address,
   BalancerLPToken,
-  balancerLpTokens,
-  contractParams,
   ConvexLPToken,
-  convexTokens,
   CurveLPToken,
   CurveParams,
+  NetworkType,
+  YearnLPToken,
+} from "@gearbox-protocol/sdk-gov";
+import {
+  balancerLpTokens,
+  contractParams,
+  convexTokens,
   curveTokens,
   getTokenSymbol,
   isBalancerLPToken,
   isCurveLPToken,
-  NetworkType,
   toBigInt,
   tokenDataByNetwork,
-  YearnLPToken,
   yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
-import {
+import type {
   AuraLPToken,
   AuraStakedToken,
-  auraTokens,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
+import { auraTokens } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 
 export interface PathOption {
   target: Address;

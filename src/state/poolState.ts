@@ -1,5 +1,6 @@
-import { Address } from "viem";
-import { BaseContractState } from "./state";
+import type { Address } from "viem";
+
+import type { BaseContractState } from "./state";
 
 export interface CreditManagerDebtParams {
   borrowed: bigint;

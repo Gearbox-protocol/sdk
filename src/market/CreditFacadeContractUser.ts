@@ -1,10 +1,11 @@
-import { Address, Hex } from "viem";
-import { BaseContract } from "../base/BaseContract";
-import { MultiCall, RawTx } from "../../core/transactions";
-import { CreditFactory } from "../../factories/CreditFactory";
+import type { Address, Hex } from "viem";
+
+import type { MultiCall, RawTx } from "../../core/transactions";
+import type { CreditFactory } from "../../factories/CreditFactory";
 import { creditFacadeV3Abi } from "../../generated";
-import { CreditManagerDataStruct } from "../base/types";
-import { CreditFacadeState } from "../state/creditState";
+import { BaseContract } from "../base/BaseContract";
+import type { CreditManagerDataStruct } from "../base/types";
+import type { CreditFacadeState } from "../state/creditState";
 
 type abi = typeof creditFacadeV3Abi;
 
