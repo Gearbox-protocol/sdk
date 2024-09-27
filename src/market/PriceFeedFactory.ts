@@ -1,22 +1,25 @@
 import { getTokenSymbolOrTicker } from "@gearbox-protocol/sdk-gov";
-import type { type Address, Hex } from "viem";
+import type { Address, Hex } from "viem";
 import { decodeFunctionData, encodeFunctionData } from "viem";
 
 import { iCreditFacadeV3MulticallAbi, iUpdatablePriceFeedAbi } from "../abi";
 import {
   BaseContract,
-  type MarketDataStruct,
+  type MarketData,
   type PriceFeedMapEntry,
   type PriceFeedTreeNode,
 } from "../base";
 import { AP_ZERO_PRICE_FEED } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
+import type { PriceOracleState } from "../state";
+import type { ILogger, MultiCall, RawTx } from "../types";
+import { bytes32ToString, childLogger } from "../utils";
 import type {
   IPriceFeedContract,
   PriceFeedCompressorData,
   PriceFeedContractType,
   PriceFeedUsageType,
-} from "../pricefeeds";
+} from "./pricefeeds";
 import {
   BalancerStablePriceFeedContract,
   BalancerWeightedPriceFeedContract,
@@ -32,10 +35,7 @@ import {
   WstETHPriceFeedContract,
   YearnPriceFeedContract,
   ZeroPriceFeedContract,
-} from "../pricefeeds";
-import type { PriceOracleState } from "../state";
-import type { ILogger, MultiCall, RawTx } from "../types";
-import { bytes32ToString, childLogger } from "../utils";
+} from "./pricefeeds";
 
 interface PriceFeedsForTokensOptions {
   main?: boolean;
@@ -84,16 +84,13 @@ export class PriceFeedFactory {
   public mainPrices: Record<Address, bigint> = {};
   public reservePrices: Record<Address, bigint> = {};
 
-  static attachMarket(
-    market: MarketDataStruct,
-    sdk: GearboxSDK,
-  ): PriceFeedFactory {
+  static attachMarket(market: MarketData, sdk: GearboxSDK): PriceFeedFactory {
     const factory = new PriceFeedFactory(sdk);
     return PriceFeedFactory.attachMarketInt(market, factory);
   }
 
   protected static attachMarketInt<T extends PriceFeedFactory>(
-    market: MarketDataStruct,
+    market: MarketData,
     factory: T,
   ): T {
     const { priceOracleData } = market;

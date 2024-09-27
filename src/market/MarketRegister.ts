@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import { iMarketCompressorAbi } from "../abi";
-import type { TokenMetaStruct } from "../base";
+import type { TokenMetaData } from "../base";
 import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type {
@@ -11,7 +11,9 @@ import type {
 } from "../state";
 import type { ILogger } from "../types";
 import { AddressMap, childLogger } from "../utils";
+import type { CreditFactory } from "./CreditFactory";
 import { MarketFactory } from "./MarketFactory";
+import type { PoolFactory } from "./PoolFactory";
 
 export class MarketRegister {
   #logger?: ILogger;
@@ -22,7 +24,7 @@ export class MarketRegister {
   /**
    * Token metadata such as symbol and decimals, common across all markets
    */
-  public readonly tokensMeta: AddressMap<TokenMetaStruct> = new AddressMap();
+  public readonly tokensMeta: AddressMap<TokenMetaData> = new AddressMap();
 
   readonly #sdk: GearboxSDK;
 
@@ -76,16 +78,8 @@ export class MarketRegister {
     return this.markets.map(market => market!.poolFactory);
   }
 
-  public get creditManagers(): Array<CreditFactory> {
+  public get creditManagers(): CreditFactory[] {
     return this.markets.flatMap(market => market!.creditManagers);
-  }
-
-  public getNewCollateralTokens(): Set<Address> {
-    return new Set(
-      Object.values(this.#markets)
-        .flatMap(market => market.creditManagers)
-        .flatMap(cm => cm.newCollateralTokens),
-    );
   }
 
   public findCreditManager(creditManager: Address): CreditFactory {

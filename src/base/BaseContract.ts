@@ -13,7 +13,6 @@ import type {
 import { decodeFunctionData, getContract } from "viem";
 
 import { iVersionAbi } from "../abi";
-import type { Provider } from "../chain";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { BaseContractState } from "../state";
@@ -41,11 +40,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
   contractType: string;
   #name: string;
   #address: Address;
-  public readonly provider: Provider;
-
-  static contractByAddress(address: Address): BaseContract<any> {
-    return BaseContract.register[address.toLowerCase() as Address];
-  }
+  protected readonly sdk: GearboxSDK;
 
   constructor(args: BaseContractOptions<abi>) {
     this.abi = args.abi;
@@ -58,7 +53,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
         public: args.sdk.provider.publicClient,
       },
     });
-    this.provider = args.sdk.provider;
+    this.sdk = args.sdk;
     this.#name = args.name || args.contractType || this.#address;
     this.version = args.version || 0;
     this.contractType = args.contractType || "";
@@ -170,7 +165,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
 
   async getVersion(): Promise<number> {
     this.version = Number(
-      await this.provider.publicClient.readContract({
+      await this.sdk.provider.publicClient.readContract({
         abi: iVersionAbi,
         functionName: "version",
         address: this.address,
@@ -204,10 +199,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
     return tx;
   }
 
-  /**
-   * Expose this as getter for ease of refactoring
-   */
-  public get addressLabels(): IAddressLabeller {
-    return this.provider.addressLabels;
+  protected get addressLabels(): IAddressLabeller {
+    return this.sdk.provider.addressLabels;
   }
 }

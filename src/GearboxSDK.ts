@@ -23,7 +23,7 @@ import { MarketRegister } from "./market/MarketRegister";
 import { RouterV3Contract } from "./router";
 import type { GearboxState } from "./state/state";
 import type { ILogger } from "./types";
-import { childLogger } from "./utils";
+import { AddressMap, childLogger } from "./utils";
 import { createAnvilClient } from "./utils/viem";
 
 export interface SDKAttachOptions {
@@ -80,6 +80,14 @@ export class GearboxSDK {
   #router?: RouterV3Contract;
 
   public readonly logger?: ILogger;
+
+  /**
+   * Interest rate models can be reused across chain (and SDK operates on chain level)
+   * TODO: use whatever interface is necessary for InterestRateModels
+   */
+  public readonly interestRateModels = new AddressMap<
+    BaseContract<readonly unknown[]>
+  >();
 
   public static async attach(options: SDKAttachOptions): Promise<GearboxSDK> {
     const { rpcURL, timeout, logger } = options;

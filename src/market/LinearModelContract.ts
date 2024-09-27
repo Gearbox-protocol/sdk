@@ -1,28 +1,25 @@
-import type { Address, Hex } from "viem";
 import { decodeAbiParameters } from "viem";
 
 import { linearInterestRateModelV3Abi } from "../abi";
-import { BaseContract } from "../base/BaseContract";
-import type { MarketDataStruct } from "../base/types";
-import type { LinearModelState } from "../state/poolState";
+import type { MarketData } from "../base";
+import { BaseContract } from "../base";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { LinearModelState } from "../state";
 
 type abi = typeof linearInterestRateModelV3Abi;
 
 export class LinearModelContract extends BaseContract<abi> {
-  static deployedModels: Array<LinearModelContract> = [];
-  state: LinearModelState;
+  public readonly state: LinearModelState;
 
-  static attachMarket(
-    marketData: MarketDataStruct,
-    chainClient: Provider,
-  ): LinearModelContract {
-    const existingContract = LinearModelContract.findExistingModelByAddress(
-      marketData.interestRateModel.baseParams.addr as Address,
-    );
-
-    if (existingContract) {
-      return existingContract;
-    }
+  constructor({ interestRateModel }: MarketData, sdk: GearboxSDK) {
+    super({
+      sdk,
+      address: interestRateModel.baseParams.addr,
+      contractType: interestRateModel.baseParams.contractType,
+      version: Number(interestRateModel.baseParams.version),
+      name: "LinearInterestRateModel",
+      abi: linearInterestRateModelV3Abi,
+    });
 
     const [
       U1,
@@ -42,51 +39,18 @@ export class LinearModelContract extends BaseContract<abi> {
         { type: "uint16", name: "Rslope3" },
         { type: "bool", name: "isBorrowingMoreU2Forbidden" },
       ],
-      marketData.interestRateModel.baseParams.serializedParams as Hex,
+      interestRateModel.baseParams.serializedParams,
     );
 
-    const contract = new LinearModelContract({
-      address: marketData.interestRateModel.baseParams.addr as Address,
-      chainClient,
-      params: {
-        U1,
-        U2,
-        Rbase,
-        Rslope1,
-        Rslope2,
-        Rslope3,
-        isBorrowingMoreU2Forbidden,
-      },
-    });
-
-    this.deployedModels.push(contract);
-
-    return contract;
-  }
-
-  constructor(args: {
-    address: Address;
-    chainClient: Provider;
-    params: LinearIRMParams;
-  }) {
-    super({
-      ...args,
-      name: "LinearInterestRateModel",
-      abi: linearInterestRateModelV3Abi,
-    });
     this.state = {
       ...this.contractData,
-      ...args.params,
+      U1,
+      U2,
+      Rbase,
+      Rslope1,
+      Rslope2,
+      Rslope3,
+      isBorrowingMoreU2Forbidden,
     };
-  }
-
-  static findExistingModelByAddress(
-    address: Address,
-  ): LinearModelContract | undefined {
-    for (const model of LinearModelContract.deployedModels) {
-      if (model.address.toLowerCase() === address.toLowerCase()) {
-        return model;
-      }
-    }
   }
 }

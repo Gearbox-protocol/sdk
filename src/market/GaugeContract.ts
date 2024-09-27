@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { decodeAbiParameters } from "viem";
 
 import { gaugeV3Abi } from "../abi";
-import type { PoolStruct, RateKeeperStruct } from "../base";
+import type { PoolData, RateKeeperData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { GaugeParams, GaugeState } from "../state";
@@ -12,7 +12,7 @@ type abi = typeof gaugeV3Abi;
 export class GaugeContract extends BaseContract<abi> {
   state: GaugeState;
 
-  constructor(pool: PoolStruct, gauge: RateKeeperStruct, sdk: GearboxSDK) {
+  constructor(pool: PoolData, gauge: RateKeeperData, sdk: GearboxSDK) {
     super({
       sdk,
       address: gauge.baseParams.addr,
@@ -57,9 +57,7 @@ export class GaugeContract extends BaseContract<abi> {
     }
 
     this.state = {
-      address: gauge.baseParams.addr,
-      contractType: gauge.baseParams.contractType,
-      version: Number(gauge.baseParams.version),
+      ...this.contractData,
       currentEpoch: Number(currentEpoch),
       epochFrozen,
       quotaParams,

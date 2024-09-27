@@ -1,8 +1,10 @@
 import type { Address } from "viem";
 
-import type { MarketDataStruct } from "../base";
+import type { MarketData } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { MarketState } from "../state/marketState";
+import type { MarketState } from "../state";
+import { CreditFactory } from "./CreditFactory";
+import { PoolFactory } from "./PoolFactory";
 import { PriceFeedFactory } from "./PriceFeedFactory";
 
 export class MarketFactory {
@@ -11,12 +13,12 @@ export class MarketFactory {
   public readonly priceFeedFactory: PriceFeedFactory;
   public readonly creditManagers: CreditFactory[] = [];
 
-  constructor(marketData: MarketDataStruct, sdk: GearboxSDK) {
+  constructor(marketData: MarketData, sdk: GearboxSDK) {
     this.riskCurator = marketData.owner;
-    this.poolFactory = PoolFactory.attachMarket(marketData, sdk);
+    this.poolFactory = new PoolFactory(marketData, sdk);
 
     for (let i = 0; i < marketData.creditManagers.length; i++) {
-      this.creditManagers.push(CreditFactory.attachMarket(marketData, i, sdk));
+      this.creditManagers.push(new CreditFactory(marketData, i, sdk));
     }
 
     this.priceFeedFactory = PriceFeedFactory.attachMarket(marketData, sdk);

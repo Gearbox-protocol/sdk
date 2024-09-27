@@ -3,7 +3,7 @@ import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
 import { parseEventLogs } from "viem";
 
 import { poolV3Abi } from "../abi";
-import type { CreditManagerDebtParamsStruct, PoolStruct } from "../base";
+import type { CreditManagerDebtParamsStruct, PoolData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PoolState } from "../state";
@@ -16,7 +16,7 @@ export class PoolContract extends BaseContract<typeof abi> {
   // Contracts
   hasOperation = false;
 
-  constructor(data: PoolStruct, sdk: GearboxSDK) {
+  constructor(data: PoolData, sdk: GearboxSDK) {
     super({
       sdk,
       version: Number(data.baseParams.version),
@@ -41,14 +41,12 @@ export class PoolContract extends BaseContract<typeof abi> {
     // TODO: avoid reading decimals from sdk-gov
     this.state = {
       ...data,
-      contractType: data.baseParams.contractType,
+      ...this.contractData,
       lastBaseInterestUpdate: data.lastBaseInterestUpdate,
       underlying: data.underlying as Address,
       decimals: decimals[getTokenSymbol(data.underlying as Address)!],
       creditManagerDebtParams,
       withdrawFee: Number(data.withdrawFee),
-      address: data.baseParams.addr as Address,
-      version: Number(data.baseParams.version),
     };
   }
 

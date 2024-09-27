@@ -1,35 +1,21 @@
 import type { Address } from "viem";
 
-import type { MarketDataStruct } from "../base";
+import type { MarketData } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { PoolFactoryState, QuotaParams } from "../state";
+import type { PoolFactoryState } from "../state";
 import { GaugeContract } from "./GaugeContract";
 import { LinearModelContract } from "./LinearModelContract";
 import { PoolContract } from "./PoolContract";
 import { PoolQuotaKeeperContract } from "./PoolQuotaKeeperContract";
 
 export class PoolFactory {
-  underlying: Address;
-  quotedTokens: Record<Address, QuotaParams> = {};
+  public readonly underlying: Address;
+  public readonly poolContract: PoolContract;
+  public readonly pqkContract: PoolQuotaKeeperContract;
+  public readonly gaugeContract: GaugeContract;
+  public readonly linearModel: LinearModelContract;
 
-  poolContract: PoolContract;
-  pqkContract: PoolQuotaKeeperContract;
-  gaugeContract: GaugeContract;
-  // quotaParams: Array<GaugeQuotaParamsStruct>;
-  linearModel: LinearModelContract;
-
-  farmingPools: Set<Address> = new Set();
-
-  public get state(): PoolFactoryState {
-    return {
-      pool: this.poolContract.state,
-      poolQuotaKeeper: this.pqkContract.state,
-      linearModel: this.linearModel.state,
-      gauge: this.gaugeContract.state,
-    };
-  }
-
-  constructor(data: MarketDataStruct, sdk: GearboxSDK) {
+  constructor(data: MarketData, sdk: GearboxSDK) {
     this.underlying = data.pool.underlying as Address;
     this.poolContract = new PoolContract(data.pool, sdk);
     this.pqkContract = new PoolQuotaKeeperContract(
@@ -38,7 +24,26 @@ export class PoolFactory {
       sdk,
     );
     this.gaugeContract = new GaugeContract(data.pool, data.rateKeeper, sdk);
-    this.linearModel = LinearModelContract.attachMarket(data, sdk.v3);
-    this.quotedTokens = this.pqkContract.state.quotas;
+    const irModelAddr = data.interestRateModel.baseParams.addr;
+
+    if (sdk.interestRateModels.has(irModelAddr)) {
+      // TODO: provide interface when necessary
+      this.linearModel = sdk.interestRateModels.mustGet(
+        irModelAddr,
+      ) as any as LinearModelContract;
+    } else {
+      const linearModel = new LinearModelContract(data, sdk);
+      sdk.interestRateModels.insert(irModelAddr, linearModel as any);
+      this.linearModel = linearModel;
+    }
+  }
+
+  public get state(): PoolFactoryState {
+    return {
+      pool: this.poolContract.state,
+      poolQuotaKeeper: this.pqkContract.state,
+      linearModel: this.linearModel.state,
+      gauge: this.gaugeContract.state,
+    };
   }
 }

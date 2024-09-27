@@ -3,7 +3,7 @@ import type { Address } from "viem";
 
 import { routerV3Abi } from "../abi";
 import { BaseContract } from "../base";
-import type { CreditAccountStruct } from "../base/types";
+import type { CreditAccountData } from "../base/types";
 import type { GearboxSDK } from "../GearboxSDK";
 import { AddressMap } from "../utils";
 import type { PathOptionSerie } from "./PathOptionFactory";
@@ -74,7 +74,7 @@ export class RouterV3Contract extends BaseContract<abi> {
    * @returns
    */
   public async findAllSwaps(
-    ca: CreditAccountStruct,
+    ca: CreditAccountData,
     cm: CreditManagerSlice,
     swapOperation: SwapOperation,
     tokenIn: Address,
@@ -130,7 +130,7 @@ export class RouterV3Contract extends BaseContract<abi> {
    * @returns
    */
   public async findOneTokenPath(
-    ca: CreditAccountStruct,
+    ca: CreditAccountData,
     cm: CreditManagerSlice,
     tokenIn: Address,
     tokenOut: Address,
@@ -233,7 +233,7 @@ export class RouterV3Contract extends BaseContract<abi> {
    *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
    */
   public async findBestClosePath(
-    ca: CreditAccountStruct,
+    ca: CreditAccountData,
     cm: CreditManagerSlice,
     slippage: bigint | number,
   ): Promise<RouterCloseResult> {
@@ -286,7 +286,7 @@ export class RouterV3Contract extends BaseContract<abi> {
   }
 
   #getBestClosePathInput(
-    ca: CreditAccountStruct,
+    ca: CreditAccountData,
     cm: CreditManagerSlice,
   ): FindBestClosePathInterm {
     const expectedBalances: Record<Address, Asset> = {};
