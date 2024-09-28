@@ -1,16 +1,17 @@
 import { compositePriceFeedAbi } from "../../abi";
+import type { PriceFeedTreeNode } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
 import type { AssetPriceFeedState } from "../../state";
-import { AbstractDependentPriceFeed } from "./AbstractDependentPriceFeed";
-import type { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
-import type { IPriceFeedContract } from "./types";
+import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
+import type { PriceFeedRef } from "./PriceFeedRef";
 
 type abi = typeof compositePriceFeedAbi;
 
-export class CompositePriceFeedContract extends AbstractDependentPriceFeed<abi> {
+export class CompositePriceFeedContract extends AbstractPriceFeedContract<abi> {
   readonly priceFeedType = "PF_COMPOSITE_ORACLE";
 
-  protected constructor(args: PriceFeedConstructorArgs<abi>) {
-    super({
+  constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
+    super(sdk, {
       ...args,
       name: "CompositePriceFeed",
       abi: compositePriceFeedAbi,
@@ -18,15 +19,15 @@ export class CompositePriceFeedContract extends AbstractDependentPriceFeed<abi> 
     });
   }
 
-  get targetToBasePriceFeed(): IPriceFeedContract {
-    return this.underlyingPricefeeds[0];
+  get targetToBasePriceFeed(): PriceFeedRef {
+    return this.underlyingPriceFeeds[0];
   }
 
-  get baseToUsdPriceFeed(): IPriceFeedContract {
-    return this.underlyingPricefeeds[1];
+  get baseToUsdPriceFeed(): PriceFeedRef {
+    return this.underlyingPriceFeeds[1];
   }
 
-  public get state(): AssetPriceFeedState {
+  public get state(): Omit<AssetPriceFeedState, "stalenessPeriod"> {
     return {
       ...this.contractData,
       contractType: this.priceFeedType,
@@ -34,7 +35,6 @@ export class CompositePriceFeedContract extends AbstractDependentPriceFeed<abi> 
         this.targetToBasePriceFeed.state,
         this.baseToUsdPriceFeed.state,
       ],
-      stalenessPeriod: this.stalenessPeriod,
       skipCheck: true,
     };
   }

@@ -12,12 +12,11 @@ export class CreditManagerContract extends BaseContract<abi> {
   public readonly state: CreditManagerState;
 
   constructor(
+    sdk: GearboxSDK,
     { creditManager, creditFacade }: CreditManagerData,
     pool: PoolData,
-    sdk: GearboxSDK,
   ) {
-    super({
-      sdk,
+    super(sdk, {
       address: creditManager.baseParams.addr,
       version: Number(creditManager.baseParams.version),
       contractType: creditManager.baseParams.contractType,

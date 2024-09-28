@@ -12,14 +12,8 @@ type abi = typeof botListV3Abi;
 export class BotListContract extends BaseContract<abi> {
   approvedCreditManagers: Set<Address> = new Set();
 
-  get state(): BotListState {
-    return {
-      ...this.contractData,
-    };
-  }
-
-  constructor(args: { address: Address; sdk: GearboxSDK }) {
-    super({ ...args, name: "BotListV3", abi: botListV3Abi });
+  constructor(sdk: GearboxSDK, address: Address) {
+    super(sdk, { address, name: "BotListV3", abi: botListV3Abi });
   }
 
   parseFunctionParams(
@@ -80,5 +74,11 @@ export class BotListContract extends BaseContract<abi> {
         this.logger?.warn(`Unknown event: ${parsedLog.eventName}`);
         break;
     }
+  }
+
+  public get state(): BotListState {
+    return {
+      ...this.contractData,
+    };
   }
 }

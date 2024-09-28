@@ -1,33 +1,33 @@
 import { iMellowVaultAbi, mellowLrtPriceFeedAbi } from "../../abi";
+import type { PriceFeedTreeNode } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
 import type { AssetPriceFeedState } from "../../state";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
-import type { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
 
 type abi = typeof mellowLrtPriceFeedAbi;
 
 export class MellowLRTPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
   readonly priceFeedType = "PF_MELLOW_LRT_ORACLE";
 
-  protected constructor(args: PriceFeedConstructorArgs<abi>) {
-    super({
+  constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
+    super(sdk, {
       ...args,
       name: "MellowLRTPriceFeed",
       abi: mellowLrtPriceFeedAbi,
     });
   }
 
-  public get state(): AssetPriceFeedState {
+  public get state(): Omit<AssetPriceFeedState, "stalenessPeriod"> {
     return {
       ...this.contractData,
       contractType: this.priceFeedType,
-      stalenessPeriod: this.stalenessPeriod,
       skipCheck: true,
-      pricefeeds: [this.underlyingPricefeeds[0].state],
+      pricefeeds: [this.underlyingPriceFeeds[0].state],
     };
   }
 
   public async getValue(): Promise<bigint> {
-    const stack = await this.provider.publicClient.readContract({
+    const stack = await this.sdk.provider.publicClient.readContract({
       abi: iMellowVaultAbi,
       address: this.lpContract,
       functionName: "calculateStack",

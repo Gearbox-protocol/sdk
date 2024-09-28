@@ -12,9 +12,8 @@ type abi = typeof gaugeV3Abi;
 export class GaugeContract extends BaseContract<abi> {
   state: GaugeState;
 
-  constructor(pool: PoolData, gauge: RateKeeperData, sdk: GearboxSDK) {
-    super({
-      sdk,
+  constructor(sdk: GearboxSDK, pool: PoolData, gauge: RateKeeperData) {
+    super(sdk, {
       address: gauge.baseParams.addr,
       contractType: gauge.baseParams.contractType,
       version: Number(gauge.baseParams.version),
@@ -22,25 +21,26 @@ export class GaugeContract extends BaseContract<abi> {
       abi: gaugeV3Abi,
     });
 
-    const [voter, currentEpoch, epochFrozen, gaugeParams] = decodeAbiParameters(
-      [
-        { name: "voter", type: "address" },
-        { name: "currentEpoch", type: "uint256" },
-        { name: "epochFrozen", type: "bool" },
-        {
-          name: "quotaParams",
-          type: "tuple[]",
-          components: [
-            { name: "token", type: "address" },
-            { name: "minRate", type: "uint256" },
-            { name: "maxRate", type: "uint256" },
-            { name: "totalVotesLpSide", type: "uint256" },
-            { name: "totalVotesCaSide", type: "uint256" },
-          ],
-        },
-      ],
-      gauge.baseParams.serializedParams,
-    );
+    const [_voter, currentEpoch, epochFrozen, gaugeParams] =
+      decodeAbiParameters(
+        [
+          { name: "voter", type: "address" },
+          { name: "currentEpoch", type: "uint256" },
+          { name: "epochFrozen", type: "bool" },
+          {
+            name: "quotaParams",
+            type: "tuple[]",
+            components: [
+              { name: "token", type: "address" },
+              { name: "minRate", type: "uint256" },
+              { name: "maxRate", type: "uint256" },
+              { name: "totalVotesLpSide", type: "uint256" },
+              { name: "totalVotesCaSide", type: "uint256" },
+            ],
+          },
+        ],
+        gauge.baseParams.serializedParams,
+      );
 
     const rates = Object.fromEntries(gauge.rates.map(r => [r.token, r.rate]));
 

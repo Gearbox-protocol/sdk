@@ -48,17 +48,14 @@ interface CreditManagerSlice {
 
 export class RouterV3Contract extends BaseContract<abi> {
   readonly #connectors: Address[];
-  readonly #sdk: GearboxSDK;
 
-  constructor(address: Address, sdk: GearboxSDK) {
-    super({
+  constructor(sdk: GearboxSDK, address: Address) {
+    super(sdk, {
       address: address,
-      chainClient: sdk.provider,
       name: "RouterV3",
       abi: routerV3Abi,
     });
     this.#connectors = getConnectors(sdk.provider.networkType);
-    this.#sdk = sdk;
   }
 
   /**
@@ -239,7 +236,7 @@ export class RouterV3Contract extends BaseContract<abi> {
   ): Promise<RouterCloseResult> {
     const { pathOptions, expected, leftover, connectors } =
       this.#getBestClosePathInput(ca, cm);
-    this.#sdk.emit("foundPathOptions", { pathOptions });
+    this.sdk.emit("foundPathOptions", { pathOptions });
     let results: RouterResult[] = [];
     for (const po of pathOptions) {
       // TODO: maybe Promise.all?
@@ -278,7 +275,7 @@ export class RouterV3Contract extends BaseContract<abi> {
       })),
       underlyingBalance: underlyingBalance + bestResult.minAmount,
     };
-    this.#sdk.emit("foundBestClosePath", {
+    this.sdk.emit("foundBestClosePath", {
       creditAccount: ca.creditAccount as Address,
       ...result,
     });
@@ -296,7 +293,7 @@ export class RouterV3Contract extends BaseContract<abi> {
       const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
       expectedBalances[token] = { token, balance };
       const decimals =
-        this.#sdk.marketRegister.tokensMeta.mustGet(token).decimals;
+        this.sdk.marketRegister.tokensMeta.mustGet(token).decimals;
       // filter out dust, we don't want to swap it
       const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
       // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it

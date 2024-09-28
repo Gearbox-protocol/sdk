@@ -2,21 +2,24 @@ import type { Address } from "@gearbox-protocol/sdk-gov";
 import type { Abi } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
-import { AbstractDependentPriceFeed } from "./AbstractDependentPriceFeed";
-import type { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
+import type { GearboxSDK } from "../../GearboxSDK";
+import {
+  AbstractPriceFeedContract,
+  type PriceFeedConstructorArgs,
+} from "./AbstractPriceFeed";
 
 const LOWER_BOUND_FACTOR = 99n;
 
 export abstract class AbstractLPPriceFeedContract<
   const abi extends Abi | readonly unknown[],
-> extends AbstractDependentPriceFeed<abi> {
+> extends AbstractPriceFeedContract<abi> {
   public readonly lpContract: Address;
   public readonly lpToken: Address;
   public readonly lowerBound: bigint;
   public readonly upperBound: bigint;
 
-  constructor(args: PriceFeedConstructorArgs<abi>) {
-    super({ ...args, decimals: 8 });
+  constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
+    super(sdk, { ...args, decimals: 8 });
     this.hasLowerBoundCap = true;
     const decoder = decodeAbiParameters(
       [
@@ -44,8 +47,7 @@ export abstract class AbstractLPPriceFeedContract<
   async getLowerBound(): Promise<bigint> {
     const value = await this.getValue();
     const lowerBound = AbstractLPPriceFeedContract.toLowerBound(value);
-
-    this.provider.logger.debug(
+    this.logger?.debug(
       `Lowerbound for ${this.addressLabels.get(this.address)}: ${lowerBound}`,
     );
     return lowerBound;

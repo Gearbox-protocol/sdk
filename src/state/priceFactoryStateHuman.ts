@@ -1,7 +1,7 @@
 import { formatDuration } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
-import type { PriceFeedContractType } from "../pricefeeds";
+import type { PriceFeedContractType } from "../market/pricefeeds";
 import type { PriceFeedState, PriceOracleState } from "./priceFactoryState";
 import type { BaseContractStateHuman } from "./stateHuman";
 import { convertBaseContractState } from "./stateHuman";
@@ -46,7 +46,7 @@ export interface RedstonePriceFeedStateHuman extends BasePriceFeedStateHuman {
 export function convertPriceOracleStateToHuman(
   state: PriceOracleState,
   labelAddress: (address: Address) => string,
-  raw = true,
+  _raw = true,
 ): PriceFactoryStateHuman {
   return {
     priceOracleV3: {

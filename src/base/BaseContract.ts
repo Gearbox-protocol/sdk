@@ -19,17 +19,19 @@ import type { BaseContractState } from "../state";
 import type { ILogger, MultiCall, RawTx } from "../types";
 import { childLogger, createRawTx, json_stringify } from "../utils";
 import type { IAddressLabeller } from "./IAddressLabeller";
+import { SDKConstruct } from "./SDKConstruct";
 
 export interface BaseContractOptions<abi extends Abi | readonly unknown[]> {
   abi: abi;
   address: Address;
-  sdk: GearboxSDK;
   name: string;
   version?: number;
   contractType?: string;
 }
 
-export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
+export abstract class BaseContract<
+  abi extends Abi | readonly unknown[],
+> extends SDKConstruct {
   contract: GetContractReturnType<abi, Client, Address>;
   public readonly abi: abi;
   public readonly logger?: ILogger;
@@ -40,9 +42,9 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
   contractType: string;
   #name: string;
   #address: Address;
-  protected readonly sdk: GearboxSDK;
 
-  constructor(args: BaseContractOptions<abi>) {
+  constructor(sdk: GearboxSDK, args: BaseContractOptions<abi>) {
+    super(sdk);
     this.abi = args.abi;
     this.#address = args.address.toLowerCase() as Address;
 
@@ -50,14 +52,13 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
       address: this.address,
       abi: this.abi,
       client: {
-        public: args.sdk.provider.publicClient,
+        public: sdk.provider.publicClient,
       },
     });
-    this.sdk = args.sdk;
     this.#name = args.name || args.contractType || this.#address;
     this.version = args.version || 0;
     this.contractType = args.contractType || "";
-    this.logger = childLogger(this.#name, args.sdk.logger);
+    this.logger = childLogger(this.#name, sdk.logger);
 
     BaseContract.register[this.#address.toLowerCase() as Address] = this;
   }
@@ -178,7 +179,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
   public createRawTx<
     functionName extends ContractFunctionName<abi> | undefined = undefined,
   >(
-    parameters: EncodeFunctionDataParameters<abi, functionName> & {
+    parameters: Omit<EncodeFunctionDataParameters<abi, functionName>, "abi"> & {
       description?: string;
     },
   ): RawTx {
@@ -189,7 +190,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]> {
       {
         ...parameters,
         abi: this.abi,
-      },
+      } as EncodeFunctionDataParameters<abi, functionName>,
       argsDescription,
     );
 

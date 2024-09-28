@@ -14,12 +14,11 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
   public readonly emergencyLiquidators: Address[] = [];
 
   constructor(
+    sdk: GearboxSDK,
     { creditConfigurator, creditManager }: CreditManagerData,
     emergencyLiquidators: readonly Address[],
-    sdk: GearboxSDK,
   ) {
-    super({
-      sdk,
+    super(sdk, {
       address: creditConfigurator.baseParams.addr,
       contractType: creditConfigurator.baseParams.contractType,
       version: Number(creditConfigurator.baseParams.version),

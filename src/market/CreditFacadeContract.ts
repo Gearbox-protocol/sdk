@@ -13,11 +13,10 @@ export class CreditFacadeContract extends BaseContract<abi> {
   public readonly state: CreditFacadeState;
 
   constructor(
-    { creditFacade, creditManager }: CreditManagerData,
     sdk: GearboxSDK,
+    { creditFacade, creditManager }: CreditManagerData,
   ) {
-    super({
-      sdk,
+    super(sdk, {
       address: creditFacade.baseParams.addr,
       version: Number(creditFacade.baseParams.version),
       contractType: creditFacade.baseParams.contractType,

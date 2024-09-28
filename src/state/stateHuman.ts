@@ -4,10 +4,6 @@ import type { CoreStateHuman } from "./coreStateHuman";
 import { convertCoreStateToHuman } from "./coreStateHuman";
 import { convertCreditFactoryStateToHuman } from "./creditStateHuman";
 import type { MarketStateHuman } from "./marketStateHuman";
-import {
-  convertPeripheryStateToHuman,
-  PeripheryStateHuman,
-} from "./peripheryStateHuman";
 import { convertPoolFactoryStateToHuman } from "./poolStateHuman";
 import { convertPriceOracleStateToHuman } from "./priceFactoryStateHuman";
 import type { RouterStateHuman } from "./routerStateHuman";

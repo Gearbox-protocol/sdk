@@ -1,26 +1,26 @@
 import { boundedPriceFeedAbi } from "../../abi";
+import type { PriceFeedTreeNode } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
 import type { BoundedOracleState } from "../../state";
-import { AbstractDependentPriceFeed } from "./AbstractDependentPriceFeed";
-import type { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
+import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 
 type abi = typeof boundedPriceFeedAbi;
 
-export class BoundedPriceFeedContract extends AbstractDependentPriceFeed<abi> {
+export class BoundedPriceFeedContract extends AbstractPriceFeedContract<abi> {
   readonly priceFeedType = "PF_BOUNDED_ORACLE";
 
   upperBound = 0n;
 
-  protected constructor(args: PriceFeedConstructorArgs<abi>) {
-    super({ ...args, name: "BoundedPriceFeed", abi: boundedPriceFeedAbi });
+  constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
+    super(sdk, { ...args, name: "BoundedPriceFeed", abi: boundedPriceFeedAbi });
   }
 
-  public get state(): BoundedOracleState {
+  public get state(): Omit<BoundedOracleState, "stalenessPeriod"> {
     return {
       ...this.contractData,
-      pricefeeds: [this.underlyingPricefeeds[0]!.state],
+      pricefeeds: [this.underlyingPriceFeeds[0]!.state],
       upperBound: this.upperBound,
       contractType: this.priceFeedType,
-      stalenessPeriod: this.stalenessPeriod,
       skipCheck: true,
     };
   }

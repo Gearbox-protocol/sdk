@@ -15,15 +15,15 @@ export class PoolFactory {
   public readonly gaugeContract: GaugeContract;
   public readonly linearModel: LinearModelContract;
 
-  constructor(data: MarketData, sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK, data: MarketData) {
     this.underlying = data.pool.underlying as Address;
-    this.poolContract = new PoolContract(data.pool, sdk);
+    this.poolContract = new PoolContract(sdk, data.pool);
     this.pqkContract = new PoolQuotaKeeperContract(
+      sdk,
       data.pool,
       data.poolQuotaKeeper,
-      sdk,
     );
-    this.gaugeContract = new GaugeContract(data.pool, data.rateKeeper, sdk);
+    this.gaugeContract = new GaugeContract(sdk, data.pool, data.rateKeeper);
     const irModelAddr = data.interestRateModel.baseParams.addr;
 
     if (sdk.interestRateModels.has(irModelAddr)) {
@@ -32,7 +32,7 @@ export class PoolFactory {
         irModelAddr,
       ) as any as LinearModelContract;
     } else {
-      const linearModel = new LinearModelContract(data, sdk);
+      const linearModel = new LinearModelContract(sdk, data);
       sdk.interestRateModels.insert(irModelAddr, linearModel as any);
       this.linearModel = linearModel;
     }

@@ -11,9 +11,8 @@ type abi = typeof linearInterestRateModelV3Abi;
 export class LinearModelContract extends BaseContract<abi> {
   public readonly state: LinearModelState;
 
-  constructor({ interestRateModel }: MarketData, sdk: GearboxSDK) {
-    super({
-      sdk,
+  constructor(sdk: GearboxSDK, { interestRateModel }: MarketData) {
+    super(sdk, {
       address: interestRateModel.baseParams.addr,
       contractType: interestRateModel.baseParams.contractType,
       version: Number(interestRateModel.baseParams.version),

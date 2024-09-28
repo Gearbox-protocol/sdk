@@ -9,8 +9,8 @@ import type { GearStakingV3State } from "../state";
 type abi = typeof gearStakingV3Abi;
 
 export class GearStakingContract extends BaseContract<abi> {
-  constructor(args: { address: Address; sdk: GearboxSDK }) {
-    super({ ...args, name: "GearStakingV3", abi: gearStakingV3Abi });
+  constructor(sdk: GearboxSDK, address: Address) {
+    super(sdk, { address, name: "GearStakingV3", abi: gearStakingV3Abi });
   }
 
   parseFunctionParams(

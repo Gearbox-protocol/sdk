@@ -1,6 +1,7 @@
 import { chainlinkReadableAggregatorAbi } from "../../abi";
+import type { PriceFeedTreeNode } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
 import type { AssetPriceFeedState } from "../../state";
-import type { PriceFeedConstructorArgs } from "./AbstractPriceFeed";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 
 type abi = typeof chainlinkReadableAggregatorAbi;
@@ -8,19 +9,18 @@ type abi = typeof chainlinkReadableAggregatorAbi;
 export class ChainlinkPriceFeedContract extends AbstractPriceFeedContract<abi> {
   readonly priceFeedType = "PF_CHAINLINK_ORACLE";
 
-  protected constructor(args: PriceFeedConstructorArgs<abi>) {
-    super({
+  constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
+    super(sdk, {
       ...args,
       name: "ChainlinkPriceFeed",
       abi: chainlinkReadableAggregatorAbi,
     });
   }
 
-  public get state(): AssetPriceFeedState {
+  public get state(): Omit<AssetPriceFeedState, "stalenessPeriod"> {
     return {
       ...this.contractData,
       contractType: this.priceFeedType,
-      stalenessPeriod: this.stalenessPeriod,
       skipCheck: false,
       pricefeeds: [],
     };

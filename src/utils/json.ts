@@ -1,6 +1,6 @@
 // Wrapper around JSON stringify/parse methods to support bigint serialization
 
-function replacer(key: string, value: any) {
+function replacer(_key: string, value: any) {
   if (typeof value === "bigint") {
     return {
       __type: "bigint",
@@ -11,7 +11,7 @@ function replacer(key: string, value: any) {
   }
 }
 
-function reviver(key: string, value: any) {
+function reviver(_key: string, value: any) {
   if (value && value.__type === "bigint") {
     return BigInt(value.__value);
   }

@@ -14,8 +14,12 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
   versions: Record<string, Set<number>> = {};
   latest: Record<string, number> = {};
 
-  constructor(args: { address: Address; sdk: GearboxSDK }) {
-    super({ ...args, name: "AddressProviderV3", abi: iAddressProviderV3_1Abi });
+  constructor(sdk: GearboxSDK, address: Address) {
+    super(sdk, {
+      address,
+      name: "AddressProviderV3",
+      abi: iAddressProviderV3_1Abi,
+    });
   }
 
   parseFunctionParams(

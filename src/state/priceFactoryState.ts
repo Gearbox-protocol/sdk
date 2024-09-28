@@ -1,7 +1,7 @@
 import type { PartialRecord } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
-import type { PriceFeedContractType } from "../pricefeeds";
+import type { PriceFeedContractType } from "../market/pricefeeds";
 import type { BaseContractState } from "./state";
 
 export interface PriceOracleState {

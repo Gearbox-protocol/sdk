@@ -1,17 +1,19 @@
 import type { Abi, Hex } from "viem";
 
 import { ilpPriceFeedAbi } from "../../abi";
-import type { BaseContractOptions, PriceFeedTreeNode } from "../../base";
+import type { PriceFeedTreeNode } from "../../base";
 import { BaseContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
 import type { PriceFeedState } from "../../state";
 import { bytes32ToString } from "../../utils";
+import { PriceFeedRef } from "./PriceFeedRef";
 import type { IPriceFeedContract, PriceFeedContractType } from "./types";
 
 export type PriceFeedConstructorArgs<abi extends Abi | readonly unknown[]> =
-  BaseContractOptions<abi> &
-    PriceFeedTreeNode & {
-      stalenessPeriod?: number;
-    };
+  PriceFeedTreeNode & {
+    abi: abi;
+    name: string;
+  };
 
 export abstract class AbstractPriceFeedContract<
     const abi extends Abi | readonly unknown[],
@@ -23,28 +25,35 @@ export abstract class AbstractPriceFeedContract<
    * True if the contract deployed at this address implements IUpdatablePriceFeed interface
    */
   public readonly updatable: boolean;
-  public readonly stalenessPeriod: number;
   public readonly priceFeedType: PriceFeedContractType;
   public readonly decimals: number;
+  public readonly underlyingPriceFeeds: PriceFeedRef[];
   public hasLowerBoundCap = false;
 
-  constructor(args: PriceFeedConstructorArgs<abi>) {
-    super(args);
-    this.priceFeedType = bytes32ToString(
+  constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
+    const priceFeedType = bytes32ToString(
       args.baseParams.contractType as Hex,
     ) as PriceFeedContractType;
-    this.address = args.address ?? args.baseParams.addr;
-    this.version = Number(args.version ?? args.baseParams.version);
+    super(sdk, {
+      abi: args.abi,
+      address: args.baseParams.addr,
+      name: args.name,
+      contractType: priceFeedType,
+      version: Number(args.baseParams.version),
+    });
+    this.priceFeedType = priceFeedType;
     this.decimals = args.decimals;
-
-    this.stalenessPeriod = args.stalenessPeriod || 0;
-    this.updatable = args.updatable || false;
+    this.updatable = args.updatable;
+    this.underlyingPriceFeeds = args.underlyingFeeds.map(
+      (address, i) =>
+        new PriceFeedRef(this.sdk, address, args.underlyingStalenessPeriods[i]),
+    );
   }
 
-  public abstract get state(): PriceFeedState;
+  public abstract get state(): Omit<PriceFeedState, "stalenessPeriod">;
 
   async currentLowerBound(): Promise<bigint> {
-    return await this.provider.publicClient.readContract({
+    return await this.sdk.provider.publicClient.readContract({
       abi: ilpPriceFeedAbi,
       address: this.address,
       functionName: "lowerBound",
@@ -52,7 +61,7 @@ export abstract class AbstractPriceFeedContract<
   }
 
   async answer(overrides?: { blockNumber?: bigint }): Promise<bigint> {
-    const lastRoundData = await this.provider.publicClient.readContract({
+    const lastRoundData = await this.sdk.provider.publicClient.readContract({
       abi: ilpPriceFeedAbi,
       address: this.address,
       functionName: "latestRoundData",
@@ -63,6 +72,9 @@ export abstract class AbstractPriceFeedContract<
   }
 
   public updatableDependencies(): IPriceFeedContract[] {
-    return this.updatable ? [this] : [];
+    const underlying = this.underlyingPriceFeeds.flatMap(f =>
+      f.priceFeed.updatableDependencies(),
+    );
+    return this.updatable ? [this, ...underlying] : underlying;
   }
 }

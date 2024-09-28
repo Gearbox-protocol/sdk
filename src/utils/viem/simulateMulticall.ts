@@ -20,7 +20,6 @@ import type {
 import {
   AbiDecodingZeroDataError,
   BaseError,
-  BlockTag,
   decodeFunctionResult,
   encodeFunctionData,
   getChainContractAddress,

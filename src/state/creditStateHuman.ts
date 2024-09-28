@@ -36,7 +36,7 @@ function convertCreditFacadeStateToHuman(
   state: CreditFacadeState,
   decimals: number,
   labelAddress: (address: Address) => string,
-  raw = true,
+  _raw = true,
 ): CreditFacadeStateHuman {
   return {
     ...convertBaseContractState(state, labelAddress),
@@ -123,7 +123,7 @@ export interface CreditConfiguratorStateHuman extends BaseContractStateHuman {
 function convertCreditConfiguratorStateToHuman(
   state: CreditConfiguratorState,
   labelAddress: (address: Address) => string,
-  raw = true,
+  _raw = true,
 ): CreditConfiguratorStateHuman {
   return {
     ...convertBaseContractState(state, labelAddress),
@@ -140,7 +140,7 @@ export interface CreditFactoryStateHuman {
 export function convertCreditFactoryStateToHuman(
   state: CreditFactoryState,
   labelAddress: (address: Address) => string,
-  raw = true,
+  _raw = true,
 ): CreditFactoryStateHuman {
   return {
     // TODO: avoid reading decimals from sdk-gov

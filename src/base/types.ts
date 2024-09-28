@@ -4,11 +4,7 @@ import type {
 } from "abitype";
 import type { Address } from "viem";
 
-import type {
-  iCreditAccountCompressorAbi,
-  iMarketCompressorAbi,
-  iPriceFeedCompressorAbi,
-} from "../abi";
+import type { iCreditAccountCompressorAbi, iMarketCompressorAbi } from "../abi";
 
 type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
 
@@ -32,12 +28,9 @@ export type TokenMetaData = Unarray<MarketData["tokens"]>;
 export type PoolData = MarketData["pool"];
 export type PoolQuotaKeeperData = MarketData["poolQuotaKeeper"];
 export type RateKeeperData = MarketData["rateKeeper"];
-
-export type GetPriceFeedsResult = AbiParametersToPrimitiveTypes<
-  ExtractAbiFunction<typeof iPriceFeedCompressorAbi, "getPriceFeeds">["outputs"]
->;
-export type PriceFeedMapEntry = Unarray<GetPriceFeedsResult[0]>;
-export type PriceFeedTreeNode = Unarray<GetPriceFeedsResult[1]>;
+export type PriceOracleData = MarketData["priceOracleData"];
+export type PriceFeedMapEntry = Unarray<PriceOracleData["priceFeedMapping"]>;
+export type PriceFeedTreeNode = Unarray<PriceOracleData["priceFeedStructure"]>;
 
 export interface CreditManagerDebtParamsStruct {
   creditManager: Address;

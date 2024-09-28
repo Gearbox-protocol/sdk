@@ -27,7 +27,7 @@ export interface ZapperRegisterStateHuman extends BaseContractStateHuman {
 export function convertPeripheryStateToHuman(
   state: PeripheryState,
   labelAddress: (address: Address) => string,
-  raw = true,
+  _raw = true,
 ): PeripheryStateHuman {
   return {
     dataCompressorV3: state.dataCompressorV3
@@ -47,7 +47,7 @@ export function convertPeripheryStateToHuman(
 export function convertZapperRegisterStateToHuman(
   state: ZapperRegisterState,
   labelAddress: (address: Address) => string,
-  raw = true,
+  _raw = true,
 ): ZapperRegisterStateHuman {
   return {
     ...convertBaseContractState(state, labelAddress),

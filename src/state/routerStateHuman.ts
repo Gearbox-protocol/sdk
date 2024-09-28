@@ -29,7 +29,7 @@ export interface RouterStateHuman {
 export function convertRouterV3StateToHuman(
   state: RouterV3ContractState,
   labelAddress: (address: Address) => string,
-  raw = true,
+  _raw = true,
 ): RouterV3ContractStateHuman {
   return {
     ...convertBaseContractState(state, labelAddress),

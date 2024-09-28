@@ -58,7 +58,7 @@ export interface CoreStateHuman {
 export function convertCoreStateToHuman(
   state: CoreState,
   labelAddress: (address: Address) => string,
-  raw = true,
+  _raw = true,
 ): CoreStateHuman {
   return {
     addressProviderV3: {

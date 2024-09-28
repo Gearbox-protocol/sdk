@@ -20,10 +20,11 @@ import {
   GearStakingContract,
 } from "./core";
 import { MarketRegister } from "./market/MarketRegister";
+import { PriceFeedRegister } from "./market/pricefeeds";
 import { RouterV3Contract } from "./router";
 import type { GearboxState } from "./state/state";
 import type { ILogger } from "./types";
-import { AddressMap, childLogger } from "./utils";
+import { AddressMap } from "./utils";
 import { createAnvilClient } from "./utils/viem";
 
 export interface SDKAttachOptions {
@@ -89,6 +90,8 @@ export class GearboxSDK {
     BaseContract<readonly unknown[]>
   >();
 
+  public readonly priceFeeds: PriceFeedRegister;
+
   public static async attach(options: SDKAttachOptions): Promise<GearboxSDK> {
     const { rpcURL, timeout, logger } = options;
     let { networkType, addressProvider, chainId } = options;
@@ -118,9 +121,10 @@ export class GearboxSDK {
     }).#attach(addressProvider);
   }
 
-  protected constructor(options: SDKOptions) {
+  private constructor(options: SDKOptions) {
     this.provider = options.provider;
-    this.logger = childLogger("sdk", options.logger);
+    this.logger = options.logger;
+    this.priceFeeds = new PriceFeedRegister(this);
   }
 
   async #attach(addressProviderAddress: Address): Promise<this> {
@@ -129,18 +133,15 @@ export class GearboxSDK {
     await this.updateBlock();
 
     this.logger?.info("Attaching to address provider", addressProviderAddress);
-    this.#addressProvider = new AddressProviderContractV3_1({
-      address: addressProviderAddress,
-      sdk: this,
-    });
+    this.#addressProvider = new AddressProviderContractV3_1(
+      this,
+      addressProviderAddress,
+    );
     await this.#addressProvider.fetchState(this.currentBlock);
 
     // Attaching bot list contract
     const botListAddress = this.#addressProvider.getAddress(AP_BOT_LIST, 300);
-    this.#botListContract = new BotListContract({
-      address: botListAddress,
-      sdk: this,
-    });
+    this.#botListContract = new BotListContract(this, botListAddress);
     await this.#botListContract.fetchState(this.currentBlock);
 
     // Attaching gear staking contract
@@ -149,10 +150,10 @@ export class GearboxSDK {
       AP_GEAR_STAKING,
       300,
     );
-    this.#gearStakingContract = new GearStakingContract({
-      address: gearStakingAddress,
-      sdk: this,
-    });
+    this.#gearStakingContract = new GearStakingContract(
+      this,
+      gearStakingAddress,
+    );
 
     this.#marketRegister = new MarketRegister(this);
     await this.#marketRegister.loadMarkets([TIMELOCK.Mainnet]);

@@ -23,7 +23,7 @@ export class CreditFactory {
   // TODO:
   // adapterFactory: AdapterFactory;
 
-  constructor(marketData: MarketData, index: number, sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
     const { creditManagers, pool, emergencyLiquidators } = marketData;
     const creditManager = creditManagers[index];
     const { name, collateralTokens, liquidationThresholds } =
@@ -36,14 +36,14 @@ export class CreditFactory {
       collateralTokens.map((t, i) => [t, liquidationThresholds[i]]),
     );
 
-    this.creditManager = new CreditManagerContract(creditManager, pool, sdk);
+    this.creditManager = new CreditManagerContract(sdk, creditManager, pool);
 
-    this.creditFacade = new CreditFacadeContract(creditManager, sdk);
+    this.creditFacade = new CreditFacadeContract(sdk, creditManager);
 
     this.creditConfigurator = new CreditConfiguratorContract(
+      sdk,
       creditManager,
       emergencyLiquidators,
-      sdk,
     );
 
     // TODO:

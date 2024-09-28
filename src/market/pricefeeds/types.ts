@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 
-import type { PriceFeedState } from "../state";
+import type { PriceFeedState } from "../../state";
+import type { RawTx } from "../../types";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
 
@@ -25,9 +26,8 @@ export interface IPriceFeedContract {
   readonly hasLowerBoundCap: boolean;
   readonly address: Address;
   readonly priceFeedType: PriceFeedContractType;
-  readonly stalenessPeriod: number;
   readonly decimals: number;
-  readonly state: PriceFeedState;
+  readonly state: Omit<PriceFeedState, "stalenessPeriod">;
   /**
    * True if the contract deployed at this address implements IUpdatablePriceFeed interface
    */
@@ -46,4 +46,9 @@ export interface ILPPriceFeedContract extends IPriceFeedContract {
   getValue: () => Promise<bigint>;
   getLowerBound: () => Promise<bigint>;
   currentLowerBound: () => Promise<bigint>;
+}
+
+export interface UpdatePriceFeedsResult {
+  txs: RawTx[];
+  timestamp: number;
 }

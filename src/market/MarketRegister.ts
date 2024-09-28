@@ -54,7 +54,7 @@ export class MarketRegister {
     });
 
     for (const data of markets) {
-      this.#markets[data.pool.name] = new MarketFactory(data, this.#sdk);
+      this.#markets[data.pool.name] = new MarketFactory(this.#sdk, data);
     }
 
     this.#logger?.info(`loaded ${markets.length} markets`);

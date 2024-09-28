@@ -12,14 +12,13 @@ export class PoolQuotaKeeperContract extends BaseContract<abi> {
   decimals: number;
   state: PoolQuotaKeeperState;
 
-  constructor(pool: PoolData, pqk: PoolQuotaKeeperData, sdk: GearboxSDK) {
-    super({
+  constructor(sdk: GearboxSDK, pool: PoolData, pqk: PoolQuotaKeeperData) {
+    super(sdk, {
       address: pqk.baseParams.addr,
       contractType: pqk.baseParams.contractType,
       version: Number(pqk.baseParams.version),
       name: `PoolQuotaKeeper(${pool.name})`,
       abi: poolQuotaKeeperV3Abi,
-      sdk,
     });
 
     // TODO: avoid reading decimals from sdk-gov

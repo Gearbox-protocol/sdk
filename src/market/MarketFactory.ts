@@ -5,23 +5,23 @@ import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketState } from "../state";
 import { CreditFactory } from "./CreditFactory";
 import { PoolFactory } from "./PoolFactory";
-import { PriceFeedFactory } from "./PriceFeedFactory";
+import { PriceOracleContract } from "./PriceOracleContract";
 
 export class MarketFactory {
   public readonly riskCurator: Address;
   public readonly poolFactory: PoolFactory;
-  public readonly priceFeedFactory: PriceFeedFactory;
+  public readonly priceOracle: PriceOracleContract;
   public readonly creditManagers: CreditFactory[] = [];
 
-  constructor(marketData: MarketData, sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK, marketData: MarketData) {
     this.riskCurator = marketData.owner;
-    this.poolFactory = new PoolFactory(marketData, sdk);
+    this.poolFactory = new PoolFactory(sdk, marketData);
 
     for (let i = 0; i < marketData.creditManagers.length; i++) {
-      this.creditManagers.push(new CreditFactory(marketData, i, sdk));
+      this.creditManagers.push(new CreditFactory(sdk, marketData, i));
     }
 
-    this.priceFeedFactory = PriceFeedFactory.attachMarket(marketData, sdk);
+    this.priceOracle = new PriceOracleContract(sdk, marketData.priceOracleData);
 
     for (const t of marketData.tokens) {
       sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
@@ -32,7 +32,7 @@ export class MarketFactory {
     return {
       pool: this.poolFactory.state,
       creditManagers: this.creditManagers.map(cm => cm.state),
-      priceOracle: this.priceFeedFactory.state,
+      priceOracle: this.priceOracle.state,
     };
   }
 }
