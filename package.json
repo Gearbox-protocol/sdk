@@ -10,6 +10,7 @@
   ],
   "license": "MIT",
   "scripts": {
+    "example": "tsx --env-file .env scripts/example.ts | pino-pretty",
     "prepare": "husky",
     "prettier": "prettier --write .",
     "prettier:ci": "npx prettier --check .",

@@ -1,15 +1,12 @@
 import type { NetworkType } from "@gearbox-protocol/sdk-gov";
-import {
-  ADDRESS_PROVIDER,
-  formatBN,
-  TIMELOCK,
-} from "@gearbox-protocol/sdk-gov";
+import { formatBN, TIMELOCK } from "@gearbox-protocol/sdk-gov";
 import { EventEmitter } from "eventemitter3";
 import { type Address, http } from "viem";
 
 import { BaseContract } from "./base";
 import { Provider } from "./chain";
 import {
+  ADDRESS_PROVIDER,
   AP_BOT_LIST,
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
@@ -116,6 +113,10 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
       rpcURL,
       timeout,
     });
+    logger?.debug(
+      { networkType, chainId, addressProvider },
+      "attaching gearbox sdk",
+    );
 
     return new GearboxSDK({
       provider,
