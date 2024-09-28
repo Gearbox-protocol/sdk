@@ -3,6 +3,7 @@ import type { Address } from "viem";
 import type { MarketData } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditFactoryState } from "../state";
+import type { TVL } from "../types";
 import { CreditConfiguratorContract } from "./CreditConfiguratorContract";
 import { CreditFacadeContract } from "./CreditFacadeContract";
 import { CreditManagerContract } from "./CreditManagerContract";
@@ -52,6 +53,16 @@ export class CreditFactory {
     //   index,
     //   service,
     // );
+  }
+
+  async tvl(): Promise<TVL> {
+    // const cas =
+    //   await this.service.peripheryFactory.dataCompressorV3Contract.getCreditsAccountByCreditManager(
+    //     this.creditManager.address,
+    //   );
+    const tvl = 0n; // cas.reduce((acc, ca) => acc + BigInt(ca.totalValue), 0n);
+    const tvlUSD = 0n; // cas.reduce((acc, ca) => acc + BigInt(ca.totalValueUSD), 0n);
+    return { tvl, tvlUSD };
   }
 
   public get state(): CreditFactoryState {

@@ -109,7 +109,7 @@ export abstract class BaseContract<
     });
   }
 
-  protected parseLog(log: Log) {}
+  protected parseLog(_log: Log) {}
 
   protected parseFunctionData(calldata: Hex): string {
     const decoded = decodeFunctionData({
@@ -146,7 +146,7 @@ export abstract class BaseContract<
   }
 
   parseFunctionParams(
-    params: DecodeFunctionDataReturnType<abi>,
+    _params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     return undefined;
   }

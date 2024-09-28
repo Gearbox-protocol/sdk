@@ -9,7 +9,7 @@ import type {
   MarketState,
   PoolFactoryState,
 } from "../state";
-import type { ILogger } from "../types";
+import type { ILogger, TVL } from "../types";
 import { AddressMap, childLogger } from "../utils";
 import type { CreditFactory } from "./CreditFactory";
 import { MarketFactory } from "./MarketFactory";
@@ -111,7 +111,7 @@ export class MarketRegister {
     return Object.values(this.#markets);
   }
 
-  public async tvl() {
+  public async tvl(): Promise<TVL> {
     const creditManagers = this.creditManagers;
     const tvls = await Promise.all(creditManagers.map(cm => cm.tvl()));
     return tvls.reduce(

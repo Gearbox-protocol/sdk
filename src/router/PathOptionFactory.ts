@@ -25,15 +25,7 @@ import type {
 import { auraTokens } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 import type { Address } from "viem";
 
-import type { Asset } from "./types";
-
-export interface PathOption {
-  target: Address;
-  option: number;
-  totalOptions: number;
-}
-
-export type PathOptionSerie = PathOption[];
+import type { Asset, PathOptionSerie } from "./types";
 
 export class PathOptionFactory {
   // TODO: get rid of token data from SDK

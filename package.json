@@ -20,6 +20,7 @@
   "dependencies": {
     "@gearbox-protocol/sdk-gov": "^2.21.0",
     "abitype": "^1.0.6",
+    "eventemitter3": "^5.0.1",
     "redstone-protocol": "^1.0.5",
     "viem": "^2.21.15"
   },

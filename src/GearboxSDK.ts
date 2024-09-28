@@ -4,6 +4,7 @@ import {
   formatBN,
   TIMELOCK,
 } from "@gearbox-protocol/sdk-gov";
+import { EventEmitter } from "eventemitter3";
 import { type Address, http } from "viem";
 
 import { BaseContract } from "./base";
@@ -22,6 +23,7 @@ import {
 import { MarketRegister } from "./market/MarketRegister";
 import { PriceFeedRegister } from "./market/pricefeeds";
 import { RouterV3Contract } from "./router";
+import type { SDKEventsMap } from "./SDKEvents";
 import type { GearboxState } from "./state/state";
 import type { ILogger } from "./types";
 import { AddressMap } from "./utils";
@@ -59,7 +61,7 @@ interface SDKOptions {
   logger?: ILogger;
 }
 
-export class GearboxSDK {
+export class GearboxSDK extends EventEmitter<SDKEventsMap> {
   // Represents chain object
   public readonly provider: Provider;
 
@@ -122,6 +124,7 @@ export class GearboxSDK {
   }
 
   private constructor(options: SDKOptions) {
+    super();
     this.provider = options.provider;
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);
@@ -160,7 +163,7 @@ export class GearboxSDK {
 
     try {
       const router = this.#addressProvider.getLatestVersion(AP_ROUTER);
-      this.#router = new RouterV3Contract(router, this);
+      this.#router = new RouterV3Contract(this, router);
     } catch (e) {
       this.logger?.warn("Router not found", e);
     }

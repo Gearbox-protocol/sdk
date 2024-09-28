@@ -6,11 +6,11 @@ import { BaseContract } from "../base";
 import type { CreditAccountData } from "../base/types";
 import type { GearboxSDK } from "../GearboxSDK";
 import { AddressMap } from "../utils";
-import type { PathOptionSerie } from "./PathOptionFactory";
 import { PathOptionFactory } from "./PathOptionFactory";
 import type {
   Asset,
   OpenStrategyResult,
+  PathOptionSerie,
   RouterCloseResult,
   RouterResult,
   SwapOperation,

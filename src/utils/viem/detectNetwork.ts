@@ -1,7 +1,7 @@
 import { supportedChains, tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
-import { ierc20MetadataAbi } from "@gearbox-protocol/types/abi";
 import type { PublicClient } from "viem";
 
+import { ierc20MetadataAbi } from "../../abi";
 import type { NetworkType } from "../../chain";
 
 export async function detectNetwork(

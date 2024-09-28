@@ -4,6 +4,14 @@ import type { MultiCall } from "../types";
 
 export type SwapOperation = "EXACT_INPUT" | "EXACT_INPUT_ALL" | "EXACT_OUTPUT";
 
+export interface PathOption {
+  target: Address;
+  option: number;
+  totalOptions: number;
+}
+
+export type PathOptionSerie = PathOption[];
+
 export interface SwapTask {
   swapOperation: bigint;
   creditAccount: Address;
