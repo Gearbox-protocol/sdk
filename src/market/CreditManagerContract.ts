@@ -13,7 +13,7 @@ export class CreditManagerContract extends BaseContract<abi> {
 
   constructor(
     sdk: GearboxSDK,
-    { creditManager, creditFacade }: CreditManagerData,
+    { creditManager, creditFacade, adapters }: CreditManagerData,
     pool: PoolData,
   ) {
     super(sdk, {
@@ -42,13 +42,9 @@ export class CreditManagerContract extends BaseContract<abi> {
       feeLiquidationExpired: creditManager.feeLiquidationExpired,
       liquidationDiscountExpired: creditManager.liquidationDiscountExpired,
       quotedTokensMask: 0n,
-      contractsToAdapters: {}, // cmd.adapters.reduce(
-      //   (acc, adapter) => {
-      //     acc[adapter.targetContract as Address] = adapter.adapter as Address;
-      //     return acc;
-      //   },
-      //   {} as Record<Address, Address>,
-      // ),
+      contractsToAdapters: Object.fromEntries(
+        adapters.map(a => [a.targetContract, a.baseParams.addr]),
+      ),
       creditAccounts: [], // [...result[5].result!],
       name: creditManager.name,
     };
