@@ -1,4 +1,4 @@
-import { DataServiceWrapper } from "@redstone-finance/evm-connector/dist/src/wrappers/DataServiceWrapper";
+import { DataServiceWrapper } from "@redstone-finance/evm-connector";
 import type { SignedDataPackage } from "redstone-protocol";
 import { RedstonePayload } from "redstone-protocol";
 import type { Address, Hex } from "viem";
@@ -100,10 +100,10 @@ export class RedstoneUpdater extends SDKConstruct {
     dataFeedsIds: Set<string>,
     uniqueSignersCount: number,
   ): Promise<TimestampedCalldata[]> {
-    const dataFeeds = Array.from(dataFeedsIds);
+    const dataPackagesIds = Array.from(dataFeedsIds);
     const wrapper = new DataServiceWrapper({
       dataServiceId,
-      dataFeeds,
+      dataPackagesIds,
       uniqueSignersCount,
     });
     const dataPayload = await wrapper.prepareRedstonePayload(true);
@@ -111,7 +111,7 @@ export class RedstoneUpdater extends SDKConstruct {
     const parsed = RedstonePayload.parse(toBytes(`0x${dataPayload}`));
     const packagesByDataFeedId = groupDataPackages(parsed.signedDataPackages);
 
-    return dataFeeds.map(dataFeedId => {
+    return dataPackagesIds.map(dataFeedId => {
       const signedDataPackages = packagesByDataFeedId[dataFeedId];
       if (!signedDataPackages) {
         throw new Error(`cannot find data packages for ${dataFeedId}`);

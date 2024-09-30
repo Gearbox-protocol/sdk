@@ -32,7 +32,7 @@ export interface BaseContractOptions<abi extends Abi | readonly unknown[]> {
 export abstract class BaseContract<
   abi extends Abi | readonly unknown[],
 > extends SDKConstruct {
-  contract: GetContractReturnType<abi, Client, Address>;
+  contract: GetContractReturnType<abi, { public: Client }, Address>;
   public readonly abi: abi;
   public readonly logger?: ILogger;
 
