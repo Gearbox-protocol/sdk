@@ -1,11 +1,10 @@
-import type { Abi, Hex } from "viem";
+import type { Abi } from "viem";
 
 import { ilpPriceFeedAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { PriceFeedState } from "../../state";
-import { bytes32ToString } from "../../utils";
 import { PriceFeedRef } from "./PriceFeedRef";
 import type { IPriceFeedContract, PriceFeedContractType } from "./types";
 
@@ -25,29 +24,28 @@ export abstract class AbstractPriceFeedContract<
    * True if the contract deployed at this address implements IUpdatablePriceFeed interface
    */
   public readonly updatable: boolean;
-  public readonly priceFeedType: PriceFeedContractType;
   public readonly decimals: number;
   public readonly underlyingPriceFeeds: PriceFeedRef[];
   public hasLowerBoundCap = false;
 
   constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
-    const priceFeedType = bytes32ToString(
-      args.baseParams.contractType as Hex,
-    ) as PriceFeedContractType;
     super(sdk, {
       abi: args.abi,
       address: args.baseParams.addr,
       name: args.name,
-      contractType: priceFeedType,
+      contractType: args.baseParams.contractType,
       version: Number(args.baseParams.version),
     });
-    this.priceFeedType = priceFeedType;
     this.decimals = args.decimals;
     this.updatable = args.updatable;
     this.underlyingPriceFeeds = args.underlyingFeeds.map(
       (address, i) =>
         new PriceFeedRef(this.sdk, address, args.underlyingStalenessPeriods[i]),
     );
+  }
+
+  public get priceFeedType(): PriceFeedContractType {
+    return this.contractType as PriceFeedContractType;
   }
 
   public abstract get state(): Omit<PriceFeedState, "stalenessPeriod">;

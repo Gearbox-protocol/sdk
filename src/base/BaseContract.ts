@@ -10,21 +10,26 @@ import type {
   Hex,
   Log,
 } from "viem";
-import { decodeFunctionData, getContract } from "viem";
+import { decodeFunctionData, getContract, isHex } from "viem";
 
 import { iVersionAbi } from "../abi";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { BaseContractState } from "../state";
 import type { ILogger, RawTx } from "../types";
-import { childLogger, createRawTx, json_stringify } from "../utils";
+import {
+  bytes32ToString,
+  childLogger,
+  createRawTx,
+  json_stringify,
+} from "../utils";
 import type { IAddressLabeller } from "./IAddressLabeller";
 import { SDKConstruct } from "./SDKConstruct";
 
 export interface BaseContractOptions<abi extends Abi | readonly unknown[]> {
   abi: abi;
   address: Address;
-  name: string;
+  name?: string;
   version?: number;
   contractType?: string;
 }
@@ -53,9 +58,12 @@ export abstract class BaseContract<
         public: sdk.provider.publicClient,
       },
     });
-    this.name = this.#name = args.name || args.contractType || this.#address;
     this.version = args.version || 0;
-    this.contractType = args.contractType || "";
+    this.contractType = args.contractType ?? "";
+    if (isHex(this.contractType)) {
+      this.contractType = bytes32ToString(this.contractType);
+    }
+    this.name = this.#name = args.name || this.contractType || this.#address;
     this.logger = childLogger(this.name, sdk.logger);
 
     // register contract by address
