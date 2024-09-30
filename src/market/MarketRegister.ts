@@ -51,6 +51,9 @@ export class MarketRegister {
           underlying: ADDRESS_0X0,
         },
       ],
+      // It's passed as ...rest in viem readContract action, but this might change
+      // @ts-ignore
+      gas: 500_000_000n,
     });
 
     for (const data of markets) {

@@ -12,7 +12,7 @@ async function example(): Promise<void> {
   const sdk = await GearboxSDK.attach({
     rpcURL: "http://127.0.0.1:8545",
     timeout: 480_000,
-    addressProvider: "0x5fe2f174fe51474Cd198939C96e7dB65983EA307",
+    addressProvider: "0x81ED8e0325B17A266B2aF225570679cfd635d0bb",
     logger,
   });
   await writeFile("example-state.json", json_stringify(sdk.state), "utf-8");
