@@ -52,7 +52,6 @@ export class PriceFeedRegister extends SDKConstruct {
 
   /**
    * Returns RawTxs to update price feeds
-   * This method is static because price feeds may belong to different markets with different PriceFeedFactory instances
    * @param priceFeeds top-level price feeds, actual updatable price feeds will be derived. If not provided will use all price feeds that are attached
    * @returns
    */

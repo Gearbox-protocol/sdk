@@ -67,7 +67,7 @@ export class CreditFacadeContract extends BaseContract<abi> {
         const [onBehalfOf, calls, referralCode] = params.args;
         return [
           this.addressLabels.get(onBehalfOf),
-          BaseContract.parseMultiCall([...calls]).join(","),
+          this.sdk.parseMultiCall([...calls]).join(","),
           `${referralCode}`,
         ];
       }
@@ -75,7 +75,7 @@ export class CreditFacadeContract extends BaseContract<abi> {
         const [creditAccount, calls] = params.args;
         return [
           this.addressLabels.get(creditAccount),
-          BaseContract.parseMultiCall([...calls]).join(","),
+          this.sdk.parseMultiCall([...calls]).join(","),
         ];
       }
       case "liquidateCreditAccount": {
@@ -83,7 +83,7 @@ export class CreditFacadeContract extends BaseContract<abi> {
         return [
           this.addressLabels.get(creditAccount),
           this.addressLabels.get(to),
-          BaseContract.parseMultiCall([...calls]).join(","),
+          this.sdk.parseMultiCall([...calls]).join(","),
         ];
       }
       case "setBotPermissions": {

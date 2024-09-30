@@ -38,13 +38,11 @@ export class CreditManagerContract extends BaseContract<abi> {
         collateralTokens.map((t, i) => [t, liquidationThresholds[i]]),
       ),
 
-      feeInterest: Number(creditManager.feeInterest),
-      feeLiquidation: Number(creditManager.feeLiquidation),
-      liquidationDiscount: Number(creditManager.liquidationDiscount),
-      feeLiquidationExpired: Number(creditManager.feeLiquidationExpired),
-      liquidationDiscountExpired: Number(
-        creditManager.liquidationDiscountExpired,
-      ),
+      feeInterest: creditManager.feeInterest,
+      feeLiquidation: creditManager.feeLiquidation,
+      liquidationDiscount: creditManager.liquidationDiscount,
+      feeLiquidationExpired: creditManager.feeLiquidationExpired,
+      liquidationDiscountExpired: creditManager.liquidationDiscountExpired,
       quotedTokensMask: 0n,
       contractsToAdapters: {}, // cmd.adapters.reduce(
       //   (acc, adapter) => {

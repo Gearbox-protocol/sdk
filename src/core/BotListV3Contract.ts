@@ -16,7 +16,7 @@ export class BotListContract extends BaseContract<abi> {
     super(sdk, { address, name: "BotListV3", abi: botListV3Abi });
   }
 
-  parseFunctionParams(
+  public parseFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {
@@ -37,7 +37,7 @@ export class BotListContract extends BaseContract<abi> {
     }
   }
 
-  async fetchState(toBlock: bigint) {
+  public async fetchState(toBlock: bigint) {
     const logs = await this.provider.publicClient.getContractEvents({
       address: this.address,
       abi: this.abi,
@@ -48,7 +48,7 @@ export class BotListContract extends BaseContract<abi> {
     logs.forEach(e => this.parseLog(e));
   }
 
-  protected parseLog(log: Log): void {
+  public override parseLog(log: Log): void {
     const parsedLog = parseEventLogs({
       abi: this.abi,
       logs: [log],

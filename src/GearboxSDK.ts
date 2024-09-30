@@ -1,9 +1,10 @@
 import type { NetworkType } from "@gearbox-protocol/sdk-gov";
 import { formatBN, TIMELOCK } from "@gearbox-protocol/sdk-gov";
 import { EventEmitter } from "eventemitter3";
-import { type Address, http } from "viem";
+import type { Address, Hex, Log } from "viem";
+import { http } from "viem";
 
-import { BaseContract } from "./base";
+import type { BaseContract } from "./base";
 import { Provider } from "./chain";
 import {
   ADDRESS_PROVIDER,
@@ -22,7 +23,7 @@ import { PriceFeedRegister } from "./market/pricefeeds";
 import { RouterV3Contract } from "./router";
 import type { SDKEventsMap } from "./SDKEvents";
 import type { GearboxState } from "./state/state";
-import type { ILogger } from "./types";
+import type { ILogger, MultiCall } from "./types";
 import { AddressMap } from "./utils";
 import { createAnvilClient } from "./utils/viem";
 
@@ -88,8 +89,14 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
   public readonly interestRateModels = new AddressMap<
     BaseContract<readonly unknown[]>
   >();
-
+  /**
+   * All price feeds known to sdk, without oracle-related data (stalenessPeriod, main/reserve, etc.)
+   */
   public readonly priceFeeds: PriceFeedRegister;
+  /**
+   * All contracts known to sdk
+   */
+  public readonly contracts = new AddressMap<BaseContract<any>>();
 
   public static async attach(options: SDKAttachOptions): Promise<GearboxSDK> {
     const { rpcURL, timeout, logger } = options;
@@ -174,6 +181,36 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
     return this;
   }
 
+  public parseLogs(logs: Array<Log>): void {
+    logs.forEach(log => {
+      const contract = this.contracts.get(log.address);
+      contract?.parseLog(log);
+    });
+  }
+
+  /**
+   * Converts contract call into some human-friendly string
+   * @param address
+   * @param calldata
+   * @returns
+   */
+  public parseFunctionData(address: Address, calldata: Hex): string {
+    const contract = this.contracts.mustGet(address);
+    return contract.parseFunctionData(calldata);
+  }
+
+  /**
+   * Converts multicalls into some human-friendly strings
+   * @param address
+   * @param calldata
+   * @returns
+   */
+  public parseMultiCall(calls: MultiCall[]): string[] {
+    return calls.map(call =>
+      this.parseFunctionData(call.target, call.callData),
+    );
+  }
+
   public async updateBlock(): Promise<void> {
     const block = await this.provider.publicClient.getBlock({
       blockTag: "latest",
@@ -215,7 +252,7 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
       toBlock: BigInt(toBlock),
     });
 
-    BaseContract.parseLogs(events);
+    this.parseLogs(events);
 
     for (const pf of this.marketRegister.getPoolFactories()) {
       if (pf.poolContract.hasOperation) {

@@ -8,7 +8,8 @@
     "skipLibCheck": true,
     "lib": ["ESNext"],
     "declaration": true,
-    "removeComments": false
+    "removeComments": false,
+    "resolveJsonModule": true
   },
   "include": ["src", "scripts", "tsup.config.ts"],
   "exclude": ["dist", "node_modules"]

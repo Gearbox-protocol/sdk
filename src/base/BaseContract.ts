@@ -16,7 +16,7 @@ import { iVersionAbi } from "../abi";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { BaseContractState } from "../state";
-import type { ILogger, MultiCall, RawTx } from "../types";
+import type { ILogger, RawTx } from "../types";
 import { childLogger, createRawTx, json_stringify } from "../utils";
 import type { IAddressLabeller } from "./IAddressLabeller";
 import { SDKConstruct } from "./SDKConstruct";
@@ -36,8 +36,6 @@ export abstract class BaseContract<
   public readonly abi: abi;
   public readonly logger?: ILogger;
 
-  protected static register: Record<Address, BaseContract<any>> = {};
-
   version: number;
   contractType: string;
   #name: string;
@@ -55,12 +53,14 @@ export abstract class BaseContract<
         public: sdk.provider.publicClient,
       },
     });
-    this.#name = args.name || args.contractType || this.#address;
+    this.name = this.#name = args.name || args.contractType || this.#address;
     this.version = args.version || 0;
     this.contractType = args.contractType || "";
-    this.logger = childLogger(this.#name, sdk.logger);
+    this.logger = childLogger(this.name, sdk.logger);
 
-    BaseContract.register[this.#address.toLowerCase() as Address] = this;
+    // register contract by address
+    // TODO: I don't like it, this is side-effect. why do we even need this?
+    sdk.contracts.upsert(this.address, this);
   }
 
   get address(): Address {
@@ -99,19 +99,13 @@ export abstract class BaseContract<
     };
   }
 
-  public static parseLogs(logs: Array<Log>): void {
-    logs.forEach(log => {
-      const contract =
-        BaseContract.register[log.address.toLowerCase() as Address];
-      if (contract) {
-        contract.parseLog(log);
-      }
-    });
-  }
+  /**
+   * Updates contract's internal state from event
+   * @param _log
+   */
+  public parseLog(_log: Log): void {}
 
-  protected parseLog(_log: Log) {}
-
-  protected parseFunctionData(calldata: Hex): string {
+  public parseFunctionData(calldata: Hex): string {
     const decoded = decodeFunctionData({
       abi: this.abi,
       data: calldata,
@@ -149,19 +143,6 @@ export abstract class BaseContract<
     _params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     return undefined;
-  }
-
-  public static parseMultiCall(calls: Array<MultiCall>): Array<string> {
-    return calls.map(call => BaseContract.parse(call.target, call.callData));
-  }
-
-  public static parse(address: Address, calldata: Hex): string {
-    const contract = BaseContract.register[address.toLowerCase() as Address];
-    if (contract) {
-      return contract.parseFunctionData(calldata);
-    } else {
-      throw new Error(`Contract not found: ${address}`);
-    }
   }
 
   async getVersion(): Promise<number> {

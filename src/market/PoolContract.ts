@@ -14,7 +14,7 @@ export class PoolContract extends BaseContract<typeof abi> {
   state: PoolState;
 
   // Contracts
-  hasOperation = false;
+  public hasOperation = false;
 
   constructor(sdk: GearboxSDK, data: PoolData) {
     super(sdk, {
@@ -49,9 +49,7 @@ export class PoolContract extends BaseContract<typeof abi> {
     };
   }
 
-  // LOGS
-
-  protected parseLog(log: Log): void {
+  public override parseLog(log: Log): void {
     const parsedLog = parseEventLogs({
       abi: this.abi,
       logs: [log],
@@ -70,7 +68,7 @@ export class PoolContract extends BaseContract<typeof abi> {
     }
   }
 
-  parseFunctionParams(
+  public parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {

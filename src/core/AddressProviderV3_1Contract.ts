@@ -22,7 +22,7 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
     });
   }
 
-  parseFunctionParams(
+  public parseFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {
@@ -100,7 +100,7 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
     };
   }
 
-  protected parseLog(log: Log): void {
+  public override parseLog(log: Log): void {
     const parsedLog = parseEventLogs({
       abi: this.abi,
       logs: [log],
