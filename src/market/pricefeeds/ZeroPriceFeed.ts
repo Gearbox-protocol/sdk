@@ -7,8 +7,6 @@ import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 type abi = typeof zeroPriceFeedAbi;
 
 export class ZeroPriceFeedContract extends AbstractPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_ZERO_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,
@@ -21,7 +19,7 @@ export class ZeroPriceFeedContract extends AbstractPriceFeedContract<abi> {
   public get state(): AssetPriceFeedState {
     return {
       ...this.contractData,
-      contractType: this.priceFeedType,
+      contractType: "PF_ZERO_ORACLE",
       skipCheck: true,
       stalenessPeriod: 0,
       pricefeeds: [],

@@ -13,7 +13,7 @@ export class BotListContract extends BaseContract<abi> {
   approvedCreditManagers: Set<Address> = new Set();
 
   constructor(sdk: GearboxSDK, address: Address) {
-    super(sdk, { address, name: "BotListV3", abi: botListV3Abi });
+    super(sdk, { addr: address, name: "BotListV3", abi: botListV3Abi });
   }
 
   public parseFunctionParams(

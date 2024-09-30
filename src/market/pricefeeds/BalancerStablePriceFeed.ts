@@ -7,8 +7,6 @@ import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 type abi = typeof bptStablePriceFeedAbi;
 
 export class BalancerStablePriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_BALANCER_STABLE_LP_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,
@@ -26,7 +24,7 @@ export class BalancerStablePriceFeedContract extends AbstractLPPriceFeedContract
     };
   }
 
-  async getValue(): Promise<bigint> {
+  public override async getValue(): Promise<bigint> {
     return await this.sdk.provider.publicClient.readContract({
       abi: iBalancerStablePoolAbi,
       address: this.lpContract,

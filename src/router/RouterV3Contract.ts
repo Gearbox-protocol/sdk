@@ -51,7 +51,7 @@ export class RouterV3Contract extends BaseContract<abi> {
 
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, {
-      address: address,
+      addr: address,
       name: "RouterV3",
       abi: routerV3Abi,
     });

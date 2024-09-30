@@ -10,7 +10,7 @@ type abi = typeof gearStakingV3Abi;
 
 export class GearStakingContract extends BaseContract<abi> {
   constructor(sdk: GearboxSDK, address: Address) {
-    super(sdk, { address, name: "GearStakingV3", abi: gearStakingV3Abi });
+    super(sdk, { addr: address, name: "GearStakingV3", abi: gearStakingV3Abi });
   }
 
   parseFunctionParams(

@@ -8,8 +8,6 @@ import type { PriceFeedRef } from "./PriceFeedRef";
 type abi = typeof compositePriceFeedAbi;
 
 export class CompositePriceFeedContract extends AbstractPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_COMPOSITE_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,
@@ -19,11 +17,11 @@ export class CompositePriceFeedContract extends AbstractPriceFeedContract<abi> {
     });
   }
 
-  get targetToBasePriceFeed(): PriceFeedRef {
+  public get targetToBasePriceFeed(): PriceFeedRef {
     return this.underlyingPriceFeeds[0];
   }
 
-  get baseToUsdPriceFeed(): PriceFeedRef {
+  public get baseToUsdPriceFeed(): PriceFeedRef {
     return this.underlyingPriceFeeds[1];
   }
 

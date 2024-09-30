@@ -4,6 +4,7 @@
 .DS_Store
 /forge-out/
 /cache/
+/dist/
 .env
 .eslint.local.json
 example-state.json

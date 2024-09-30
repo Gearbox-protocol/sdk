@@ -16,10 +16,6 @@ export class CurveStablePriceFeedContract extends AbstractLPPriceFeedContract<ab
   }
 
   public get state(): Omit<AssetPriceFeedState, "stalenessPeriod"> {
-    if (this.priceFeedType !== "PF_CURVE_STABLE_LP_ORACLE") {
-      throw new Error("Invalid feed type");
-    }
-
     return {
       ...this.contractData,
       contractType: this.priceFeedType,
@@ -28,7 +24,7 @@ export class CurveStablePriceFeedContract extends AbstractLPPriceFeedContract<ab
     };
   }
 
-  async getValue(): Promise<bigint> {
+  public override async getValue(): Promise<bigint> {
     return await this.sdk.provider.publicClient.readContract({
       abi: iCurvePoolAbi,
       address: this.lpContract,

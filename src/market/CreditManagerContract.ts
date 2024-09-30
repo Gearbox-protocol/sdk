@@ -17,9 +17,7 @@ export class CreditManagerContract extends BaseContract<abi> {
     pool: PoolData,
   ) {
     super(sdk, {
-      address: creditManager.baseParams.addr,
-      version: Number(creditManager.baseParams.version),
-      contractType: creditManager.baseParams.contractType,
+      ...creditManager.baseParams,
       name: `CreditManagerV3(${creditManager.name})`,
       abi: creditManagerV3Abi,
     });

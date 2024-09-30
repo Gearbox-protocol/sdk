@@ -28,28 +28,32 @@ import { SDKConstruct } from "./SDKConstruct";
 
 export interface BaseContractOptions<abi extends Abi | readonly unknown[]> {
   abi: abi;
-  address: Address;
+  addr: Address;
   name?: string;
-  version?: number;
+  version?: number | bigint;
   contractType?: string;
 }
 
 export abstract class BaseContract<
   abi extends Abi | readonly unknown[],
 > extends SDKConstruct {
-  contract: GetContractReturnType<abi, { public: Client }, Address>;
+  public readonly contract: GetContractReturnType<
+    abi,
+    { public: Client },
+    Address
+  >;
   public readonly abi: abi;
   public readonly logger?: ILogger;
+  public readonly contractType: string;
+  public version: number;
 
-  version: number;
-  contractType: string;
   #name: string;
   #address: Address;
 
   constructor(sdk: GearboxSDK, args: BaseContractOptions<abi>) {
     super(sdk);
     this.abi = args.abi;
-    this.#address = args.address.toLowerCase() as Address;
+    this.#address = args.addr;
 
     this.contract = getContract({
       address: this.address,
@@ -58,7 +62,7 @@ export abstract class BaseContract<
         public: sdk.provider.publicClient,
       },
     });
-    this.version = args.version || 0;
+    this.version = Number(args.version || 0);
     this.contractType = args.contractType ?? "";
     if (isHex(this.contractType)) {
       this.contractType = bytes32ToString(this.contractType);
@@ -71,11 +75,11 @@ export abstract class BaseContract<
     sdk.contracts.upsert(this.address, this);
   }
 
-  get address(): Address {
+  public get address(): Address {
     return this.#address;
   }
 
-  set address(address: Address) {
+  public set address(address: Address) {
     if (this.#address !== ADDRESS_0X0) {
       throw new Error(`Address can't be changed, currently: ${this.#address}`);
     }
@@ -83,23 +87,23 @@ export abstract class BaseContract<
     this.addressLabels.set(address, this.#name);
   }
 
-  test_setAddress(address: Address) {
+  public test_setAddress(address: Address) {
     this.#address = address;
     this.addressLabels.set(address, this.#name);
   }
 
-  get name(): string {
+  public get name(): string {
     return this.#name;
   }
 
-  set name(name: string) {
+  public set name(name: string) {
     this.#name = name;
     if (this.#address !== ADDRESS_0X0) {
       this.addressLabels.set(this.#address, name);
     }
   }
 
-  get contractData(): BaseContractState {
+  public get contractData(): BaseContractState {
     return {
       address: this.address,
       version: this.version,
@@ -113,6 +117,11 @@ export abstract class BaseContract<
    */
   public parseLog(_log: Log): void {}
 
+  /**
+   * Converts contract calldata to some human-friendly string
+   * @param calldata
+   * @returns
+   */
   public parseFunctionData(calldata: Hex): string {
     const decoded = decodeFunctionData({
       abi: this.abi,
@@ -147,13 +156,13 @@ export abstract class BaseContract<
     return `${this.name}.${decoded.functionName}({${paramsHuman.join(", ")}})`;
   }
 
-  parseFunctionParams(
+  public parseFunctionParams(
     _params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     return undefined;
   }
 
-  async getVersion(): Promise<number> {
+  public async getVersion(): Promise<number> {
     this.version = Number(
       await this.sdk.provider.publicClient.readContract({
         abi: iVersionAbi,

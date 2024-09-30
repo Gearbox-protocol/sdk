@@ -10,7 +10,6 @@ import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 type abi = typeof redstonePriceFeedAbi;
 
 export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_REDSTONE_ORACLE";
   decimals = 8;
 
   dataServiceId: string;
@@ -56,7 +55,7 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
   public get state(): Omit<RedstonePriceFeedState, "stalenessPeriod"> {
     return {
       ...this.contractData,
-      contractType: this.priceFeedType,
+      contractType: "PF_REDSTONE_ORACLE",
       dataId: this.dataId,
       signers: this.signers,
       signersThreshold: this.signersThreshold,

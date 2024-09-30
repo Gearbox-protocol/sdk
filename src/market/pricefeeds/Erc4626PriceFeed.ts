@@ -9,8 +9,6 @@ import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 type abi = typeof erc4626PriceFeedAbi;
 
 export class Erc4626PriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_ERC4626_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,
@@ -28,7 +26,7 @@ export class Erc4626PriceFeedContract extends AbstractLPPriceFeedContract<abi> {
     };
   }
 
-  async getValue(): Promise<bigint> {
+  public override async getValue(): Promise<bigint> {
     const decimals = await this.sdk.provider.publicClient.readContract({
       abi: erc20Abi,
       address: this.lpContract,

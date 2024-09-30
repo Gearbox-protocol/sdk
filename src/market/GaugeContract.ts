@@ -14,9 +14,7 @@ export class GaugeContract extends BaseContract<abi> {
 
   constructor(sdk: GearboxSDK, pool: PoolData, gauge: RateKeeperData) {
     super(sdk, {
-      address: gauge.baseParams.addr,
-      contractType: gauge.baseParams.contractType,
-      version: Number(gauge.baseParams.version),
+      ...gauge.baseParams,
       name: `Gauge(${pool.name})`,
       abi: gaugeV3Abi,
     });

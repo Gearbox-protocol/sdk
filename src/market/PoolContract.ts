@@ -18,9 +18,7 @@ export class PoolContract extends BaseContract<typeof abi> {
 
   constructor(sdk: GearboxSDK, data: PoolData) {
     super(sdk, {
-      version: Number(data.baseParams.version),
-      address: data.baseParams.addr,
-      contractType: data.baseParams.contractType,
+      ...data.baseParams,
       name: `PoolV3(${data.name})`,
       abi,
     });

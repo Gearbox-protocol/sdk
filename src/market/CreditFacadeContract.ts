@@ -17,9 +17,7 @@ export class CreditFacadeContract extends BaseContract<abi> {
     { creditFacade, creditManager }: CreditManagerData,
   ) {
     super(sdk, {
-      address: creditFacade.baseParams.addr,
-      version: Number(creditFacade.baseParams.version),
-      contractType: creditFacade.baseParams.contractType,
+      ...creditFacade.baseParams,
       name: `CreditFacadeV3(${creditManager.name})`,
       abi: creditFacadeV3Abi,
     });

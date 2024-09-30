@@ -31,10 +31,10 @@ export abstract class AbstractPriceFeedContract<
   constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
     super(sdk, {
       abi: args.abi,
-      address: args.baseParams.addr,
+      addr: args.baseParams.addr,
       name: args.name,
       contractType: args.baseParams.contractType,
-      version: Number(args.baseParams.version),
+      version: args.baseParams.version,
     });
     this.decimals = args.decimals;
     this.updatable = args.updatable;

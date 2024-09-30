@@ -7,8 +7,6 @@ import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 type abi = typeof wstEthPriceFeedAbi;
 
 export class WstETHPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_WSTETH_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,
@@ -26,7 +24,7 @@ export class WstETHPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
     };
   }
 
-  public async getValue(): Promise<bigint> {
+  public override async getValue(): Promise<bigint> {
     return await this.sdk.provider.publicClient.readContract({
       abi: iwstEthAbi,
       address: this.lpContract,

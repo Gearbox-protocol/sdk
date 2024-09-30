@@ -19,9 +19,7 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
     emergencyLiquidators: readonly Address[],
   ) {
     super(sdk, {
-      address: creditConfigurator.baseParams.addr,
-      contractType: creditConfigurator.baseParams.contractType,
-      version: Number(creditConfigurator.baseParams.version),
+      ...creditConfigurator.baseParams,
       name: `CreditConfigurator(${creditManager.name})`,
       abi: creditConfiguratorV3Abi,
     });

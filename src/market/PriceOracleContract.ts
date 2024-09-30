@@ -40,9 +40,7 @@ export class PriceOracleContract extends BaseContract<abi> {
 
   constructor(sdk: GearboxSDK, data: PriceOracleData) {
     super(sdk, {
-      address: data.baseParams.addr,
-      contractType: data.baseParams.contractType,
-      version: Number(data.baseParams.version),
+      ...data.baseParams,
       name: "PriceOracleV3",
       abi: priceOracleV3Abi,
     });

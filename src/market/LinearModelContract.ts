@@ -13,9 +13,7 @@ export class LinearModelContract extends BaseContract<abi> {
 
   constructor(sdk: GearboxSDK, { interestRateModel }: MarketData) {
     super(sdk, {
-      address: interestRateModel.baseParams.addr,
-      contractType: interestRateModel.baseParams.contractType,
-      version: Number(interestRateModel.baseParams.version),
+      ...interestRateModel.baseParams,
       name: "LinearInterestRateModel",
       abi: linearInterestRateModelV3Abi,
     });

@@ -7,8 +7,6 @@ import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 type abi = typeof chainlinkReadableAggregatorAbi;
 
 export class ChainlinkPriceFeedContract extends AbstractPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_CHAINLINK_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,

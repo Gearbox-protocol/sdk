@@ -7,8 +7,6 @@ import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 type abi = typeof curveCryptoLpPriceFeedAbi;
 
 export class CurveCryptoPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_CURVE_CRYPTO_LP_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,
@@ -26,7 +24,7 @@ export class CurveCryptoPriceFeedContract extends AbstractLPPriceFeedContract<ab
     };
   }
 
-  async getValue(): Promise<bigint> {
+  public override async getValue(): Promise<bigint> {
     return await this.sdk.provider.publicClient.readContract({
       abi: iCurvePoolAbi,
       address: this.lpContract,

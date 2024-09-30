@@ -7,8 +7,6 @@ import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 type abi = typeof mellowLrtPriceFeedAbi;
 
 export class MellowLRTPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_MELLOW_LRT_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,
@@ -26,7 +24,7 @@ export class MellowLRTPriceFeedContract extends AbstractLPPriceFeedContract<abi>
     };
   }
 
-  public async getValue(): Promise<bigint> {
+  public override async getValue(): Promise<bigint> {
     const stack = await this.sdk.provider.publicClient.readContract({
       abi: iMellowVaultAbi,
       address: this.lpContract,

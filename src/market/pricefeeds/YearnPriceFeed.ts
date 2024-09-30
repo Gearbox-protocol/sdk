@@ -7,8 +7,6 @@ import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 type abi = typeof yearnPriceFeedAbi;
 
 export class YearnPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_YEARN_ORACLE";
-
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
     super(sdk, {
       ...args,
@@ -26,7 +24,7 @@ export class YearnPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
     };
   }
 
-  public async getValue(): Promise<bigint> {
+  public override async getValue(): Promise<bigint> {
     return await this.sdk.provider.publicClient.readContract({
       abi: iyVaultAbi,
       address: this.lpContract,

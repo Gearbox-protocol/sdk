@@ -14,9 +14,7 @@ export class PoolQuotaKeeperContract extends BaseContract<abi> {
 
   constructor(sdk: GearboxSDK, pool: PoolData, pqk: PoolQuotaKeeperData) {
     super(sdk, {
-      address: pqk.baseParams.addr,
-      contractType: pqk.baseParams.contractType,
-      version: Number(pqk.baseParams.version),
+      ...pqk.baseParams,
       name: `PoolQuotaKeeper(${pool.name})`,
       abi: poolQuotaKeeperV3Abi,
     });

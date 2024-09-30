@@ -7,8 +7,6 @@ import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 type abi = typeof boundedPriceFeedAbi;
 
 export class BoundedPriceFeedContract extends AbstractPriceFeedContract<abi> {
-  readonly priceFeedType = "PF_BOUNDED_ORACLE";
-
   upperBound = 0n;
 
   constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
@@ -18,9 +16,9 @@ export class BoundedPriceFeedContract extends AbstractPriceFeedContract<abi> {
   public get state(): Omit<BoundedOracleState, "stalenessPeriod"> {
     return {
       ...this.contractData,
+      contractType: "PF_BOUNDED_ORACLE",
       pricefeeds: [this.underlyingPriceFeeds[0]!.state],
       upperBound: this.upperBound,
-      contractType: this.priceFeedType,
       skipCheck: true,
     };
   }
