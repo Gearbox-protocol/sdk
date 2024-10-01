@@ -24,6 +24,8 @@ interface UpdatePFTask {
 
 /**
  * Class to update multiple redstone price feeds at once
+ * TODO: historical updates....
+ * TODO: warp time on testnets
  */
 export class RedstoneUpdater extends SDKConstruct {
   #logger?: ILogger;
