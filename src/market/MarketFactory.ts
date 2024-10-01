@@ -15,6 +15,12 @@ export class MarketFactory {
 
   constructor(sdk: GearboxSDK, marketData: MarketData) {
     this.riskCurator = marketData.owner;
+
+    for (const t of marketData.tokens) {
+      sdk.marketRegister.tokensMeta.upsert(t.addr, t);
+      sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
+    }
+
     this.poolFactory = new PoolFactory(sdk, marketData);
 
     for (let i = 0; i < marketData.creditManagers.length; i++) {
@@ -22,10 +28,6 @@ export class MarketFactory {
     }
 
     this.priceOracle = new PriceOracleContract(sdk, marketData.priceOracleData);
-
-    for (const t of marketData.tokens) {
-      sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
-    }
   }
 
   public get state(): MarketState {

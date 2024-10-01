@@ -1,9 +1,9 @@
-import { botPermissionsToString } from "@gearbox-protocol/sdk-gov";
 import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
 import { parseEventLogs } from "viem";
 
 import { botListV3Abi } from "../abi";
 import { BaseContract } from "../base";
+import { botPermissionsToString } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { BotListState } from "../state";
 

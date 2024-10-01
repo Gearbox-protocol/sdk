@@ -1,4 +1,3 @@
-import { decimals, formatBN, getTokenSymbol } from "@gearbox-protocol/sdk-gov";
 import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
 import { parseEventLogs } from "viem";
 
@@ -7,6 +6,7 @@ import type { CreditManagerDebtParamsStruct, PoolData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PoolState } from "../state";
+import { formatBN } from "../utils";
 
 const abi = poolV3Abi;
 
@@ -35,13 +35,12 @@ export class PoolContract extends BaseContract<typeof abi> {
       {} as Record<Address, CreditManagerDebtParamsStruct>,
     );
 
-    // TODO: avoid reading decimals from sdk-gov
     this.state = {
       ...data,
       ...this.contractData,
       lastBaseInterestUpdate: data.lastBaseInterestUpdate,
-      underlying: data.underlying as Address,
-      decimals: decimals[getTokenSymbol(data.underlying as Address)!],
+      underlying: data.underlying,
+      decimals: sdk.marketRegister.tokensMeta.mustGet(data.underlying).decimals,
       creditManagerDebtParams,
       withdrawFee: Number(data.withdrawFee),
     };

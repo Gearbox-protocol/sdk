@@ -1,10 +1,9 @@
-import type { NetworkType } from "@gearbox-protocol/sdk-gov";
-import { formatBN, TIMELOCK } from "@gearbox-protocol/sdk-gov";
 import { EventEmitter } from "eventemitter3";
 import type { Address, Hex, Log } from "viem";
 import { http } from "viem";
 
 import type { BaseContract } from "./base";
+import type { NetworkType } from "./chain";
 import { Provider } from "./chain";
 import {
   ADDRESS_PROVIDER,
@@ -12,6 +11,7 @@ import {
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
   AP_ROUTER,
+  TIMELOCK,
 } from "./constants";
 import {
   AddressProviderContractV3_1,
@@ -24,7 +24,7 @@ import { RouterV3Contract } from "./router";
 import type { SDKEventsMap } from "./SDKEvents";
 import type { GearboxState } from "./state/state";
 import type { ILogger, MultiCall } from "./types";
-import { AddressMap } from "./utils";
+import { AddressMap, formatBN } from "./utils";
 import { createAnvilClient } from "./utils/viem";
 
 export interface SDKAttachOptions {
@@ -167,7 +167,9 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
     );
 
     this.#marketRegister = new MarketRegister(this);
-    await this.#marketRegister.loadMarkets([TIMELOCK.Mainnet]);
+    await this.#marketRegister.loadMarkets([
+      TIMELOCK[this.provider.networkType],
+    ]);
 
     try {
       const router = this.#addressProvider.getLatestVersion(AP_ROUTER);

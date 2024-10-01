@@ -1,4 +1,3 @@
-import { formatDuration, percentFmt } from "@gearbox-protocol/sdk-gov";
 import type { Address, DecodeFunctionDataReturnType } from "viem";
 
 import { creditConfiguratorV3Abi } from "../abi";
@@ -6,6 +5,7 @@ import type { CreditManagerData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditConfiguratorState } from "../state";
+import { formatDuration, percentFmt } from "../utils";
 
 type abi = typeof creditConfiguratorV3Abi;
 

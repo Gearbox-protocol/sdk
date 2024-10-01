@@ -1,5 +1,4 @@
-import type { Address } from "@gearbox-protocol/sdk-gov";
-import type { Abi } from "viem";
+import type { Abi, Address } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
 import type { GearboxSDK } from "../../GearboxSDK";

@@ -1,4 +1,3 @@
-import type { PartialRecord } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
 import type { PriceFeedContractType } from "../market/pricefeeds";
@@ -6,8 +5,8 @@ import type { BaseContractState } from "./state";
 
 export interface PriceOracleState {
   priceOracleV3: PriceOracleV3State;
-  mainPriceFeeds: PartialRecord<Address, PriceFeedState>;
-  reservePriceFeeds: PartialRecord<Address, PriceFeedState>;
+  mainPriceFeeds: Record<Address, PriceFeedState>;
+  reservePriceFeeds: Record<Address, PriceFeedState>;
 }
 
 export type PriceOracleV3State = BaseContractState;

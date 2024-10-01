@@ -1,5 +1,3 @@
-import { decimals, getTokenSymbol } from "@gearbox-protocol/sdk-gov";
-
 import { poolQuotaKeeperV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import type { PoolData, PoolQuotaKeeperData } from "../base/types";
@@ -9,8 +7,8 @@ import type { PoolQuotaKeeperState } from "../state/poolState";
 type abi = typeof poolQuotaKeeperV3Abi;
 
 export class PoolQuotaKeeperContract extends BaseContract<abi> {
-  decimals: number;
-  state: PoolQuotaKeeperState;
+  public readonly decimals: number;
+  public readonly state: PoolQuotaKeeperState;
 
   constructor(sdk: GearboxSDK, pool: PoolData, pqk: PoolQuotaKeeperData) {
     super(sdk, {
@@ -19,8 +17,9 @@ export class PoolQuotaKeeperContract extends BaseContract<abi> {
       abi: poolQuotaKeeperV3Abi,
     });
 
-    // TODO: avoid reading decimals from sdk-gov
-    this.decimals = decimals[getTokenSymbol(pool.underlying)!];
+    this.decimals = sdk.marketRegister.tokensMeta.mustGet(
+      pool.underlying,
+    ).decimals;
 
     this.state = {
       ...this.contractData,

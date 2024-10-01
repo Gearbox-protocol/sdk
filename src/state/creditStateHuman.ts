@@ -1,12 +1,7 @@
-import {
-  decimals,
-  fmtBinaryMask,
-  formatBNvalue,
-  getTokenSymbol,
-  percentFmt,
-} from "@gearbox-protocol/sdk-gov";
+import { decimals, getTokenSymbol } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
+import { fmtBinaryMask, formatBNvalue, percentFmt } from "../utils";
 import type {
   CreditConfiguratorState,
   CreditFacadeState,

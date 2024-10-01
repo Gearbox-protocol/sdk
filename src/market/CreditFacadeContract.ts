@@ -1,4 +1,3 @@
-import { fmtBinaryMask } from "@gearbox-protocol/sdk-gov";
 import type { DecodeFunctionDataReturnType } from "viem";
 
 import { creditFacadeV3Abi } from "../abi";
@@ -6,6 +5,7 @@ import { BaseContract, type CreditManagerData } from "../base";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditFacadeState } from "../state";
+import { fmtBinaryMask } from "../utils";
 
 type abi = typeof creditFacadeV3Abi;
 

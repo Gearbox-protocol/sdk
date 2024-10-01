@@ -1,6 +1,6 @@
-import type { NetworkType } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
+import type { NetworkType } from "../chain";
 import { NOT_DEPLOYED } from "./addresses";
 
 export const NO_VERSION = 0;

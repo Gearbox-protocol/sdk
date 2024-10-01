@@ -1,6 +1,6 @@
-import { formatBNvalue, percentFmt } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
+import { formatBNvalue, percentFmt } from "../utils";
 import type {
   GaugeState,
   LinearModelState,

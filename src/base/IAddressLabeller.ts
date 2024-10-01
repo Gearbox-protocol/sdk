@@ -1,4 +1,4 @@
-import type { Address } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 /**
  * Helper interface to ease v3.1 refactoring and migration from static methods

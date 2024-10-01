@@ -1,9 +1,9 @@
-import type { NetworkType } from "@gearbox-protocol/sdk-gov";
 import type { Chain, PublicClient } from "viem";
 import { createPublicClient, defineChain, http } from "viem";
 
 import { AddressLabeller } from "../base/AddressLabeller";
 import type { IAddressLabeller } from "../base/IAddressLabeller";
+import type { NetworkType } from "./chains";
 import { chains } from "./chains";
 
 export interface ProviderOptions {
@@ -18,11 +18,7 @@ export class Provider {
   public readonly chain: Chain;
   public readonly networkType: NetworkType;
   public readonly publicClient: PublicClient;
-
-  /**
-   * Note: use interface here to hide implementation that uses sdk-gov
-   */
-  readonly addressLabels: IAddressLabeller;
+  public readonly addressLabels: IAddressLabeller;
 
   constructor(opts: ProviderOptions) {
     const { chainId, networkType, rpcURL, timeout = 120_000 } = opts;

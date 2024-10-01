@@ -14,7 +14,6 @@ import {
   getTokenSymbol,
   isBalancerLPToken,
   isCurveLPToken,
-  toBigInt,
   tokenDataByNetwork,
   yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
@@ -112,7 +111,7 @@ export class PathOptionFactory {
 
   static getBalancerPools(balances: readonly Asset[]): BalancerLPToken[] {
     const nonZeroBalances = Object.entries(balances).filter(
-      ([, balance]) => toBigInt(balance.balance) > 1,
+      ([, balance]) => balance.balance > 1,
     );
 
     const balancerPools = nonZeroBalances

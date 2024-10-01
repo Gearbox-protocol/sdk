@@ -1,7 +1,7 @@
-import { formatDuration } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
 import type { PriceFeedContractType } from "../market/pricefeeds";
+import { formatDuration } from "../utils";
 import type { PriceFeedState, PriceOracleState } from "./priceFactoryState";
 import type { BaseContractStateHuman } from "./stateHuman";
 import { convertBaseContractState } from "./stateHuman";

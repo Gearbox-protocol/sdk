@@ -1,4 +1,3 @@
-import { getTokenSymbolOrTicker } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 import { decodeFunctionData, encodeFunctionData } from "viem";
 
@@ -225,7 +224,8 @@ export class PriceOracleContract extends BaseContract<abi> {
     token: Address,
   ): void {
     this.sdk.provider.addressLabels.set(address, label => {
-      let pricefeedTag = `${getTokenSymbolOrTicker(token)}.${usage}`;
+      const { symbol } = this.sdk.marketRegister.tokensMeta.mustGet(token);
+      let pricefeedTag = `${symbol}.${usage}`;
 
       if (label) {
         pricefeedTag = `${label}, ${pricefeedTag}`;

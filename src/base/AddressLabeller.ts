@@ -1,16 +1,5 @@
-import {
-  contractsByNetwork,
-  emergencyLiquidators,
-  MULTISIG,
-  ROUTER_MULTISIG_ADDRESS,
-  tickerTokensByNetwork,
-  tokenDataByNetwork,
-  TREASURY,
-  VETO_ADMIN,
-} from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
-import type { NetworkType } from "../chain";
 import { NOT_DEPLOYED } from "../constants";
 import { AddressMap } from "../utils";
 import type { IAddressLabeller } from "./IAddressLabeller";
@@ -43,41 +32,4 @@ export class AddressLabeller implements IAddressLabeller {
   public get all(): Record<Address, string> {
     return this.#labels.asRecord();
   }
-}
-
-/**
- * This method is using sdk-gov, and is not part of the interface, so it'll be easier to remove it once we get rid of sdk-gov
- * @param labeller
- * @param network
- */
-export function initLegacyLabels(
-  labeller: IAddressLabeller,
-  network: NetworkType,
-): void {
-  Object.entries(tokenDataByNetwork[network]).forEach(([label, address]) => {
-    labeller.set(address, label);
-  });
-
-  Object.entries(tickerTokensByNetwork[network]).forEach(([label, address]) => {
-    labeller.set(address, label);
-  });
-
-  Object.entries(contractsByNetwork[network]).forEach(([label, address]) => {
-    labeller.set(address, label);
-  });
-
-  const multisigs = [
-    { safe: MULTISIG, label: "Multisig" },
-    { safe: ROUTER_MULTISIG_ADDRESS, label: "RouterMultisig" },
-    { safe: VETO_ADMIN, label: "VetoAdmin" },
-    { safe: TREASURY, label: "Treasury" },
-  ];
-
-  multisigs.forEach(({ safe, label }) => {
-    labeller.set(safe[network], label);
-  });
-
-  emergencyLiquidators.forEach(address => {
-    labeller.set(address, "EmergencyLiquidator");
-  });
 }
