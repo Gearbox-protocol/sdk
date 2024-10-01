@@ -107,7 +107,7 @@ export class CreditAccountsService extends SDKConstruct {
    * TODO: do we want to expose "reverting"?
    * TODO: do we want to expose MarketFilter in any way? If so, we need to check that the MarketFilter is compatibled with attached markets?
    * @param args
-   * @returns
+   * @returns returned credit accounts are sorted by health factor in ascending order
    */
   public async getCreditAccounts(
     args?: CreditAccountFilter,
@@ -153,7 +153,8 @@ export class CreditAccountsService extends SDKConstruct {
       } while (offset !== 0n);
     }
 
-    return allCAs;
+    // sort by health factor ascending
+    return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
   }
 
   /**

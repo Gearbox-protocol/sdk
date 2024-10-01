@@ -29,10 +29,6 @@ import { ZeroPriceFeedContract } from "./ZeroPriceFeed";
  * PriceFeedRegister acts as a chain-level cache to avoid creating multiple contract instances.
  * It's reused by PriceFeedFactory belonging to different markets
  *
- * ugly workaround for the face that "stalenessPeriod" is not "PriceFeed"'s attribute
- * for example, chainlink price feed can have one staleness period as a top-level oracle entry,
- * and another staleness period when it's a part of a composite price feed
- *
  **/
 export class PriceFeedRegister extends SDKConstruct {
   public readonly logger?: ILogger;
