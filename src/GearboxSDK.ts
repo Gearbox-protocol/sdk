@@ -49,6 +49,10 @@ export interface SDKAttachOptions {
    */
   addressProvider?: Address;
   /**
+   * Risk curators, defaults to gearbox own
+   */
+  riskCurators?: Address[];
+  /**
    * Bring your own logger
    */
   logger?: ILogger;
@@ -99,7 +103,7 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
   public readonly contracts = new AddressMap<BaseContract<any>>();
 
   public static async attach(options: SDKAttachOptions): Promise<GearboxSDK> {
-    const { rpcURL, timeout, logger } = options;
+    const { rpcURL, timeout, logger, riskCurators } = options;
     let { networkType, addressProvider, chainId } = options;
     const attachClient = createAnvilClient({
       transport: http(rpcURL, { timeout }),
@@ -128,7 +132,7 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
     return new GearboxSDK({
       provider,
       logger,
-    }).#attach(addressProvider);
+    }).#attach(addressProvider, riskCurators);
   }
 
   private constructor(options: SDKOptions) {
@@ -138,7 +142,10 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
     this.priceFeeds = new PriceFeedRegister(this);
   }
 
-  async #attach(addressProviderAddress: Address): Promise<this> {
+  async #attach(
+    addressProviderAddress: Address,
+    riskCurators?: Address[],
+  ): Promise<this> {
     const time = Date.now();
 
     await this.updateBlock();
@@ -167,9 +174,9 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
     );
 
     this.#marketRegister = new MarketRegister(this);
-    await this.#marketRegister.loadMarkets([
-      TIMELOCK[this.provider.networkType],
-    ]);
+    await this.#marketRegister.loadMarkets(
+      riskCurators ?? [TIMELOCK[this.provider.networkType]],
+    );
 
     try {
       const router = this.#addressProvider.getLatestVersion(AP_ROUTER);
