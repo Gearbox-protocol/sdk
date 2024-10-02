@@ -65,7 +65,7 @@ interface SDKOptions {
 
 export class GearboxSDK extends EventEmitter<SDKEventsMap> {
   // Represents chain object
-  public readonly provider: Provider;
+  readonly #provider: Provider;
 
   // Block which was use for data query
   #currentBlock?: bigint;
@@ -137,7 +137,7 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
 
   private constructor(options: SDKOptions) {
     super();
-    this.provider = options.provider;
+    this.#provider = options.provider;
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);
   }
@@ -275,6 +275,10 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
     // TODO: add cm reload tracking
     this.#currentBlock = toBlock;
     this.#timestamp = timestamp;
+  }
+
+  public get provider(): Provider {
+    return this.#provider;
   }
 
   public get currentBlock(): bigint {
