@@ -1,4 +1,4 @@
-import type { Chain, PublicClient } from "viem";
+import type { Address, Chain, PublicClient } from "viem";
 import { createPublicClient, defineChain, http } from "viem";
 
 import { AddressLabeller } from "../base/AddressLabeller";
@@ -7,13 +7,30 @@ import type { NetworkType } from "./chains";
 import { chains } from "./chains";
 
 export interface ProviderOptions {
+  /**
+   * Account address for contract write simulations
+   */
+  account?: Address;
+  /**
+   * RPC URL to use
+   */
   rpcURL: string;
+  /**
+   * RPC client timeout in milliseconds
+   */
   timeout?: number;
+  /**
+   * Chain Id needs to be set, because we sometimemes use forked testnets with different chain ids
+   */
   chainId: number;
+  /**
+   * NetworkType needs to be set, because we sometimemes use forked testnets with different chain ids
+   */
   networkType: NetworkType;
 }
 
 export class Provider {
+  public readonly account?: Address;
   public readonly chainId: number;
   public readonly chain: Chain;
   public readonly networkType: NetworkType;
@@ -21,7 +38,8 @@ export class Provider {
   public readonly addressLabels: IAddressLabeller;
 
   constructor(opts: ProviderOptions) {
-    const { chainId, networkType, rpcURL, timeout = 120_000 } = opts;
+    const { account, chainId, networkType, rpcURL, timeout = 120_000 } = opts;
+    this.account = account;
     this.chainId = chainId;
     this.networkType = networkType;
 

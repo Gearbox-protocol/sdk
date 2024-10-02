@@ -1,4 +1,4 @@
-import type { Address, ContractFunctionArgs, WalletClient } from "viem";
+import type { Address, ContractFunctionArgs } from "viem";
 import { decodeFunctionData, encodeFunctionData } from "viem";
 
 import {
@@ -41,14 +41,12 @@ export interface CreditAccountFilter {
 
 export class CreditAccountsService extends SDKConstruct {
   #compressor: Address;
-  #wallet: WalletClient;
 
-  constructor(sdk: GearboxSDK, wallet: WalletClient) {
+  constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#compressor = sdk.addressProvider.getLatestVersion(
       AP_CREDIT_ACCOUNT_COMPRESSOR,
     );
-    this.#wallet = wallet;
   }
 
   /**
@@ -81,7 +79,8 @@ export class CreditAccountsService extends SDKConstruct {
     // if (this.provider.testnet && priceUpdateTxs.length > 0) {
     //   await this.provider.warpSafe(timestamp);
     // }
-    const resp = await simulateMulticall(this.#wallet, {
+    const resp = await simulateMulticall(this.provider.publicClient, {
+      account: this.provider.account,
       contracts: [
         ...priceUpdateTxs.map(rawTxToMulticallPriceUpdate),
         {
@@ -166,7 +165,7 @@ export class CreditAccountsService extends SDKConstruct {
    */
   public async fullyLiquidate(
     account: CreditAccountData,
-    to: Address,
+    to?: Address,
     slippage = 50n,
   ): Promise<RawTx> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
@@ -183,11 +182,15 @@ export class CreditAccountsService extends SDKConstruct {
       cm.creditFacade.address,
       priceUpdates,
     );
+    const recipient = to ?? this.sdk.provider.account;
+    if (!recipient) {
+      throw new Error("liquidate account: assets recipient not specied");
+    }
     return cm.creditFacade.createRawTx({
       functionName: "liquidateCreditAccount",
       args: [
         account.creditAccount,
-        to,
+        recipient,
         [...priceUpdateCalls, ...preview.calls],
       ],
     });
@@ -206,15 +209,19 @@ export class CreditAccountsService extends SDKConstruct {
     operation: "close" | "zeroDebt",
     ca: CreditAccountData,
     assetsToKeep: Address[],
-    to: Address,
+    to?: Address,
     slippage = 50n,
   ): Promise<RawTx> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+    const recipient = to ?? this.sdk.provider.account;
+    if (!recipient) {
+      throw new Error("close account: assets recipient not specied");
+    }
     const calls = await this.#prepareCloseCreditAccount(
       ca,
       cm,
       assetsToKeep,
-      to,
+      recipient,
       slippage,
     );
     return cm.creditFacade.createRawTx({
@@ -236,7 +243,8 @@ export class CreditAccountsService extends SDKConstruct {
     args: GetCreditAccountsArgs;
   }): Promise<[accounts: CreditAccountData[], newOffset: bigint]> {
     if (priceUpdateTxs?.length) {
-      const resp = await simulateMulticall(this.#wallet, {
+      const resp = await simulateMulticall(this.provider.publicClient, {
+        account: this.provider.account,
         contracts: [
           ...priceUpdateTxs.map(rawTxToMulticallPriceUpdate),
           {

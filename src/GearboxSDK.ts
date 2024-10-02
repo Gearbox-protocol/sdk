@@ -29,6 +29,10 @@ import { createAnvilClient } from "./utils/viem";
 
 export interface SDKAttachOptions {
   /**
+   * Account address for contract write simulations
+   */
+  account?: Address;
+  /**
    * RPC URL to use
    */
   rpcURL: string;

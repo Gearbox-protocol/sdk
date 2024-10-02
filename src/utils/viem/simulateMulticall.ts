@@ -39,7 +39,7 @@ export type MulticallParameters<
   } = {},
 > = Pick<
   CallParameters,
-  "blockNumber" | "blockTag" | "stateOverride" | "gas"
+  "blockNumber" | "blockTag" | "stateOverride" | "gas" | "account"
 > & {
   allowFailure?: allowFailure | boolean | undefined;
   batchSize?: number | undefined;
@@ -85,13 +85,14 @@ export async function simulateMulticall<
   parameters: MulticallParameters<contracts, allowFailure>,
 ): Promise<MulticallReturnType<contracts, allowFailure>> {
   const {
+    account,
     allowFailure = true,
     batchSize: batchSize_,
     blockNumber,
     blockTag,
+    gas,
     multicallAddress: multicallAddress_,
     stateOverride,
-    gas,
   } = parameters;
   const contracts = parameters.contracts as ContractFunctionParameters[];
 
@@ -179,6 +180,7 @@ export async function simulateMulticall<
         simulateContract,
         "simulateContract",
       )({
+        account,
         abi: multicall3Abi,
         address: multicallAddress!,
         args: [calls],
