@@ -1,5 +1,5 @@
 import type { Address, Chain, PublicClient } from "viem";
-import { createPublicClient, defineChain, http } from "viem";
+import { createPublicClient, defineChain, fallback, http } from "viem";
 
 import { AddressLabeller } from "../base/AddressLabeller";
 import type { IAddressLabeller } from "../base/IAddressLabeller";
@@ -12,13 +12,17 @@ export interface ProviderOptions {
    */
   account?: Address;
   /**
-   * RPC URL to use
+   * RPC URL (and fallbacks) to use.
    */
-  rpcURL: string;
+  rpcURLs: string[];
   /**
    * RPC client timeout in milliseconds
    */
   timeout?: number;
+  /**
+   * Retry count for RPC
+   */
+  retryCount?: number;
   /**
    * Chain Id needs to be set, because we sometimemes use forked testnets with different chain ids
    */
@@ -38,7 +42,14 @@ export class Provider {
   public readonly addressLabels: IAddressLabeller;
 
   constructor(opts: ProviderOptions) {
-    const { account, chainId, networkType, rpcURL, timeout = 120_000 } = opts;
+    const {
+      account,
+      chainId,
+      networkType,
+      rpcURLs,
+      timeout = 120_000,
+      retryCount,
+    } = opts;
     this.account = account;
     this.chainId = chainId;
     this.networkType = networkType;
@@ -49,9 +60,12 @@ export class Provider {
       id: chainId,
     });
 
+    const rpcs = rpcURLs.map(url => http(url, { timeout, retryCount }));
+    const transport = rpcs.length ? fallback(rpcs) : rpcs[0];
+
     this.publicClient = createPublicClient({
       chain: this.chain,
-      transport: http(rpcURL, { timeout }), // for SDK they could be multiple RPCs
+      transport,
     });
 
     this.addressLabels = new AddressLabeller();

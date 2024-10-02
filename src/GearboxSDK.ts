@@ -33,9 +33,9 @@ export interface SDKAttachOptions {
    */
   account?: Address;
   /**
-   * RPC URL to use
+   * RPC URL (and fallbacks) to use
    */
-  rpcURL: string;
+  rpcURLs: string[];
   /**
    * RPC client timeout in milliseconds
    */
@@ -107,10 +107,13 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
   public readonly contracts = new AddressMap<BaseContract<any>>();
 
   public static async attach(options: SDKAttachOptions): Promise<GearboxSDK> {
-    const { rpcURL, timeout, logger, riskCurators } = options;
+    const { rpcURLs, timeout, logger, riskCurators } = options;
     let { networkType, addressProvider, chainId } = options;
+    if (rpcURLs.length === 0) {
+      throw new Error("please specify at least one rpc url");
+    }
     const attachClient = createAnvilClient({
-      transport: http(rpcURL, { timeout }),
+      transport: http(rpcURLs[0], { timeout }),
     });
     if (!networkType) {
       networkType = await attachClient.detectNetwork();
@@ -125,7 +128,7 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
     const provider = new Provider({
       chainId,
       networkType,
-      rpcURL,
+      rpcURLs,
       timeout,
     });
     logger?.debug(
