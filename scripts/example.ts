@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
 
-import { GearboxSDK, json_stringify } from "../src";
+import { GearboxSDK, json_stringify } from "../src/sdk";
 
 async function example(): Promise<void> {
   const logger = pino({
@@ -10,7 +10,7 @@ async function example(): Promise<void> {
   });
 
   const sdk = await GearboxSDK.attach({
-    rpcURL: "http://127.0.0.1:8545",
+    rpcURLs: ["http://127.0.0.1:8545"],
     timeout: 480_000,
     addressProvider: "0x81ED8e0325B17A266B2aF225570679cfd635d0bb",
     logger,

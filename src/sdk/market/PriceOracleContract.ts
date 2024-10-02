@@ -11,6 +11,7 @@ import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PriceOracleState } from "../state";
 import type { MultiCall } from "../types";
+import { AddressMap } from "../utils";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
@@ -27,6 +28,10 @@ interface PriceFeedsForTokensOptions {
 
 export class PriceOracleContract extends BaseContract<abi> {
   /**
+   * Underlying token of market to which this price oracle belongs
+   */
+  public readonly underlying: Address;
+  /**
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
   public readonly mainPriceFeeds: Record<Address, PriceFeedRef> = {};
@@ -34,15 +39,24 @@ export class PriceOracleContract extends BaseContract<abi> {
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
   public readonly reservePriceFeeds: Record<Address, PriceFeedRef> = {};
+  /**
+   * Mapping Token => Price in underlying
+   */
+  public readonly mainPrices = new AddressMap<bigint>();
+  /**
+   * Mapping Token => Price in underlying
+   */
+  public readonly reservePrices = new AddressMap<bigint>();
 
   readonly #priceFeedTree: readonly PriceFeedTreeNode[];
 
-  constructor(sdk: GearboxSDK, data: PriceOracleData) {
+  constructor(sdk: GearboxSDK, data: PriceOracleData, underlying: Address) {
     super(sdk, {
       ...data.baseParams,
       name: "PriceOracleV3",
       abi: priceOracleV3Abi,
     });
+    this.underlying = underlying;
     const { priceFeedMapping, priceFeedStructure } = data;
     this.#priceFeedTree = priceFeedStructure;
 
@@ -53,10 +67,19 @@ export class PriceOracleContract extends BaseContract<abi> {
     priceFeedMapping.forEach(node => {
       const { token, priceFeed, reserve, stalenessPeriod } = node;
       const ref = new PriceFeedRef(sdk, priceFeed, stalenessPeriod);
+      const price = this.#priceFeedTree.find(
+        n => n.baseParams.addr === priceFeed,
+      )?.answer?.price;
       if (reserve) {
         this.reservePriceFeeds[token] = ref;
+        if (price) {
+          this.reservePrices.upsert(token, price);
+        }
       } else {
         this.mainPriceFeeds[token] = ref;
+        if (price) {
+          this.mainPrices.upsert(token, price);
+        }
       }
       this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
     });
@@ -138,6 +161,51 @@ export class PriceOracleContract extends BaseContract<abi> {
       });
     }
     return result;
+  }
+
+  /**
+   * Tries to convert amount of token into underlying of current market
+   * @param token
+   * @param amount
+   * @param reserve
+   * @returns
+   */
+  public convertToUnderlying(
+    token: Address,
+    amount: bigint,
+    reserve = false,
+  ): bigint {
+    return this.convert(token, this.underlying, amount, reserve);
+  }
+
+  /**
+   * Tries to convert amount of from one token to another, using latest known prices
+   * @param from
+   * @param to
+   * @param amount
+   * @param reserve
+   */
+  public convert(
+    from: Address,
+    to: Address,
+    amount: bigint,
+    reserve = false,
+  ): bigint {
+    if (from === to) {
+      return amount;
+    }
+    const fromPrice = reserve
+      ? this.reservePrices.mustGet(from)
+      : this.mainPrices.mustGet(from);
+    const fromScale =
+      10n ** BigInt(this.sdk.marketRegister.tokensMeta.mustGet(from).decimals);
+    const toPrice = reserve
+      ? this.reservePrices.mustGet(to)
+      : this.mainPrices.mustGet(to);
+    const toScale =
+      10n ** BigInt(this.sdk.marketRegister.tokensMeta.mustGet(to).decimals);
+
+    return (amount * fromPrice * toScale) / (toPrice * fromScale);
   }
 
   // async loadPrices(

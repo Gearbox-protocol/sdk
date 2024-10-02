@@ -27,7 +27,11 @@ export class MarketFactory {
       this.creditManagers.push(new CreditFactory(sdk, marketData, i));
     }
 
-    this.priceOracle = new PriceOracleContract(sdk, marketData.priceOracleData);
+    this.priceOracle = new PriceOracleContract(
+      sdk,
+      marketData.priceOracleData,
+      marketData.underlying,
+    );
   }
 
   public get state(): MarketState {
