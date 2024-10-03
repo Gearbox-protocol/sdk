@@ -37,10 +37,44 @@ export class RedstoneUpdater extends SDKConstruct {
 
   public async getUpdateTxs(
     feeds: RedstonePriceFeedContract[],
+    blockNumber?: bigint,
   ): Promise<UpdatePFTask[]> {
     this.#logger?.debug(
       `Redstone: generating update transactions for ${feeds.length} redstone price feeds`,
     );
+    let historicalTimestamp: number | undefined;
+    if (blockNumber) {
+      const block = await this.sdk.provider.publicClient.getBlock({
+        blockNumber,
+      });
+      if (!block) {
+        throw new Error(`cannot get block ${blockNumber}`);
+      }
+      this.#logger?.debug(
+        { tag: "timing" },
+        `block ${block.number} ${new Date(Number(block.timestamp) * 1000)}`,
+      );
+      // https://github.com/redstone-finance/redstone-oracles-monorepo/blob/c7569a8eb7da1d3ad6209dfcf59c7ca508ea947b/packages/sdk/src/request-data-packages.ts#L82
+      // we round the timestamp to full minutes for being compatible with
+      // oracle-nodes, which usually work with rounded 10s and 60s intervals
+      //
+      // Also, when forking anvil->anvil (when running on testnets) block.timestamp can be in future because min ts for block is 1 seconds,
+      // and scripts can take dozens of blocks (hundreds for faucet). So we take min value;
+      const nowMs = new Date().getTime();
+      const redstoneIntervalMs = 60_000;
+      const anvilTsMs =
+        redstoneIntervalMs *
+        Math.floor((Number(block.timestamp) * 1000) / redstoneIntervalMs);
+      const fromNowTsMs =
+        redstoneIntervalMs * Math.floor(nowMs / redstoneIntervalMs - 1);
+      historicalTimestamp = Math.min(anvilTsMs, fromNowTsMs);
+      const deltaS = Math.floor((nowMs - historicalTimestamp) / 1000);
+      this.#logger?.debug(
+        { tag: "timing" },
+        `will use optimistic timestamp: ${new Date(historicalTimestamp)} (${historicalTimestamp}, delta: ${deltaS}s)`,
+      );
+    }
+
     // Group feeds by dataServiceId and uniqueSignersCount
     const groupedFeeds: Record<string, Set<string>> = {};
     const priceFeeds = new Map<string, RedstonePriceFeedContract>();
@@ -65,6 +99,7 @@ export class RedstoneUpdater extends SDKConstruct {
         dataServiceId,
         group,
         uniqueSignersCount,
+        historicalTimestamp,
       );
 
       for (const { dataFeedId, data, timestamp } of payloads) {
@@ -95,18 +130,21 @@ export class RedstoneUpdater extends SDKConstruct {
    * @param dataServiceId
    * @param dataFeedsIds
    * @param uniqueSignersCount
+   * @param historicalTimestamp
    * @returns
    */
   async #fetchPayloads(
     dataServiceId: string,
     dataFeedsIds: Set<string>,
     uniqueSignersCount: number,
+    historicalTimestamp?: number,
   ): Promise<TimestampedCalldata[]> {
     const dataPackagesIds = Array.from(dataFeedsIds);
     const wrapper = new DataServiceWrapper({
       dataServiceId,
       dataPackagesIds,
       uniqueSignersCount,
+      historicalTimestamp,
     });
     const dataPayload = await wrapper.prepareRedstonePayload(true);
 
