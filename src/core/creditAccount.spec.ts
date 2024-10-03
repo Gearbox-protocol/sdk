@@ -1816,7 +1816,7 @@ describe("CreditAccount getTimeToLiquidation test", () => {
       totalBorrowRate_debt: 250n,
     });
 
-    expect(result).to.be.eq(0n);
+    expect(result).to.be.eq(null);
   });
   it("should return 0 when br_debt === 0", () => {
     const result = CreditAccountData.getTimeToLiquidation({
@@ -1824,7 +1824,7 @@ describe("CreditAccount getTimeToLiquidation test", () => {
       totalBorrowRate_debt: 0n,
     });
 
-    expect(result).to.be.eq(0n);
+    expect(result).to.be.eq(null);
   });
   it("should calculate time to liquidation correctly", () => {
     const result = CreditAccountData.getTimeToLiquidation({
