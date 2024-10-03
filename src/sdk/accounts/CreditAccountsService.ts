@@ -288,23 +288,25 @@ export class CreditAccountsService extends SDKConstruct {
    * @param accounts
    * @returns
    */
-  async #getUpdateForAccount(
-    acc: CreditAccountData,
+  public async getUpdateForAccounts(
+    accounts: CreditAccountData[],
     blockNumber?: bigint,
   ): Promise<UpdatePriceFeedsResult> {
     // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
     const tokensByPool = new Map<Address, Set<Address>>();
     const oracleByPool = new Map<Address, PriceOracleContract>();
-    const market = this.sdk.marketRegister.findByCreditManager(
-      acc.creditManager,
-    );
-    const pool = market.state.pool.pool.address;
-    oracleByPool.set(pool, market.priceOracle);
-    for (const t of acc.tokens) {
-      if (t.balance > 10n) {
-        const tokens = tokensByPool.get(pool) ?? new Set<Address>();
-        tokens.add(t.token);
-        tokensByPool.set(pool, tokens);
+    for (const acc of accounts) {
+      const market = this.sdk.marketRegister.findByCreditManager(
+        acc.creditManager,
+      );
+      const pool = market.state.pool.pool.address;
+      oracleByPool.set(pool, market.priceOracle);
+      for (const t of acc.tokens) {
+        if (t.balance > 10n) {
+          const tokens = tokensByPool.get(pool) ?? new Set<Address>();
+          tokens.add(t.token);
+          tokensByPool.set(pool, tokens);
+        }
       }
     }
     // priceFeeds can contain PriceFeeds from different markets
@@ -332,7 +334,7 @@ export class CreditAccountsService extends SDKConstruct {
     const market = this.sdk.marketRegister.findByCreditManager(
       acc.creditManager,
     );
-    const update = await this.#getUpdateForAccount(acc, blockNumber);
+    const update = await this.getUpdateForAccounts([acc], blockNumber);
     return market.priceOracle.onDemandPriceUpdates(update);
   }
 
