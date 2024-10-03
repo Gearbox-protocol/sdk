@@ -10,3 +10,4 @@ export type * from "./SDKEvents";
 export * from "./state";
 export type * from "./types";
 export * from "./utils";
+export * from "./utils/viem";

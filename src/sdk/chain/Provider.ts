@@ -1,4 +1,4 @@
-import type { Address, Chain, PublicClient } from "viem";
+import type { Address, Chain, PublicClient, Transport } from "viem";
 import { createPublicClient, defineChain, fallback, http } from "viem";
 
 import { AddressLabeller } from "../base/AddressLabeller";
@@ -40,6 +40,7 @@ export class Provider {
   public readonly networkType: NetworkType;
   public readonly publicClient: PublicClient;
   public readonly addressLabels: IAddressLabeller;
+  public readonly transport: Transport;
 
   constructor(opts: ProviderOptions) {
     const {
@@ -61,11 +62,11 @@ export class Provider {
     });
 
     const rpcs = rpcURLs.map(url => http(url, { timeout, retryCount }));
-    const transport = rpcs.length ? fallback(rpcs) : rpcs[0];
+    this.transport = rpcs.length ? fallback(rpcs) : rpcs[0];
 
     this.publicClient = createPublicClient({
       chain: this.chain,
-      transport,
+      transport: this.transport,
     });
 
     this.addressLabels = new AddressLabeller();

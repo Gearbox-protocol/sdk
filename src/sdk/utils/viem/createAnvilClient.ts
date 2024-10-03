@@ -5,6 +5,7 @@ import type {
   Hex,
   Prettify,
   PublicClient,
+  TestActions,
   TestRpcSchema,
   Transport,
   WalletClient,
@@ -59,7 +60,7 @@ export type AnvilClient = Prettify<
     Chain,
     undefined,
     AnvilRPCSchema,
-    AnvilActions
+    AnvilActions & TestActions
   >
 > &
   PublicClient &
