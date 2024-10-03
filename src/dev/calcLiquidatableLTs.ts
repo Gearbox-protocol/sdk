@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { CreditAccountData, GearboxSDK } from "../sdk";
+import type { CreditAccountData, GearboxSDK, ILogger } from "../sdk";
 import { PERCENTAGE_FACTOR, WAD } from "../sdk";
 
 /**
@@ -11,7 +11,8 @@ export async function calcLiquidatableLTs(
   sdk: GearboxSDK,
   ca: CreditAccountData,
   factor = 9990n,
-): Promise<Record<Address, [ltOld: number, ltNew: number]>> {
+  logger?: ILogger,
+): Promise<Record<Address, number>> {
   const cm = sdk.marketRegister.findCreditManager(ca.creditManager);
   const market = sdk.marketRegister.findByCreditManager(ca.creditManager);
 
@@ -57,11 +58,14 @@ export async function calcLiquidatableLTs(
   }
   const k = (WAD * dividend) / divisor;
 
-  const result: Record<Address, [number, number]> = {};
+  const result: Record<Address, number> = {};
   for (const { token, lt: oldLT } of weightedBalances) {
     if (token !== ca.underlying) {
       const newLT = (oldLT * k) / WAD;
-      result[token] = [Number(oldLT), Number(newLT)];
+      logger?.debug(
+        `proposed ${sdk.marketRegister.tokensMeta.mustGet(token).symbol} LT change: ${oldLT} => ${newLT} `,
+      );
+      result[token] = Number(newLT);
     }
   }
   return result;

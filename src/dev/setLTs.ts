@@ -1,13 +1,9 @@
 import type { Address } from "viem";
 import { parseEther } from "viem";
 
-import {
-  AP_ACL,
-  createAnvilClient,
-  type CreditFactory,
-  type GearboxSDK,
-} from "../sdk";
-import { iaclAbi, iCreditConfiguratorV3Abi } from "./abi";
+import type { CreditFactory, GearboxSDK, ILogger } from "../sdk";
+import { AP_ACL, createAnvilClient } from "../sdk";
+import { iaclAbi, iCreditConfiguratorV3Abi, iCreditManagerV3Abi } from "./abi";
 
 /**
  * Helper function to set liquidation thresholds on credit manager via anvil impersonation
@@ -19,6 +15,7 @@ export async function setLTs(
   sdk: GearboxSDK,
   cm: CreditFactory,
   newLTs: Record<Address, number>,
+  logger?: ILogger,
 ): Promise<void> {
   const aclAddr = sdk.addressProvider.getLatestVersion(AP_ACL);
   const configuratorAddr = await sdk.provider.publicClient.readContract({
@@ -47,12 +44,15 @@ export async function setLTs(
       functionName: "setLiquidationThreshold",
       args: [t as Address, lt],
     });
-    // const newLT = await anvil.readContract({
-    //   address: cm.creditManager.address,
-    //   abi: iCreditManagerV3Abi,
-    //   functionName: "liquidationThresholds",
-    //   args: [t as Address],
-    // });
+    const newLT = await anvil.readContract({
+      address: cm.creditManager.address,
+      abi: iCreditManagerV3Abi,
+      functionName: "liquidationThresholds",
+      args: [t as Address],
+    });
+    logger?.debug(
+      `set ${sdk.marketRegister.tokensMeta.mustGet(t).symbol} LT to ${newLT}`,
+    );
   }
   await anvil.stopImpersonatingAccount({
     address: configuratorAddr,
