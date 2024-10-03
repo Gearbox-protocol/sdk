@@ -68,7 +68,7 @@ export class CreditAccountsService extends SDKConstruct {
         address: this.#compressor,
         functionName: "getCreditAccountData",
         args: [account],
-        blockNumber,
+        blockNumber, // TODO: we should cache price updates for block to speed up optimistic liquidator
       });
     } catch (e) {
       // TODO: reverts if account is not found, how to handle other revert reasons?
