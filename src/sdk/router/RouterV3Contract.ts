@@ -31,7 +31,7 @@ const SWAP_OPERATIONS: Record<SwapOperation, number> = {
 
 type abi = typeof routerV3Abi;
 
-interface FindBestClosePathInterm {
+export interface FindClosePathInput {
   pathOptions: PathOptionSerie[];
   expected: Asset[];
   leftover: Asset[];
@@ -235,7 +235,7 @@ export class RouterV3Contract extends BaseContract<abi> {
     slippage: bigint | number,
   ): Promise<RouterCloseResult> {
     const { pathOptions, expected, leftover, connectors } =
-      this.#getBestClosePathInput(ca, cm);
+      this.getFindClosePathInput(ca, cm);
     this.sdk.emit("foundPathOptions", { pathOptions });
     let results: RouterResult[] = [];
     for (const po of pathOptions) {
@@ -282,10 +282,16 @@ export class RouterV3Contract extends BaseContract<abi> {
     return result;
   }
 
-  #getBestClosePathInput(
+  /**
+   * Finds input to be used with findBestClosePath
+   * @param ca
+   * @param cm
+   * @returns
+   */
+  public getFindClosePathInput(
     ca: CreditAccountData,
     cm: CreditManagerSlice,
-  ): FindBestClosePathInterm {
+  ): FindClosePathInput {
     const expectedBalances: Record<Address, Asset> = {};
     const leftoverBalances: Record<Address, Asset> = {};
     for (const { token: t, balance, mask } of ca.tokens) {
