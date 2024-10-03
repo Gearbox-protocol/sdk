@@ -17,6 +17,7 @@ import type { GearboxSDK } from "../GearboxSDK";
 import type {
   CreditFactory,
   IPriceFeedContract,
+  OnDemandPriceUpdate,
   PriceOracleContract,
   UpdatePriceFeedsResult,
 } from "../market";
@@ -181,19 +182,12 @@ export class CreditAccountsService extends SDKConstruct {
     slippage = 50n,
   ): Promise<RawTx> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
-    const market = this.sdk.marketRegister.findByCreditManager(
-      account.creditManager,
-    );
     const preview = await this.sdk.router.findBestClosePath(
       account,
       cm.creditManager,
       slippage,
     );
-    const priceUpdates = await this.#getUpdateForAccounts([account]);
-    const priceUpdateCalls = market.priceOracle.onDemandPriceUpdates(
-      cm.creditFacade.address,
-      priceUpdates,
-    );
+    const priceUpdates = await this.getPriceUpdatesForFacade(account);
     const recipient = to ?? this.sdk.provider.account;
     if (!recipient) {
       throw new Error("liquidate account: assets recipient not specied");
@@ -203,7 +197,7 @@ export class CreditAccountsService extends SDKConstruct {
       args: [
         account.creditAccount,
         recipient,
-        [...priceUpdateCalls, ...preview.calls],
+        [...priceUpdates, ...preview.calls],
       ],
     });
   }
@@ -294,25 +288,23 @@ export class CreditAccountsService extends SDKConstruct {
    * @param accounts
    * @returns
    */
-  async #getUpdateForAccounts(
-    accounts: CreditAccountData[],
+  async #getUpdateForAccount(
+    acc: CreditAccountData,
     blockNumber?: bigint,
   ): Promise<UpdatePriceFeedsResult> {
     // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
     const tokensByPool = new Map<Address, Set<Address>>();
     const oracleByPool = new Map<Address, PriceOracleContract>();
-    for (const acc of accounts) {
-      const market = this.sdk.marketRegister.findByCreditManager(
-        acc.creditManager,
-      );
-      const pool = market.state.pool.pool.address;
-      oracleByPool.set(pool, market.priceOracle);
-      for (const t of acc.tokens) {
-        if (t.balance > 10n) {
-          const tokens = tokensByPool.get(pool) ?? new Set<Address>();
-          tokens.add(t.token);
-          tokensByPool.set(pool, tokens);
-        }
+    const market = this.sdk.marketRegister.findByCreditManager(
+      acc.creditManager,
+    );
+    const pool = market.state.pool.pool.address;
+    oracleByPool.set(pool, market.priceOracle);
+    for (const t of acc.tokens) {
+      if (t.balance > 10n) {
+        const tokens = tokensByPool.get(pool) ?? new Set<Address>();
+        tokens.add(t.token);
+        tokensByPool.set(pool, tokens);
       }
     }
     // priceFeeds can contain PriceFeeds from different markets
@@ -327,6 +319,45 @@ export class CreditAccountsService extends SDKConstruct {
     );
   }
 
+  /**
+   * Returns account price updates in a non-encoded format
+   * @param acc
+   * @param blockNumber
+   * @returns
+   */
+  public async getOnDemandPriceUpdates(
+    acc: CreditAccountData,
+    blockNumber?: bigint,
+  ): Promise<OnDemandPriceUpdate[]> {
+    const market = this.sdk.marketRegister.findByCreditManager(
+      acc.creditManager,
+    );
+    const update = await this.#getUpdateForAccount(acc, blockNumber);
+    return market.priceOracle.onDemandPriceUpdates(update);
+  }
+
+  /**
+   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...)
+   * @param acc
+   * @param blockNumber
+   * @returns
+   */
+  public async getPriceUpdatesForFacade(
+    acc: CreditAccountData,
+    blockNumber?: bigint,
+  ): Promise<MultiCall[]> {
+    const cm = this.sdk.marketRegister.findCreditManager(acc.creditManager);
+    const updates = await this.getOnDemandPriceUpdates(acc, blockNumber);
+    return updates.map(({ token, reserve, data }) => ({
+      target: cm.creditFacade.address,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "onDemandPriceUpdate",
+        args: [token, reserve, data],
+      }),
+    }));
+  }
+
   async #prepareCloseCreditAccount(
     ca: CreditAccountData,
     cm: CreditFactory,
@@ -334,21 +365,14 @@ export class CreditAccountsService extends SDKConstruct {
     to: Address,
     slippage = 50n,
   ): Promise<MultiCall[]> {
-    const market = this.sdk.marketRegister.findByCreditManager(
-      ca.creditManager,
-    );
     const closePath = await this.sdk.router.findBestClosePath(
       ca,
       cm.creditManager,
       slippage,
     );
-    const priceUpdates = await this.#getUpdateForAccounts([ca]);
-    const priceUpdateCalls = market.priceOracle.onDemandPriceUpdates(
-      cm.creditFacade.address,
-      priceUpdates,
-    );
+    const priceUpdates = await this.getPriceUpdatesForFacade(ca);
     return [
-      ...priceUpdateCalls,
+      ...priceUpdates,
       ...closePath.calls,
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),

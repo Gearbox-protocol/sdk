@@ -1,16 +1,11 @@
-import type { Address } from "viem";
-import { decodeFunctionData, encodeFunctionData } from "viem";
+import type { Address, Hex } from "viem";
+import { decodeFunctionData } from "viem";
 
-import {
-  iCreditFacadeV3MulticallAbi,
-  iUpdatablePriceFeedAbi,
-  priceOracleV3Abi,
-} from "../abi";
+import { iUpdatablePriceFeedAbi, priceOracleV3Abi } from "../abi";
 import type { PriceFeedTreeNode, PriceOracleData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PriceOracleState } from "../state";
-import type { MultiCall } from "../types";
 import { AddressMap } from "../utils";
 import type {
   IPriceFeedContract,
@@ -24,6 +19,12 @@ type abi = typeof priceOracleV3Abi;
 interface PriceFeedsForTokensOptions {
   main?: boolean;
   reserve?: boolean;
+}
+
+export interface OnDemandPriceUpdate {
+  token: Address;
+  reserve: boolean;
+  data: Hex;
 }
 
 export class PriceOracleContract extends BaseContract<abi> {
@@ -126,22 +127,21 @@ export class PriceOracleContract extends BaseContract<abi> {
   /**
    * Converts previously obtained price updates into CreditFacade multicall entries
    * @param creditFacade
-   * @param priceUpdates
+   * @param updates
    * @returns
    */
   public onDemandPriceUpdates(
-    creditFacade: Address,
-    priceUpdates?: UpdatePriceFeedsResult,
-  ): MultiCall[] {
+    updates?: UpdatePriceFeedsResult,
+  ): OnDemandPriceUpdate[] {
     // TODO: really here I'm doing lots of reverse processing:
-    // decooding RawTx into Redstone calldata
+    // decoding RawTx into Redstone calldata
     // and then finding token + reserve value for a price feed
     // it would be much nicer to have intermediate format and get RawTx/OnDemandPriceUpdate/ViemMulticall from it (as it's done in liquidator)
-    const result: MultiCall[] = [];
-    if (!priceUpdates) {
+    const result: OnDemandPriceUpdate[] = [];
+    if (!updates) {
       return result;
     }
-    const { txs } = priceUpdates;
+    const { txs } = updates;
 
     for (const tx of txs) {
       const { to: priceFeed, callData } = tx;
@@ -152,12 +152,9 @@ export class PriceOracleContract extends BaseContract<abi> {
       });
       const data = args[0]!;
       result.push({
-        target: creditFacade,
-        callData: encodeFunctionData({
-          abi: iCreditFacadeV3MulticallAbi,
-          functionName: "onDemandPriceUpdate",
-          args: [token, reserve, data],
-        }),
+        token,
+        reserve,
+        data,
       });
     }
     return result;
