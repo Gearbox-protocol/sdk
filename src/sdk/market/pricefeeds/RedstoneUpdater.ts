@@ -29,6 +29,7 @@ interface UpdatePFTask {
  */
 export class RedstoneUpdater extends SDKConstruct {
   #logger?: ILogger;
+  #cache = new Map<string, TimestampedCalldata>();
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
@@ -95,7 +96,7 @@ export class RedstoneUpdater extends SDKConstruct {
         `Redstone: fetching redstone payloads for ${group.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${Array.from(group).join(", ")}`,
       );
 
-      const payloads = await this.#fetchPayloads(
+      const payloads = await this.#getPayloads(
         dataServiceId,
         group,
         uniqueSignersCount,
@@ -126,6 +127,60 @@ export class RedstoneUpdater extends SDKConstruct {
 
   /**
    * Gets redstone payloads in one request for multiple feeds with the same dataServiceId and uniqueSignersCount
+   * If historicalTimestamp is set, responses will be cached
+   * @param dataServiceId
+   * @param dataFeedsIds
+   * @param uniqueSignersCount
+   * @param historicalTimestamp
+   * @returns
+   */
+  async #getPayloads(
+    dataServiceId: string,
+    dataFeedsIds: Set<string>,
+    uniqueSignersCount: number,
+    historicalTimestamp?: number,
+  ): Promise<TimestampedCalldata[]> {
+    const fromCache: TimestampedCalldata[] = [];
+    const uncached: string[] = [];
+    for (const dataFeedId of dataFeedsIds) {
+      const key = cacheKey(
+        dataServiceId,
+        dataFeedId,
+        uniqueSignersCount,
+        historicalTimestamp,
+      );
+      const cached = this.#cache.get(key);
+      if (historicalTimestamp && !!cached) {
+        fromCache.push(cached);
+      } else {
+        uncached.push(dataFeedId);
+      }
+    }
+
+    const fromRedstone = await this.#fetchPayloads(
+      dataServiceId,
+      new Set(uncached),
+      uniqueSignersCount,
+      historicalTimestamp,
+    );
+    // cache newly fetched responses
+    if (historicalTimestamp) {
+      for (const resp of fromRedstone) {
+        const key = cacheKey(
+          dataServiceId,
+          resp.dataFeedId,
+          uniqueSignersCount,
+          historicalTimestamp,
+        );
+        this.#cache.set(key, resp);
+      }
+    }
+
+    return [...fromCache, ...fromRedstone];
+  }
+
+  /**
+   * Fetches redstone payloads in one request for multiple feeds with the same dataServiceId and uniqueSignersCount
    * Payloads are loaded in one request to avoid redstone rate limit
    * @param dataServiceId
    * @param dataFeedsIds
@@ -139,6 +194,9 @@ export class RedstoneUpdater extends SDKConstruct {
     uniqueSignersCount: number,
     historicalTimestamp?: number,
   ): Promise<TimestampedCalldata[]> {
+    if (dataFeedsIds.size === 0) {
+      return [];
+    }
     const dataPackagesIds = Array.from(dataFeedsIds);
     const wrapper = new DataServiceWrapper({
       dataServiceId,
@@ -146,6 +204,7 @@ export class RedstoneUpdater extends SDKConstruct {
       uniqueSignersCount,
       historicalTimestamp,
     });
+
     const dataPayload = await wrapper.prepareRedstonePayload(true);
 
     const parsed = RedstonePayload.parse(toBytes(`0x${dataPayload}`));
@@ -168,6 +227,15 @@ export class RedstoneUpdater extends SDKConstruct {
       );
     });
   }
+}
+
+function cacheKey(
+  dataServiceId: string,
+  dataFeedId: string,
+  uniqueSignersCount: number,
+  historicalTimestamp = 0,
+): string {
+  return `${dataServiceId}:${dataFeedId}:${uniqueSignersCount}:${historicalTimestamp}`;
 }
 
 /**
