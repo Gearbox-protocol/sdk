@@ -12,7 +12,7 @@ import type {
 } from "viem";
 import { createTestClient, publicActions, toHex, walletActions } from "viem";
 
-export interface AnvilNodeInfo {
+interface AnvilNodeInfo {
   currentBlockNumber: string; // hexutil.Big is a big number in hex format
   currentBlockTimestamp: number;
   currentBlockHash: string;
@@ -31,7 +31,7 @@ export interface AnvilNodeInfo {
   };
 }
 
-export type AnvilRPCSchema = [
+type AnvilRPCSchema = [
   ...TestRpcSchema<"anvil">,
   {
     Method: "anvil_nodeInfo";
