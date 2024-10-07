@@ -48,7 +48,12 @@ type AnvilRPCSchema = [
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AnvilActions = {
   isAnvil: () => Promise<boolean>;
-  evmMineDetailed: (timestamp: bigint) => Promise<Block<Hex> | undefined>;
+  evmMineDetailed: (
+    /**
+     * Block timestamp in seconds
+     */
+    timestamp: bigint | number,
+  ) => Promise<Block<Hex> | undefined>;
 };
 
 export type AnvilClient = Prettify<
@@ -87,7 +92,7 @@ export function createAnvilClient({
     .extend(walletActions)
     .extend(client => ({
       isAnvil: () => isAnvil(client),
-      evmMineDetailed: (timestamp: bigint) =>
+      evmMineDetailed: (timestamp: bigint | number) =>
         evmMineDetailed(client, timestamp),
     })) as any;
 }
@@ -119,7 +124,7 @@ export async function isAnvil(
  */
 export async function evmMineDetailed(
   client: Client<any, any, any, AnvilRPCSchema, any>,
-  timestamp: bigint,
+  timestamp: bigint | number,
 ): Promise<Block<Hex> | undefined> {
   try {
     const [block] = await client.request({
