@@ -2,8 +2,9 @@ import type { Address } from "viem";
 import { parseEther } from "viem";
 
 import type { CreditFactory, GearboxSDK, ILogger } from "../sdk";
-import { AP_ACL, createAnvilClient } from "../sdk";
+import { AP_ACL } from "../sdk";
 import { iaclAbi, iCreditConfiguratorV3Abi, iCreditManagerV3Abi } from "./abi";
+import { createAnvilClient } from "./createAnvilClient";
 
 /**
  * Helper function to set liquidation thresholds on credit manager via anvil impersonation

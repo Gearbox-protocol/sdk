@@ -12,9 +12,6 @@ import type {
 } from "viem";
 import { createTestClient, publicActions, toHex, walletActions } from "viem";
 
-import type { NetworkType } from "../../chain";
-import { detectNetwork } from "./detectNetwork";
-
 interface AnvilNodeInfo {
   currentBlockNumber: string; // hexutil.Big is a big number in hex format
   currentBlockTimestamp: number;
@@ -51,7 +48,6 @@ type AnvilRPCSchema = [
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AnvilActions = {
   isAnvil: () => Promise<boolean>;
-  detectNetwork: () => Promise<NetworkType>;
   evmMineDetailed: (timestamp: bigint) => Promise<Block<Hex> | undefined>;
 };
 
@@ -91,7 +87,6 @@ export function createAnvilClient({
     .extend(walletActions)
     .extend(client => ({
       isAnvil: () => isAnvil(client),
-      detectNetwork: () => detectNetwork(client),
       evmMineDetailed: (timestamp: bigint) =>
         evmMineDetailed(client, timestamp),
     })) as any;

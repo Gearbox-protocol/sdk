@@ -1,5 +1,5 @@
 import type { Address, Hex, Log } from "viem";
-import { http } from "viem";
+import { createPublicClient, http } from "viem";
 
 import type { BaseContract } from "./base";
 import type { NetworkType } from "./chain";
@@ -23,7 +23,7 @@ import { RouterV3Contract } from "./router";
 import type { GearboxState } from "./state/state";
 import type { ILogger, MultiCall } from "./types";
 import { AddressMap, formatBN } from "./utils";
-import { createAnvilClient } from "./utils/viem";
+import { detectNetwork } from "./utils/viem";
 
 export interface SDKAttachOptions {
   /**
@@ -110,11 +110,11 @@ export class GearboxSDK {
     if (rpcURLs.length === 0) {
       throw new Error("please specify at least one rpc url");
     }
-    const attachClient = createAnvilClient({
+    const attachClient = createPublicClient({
       transport: http(rpcURLs[0], { timeout }),
     });
     if (!networkType) {
-      networkType = await attachClient.detectNetwork();
+      networkType = await detectNetwork(attachClient);
     }
     if (!chainId) {
       chainId = await attachClient.getChainId();
