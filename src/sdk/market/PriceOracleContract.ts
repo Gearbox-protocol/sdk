@@ -114,7 +114,7 @@ export class PriceOracleContract extends BaseContract<abi> {
    * Generates updates for all updateable price feeds in this oracle (including dependencies)
    * @returns
    */
-  public async updateRedstonePriceFeeds(): Promise<UpdatePriceFeedsResult> {
+  public async updatePriceFeeds(): Promise<UpdatePriceFeedsResult> {
     const updatables: IPriceFeedContract[] = [];
     for (const node of this.#priceFeedTree) {
       if (node.updatable) {

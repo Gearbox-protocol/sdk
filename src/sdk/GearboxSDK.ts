@@ -1,4 +1,3 @@
-import { EventEmitter } from "eventemitter3";
 import type { Address, Hex, Log } from "viem";
 import { http } from "viem";
 
@@ -21,7 +20,6 @@ import {
 import { MarketRegister } from "./market/MarketRegister";
 import { PriceFeedRegister } from "./market/pricefeeds";
 import { RouterV3Contract } from "./router";
-import type { SDKEventsMap } from "./SDKEvents";
 import type { GearboxState } from "./state/state";
 import type { ILogger, MultiCall } from "./types";
 import { AddressMap, formatBN } from "./utils";
@@ -67,7 +65,7 @@ interface SDKOptions {
   logger?: ILogger;
 }
 
-export class GearboxSDK extends EventEmitter<SDKEventsMap> {
+export class GearboxSDK {
   // Represents chain object
   readonly #provider: Provider;
 
@@ -143,7 +141,6 @@ export class GearboxSDK extends EventEmitter<SDKEventsMap> {
   }
 
   private constructor(options: SDKOptions) {
-    super();
     this.#provider = options.provider;
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);

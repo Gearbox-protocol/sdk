@@ -5,7 +5,10 @@ import { routerV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import type { CreditAccountData } from "../base/types";
 import type { GearboxSDK } from "../GearboxSDK";
+import type { MultiCall } from "../types";
 import { AddressMap } from "../utils";
+import type { IHooks } from "../utils/internal";
+import { Hooks } from "../utils/internal";
 import { PathOptionFactory } from "./PathOptionFactory";
 import type {
   Asset,
@@ -38,6 +41,28 @@ export interface FindClosePathInput {
   connectors: Address[];
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RouterHooks = {
+  /**
+   * Internal router event
+   */
+  foundPathOptions: [
+    { creditAccount: Address; pathOptions: PathOptionSerie[] },
+  ];
+  /**
+   * Internal router event
+   */
+  foundBestClosePath: [
+    {
+      creditAccount: Address;
+      amount: bigint;
+      minAmount: bigint;
+      calls: MultiCall[];
+      underlyingBalance: bigint;
+    },
+  ];
+};
+
 /**
  * Slice of credit manager data required for router operations
  */
@@ -46,8 +71,12 @@ interface CreditManagerSlice {
   collateralTokens: Address[];
 }
 
-export class RouterV3Contract extends BaseContract<abi> {
+export class RouterV3Contract
+  extends BaseContract<abi>
+  implements IHooks<RouterHooks>
+{
   readonly #connectors: Address[];
+  readonly #hooks = new Hooks<RouterHooks>();
 
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, {
@@ -57,6 +86,9 @@ export class RouterV3Contract extends BaseContract<abi> {
     });
     this.#connectors = getConnectors(sdk.provider.networkType);
   }
+
+  public addHook = this.#hooks.addHook.bind(this);
+  public removeHook = this.#hooks.removeHook.bind(this);
 
   /**
    * Finds all available swaps for NORMAL tokens
@@ -236,7 +268,10 @@ export class RouterV3Contract extends BaseContract<abi> {
   ): Promise<RouterCloseResult> {
     const { pathOptions, expected, leftover, connectors } =
       this.getFindClosePathInput(ca, cm);
-    this.sdk.emit("foundPathOptions", { pathOptions });
+    await this.#hooks.triggerHooks("foundPathOptions", {
+      creditAccount: ca.creditAccount,
+      pathOptions,
+    });
     let results: RouterResult[] = [];
     for (const po of pathOptions) {
       // TODO: maybe Promise.all?
@@ -275,7 +310,7 @@ export class RouterV3Contract extends BaseContract<abi> {
       })),
       underlyingBalance: underlyingBalance + bestResult.minAmount,
     };
-    this.sdk.emit("foundBestClosePath", {
+    await this.#hooks.triggerHooks("foundBestClosePath", {
       creditAccount: ca.creditAccount as Address,
       ...result,
     });

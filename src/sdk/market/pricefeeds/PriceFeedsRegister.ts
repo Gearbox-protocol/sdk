@@ -4,6 +4,8 @@ import { type PriceFeedTreeNode, SDKConstruct } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { ILogger, RawTx } from "../../types";
 import { AddressMap, bytes32ToString, childLogger } from "../../utils";
+import type { IHooks } from "../../utils/internal";
+import { Hooks } from "../../utils/internal";
 import { BalancerStablePriceFeedContract } from "./BalancerStablePriceFeed";
 import { BalancerWeightedPriceFeedContract } from "./BalancerWeightedPriceFeed";
 import { BoundedPriceFeedContract } from "./BoundedPriceFeed";
@@ -25,13 +27,25 @@ import { WstETHPriceFeedContract } from "./WstETHPriceFeed";
 import { YearnPriceFeedContract } from "./YearnPriceFeed";
 import { ZeroPriceFeedContract } from "./ZeroPriceFeed";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PriceFeedRegisterHooks = {
+  /**
+   * Emitted when transactions to update price feeds have been generated, but before they're used anywhere
+   */
+  updatesGenerated: [UpdatePriceFeedsResult];
+};
+
 /**
  * PriceFeedRegister acts as a chain-level cache to avoid creating multiple contract instances.
  * It's reused by PriceFeedFactory belonging to different markets
  *
  **/
-export class PriceFeedRegister extends SDKConstruct {
+export class PriceFeedRegister
+  extends SDKConstruct
+  implements IHooks<PriceFeedRegisterHooks>
+{
   public readonly logger?: ILogger;
+  readonly #hooks = new Hooks<PriceFeedRegisterHooks>();
   #feeds = new AddressMap<IPriceFeedContract>();
   #redstoneUpdater: RedstoneUpdater;
 
@@ -45,6 +59,9 @@ export class PriceFeedRegister extends SDKConstruct {
     // const zeroPriceFeed = sdk.addressProvider.getAddress(AP_ZERO_PRICE_FEED);
     // this.zeroPriceFeed = new ZeroPriceFeedContract({});
   }
+
+  public addHook = this.#hooks.addHook.bind(this);
+  public removeHook = this.#hooks.removeHook.bind(this);
 
   /**
    * Returns RawTxs to update price feeds
@@ -81,7 +98,9 @@ export class PriceFeedRegister extends SDKConstruct {
       }
     }
 
-    return { txs, timestamp: maxTimestamp };
+    const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
+    await this.#hooks.triggerHooks("updatesGenerated", result);
+    return result;
   }
 
   public get(address: Address): IPriceFeedContract | undefined {
