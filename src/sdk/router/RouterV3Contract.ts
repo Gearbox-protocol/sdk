@@ -87,8 +87,8 @@ export class RouterV3Contract
     this.#connectors = getConnectors(sdk.provider.networkType);
   }
 
-  public addHook = this.#hooks.addHook.bind(this);
-  public removeHook = this.#hooks.removeHook.bind(this);
+  public addHook = this.#hooks.addHook.bind(this.#hooks);
+  public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
   /**
    * Finds all available swaps for NORMAL tokens

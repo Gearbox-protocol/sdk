@@ -60,8 +60,8 @@ export class PriceFeedRegister
     // this.zeroPriceFeed = new ZeroPriceFeedContract({});
   }
 
-  public addHook = this.#hooks.addHook.bind(this);
-  public removeHook = this.#hooks.removeHook.bind(this);
+  public addHook = this.#hooks.addHook.bind(this.#hooks);
+  public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
   /**
    * Returns RawTxs to update price feeds
