@@ -66,12 +66,10 @@ export class PriceFeedRegister
   /**
    * Returns RawTxs to update price feeds
    * @param priceFeeds top-level price feeds, actual updatable price feeds will be derived. If not provided will use all price feeds that are attached
-   * @param blockNumber Block number, set to use historical data
    * @returns
    */
   public async generatePriceFeedsUpdateTxs(
     priceFeeds?: IPriceFeedContract[],
-    blockNumber?: bigint,
   ): Promise<UpdatePriceFeedsResult> {
     const priceFeedz = priceFeeds ?? Object.values(this.#feeds);
     const updateables = priceFeedz.flatMap(pf => pf.updatableDependencies());
@@ -86,10 +84,8 @@ export class PriceFeedRegister
 
     let maxTimestamp = 0;
     if (redstonePFs.length > 0) {
-      const redstoneUpdates = await this.#redstoneUpdater.getUpdateTxs(
-        redstonePFs,
-        blockNumber,
-      );
+      const redstoneUpdates =
+        await this.#redstoneUpdater.getUpdateTxs(redstonePFs);
       for (const { tx, timestamp } of redstoneUpdates) {
         if (timestamp > maxTimestamp) {
           maxTimestamp = timestamp;
@@ -115,6 +111,14 @@ export class PriceFeedRegister
     const feed = this.#create(data);
     this.#feeds.upsert(data.baseParams.addr, feed);
     return feed;
+  }
+
+  /**
+   * Set redstone historical timestamp
+   * @param timestampMs in milliseconds
+   */
+  public setRedstoneHistoricalTimestamp(timestampMs: number): void {
+    this.#redstoneUpdater.setHistoricalTimestamp(timestampMs);
   }
 
   #create(data: PriceFeedTreeNode): IPriceFeedContract {

@@ -10,7 +10,7 @@ import type {
   Transport,
   WalletClient,
 } from "viem";
-import { createTestClient, publicActions, walletActions } from "viem";
+import { createTestClient, publicActions, toHex, walletActions } from "viem";
 
 import type { NetworkType } from "../../chain";
 import { detectNetwork } from "./detectNetwork";
@@ -52,6 +52,7 @@ type AnvilRPCSchema = [
 export type AnvilActions = {
   isAnvil: () => Promise<boolean>;
   detectNetwork: () => Promise<NetworkType>;
+  evmMineDetailed: (timestamp: bigint) => Promise<Block<Hex> | undefined>;
 };
 
 export type AnvilClient = Prettify<
@@ -91,6 +92,8 @@ export function createAnvilClient({
     .extend(client => ({
       isAnvil: () => isAnvil(client),
       detectNetwork: () => detectNetwork(client),
+      evmMineDetailed: (timestamp: bigint) =>
+        evmMineDetailed(client, timestamp),
     })) as any;
 }
 
@@ -110,5 +113,26 @@ export async function isAnvil(
     return !!resp.currentBlockNumber;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Safely tries to mine block with given timestamp
+ * @param client
+ * @param timestamp in seconds
+ * @returns
+ */
+export async function evmMineDetailed(
+  client: Client<any, any, any, AnvilRPCSchema, any>,
+  timestamp: bigint,
+): Promise<Block<Hex> | undefined> {
+  try {
+    const [block] = await client.request({
+      method: "evm_mine_detailed",
+      params: [toHex(timestamp)],
+    });
+    return block;
+  } catch {
+    return undefined;
   }
 }

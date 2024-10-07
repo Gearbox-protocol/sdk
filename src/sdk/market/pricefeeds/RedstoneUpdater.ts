@@ -24,57 +24,27 @@ interface UpdatePFTask {
 
 /**
  * Class to update multiple redstone price feeds at once
- * TODO: historical updates....
- * TODO: warp time on testnets
  */
 export class RedstoneUpdater extends SDKConstruct {
   #logger?: ILogger;
   #cache = new Map<string, TimestampedCalldata>();
+  #historicalTimestamp?: number;
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#logger = childLogger("RedstoneUpdater", sdk.logger);
   }
 
+  public setHistoricalTimestamp(timestamp: number): void {
+    this.#historicalTimestamp = timestamp;
+  }
+
   public async getUpdateTxs(
     feeds: RedstonePriceFeedContract[],
-    blockNumber?: bigint,
   ): Promise<UpdatePFTask[]> {
     this.#logger?.debug(
       `Redstone: generating update transactions for ${feeds.length} redstone price feeds`,
     );
-    let historicalTimestamp: number | undefined;
-    if (blockNumber) {
-      const block = await this.sdk.provider.publicClient.getBlock({
-        blockNumber,
-      });
-      if (!block) {
-        throw new Error(`cannot get block ${blockNumber}`);
-      }
-      this.#logger?.debug(
-        { tag: "timing" },
-        `block ${block.number} ${new Date(Number(block.timestamp) * 1000)}`,
-      );
-      // https://github.com/redstone-finance/redstone-oracles-monorepo/blob/c7569a8eb7da1d3ad6209dfcf59c7ca508ea947b/packages/sdk/src/request-data-packages.ts#L82
-      // we round the timestamp to full minutes for being compatible with
-      // oracle-nodes, which usually work with rounded 10s and 60s intervals
-      //
-      // Also, when forking anvil->anvil (when running on testnets) block.timestamp can be in future because min ts for block is 1 seconds,
-      // and scripts can take dozens of blocks (hundreds for faucet). So we take min value;
-      const nowMs = new Date().getTime();
-      const redstoneIntervalMs = 60_000;
-      const anvilTsMs =
-        redstoneIntervalMs *
-        Math.floor((Number(block.timestamp) * 1000) / redstoneIntervalMs);
-      const fromNowTsMs =
-        redstoneIntervalMs * Math.floor(nowMs / redstoneIntervalMs - 1);
-      historicalTimestamp = Math.min(anvilTsMs, fromNowTsMs);
-      const deltaS = Math.floor((nowMs - historicalTimestamp) / 1000);
-      this.#logger?.debug(
-        { tag: "timing" },
-        `will use optimistic timestamp: ${new Date(historicalTimestamp)} (${historicalTimestamp}, delta: ${deltaS}s)`,
-      );
-    }
 
     // Group feeds by dataServiceId and uniqueSignersCount
     const groupedFeeds: Record<string, Set<string>> = {};
@@ -100,7 +70,6 @@ export class RedstoneUpdater extends SDKConstruct {
         dataServiceId,
         group,
         uniqueSignersCount,
-        historicalTimestamp,
       );
 
       for (const { dataFeedId, data, timestamp } of payloads) {
@@ -131,14 +100,12 @@ export class RedstoneUpdater extends SDKConstruct {
    * @param dataServiceId
    * @param dataFeedsIds
    * @param uniqueSignersCount
-   * @param historicalTimestamp
    * @returns
    */
   async #getPayloads(
     dataServiceId: string,
     dataFeedsIds: Set<string>,
     uniqueSignersCount: number,
-    historicalTimestamp?: number,
   ): Promise<TimestampedCalldata[]> {
     const fromCache: TimestampedCalldata[] = [];
     const uncached: string[] = [];
@@ -147,10 +114,10 @@ export class RedstoneUpdater extends SDKConstruct {
         dataServiceId,
         dataFeedId,
         uniqueSignersCount,
-        historicalTimestamp,
+        this.#historicalTimestamp,
       );
       const cached = this.#cache.get(key);
-      if (historicalTimestamp && !!cached) {
+      if (this.#historicalTimestamp && !!cached) {
         fromCache.push(cached);
       } else {
         uncached.push(dataFeedId);
@@ -161,16 +128,15 @@ export class RedstoneUpdater extends SDKConstruct {
       dataServiceId,
       new Set(uncached),
       uniqueSignersCount,
-      historicalTimestamp,
     );
     // cache newly fetched responses
-    if (historicalTimestamp) {
+    if (this.#historicalTimestamp) {
       for (const resp of fromRedstone) {
         const key = cacheKey(
           dataServiceId,
           resp.dataFeedId,
           uniqueSignersCount,
-          historicalTimestamp,
+          this.#historicalTimestamp,
         );
         this.#cache.set(key, resp);
       }
@@ -185,14 +151,12 @@ export class RedstoneUpdater extends SDKConstruct {
    * @param dataServiceId
    * @param dataFeedsIds
    * @param uniqueSignersCount
-   * @param historicalTimestamp
    * @returns
    */
   async #fetchPayloads(
     dataServiceId: string,
     dataFeedsIds: Set<string>,
     uniqueSignersCount: number,
-    historicalTimestamp?: number,
   ): Promise<TimestampedCalldata[]> {
     if (dataFeedsIds.size === 0) {
       return [];
@@ -202,7 +166,7 @@ export class RedstoneUpdater extends SDKConstruct {
       dataServiceId,
       dataPackagesIds,
       uniqueSignersCount,
-      historicalTimestamp,
+      historicalTimestamp: this.#historicalTimestamp,
     });
 
     const dataPayload = await wrapper.prepareRedstonePayload(true);

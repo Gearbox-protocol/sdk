@@ -78,14 +78,7 @@ export class CreditAccountsService extends SDKConstruct {
       return raw;
     }
     const { txs: priceUpdateTxs, timestamp: _ } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-        undefined,
-        options?.blockNumber,
-      );
-    // TODO: warp time on testnets
-    // if (this.provider.testnet && priceUpdateTxs.length > 0) {
-    //   await this.provider.warpSafe(timestamp);
-    // }
+      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
     const resp = await simulateMulticall(this.provider.publicClient, {
       account: this.provider.account,
       contracts: [
@@ -141,14 +134,7 @@ export class CreditAccountsService extends SDKConstruct {
     };
 
     const { txs: priceUpdateTxs, timestamp: _ } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-        undefined,
-        options?.blockNumber,
-      );
-    // TODO: warp time on testnet
-    // if (this.provider.testnet && priceUpdateTxs.length > 0) {
-    // await this.provider.warpSafe(timestamp);
-    // }
+      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
 
     const allCAs: CreditAccountData[] = [];
     // reverting filter is exclusive, we need both options to get all accounts
@@ -315,10 +301,7 @@ export class CreditAccountsService extends SDKConstruct {
       const tokens = Array.from(tokensByPool.get(pool) ?? []);
       priceFeeds.push(...priceFeedFactory.priceFeedsForTokens(tokens));
     }
-    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-      priceFeeds,
-      blockNumber,
-    );
+    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
   }
 
   /**
