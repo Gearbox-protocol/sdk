@@ -38,6 +38,7 @@ export interface CreditAccountFilter {
   includeZeroDebt?: boolean;
   minHealthFactor?: number;
   maxHealthFactor?: number;
+  batchLimit?: bigint;
 }
 
 export class CreditAccountsService extends SDKConstruct {
@@ -119,6 +120,7 @@ export class CreditAccountsService extends SDKConstruct {
       maxHealthFactor = 65_535, // TODO: this will change to bigint
       minHealthFactor = 0,
       owner = ADDRESS_0X0,
+      batchLimit,
     } = args ?? {};
     // either credit manager or all attached markets
     const arg0 = creditManager ?? {
@@ -142,7 +144,9 @@ export class CreditAccountsService extends SDKConstruct {
       let offset = 0n;
       do {
         const [accounts, newOffset] = await this.#getCreditAccounts(
-          [arg0, { ...caFilter, reverting }, offset],
+          [arg0, { ...caFilter, reverting }, offset, batchLimit!].filter(
+            Boolean,
+          ) as unknown as GetCreditAccountsArgs,
           priceUpdateTxs,
           options,
         );
