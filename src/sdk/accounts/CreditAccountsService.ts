@@ -189,6 +189,7 @@ export class CreditAccountsService extends SDKConstruct {
         recipient,
         [...priceUpdates, ...preview.calls],
       ],
+      description: `fully liquidate ${account.creditAccount}`,
     });
   }
 
@@ -223,6 +224,7 @@ export class CreditAccountsService extends SDKConstruct {
     return cm.creditFacade.createRawTx({
       functionName: operation === "close" ? "closeCreditAccount" : "multicall",
       args: [ca.creditAccount, calls],
+      description: `${operation} account ${ca.creditAccount}`,
     });
   }
 
