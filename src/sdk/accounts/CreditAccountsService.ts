@@ -278,7 +278,6 @@ export class CreditAccountsService extends SDKConstruct {
    */
   public async getUpdateForAccounts(
     accounts: CreditAccountData[],
-    blockNumber?: bigint,
   ): Promise<UpdatePriceFeedsResult> {
     // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
     const tokensByPool = new Map<Address, Set<Address>>();

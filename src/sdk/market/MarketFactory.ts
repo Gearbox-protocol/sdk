@@ -30,7 +30,7 @@ export class MarketFactory {
     this.priceOracle = new PriceOracleContract(
       sdk,
       marketData.priceOracleData,
-      marketData.underlying,
+      marketData.pool.underlying,
     );
   }
 
