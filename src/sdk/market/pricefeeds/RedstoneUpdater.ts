@@ -43,7 +43,7 @@ export class RedstoneUpdater extends SDKConstruct {
     feeds: RedstonePriceFeedContract[],
   ): Promise<UpdatePFTask[]> {
     this.#logger?.debug(
-      `Redstone: generating update transactions for ${feeds.length} redstone price feeds`,
+      `generating update transactions for ${feeds.length} redstone price feeds`,
     );
 
     // Group feeds by dataServiceId and uniqueSignersCount
@@ -63,7 +63,7 @@ export class RedstoneUpdater extends SDKConstruct {
       const [dataServiceId, signersStr] = key.split(":");
       const uniqueSignersCount = parseInt(signersStr, 10);
       this.#logger?.debug(
-        `Redstone: fetching redstone payloads for ${group.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${Array.from(group).join(", ")}`,
+        `fetching redstone payloads for ${group.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${Array.from(group).join(", ")}`,
       );
 
       const payloads = await this.#getPayloads(
@@ -82,14 +82,14 @@ export class RedstoneUpdater extends SDKConstruct {
           tx: priceFeed.createRawTx({
             functionName: "updatePrice",
             args: [data as Hex],
-            description: `Redstone: updating price for ${dataFeedId} [${priceFeed.address}]`,
+            description: `updating price for ${dataFeedId} [${priceFeed.address}]`,
           }),
           timestamp,
         });
       }
     }
     this.#logger?.debug(
-      `Redstone: generated  ${results.length} update transactions for redstone price feeds`,
+      `generated  ${results.length} update transactions for redstone price feeds`,
     );
     return results;
   }

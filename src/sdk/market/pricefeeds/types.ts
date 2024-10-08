@@ -1,5 +1,4 @@
-import type { Address } from "viem";
-
+import type { IBaseContract } from "../../base";
 import type { PriceFeedState } from "../../state";
 import type { RawTx } from "../../types";
 
@@ -22,9 +21,8 @@ export type PriceFeedContractType =
   | "PF_PYTH_ORACLE"
   | "PF_REDSTONE_ORACLE";
 
-export interface IPriceFeedContract {
+export interface IPriceFeedContract extends IBaseContract {
   readonly hasLowerBoundCap: boolean;
-  readonly address: Address;
   readonly priceFeedType: PriceFeedContractType;
   readonly decimals: number;
   readonly state: Omit<PriceFeedState, "stalenessPeriod">;

@@ -208,8 +208,11 @@ export class GearboxSDK {
    * @returns
    */
   public parseFunctionData(address: Address, calldata: Hex): string {
-    const contract = this.contracts.mustGet(address);
-    return contract.parseFunctionData(calldata);
+    const contract = this.contracts.get(address);
+    // todo: fallback to 4bytes directory
+    return contract
+      ? contract.parseFunctionData(calldata)
+      : `unknown: ${address}.${calldata.slice(0, 10)}`;
   }
 
   /**

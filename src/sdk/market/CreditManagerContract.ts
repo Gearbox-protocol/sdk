@@ -5,11 +5,17 @@ import type { CreditManagerData, PoolData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditManagerState } from "../state";
+import type { IAdapterContract } from "./adapters";
+import { createAdapter } from "./adapters";
 
 type abi = typeof creditManagerV3Abi;
 
 export class CreditManagerContract extends BaseContract<abi> {
   public readonly state: CreditManagerState;
+  /**
+   * Mapping targetContract => adapter
+   */
+  public readonly adapters: Record<Address, IAdapterContract>;
 
   constructor(
     sdk: GearboxSDK,
@@ -22,6 +28,12 @@ export class CreditManagerContract extends BaseContract<abi> {
       abi: creditManagerV3Abi,
     });
     const { collateralTokens, liquidationThresholds } = creditManager;
+    this.adapters = {};
+    for (const adapterData of adapters) {
+      const adapter = createAdapter(sdk, adapterData);
+      adapter.name = `${adapter.name}(${creditManager.name})`;
+      this.adapters[adapter.targetContract] = adapter;
+    }
 
     this.state = {
       ...this.contractData,

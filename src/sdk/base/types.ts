@@ -2,11 +2,18 @@ import type {
   AbiParametersToPrimitiveTypes,
   ExtractAbiFunction,
 } from "abitype";
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 
 import type { iCreditAccountCompressorAbi, iMarketCompressorAbi } from "../abi";
 
 type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
+
+export interface BaseParams {
+  addr: Address;
+  version: bigint;
+  contractType: Hex;
+  serializedParams: Hex;
+}
 
 export type CreditAccountData = Unarray<
   AbiParametersToPrimitiveTypes<
@@ -24,6 +31,7 @@ export type MarketData = Unarray<
 >;
 
 export type CreditManagerData = Unarray<MarketData["creditManagers"]>;
+export type AdapterData = Unarray<CreditManagerData["adapters"]>;
 export type TokenMetaData = Unarray<MarketData["tokens"]>;
 export type PoolData = MarketData["pool"];
 export type PoolQuotaKeeperData = MarketData["poolQuotaKeeper"];

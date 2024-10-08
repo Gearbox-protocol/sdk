@@ -34,9 +34,17 @@ export interface BaseContractOptions<abi extends Abi | readonly unknown[]> {
   contractType?: string;
 }
 
-export abstract class BaseContract<
-  abi extends Abi | readonly unknown[],
-> extends SDKConstruct {
+export interface IBaseContract {
+  address: Address;
+  contractType: string;
+  version: number;
+  name: string;
+}
+
+export abstract class BaseContract<abi extends Abi | readonly unknown[]>
+  extends SDKConstruct
+  implements IBaseContract
+{
   public readonly contract: GetContractReturnType<
     abi,
     { public: Client },
