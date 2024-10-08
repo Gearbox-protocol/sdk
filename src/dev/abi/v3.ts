@@ -98,6 +98,22 @@ export const iaclAbi = [
   },
 ] as const;
 
+export const iaclTraitAbi = [
+  {
+    type: "function",
+    name: "acl",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+] as const;
+
 export const iCreditConfiguratorV3Abi = [
   {
     type: "function",

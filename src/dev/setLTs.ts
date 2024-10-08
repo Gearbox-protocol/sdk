@@ -2,8 +2,12 @@ import type { Address } from "viem";
 import { parseEther } from "viem";
 
 import type { CreditFactory, GearboxSDK, ILogger } from "../sdk";
-import { AP_ACL } from "../sdk";
-import { iaclAbi, iCreditConfiguratorV3Abi, iCreditManagerV3Abi } from "./abi";
+import {
+  iaclAbi,
+  iaclTraitAbi,
+  iCreditConfiguratorV3Abi,
+  iCreditManagerV3Abi,
+} from "./abi";
 import { createAnvilClient } from "./createAnvilClient";
 
 /**
@@ -18,7 +22,11 @@ export async function setLTs(
   newLTs: Record<Address, number>,
   logger?: ILogger,
 ): Promise<void> {
-  const aclAddr = sdk.addressProvider.getLatestVersion(AP_ACL);
+  const aclAddr = await sdk.provider.publicClient.readContract({
+    address: cm.creditConfigurator.address,
+    abi: iaclTraitAbi,
+    functionName: "acl",
+  });
   const configuratorAddr = await sdk.provider.publicClient.readContract({
     address: aclAddr,
     abi: iaclAbi,
