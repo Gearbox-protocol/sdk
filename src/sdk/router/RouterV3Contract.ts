@@ -367,9 +367,7 @@ export class RouterV3Contract
       balance: leftoverBalances[token]?.balance || 1n,
     }));
 
-    const connectors = this.getAvailableConnectors(
-      ca.tokens.map(t => t.token as Address),
-    );
+    const connectors = this.getAvailableConnectors(cm.collateralTokens);
     return { expected, leftover, connectors, pathOptions };
   }
 
