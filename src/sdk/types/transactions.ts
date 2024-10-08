@@ -20,7 +20,3 @@ export interface MultiCall {
   target: Address;
   callData: Hex;
 }
-
-export interface ReadContractOptions {
-  blockNumber?: bigint;
-}

@@ -21,7 +21,7 @@ import type {
   PriceOracleContract,
   UpdatePriceFeedsResult,
 } from "../market";
-import type { MultiCall, RawTx, ReadContractOptions } from "../types";
+import type { MultiCall, RawTx } from "../types";
 import { simulateMulticall } from "../utils/viem";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
@@ -58,9 +58,7 @@ export class CreditAccountsService extends SDKConstruct {
    */
   public async getCreditAccountData(
     account: Address,
-    options?: ReadContractOptions,
   ): Promise<CreditAccountData | undefined> {
-    const blockNumber = options?.blockNumber;
     let raw: CreditAccountData;
     try {
       raw = await this.provider.publicClient.readContract({
@@ -68,7 +66,6 @@ export class CreditAccountsService extends SDKConstruct {
         address: this.#compressor,
         functionName: "getCreditAccountData",
         args: [account],
-        blockNumber, // TODO: we should cache price updates for block to speed up optimistic liquidator
       });
     } catch (e) {
       // TODO: reverts if account is not found, how to handle other revert reasons?
@@ -93,7 +90,6 @@ export class CreditAccountsService extends SDKConstruct {
       allowFailure: false,
       gas: 550_000_000n,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
-      blockNumber,
     });
     const cad = resp.pop() as CreditAccountData;
     return cad;
@@ -111,7 +107,6 @@ export class CreditAccountsService extends SDKConstruct {
    */
   public async getCreditAccounts(
     args?: CreditAccountFilter,
-    options?: ReadContractOptions,
   ): Promise<CreditAccountData[]> {
     const {
       creditManager,
@@ -144,7 +139,6 @@ export class CreditAccountsService extends SDKConstruct {
         const [accounts, newOffset] = await this.#getCreditAccounts(
           [arg0, { ...caFilter, reverting }, offset],
           priceUpdateTxs,
-          options,
         );
         allCAs.push(...accounts);
         offset = newOffset;
@@ -226,13 +220,13 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Internal wrapper for CreditAccountCompressor.getCreditAccounts + price updates wrapped into multicall
-   * @param param0
+   * @param args
+   * @param priceUpdateTxs
    * @returns
    */
   async #getCreditAccounts(
     args: GetCreditAccountsArgs,
     priceUpdateTxs?: RawTx[],
-    options?: ReadContractOptions,
   ): Promise<[accounts: CreditAccountData[], newOffset: bigint]> {
     if (priceUpdateTxs?.length) {
       const resp = await simulateMulticall(this.provider.publicClient, {
@@ -249,7 +243,6 @@ export class CreditAccountsService extends SDKConstruct {
         allowFailure: false,
         gas: 550_000_000n,
         batchSize: 0, // we cannot have price updates and compressor request in different batches
-        blockNumber: options?.blockNumber,
       });
       const getCreditAccountsResp = resp.pop() as any as [
         CreditAccountData[],
@@ -267,7 +260,6 @@ export class CreditAccountsService extends SDKConstruct {
       address: this.#compressor,
       functionName: "getCreditAccounts",
       args,
-      blockNumber: options?.blockNumber,
     });
   }
 
@@ -308,32 +300,28 @@ export class CreditAccountsService extends SDKConstruct {
   /**
    * Returns account price updates in a non-encoded format
    * @param acc
-   * @param blockNumber
    * @returns
    */
   public async getOnDemandPriceUpdates(
     acc: CreditAccountData,
-    blockNumber?: bigint,
   ): Promise<OnDemandPriceUpdate[]> {
     const market = this.sdk.marketRegister.findByCreditManager(
       acc.creditManager,
     );
-    const update = await this.getUpdateForAccounts([acc], blockNumber);
+    const update = await this.getUpdateForAccounts([acc]);
     return market.priceOracle.onDemandPriceUpdates(update);
   }
 
   /**
    * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...)
    * @param acc
-   * @param blockNumber
    * @returns
    */
   public async getPriceUpdatesForFacade(
     acc: CreditAccountData,
-    blockNumber?: bigint,
   ): Promise<MultiCall[]> {
     const cm = this.sdk.marketRegister.findCreditManager(acc.creditManager);
-    const updates = await this.getOnDemandPriceUpdates(acc, blockNumber);
+    const updates = await this.getOnDemandPriceUpdates(acc);
     return updates.map(({ token, reserve, data }) => ({
       target: cm.creditFacade.address,
       callData: encodeFunctionData({
