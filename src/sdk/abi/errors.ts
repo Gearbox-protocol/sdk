@@ -1,3 +1,8 @@
+import {
+  ilpPriceFeedExceptionsAbi,
+  iRedstonePriceFeedExceptionsAbi,
+} from "./oracles";
+
 export const iRouterV3ErrorsAbi = [
   {
     type: "error",
@@ -138,3 +143,43 @@ export const iExceptionsAbi = [
   { type: "error", inputs: [], name: "VotingContractNotAllowedException" },
   { type: "error", inputs: [], name: "ZeroAddressException" },
 ] as const;
+
+export const iRedstoneErrorsAbi = [
+  { type: "error", inputs: [], name: "CalldataMustHaveValidPayload" },
+  { type: "error", inputs: [], name: "CalldataOverOrUnderFlow" },
+  { type: "error", inputs: [], name: "EachSignerMustProvideTheSameValue" },
+  { type: "error", inputs: [], name: "EmptyCalldataPointersArr" },
+  { type: "error", inputs: [], name: "IncorrectUnsignedMetadataSize" },
+  {
+    type: "error",
+    inputs: [
+      {
+        name: "receivedSignersCount",
+        internalType: "uint256",
+        type: "uint256",
+      },
+      {
+        name: "requiredSignersCount",
+        internalType: "uint256",
+        type: "uint256",
+      },
+    ],
+    name: "InsufficientNumberOfUniqueSigners",
+  },
+  { type: "error", inputs: [], name: "InvalidCalldataPointer" },
+  {
+    type: "error",
+    inputs: [
+      { name: "receivedSigner", internalType: "address", type: "address" },
+    ],
+    name: "SignerNotAuthorised",
+  },
+] as const;
+
+export const errorAbis = [
+  ...iExceptionsAbi,
+  ...iRedstonePriceFeedExceptionsAbi,
+  ...iRedstoneErrorsAbi,
+  ...ilpPriceFeedExceptionsAbi,
+  ...iRouterV3ErrorsAbi,
+];

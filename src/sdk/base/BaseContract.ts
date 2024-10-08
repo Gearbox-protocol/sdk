@@ -12,7 +12,7 @@ import type {
 } from "viem";
 import { decodeFunctionData, getContract, isHex } from "viem";
 
-import { iExceptionsAbi, iRouterV3ErrorsAbi, iVersionAbi } from "../abi";
+import { errorAbis, iVersionAbi } from "../abi";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { BaseContractState } from "../state";
@@ -58,7 +58,7 @@ export abstract class BaseContract<
     this.contract = getContract({
       address: this.address,
       // add exceptions for better error decoding
-      abi: [this.abi, ...iExceptionsAbi, ...iRouterV3ErrorsAbi],
+      abi: [...this.abi, ...errorAbis],
       client: {
         public: sdk.provider.publicClient,
       },
