@@ -1,4 +1,5 @@
 export * from "./compressors";
+export * from "./errors";
 export * from "./generated";
 export * from "./misc";
 export * from "./oracles";
