@@ -1,18 +1,28 @@
 import type { Address, Hex } from "viem";
 import { decodeFunctionData } from "viem";
 
-import { iUpdatablePriceFeedAbi, priceOracleV3Abi } from "../abi";
-import type { PriceFeedTreeNode, PriceOracleData } from "../base";
+import {
+  iPriceFeedCompressorAbi,
+  iUpdatablePriceFeedAbi,
+  priceOracleV3Abi,
+} from "../abi";
+import type {
+  PriceFeedMapEntry,
+  PriceFeedTreeNode,
+  PriceOracleData,
+} from "../base";
 import { BaseContract } from "../base";
+import { AP_PRICE_FEED_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PriceOracleState } from "../state";
 import { AddressMap } from "../utils";
+import { simulateMulticall } from "../utils/viem";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
   UpdatePriceFeedsResult,
 } from "./pricefeeds";
-import { PriceFeedRef } from "./pricefeeds";
+import { PriceFeedRef, rawTxToMulticallPriceUpdate } from "./pricefeeds";
 
 type abi = typeof priceOracleV3Abi;
 
@@ -104,8 +114,8 @@ export class PriceOracleContract extends BaseContract<abi> {
     const reserve = opts?.reserve ?? true;
     return tokens
       .flatMap(t => [
-        main ? this.mainPriceFeeds[t].priceFeed : undefined,
-        reserve ? this.reservePriceFeeds[t].priceFeed : undefined,
+        main ? this.mainPriceFeeds[t]?.priceFeed : undefined,
+        reserve ? this.reservePriceFeeds[t]?.priceFeed : undefined,
       ])
       .filter((f): f is IPriceFeedContract => !!f);
   }
@@ -205,83 +215,43 @@ export class PriceOracleContract extends BaseContract<abi> {
     return (amount * fromPrice * toScale) / (toPrice * fromScale);
   }
 
-  // async loadPrices(
-  //   priceUpdatesTxs: Array<RawTx>,
-  //   block: bigint,
-  // ): Promise<{
-  //   mainPrices: Record<Address, bigint>;
-  //   reservePrices: Record<Address, bigint>;
-  // }> {
-  //   const priceUpdateCalls: Array<MultiCallStruct> = priceUpdatesTxs.map(
-  //     tx => ({
-  //       target: tx.to,
-  //       callData: tx.callData,
-  //       allowFailure: false,
-  //     }),
-  //   );
+  /**
+   * Loads new prices for this oracle from PriceFeedCompressor
+   * Does not update price feeds, only updates prices
+   */
+  public async updatePrices(): Promise<void> {
+    const { txs } = await this.updatePriceFeeds();
+    const resp = await simulateMulticall(this.provider.publicClient, {
+      contracts: [
+        ...txs.map(rawTxToMulticallPriceUpdate),
+        {
+          abi: iPriceFeedCompressorAbi,
+          address: this.sdk.addressProvider.getLatestVersion(
+            AP_PRICE_FEED_COMPRESSOR,
+          ),
+          functionName: "getPriceFeeds",
+          args: [this.address],
+        },
+      ],
+      allowFailure: false,
+      gas: 550_000_000n,
+      batchSize: 0, // we cannot have price updates and compressor request in different batches
+    });
+    const [entries, tree] = resp.pop() as [
+      PriceFeedMapEntry[],
+      PriceFeedTreeNode[],
+    ];
 
-  //   const getPricesRawCalls = (reserve: boolean): Array<MultiCallStruct> => {
-  //     return Object.keys(
-  //       reserve ? this.reservePriceFeeds : this.mainPriceFeeds,
-  //     ).map(token => ({
-  //       target: this.address,
-  //       callData: encodeFunctionData({
-  //         functionName: "getPriceRaw",
-  //         args: [token as Address, reserve],
-  //         abi: this.abi,
-  //       }),
-  //       allowFailure: true,
-  //     }));
-  //   };
-
-  //   const { result } = await this.v3.publicClient.simulateContract({
-  //     address: MULTICALL_ADDRESS,
-  //     abi: multicall3Abi,
-  //     functionName: "aggregate3",
-  //     args: [
-  //       [
-  //         ...priceUpdateCalls,
-  //         ...getPricesRawCalls(false),
-  //         ...getPricesRawCalls(true),
-  //       ],
-  //     ],
-  //     chain: this.v3.publicClient.chain!,
-  //     account: this.v3.walletClient.account!,
-  //     gas: 550_000_000n,
-  //     // blockNumber: BigInt(block),
-  //   });
-
-  //   const returnRawPrices = (
-  //     result as Array<{ success: boolean; returnData: Hex }>
-  //   ).slice(priceUpdateCalls.length);
-
-  //   const prices = returnRawPrices.map(callReturn =>
-  //     callReturn.success
-  //       ? decodeFunctionResult({
-  //           functionName: "getPrice",
-  //           abi: this.abi,
-  //           data: callReturn.returnData! as Hex,
-  //         })
-  //       : 0n,
-  //   ) as Array<bigint>;
-
-  //   const mainPrices: Record<Address, bigint> = {};
-  //   const reservePrices: Record<Address, bigint> = {};
-
-  //   const mainPFlength = Object.keys(this.mainPriceFeeds).length;
-
-  //   prices.forEach((price, i) => {
-  //     if (i < mainPFlength) {
-  //       mainPrices[Object.keys(this.mainPriceFeeds)[i] as Address] = price;
-  //     } else {
-  //       reservePrices[
-  //         Object.keys(this.reservePriceFeeds)[i - mainPFlength] as Address
-  //       ] = price;
-  //     }
-  //   });
-
-  //   return { mainPrices, reservePrices };
-  // }
+    entries.forEach(({ token, priceFeed, reserve }) => {
+      const price = tree.find(n => n.baseParams.addr === priceFeed)?.answer
+        ?.price;
+      if (reserve && price) {
+        this.reservePrices.upsert(token, price);
+      } else if (price) {
+        this.mainPrices.upsert(token, price);
+      }
+    });
+  }
 
   #labelPriceFeed(
     address: Address,

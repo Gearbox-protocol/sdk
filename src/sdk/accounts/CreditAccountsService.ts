@@ -1,10 +1,9 @@
 import type { Address, ContractFunctionArgs } from "viem";
-import { decodeFunctionData, encodeFunctionData } from "viem";
+import { encodeFunctionData } from "viem";
 
 import {
   iCreditAccountCompressorAbi,
   iCreditFacadeV3MulticallAbi,
-  iUpdatablePriceFeedAbi,
 } from "../abi";
 import { type CreditAccountData, SDKConstruct } from "../base";
 import {
@@ -14,12 +13,13 @@ import {
   MIN_INT96,
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type {
-  CreditFactory,
-  IPriceFeedContract,
-  OnDemandPriceUpdate,
-  PriceOracleContract,
-  UpdatePriceFeedsResult,
+import {
+  type CreditFactory,
+  type IPriceFeedContract,
+  type OnDemandPriceUpdate,
+  type PriceOracleContract,
+  rawTxToMulticallPriceUpdate,
+  type UpdatePriceFeedsResult,
 } from "../market";
 import type { MultiCall, RawTx } from "../types";
 import { simulateMulticall } from "../utils/viem";
@@ -433,24 +433,4 @@ export class CreditAccountsService extends SDKConstruct {
   private get pools(): Address[] {
     return this.sdk.marketRegister.poolState.map(p => p.pool.address);
   }
-}
-
-/**
- * Helper method to convert our RawTx into viem's multicall format
- * Involves decoding what was previously encoded, but it's better than adding another method to PriceFeedFactory
- * @param tx
- * @returns
- */
-function rawTxToMulticallPriceUpdate(tx: RawTx) {
-  const { to, callData } = tx;
-  const { args, functionName } = decodeFunctionData({
-    abi: iUpdatablePriceFeedAbi,
-    data: callData,
-  });
-  return {
-    abi: iUpdatablePriceFeedAbi,
-    address: to,
-    functionName,
-    args,
-  };
 }

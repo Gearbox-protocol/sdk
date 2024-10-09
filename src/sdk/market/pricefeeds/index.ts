@@ -13,6 +13,7 @@ export * from "./PriceFeedRef";
 export * from "./PriceFeedsRegister";
 export * from "./RedstonePriceFeed";
 export * from "./types";
+export * from "./utils";
 export * from "./WstETHPriceFeed";
 export * from "./YearnPriceFeed";
 export * from "./ZeroPriceFeed";
