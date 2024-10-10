@@ -14,6 +14,7 @@ import { CurveV1AdapterStableNGContract } from "./CurveV1AdapterStableNGContract
 import { CurveV1AdapterStETHContract } from "./CurveV1AdapterStETHContract";
 import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract";
 import { ERC4626AdapterContract } from "./ERC4626AdapterContract";
+import { MellowVaultAdapterContract } from "./MellowVaultAdapterContract";
 import type { AdapterContractType, IAdapterContract } from "./types";
 import { UniswapV2AdapterContract } from "./UniswapV2AdapterContract";
 import { UniswapV3AdapterContract } from "./UniswapV3AdapterContract";
@@ -61,6 +62,8 @@ export function createAdapter(
       return new CamelotV3AdapterContract(sdk, args);
     case "AD_YEARN_V2":
       return new YearnV2RouterAdapterContract(sdk, args);
+    case "AD_MELLOW_LRT_VAULT":
+      return new MellowVaultAdapterContract(sdk, args);
     default:
       throw new Error(`adapter for ${adapterType} is not implemented`);
   }

@@ -18473,3 +18473,278 @@ export const yearnV2AdapterAbi = [
   { type: "error", inputs: [], name: "CallerNotCreditFacadeException" },
   { type: "error", inputs: [], name: "ZeroAddressException" },
 ] as const;
+
+export const iMellowVaultAdapterAbi = [
+  {
+    type: "function",
+    name: "_gearboxAdapterType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "enum AdapterType",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "_gearboxAdapterVersion",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "addressProvider",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "deposit",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amounts",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+      {
+        name: "minLpAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "deadline",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "depositOneAsset",
+    inputs: [
+      {
+        name: "asset",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "minLpAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "deadline",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "depositOneAssetDiff",
+    inputs: [
+      {
+        name: "asset",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "rateMinRAY",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "deadline",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "isUnderlyingAllowed",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "setUnderlyingStatusBatch",
+    inputs: [
+      {
+        name: "underlyings",
+        type: "tuple[]",
+        internalType: "struct MellowUnderlyingStatus[]",
+        components: [
+          {
+            name: "underlying",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "allowed",
+            type: "bool",
+            internalType: "bool",
+          },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "targetContract",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "SetUnderlyingStatus",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "newStatus",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "IncorrectArrayLengthException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "UnderlyingNotAllowedException",
+    inputs: [
+      {
+        name: "asset",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "UnderlyingNotFoundException",
+    inputs: [
+      {
+        name: "asset",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+  },
+] as const;
