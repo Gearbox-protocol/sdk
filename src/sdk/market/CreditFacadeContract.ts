@@ -1,6 +1,6 @@
 import type { DecodeFunctionDataReturnType } from "viem";
 
-import { creditFacadeV3Abi } from "../abi";
+import { creditFacadeV3Abi, iCreditFacadeV3MulticallAbi } from "../abi";
 import { BaseContract, type CreditManagerData } from "../base";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
@@ -19,7 +19,8 @@ export class CreditFacadeContract extends BaseContract<abi> {
     super(sdk, {
       ...creditFacade.baseParams,
       name: `CreditFacadeV3(${creditManager.name})`,
-      abi: creditFacadeV3Abi,
+      // Add multicall strictly for parsing, but use only creditFacadeV3Abi in types, so only this part is visible to typescript elsewhere
+      abi: [...creditFacadeV3Abi, ...iCreditFacadeV3MulticallAbi] as any,
     });
 
     this.state = {
