@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
 import { decodeFunctionData } from "viem";
 
+import type { NetworkType } from "../../../../sdk-gov/src/core/chains";
 import {
   iPriceFeedCompressorAbi,
   iUpdatablePriceFeedAbi,
@@ -288,6 +289,11 @@ export class PriceOracleContract extends BaseContract<abi> {
         return [token as Address, true];
       }
     }
+    // TODO: this is v3.0 legacy code, should be gone after full v.3.1 rollout
+    const ticker = priceFeedToTicker[this.sdk.provider.networkType][priceFeed];
+    if (ticker) {
+      return [ticker, false];
+    }
     throw new Error(`cannot find token for price feed ${priceFeed}`);
   }
 
@@ -309,3 +315,35 @@ export class PriceOracleContract extends BaseContract<abi> {
     };
   }
 }
+
+/**
+ * Mapping for ticker price feeds PriceFeed -> TickerToken
+ * This is v3.0 stuff, in v3.1 tickers are not added into price oracles
+ */
+const priceFeedToTicker: Record<NetworkType, Record<Address, Address>> = {
+  Mainnet: {
+    "0x6F13996411743d22566176482B6b677Ec4eb6cE6":
+      "0x8C23b9E4CB9884e807294c4b4C33820333cC613c",
+    "0xa7cB34Cd731486F61cfDb7ff5F6fC7B40537eD76":
+      "0xFb56Fb16B4F33A875b01881Da7458E09D286208e",
+    "0xcf1FDc8DC6e83B38729d58C117BE704bb2AC362a":
+      "0xf08D818be34C82cB5e3f33AC78F8268828764F17",
+    "0xE683362b8ebcbfd9332CBB79BfAF9fC42073C49b":
+      "0xBdb778F566b6cEd70D3d329DD1D14E221fFe1ba5",
+    "0xB72A69e2182bE87bda706B7Ff9A539AC78338C61":
+      "0x7fF63E75F48aad6F4bE97E75C6421f348f19fE7F",
+    "0xd7396fA3aFB9833293Ce2149EEb3Dbf5380B1e0D":
+      "0xB0EA0EC3Fd4947348816f76768b3a56249d47EEc",
+  },
+  Arbitrum: {
+    "0xcB44ADd611f75F03191f8f1A2e2AF7a0113eadd1":
+      "0x07299E4E806e4253727084c0493fFDf6fB2dBa3D",
+    "0x354A63F07A5c1605920794aFFF09963b6DF897a9":
+      "0x15094B05e679c9B7fDde6FB8e6BDa930ff1D6a62",
+  },
+  Optimism: {
+    "0xF23C91b1E3B7FD9174c82F7Fb2BD270C3CfcC3CE":
+      "0x658f8e60c57ad62a9299ef6c7b1da9a0d1d1e681",
+  },
+  Base: {},
+};
