@@ -157,6 +157,11 @@ export class PriceOracleContract extends BaseContract<abi> {
     for (const tx of txs) {
       const { to: priceFeed, callData } = tx;
       const [token, reserve] = this.#findTokenForPriceFeed(priceFeed);
+      // this situation happend when we have combined updates from multiple markrts,
+      // but this particular feed is not added to this particular oracle
+      if (!token) {
+        continue;
+      }
       const { args } = decodeFunctionData({
         abi: iUpdatablePriceFeedAbi,
         data: callData,
@@ -271,14 +276,15 @@ export class PriceOracleContract extends BaseContract<abi> {
   }
 
   /**
-   * Helper method to find "attachment point" of price feed (makes sense for updatable price feeds only) - token (in v3.0 can be ticker) and main/reserve flag
+   * Helper method to find "attachment point" of price feed (makes sense for updatable price feeds only) -
+   * returns token (in v3.0 can be ticker) and main/reserve flag
    *
    * @param priceFeed
    * @returns
    */
   #findTokenForPriceFeed(
     priceFeed: Address,
-  ): [token: Address, reserve: boolean] {
+  ): [token: Address | undefined, reserve: boolean] {
     for (const [token, pf] of Object.entries(this.mainPriceFeeds)) {
       if (pf.address === priceFeed) {
         return [token as Address, false];
@@ -294,7 +300,7 @@ export class PriceOracleContract extends BaseContract<abi> {
     if (ticker) {
       return [ticker, false];
     }
-    throw new Error(`cannot find token for price feed ${priceFeed}`);
+    return [undefined, false];
   }
 
   public get state(): PriceOracleState {
