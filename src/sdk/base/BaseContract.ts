@@ -79,8 +79,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     this.name = this.#name = args.name || this.contractType || this.#address;
     this.logger = childLogger(this.name, sdk.logger);
 
-    // register contract by address
-    // TODO: I don't like it, this is side-effect. why do we even need this?
+    // register contract by address: this is used for system-wide call parsing
     sdk.contracts.upsert(this.address, this);
   }
 

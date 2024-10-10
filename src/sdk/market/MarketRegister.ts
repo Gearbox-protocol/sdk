@@ -1,8 +1,13 @@
 import type { Address } from "viem";
 
-import { iMarketCompressorAbi } from "../abi";
-import type { TokenMetaData } from "../base";
-import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../constants";
+import { iAdapterCompressorAbi, iMarketCompressorAbi } from "../abi";
+import type { AdapterData, TokenMetaData } from "../base";
+import { SDKConstruct } from "../base";
+import {
+  ADDRESS_0X0,
+  AP_ADAPTER_COMPRESSOR,
+  AP_MARKET_COMPRESSOR,
+} from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type {
   CreditFactoryState,
@@ -11,11 +16,12 @@ import type {
 } from "../state";
 import type { ILogger, TVL } from "../types";
 import { AddressMap, childLogger } from "../utils";
+import { simulateMulticall } from "../utils/viem";
 import type { CreditFactory } from "./CreditFactory";
 import { MarketFactory } from "./MarketFactory";
 import type { PoolFactory } from "./PoolFactory";
 
-export class MarketRegister {
+export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
   /**
    * Mapping pool.name -> MarketFactory
@@ -26,21 +32,19 @@ export class MarketRegister {
    */
   public readonly tokensMeta: AddressMap<TokenMetaData> = new AddressMap();
 
-  readonly #sdk: GearboxSDK;
-
   constructor(sdk: GearboxSDK) {
-    this.#sdk = sdk;
+    super(sdk);
     this.#logger = childLogger("MarketRegister", sdk.logger);
   }
 
   public async loadMarkets(curators: Address[]): Promise<void> {
     this.#logger?.debug("loading markets");
 
-    const marketCompressorAddress = this.#sdk.addressProvider.getAddress(
+    const marketCompressorAddress = this.sdk.addressProvider.getAddress(
       AP_MARKET_COMPRESSOR,
       3_10,
     );
-    const markets = await this.#sdk.provider.publicClient.readContract({
+    const markets = await this.sdk.provider.publicClient.readContract({
       address: marketCompressorAddress,
       abi: iMarketCompressorAbi,
       functionName: "getMarkets",
@@ -57,10 +61,33 @@ export class MarketRegister {
     });
 
     for (const data of markets) {
-      this.#markets[data.pool.name] = new MarketFactory(this.#sdk, data);
+      this.#markets[data.pool.name] = new MarketFactory(this.sdk, data);
     }
 
     this.#logger?.info(`loaded ${markets.length} markets`);
+  }
+
+  /**
+   * Loads adapter state for all attached credit managers
+   */
+  public async loadAdapters(): Promise<void> {
+    const adaperCompressorAddr = this.sdk.addressProvider.getLatestVersion(
+      AP_ADAPTER_COMPRESSOR,
+    );
+    const resp = await simulateMulticall(this.sdk.provider.publicClient, {
+      contracts: this.creditManagers.map(cm => ({
+        abi: iAdapterCompressorAbi,
+        address: adaperCompressorAddr,
+        functionName: "getContractAdapters",
+        args: [cm.creditManager.address],
+      })),
+      allowFailure: false,
+      gas: 550_000_000n,
+    });
+    for (let i = 0; i < this.creditManagers.length; i++) {
+      const cm = this.creditManagers[i];
+      cm.creditManager.attachAdapters(resp[i] as any as AdapterData[]);
+    }
   }
 
   public get state(): Array<MarketState> {
