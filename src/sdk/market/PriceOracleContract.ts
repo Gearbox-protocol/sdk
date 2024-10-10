@@ -1,7 +1,6 @@
 import type { Address, Hex } from "viem";
 import { decodeFunctionData } from "viem";
 
-import type { NetworkType } from "../../../../sdk-gov/src/core/chains";
 import {
   iPriceFeedCompressorAbi,
   iUpdatablePriceFeedAbi,
@@ -13,6 +12,7 @@ import type {
   PriceOracleData,
 } from "../base";
 import { BaseContract } from "../base";
+import type { NetworkType } from "../chain";
 import { AP_PRICE_FEED_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PriceOracleState } from "../state";
