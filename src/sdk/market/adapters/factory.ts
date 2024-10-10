@@ -12,6 +12,7 @@ import { Curve3AssetsAdapterContract } from "./Curve3AssetsAdapterContract";
 import { Curve4AssetsAdapterContract } from "./Curve4AssetsAdapterContract";
 import { CurveV1AdapterStableNGContract } from "./CurveV1AdapterStableNGContract";
 import { CurveV1AdapterStETHContract } from "./CurveV1AdapterStETHContract";
+import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract";
 import { ERC4626AdapterContract } from "./ERC4626AdapterContract";
 import type { AdapterContractType, IAdapterContract } from "./types";
 import { UniswapV2AdapterContract } from "./UniswapV2AdapterContract";
@@ -46,6 +47,8 @@ export function createAdapter(
       return new ConvexV1BaseRewardPoolAdapterContract(sdk, args);
     case "AD_CONVEX_V1_BOOSTER":
       return new ConvexV1BoosterAdapterContract(sdk, args);
+    case "AD_CURVE_STABLE_NG":
+      return new CurveV1StableNGAdapterContract(sdk, args);
     case "AD_LIDO_WSTETH_V1":
       return new WstETHV1AdapterContract(sdk, args);
     case "AD_BALANCER_VAULT":

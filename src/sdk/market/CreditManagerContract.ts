@@ -56,9 +56,13 @@ export class CreditManagerContract extends BaseContract<abi> {
   public attachAdapters(adapters: AdapterData[]): void {
     this.#adapters = {};
     for (const adapterData of adapters) {
-      const adapter = createAdapter(this.sdk, adapterData);
-      adapter.name = `${adapter.name}(${this.name})`;
-      this.adapters[adapter.targetContract] = adapter;
+      try {
+        const adapter = createAdapter(this.sdk, adapterData);
+        adapter.name = `${adapter.name}(${this.name})`;
+        this.adapters[adapter.targetContract] = adapter;
+      } catch (e) {
+        this.logger?.warn(`cannot attach adapter: ${e}`);
+      }
     }
     this.state.contractsToAdapters = Object.fromEntries(
       adapters.map(a => [a.targetContract, a.baseParams.addr]),
