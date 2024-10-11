@@ -1,3 +1,4 @@
+export * from "./adapters";
 export * from "./CreditConfiguratorContract";
 export * from "./CreditFacadeContract";
 export * from "./CreditFactory";
