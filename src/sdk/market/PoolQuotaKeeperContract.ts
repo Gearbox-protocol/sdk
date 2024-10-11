@@ -1,3 +1,5 @@
+import type { ContractEventName, Log } from "viem";
+
 import { poolQuotaKeeperV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import type { PoolData, PoolQuotaKeeperData } from "../base/types";
@@ -29,5 +31,32 @@ export class PoolQuotaKeeperContract extends BaseContract<abi> {
         }),
       ),
     };
+  }
+
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
+      case "AddCreditManager":
+      case "AddQuotaToken":
+      case "NewController":
+      case "Paused":
+      case "SetGauge":
+      case "SetQuotaIncreaseFee":
+      case "SetTokenLimit":
+      case "Unpaused":
+      case "UpdateQuota":
+      case "UpdateTokenQuotaRate":
+        this.dirty = true;
+        break;
+    }
   }
 }

@@ -418,6 +418,6 @@ export class CreditAccountsService extends SDKConstruct {
    * Returns addresses of pools of attached markets
    */
   private get pools(): Address[] {
-    return this.sdk.marketRegister.poolState.map(p => p.pool.address);
+    return this.sdk.marketRegister.pools.map(p => p.pool.address);
   }
 }

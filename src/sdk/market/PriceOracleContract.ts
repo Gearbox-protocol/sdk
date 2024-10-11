@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address, ContractEventName, Hex, Log } from "viem";
 import { decodeFunctionData } from "viem";
 
 import {
@@ -104,6 +104,29 @@ export class PriceOracleContract extends BaseContract<abi> {
     this.logger?.debug(
       `Got ${Object.keys(this.mainPriceFeeds).length} main and ${Object.keys(this.reservePriceFeeds).length} reserve price feeds`,
     );
+  }
+
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
+      case "NewController":
+      case "Paused":
+      case "SetPriceFeed":
+      case "SetReservePriceFeed":
+      case "SetReservePriceFeedStatus":
+      case "Unpaused":
+        this.dirty = true;
+        break;
+    }
   }
 
   /**

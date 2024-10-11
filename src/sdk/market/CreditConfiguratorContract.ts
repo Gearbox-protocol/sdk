@@ -1,4 +1,9 @@
-import type { Address, DecodeFunctionDataReturnType } from "viem";
+import type {
+  Address,
+  ContractEventName,
+  DecodeFunctionDataReturnType,
+  Log,
+} from "viem";
 
 import { creditConfiguratorV3Abi } from "../abi";
 import type { CreditManagerData } from "../base";
@@ -24,6 +29,47 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
       abi: creditConfiguratorV3Abi,
     });
     this.emergencyLiquidators = [...emergencyLiquidators];
+  }
+
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
+      case "AddCollateralToken":
+      case "AddEmergencyLiquidator":
+      case "AllowAdapter":
+      case "AllowToken":
+      case "CreditConfiguratorUpgraded":
+      case "ForbidAdapter":
+      case "ForbidToken":
+      case "NewController":
+      case "Paused":
+      case "QuoteToken":
+      case "RemoveEmergencyLiquidator":
+      case "ResetCumulativeLoss":
+      case "ScheduleTokenLiquidationThresholdRamp":
+      case "SetBorrowingLimits":
+      case "SetBotList":
+      case "SetCreditFacade":
+      case "SetExpirationDate":
+      case "SetMaxCumulativeLoss":
+      case "SetMaxDebtPerBlockMultiplier":
+      case "SetMaxEnabledTokens":
+      case "SetPriceOracle":
+      case "SetTokenLiquidationThreshold":
+      case "Unpaused":
+      case "UpdateFees":
+        this.dirty = true;
+        break;
+    }
   }
 
   public get state(): CreditConfiguratorState {

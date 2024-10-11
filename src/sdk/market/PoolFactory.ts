@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { MarketData } from "../base";
+import { type MarketData, SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PoolFactoryState } from "../state";
 import { GaugeContract } from "./GaugeContract";
@@ -8,22 +8,23 @@ import { LinearModelContract } from "./LinearModelContract";
 import { PoolContract } from "./PoolContract";
 import { PoolQuotaKeeperContract } from "./PoolQuotaKeeperContract";
 
-export class PoolFactory {
+export class PoolFactory extends SDKConstruct {
   public readonly underlying: Address;
-  public readonly poolContract: PoolContract;
-  public readonly pqkContract: PoolQuotaKeeperContract;
-  public readonly gaugeContract: GaugeContract;
+  public readonly pool: PoolContract;
+  public readonly pqk: PoolQuotaKeeperContract;
+  public readonly gauge: GaugeContract;
   public readonly linearModel: LinearModelContract;
 
   constructor(sdk: GearboxSDK, data: MarketData) {
+    super(sdk);
     this.underlying = data.pool.underlying as Address;
-    this.poolContract = new PoolContract(sdk, data.pool);
-    this.pqkContract = new PoolQuotaKeeperContract(
+    this.pool = new PoolContract(sdk, data.pool);
+    this.pqk = new PoolQuotaKeeperContract(
       sdk,
       data.pool,
       data.poolQuotaKeeper,
     );
-    this.gaugeContract = new GaugeContract(sdk, data.pool, data.rateKeeper);
+    this.gauge = new GaugeContract(sdk, data.pool, data.rateKeeper);
     const irModelAddr = data.interestRateModel.baseParams.addr;
 
     if (sdk.interestRateModels.has(irModelAddr)) {
@@ -38,12 +39,21 @@ export class PoolFactory {
     }
   }
 
+  override get dirty(): boolean {
+    return (
+      this.pool.dirty ||
+      this.gauge.dirty ||
+      this.pqk.dirty ||
+      this.linearModel.dirty
+    );
+  }
+
   public get state(): PoolFactoryState {
     return {
-      pool: this.poolContract.state,
-      poolQuotaKeeper: this.pqkContract.state,
+      pool: this.pool.state,
+      poolQuotaKeeper: this.pqk.state,
       linearModel: this.linearModel.state,
-      gauge: this.gaugeContract.state,
+      gauge: this.gauge.state,
     };
   }
 }

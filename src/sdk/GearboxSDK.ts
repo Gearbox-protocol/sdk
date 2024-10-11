@@ -1,5 +1,5 @@
-import type { Address, Hex, Log } from "viem";
-import { createPublicClient, http } from "viem";
+import type { Address, Hex } from "viem";
+import { createPublicClient, http, parseEventLogs } from "viem";
 
 import type { BaseContract } from "./base";
 import type { NetworkType } from "./chain";
@@ -72,6 +72,7 @@ export class GearboxSDK {
   // Block which was use for data query
   #currentBlock?: bigint;
   #timestamp?: bigint;
+  #syncing = false;
 
   #gear?: Address;
 
@@ -194,12 +195,6 @@ export class GearboxSDK {
     return this;
   }
 
-  public parseLogs(logs: Array<Log>): void {
-    for (const log of logs) {
-      this.contracts.get(log.address)?.parseLog(log);
-    }
-  }
-
   /**
    * Converts contract call into some human-friendly string
    * @param address
@@ -255,32 +250,39 @@ export class GearboxSDK {
     this.logger?.info(`Total TVL: ${formatBN(tvlUSD, 8)}`);
   }
 
+  // TODO: timestamp is annoying - need to make second request to get block timestamp
+  // TODO: make flag to prevent double syncing
   public async syncState(toBlock: bigint, timestamp: bigint): Promise<void> {
-    if (toBlock <= this.currentBlock) {
+    if (toBlock <= this.currentBlock || this.#syncing) {
       return;
     }
+    this.#syncing = true;
+    this.logger?.debug(`syncing state to block ${toBlock}...`);
 
-    this.logger?.debug(`Syncing state to block ${toBlock}`);
-
-    const events = await this.provider.publicClient.getLogs({
+    const logs = await this.provider.publicClient.getLogs({
       fromBlock: BigInt(this.currentBlock),
       toBlock: BigInt(toBlock),
     });
 
-    this.parseLogs(events);
-
-    for (const pf of this.marketRegister.getPoolFactories()) {
-      if (pf.poolContract.hasOperation) {
-        // await pf.poolContract.syncState();
+    for (const log of logs) {
+      const contract = this.contracts.get(log.address);
+      if (contract) {
+        const event = parseEventLogs({
+          abi: contract.abi,
+          logs: [log],
+        })[0];
+        contract.processLog(event);
       }
     }
 
-    // TODO: @Kostya, check how to update prices
-    // await this.priceFeedFactory.updatePrices();
+    // This will reload all or some markets
+    await this.marketRegister.syncState();
+    // TODO: do wee need to sync state on botlist and others?
 
-    // TODO: add cm reload tracking
     this.#currentBlock = toBlock;
     this.#timestamp = timestamp;
+    this.#syncing = false;
+    this.logger?.debug(`synced state to block ${toBlock}`);
   }
 
   public get provider(): Provider {

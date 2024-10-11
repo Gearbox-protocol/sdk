@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, ContractEventName, Log } from "viem";
 
 import { creditManagerV3Abi } from "../abi";
 import type { AdapterData, CreditManagerData, PoolData } from "../base";
@@ -51,6 +51,24 @@ export class CreditManagerContract extends BaseContract<abi> {
       creditAccounts: [], // [...result[5].result!],
       name: creditManager.name,
     };
+  }
+
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
+      case "SetCreditConfigurator":
+        this.dirty = true;
+        break;
+    }
   }
 
   public attachAdapters(adapters: AdapterData[]): void {

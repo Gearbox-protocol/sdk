@@ -1,19 +1,20 @@
 import type { Address } from "viem";
 
-import type { MarketData } from "../base";
+import { type MarketData, SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketState } from "../state";
 import { CreditFactory } from "./CreditFactory";
 import { PoolFactory } from "./PoolFactory";
 import { PriceOracleContract } from "./PriceOracleContract";
 
-export class MarketFactory {
-  public readonly riskCurator: Address;
-  public readonly poolFactory: PoolFactory;
-  public readonly priceOracle: PriceOracleContract;
+export class MarketFactory extends SDKConstruct {
+  public readonly riskCurator!: Address;
+  public readonly poolFactory!: PoolFactory;
+  public readonly priceOracle!: PriceOracleContract;
   public readonly creditManagers: CreditFactory[] = [];
 
   constructor(sdk: GearboxSDK, marketData: MarketData) {
+    super(sdk);
     this.riskCurator = marketData.owner;
 
     for (const t of marketData.tokens) {
@@ -31,6 +32,14 @@ export class MarketFactory {
       sdk,
       marketData.priceOracleData,
       marketData.pool.underlying,
+    );
+  }
+
+  override get dirty(): boolean {
+    return (
+      this.poolFactory.dirty ||
+      this.priceOracle.dirty ||
+      this.creditManagers.some(cm => cm.dirty)
     );
   }
 

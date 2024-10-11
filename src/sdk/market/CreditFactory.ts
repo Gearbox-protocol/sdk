@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { MarketData } from "../base";
+import { type MarketData, SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditFactoryState } from "../state";
 import type { TVL } from "../types";
@@ -9,7 +9,7 @@ import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract";
 import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract";
 import { CreditManagerContract } from "./CreditManagerContract";
 
-export class CreditFactory {
+export class CreditFactory extends SDKConstruct {
   public readonly name: string;
   public readonly pool: Address;
   public readonly underlying: Address;
@@ -25,6 +25,7 @@ export class CreditFactory {
   public readonly creditConfigurator: CreditConfiguratorContract;
 
   constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
+    super(sdk);
     const { creditManagers, pool, emergencyLiquidators } = marketData;
     const creditManager = creditManagers[index];
     const { name, collateralTokens, liquidationThresholds } =
@@ -67,6 +68,15 @@ export class CreditFactory {
     const tvl = 0n; // cas.reduce((acc, ca) => acc + BigInt(ca.totalValue), 0n);
     const tvlUSD = 0n; // cas.reduce((acc, ca) => acc + BigInt(ca.totalValueUSD), 0n);
     return { tvl, tvlUSD };
+  }
+
+  override get dirty(): boolean {
+    // TODO: any other ways to get dirty, adapters maybe?
+    return (
+      this.creditFacade.dirty ||
+      this.creditManager.dirty ||
+      this.creditConfigurator.dirty
+    );
   }
 
   public get state(): CreditFactoryState {

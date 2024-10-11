@@ -100,7 +100,7 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
     };
   }
 
-  public override parseLog(log: Log): void {
+  public override processLog(log: Log): void {
     const parsedLog = parseEventLogs({
       abi: this.abi,
       logs: [log],

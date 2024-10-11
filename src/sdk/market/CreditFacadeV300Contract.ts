@@ -1,4 +1,9 @@
-import type { Address, DecodeFunctionDataReturnType } from "viem";
+import type {
+  Address,
+  ContractEventName,
+  DecodeFunctionDataReturnType,
+  Log,
+} from "viem";
 import { encodeFunctionData } from "viem";
 
 import { creditFacadeV3Abi, iCreditFacadeV3MulticallAbi } from "../abi";
@@ -42,6 +47,36 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
       forbiddenTokenMask: creditFacade.forbiddenTokenMask,
       isPaused: creditFacade.isPaused,
     };
+  }
+
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
+      case "AddCollateral":
+      case "CloseCreditAccount":
+      case "DecreaseDebt":
+      case "Execute":
+      case "FinishMultiCall":
+      case "IncreaseDebt":
+      case "LiquidateCreditAccount":
+      case "NewController":
+      case "OpenCreditAccount":
+      case "Paused":
+      case "StartMultiCall":
+      case "Unpaused":
+      case "WithdrawCollateral":
+        this.dirty = true;
+        break;
+    }
   }
 
   public encodeOnDemandPriceUpdates(

@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
 
 import { gaugeV3Abi } from "../abi";
@@ -60,5 +60,31 @@ export class GaugeContract extends BaseContract<abi> {
       epochFrozen,
       quotaParams,
     };
+  }
+
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
+      case "AddQuotaToken":
+      case "NewController":
+      case "Paused":
+      case "SetFrozenEpoch":
+      case "SetQuotaTokenParams":
+      case "Unpaused":
+      case "Unvote":
+      case "UpdateEpoch":
+      case "Vote":
+        this.dirty = true;
+        break;
+    }
   }
 }

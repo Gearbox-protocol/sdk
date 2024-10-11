@@ -3,6 +3,7 @@ import type {
   AbiFunction,
   Address,
   Client,
+  ContractEventName,
   ContractFunctionName,
   DecodeFunctionDataReturnType,
   EncodeFunctionDataParameters,
@@ -120,10 +121,20 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
   }
 
   /**
-   * Updates contract's internal state from event
+   * Updates (or not) contract's internal state from event
    * @param _log
    */
-  public parseLog(_log: Log): void {}
+  public processLog(
+    _log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {}
 
   /**
    * Converts contract calldata to some human-friendly string

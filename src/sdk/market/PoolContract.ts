@@ -1,5 +1,9 @@
-import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
-import { parseEventLogs } from "viem";
+import type {
+  Address,
+  ContractEventName,
+  DecodeFunctionDataReturnType,
+  Log,
+} from "viem";
 
 import { poolV3Abi } from "../abi";
 import type { CreditManagerDebtParamsStruct, PoolData } from "../base";
@@ -12,9 +16,6 @@ const abi = poolV3Abi;
 
 export class PoolContract extends BaseContract<typeof abi> {
   state: PoolState;
-
-  // Contracts
-  public hasOperation = false;
 
   constructor(sdk: GearboxSDK, data: PoolData) {
     super(sdk, {
@@ -46,13 +47,19 @@ export class PoolContract extends BaseContract<typeof abi> {
     };
   }
 
-  public override parseLog(log: Log): void {
-    const parsedLog = parseEventLogs({
-      abi: this.abi,
-      logs: [log],
-    })[0];
-
-    switch (parsedLog.eventName) {
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      typeof abi,
+      ContractEventName<typeof abi>
+    >,
+  ): void {
+    switch (log.eventName) {
+      // TODO: do we really mark all events?
       case "SetCreditManagerDebtLimit":
       case "Repay":
       case "Borrow":
@@ -60,7 +67,18 @@ export class PoolContract extends BaseContract<typeof abi> {
       case "Withdraw":
       case "SetTotalDebtLimit":
       case "SetWithdrawFee":
-        this.hasOperation = true;
+      case "AddCreditManager":
+      case "Approval":
+      case "EIP712DomainChanged":
+      case "IncurUncoveredLoss":
+      case "NewController":
+      case "Paused":
+      case "Refer":
+      case "SetInterestRateModel":
+      case "SetPoolQuotaKeeper":
+      case "Transfer":
+      case "Unpaused":
+        this.dirty = true;
         break;
     }
   }

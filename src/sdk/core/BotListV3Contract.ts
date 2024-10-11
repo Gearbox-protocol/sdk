@@ -45,10 +45,10 @@ export class BotListContract extends BaseContract<abi> {
       toBlock,
     });
 
-    logs.forEach(e => this.parseLog(e));
+    logs.forEach(e => this.processLog(e));
   }
 
-  public override parseLog(log: Log): void {
+  public override processLog(log: Log): void {
     const parsedLog = parseEventLogs({
       abi: this.abi,
       logs: [log],
