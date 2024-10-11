@@ -32,7 +32,12 @@ interface PriceFeedsForTokensOptions {
   reserve?: boolean;
 }
 
+/**
+ * Data to be passed to credit facade's multicall
+ * Compatible with both v300 and v310 facades
+ */
 export interface OnDemandPriceUpdate {
+  priceFeed: Address;
   token: Address;
   reserve: boolean;
   data: Hex;
@@ -168,6 +173,7 @@ export class PriceOracleContract extends BaseContract<abi> {
       });
       const data = args[0]!;
       result.push({
+        priceFeed,
         token,
         reserve,
         data,

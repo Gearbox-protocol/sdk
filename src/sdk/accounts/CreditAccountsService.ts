@@ -316,14 +316,7 @@ export class CreditAccountsService extends SDKConstruct {
   ): Promise<MultiCall[]> {
     const cm = this.sdk.marketRegister.findCreditManager(acc.creditManager);
     const updates = await this.getOnDemandPriceUpdates(acc);
-    return updates.map(({ token, reserve, data }) => ({
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
-        functionName: "onDemandPriceUpdate",
-        args: [token, reserve, data],
-      }),
-    }));
+    return cm.creditFacade.encodeOnDemandPriceUpdates(updates);
   }
 
   async #prepareCloseCreditAccount(

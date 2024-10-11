@@ -1,4 +1,5 @@
 import type { Address, DecodeFunctionDataReturnType } from "viem";
+import { encodeFunctionData } from "viem";
 
 import { creditFacadeV3Abi, iCreditFacadeV3MulticallAbi } from "../abi";
 import { BaseContract, type CreditManagerData } from "../base";
@@ -7,6 +8,7 @@ import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditFacadeState } from "../state";
 import type { MultiCall, RawTx } from "../types";
 import { fmtBinaryMask } from "../utils";
+import type { OnDemandPriceUpdate } from "./PriceOracleContract";
 
 type abi = typeof creditFacadeV3Abi;
 
@@ -40,6 +42,19 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
       forbiddenTokenMask: creditFacade.forbiddenTokenMask,
       isPaused: creditFacade.isPaused,
     };
+  }
+
+  public encodeOnDemandPriceUpdates(
+    updates: OnDemandPriceUpdate[],
+  ): MultiCall[] {
+    return updates.map(u => ({
+      target: this.address,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "onDemandPriceUpdate",
+        args: [u.token, u.reserve, u.data],
+      }),
+    }));
   }
 
   public liquidateCreditAccount(
