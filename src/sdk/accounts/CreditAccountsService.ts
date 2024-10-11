@@ -172,15 +172,11 @@ export class CreditAccountsService extends SDKConstruct {
     if (!recipient) {
       throw new Error("liquidate account: assets recipient not specied");
     }
-    return cm.creditFacade.createRawTx({
-      functionName: "liquidateCreditAccount",
-      args: [
-        account.creditAccount,
-        recipient,
-        [...priceUpdates, ...preview.calls],
-      ],
-      description: `fully liquidate ${account.creditAccount}`,
-    });
+    return cm.creditFacade.liquidateCreditAccount(
+      account.creditAccount,
+      recipient,
+      [...priceUpdates, ...preview.calls],
+    );
   }
 
   /**
@@ -211,11 +207,9 @@ export class CreditAccountsService extends SDKConstruct {
       recipient,
       slippage,
     );
-    return cm.creditFacade.createRawTx({
-      functionName: operation === "close" ? "closeCreditAccount" : "multicall",
-      args: [ca.creditAccount, calls],
-      description: `${operation} account ${ca.creditAccount}`,
-    });
+    return operation === "close"
+      ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
+      : cm.creditFacade.multicall(ca.creditAccount, calls);
   }
 
   /**

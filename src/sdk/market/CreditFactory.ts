@@ -5,7 +5,8 @@ import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditFactoryState } from "../state";
 import type { TVL } from "../types";
 import { CreditConfiguratorContract } from "./CreditConfiguratorContract";
-import { CreditFacadeContract } from "./CreditFacadeContract";
+import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract";
+import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract";
 import { CreditManagerContract } from "./CreditManagerContract";
 
 export class CreditFactory {
@@ -18,11 +19,10 @@ export class CreditFactory {
   public readonly collateralTokens: Record<Address, number>;
 
   public readonly creditManager: CreditManagerContract;
-  public readonly creditFacade: CreditFacadeContract;
+  public readonly creditFacade:
+    | CreditFacadeV300Contract
+    | CreditFacadeV310Contract;
   public readonly creditConfigurator: CreditConfiguratorContract;
-
-  // TODO:
-  // adapterFactory: AdapterFactory;
 
   constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
     const { creditManagers, pool, emergencyLiquidators } = marketData;
@@ -39,7 +39,11 @@ export class CreditFactory {
 
     this.creditManager = new CreditManagerContract(sdk, creditManager, pool);
 
-    this.creditFacade = new CreditFacadeContract(sdk, creditManager);
+    if (creditManager.creditFacade.baseParams.version < 310) {
+      this.creditFacade = new CreditFacadeV300Contract(sdk, creditManager);
+    } else {
+      this.creditFacade = new CreditFacadeV310Contract(sdk, creditManager);
+    }
 
     this.creditConfigurator = new CreditConfiguratorContract(
       sdk,

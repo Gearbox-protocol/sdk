@@ -1,15 +1,16 @@
-import type { DecodeFunctionDataReturnType } from "viem";
+import type { Address, DecodeFunctionDataReturnType } from "viem";
 
 import { creditFacadeV3Abi, iCreditFacadeV3MulticallAbi } from "../abi";
 import { BaseContract, type CreditManagerData } from "../base";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditFacadeState } from "../state";
+import type { MultiCall, RawTx } from "../types";
 import { fmtBinaryMask } from "../utils";
 
 type abi = typeof creditFacadeV3Abi;
 
-export class CreditFacadeContract extends BaseContract<abi> {
+export class CreditFacadeV300Contract extends BaseContract<abi> {
   public readonly state: CreditFacadeState;
 
   constructor(
@@ -41,21 +42,29 @@ export class CreditFacadeContract extends BaseContract<abi> {
     };
   }
 
-  public async getLastLiquidations(args?: {
-    fromBlock?: bigint;
-    toBlock?: bigint;
-  }): Promise<string[]> {
-    const lastLiquidation = 5n * 60n * 24n;
-    const liquidationEvents =
-      await this.contract.getEvents.LiquidateCreditAccount(
-        {},
-        {
-          fromBlock: args?.fromBlock || this.sdk.currentBlock - lastLiquidation,
-          toBlock: args?.toBlock || this.sdk.currentBlock,
-        },
-      );
+  public liquidateCreditAccount(
+    ca: Address,
+    to: Address,
+    calls: MultiCall[],
+  ): RawTx {
+    return this.createRawTx({
+      functionName: "liquidateCreditAccount",
+      args: [ca, to, calls],
+    });
+  }
 
-    return liquidationEvents.map(event => event.transactionHash);
+  public closeCreditAccount(ca: Address, calls: MultiCall[]): RawTx {
+    return this.createRawTx({
+      functionName: "closeCreditAccount",
+      args: [ca, calls],
+    });
+  }
+
+  public multicall(ca: Address, calls: MultiCall[]): RawTx {
+    return this.createRawTx({
+      functionName: "multicall",
+      args: [ca, calls],
+    });
   }
 
   public parseFunctionParams(

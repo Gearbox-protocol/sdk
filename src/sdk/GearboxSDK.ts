@@ -195,10 +195,9 @@ export class GearboxSDK {
   }
 
   public parseLogs(logs: Array<Log>): void {
-    logs.forEach(log => {
-      const contract = this.contracts.get(log.address);
-      contract?.parseLog(log);
-    });
+    for (const log of logs) {
+      this.contracts.get(log.address)?.parseLog(log);
+    }
   }
 
   /**
