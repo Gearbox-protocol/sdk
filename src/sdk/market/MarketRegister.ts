@@ -1,11 +1,10 @@
 import type { Address } from "viem";
 
-import { iAdapterCompressorAbi, iMarketCompressorAbi } from "../abi";
-import type { AdapterData, TokenMetaData } from "../base";
+import { iMarketCompressorAbi } from "../abi";
+import type { TokenMetaData } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
-  AP_ADAPTER_COMPRESSOR,
   AP_MARKET_COMPRESSOR,
   AP_MARKET_CONFIGURATOR,
 } from "../constants";
@@ -13,7 +12,6 @@ import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketState } from "../state";
 import type { ILogger, TVL } from "../types";
 import { AddressMap, childLogger } from "../utils";
-import { simulateMulticall } from "../utils/viem";
 import type { CreditFactory } from "./CreditFactory";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
 import { MarketFactory } from "./MarketFactory";
@@ -92,29 +90,6 @@ export class MarketRegister extends SDKConstruct {
     }
 
     this.#logger?.info(`loaded ${markets.length} markets`);
-  }
-
-  /**
-   * Loads adapter state for all attached credit managers
-   */
-  public async loadAdapters(): Promise<void> {
-    const adaperCompressorAddr = this.sdk.addressProvider.getLatestVersion(
-      AP_ADAPTER_COMPRESSOR,
-    );
-    const resp = await simulateMulticall(this.sdk.provider.publicClient, {
-      contracts: this.creditManagers.map(cm => ({
-        abi: iAdapterCompressorAbi,
-        address: adaperCompressorAddr,
-        functionName: "getContractAdapters",
-        args: [cm.creditManager.address],
-      })),
-      allowFailure: false,
-      gas: 550_000_000n,
-    });
-    for (let i = 0; i < this.creditManagers.length; i++) {
-      const cm = this.creditManagers[i];
-      cm.creditManager.attachAdapters(resp[i] as any as AdapterData[]);
-    }
   }
 
   public get state(): MarketState[] {

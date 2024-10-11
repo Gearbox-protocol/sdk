@@ -662,88 +662,6 @@ export const iCreditAccountCompressorAbi = [
   },
 ] as const;
 
-export const iAdapterCompressorAbi = [
-  {
-    type: "function",
-    name: "contractType",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getContractAdapters",
-    inputs: [
-      {
-        name: "creditManager",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "result",
-        type: "tuple[]",
-        internalType: "struct ContractAdapter[]",
-        components: [
-          {
-            name: "baseParams",
-            type: "tuple",
-            internalType: "struct BaseParams",
-            components: [
-              {
-                name: "addr",
-                type: "address",
-                internalType: "address",
-              },
-              {
-                name: "version",
-                type: "uint256",
-                internalType: "uint256",
-              },
-              {
-                name: "contractType",
-                type: "bytes32",
-                internalType: "bytes32",
-              },
-              {
-                name: "serializedParams",
-                type: "bytes",
-                internalType: "bytes",
-              },
-            ],
-          },
-          {
-            name: "targetContract",
-            type: "address",
-            internalType: "address",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "version",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-] as const;
-
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IMarketCompressor
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1585,6 +1503,45 @@ export const iMarketCompressorAbi = [
                         internalType: "bytes",
                       },
                     ],
+                  },
+                ],
+              },
+              {
+                name: "adapters",
+                type: "tuple[]",
+                internalType: "struct ContractAdapter[]",
+                components: [
+                  {
+                    name: "baseParams",
+                    type: "tuple",
+                    internalType: "struct BaseParams",
+                    components: [
+                      {
+                        name: "addr",
+                        type: "address",
+                        internalType: "address",
+                      },
+                      {
+                        name: "version",
+                        type: "uint256",
+                        internalType: "uint256",
+                      },
+                      {
+                        name: "contractType",
+                        type: "bytes32",
+                        internalType: "bytes32",
+                      },
+                      {
+                        name: "serializedParams",
+                        type: "bytes",
+                        internalType: "bytes",
+                      },
+                    ],
+                  },
+                  {
+                    name: "targetContract",
+                    type: "address",
+                    internalType: "address",
                   },
                 ],
               },
@@ -2509,6 +2466,45 @@ export const iMarketCompressorAbi = [
                         internalType: "bytes",
                       },
                     ],
+                  },
+                ],
+              },
+              {
+                name: "adapters",
+                type: "tuple[]",
+                internalType: "struct ContractAdapter[]",
+                components: [
+                  {
+                    name: "baseParams",
+                    type: "tuple",
+                    internalType: "struct BaseParams",
+                    components: [
+                      {
+                        name: "addr",
+                        type: "address",
+                        internalType: "address",
+                      },
+                      {
+                        name: "version",
+                        type: "uint256",
+                        internalType: "uint256",
+                      },
+                      {
+                        name: "contractType",
+                        type: "bytes32",
+                        internalType: "bytes32",
+                      },
+                      {
+                        name: "serializedParams",
+                        type: "bytes",
+                        internalType: "bytes",
+                      },
+                    ],
+                  },
+                  {
+                    name: "targetContract",
+                    type: "address",
+                    internalType: "address",
                   },
                 ],
               },

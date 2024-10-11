@@ -1,7 +1,7 @@
 import type { Address, ContractEventName, Log } from "viem";
 
 import { creditManagerV3Abi } from "../abi";
-import type { AdapterData, CreditManagerData, PoolData } from "../base";
+import type { CreditManagerData, PoolData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditManagerState } from "../state";
@@ -15,11 +15,11 @@ export class CreditManagerContract extends BaseContract<abi> {
   /**
    * Mapping targetContract => adapter
    */
-  #adapters?: Record<Address, IAdapterContract>;
+  public readonly adapters: Record<Address, IAdapterContract> = {};
 
   constructor(
     sdk: GearboxSDK,
-    { creditManager, creditFacade }: CreditManagerData,
+    { creditManager, creditFacade, adapters }: CreditManagerData,
     pool: PoolData,
   ) {
     super(sdk, {
@@ -28,6 +28,17 @@ export class CreditManagerContract extends BaseContract<abi> {
       abi: creditManagerV3Abi,
     });
     const { collateralTokens, liquidationThresholds } = creditManager;
+
+    for (const adapterData of adapters) {
+      try {
+        const adapter = createAdapter(this.sdk, adapterData);
+        adapter.name = `${adapter.name}(${this.name})`;
+        this.adapters[adapter.targetContract] = adapter;
+      } catch (e) {
+        throw new Error(`cannot attach adapter: ${e}`, { cause: e });
+      }
+    }
+
     this.state = {
       ...this.contractData,
       accountFactory: creditManager.accountFactory,
@@ -47,7 +58,9 @@ export class CreditManagerContract extends BaseContract<abi> {
       feeLiquidationExpired: creditManager.feeLiquidationExpired,
       liquidationDiscountExpired: creditManager.liquidationDiscountExpired,
       quotedTokensMask: 0n,
-      contractsToAdapters: {},
+      contractsToAdapters: Object.fromEntries(
+        adapters.map(a => [a.targetContract, a.baseParams.addr]),
+      ),
       creditAccounts: [], // [...result[5].result!],
       name: creditManager.name,
     };
@@ -69,30 +82,6 @@ export class CreditManagerContract extends BaseContract<abi> {
         this.dirty = true;
         break;
     }
-  }
-
-  public attachAdapters(adapters: AdapterData[]): void {
-    this.#adapters = {};
-    for (const adapterData of adapters) {
-      try {
-        const adapter = createAdapter(this.sdk, adapterData);
-        adapter.name = `${adapter.name}(${this.name})`;
-        this.adapters[adapter.targetContract] = adapter;
-      } catch (e) {
-        this.logger?.warn(`cannot attach adapter: ${e}`);
-      }
-    }
-    this.state.contractsToAdapters = Object.fromEntries(
-      adapters.map(a => [a.targetContract, a.baseParams.addr]),
-    );
-    this.logger?.debug(`attached ${adapters.length} adapters`);
-  }
-
-  public get adapters(): Record<Address, IAdapterContract> {
-    if (!this.#adapters) {
-      throw new Error("adapters not loaded");
-    }
-    return this.#adapters;
   }
 
   public get collateralTokens(): Address[] {
