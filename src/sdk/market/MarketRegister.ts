@@ -29,15 +29,19 @@ export class MarketRegister extends SDKConstruct {
    */
   public readonly tokensMeta: AddressMap<TokenMetaData> = new AddressMap();
   // TODO: MarketRegister can be this contract, but v3.0 does not have it
-  public readonly marketConfigurator: MarketConfiguratorContract;
+  public readonly marketConfigurator?: MarketConfiguratorContract;
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#logger = childLogger("MarketRegister", sdk.logger);
-    const mkAddr = this.sdk.addressProvider.getLatestVersion(
-      AP_MARKET_CONFIGURATOR,
-    );
-    this.marketConfigurator = new MarketConfiguratorContract(sdk, mkAddr);
+    try {
+      const mkAddr = this.sdk.addressProvider.getLatestVersion(
+        AP_MARKET_CONFIGURATOR,
+      );
+      this.marketConfigurator = new MarketConfiguratorContract(sdk, mkAddr);
+    } catch (e) {
+      this.#logger?.warn(e);
+    }
   }
 
   public async loadMarkets(curators: Address[]): Promise<void> {
@@ -46,7 +50,7 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public async syncState(): Promise<void> {
-    if (this.marketConfigurator.dirty) {
+    if (this.marketConfigurator?.dirty) {
       await this.#loadMarkets(this.curators, []);
       return;
     }
@@ -130,7 +134,7 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public get markets(): MarketFactory[] {
-    return Object.values(this.#markets);
+    return Array.from(this.#markets.values());
   }
 
   public async tvl(): Promise<TVL> {

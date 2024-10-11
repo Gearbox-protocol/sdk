@@ -15,7 +15,9 @@ async function example(): Promise<void> {
     addressProvider: "0x81ED8e0325B17A266B2aF225570679cfd635d0bb",
     logger,
   });
+  logger.info("attached sdk");
   await writeFile("example-state.json", json_stringify(sdk.state), "utf-8");
+  logger.info("done");
 }
 
 example().catch(e => {
