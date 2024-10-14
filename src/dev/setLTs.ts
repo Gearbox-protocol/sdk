@@ -41,21 +41,25 @@ export async function setLTs(
     value: parseEther("100"),
   });
   for (const [t, lt] of Object.entries(newLTs)) {
-    await anvil.writeContract({
-      chain: anvil.chain,
-      address: cm.creditConfigurator,
-      account: configuratorAddr,
-      abi: iCreditConfiguratorV3Abi,
-      functionName: "setLiquidationThreshold",
-      args: [t as Address, lt],
-    });
-    const newLT = await anvil.readContract({
-      address: cm.address,
-      abi: iCreditManagerV3Abi,
-      functionName: "liquidationThresholds",
-      args: [t as Address],
-    });
-    logger?.debug(`set ${t} LT to ${newLT}`);
+    try {
+      await anvil.writeContract({
+        chain: anvil.chain,
+        address: cm.creditConfigurator,
+        account: configuratorAddr,
+        abi: iCreditConfiguratorV3Abi,
+        functionName: "setLiquidationThreshold",
+        args: [t as Address, lt],
+      });
+      const newLT = await anvil.readContract({
+        address: cm.address,
+        abi: iCreditManagerV3Abi,
+        functionName: "liquidationThresholds",
+        args: [t as Address],
+      });
+      logger?.debug(`set ${t} LT to ${newLT}`);
+    } catch {
+      // in case when we try to set token that's not present
+    }
   }
   await anvil.stopImpersonatingAccount({
     address: configuratorAddr,
