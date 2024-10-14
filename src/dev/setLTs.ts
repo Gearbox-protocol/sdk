@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { parseEther } from "viem";
 
-import type { CreditFactory, GearboxSDK, ILogger } from "../sdk";
+import type { CreditManagerState, GearboxSDK, ILogger } from "../sdk";
 import {
   iaclAbi,
   iaclTraitAbi,
@@ -18,12 +18,12 @@ import { createAnvilClient } from "./createAnvilClient";
  */
 export async function setLTs(
   sdk: GearboxSDK,
-  cm: CreditFactory,
+  cm: CreditManagerState,
   newLTs: Record<Address, number>,
   logger?: ILogger,
 ): Promise<void> {
   const aclAddr = await sdk.provider.publicClient.readContract({
-    address: cm.creditConfigurator.address,
+    address: cm.creditConfigurator,
     abi: iaclTraitAbi,
     functionName: "acl",
   });
@@ -47,14 +47,14 @@ export async function setLTs(
   for (const [t, lt] of Object.entries(newLTs)) {
     await anvil.writeContract({
       chain: anvil.chain,
-      address: cm.creditConfigurator.address,
+      address: cm.creditConfigurator,
       account: configuratorAddr,
       abi: iCreditConfiguratorV3Abi,
       functionName: "setLiquidationThreshold",
       args: [t as Address, lt],
     });
     const newLT = await anvil.readContract({
-      address: cm.creditManager.address,
+      address: cm.address,
       abi: iCreditManagerV3Abi,
       functionName: "liquidationThresholds",
       args: [t as Address],

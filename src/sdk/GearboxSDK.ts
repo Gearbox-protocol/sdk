@@ -65,6 +65,11 @@ interface SDKOptions {
   logger?: ILogger;
 }
 
+export interface SyncStateOptions {
+  blockNumber: bigint;
+  timestamp: bigint;
+}
+
 export class GearboxSDK {
   // Represents chain object
   readonly #provider: Provider;
@@ -250,20 +255,33 @@ export class GearboxSDK {
     this.logger?.info(`Total TVL: ${formatBN(tvlUSD, 8)}`);
   }
 
-  public async syncState(toBlock: bigint, timestamp: bigint): Promise<void> {
-    if (toBlock <= this.currentBlock) {
+  /**
+   * Reloads markets states based on events from last processed block to new block (defaults to latest block)
+   * @param opts
+   * @returns
+   */
+  public async syncState(opts?: SyncStateOptions): Promise<void> {
+    let { blockNumber, timestamp } = opts ?? {};
+    if (!blockNumber) {
+      const block = await this.provider.publicClient.getBlock({
+        blockTag: "latest",
+      });
+      blockNumber = block.number;
+      timestamp = block.timestamp;
+    }
+    if (blockNumber <= this.currentBlock) {
       return;
     }
     if (this.#syncing) {
-      this.logger?.warn(`cannot sync to ${toBlock}, already syncing`);
+      this.logger?.warn(`cannot sync to ${blockNumber}, already syncing`);
       return;
     }
     this.#syncing = true;
-    this.logger?.debug(`syncing state to block ${toBlock}...`);
+    this.logger?.debug(`syncing state to block ${blockNumber}...`);
 
     const logs = await this.provider.publicClient.getLogs({
-      fromBlock: BigInt(this.currentBlock),
-      toBlock: BigInt(toBlock),
+      fromBlock: this.currentBlock,
+      toBlock: blockNumber,
     });
 
     for (const log of logs) {
@@ -281,10 +299,10 @@ export class GearboxSDK {
     await this.marketRegister.syncState();
     // TODO: do wee need to sync state on botlist and others?
 
-    this.#currentBlock = toBlock;
+    this.#currentBlock = blockNumber;
     this.#timestamp = timestamp;
     this.#syncing = false;
-    this.logger?.debug(`synced state to block ${toBlock}`);
+    this.logger?.debug(`synced state to block ${blockNumber}`);
   }
 
   public get provider(): Provider {
