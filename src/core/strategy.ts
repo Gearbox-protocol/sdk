@@ -18,7 +18,6 @@ export interface StrategyPayload {
   protocolSymbol: string;
 
   collateralTokens: Array<SupportedToken>;
-  liquidationTokens: Array<SupportedToken>;
 
   releaseAt?: ReleaseAt;
 }
@@ -38,14 +37,12 @@ export class Strategy {
   readonly releaseAt: ReleaseAt;
 
   readonly collateralTokens: Array<SupportedToken>;
-  readonly liquidationTokens: Array<SupportedToken>;
 
   constructor(payload: StrategyPayload) {
     this.name = payload.name;
     this.lpTokenSymbol = payload.lpTokenSymbol;
     this.protocolSymbol = payload.protocolSymbol;
     this.collateralTokens = payload.collateralTokens;
-    this.liquidationTokens = payload.liquidationTokens;
 
     this.releaseAt = payload.releaseAt;
   }
