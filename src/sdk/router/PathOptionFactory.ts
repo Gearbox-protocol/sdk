@@ -1,4 +1,6 @@
 import type {
+  AuraLPToken,
+  AuraStakedToken,
   BalancerLPToken,
   ConvexLPToken,
   CurveLPToken,
@@ -7,6 +9,7 @@ import type {
   YearnLPToken,
 } from "@gearbox-protocol/sdk-gov";
 import {
+  auraTokens,
   balancerLpTokens,
   contractParams,
   convexTokens,
@@ -17,11 +20,6 @@ import {
   tokenDataByNetwork,
   yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
-import type {
-  AuraLPToken,
-  AuraStakedToken,
-} from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
-import { auraTokens } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
 import type { Address } from "viem";
 
 import type { Asset, PathOptionSerie } from "./types";
