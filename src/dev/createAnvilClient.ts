@@ -12,7 +12,7 @@ import type {
 } from "viem";
 import { createTestClient, publicActions, toHex, walletActions } from "viem";
 
-interface AnvilNodeInfo {
+export interface AnvilNodeInfo {
   currentBlockNumber: string; // hexutil.Big is a big number in hex format
   currentBlockTimestamp: number;
   currentBlockHash: string;
@@ -31,7 +31,7 @@ interface AnvilNodeInfo {
   };
 }
 
-type AnvilRPCSchema = [
+export type AnvilRPCSchema = [
   ...TestRpcSchema<"anvil">,
   {
     Method: "anvil_nodeInfo";
@@ -47,6 +47,7 @@ type AnvilRPCSchema = [
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AnvilActions = {
+  anvilNodeInfo: () => Promise<AnvilNodeInfo>;
   isAnvil: () => Promise<boolean>;
   evmMineDetailed: (
     /**
@@ -91,6 +92,7 @@ export function createAnvilClient({
     .extend(publicActions)
     .extend(walletActions)
     .extend(client => ({
+      anvilNodeInfo: () => anvilNodeInfo(client),
       isAnvil: () => isAnvil(client),
       evmMineDetailed: (timestamp: bigint | number) =>
         evmMineDetailed(client, timestamp),
@@ -114,6 +116,20 @@ export async function isAnvil(
   } catch {
     return false;
   }
+}
+
+/**
+ * Anvil node info
+ * @param client
+ * @returns
+ */
+export async function anvilNodeInfo(
+  client: Client<any, any, any, AnvilRPCSchema, any>,
+): Promise<AnvilNodeInfo> {
+  return client.request({
+    method: "anvil_nodeInfo",
+    params: [],
+  });
 }
 
 /**
