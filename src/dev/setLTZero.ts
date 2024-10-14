@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { parseEther } from "viem";
 
-import type { CreditManagerState, GearboxSDK, ILogger } from "../sdk";
+import type { CreditManagerState, ILogger } from "../sdk";
 import { PERCENTAGE_FACTOR } from "../sdk";
 import {
   iaclAbi,
@@ -9,26 +9,22 @@ import {
   iCreditConfiguratorV3Abi,
   iCreditManagerV3Abi,
 } from "./abi";
-import { createAnvilClient } from "./createAnvilClient";
+import type { AnvilClient } from "./createAnvilClient";
 
 export async function setLTZero(
-  sdk: GearboxSDK,
+  anvil: AnvilClient,
   cm: CreditManagerState & { address: Address },
   logger?: ILogger,
 ): Promise<void> {
-  const aclAddr = await sdk.provider.publicClient.readContract({
+  const aclAddr = await anvil.readContract({
     address: cm.creditConfigurator,
     abi: iaclTraitAbi,
     functionName: "acl",
   });
-  const configuratorAddr = await sdk.provider.publicClient.readContract({
+  const configuratorAddr = await anvil.readContract({
     address: aclAddr,
     abi: iaclAbi,
     functionName: "owner",
-  });
-  const anvil = createAnvilClient({
-    transport: sdk.provider.transport,
-    chain: sdk.provider.chain,
   });
 
   await anvil.impersonateAccount({
