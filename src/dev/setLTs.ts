@@ -18,7 +18,7 @@ import { createAnvilClient } from "./createAnvilClient";
  */
 export async function setLTs(
   sdk: GearboxSDK,
-  cm: CreditManagerState,
+  cm: CreditManagerState & { address: Address },
   newLTs: Record<Address, number>,
   logger?: ILogger,
 ): Promise<void> {

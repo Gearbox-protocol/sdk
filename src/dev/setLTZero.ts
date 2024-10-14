@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { parseEther } from "viem";
 
 import type { CreditManagerState, GearboxSDK, ILogger } from "../sdk";
@@ -12,7 +13,7 @@ import { createAnvilClient } from "./createAnvilClient";
 
 export async function setLTZero(
   sdk: GearboxSDK,
-  cm: CreditManagerState,
+  cm: CreditManagerState & { address: Address },
   logger?: ILogger,
 ): Promise<void> {
   const aclAddr = await sdk.provider.publicClient.readContract({
