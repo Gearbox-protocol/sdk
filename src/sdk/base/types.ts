@@ -31,21 +31,21 @@ export type MarketData = Unarray<
 >;
 
 export type CreditManagerData = Unarray<MarketData["creditManagers"]>;
+export type CreditManagerState = CreditManagerData["creditManager"];
+export type CreditFacadeState = CreditManagerData["creditFacade"];
+export type CreditConfiguratorState = CreditManagerData["creditConfigurator"];
 export type AdapterData = Unarray<CreditManagerData["adapters"]>;
 export type TokenMetaData = Unarray<MarketData["tokens"]>;
 export type PoolData = MarketData["pool"];
 export type PoolQuotaKeeperData = MarketData["poolQuotaKeeper"];
+export type QuotaState = Unarray<PoolQuotaKeeperData["quotas"]>;
 export type RateKeeperData = MarketData["rateKeeper"];
 export type PriceOracleData = MarketData["priceOracleData"];
 export type PriceFeedMapEntry = Unarray<PriceOracleData["priceFeedMapping"]>;
 export type PriceFeedTreeNode = Unarray<PriceOracleData["priceFeedStructure"]>;
-
-export interface CreditManagerDebtParamsStruct {
-  creditManager: Address;
-  borrowed: bigint;
-  limit: bigint;
-  availableToBorrow: bigint;
-}
+export type CreditManagerDebtParams = Unarray<
+  PoolData["creditManagerDebtParams"]
+>;
 
 export enum VotingContractStatus {
   NOT_ALLOWED = 0,

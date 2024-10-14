@@ -15,7 +15,7 @@ import { BaseContract } from "../base";
 import type { NetworkType } from "../chain";
 import { AP_PRICE_FEED_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { PriceOracleState } from "../state";
+import type { PriceOracleV3StateHuman } from "../types";
 import { AddressMap } from "../utils";
 import { simulateMulticall } from "../utils/viem";
 import type {
@@ -332,19 +332,19 @@ export class PriceOracleContract extends BaseContract<abi> {
     return [undefined, false];
   }
 
-  public get state(): PriceOracleState {
+  public override stateHuman(raw = true): PriceOracleV3StateHuman {
     return {
-      priceOracleV3: this.contractData,
+      ...super.stateHuman(raw),
       mainPriceFeeds: Object.fromEntries(
         Object.entries(this.mainPriceFeeds).map(([token, v]) => [
-          token,
-          v.state,
+          this.labelAddress(token as Address),
+          v.stateHuman(raw),
         ]),
       ),
       reservePriceFeeds: Object.fromEntries(
         Object.entries(this.reservePriceFeeds).map(([token, v]) => [
-          token,
-          v.state,
+          this.labelAddress(token as Address),
+          v.stateHuman(raw),
         ]),
       ),
     };

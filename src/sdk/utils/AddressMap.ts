@@ -92,12 +92,16 @@ export class AddressMap<T> {
     return v;
   }
 
-  public entries(): IterableIterator<[Address, T]> {
-    return this.#map.entries();
+  public entries(): Array<[Address, T]> {
+    return Array.from(this.#map.entries());
   }
 
-  public values(): IterableIterator<T> {
-    return this.#map.values();
+  public values(): T[] {
+    return Array.from(this.#map.values());
+  }
+
+  public keys(): Address[] {
+    return Array.from(this.#map.keys());
   }
 
   public asRecord(): Record<Address, T> {

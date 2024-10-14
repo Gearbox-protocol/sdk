@@ -289,7 +289,7 @@ export class CreditAccountsService extends SDKConstruct {
       const market = this.sdk.marketRegister.findByCreditManager(
         acc.creditManager,
       );
-      const pool = market.state.pool.pool.address;
+      const pool = market.poolFactory.pool.address;
       oracleByPool.set(pool, market.priceOracle);
       for (const t of acc.tokens) {
         if (t.balance > 10n) {

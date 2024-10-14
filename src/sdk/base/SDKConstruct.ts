@@ -1,3 +1,5 @@
+import type { Address } from "viem";
+
 import type { Provider } from "../chain";
 import type { GearboxSDK } from "../GearboxSDK";
 
@@ -25,5 +27,9 @@ export class SDKConstruct {
 
   protected set dirty(value: boolean) {
     this.#dirty = value;
+  }
+
+  protected labelAddress(address: Address): string {
+    return this.provider.addressLabels.get(address);
   }
 }

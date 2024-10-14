@@ -1,10 +1,10 @@
-import type { Abi } from "viem";
+import type { Abi, UnionOmit } from "viem";
 
 import { ilpPriceFeedAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { PriceFeedState } from "../../state";
+import type { PriceFeedStateHuman } from "../../types";
 import { PriceFeedRef } from "./PriceFeedRef";
 import type { IPriceFeedContract, PriceFeedContractType } from "./types";
 
@@ -26,6 +26,7 @@ export abstract class AbstractPriceFeedContract<
   public readonly updatable: boolean;
   public readonly decimals: number;
   public readonly underlyingPriceFeeds: PriceFeedRef[];
+  public readonly skipCheck: boolean;
   public hasLowerBoundCap = false;
 
   constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
@@ -38,6 +39,7 @@ export abstract class AbstractPriceFeedContract<
     });
     this.decimals = args.decimals;
     this.updatable = args.updatable;
+    this.skipCheck = args.skipCheck;
     this.underlyingPriceFeeds = args.underlyingFeeds.map(
       (address, i) =>
         new PriceFeedRef(this.sdk, address, args.underlyingStalenessPeriods[i]),
@@ -48,7 +50,16 @@ export abstract class AbstractPriceFeedContract<
     return this.contractType as PriceFeedContractType;
   }
 
-  public abstract get state(): Omit<PriceFeedState, "stalenessPeriod">;
+  public override stateHuman(
+    raw = true,
+  ): UnionOmit<PriceFeedStateHuman, "stalenessPeriod"> {
+    return {
+      ...super.stateHuman(raw),
+      contractType: this.priceFeedType,
+      skipCheck: this.skipCheck,
+      pricefeeds: this.underlyingPriceFeeds.map(f => f.stateHuman(raw)),
+    };
+  }
 
   async currentLowerBound(): Promise<bigint> {
     return await this.sdk.provider.publicClient.readContract({

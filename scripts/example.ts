@@ -16,7 +16,11 @@ async function example(): Promise<void> {
     logger,
   });
   logger.info("attached sdk");
-  await writeFile("example-state.json", json_stringify(sdk.state), "utf-8");
+  await writeFile(
+    "example-state.json",
+    json_stringify(sdk.stateHuman()),
+    "utf-8",
+  );
   logger.info("done");
 }
 

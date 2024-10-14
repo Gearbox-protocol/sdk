@@ -1,7 +1,6 @@
 import { bptWeightedPriceFeedAbi, iBalancerWeightedPoolAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { AssetPriceFeedState } from "../../state";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 
 type abi = typeof bptWeightedPriceFeedAbi;
@@ -13,16 +12,6 @@ export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContra
       name: "BalancerWeighedPriceFeed",
       abi: bptWeightedPriceFeedAbi,
     });
-  }
-
-  public get state(): AssetPriceFeedState {
-    return {
-      ...this.contractData,
-      contractType: this.priceFeedType,
-      stalenessPeriod: 0,
-      skipCheck: true,
-      pricefeeds: this.underlyingPriceFeeds.map(pf => pf.state),
-    };
   }
 
   public override async getValue(): Promise<bigint> {

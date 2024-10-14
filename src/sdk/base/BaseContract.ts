@@ -16,8 +16,7 @@ import { decodeFunctionData, getContract, isHex } from "viem";
 import { errorAbis, iVersionAbi } from "../abi";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { BaseContractState } from "../state";
-import type { ILogger, RawTx } from "../types";
+import type { BaseContractStateHuman, ILogger, RawTx } from "../types";
 import {
   bytes32ToString,
   childLogger,
@@ -112,9 +111,9 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     }
   }
 
-  public get contractData(): BaseContractState {
+  public stateHuman(raw = true): BaseContractStateHuman {
     return {
-      address: this.address,
+      address: this.sdk.provider.addressLabels.get(this.address),
       version: this.version,
       contractType: this.contractType,
     };

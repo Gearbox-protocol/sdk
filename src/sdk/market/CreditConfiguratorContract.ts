@@ -9,7 +9,7 @@ import { creditConfiguratorV3Abi } from "../abi";
 import type { CreditManagerData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { CreditConfiguratorState } from "../state";
+import type { CreditConfiguratorStateHuman } from "../types";
 import { formatDuration, percentFmt } from "../utils";
 
 type abi = typeof creditConfiguratorV3Abi;
@@ -72,10 +72,11 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
     }
   }
 
-  public get state(): CreditConfiguratorState {
+  public override stateHuman(raw?: boolean): CreditConfiguratorStateHuman {
     return {
-      ...this.contractData,
-      emergencyLiquidators: this.emergencyLiquidators,
+      ...super.stateHuman(raw),
+      // TODO: this was moved to market data
+      emergencyLiquidators: [],
     };
   }
 
@@ -86,7 +87,7 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
       case "addCollateralToken":
       case "setLiquidationThreshold": {
         const [token, lt] = params.args;
-        return [this.addressLabels.get(token), percentFmt(lt)];
+        return [this.labelAddress(token), percentFmt(lt)];
       }
       case "setExpirationDate": {
         const [expirationDate] = params.args;
@@ -116,13 +117,13 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
       // }
       case "setCreditFacade": {
         const [newCreditFacade, migrateParams] = params.args;
-        return [this.addressLabels.get(newCreditFacade), `${migrateParams}`];
+        return [this.labelAddress(newCreditFacade), `${migrateParams}`];
       }
       case "rampLiquidationThreshold": {
         const [token, liquidationThresholdFinal, rampStart, rampDuration] =
           params.args;
         return [
-          this.addressLabels.get(token),
+          this.labelAddress(token),
           percentFmt(liquidationThresholdFinal),
           `${rampStart}`,
           formatDuration(rampDuration),

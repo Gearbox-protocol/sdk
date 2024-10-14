@@ -1,7 +1,6 @@
 import { curveUsdPriceFeedAbi, iCurvePoolAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { AssetPriceFeedState } from "../../state";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 
 type abi = typeof curveUsdPriceFeedAbi;
@@ -13,15 +12,6 @@ export class CurveUSDPriceFeedContract extends AbstractLPPriceFeedContract<abi> 
       name: "CurveUSDPriceFeed",
       abi: curveUsdPriceFeedAbi,
     });
-  }
-
-  public get state(): Omit<AssetPriceFeedState, "stalenessPeriod"> {
-    return {
-      ...this.contractData,
-      contractType: this.priceFeedType,
-      skipCheck: true,
-      pricefeeds: [this.underlyingPriceFeeds[0].state],
-    };
   }
 
   public override async getValue(): Promise<bigint> {

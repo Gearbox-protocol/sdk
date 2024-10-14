@@ -1,6 +1,7 @@
+import type { UnionOmit } from "viem";
+
 import type { IBaseContract } from "../../base";
-import type { PriceFeedState } from "../../state";
-import type { RawTx } from "../../types";
+import type { PriceFeedStateHuman, RawTx } from "../../types";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
 
@@ -25,13 +26,15 @@ export interface IPriceFeedContract extends IBaseContract {
   readonly hasLowerBoundCap: boolean;
   readonly priceFeedType: PriceFeedContractType;
   readonly decimals: number;
-  readonly state: Omit<PriceFeedState, "stalenessPeriod">;
   /**
    * True if the contract deployed at this address implements IUpdatablePriceFeed interface
    */
   readonly updatable: boolean;
 
   answer: (overrides?: { blockNumber?: bigint }) => Promise<bigint>;
+  stateHuman: (
+    raw?: boolean,
+  ) => UnionOmit<PriceFeedStateHuman, "stalenessPeriod">;
 
   /**
    * Returns all updatable depenedencies (uderlying price feeds) of this price feed, including price feed itself, if it's updatable

@@ -47,7 +47,7 @@ export abstract class AbstractLPPriceFeedContract<
     const value = await this.getValue();
     const lowerBound = AbstractLPPriceFeedContract.toLowerBound(value);
     this.logger?.debug(
-      `Lowerbound for ${this.addressLabels.get(this.address)}: ${lowerBound}`,
+      `Lowerbound for ${this.labelAddress(this.address)}: ${lowerBound}`,
     );
     return lowerBound;
   }

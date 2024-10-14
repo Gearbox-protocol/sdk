@@ -4,7 +4,7 @@ import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 import { redstonePriceFeedAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { RedstonePriceFeedState } from "../../state";
+import type { RedstonePriceFeedStateHuman } from "../../types";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 
 type abi = typeof redstonePriceFeedAbi;
@@ -52,9 +52,11 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
       : "redstone-primary-prod";
   }
 
-  public get state(): Omit<RedstonePriceFeedState, "stalenessPeriod"> {
+  public override stateHuman(
+    raw = true,
+  ): Omit<RedstonePriceFeedStateHuman, "stalenessPeriod"> {
     return {
-      ...this.contractData,
+      ...super.stateHuman(raw),
       contractType: "PF_REDSTONE_ORACLE",
       dataId: this.dataId,
       signers: this.signers,

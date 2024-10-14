@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import { type MarketData, SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { PoolFactoryState } from "../state";
+import type { PoolFactoryStateHuman } from "../types";
 import { GaugeContract } from "./GaugeContract";
 import { LinearModelContract } from "./LinearModelContract";
 import { PoolContract } from "./PoolContract";
@@ -48,12 +48,12 @@ export class PoolFactory extends SDKConstruct {
     );
   }
 
-  public get state(): PoolFactoryState {
+  public stateHuman(raw = true): PoolFactoryStateHuman {
     return {
-      pool: this.pool.state,
-      poolQuotaKeeper: this.pqk.state,
-      linearModel: this.linearModel.state,
-      gauge: this.gauge.state,
+      pool: this.pool.stateHuman(raw),
+      poolQuotaKeeper: this.pqk.stateHuman(raw),
+      linearModel: this.linearModel.stateHuman(raw),
+      gauge: this.gauge.stateHuman(raw),
     };
   }
 }

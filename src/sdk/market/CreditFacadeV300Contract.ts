@@ -7,45 +7,58 @@ import type {
 import { encodeFunctionData } from "viem";
 
 import { creditFacadeV3Abi, iCreditFacadeV3MulticallAbi } from "../abi";
-import { BaseContract, type CreditManagerData } from "../base";
+import type { CreditFacadeState, CreditManagerData } from "../base";
+import { BaseContract } from "../base";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { CreditFacadeState } from "../state";
-import type { MultiCall, RawTx } from "../types";
-import { fmtBinaryMask } from "../utils";
+import type { CreditFacadeStateHuman, MultiCall, RawTx } from "../types";
+import { fmtBinaryMask, formatBNvalue } from "../utils";
 import type { OnDemandPriceUpdate } from "./PriceOracleContract";
 
 type abi = typeof creditFacadeV3Abi;
 
+// Augmenting contract class with interface of compressor data object
+export interface CreditFacadeV300Contract
+  extends Omit<CreditFacadeState, "baseParams">,
+    BaseContract<abi> {}
+
 export class CreditFacadeV300Contract extends BaseContract<abi> {
-  public readonly state: CreditFacadeState;
+  public readonly underlying: Address;
 
   constructor(
     sdk: GearboxSDK,
     { creditFacade, creditManager }: CreditManagerData,
   ) {
+    const { baseParams, ...rest } = creditFacade;
     super(sdk, {
-      ...creditFacade.baseParams,
+      ...baseParams,
       name: `CreditFacadeV3(${creditManager.name})`,
       // Add multicall strictly for parsing, but use only creditFacadeV3Abi in types, so only this part is visible to typescript elsewhere
       abi: [...creditFacadeV3Abi, ...iCreditFacadeV3MulticallAbi] as any,
     });
+    Object.assign(this, rest);
+    this.underlying = creditManager.underlying;
+  }
 
-    this.state = {
-      ...this.contractData,
-      maxQuotaMultiplier: Number(creditFacade.maxQuotaMultiplier),
-      expirable: creditFacade.expirable,
-      isDegenMode: creditFacade.degenNFT !== ADDRESS_0X0,
-      degenNFT: creditFacade.degenNFT,
-      expirationDate: Number(creditFacade.expirationDate),
-      maxDebtPerBlockMultiplier: Number(creditFacade.maxDebtPerBlockMultiplier),
-      botList: creditFacade.botList,
-      minDebt: creditFacade.minDebt,
-      maxDebt: creditFacade.maxDebt,
-      currentCumulativeLoss: 0n,
-      maxCumulativeLoss: 0n,
-      forbiddenTokenMask: creditFacade.forbiddenTokenMask,
-      isPaused: creditFacade.isPaused,
+  public override stateHuman(raw?: boolean): CreditFacadeStateHuman {
+    const decimals = this.sdk.marketRegister.tokensMeta.mustGet(
+      this.underlying,
+    ).decimals;
+    return {
+      ...super.stateHuman(raw),
+      maxQuotaMultiplier: Number(this.maxQuotaMultiplier),
+      expirable: this.expirable,
+      isDegenMode: this.degenNFT !== ADDRESS_0X0,
+      degenNFT: this.labelAddress(this.degenNFT),
+      expirationDate: this.expirationDate,
+      maxDebtPerBlockMultiplier: this.maxDebtPerBlockMultiplier,
+      botList: this.labelAddress(this.botList),
+      minDebt: formatBNvalue(this.minDebt, decimals),
+      maxDebt: formatBNvalue(this.maxDebt, decimals),
+      currentCumulativeLoss: "0", // TODO
+      maxCumulativeLoss: "0", // TODO
+      forbiddenTokenMask: fmtBinaryMask(this.forbiddenTokenMask),
+      isPaused: this.isPaused,
     };
   }
 
@@ -124,7 +137,7 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
       case "openCreditAccount": {
         const [onBehalfOf, calls, referralCode] = params.args;
         return [
-          this.addressLabels.get(onBehalfOf),
+          this.labelAddress(onBehalfOf),
           this.sdk.parseMultiCall([...calls]).join(","),
           `${referralCode}`,
         ];
@@ -132,23 +145,23 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
       case "closeCreditAccount": {
         const [creditAccount, calls] = params.args;
         return [
-          this.addressLabels.get(creditAccount),
+          this.labelAddress(creditAccount),
           this.sdk.parseMultiCall([...calls]).join(","),
         ];
       }
       case "liquidateCreditAccount": {
         const [creditAccount, to, calls] = params.args;
         return [
-          this.addressLabels.get(creditAccount),
-          this.addressLabels.get(to),
+          this.labelAddress(creditAccount),
+          this.labelAddress(to),
           this.sdk.parseMultiCall([...calls]).join(","),
         ];
       }
       case "setBotPermissions": {
         const [creditAccount, bot, permissions] = params.args;
         return [
-          this.addressLabels.get(creditAccount),
-          this.addressLabels.get(bot),
+          this.labelAddress(creditAccount),
+          this.labelAddress(bot),
           fmtBinaryMask(permissions),
         ];
       }

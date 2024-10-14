@@ -3,7 +3,6 @@ import { erc4626Abi } from "viem";
 import { erc20Abi, erc4626PriceFeedAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { AssetPriceFeedState } from "../../state";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 
 type abi = typeof erc4626PriceFeedAbi;
@@ -15,15 +14,6 @@ export class Erc4626PriceFeedContract extends AbstractLPPriceFeedContract<abi> {
       name: "ERC4626PriceFeed",
       abi: erc4626PriceFeedAbi,
     });
-  }
-
-  public get state(): Omit<AssetPriceFeedState, "stalenessPeriod"> {
-    return {
-      ...this.contractData,
-      contractType: this.priceFeedType,
-      skipCheck: true,
-      pricefeeds: [this.underlyingPriceFeeds[0].state],
-    };
   }
 
   public override async getValue(): Promise<bigint> {

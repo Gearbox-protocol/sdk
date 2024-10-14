@@ -1,49 +1,82 @@
 import type {
-  Address,
   ContractEventName,
   DecodeFunctionDataReturnType,
   Log,
 } from "viem";
 
 import { poolV3Abi } from "../abi";
-import type { CreditManagerDebtParamsStruct, PoolData } from "../base";
+import type { CreditManagerDebtParams, PoolData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { PoolState } from "../state";
-import { formatBN } from "../utils";
+import type { PoolStateHuman } from "../types";
+import { AddressMap, formatBN, formatBNvalue, percentFmt } from "../utils";
 
 const abi = poolV3Abi;
 
+// Augmenting contract class with interface of compressor data object
+export interface PoolContract
+  extends Omit<PoolData, "baseParams" | "creditManagerDebtParams">,
+    BaseContract<typeof abi> {}
+
 export class PoolContract extends BaseContract<typeof abi> {
-  state: PoolState;
+  public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
 
   constructor(sdk: GearboxSDK, data: PoolData) {
+    const { baseParams, creditManagerDebtParams, ...rest } = data;
     super(sdk, {
       ...data.baseParams,
       name: `PoolV3(${data.name})`,
       abi,
     });
-
-    const creditManagerDebtParams: Record<
-      Address,
-      CreditManagerDebtParamsStruct
-    > = data.creditManagerDebtParams.reduce(
-      (acc, params) => {
-        acc[params.creditManager.toLowerCase() as Address] =
-          params as CreditManagerDebtParamsStruct;
-        return acc;
-      },
-      {} as Record<Address, CreditManagerDebtParamsStruct>,
+    Object.assign(this, rest);
+    this.creditManagerDebtParams = new AddressMap(
+      creditManagerDebtParams.map(p => [p.creditManager, p]),
     );
+  }
 
-    this.state = {
-      ...data,
-      ...this.contractData,
-      lastBaseInterestUpdate: data.lastBaseInterestUpdate,
-      underlying: data.underlying,
-      decimals: sdk.marketRegister.tokensMeta.mustGet(data.underlying).decimals,
-      creditManagerDebtParams,
-      withdrawFee: Number(data.withdrawFee),
+  public override stateHuman(raw = true): PoolStateHuman {
+    return {
+      ...super.stateHuman(raw),
+      underlying: this.labelAddress(this.underlying),
+      symbol: this.symbol,
+      name: this.name,
+      decimals: this.decimals,
+      availableLiquidity: formatBNvalue(
+        this.availableLiquidity,
+        this.decimals,
+        2,
+        raw,
+      ),
+      expectedLiquidity: formatBNvalue(
+        this.expectedLiquidity,
+        this.decimals,
+        2,
+        raw,
+      ),
+      totalBorrowed: formatBNvalue(this.totalBorrowed, this.decimals, 2, raw),
+      totalDebtLimit: formatBNvalue(this.totalDebtLimit, this.decimals, 2, raw),
+      creditManagerDebtParams: Object.fromEntries(
+        this.creditManagerDebtParams
+          .values()
+          .map(({ creditManager, borrowed, limit }) => [
+            this.labelAddress(creditManager),
+            {
+              borrowed: formatBNvalue(borrowed, this.decimals, 2, raw),
+              limit: formatBNvalue(limit, this.decimals, 2, raw),
+              // TODO: availableToBorrow is gone from MarketCompressor
+              availableToBorrow: "",
+            },
+          ]),
+      ),
+      totalAssets: formatBNvalue(this.totalAssets, this.decimals, 2, raw),
+      totalSupply: formatBNvalue(this.totalSupply, this.decimals, 2, raw),
+      supplyRate: `${formatBNvalue(this.supplyRate, 25, 2, raw)}%`,
+      baseInterestIndex: `${formatBNvalue(this.totalSupply, 25, 2, raw)}%`,
+      baseInterestRate: `${formatBNvalue(this.totalSupply, 25, 2, raw)}%`,
+      withdrawFee: percentFmt(this.withdrawFee),
+      lastBaseInterestUpdate: this.lastBaseInterestUpdate.toString(),
+      baseInterestIndexLU: this.lastBaseInterestUpdate.toString(),
+      isPaused: this.isPaused,
     };
   }
 
@@ -89,10 +122,7 @@ export class PoolContract extends BaseContract<typeof abi> {
     switch (params.functionName) {
       case "deposit": {
         const [amount, onBehalfOf] = params.args;
-        return [
-          formatBN(amount, this.state.decimals),
-          this.addressLabels.get(onBehalfOf),
-        ];
+        return [formatBN(amount, this.decimals), this.labelAddress(onBehalfOf)];
       }
       default:
         return undefined;

@@ -9,8 +9,7 @@ import {
   AP_MARKET_CONFIGURATOR,
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { MarketState } from "../state";
-import type { ILogger, TVL } from "../types";
+import type { ILogger, MarketStateHuman, TVL } from "../types";
 import { AddressMap, childLogger } from "../utils";
 import type { CreditFactory } from "./CreditFactory";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
@@ -96,8 +95,8 @@ export class MarketRegister extends SDKConstruct {
     this.#logger?.info(`loaded ${markets.length} markets`);
   }
 
-  public get state(): MarketState[] {
-    return this.markets.map(market => market.state);
+  public stateHuman(raw = true): MarketStateHuman[] {
+    return this.markets.map(market => market.stateHuman(raw));
   }
 
   public get pools(): PoolFactory[] {
@@ -134,7 +133,7 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public get markets(): MarketFactory[] {
-    return Array.from(this.#markets.values());
+    return this.#markets.values();
   }
 
   public async tvl(): Promise<TVL> {

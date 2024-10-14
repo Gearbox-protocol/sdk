@@ -1,16 +1,17 @@
 import type { ContractEventName, Log } from "viem";
 
 import { poolQuotaKeeperV3Abi } from "../abi";
+import type { PoolData, PoolQuotaKeeperData, QuotaState } from "../base";
 import { BaseContract } from "../base";
-import type { PoolData, PoolQuotaKeeperData } from "../base/types";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { PoolQuotaKeeperState } from "../state/poolState";
+import type { PoolQuotaKeeperStateHuman } from "../types";
+import { AddressMap, formatBNvalue, percentFmt } from "../utils";
 
 type abi = typeof poolQuotaKeeperV3Abi;
 
 export class PoolQuotaKeeperContract extends BaseContract<abi> {
   public readonly decimals: number;
-  public readonly state: PoolQuotaKeeperState;
+  public readonly quotas: AddressMap<QuotaState>;
 
   constructor(sdk: GearboxSDK, pool: PoolData, pqk: PoolQuotaKeeperData) {
     super(sdk, {
@@ -19,16 +20,35 @@ export class PoolQuotaKeeperContract extends BaseContract<abi> {
       abi: poolQuotaKeeperV3Abi,
     });
 
-    this.decimals = sdk.marketRegister.tokensMeta.mustGet(
-      pool.underlying,
-    ).decimals;
+    this.decimals = pool.decimals;
 
-    this.state = {
-      ...this.contractData,
-      quotas: Object.fromEntries(
-        pqk.quotas.map(q => {
-          return [q.token, q];
+    this.quotas = new AddressMap(
+      pqk.quotas.map(q => {
+        return [q.token, q];
+      }),
+    );
+  }
+
+  public override stateHuman(raw = true): PoolQuotaKeeperStateHuman {
+    return {
+      ...super.stateHuman(raw),
+      quotas: this.quotas.entries().reduce(
+        (acc, [address, params]) => ({
+          ...acc,
+          [address]: {
+            rate: percentFmt(params.rate, raw),
+            quotaIncreaseFee: percentFmt(params.quotaIncreaseFee, raw),
+            totalQuoted: formatBNvalue(
+              params.totalQuoted,
+              this.decimals,
+              2,
+              raw,
+            ),
+            limit: formatBNvalue(params.limit, this.decimals, 2, raw),
+            isActive: params.isActive,
+          },
         }),
+        {},
       ),
     };
   }

@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import { type MarketData, SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { MarketState } from "../state";
+import type { MarketStateHuman } from "../types";
 import { CreditFactory } from "./CreditFactory";
 import { PoolFactory } from "./PoolFactory";
 import { PriceOracleContract } from "./PriceOracleContract";
@@ -43,11 +43,11 @@ export class MarketFactory extends SDKConstruct {
     );
   }
 
-  public get state(): MarketState {
+  public stateHuman(raw = true): MarketStateHuman {
     return {
-      pool: this.poolFactory.state,
-      creditManagers: this.creditManagers.map(cm => cm.state),
-      priceOracle: this.priceOracle.state,
+      pool: this.poolFactory.stateHuman(raw),
+      creditManagers: this.creditManagers.map(cm => cm.stateHuman(raw)),
+      priceOracle: this.priceOracle.stateHuman(raw),
     };
   }
 }

@@ -1,33 +1,34 @@
 import type { Address } from "viem";
 
+import { SDKConstruct } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { PriceFeedState } from "../../state";
+import type { PriceFeedStateHuman } from "../../types";
+import { formatDuration } from "../../utils";
 import type { IPriceFeedContract } from "./types";
 
-export class PriceFeedRef {
+export class PriceFeedRef extends SDKConstruct {
   public readonly address: Address;
   public readonly stalenessPeriod: number;
 
-  readonly #sdk: GearboxSDK;
   #priceFeed?: IPriceFeedContract;
 
   constructor(sdk: GearboxSDK, address: Address, stalenessPeriod: number) {
+    super(sdk);
     this.address = address;
     this.stalenessPeriod = stalenessPeriod;
-    this.#sdk = sdk;
   }
 
   public get priceFeed(): IPriceFeedContract {
     if (!this.#priceFeed) {
-      this.#priceFeed = this.#sdk.priceFeeds.mustGet(this.address);
+      this.#priceFeed = this.sdk.priceFeeds.mustGet(this.address);
     }
     return this.#priceFeed;
   }
 
-  public get state(): PriceFeedState {
+  public stateHuman(raw = true): PriceFeedStateHuman {
     return {
-      ...(this.priceFeed.state as PriceFeedState),
-      stalenessPeriod: this.stalenessPeriod,
+      ...this.priceFeed.stateHuman(raw),
+      stalenessPeriod: formatDuration(this.stalenessPeriod),
     };
   }
 }

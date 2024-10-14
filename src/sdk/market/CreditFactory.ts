@@ -2,8 +2,7 @@ import type { Address } from "viem";
 
 import { type MarketData, SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { CreditFactoryState } from "../state";
-import type { TVL } from "../types";
+import type { CreditFactoryStateHuman, TVL } from "../types";
 import { CreditConfiguratorContract } from "./CreditConfiguratorContract";
 import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract";
 import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract";
@@ -38,7 +37,7 @@ export class CreditFactory extends SDKConstruct {
       collateralTokens.map((t, i) => [t, liquidationThresholds[i]]),
     );
 
-    this.creditManager = new CreditManagerContract(sdk, creditManager, pool);
+    this.creditManager = new CreditManagerContract(sdk, creditManager);
 
     if (creditManager.creditFacade.baseParams.version < 310) {
       this.creditFacade = new CreditFacadeV300Contract(sdk, creditManager);
@@ -51,13 +50,6 @@ export class CreditFactory extends SDKConstruct {
       creditManager,
       emergencyLiquidators,
     );
-
-    // TODO:
-    // this.adapterFactory = AdapterFactory.attachMarket(
-    //   marketData,
-    //   index,
-    //   service,
-    // );
   }
 
   async tvl(): Promise<TVL> {
@@ -79,14 +71,11 @@ export class CreditFactory extends SDKConstruct {
     );
   }
 
-  public get state(): CreditFactoryState {
+  public stateHuman(raw = true): CreditFactoryStateHuman {
     return {
-      creditFacade: this.creditFacade.state,
-      creditManager: this.creditManager.state,
-      creditConfigurator: this.creditConfigurator.state,
-      // TODO:
-      // adapters: this.adapterFactory.state,
-      adapters: [],
+      creditFacade: this.creditFacade.stateHuman(raw),
+      creditManager: this.creditManager.stateHuman(raw),
+      creditConfigurator: this.creditConfigurator.stateHuman(raw),
     };
   }
 }

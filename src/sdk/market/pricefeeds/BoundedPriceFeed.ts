@@ -1,7 +1,7 @@
 import { boundedPriceFeedAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { BoundedOracleState } from "../../state";
+import type { BoundedOracleStateHuman } from "../../types";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 
 type abi = typeof boundedPriceFeedAbi;
@@ -13,13 +13,13 @@ export class BoundedPriceFeedContract extends AbstractPriceFeedContract<abi> {
     super(sdk, { ...args, name: "BoundedPriceFeed", abi: boundedPriceFeedAbi });
   }
 
-  public get state(): Omit<BoundedOracleState, "stalenessPeriod"> {
+  public override stateHuman(
+    raw = true,
+  ): Omit<BoundedOracleStateHuman, "stalenessPeriod"> {
     return {
-      ...this.contractData,
+      ...super.stateHuman(raw),
       contractType: "PF_BOUNDED_ORACLE",
-      pricefeeds: [this.underlyingPriceFeeds[0]!.state],
       upperBound: this.upperBound,
-      skipCheck: true,
     };
   }
 }

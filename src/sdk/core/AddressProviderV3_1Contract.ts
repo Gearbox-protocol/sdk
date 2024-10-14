@@ -1,11 +1,16 @@
-import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
+import type {
+  Address,
+  ContractEventName,
+  DecodeFunctionDataReturnType,
+  Log,
+} from "viem";
 import { bytesToString, parseEventLogs, toBytes } from "viem";
 
 import { iAddressProviderV3_1Abi } from "../abi";
 import { BaseContract } from "../base";
 import { NO_VERSION } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { AddressProviderV3State } from "../state";
+import type { AddressProviderV3StateHuman } from "../types";
 
 type abi = typeof iAddressProviderV3_1Abi;
 
@@ -81,32 +86,55 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
     return this.getAddress(contract, this.latest[contract]);
   }
 
-  async fetchState(toBlock: bigint): Promise<void> {
+  public async fetchState(blockNumber?: bigint): Promise<void> {
     const entries = await this.contract.read.getAllSavedContracts({
-      blockNumber: toBlock,
+      blockNumber,
     });
-
-    entries.forEach(log => {
+    for (const log of entries) {
       this.setInternalAddress(log.key, log.value, Number(log.version));
-    });
-
-    this.version = 3_10;
+    }
   }
 
-  public get state(): AddressProviderV3State {
+  public override stateHuman(raw = true): AddressProviderV3StateHuman {
     return {
-      ...this.contractData,
-      addresses: this.#addresses,
+      ...super.stateHuman(raw),
+      addresses: Object.entries(this.#addresses)
+        .map(([key, value]) => {
+          return Object.entries(value).map(([version, address]) => {
+            return {
+              key,
+              version,
+              address: this.sdk.provider.addressLabels.get(address),
+            };
+          });
+        })
+        .reduce(
+          (acc, vals) => {
+            for (const val of vals) {
+              if (!acc[val.key]) {
+                acc[val.key] = {};
+              }
+              acc[val.key][val.version as unknown as number] = val.address;
+            }
+            return acc;
+          },
+          {} as Record<string, Record<number, string>>,
+        ),
     };
   }
 
-  public override processLog(log: Log): void {
-    const parsedLog = parseEventLogs({
-      abi: this.abi,
-      logs: [log],
-    })[0];
-
-    switch (parsedLog.eventName) {
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
       case "SetAddress": {
         const parsedLog2 = parseEventLogs({
           abi: this.abi,
@@ -117,13 +145,13 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
 
         this.setInternalAddress(
           key,
-          parsedLog.args.value as Address,
+          log.args.value as Address,
           Number(parsedLog2.args.version),
         );
         break;
       }
       default:
-        this.logger?.warn(`Unknown event: ${parsedLog.eventName}`);
+        this.logger?.warn(`Unknown event: ${log.eventName}`);
         break;
     }
   }

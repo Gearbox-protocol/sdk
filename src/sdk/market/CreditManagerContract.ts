@@ -1,69 +1,101 @@
 import type { Address, ContractEventName, Log } from "viem";
 
 import { creditManagerV3Abi } from "../abi";
-import type { CreditManagerData, PoolData } from "../base";
+import type { CreditManagerData, CreditManagerState } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { CreditManagerState } from "../state";
+import type { CreditManagerStateHuman } from "../types";
+import { AddressMap, fmtBinaryMask, percentFmt } from "../utils";
 import type { IAdapterContract } from "./adapters";
 import { createAdapter } from "./adapters";
 
 type abi = typeof creditManagerV3Abi;
 
+// Augmenting contract class with interface of compressor data object
+export interface CreditManagerContract
+  extends Omit<
+      CreditManagerState,
+      "baseParams" | "collateralTokens" | "liquidationThresholds"
+    >,
+    BaseContract<abi> {}
+
 export class CreditManagerContract extends BaseContract<abi> {
-  public readonly state: CreditManagerState;
   /**
    * Mapping targetContract => adapter
    */
-  public readonly adapters: Record<Address, IAdapterContract> = {};
+  public readonly adapters: AddressMap<IAdapterContract>;
+  /**
+   * Mapping token address => liquidation threshold
+   */
+  public readonly liquidationThresholds: AddressMap<number>;
 
-  constructor(
-    sdk: GearboxSDK,
-    { creditManager, creditFacade, adapters }: CreditManagerData,
-    pool: PoolData,
-  ) {
+  constructor(sdk: GearboxSDK, { creditManager, adapters }: CreditManagerData) {
+    const { baseParams, collateralTokens, liquidationThresholds, ...rest } =
+      creditManager;
     super(sdk, {
-      ...creditManager.baseParams,
+      ...baseParams,
       name: `CreditManagerV3(${creditManager.name})`,
       abi: creditManagerV3Abi,
     });
-    const { collateralTokens, liquidationThresholds } = creditManager;
+    Object.assign(this, rest);
+    this.liquidationThresholds = new AddressMap(
+      collateralTokens.map((t, i) => [t, liquidationThresholds[i]]),
+    );
 
+    this.adapters = new AddressMap();
     for (const adapterData of adapters) {
       try {
         const adapter = createAdapter(this.sdk, adapterData);
         adapter.name = `${adapter.name}(${this.name})`;
-        this.adapters[adapter.targetContract] = adapter;
+        this.adapters.upsert(adapter.targetContract, adapter);
       } catch (e) {
         throw new Error(`cannot attach adapter: ${e}`, { cause: e });
       }
     }
+  }
 
-    this.state = {
-      ...this.contractData,
-      accountFactory: creditManager.accountFactory,
-      underlying: pool.underlying,
-      pool: pool.baseParams.addr,
-      creditFacade: creditFacade.baseParams.addr,
-      creditConfigurator: creditManager.creditConfigurator,
-      priceOracle: creditManager.priceOracle,
-      maxEnabledTokens: creditManager.maxEnabledTokens,
+  public override stateHuman(raw?: boolean): CreditManagerStateHuman {
+    return {
+      ...super.stateHuman(raw),
+      name: this.name,
+      accountFactory: this.labelAddress(this.accountFactory),
+      underlying: this.labelAddress(this.underlying),
+      pool: this.labelAddress(this.pool),
+      creditFacade: this.labelAddress(this.creditFacade),
+      creditConfigurator: this.labelAddress(this.creditConfigurator),
+      priceOracle: this.labelAddress(this.priceOracle),
+      maxEnabledTokens: this.maxEnabledTokens,
       collateralTokens: Object.fromEntries(
-        collateralTokens.map((t, i) => [t, liquidationThresholds[i]]),
+        this.liquidationThresholds
+          .entries()
+          .map(([k, v]) => [
+            this.labelAddress(k as Address),
+            percentFmt(v, raw),
+          ]),
+      ) as Record<Address, string>,
+      feeInterest: percentFmt(this.feeInterest, raw),
+      feeLiquidation: percentFmt(this.feeLiquidation, raw),
+      liquidationDiscount: percentFmt(this.liquidationDiscount, raw),
+      feeLiquidationExpired: percentFmt(this.feeLiquidationExpired, raw),
+      liquidationDiscountExpired: percentFmt(
+        this.liquidationDiscountExpired,
+        raw,
       ),
-
-      feeInterest: creditManager.feeInterest,
-      feeLiquidation: creditManager.feeLiquidation,
-      liquidationDiscount: creditManager.liquidationDiscount,
-      feeLiquidationExpired: creditManager.feeLiquidationExpired,
-      liquidationDiscountExpired: creditManager.liquidationDiscountExpired,
-      quotedTokensMask: 0n,
+      quotedTokensMask: fmtBinaryMask(0n), // TODO: ?
       contractsToAdapters: Object.fromEntries(
-        adapters.map(a => [a.targetContract, a.baseParams.addr]),
+        this.adapters
+          .entries()
+          .map(([k, v]) => [
+            this.labelAddress(k),
+            this.labelAddress(v.address),
+          ]),
       ),
-      creditAccounts: [], // [...result[5].result!],
-      name: creditManager.name,
+      creditAccounts: [], // TODO: ?
     };
+  }
+
+  public get collateralTokens(): Address[] {
+    return this.liquidationThresholds.keys();
   }
 
   public override processLog(
@@ -82,9 +114,5 @@ export class CreditManagerContract extends BaseContract<abi> {
         this.dirty = true;
         break;
     }
-  }
-
-  public get collateralTokens(): Address[] {
-    return Object.keys(this.state.collateralTokens) as Address[];
   }
 }

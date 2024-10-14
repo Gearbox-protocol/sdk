@@ -1,7 +1,6 @@
 import { iwstEthAbi, wstEthPriceFeedAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { AssetPriceFeedState } from "../../state";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 
 type abi = typeof wstEthPriceFeedAbi;
@@ -13,15 +12,6 @@ export class WstETHPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
       name: "WstETHPriceFeed",
       abi: wstEthPriceFeedAbi,
     });
-  }
-
-  public get state(): Omit<AssetPriceFeedState, "stalenessPeriod"> {
-    return {
-      ...this.contractData,
-      contractType: this.priceFeedType,
-      skipCheck: true,
-      pricefeeds: [this.underlyingPriceFeeds[0].state],
-    };
   }
 
   public override async getValue(): Promise<bigint> {

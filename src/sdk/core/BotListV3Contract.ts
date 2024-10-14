@@ -1,11 +1,15 @@
-import type { Address, DecodeFunctionDataReturnType, Log } from "viem";
-import { parseEventLogs } from "viem";
+import type {
+  Address,
+  ContractEventName,
+  DecodeFunctionDataReturnType,
+  Log,
+} from "viem";
 
 import { botListV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import { botPermissionsToString } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { BotListState } from "../state";
+import type { BotListStateHuman } from "../types";
 
 type abi = typeof botListV3Abi;
 
@@ -37,7 +41,7 @@ export class BotListContract extends BaseContract<abi> {
     }
   }
 
-  public async fetchState(toBlock: bigint) {
+  public async fetchState(toBlock: bigint): Promise<void> {
     const logs = await this.provider.publicClient.getContractEvents({
       address: this.address,
       abi: this.abi,
@@ -48,37 +52,40 @@ export class BotListContract extends BaseContract<abi> {
     logs.forEach(e => this.processLog(e));
   }
 
-  public override processLog(log: Log): void {
-    const parsedLog = parseEventLogs({
-      abi: this.abi,
-      logs: [log],
-    })[0];
-
-    switch (parsedLog.eventName) {
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
       case "SetCreditManagerApprovedStatus":
-        if (parsedLog.args.approved) {
-          this.approvedCreditManagers.add(parsedLog.args.creditManager);
+        if (log.args.approved) {
+          this.approvedCreditManagers.add(log.args.creditManager!);
         } else {
-          this.approvedCreditManagers.delete(parsedLog.args.creditManager);
+          this.approvedCreditManagers.delete(log.args.creditManager!);
         }
         break;
 
       case "SetBotSpecialPermissions":
         this.logger?.debug(
-          `Bot ${parsedLog.args.bot} has been given permissions ${botPermissionsToString(
-            parsedLog.args.permissions,
-          )} for credit manager ${parsedLog.args.creditManager}`,
+          `Bot ${log.args.bot} has been given permissions ${botPermissionsToString(
+            log.args.permissions!,
+          )} for credit manager ${log.args.creditManager}`,
         );
         break;
       default:
-        this.logger?.warn(`Unknown event: ${parsedLog.eventName}`);
+        this.logger?.warn(`Unknown event: ${log.eventName}`);
         break;
     }
   }
 
-  public get state(): BotListState {
-    return {
-      ...this.contractData,
-    };
+  public override stateHuman(raw = true): BotListStateHuman {
+    return super.stateHuman(raw);
   }
 }
