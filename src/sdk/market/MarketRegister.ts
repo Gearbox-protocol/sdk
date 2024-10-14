@@ -51,6 +51,7 @@ export class MarketRegister extends SDKConstruct {
 
   public async syncState(): Promise<void> {
     if (this.marketConfigurator?.dirty) {
+      this.#logger?.debug(`need to reload all markets`);
       await this.#loadMarkets(this.curators, []);
       return;
     }
@@ -59,13 +60,12 @@ export class MarketRegister extends SDKConstruct {
       .filter(m => m.dirty)
       .map(m => m.poolFactory.pool.address);
     if (pools.length) {
+      this.#logger?.debug(`need to reload ${pools.length} markets`);
       await this.#loadMarkets([], pools);
     }
   }
 
   async #loadMarkets(curators: Address[], pools: Address[]): Promise<void> {
-    this.#logger?.debug("loading markets");
-
     const marketCompressorAddress = this.sdk.addressProvider.getAddress(
       AP_MARKET_COMPRESSOR,
       3_10,

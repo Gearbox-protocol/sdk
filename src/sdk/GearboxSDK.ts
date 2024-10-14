@@ -250,10 +250,12 @@ export class GearboxSDK {
     this.logger?.info(`Total TVL: ${formatBN(tvlUSD, 8)}`);
   }
 
-  // TODO: timestamp is annoying - need to make second request to get block timestamp
-  // TODO: make flag to prevent double syncing
   public async syncState(toBlock: bigint, timestamp: bigint): Promise<void> {
-    if (toBlock <= this.currentBlock || this.#syncing) {
+    if (toBlock <= this.currentBlock) {
+      return;
+    }
+    if (this.#syncing) {
+      this.logger?.warn(`cannot sync to ${toBlock}, already syncing`);
       return;
     }
     this.#syncing = true;

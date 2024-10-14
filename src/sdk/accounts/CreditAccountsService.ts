@@ -32,6 +32,10 @@ type GetCreditAccountsArgs = ContractFunctionArgs<
   "getCreditAccounts"
 >;
 
+interface ReadContractOptions {
+  blockNumber?: bigint;
+}
+
 export interface CreditAccountFilter {
   creditManager?: Address;
   owner?: Address;
@@ -54,11 +58,14 @@ export class CreditAccountsService extends SDKConstruct {
    * Returns single credit account data, or undefined if it's not found
    * Performs all necessary price feed updates under the hood
    * @param account
+   * @param options
    * @returns
    */
   public async getCreditAccountData(
     account: Address,
+    options?: ReadContractOptions,
   ): Promise<CreditAccountData | undefined> {
+    const blockNumber = options?.blockNumber;
     let raw: CreditAccountData;
     try {
       raw = await this.provider.publicClient.readContract({
@@ -66,6 +73,7 @@ export class CreditAccountsService extends SDKConstruct {
         address: this.#compressor,
         functionName: "getCreditAccountData",
         args: [account],
+        blockNumber,
       });
     } catch (e) {
       // TODO: reverts if account is not found, how to handle other revert reasons?
@@ -90,6 +98,7 @@ export class CreditAccountsService extends SDKConstruct {
       allowFailure: false,
       gas: 550_000_000n,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
+      blockNumber,
     });
     const cad = resp.pop() as CreditAccountData;
     return cad;
@@ -103,10 +112,12 @@ export class CreditAccountsService extends SDKConstruct {
    * TODO: do we want to expose "reverting"?
    * TODO: do we want to expose MarketFilter in any way? If so, we need to check that the MarketFilter is compatibled with attached markets?
    * @param args
+   * @param options
    * @returns returned credit accounts are sorted by health factor in ascending order
    */
   public async getCreditAccounts(
     args?: CreditAccountFilter,
+    options?: ReadContractOptions,
   ): Promise<CreditAccountData[]> {
     const {
       creditManager,
@@ -139,6 +150,7 @@ export class CreditAccountsService extends SDKConstruct {
         const [accounts, newOffset] = await this.#getCreditAccounts(
           [arg0, { ...caFilter, reverting }, offset],
           priceUpdateTxs,
+          options,
         );
         allCAs.push(...accounts);
         offset = newOffset;
@@ -216,12 +228,15 @@ export class CreditAccountsService extends SDKConstruct {
    * Internal wrapper for CreditAccountCompressor.getCreditAccounts + price updates wrapped into multicall
    * @param args
    * @param priceUpdateTxs
+   * @param options
    * @returns
    */
   async #getCreditAccounts(
     args: GetCreditAccountsArgs,
     priceUpdateTxs?: RawTx[],
+    options?: ReadContractOptions,
   ): Promise<[accounts: CreditAccountData[], newOffset: bigint]> {
+    const blockNumber = options?.blockNumber;
     if (priceUpdateTxs?.length) {
       const resp = await simulateMulticall(this.provider.publicClient, {
         account: this.provider.account,
@@ -237,6 +252,7 @@ export class CreditAccountsService extends SDKConstruct {
         allowFailure: false,
         gas: 550_000_000n,
         batchSize: 0, // we cannot have price updates and compressor request in different batches
+        blockNumber,
       });
       const getCreditAccountsResp = resp.pop() as any as [
         CreditAccountData[],
@@ -254,6 +270,7 @@ export class CreditAccountsService extends SDKConstruct {
       address: this.#compressor,
       functionName: "getCreditAccounts",
       args,
+      blockNumber,
     });
   }
 
