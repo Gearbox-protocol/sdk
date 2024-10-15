@@ -9,7 +9,6 @@ import { PoolContract } from "./PoolContract";
 import { PoolQuotaKeeperContract } from "./PoolQuotaKeeperContract";
 
 export class PoolFactory extends SDKConstruct {
-  public readonly underlying: Address;
   public readonly pool: PoolContract;
   public readonly pqk: PoolQuotaKeeperContract;
   public readonly gauge: GaugeContract;
@@ -17,7 +16,6 @@ export class PoolFactory extends SDKConstruct {
 
   constructor(sdk: GearboxSDK, data: MarketData) {
     super(sdk);
-    this.underlying = data.pool.underlying as Address;
     this.pool = new PoolContract(sdk, data.pool);
     this.pqk = new PoolQuotaKeeperContract(
       sdk,
@@ -37,6 +35,10 @@ export class PoolFactory extends SDKConstruct {
       sdk.interestRateModels.insert(irModelAddr, linearModel as any);
       this.linearModel = linearModel;
     }
+  }
+
+  public get underlying(): Address {
+    return this.pool.underlying;
   }
 
   override get dirty(): boolean {

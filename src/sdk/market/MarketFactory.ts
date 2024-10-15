@@ -12,12 +12,14 @@ export class MarketFactory extends SDKConstruct {
   public readonly poolFactory!: PoolFactory;
   public readonly priceOracle!: PriceOracleContract;
   public readonly creditManagers: CreditFactory[] = [];
-  public readonly pausableAdmins: readonly Address[];
-  public readonly unpausableAdmins: readonly Address[];
-  public readonly emergencyLiquidators: readonly Address[];
+  /**
+   * Original data received from compressor
+   */
+  public readonly state: MarketData;
 
   constructor(sdk: GearboxSDK, marketData: MarketData) {
     super(sdk);
+    this.state = marketData;
     this.riskCurator = marketData.owner;
 
     for (const t of marketData.tokens) {
@@ -36,9 +38,6 @@ export class MarketFactory extends SDKConstruct {
       marketData.priceOracleData,
       marketData.pool.underlying,
     );
-    this.pausableAdmins = marketData.pausableAdmins;
-    this.unpausableAdmins = marketData.unpausableAdmins;
-    this.emergencyLiquidators = marketData.emergencyLiquidators;
   }
 
   override get dirty(): boolean {
@@ -54,9 +53,11 @@ export class MarketFactory extends SDKConstruct {
       pool: this.poolFactory.stateHuman(raw),
       creditManagers: this.creditManagers.map(cm => cm.stateHuman(raw)),
       priceOracle: this.priceOracle.stateHuman(raw),
-      pausableAdmins: this.pausableAdmins.map(a => this.labelAddress(a)),
-      unpausableAdmins: this.unpausableAdmins.map(a => this.labelAddress(a)),
-      emergencyLiquidators: this.emergencyLiquidators.map(a =>
+      pausableAdmins: this.state.pausableAdmins.map(a => this.labelAddress(a)),
+      unpausableAdmins: this.state.unpausableAdmins.map(a =>
+        this.labelAddress(a),
+      ),
+      emergencyLiquidators: this.state.emergencyLiquidators.map(a =>
         this.labelAddress(a),
       ),
     };

@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import { iMarketCompressorAbi } from "../abi";
-import type { TokenMetaData } from "../base";
+import type { MarketData, TokenMetaData } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
@@ -93,6 +93,10 @@ export class MarketRegister extends SDKConstruct {
     }
 
     this.#logger?.info(`loaded ${markets.length} markets`);
+  }
+
+  public get state(): MarketData[] {
+    return this.markets.map(market => market.state);
   }
 
   public stateHuman(raw = true): MarketStateHuman[] {
