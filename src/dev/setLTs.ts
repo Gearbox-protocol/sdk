@@ -18,7 +18,7 @@ import type { AnvilClient } from "./createAnvilClient";
  */
 export async function setLTs(
   anvil: AnvilClient,
-  cm: CreditManagerState & { address: Address },
+  cm: CreditManagerState,
   newLTs: Record<Address, number>,
   logger?: ILogger,
 ): Promise<void> {
@@ -51,7 +51,7 @@ export async function setLTs(
         args: [t as Address, lt],
       });
       const newLT = await anvil.readContract({
-        address: cm.address,
+        address: cm.baseParams.addr,
         abi: iCreditManagerV3Abi,
         functionName: "liquidationThresholds",
         args: [t as Address],

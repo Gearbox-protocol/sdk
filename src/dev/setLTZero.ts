@@ -1,4 +1,3 @@
-import type { Address } from "viem";
 import { parseEther } from "viem";
 
 import type { CreditManagerState, ILogger } from "../sdk";
@@ -13,7 +12,7 @@ import type { AnvilClient } from "./createAnvilClient";
 
 export async function setLTZero(
   anvil: AnvilClient,
-  cm: CreditManagerState & { address: Address },
+  cm: CreditManagerState,
   logger?: ILogger,
 ): Promise<void> {
   const aclAddr = await anvil.readContract({
@@ -84,7 +83,7 @@ export async function setLTZero(
   logger?.debug(`[${cm.name}] setting liquidation threshold`);
   hash = await anvil.writeContract({
     chain: anvil.chain,
-    address: cm.address,
+    address: cm.baseParams.addr,
     account: cm.creditConfigurator,
     abi: iCreditManagerV3Abi,
     functionName: "setCollateralTokenData",
@@ -95,7 +94,7 @@ export async function setLTZero(
   logger?.debug(`[${cm.name}] setting configurator ${cm.creditConfigurator}`);
   hash = await anvil.writeContract({
     chain: anvil.chain,
-    address: cm.address,
+    address: cm.baseParams.addr,
     account: cm.creditConfigurator,
     abi: iCreditManagerV3Abi,
     functionName: "setCreditConfigurator",
