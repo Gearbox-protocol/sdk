@@ -328,18 +328,18 @@ export class RouterV3Contract
     ca: CreditAccountData,
     cm: CreditManagerSlice,
   ): FindClosePathInput {
-    const expectedBalances: Record<Address, Asset> = {};
-    const leftoverBalances: Record<Address, Asset> = {};
+    const expectedBalances = new AddressMap<Asset>();
+    const leftoverBalances = new AddressMap<Asset>();
     for (const { token: t, balance, mask } of ca.tokens) {
       const token = t as Address;
       const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
-      expectedBalances[token] = { token, balance };
+      expectedBalances.upsert(token, { token, balance });
       const decimals = this.sdk.tokensMeta.decimals(token);
       // filter out dust, we don't want to swap it
       const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
       // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
       if (balance < minBalance || !isEnabled) {
-        leftoverBalances[token] = { token, balance };
+        leftoverBalances.upsert(token, { token, balance });
       }
     }
 
@@ -355,7 +355,7 @@ export class RouterV3Contract
       // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
       // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
       // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
-      const actual = expectedBalances[token]?.balance || 0n;
+      const actual = expectedBalances.get(token)?.balance || 0n;
       return {
         token,
         balance: actual > 10n ? actual : 0n,
@@ -364,7 +364,7 @@ export class RouterV3Contract
 
     const leftover: Asset[] = cm.collateralTokens.map(token => ({
       token: token,
-      balance: leftoverBalances[token]?.balance || 1n,
+      balance: leftoverBalances.get(token)?.balance || 1n,
     }));
 
     const connectors = this.getAvailableConnectors(cm.collateralTokens);
