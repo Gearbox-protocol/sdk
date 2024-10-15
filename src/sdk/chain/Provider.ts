@@ -1,4 +1,4 @@
-import type { Address, Chain, PublicClient, Transport } from "viem";
+import type { Chain, PublicClient, Transport } from "viem";
 import { createPublicClient, defineChain, fallback, http } from "viem";
 
 import { AddressLabeller } from "../base/AddressLabeller";
@@ -6,23 +6,7 @@ import type { IAddressLabeller } from "../base/IAddressLabeller";
 import type { NetworkType } from "./chains";
 import { chains } from "./chains";
 
-export interface ProviderOptions {
-  /**
-   * Account address for contract write simulations
-   */
-  account?: Address;
-  /**
-   * RPC URL (and fallbacks) to use.
-   */
-  rpcURLs: string[];
-  /**
-   * RPC client timeout in milliseconds
-   */
-  timeout?: number;
-  /**
-   * Retry count for RPC
-   */
-  retryCount?: number;
+export interface NetworkOptions {
   /**
    * Chain Id needs to be set, because we sometimemes use forked testnets with different chain ids
    */
@@ -33,8 +17,43 @@ export interface ProviderOptions {
   networkType: NetworkType;
 }
 
+export type TransportOptions =
+  | {
+      /**
+       * RPC URL (and fallbacks) to use.
+       */
+      rpcURLs: string[];
+    }
+  | {
+      /**
+       * Alternatively, can pass entire viem transport
+       */
+      transport: Transport;
+    };
+
+export interface ConnectionOptions {
+  /**
+   * RPC client timeout in milliseconds
+   */
+  timeout?: number;
+  /**
+   * Retry count for RPC
+   */
+  retryCount?: number;
+}
+
+export function createTransport(
+  opts: TransportOptions & ConnectionOptions,
+): Transport {
+  const { timeout = 120_000, retryCount } = opts;
+  if ("transport" in opts) {
+    return opts.transport;
+  }
+  const rpcs = opts.rpcURLs.map(url => http(url, { timeout, retryCount }));
+  return rpcs.length ? fallback(rpcs) : rpcs[0];
+}
+
 export class Provider {
-  public readonly account?: Address;
   public readonly chainId: number;
   public readonly chain: Chain;
   public readonly networkType: NetworkType;
@@ -42,16 +61,8 @@ export class Provider {
   public readonly addressLabels: IAddressLabeller;
   public readonly transport: Transport;
 
-  constructor(opts: ProviderOptions) {
-    const {
-      account,
-      chainId,
-      networkType,
-      rpcURLs,
-      timeout = 120_000,
-      retryCount,
-    } = opts;
-    this.account = account;
+  constructor(opts: NetworkOptions & TransportOptions & ConnectionOptions) {
+    const { chainId, networkType } = opts;
     this.chainId = chainId;
     this.networkType = networkType;
 
@@ -60,10 +71,7 @@ export class Provider {
       ...chains[networkType],
       id: chainId,
     });
-
-    const rpcs = rpcURLs.map(url => http(url, { timeout, retryCount }));
-    this.transport = rpcs.length ? fallback(rpcs) : rpcs[0];
-
+    this.transport = createTransport(opts);
     this.publicClient = createPublicClient({
       chain: this.chain,
       transport: this.transport,

@@ -25,7 +25,7 @@ export class CreditFactory extends SDKConstruct {
 
   constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
     super(sdk);
-    const { creditManagers, pool, emergencyLiquidators } = marketData;
+    const { creditManagers, pool } = marketData;
     const creditManager = creditManagers[index];
     const { name, collateralTokens, liquidationThresholds } =
       creditManager.creditManager;
@@ -48,7 +48,6 @@ export class CreditFactory extends SDKConstruct {
     this.creditConfigurator = new CreditConfiguratorContract(
       sdk,
       creditManager,
-      emergencyLiquidators,
     );
   }
 

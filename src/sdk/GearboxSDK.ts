@@ -1,9 +1,13 @@
 import type { Address, Hex } from "viem";
-import { createPublicClient, http, parseEventLogs } from "viem";
+import { createPublicClient, parseEventLogs } from "viem";
 
 import type { BaseContract } from "./base";
-import type { NetworkType } from "./chain";
-import { Provider } from "./chain";
+import type {
+  ConnectionOptions,
+  NetworkOptions,
+  TransportOptions,
+} from "./chain";
+import { createTransport, Provider } from "./chain";
 import {
   ADDRESS_PROVIDER,
   AP_BOT_LIST,
@@ -24,27 +28,7 @@ import type { GearboxStateHuman, ILogger, MultiCall } from "./types";
 import { AddressMap, formatBN } from "./utils";
 import { detectNetwork } from "./utils/viem";
 
-export interface SDKAttachOptions {
-  /**
-   * Account address for contract write simulations
-   */
-  account?: Address;
-  /**
-   * RPC URL (and fallbacks) to use
-   */
-  rpcURLs: string[];
-  /**
-   * RPC client timeout in milliseconds
-   */
-  timeout?: number;
-  /**
-   * Actual chain id of rpc, if not set, will be determined
-   */
-  chainId?: number;
-  /**
-   * If not set, will be detected automatically
-   */
-  networkType?: NetworkType;
+export interface SDKOptions {
   /**
    * If not set, address provider address is determinted automatically from networkType
    */
@@ -59,7 +43,7 @@ export interface SDKAttachOptions {
   logger?: ILogger;
 }
 
-interface SDKOptions {
+interface SDKContructorArgs {
   provider: Provider;
   logger?: ILogger;
 }
@@ -109,14 +93,17 @@ export class GearboxSDK {
    */
   public readonly contracts = new AddressMap<BaseContract<any>>();
 
-  public static async attach(options: SDKAttachOptions): Promise<GearboxSDK> {
-    const { rpcURLs, timeout, logger, riskCurators } = options;
+  public static async attach(
+    options: SDKOptions &
+      Partial<NetworkOptions> &
+      ConnectionOptions &
+      TransportOptions,
+  ): Promise<GearboxSDK> {
+    const { logger, riskCurators } = options;
     let { networkType, addressProvider, chainId } = options;
-    if (rpcURLs.length === 0) {
-      throw new Error("please specify at least one rpc url");
-    }
+
     const attachClient = createPublicClient({
-      transport: http(rpcURLs[0], { timeout }),
+      transport: createTransport(options),
     });
     if (!networkType) {
       networkType = await detectNetwork(attachClient);
@@ -129,10 +116,9 @@ export class GearboxSDK {
     }
 
     const provider = new Provider({
+      ...options,
       chainId,
       networkType,
-      rpcURLs,
-      timeout,
     });
     logger?.debug(
       { networkType, chainId, addressProvider },
@@ -145,7 +131,7 @@ export class GearboxSDK {
     }).#attach(addressProvider, riskCurators);
   }
 
-  private constructor(options: SDKOptions) {
+  private constructor(options: SDKContructorArgs) {
     this.#provider = options.provider;
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);
@@ -157,7 +143,11 @@ export class GearboxSDK {
   ): Promise<this> {
     const time = Date.now();
 
-    await this.updateBlock();
+    const block = await this.provider.publicClient.getBlock({
+      blockTag: "latest",
+    });
+    this.#currentBlock = block.number;
+    this.#timestamp = block.timestamp;
 
     this.logger?.info("Attaching to address provider", addressProviderAddress);
     this.#addressProvider = new AddressProviderContractV3_1(
@@ -223,14 +213,6 @@ export class GearboxSDK {
     return calls.map(call =>
       this.parseFunctionData(call.target, call.callData),
     );
-  }
-
-  public async updateBlock(): Promise<void> {
-    const block = await this.provider.publicClient.getBlock({
-      blockTag: "latest",
-    });
-    this.#currentBlock = block.number;
-    this.#timestamp = block.timestamp;
   }
 
   public stateHuman(raw = true): GearboxStateHuman {

@@ -94,9 +94,7 @@ export interface CreditManagerStateHuman extends BaseContractStateHuman {
   creditAccounts: Array<Address>;
 }
 
-export interface CreditConfiguratorStateHuman extends BaseContractStateHuman {
-  emergencyLiquidators: Array<string>;
-}
+export type CreditConfiguratorStateHuman = BaseContractStateHuman;
 
 export interface CreditFactoryStateHuman {
   creditFacade: CreditFacadeStateHuman;
@@ -178,6 +176,9 @@ export interface MarketStateHuman {
   pool: PoolFactoryStateHuman;
   creditManagers: CreditFactoryStateHuman[];
   priceOracle: PriceOracleV3StateHuman;
+  pausableAdmins: string[];
+  unpausableAdmins: string[];
+  emergencyLiquidators: string[];
 }
 
 export interface GearboxStateHuman {

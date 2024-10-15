@@ -85,7 +85,6 @@ export class CreditAccountsService extends SDKConstruct {
     const { txs: priceUpdateTxs, timestamp: _ } =
       await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
     const resp = await simulateMulticall(this.provider.publicClient, {
-      account: this.provider.account,
       contracts: [
         ...priceUpdateTxs.map(rawTxToMulticallPriceUpdate),
         {
@@ -170,7 +169,7 @@ export class CreditAccountsService extends SDKConstruct {
    */
   public async fullyLiquidate(
     account: CreditAccountData,
-    to?: Address,
+    to: Address,
     slippage = 50n,
   ): Promise<RawTx> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
@@ -180,15 +179,10 @@ export class CreditAccountsService extends SDKConstruct {
       slippage,
     );
     const priceUpdates = await this.getPriceUpdatesForFacade(account);
-    const recipient = to ?? this.sdk.provider.account;
-    if (!recipient) {
-      throw new Error("liquidate account: assets recipient not specied");
-    }
-    return cm.creditFacade.liquidateCreditAccount(
-      account.creditAccount,
-      recipient,
-      [...priceUpdates, ...preview.calls],
-    );
+    return cm.creditFacade.liquidateCreditAccount(account.creditAccount, to, [
+      ...priceUpdates,
+      ...preview.calls,
+    ]);
   }
 
   /**
@@ -204,19 +198,15 @@ export class CreditAccountsService extends SDKConstruct {
     operation: "close" | "zeroDebt",
     ca: CreditAccountData,
     assetsToKeep: Address[],
-    to?: Address,
+    to: Address,
     slippage = 50n,
   ): Promise<RawTx> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-    const recipient = to ?? this.sdk.provider.account;
-    if (!recipient) {
-      throw new Error("close account: assets recipient not specied");
-    }
     const calls = await this.#prepareCloseCreditAccount(
       ca,
       cm,
       assetsToKeep,
-      recipient,
+      to,
       slippage,
     );
     return operation === "close"
@@ -239,7 +229,6 @@ export class CreditAccountsService extends SDKConstruct {
     const blockNumber = options?.blockNumber;
     if (priceUpdateTxs?.length) {
       const resp = await simulateMulticall(this.provider.publicClient, {
-        account: this.provider.account,
         contracts: [
           ...priceUpdateTxs.map(rawTxToMulticallPriceUpdate),
           {

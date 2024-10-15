@@ -9,26 +9,22 @@ import { creditConfiguratorV3Abi } from "../abi";
 import type { CreditManagerData } from "../base";
 import { BaseContract } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { CreditConfiguratorStateHuman } from "../types";
 import { formatDuration, percentFmt } from "../utils";
 
 type abi = typeof creditConfiguratorV3Abi;
 
 export class CreditConfiguratorContract extends BaseContract<abi> {
   public readonly adapters: Address[] = [];
-  public readonly emergencyLiquidators: Address[] = [];
 
   constructor(
     sdk: GearboxSDK,
     { creditConfigurator, creditManager }: CreditManagerData,
-    emergencyLiquidators: readonly Address[],
   ) {
     super(sdk, {
       ...creditConfigurator.baseParams,
       name: `CreditConfigurator(${creditManager.name})`,
       abi: creditConfiguratorV3Abi,
     });
-    this.emergencyLiquidators = [...emergencyLiquidators];
   }
 
   public override processLog(
@@ -70,14 +66,6 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
         this.dirty = true;
         break;
     }
-  }
-
-  public override stateHuman(raw?: boolean): CreditConfiguratorStateHuman {
-    return {
-      ...super.stateHuman(raw),
-      // TODO: this was moved to market data
-      emergencyLiquidators: [],
-    };
   }
 
   public parseFunctionParams(
