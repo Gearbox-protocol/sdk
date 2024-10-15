@@ -3,7 +3,7 @@
   "version": "0.0.0-semantic-release",
   "description": "Gearbox SDK",
   "license": "MIT",
-  "main": "./dist/cjs/sdk/index.js",
+  "main": "./dist/cjs/sdk/index.cjs",
   "module": "./dist/esm/sdk/index.mjs",
   "types": "./dist/cjs/sdk/index.d.ts",
   "sideEffects": false,
@@ -36,6 +36,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build": "tsup",
+    "dev": "tsup --watch",
     "example": "tsx --env-file .env scripts/example.ts | pino-pretty",
     "prepare": "husky",
     "prettier": "prettier --write .",
