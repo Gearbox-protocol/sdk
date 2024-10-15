@@ -95,7 +95,9 @@ export class PriceFeedRegister
     }
 
     const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
-    await this.#hooks.triggerHooks("updatesGenerated", result);
+    if (txs.length) {
+      await this.#hooks.triggerHooks("updatesGenerated", result);
+    }
     return result;
   }
 
