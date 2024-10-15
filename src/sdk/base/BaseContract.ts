@@ -211,7 +211,6 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     );
 
     tx.description = argsDescription || this.parseFunctionData(tx.callData); // `${this.name}.${parameters.functionName}(${argsDescription || (args && args.length > 0) ? args!.join(", ") : ""})`;
-    this.logger?.debug(tx.description);
 
     return tx;
   }
