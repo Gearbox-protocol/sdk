@@ -46,9 +46,7 @@ export type RouterHooks = {
   /**
    * Internal router event
    */
-  foundPathOptions: [
-    { creditAccount: Address; pathOptions: PathOptionSerie[] },
-  ];
+  foundPathOptions: [{ creditAccount: Address } & FindClosePathInput];
   /**
    * Internal router event
    */
@@ -271,6 +269,9 @@ export class RouterV3Contract
     await this.#hooks.triggerHooks("foundPathOptions", {
       creditAccount: ca.creditAccount,
       pathOptions,
+      expected,
+      leftover,
+      connectors,
     });
     let results: RouterResult[] = [];
     for (const po of pathOptions) {
