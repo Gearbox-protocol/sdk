@@ -46,12 +46,12 @@
     "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
-    "@gearbox-protocol/sdk-gov": "^2.21.0",
+    "@gearbox-protocol/sdk-gov": "^2.22.0",
     "@redstone-finance/evm-connector": "^0.6.2",
     "abitype": "^1.0.6",
     "date-fns": "^4.1.0",
     "redstone-protocol": "^1.0.5",
-    "viem": ">=2.21.0 <3.0.0"
+    "viem": "^2.21.26"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
@@ -61,12 +61,12 @@
     "eslint": "^8.57.1",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
-    "pino": "^9.4.0",
-    "pino-pretty": "^11.2.2",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0",
     "prettier": "^3.3.3",
     "tsup": "^8.3.0",
     "tsx": "^4.19.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   },
   "commitlint": {
     "extends": [
