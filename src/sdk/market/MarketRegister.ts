@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import { iMarketCompressorAbi } from "../abi";
-import type { MarketData, TokenMetaData } from "../base";
+import type { MarketData } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
@@ -23,10 +23,6 @@ export class MarketRegister extends SDKConstruct {
    * Mapping pool.address -> MarketFactory
    */
   #markets = new AddressMap<MarketFactory>();
-  /**
-   * Token metadata such as symbol and decimals, common across all markets
-   */
-  public readonly tokensMeta: AddressMap<TokenMetaData> = new AddressMap();
   // TODO: MarketRegister can be this contract, but v3.0 does not have it
   public readonly marketConfigurator?: MarketConfiguratorContract;
 

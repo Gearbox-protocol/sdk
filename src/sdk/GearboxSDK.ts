@@ -2,6 +2,7 @@ import type { Address, Hex } from "viem";
 import { createPublicClient, parseEventLogs } from "viem";
 
 import type { BaseContract } from "./base";
+import { TokensMeta } from "./base";
 import type {
   ConnectionOptions,
   NetworkOptions,
@@ -92,6 +93,10 @@ export class GearboxSDK {
    * All contracts known to sdk
    */
   public readonly contracts = new AddressMap<BaseContract<any>>();
+  /**
+   * Token metadata such as symbol and decimals
+   */
+  public readonly tokensMeta = new TokensMeta();
 
   public static async attach(
     options: SDKOptions &

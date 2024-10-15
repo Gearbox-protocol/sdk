@@ -41,9 +41,7 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
   }
 
   public override stateHuman(raw?: boolean): CreditFacadeStateHuman {
-    const decimals = this.sdk.marketRegister.tokensMeta.mustGet(
-      this.underlying,
-    ).decimals;
+    const decimals = this.sdk.tokensMeta.decimals(this.underlying);
     return {
       ...super.stateHuman(raw),
       maxQuotaMultiplier: Number(this.maxQuotaMultiplier),

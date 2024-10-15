@@ -63,7 +63,7 @@ export async function calcLiquidatableLTs(
     if (token !== ca.underlying) {
       const newLT = (oldLT * k) / WAD;
       logger?.debug(
-        `proposed ${sdk.marketRegister.tokensMeta.mustGet(token).symbol} LT change: ${oldLT} => ${newLT} `,
+        `proposed ${sdk.tokensMeta.symbol(token)} LT change: ${oldLT} => ${newLT} `,
       );
       result[token] = Number(newLT);
     }

@@ -333,8 +333,7 @@ export class RouterV3Contract
       const token = t as Address;
       const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
       expectedBalances[token] = { token, balance };
-      const decimals =
-        this.sdk.marketRegister.tokensMeta.mustGet(token).decimals;
+      const decimals = this.sdk.tokensMeta.decimals(token);
       // filter out dust, we don't want to swap it
       const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
       // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it

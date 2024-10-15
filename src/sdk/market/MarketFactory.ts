@@ -23,7 +23,7 @@ export class MarketFactory extends SDKConstruct {
     this.riskCurator = marketData.owner;
 
     for (const t of marketData.tokens) {
-      sdk.marketRegister.tokensMeta.upsert(t.addr, t);
+      sdk.tokensMeta.upsert(t.addr, t);
       sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
     }
 

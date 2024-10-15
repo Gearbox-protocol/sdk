@@ -239,13 +239,11 @@ export class PriceOracleContract extends BaseContract<abi> {
     const fromPrice = reserve
       ? this.reservePrices.mustGet(from)
       : this.mainPrices.mustGet(from);
-    const fromScale =
-      10n ** BigInt(this.sdk.marketRegister.tokensMeta.mustGet(from).decimals);
+    const fromScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(from));
     const toPrice = reserve
       ? this.reservePrices.mustGet(to)
       : this.mainPrices.mustGet(to);
-    const toScale =
-      10n ** BigInt(this.sdk.marketRegister.tokensMeta.mustGet(to).decimals);
+    const toScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(to));
 
     return (amount * fromPrice * toScale) / (toPrice * fromScale);
   }
@@ -294,7 +292,7 @@ export class PriceOracleContract extends BaseContract<abi> {
     token: Address,
   ): void {
     this.sdk.provider.addressLabels.set(address, label => {
-      const { symbol } = this.sdk.marketRegister.tokensMeta.mustGet(token);
+      const symbol = this.sdk.tokensMeta.symbol(token);
       let pricefeedTag = `${symbol}.${usage}`;
 
       if (label) {
