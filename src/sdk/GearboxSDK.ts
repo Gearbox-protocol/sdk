@@ -39,6 +39,10 @@ export interface SDKOptions {
    */
   riskCurators?: Address[];
   /**
+   * Attach and load state at this specific block number
+   */
+  blockNumber?: bigint | number;
+  /**
    * Bring your own logger
    */
   logger?: ILogger;
@@ -104,7 +108,7 @@ export class GearboxSDK {
       ConnectionOptions &
       TransportOptions,
   ): Promise<GearboxSDK> {
-    const { logger, riskCurators } = options;
+    const { logger, riskCurators, blockNumber } = options;
     let { networkType, addressProvider, chainId } = options;
 
     const attachClient = createPublicClient({
@@ -133,7 +137,7 @@ export class GearboxSDK {
     return new GearboxSDK({
       provider,
       logger,
-    }).#attach(addressProvider, riskCurators);
+    }).#attach(addressProvider, riskCurators, blockNumber);
   }
 
   private constructor(options: SDKContructorArgs) {
@@ -145,12 +149,17 @@ export class GearboxSDK {
   async #attach(
     addressProviderAddress: Address,
     riskCurators?: Address[],
+    blockNumber?: bigint | number,
   ): Promise<this> {
     const time = Date.now();
 
-    const block = await this.provider.publicClient.getBlock({
-      blockTag: "latest",
-    });
+    const block = await this.provider.publicClient.getBlock(
+      blockNumber
+        ? { blockNumber: BigInt(blockNumber) }
+        : {
+            blockTag: "latest",
+          },
+    );
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
