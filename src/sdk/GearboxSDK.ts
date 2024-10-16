@@ -173,7 +173,6 @@ export class GearboxSDK {
     // Attaching bot list contract
     const botListAddress = this.#addressProvider.getAddress(AP_BOT_LIST, 300);
     this.#botListContract = new BotListContract(this, botListAddress);
-    await this.#botListContract.fetchState(this.currentBlock);
 
     // Attaching gear staking contract
     this.#gear = this.#addressProvider.getAddress(AP_GEAR_TOKEN);

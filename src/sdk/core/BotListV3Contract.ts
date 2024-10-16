@@ -7,17 +7,19 @@ import type {
 
 import { botListV3Abi } from "../abi";
 import { BaseContract } from "../base";
-import { botPermissionsToString } from "../constants";
+import { ADDRESS_PROVIDER_BLOCK, botPermissionsToString } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { BotListStateHuman } from "../types";
 
 type abi = typeof botListV3Abi;
 
 export class BotListContract extends BaseContract<abi> {
-  approvedCreditManagers: Set<Address> = new Set();
+  #approvedCreditManagers?: Set<Address>;
+  #currentBlock: bigint;
 
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, { addr: address, name: "BotListV3", abi: botListV3Abi });
+    this.#currentBlock = ADDRESS_PROVIDER_BLOCK[sdk.provider.networkType];
   }
 
   public parseFunctionParams(
@@ -41,15 +43,15 @@ export class BotListContract extends BaseContract<abi> {
     }
   }
 
-  public async fetchState(toBlock: bigint): Promise<void> {
+  public async syncState(toBlock: bigint): Promise<void> {
     const logs = await this.provider.publicClient.getContractEvents({
       address: this.address,
       abi: this.abi,
-      fromBlock: 0n,
+      fromBlock: this.#currentBlock,
       toBlock,
     });
-
     logs.forEach(e => this.processLog(e));
+    this.#currentBlock = toBlock;
   }
 
   public override processLog(
@@ -83,6 +85,15 @@ export class BotListContract extends BaseContract<abi> {
         this.logger?.warn(`Unknown event: ${log.eventName}`);
         break;
     }
+  }
+
+  public get approvedCreditManagers(): Set<Address> {
+    if (!this.#approvedCreditManagers) {
+      throw new Error(
+        "BotListContract state needs to be synced to load approvedCreditManagers",
+      );
+    }
+    return this.#approvedCreditManagers;
   }
 
   public override stateHuman(raw = true): BotListStateHuman {
