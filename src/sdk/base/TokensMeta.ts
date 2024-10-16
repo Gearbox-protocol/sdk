@@ -11,4 +11,8 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   public decimals(token: Address): number {
     return this.mustGet(token).decimals;
   }
+
+  public findBySymbol(symbol: string): TokenMetaData | undefined {
+    return this.values().find(v => v.symbol === symbol);
+  }
 }
