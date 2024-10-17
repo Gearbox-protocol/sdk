@@ -27,6 +27,7 @@ import { PriceFeedRegister } from "./market/pricefeeds";
 import { RouterV3Contract } from "./router";
 import type { GearboxStateHuman, ILogger, MultiCall } from "./types";
 import { AddressMap, formatBN } from "./utils";
+import { Hooks } from "./utils/internal";
 import { detectNetwork } from "./utils/viem";
 
 export interface SDKOptions {
@@ -58,7 +59,13 @@ export interface SyncStateOptions {
   timestamp: bigint;
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SDKHooks = {
+  syncState: [];
+};
+
 export class GearboxSDK {
+  readonly #hooks = new Hooks<SDKHooks>();
   // Represents chain object
   readonly #provider: Provider;
 
@@ -101,6 +108,9 @@ export class GearboxSDK {
    * Token metadata such as symbol and decimals
    */
   public readonly tokensMeta = new TokensMeta();
+
+  public addHook = this.#hooks.addHook.bind(this.#hooks);
+  public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
   public static async attach(
     options: SDKOptions &
@@ -210,7 +220,7 @@ export class GearboxSDK {
    */
   public parseFunctionData(address: Address, calldata: Hex): string {
     const contract = this.contracts.get(address);
-    // todo: fallback to 4bytes directory
+    // TODO: fallback to 4bytes directory
     return contract
       ? contract.parseFunctionData(calldata)
       : `unknown: ${address}.${calldata.slice(0, 10)}`;
@@ -293,6 +303,7 @@ export class GearboxSDK {
 
     this.#currentBlock = blockNumber;
     this.#timestamp = timestamp;
+    await this.#hooks.triggerHooks("syncState");
     this.#syncing = false;
     this.logger?.debug(`synced state to block ${blockNumber}`);
   }
