@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { isAddress } from "viem";
+import { getAddress } from "viem";
 
 export class AddressMap<T> {
   #map: Map<Address, T>;
@@ -9,10 +9,7 @@ export class AddressMap<T> {
     this.#map = new Map<Address, T>();
     if (entries) {
       for (const [address, value] of entries) {
-        const key = address.toLowerCase();
-        if (!isAddress(key)) {
-          throw new Error(`value "${address}" is not an address`);
-        }
+        const key = getAddress(address);
         this.#map.set(key, value);
       }
     }
@@ -27,10 +24,7 @@ export class AddressMap<T> {
     if (this.#frozen) {
       throw new Error(`AddressMap is frozen`);
     }
-    const key = address.toLowerCase();
-    if (!isAddress(key)) {
-      throw new Error(`value "${address}" is not an address`);
-    }
+    const key = getAddress(address);
     this.#map.set(key, value);
   }
 
@@ -43,10 +37,7 @@ export class AddressMap<T> {
     if (this.#frozen) {
       throw new Error(`AddressMap is frozen`);
     }
-    const key = address.toLowerCase();
-    if (!isAddress(key)) {
-      throw new Error(`value "${address}" is not an address`);
-    }
+    const key = getAddress(address);
     if (this.#map.has(key)) {
       throw new Error(`address ${address} already exists`);
     }
@@ -59,10 +50,7 @@ export class AddressMap<T> {
    * @returns
    */
   public has(address: string): boolean {
-    const key = address.toLowerCase();
-    if (!isAddress(key)) {
-      throw new Error(`value "${address}" is not an address`);
-    }
+    const key = getAddress(address);
     return this.#map.has(key);
   }
 
@@ -72,10 +60,7 @@ export class AddressMap<T> {
    * @returns
    */
   public get(address: string): T | undefined {
-    const key = address.toLowerCase();
-    if (!isAddress(key)) {
-      throw new Error(`value "${address}" is not an address`);
-    }
+    const key = getAddress(address);
     return this.#map.get(key);
   }
 
@@ -90,6 +75,10 @@ export class AddressMap<T> {
       throw new Error(`address ${address} not found in map`);
     }
     return v;
+  }
+
+  public clear(): void {
+    this.#map.clear();
   }
 
   public entries(): Array<[Address, T]> {

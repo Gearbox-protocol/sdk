@@ -1,13 +1,12 @@
 import type { Address } from "viem";
 
-import { iMarketCompressorAbi, iPriceFeedCompressorAbi } from "../abi";
-import type { MarketData, PriceFeedMapEntry, PriceFeedTreeNode } from "../base";
+import { iMarketCompressorAbi } from "../abi";
+import type { MarketData } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
   AP_MARKET_COMPRESSOR,
   AP_MARKET_CONFIGURATOR,
-  AP_PRICE_FEED_COMPRESSOR,
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { ILogger, MarketStateHuman, TVL } from "../types";
@@ -96,47 +95,32 @@ export class MarketRegister extends SDKConstruct {
   }
 
   /**
-   * Loads new prices for given oracles from PriceFeedCompressor, defaults to all oracles
-   * Does not update price feeds, only updates prices
+   * Loads new prices and price feeds for given oracles from PriceFeedCompressor, defaults to all oracles
+   * Supports v300 and v310 oracles
    */
   public async updatePrices(oracles?: Address[]): Promise<void> {
-    const oraclez = oracles ?? this.markets.map(m => m.priceOracle.address);
-    if (!oraclez.length) {
+    const multicalls = this.markets
+      .map(m => m.priceOracle)
+      .filter(o => !oracles || oracles.includes(o.address))
+      .map(o => o.syncStateMulticall());
+    if (!multicalls.length) {
       return;
     }
     const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
     const resp = await simulateMulticall(this.provider.publicClient, {
       contracts: [
         ...txs.map(rawTxToMulticallPriceUpdate),
-        ...oraclez.map(o => ({
-          abi: iPriceFeedCompressorAbi,
-          address: this.sdk.addressProvider.getLatestVersion(
-            AP_PRICE_FEED_COMPRESSOR,
-          ),
-          functionName: "getPriceFeeds",
-          args: [o],
-        })),
+        ...multicalls.map(mc => mc.call),
       ],
       allowFailure: false,
       gas: 550_000_000n,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
     });
-    const oraclesStates = resp.slice(txs.length) as any as Array<
-      [PriceFeedMapEntry[], PriceFeedTreeNode[]]
-    >;
-    for (let i = 0; i < oraclez.length; i++) {
-      const oracleAddr = oraclez[i];
-      const oracle = this.findPriceOracle(oracleAddr);
-      const [entries, tree] = oraclesStates[i];
-      for (const { token, priceFeed, reserve } of entries) {
-        const price = tree.find(n => n.baseParams.addr === priceFeed)?.answer
-          ?.price;
-        if (reserve && price) {
-          oracle.reservePrices.upsert(token, price);
-        } else if (price) {
-          oracle.mainPrices.upsert(token, price);
-        }
-      }
+    const oraclesStates = resp.slice(txs.length);
+    for (let i = 0; i < multicalls.length; i++) {
+      const handler = multicalls[i].onResult;
+      const result = oraclesStates[i] as any;
+      handler(result);
     }
   }
 

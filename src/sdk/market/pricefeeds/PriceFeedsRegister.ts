@@ -101,15 +101,15 @@ export class PriceFeedRegister
     return result;
   }
 
-  public get(address: Address): IPriceFeedContract | undefined {
-    return this.#feeds.get(address);
-  }
-
   public mustGet(address: Address): IPriceFeedContract {
     return this.#feeds.mustGet(address);
   }
 
-  public create(data: PriceFeedTreeNode): IPriceFeedContract {
+  public getOrCreate(data: PriceFeedTreeNode): IPriceFeedContract {
+    const existing = this.#feeds.get(data.baseParams.addr);
+    if (existing) {
+      return existing;
+    }
     const feed = this.#create(data);
     this.#feeds.upsert(data.baseParams.addr, feed);
     return feed;

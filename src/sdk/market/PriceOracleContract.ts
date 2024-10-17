@@ -1,10 +1,19 @@
 import type { Address, ContractEventName, Hex, Log } from "viem";
 import { decodeFunctionData } from "viem";
 
-import { iUpdatablePriceFeedAbi, priceOracleV3Abi } from "../abi";
-import type { PriceFeedTreeNode, PriceOracleData } from "../base";
+import {
+  iPriceFeedCompressorAbi,
+  iUpdatablePriceFeedAbi,
+  priceOracleV3Abi,
+} from "../abi";
+import type {
+  PriceFeedMapEntry,
+  PriceFeedTreeNode,
+  PriceOracleData,
+} from "../base";
 import { BaseContract } from "../base";
 import type { NetworkType } from "../chain";
+import { AP_PRICE_FEED_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PriceOracleV3StateHuman } from "../types";
 import { AddressMap } from "../utils";
@@ -41,11 +50,11 @@ export class PriceOracleContract extends BaseContract<abi> {
   /**
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
-  public readonly mainPriceFeeds: Record<Address, PriceFeedRef> = {};
+  public readonly mainPriceFeeds = new AddressMap<PriceFeedRef>();
   /**
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
-  public readonly reservePriceFeeds: Record<Address, PriceFeedRef> = {};
+  public readonly reservePriceFeeds = new AddressMap<PriceFeedRef>();
   /**
    * Mapping Token => Price in underlying
    */
@@ -55,7 +64,7 @@ export class PriceOracleContract extends BaseContract<abi> {
    */
   public readonly reservePrices = new AddressMap<bigint>();
 
-  readonly #priceFeedTree: readonly PriceFeedTreeNode[];
+  #priceFeedTree: readonly PriceFeedTreeNode[] = [];
 
   constructor(sdk: GearboxSDK, data: PriceOracleData, underlying: Address) {
     super(sdk, {
@@ -65,35 +74,7 @@ export class PriceOracleContract extends BaseContract<abi> {
     });
     this.underlying = underlying;
     const { priceFeedMapping, priceFeedStructure } = data;
-    this.#priceFeedTree = priceFeedStructure;
-
-    for (const node of priceFeedStructure) {
-      sdk.priceFeeds.create(node);
-    }
-
-    priceFeedMapping.forEach(node => {
-      const { token, priceFeed, reserve, stalenessPeriod } = node;
-      const ref = new PriceFeedRef(sdk, priceFeed, stalenessPeriod);
-      const price = this.#priceFeedTree.find(
-        n => n.baseParams.addr === priceFeed,
-      )?.answer?.price;
-      if (reserve) {
-        this.reservePriceFeeds[token] = ref;
-        if (price) {
-          this.reservePrices.upsert(token, price);
-        }
-      } else {
-        this.mainPriceFeeds[token] = ref;
-        if (price) {
-          this.mainPrices.upsert(token, price);
-        }
-      }
-      this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
-    });
-
-    this.logger?.debug(
-      `Got ${Object.keys(this.mainPriceFeeds).length} main and ${Object.keys(this.reservePriceFeeds).length} reserve price feeds`,
-    );
+    this.#loadState(priceFeedMapping, priceFeedStructure);
   }
 
   public override processLog(
@@ -133,8 +114,8 @@ export class PriceOracleContract extends BaseContract<abi> {
     const reserve = opts?.reserve ?? true;
     return tokens
       .flatMap(t => [
-        main ? this.mainPriceFeeds[t]?.priceFeed : undefined,
-        reserve ? this.reservePriceFeeds[t]?.priceFeed : undefined,
+        main ? this.mainPriceFeeds.get(t)?.priceFeed : undefined,
+        reserve ? this.reservePriceFeeds.get(t)?.priceFeed : undefined,
       ])
       .filter((f): f is IPriceFeedContract => !!f);
   }
@@ -246,6 +227,86 @@ export class PriceOracleContract extends BaseContract<abi> {
     await this.sdk.marketRegister.updatePrices([this.address]);
   }
 
+  public syncStateMulticall() {
+    if (this.version === 310) {
+      return {
+        call: {
+          abi: iPriceFeedCompressorAbi,
+          address: this.sdk.addressProvider.getLatestVersion(
+            AP_PRICE_FEED_COMPRESSOR,
+          ),
+          functionName: "getPriceFeeds",
+          args: [this.address],
+        },
+        onResult: ([entries, tree]: [
+          PriceFeedMapEntry[],
+          PriceFeedTreeNode[],
+        ]) => {
+          this.#loadState(entries, tree);
+        },
+      };
+    }
+    const tokens = new Set([
+      this.underlying,
+      ...this.mainPriceFeeds.keys(),
+      ...this.reservePriceFeeds.keys(),
+    ]);
+    // v300
+    return {
+      call: {
+        abi: iPriceFeedCompressorAbi,
+        address: this.sdk.addressProvider.getLatestVersion(
+          AP_PRICE_FEED_COMPRESSOR,
+        ),
+        functionName: "getPriceOracleState",
+        args: [this.address, [this.underlying, ...Array.from(tokens)]],
+      },
+      onResult: (state: PriceOracleData) => {
+        const { priceFeedMapping: entries, priceFeedStructure: tree } = state;
+        this.#loadState(entries, tree);
+      },
+    };
+  }
+
+  #loadState(
+    entries: readonly PriceFeedMapEntry[],
+    tree: readonly PriceFeedTreeNode[],
+  ): void {
+    this.#priceFeedTree = tree;
+    this.mainPriceFeeds.clear();
+    this.reservePriceFeeds.clear();
+    this.mainPrices.clear();
+    this.reservePrices.clear();
+
+    for (const node of tree) {
+      this.sdk.priceFeeds.getOrCreate(node);
+    }
+
+    entries.forEach(node => {
+      const { token, priceFeed, reserve, stalenessPeriod } = node;
+      const ref = new PriceFeedRef(this.sdk, priceFeed, stalenessPeriod);
+      const price = this.#priceFeedTree.find(
+        n => n.baseParams.addr === priceFeed,
+      )?.answer?.price;
+      if (reserve) {
+        this.reservePriceFeeds.upsert(token, ref);
+        if (price) {
+          this.reservePrices.upsert(token, price);
+        }
+      } else {
+        this.mainPriceFeeds.upsert(token, ref);
+        if (price) {
+          this.mainPrices.upsert(token, price);
+        }
+      }
+      this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
+    });
+
+    this.logger?.debug(
+      `Got ${Object.keys(this.mainPriceFeeds).length} main and ${Object.keys(this.reservePriceFeeds).length} reserve price feeds`,
+    );
+  }
+
   #labelPriceFeed(
     address: Address,
     usage: PriceFeedUsageType,
@@ -272,12 +333,12 @@ export class PriceOracleContract extends BaseContract<abi> {
   #findTokenForPriceFeed(
     priceFeed: Address,
   ): [token: Address | undefined, reserve: boolean] {
-    for (const [token, pf] of Object.entries(this.mainPriceFeeds)) {
+    for (const [token, pf] of this.mainPriceFeeds.entries()) {
       if (pf.address === priceFeed) {
         return [token as Address, false];
       }
     }
-    for (const [token, pf] of Object.entries(this.reservePriceFeeds)) {
+    for (const [token, pf] of this.reservePriceFeeds.entries()) {
       if (pf.address === priceFeed) {
         return [token as Address, true];
       }
@@ -294,16 +355,20 @@ export class PriceOracleContract extends BaseContract<abi> {
     return {
       ...super.stateHuman(raw),
       mainPriceFeeds: Object.fromEntries(
-        Object.entries(this.mainPriceFeeds).map(([token, v]) => [
-          this.labelAddress(token as Address),
-          v.stateHuman(raw),
-        ]),
+        this.mainPriceFeeds
+          .entries()
+          .map(([token, v]) => [
+            this.labelAddress(token as Address),
+            v.stateHuman(raw),
+          ]),
       ),
       reservePriceFeeds: Object.fromEntries(
-        Object.entries(this.reservePriceFeeds).map(([token, v]) => [
-          this.labelAddress(token as Address),
-          v.stateHuman(raw),
-        ]),
+        this.reservePriceFeeds
+          .entries()
+          .map(([token, v]) => [
+            this.labelAddress(token as Address),
+            v.stateHuman(raw),
+          ]),
       ),
     };
   }
