@@ -51,7 +51,7 @@
     "abitype": "^1.0.6",
     "date-fns": "^4.1.0",
     "redstone-protocol": "^1.0.5",
-    "viem": "^2.21.26"
+    "viem": ">=2.21.0 <3.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
