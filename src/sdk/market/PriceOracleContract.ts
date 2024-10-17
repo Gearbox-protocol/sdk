@@ -228,41 +228,31 @@ export class PriceOracleContract extends BaseContract<abi> {
   }
 
   public syncStateMulticall() {
-    if (this.version === 310) {
-      return {
-        call: {
-          abi: iPriceFeedCompressorAbi,
-          address: this.sdk.addressProvider.getLatestVersion(
-            AP_PRICE_FEED_COMPRESSOR,
-          ),
-          functionName: "getPriceFeeds",
-          args: [this.address],
-        },
-        onResult: ([entries, tree]: [
-          PriceFeedMapEntry[],
-          PriceFeedTreeNode[],
-        ]) => {
-          this.#loadState(entries, tree);
-        },
-      };
+    const args: any[] = [this.address];
+    if (this.version === 300) {
+      args.push(
+        Array.from(
+          new Set([
+            this.underlying,
+            ...this.mainPriceFeeds.keys(),
+            ...this.reservePriceFeeds.keys(),
+          ]),
+        ),
+      );
     }
-    const tokens = new Set([
-      this.underlying,
-      ...this.mainPriceFeeds.keys(),
-      ...this.reservePriceFeeds.keys(),
-    ]);
-    // v300
     return {
       call: {
         abi: iPriceFeedCompressorAbi,
         address: this.sdk.addressProvider.getLatestVersion(
           AP_PRICE_FEED_COMPRESSOR,
         ),
-        functionName: "getPriceOracleState",
-        args: [this.address, [this.underlying, ...Array.from(tokens)]],
+        functionName: "getPriceFeeds",
+        args,
       },
-      onResult: (state: PriceOracleData) => {
-        const { priceFeedMapping: entries, priceFeedStructure: tree } = state;
+      onResult: ([entries, tree]: [
+        PriceFeedMapEntry[],
+        PriceFeedTreeNode[],
+      ]) => {
         this.#loadState(entries, tree);
       },
     };
