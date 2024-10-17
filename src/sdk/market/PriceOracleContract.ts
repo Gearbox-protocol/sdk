@@ -1,29 +1,19 @@
 import type { Address, ContractEventName, Hex, Log } from "viem";
 import { decodeFunctionData } from "viem";
 
-import {
-  iPriceFeedCompressorAbi,
-  iUpdatablePriceFeedAbi,
-  priceOracleV3Abi,
-} from "../abi";
-import type {
-  PriceFeedMapEntry,
-  PriceFeedTreeNode,
-  PriceOracleData,
-} from "../base";
+import { iUpdatablePriceFeedAbi, priceOracleV3Abi } from "../abi";
+import type { PriceFeedTreeNode, PriceOracleData } from "../base";
 import { BaseContract } from "../base";
 import type { NetworkType } from "../chain";
-import { AP_PRICE_FEED_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { PriceOracleV3StateHuman } from "../types";
 import { AddressMap } from "../utils";
-import { simulateMulticall } from "../utils/viem";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
   UpdatePriceFeedsResult,
 } from "./pricefeeds";
-import { PriceFeedRef, rawTxToMulticallPriceUpdate } from "./pricefeeds";
+import { PriceFeedRef } from "./pricefeeds";
 
 type abi = typeof priceOracleV3Abi;
 
@@ -253,37 +243,7 @@ export class PriceOracleContract extends BaseContract<abi> {
    * Does not update price feeds, only updates prices
    */
   public async updatePrices(): Promise<void> {
-    const { txs } = await this.updatePriceFeeds();
-    const resp = await simulateMulticall(this.provider.publicClient, {
-      contracts: [
-        ...txs.map(rawTxToMulticallPriceUpdate),
-        {
-          abi: iPriceFeedCompressorAbi,
-          address: this.sdk.addressProvider.getLatestVersion(
-            AP_PRICE_FEED_COMPRESSOR,
-          ),
-          functionName: "getPriceFeeds",
-          args: [this.address],
-        },
-      ],
-      allowFailure: false,
-      gas: 550_000_000n,
-      batchSize: 0, // we cannot have price updates and compressor request in different batches
-    });
-    const [entries, tree] = resp.pop() as [
-      PriceFeedMapEntry[],
-      PriceFeedTreeNode[],
-    ];
-
-    entries.forEach(({ token, priceFeed, reserve }) => {
-      const price = tree.find(n => n.baseParams.addr === priceFeed)?.answer
-        ?.price;
-      if (reserve && price) {
-        this.reservePrices.upsert(token, price);
-      } else if (price) {
-        this.mainPrices.upsert(token, price);
-      }
-    });
+    await this.sdk.marketRegister.updatePrices([this.address]);
   }
 
   #labelPriceFeed(

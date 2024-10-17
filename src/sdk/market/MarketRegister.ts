@@ -1,20 +1,24 @@
 import type { Address } from "viem";
 
-import { iMarketCompressorAbi } from "../abi";
-import type { MarketData } from "../base";
+import { iMarketCompressorAbi, iPriceFeedCompressorAbi } from "../abi";
+import type { MarketData, PriceFeedMapEntry, PriceFeedTreeNode } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
   AP_MARKET_COMPRESSOR,
   AP_MARKET_CONFIGURATOR,
+  AP_PRICE_FEED_COMPRESSOR,
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { ILogger, MarketStateHuman, TVL } from "../types";
 import { AddressMap, childLogger } from "../utils";
+import { simulateMulticall } from "../utils/viem";
 import type { CreditFactory } from "./CreditFactory";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
 import { MarketFactory } from "./MarketFactory";
 import type { PoolFactory } from "./PoolFactory";
+import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
+import type { PriceOracleContract } from "./PriceOracleContract";
 
 export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
@@ -91,6 +95,51 @@ export class MarketRegister extends SDKConstruct {
     this.#logger?.info(`loaded ${markets.length} markets`);
   }
 
+  /**
+   * Loads new prices for given oracles from PriceFeedCompressor, defaults to all oracles
+   * Does not update price feeds, only updates prices
+   */
+  public async updatePrices(oracles?: Address[]): Promise<void> {
+    const oraclez = oracles ?? this.markets.map(m => m.priceOracle.address);
+    if (!oraclez.length) {
+      return;
+    }
+    const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
+    const resp = await simulateMulticall(this.provider.publicClient, {
+      contracts: [
+        ...txs.map(rawTxToMulticallPriceUpdate),
+        ...oraclez.map(o => ({
+          abi: iPriceFeedCompressorAbi,
+          address: this.sdk.addressProvider.getLatestVersion(
+            AP_PRICE_FEED_COMPRESSOR,
+          ),
+          functionName: "getPriceFeeds",
+          args: [o],
+        })),
+      ],
+      allowFailure: false,
+      gas: 550_000_000n,
+      batchSize: 0, // we cannot have price updates and compressor request in different batches
+    });
+    const oraclesStates = resp.slice(txs.length) as any as Array<
+      [PriceFeedMapEntry[], PriceFeedTreeNode[]]
+    >;
+    for (let i = 0; i < oraclez.length; i++) {
+      const oracleAddr = oraclez[i];
+      const oracle = this.findPriceOracle(oracleAddr);
+      const [entries, tree] = oraclesStates[i];
+      for (const { token, priceFeed, reserve } of entries) {
+        const price = tree.find(n => n.baseParams.addr === priceFeed)?.answer
+          ?.price;
+        if (reserve && price) {
+          oracle.reservePrices.upsert(token, price);
+        } else if (price) {
+          oracle.mainPrices.upsert(token, price);
+        }
+      }
+    }
+  }
+
   public get state(): MarketData[] {
     return this.markets.map(market => market.state);
   }
@@ -116,6 +165,15 @@ export class MarketRegister extends SDKConstruct {
       }
     }
     throw new Error(`cannot find credit manager ${creditManager}`);
+  }
+
+  public findPriceOracle(address: Address): PriceOracleContract {
+    for (const market of this.markets) {
+      if (market.priceOracle.address.toLowerCase() === address.toLowerCase()) {
+        return market.priceOracle;
+      }
+    }
+    throw new Error(`cannot find price oracle ${address}`);
   }
 
   public findByCreditManager(creditManager: Address): MarketFactory {
