@@ -178,7 +178,7 @@ export class GearboxSDK {
       this,
       addressProviderAddress,
     );
-    await this.#addressProvider.fetchState(this.currentBlock);
+    await this.#addressProvider.syncState(this.currentBlock);
 
     // Attaching bot list contract
     const botListAddress = this.#addressProvider.getAddress(AP_BOT_LIST, 300);

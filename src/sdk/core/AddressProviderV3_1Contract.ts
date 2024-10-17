@@ -86,7 +86,7 @@ export class AddressProviderContractV3_1 extends BaseContract<abi> {
     return this.getAddress(contract, this.latest[contract]);
   }
 
-  public async fetchState(blockNumber?: bigint): Promise<void> {
+  public async syncState(blockNumber?: bigint): Promise<void> {
     const entries = await this.contract.read.getAllSavedContracts({
       blockNumber,
     });
