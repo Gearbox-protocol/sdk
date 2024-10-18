@@ -17,7 +17,6 @@ import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
 import { MarketFactory } from "./MarketFactory";
 import type { PoolFactory } from "./PoolFactory";
 import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
-import type { PriceOracleContract } from "./PriceOracleContract";
 
 export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
@@ -151,15 +150,6 @@ export class MarketRegister extends SDKConstruct {
     throw new Error(`cannot find credit manager ${creditManager}`);
   }
 
-  public findPriceOracle(address: Address): PriceOracleContract {
-    for (const market of this.markets) {
-      if (market.priceOracle.address.toLowerCase() === address.toLowerCase()) {
-        return market.priceOracle;
-      }
-    }
-    throw new Error(`cannot find price oracle ${address}`);
-  }
-
   public findByCreditManager(creditManager: Address): MarketFactory {
     const market = this.markets.find(m =>
       m.creditManagers.some(
@@ -172,6 +162,15 @@ export class MarketRegister extends SDKConstruct {
       throw new Error(`cannot find market for credit manager ${creditManager}`);
     }
     return market;
+  }
+
+  public findByPriceOracle(address: Address): MarketFactory {
+    for (const market of this.markets) {
+      if (market.priceOracle.address.toLowerCase() === address.toLowerCase()) {
+        return market;
+      }
+    }
+    throw new Error(`cannot find price oracle ${address}`);
   }
 
   public get markets(): MarketFactory[] {

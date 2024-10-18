@@ -325,12 +325,12 @@ export class PriceOracleContract extends BaseContract<abi> {
   ): [token: Address | undefined, reserve: boolean] {
     for (const [token, pf] of this.mainPriceFeeds.entries()) {
       if (pf.address === priceFeed) {
-        return [token as Address, false];
+        return [token, false];
       }
     }
     for (const [token, pf] of this.reservePriceFeeds.entries()) {
       if (pf.address === priceFeed) {
-        return [token as Address, true];
+        return [token, true];
       }
     }
     // TODO: this is v3.0 legacy code, should be gone after full v.3.1 rollout
