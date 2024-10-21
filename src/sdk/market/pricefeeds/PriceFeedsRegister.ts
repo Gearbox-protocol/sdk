@@ -74,7 +74,7 @@ export class PriceFeedRegister
   public async generatePriceFeedsUpdateTxs(
     priceFeeds?: IPriceFeedContract[],
   ): Promise<UpdatePriceFeedsResult> {
-    const priceFeedz = priceFeeds ?? Object.values(this.#feeds);
+    const priceFeedz = priceFeeds ?? this.#feeds.values();
     const updateables = priceFeedz.flatMap(pf => pf.updatableDependencies());
     const txs: RawTx[] = [];
     const redstonePFs: RedstonePriceFeedContract[] = [];

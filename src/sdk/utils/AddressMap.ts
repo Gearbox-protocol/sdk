@@ -97,6 +97,10 @@ export class AddressMap<T> {
     return Object.fromEntries(this.#map.entries());
   }
 
+  public get size(): number {
+    return this.#map.size;
+  }
+
   public freeze(): void {
     this.#frozen = true;
   }
