@@ -1,12 +1,12 @@
 import { iyVaultAbi, yearnPriceFeedAbi } from "../../abi";
-import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
 
 type abi = typeof yearnPriceFeedAbi;
 
 export class YearnPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
+  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
     super(sdk, {
       ...args,
       name: "YearnPriceFeed",

@@ -2,22 +2,20 @@ import type { Hex } from "viem";
 import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 
 import { redstonePriceFeedAbi } from "../../abi";
-import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { RedstonePriceFeedStateHuman } from "../../types";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 
 type abi = typeof redstonePriceFeedAbi;
 
 export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
-  decimals = 8;
+  public readonly dataServiceId: string;
+  public readonly dataId: string;
+  public readonly signers: Hex[];
+  public readonly signersThreshold: number;
 
-  dataServiceId: string;
-  dataId: string;
-  signers: Array<string>;
-  signersThreshold: number;
-
-  constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
+  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
     super(sdk, {
       ...args,
       name: `RedstonePriceFeed`,
@@ -45,7 +43,7 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
     );
 
     this.dataId = bytesToString(toBytes(decoder[1])).replaceAll("\x00", "");
-    this.signers = decoder.slice(2, 11) as Array<Hex>;
+    this.signers = decoder.slice(2, 11) as Hex[];
     this.signersThreshold = Number(decoder[12]);
     this.dataServiceId = ["GMX", "BAL"].includes(this.dataId)
       ? "redstone-arbitrum-prod"

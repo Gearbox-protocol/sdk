@@ -1,4 +1,4 @@
-import type { Abi, UnionOmit } from "viem";
+import type { Abi, RequiredBy, UnionOmit } from "viem";
 
 import { ilpPriceFeedAbi } from "../../abi";
 import type { PriceFeedTreeNode } from "../../base";
@@ -8,8 +8,13 @@ import type { PriceFeedStateHuman } from "../../types";
 import { PriceFeedRef } from "./PriceFeedRef";
 import type { IPriceFeedContract, PriceFeedContractType } from "./types";
 
+export type PartialPriceFeedTreeNode = RequiredBy<
+  Partial<PriceFeedTreeNode>,
+  "baseParams"
+>;
+
 export type PriceFeedConstructorArgs<abi extends Abi | readonly unknown[]> =
-  PriceFeedTreeNode & {
+  PartialPriceFeedTreeNode & {
     abi: abi;
     name: string;
   };
@@ -23,10 +28,11 @@ export abstract class AbstractPriceFeedContract<
   /**
    * True if the contract deployed at this address implements IUpdatablePriceFeed interface
    */
-  public readonly updatable: boolean;
-  public readonly decimals: number;
-  public readonly underlyingPriceFeeds: PriceFeedRef[];
-  public readonly skipCheck: boolean;
+  #updatable?: boolean;
+  #decimals?: number;
+  #underlyingPriceFeeds?: readonly PriceFeedRef[];
+  #skipCheck?: boolean;
+
   public hasLowerBoundCap = false;
 
   constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
@@ -37,13 +43,52 @@ export abstract class AbstractPriceFeedContract<
       contractType: args.baseParams.contractType,
       version: args.baseParams.version,
     });
-    this.decimals = args.decimals;
-    this.updatable = args.updatable;
-    this.skipCheck = args.skipCheck;
-    this.underlyingPriceFeeds = args.underlyingFeeds.map(
-      (address, i) =>
-        new PriceFeedRef(this.sdk, address, args.underlyingStalenessPeriods[i]),
-    );
+    this.#decimals = args.decimals;
+    this.#updatable = args.updatable;
+    this.#skipCheck = args.skipCheck;
+
+    if (args.underlyingFeeds && args.underlyingStalenessPeriods) {
+      this.#underlyingPriceFeeds = args.underlyingFeeds.map(
+        (address, i) =>
+          new PriceFeedRef(
+            this.sdk,
+            address,
+            args.underlyingStalenessPeriods![i],
+          ),
+      );
+    }
+  }
+
+  public get loaded(): boolean {
+    return this.#decimals !== undefined;
+  }
+
+  public get decimals(): number {
+    if (this.#decimals === undefined) {
+      throw new Error("price feed has been initialized with BaseParams only");
+    }
+    return this.#decimals;
+  }
+
+  public get updatable(): boolean {
+    if (this.#updatable === undefined) {
+      throw new Error("price feed has been initialized with BaseParams only");
+    }
+    return this.#updatable;
+  }
+
+  public get skipCheck(): boolean {
+    if (this.#skipCheck === undefined) {
+      throw new Error("price feed has been initialized with BaseParams only");
+    }
+    return this.#skipCheck;
+  }
+
+  public get underlyingPriceFeeds(): readonly PriceFeedRef[] {
+    if (!this.#underlyingPriceFeeds) {
+      throw new Error("price feed has been initialized with BaseParams only");
+    }
+    return this.#underlyingPriceFeeds;
   }
 
   public get priceFeedType(): PriceFeedContractType {

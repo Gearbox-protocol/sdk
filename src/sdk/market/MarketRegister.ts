@@ -67,21 +67,33 @@ export class MarketRegister extends SDKConstruct {
       AP_MARKET_COMPRESSOR,
       3_10,
     );
-    const markets = await this.sdk.provider.publicClient.readContract({
-      address: marketCompressorAddress,
-      abi: iMarketCompressorAbi,
-      functionName: "getMarkets",
-      args: [
+    // to have correct prices we must first get all updatable price feeds
+    await this.sdk.priceFeeds.loadUpdatablePriceFeeds(curators, pools);
+    // the generate updates
+    const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
+    // ...and push them using multicall before getting answers
+    const resp = await simulateMulticall(this.provider.publicClient, {
+      contracts: [
+        ...txs.map(rawTxToMulticallPriceUpdate),
         {
-          curators,
-          pools,
-          underlying: ADDRESS_0X0,
+          abi: iMarketCompressorAbi,
+          address: marketCompressorAddress,
+          functionName: "getMarkets",
+          args: [
+            {
+              curators,
+              pools,
+              underlying: ADDRESS_0X0,
+            },
+          ],
         },
       ],
-      // It's passed as ...rest in viem readContract action, but this might change
-      // @ts-ignore
-      gas: 500_000_000n,
+      allowFailure: false,
+      gas: 550_000_000n,
+      batchSize: 0, // we cannot have price updates and compressor request in different batches
     });
+
+    const markets = resp.pop() as MarketData[];
 
     for (const data of markets) {
       this.#markets.upsert(

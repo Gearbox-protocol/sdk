@@ -1,12 +1,12 @@
 import { bptStablePriceFeedAbi, iBalancerStablePoolAbi } from "../../abi";
-import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
 
 type abi = typeof bptStablePriceFeedAbi;
 
 export class BalancerStablePriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
+  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
     super(sdk, {
       ...args,
       name: "BalancerStablePriceFeed",

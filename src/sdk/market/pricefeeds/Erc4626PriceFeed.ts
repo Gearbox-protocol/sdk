@@ -1,14 +1,14 @@
 import { erc4626Abi } from "viem";
 
 import { erc20Abi, erc4626PriceFeedAbi } from "../../abi";
-import type { PriceFeedTreeNode } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
 
 type abi = typeof erc4626PriceFeedAbi;
 
 export class Erc4626PriceFeedContract extends AbstractLPPriceFeedContract<abi> {
-  constructor(sdk: GearboxSDK, args: PriceFeedTreeNode) {
+  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
     super(sdk, {
       ...args,
       name: "ERC4626PriceFeed",

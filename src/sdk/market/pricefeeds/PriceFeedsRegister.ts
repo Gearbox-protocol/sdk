@@ -1,11 +1,14 @@
 import type { Address, Hex } from "viem";
 
+import { iMarketCompressorAbi } from "../../abi";
 import { type PriceFeedTreeNode, SDKConstruct } from "../../base";
+import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { ILogger, RawTx } from "../../types";
 import { AddressMap, bytes32ToString, childLogger } from "../../utils";
 import type { IHooks } from "../../utils/internal";
 import { Hooks } from "../../utils/internal";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
 import { BalancerStablePriceFeedContract } from "./BalancerStablePriceFeed";
 import { BalancerWeightedPriceFeedContract } from "./BalancerWeightedPriceFeed";
 import { BoundedPriceFeedContract } from "./BoundedPriceFeed";
@@ -107,7 +110,9 @@ export class PriceFeedRegister
 
   public getOrCreate(data: PriceFeedTreeNode): IPriceFeedContract {
     const existing = this.#feeds.get(data.baseParams.addr);
-    if (existing) {
+    // it's possible to have non-loaded price feed here first from MarketCompressor.getUpdatablePriceFeeds
+    // we ovewrite them using full tree nodes
+    if (existing?.loaded) {
       return existing;
     }
     const feed = this.#create(data);
@@ -123,7 +128,41 @@ export class PriceFeedRegister
     this.#redstoneUpdater.setHistoricalTimestamp(timestampMs);
   }
 
-  #create(data: PriceFeedTreeNode): IPriceFeedContract {
+  /**
+   * Loads PARTIAL information about all updatable price feeds from MarketCompressor
+   * This can later be used to load price feed updates
+   */
+  public async loadUpdatablePriceFeeds(
+    curators?: Address[],
+    pools?: Address[],
+  ): Promise<void> {
+    const marketCompressorAddress = this.sdk.addressProvider.getAddress(
+      AP_MARKET_COMPRESSOR,
+      3_10,
+    );
+    const feedsData = await this.provider.publicClient.readContract({
+      address: marketCompressorAddress,
+      abi: iMarketCompressorAbi,
+      functionName: "getUpdatablePriceFeeds",
+      args: [
+        {
+          curators: curators ?? this.sdk.marketRegister.curators,
+          pools: pools ?? [],
+          underlying: ADDRESS_0X0,
+        },
+      ],
+      // It's passed as ...rest in viem readContract action, but this might change
+      // @ts-ignore
+      gas: 500_000_000n,
+    });
+    for (const data of feedsData) {
+      const feed = this.#create({ baseParams: data });
+      this.#feeds.upsert(feed.address, feed);
+    }
+    this.logger?.debug(`loaded ${feedsData.length} updatable price feeds`);
+  }
+
+  #create(data: PartialPriceFeedTreeNode): IPriceFeedContract {
     const contractType = bytes32ToString(
       data.baseParams.contractType as Hex,
     ) as PriceFeedContractType;

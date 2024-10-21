@@ -8,9 +8,10 @@ import { PoolFactory } from "./PoolFactory";
 import { PriceOracleContract } from "./PriceOracleContract";
 
 export class MarketFactory extends SDKConstruct {
-  public readonly riskCurator!: Address;
-  public readonly poolFactory!: PoolFactory;
-  public readonly priceOracle!: PriceOracleContract;
+  public readonly acl: Address;
+  public readonly riskCurator: Address;
+  public readonly poolFactory: PoolFactory;
+  public readonly priceOracle: PriceOracleContract;
   public readonly creditManagers: CreditFactory[] = [];
   /**
    * Original data received from compressor
@@ -21,6 +22,7 @@ export class MarketFactory extends SDKConstruct {
     super(sdk);
     this.state = marketData;
     this.riskCurator = marketData.owner;
+    this.acl = marketData.acl;
 
     for (const t of marketData.tokens) {
       sdk.tokensMeta.upsert(t.addr, t);

@@ -30,6 +30,11 @@ export interface IPriceFeedContract extends IBaseContract {
    * True if the contract deployed at this address implements IUpdatablePriceFeed interface
    */
   readonly updatable: boolean;
+  /**
+   * It's possible to create PriceFeed with base params only.
+   * This flag idicates that all the price feed data (decimals, skip check, dependencies...) has been loaded from compressor
+   */
+  readonly loaded: boolean;
 
   answer: (overrides?: { blockNumber?: bigint }) => Promise<bigint>;
   stateHuman: (

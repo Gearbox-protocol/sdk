@@ -729,6 +729,11 @@ export const iMarketCompressorAbi = [
             internalType: "address",
           },
           {
+            name: "acl",
+            type: "address",
+            internalType: "address",
+          },
+          {
             name: "name",
             type: "string",
             internalType: "string",
@@ -1692,6 +1697,11 @@ export const iMarketCompressorAbi = [
             internalType: "address",
           },
           {
+            name: "acl",
+            type: "address",
+            internalType: "address",
+          },
+          {
             name: "name",
             type: "string",
             internalType: "string",
@@ -2583,6 +2593,64 @@ export const iMarketCompressorAbi = [
             name: "emergencyLiquidators",
             type: "address[]",
             internalType: "address[]",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getUpdatablePriceFeeds",
+    inputs: [
+      {
+        name: "filter",
+        type: "tuple",
+        internalType: "struct MarketFilter",
+        components: [
+          {
+            name: "curators",
+            type: "address[]",
+            internalType: "address[]",
+          },
+          {
+            name: "pools",
+            type: "address[]",
+            internalType: "address[]",
+          },
+          {
+            name: "underlying",
+            type: "address",
+            internalType: "address",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "updatablePriceFeeds",
+        type: "tuple[]",
+        internalType: "struct BaseParams[]",
+        components: [
+          {
+            name: "addr",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "version",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "contractType",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "serializedParams",
+            type: "bytes",
+            internalType: "bytes",
           },
         ],
       },
