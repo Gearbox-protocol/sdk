@@ -99,6 +99,12 @@ export class PoolContract extends BaseContract<typeof abi> {
     >,
   ): void {
     switch (log.eventName) {
+      case "Paused":
+        this.isPaused = true;
+        break;
+      case "Unpaused":
+        this.isPaused = false;
+        break;
       // TODO: do we really mark all events?
       case "SetCreditManagerDebtLimit":
       case "Repay":
@@ -112,12 +118,10 @@ export class PoolContract extends BaseContract<typeof abi> {
       case "EIP712DomainChanged":
       case "IncurUncoveredLoss":
       case "NewController":
-      case "Paused":
       case "Refer":
       case "SetInterestRateModel":
       case "SetPoolQuotaKeeper":
       case "Transfer":
-      case "Unpaused":
         this.dirty = true;
         break;
     }

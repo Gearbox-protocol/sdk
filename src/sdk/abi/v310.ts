@@ -573,6 +573,32 @@ export const iCreditFacadeV310Abi = [
   },
   {
     type: "event",
+    anonymous: false,
+    inputs: [
+      {
+        name: "account",
+        internalType: "address",
+        type: "address",
+        indexed: false,
+      },
+    ],
+    name: "Paused",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      {
+        name: "account",
+        internalType: "address",
+        type: "address",
+        indexed: false,
+      },
+    ],
+    name: "Unpaused",
+  },
+  {
+    type: "event",
     name: "AddCollateral",
     inputs: [
       {

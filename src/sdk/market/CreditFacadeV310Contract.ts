@@ -73,6 +73,12 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
     >,
   ): void {
     switch (log.eventName) {
+      case "Paused":
+        this.isPaused = true;
+        break;
+      case "Unpaused":
+        this.isPaused = false;
+        break;
       case "AddCollateral":
       case "CloseCreditAccount":
       case "Execute":
