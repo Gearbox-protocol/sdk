@@ -52,15 +52,10 @@ export class PriceFeedRegister
   #feeds = new AddressMap<IPriceFeedContract>();
   #redstoneUpdater: RedstoneUpdater;
 
-  // public readonly zeroPriceFeed: ZeroPriceFeedContract;
-
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.logger = childLogger("PriceFeedRegister", sdk.logger);
     this.#redstoneUpdater = new RedstoneUpdater(sdk);
-    // TODO: creating zero price feed. do we even need it here, or only in deploy-v3?
-    // const zeroPriceFeed = sdk.addressProvider.getAddress(AP_ZERO_PRICE_FEED);
-    // this.zeroPriceFeed = new ZeroPriceFeedContract({});
   }
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);

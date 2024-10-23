@@ -172,6 +172,11 @@ export interface PoolFactoryStateHuman {
   gauge: GaugeStateHuman;
 }
 
+export interface ZapperStateHuman extends BaseContractStateHuman {
+  tokenIn: string;
+  tokenOut: string;
+}
+
 export interface MarketStateHuman {
   pool: PoolFactoryStateHuman;
   creditManagers: CreditFactoryStateHuman[];
@@ -179,6 +184,7 @@ export interface MarketStateHuman {
   pausableAdmins: string[];
   unpausableAdmins: string[];
   emergencyLiquidators: string[];
+  zappers: ZapperStateHuman[];
 }
 
 export interface GearboxStateHuman {

@@ -47,11 +47,22 @@ export interface SDKOptions {
    * Bring your own logger
    */
   logger?: ILogger;
+  /**
+   * Fixed redstone historic timestamp in ms
+   */
+  redstoneHistoricTimestamp?: number;
 }
 
 interface SDKContructorArgs {
   provider: Provider;
   logger?: ILogger;
+}
+
+interface AttachOptionsInternal {
+  addressProvider: Address;
+  riskCurators?: Address[];
+  blockNumber?: bigint | number;
+  redstoneHistoricTimestamp?: number;
 }
 
 export interface SyncStateOptions {
@@ -118,7 +129,8 @@ export class GearboxSDK {
       ConnectionOptions &
       TransportOptions,
   ): Promise<GearboxSDK> {
-    const { logger, riskCurators, blockNumber } = options;
+    const { logger, riskCurators, blockNumber, redstoneHistoricTimestamp } =
+      options;
     let { networkType, addressProvider, chainId } = options;
 
     const attachClient = createPublicClient({
@@ -147,7 +159,12 @@ export class GearboxSDK {
     return new GearboxSDK({
       provider,
       logger,
-    }).#attach(addressProvider, riskCurators, blockNumber);
+    }).#attach({
+      addressProvider,
+      riskCurators,
+      blockNumber,
+      redstoneHistoricTimestamp,
+    });
   }
 
   private constructor(options: SDKContructorArgs) {
@@ -156,12 +173,18 @@ export class GearboxSDK {
     this.priceFeeds = new PriceFeedRegister(this);
   }
 
-  async #attach(
-    addressProviderAddress: Address,
-    riskCurators?: Address[],
-    blockNumber?: bigint | number,
-  ): Promise<this> {
+  async #attach(opts: AttachOptionsInternal): Promise<this> {
+    const {
+      addressProvider,
+      blockNumber,
+      redstoneHistoricTimestamp,
+      riskCurators,
+    } = opts;
     const time = Date.now();
+
+    if (redstoneHistoricTimestamp) {
+      this.priceFeeds.setRedstoneHistoricalTimestamp(redstoneHistoricTimestamp);
+    }
 
     const block = await this.provider.publicClient.getBlock(
       blockNumber
@@ -173,10 +196,10 @@ export class GearboxSDK {
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
-    this.logger?.info("Attaching to address provider", addressProviderAddress);
+    this.logger?.info("Attaching to address provider", addressProvider);
     this.#addressProvider = new AddressProviderContractV3_1(
       this,
-      addressProviderAddress,
+      addressProvider,
     );
     await this.#addressProvider.syncState(this.currentBlock);
 

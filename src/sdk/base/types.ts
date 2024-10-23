@@ -31,6 +31,7 @@ export type MarketData = Unarray<
 >;
 
 export type CreditManagerData = Unarray<MarketData["creditManagers"]>;
+export type ZapperData = Unarray<MarketData["zappers"]>;
 export type CreditManagerState = CreditManagerData["creditManager"];
 export type CreditFacadeState = CreditManagerData["creditFacade"];
 export type CreditConfiguratorState = CreditManagerData["creditConfigurator"];

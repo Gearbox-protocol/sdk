@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 
-import { type MarketData, SDKConstruct } from "../base";
+import type { MarketData, ZapperData } from "../base";
+import { SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketStateHuman } from "../types";
 import { CreditFactory } from "./CreditFactory";
@@ -17,6 +18,7 @@ export class MarketFactory extends SDKConstruct {
    * Original data received from compressor
    */
   public readonly state: MarketData;
+  public readonly zappers: readonly ZapperData[];
 
   constructor(sdk: GearboxSDK, marketData: MarketData) {
     super(sdk);
@@ -30,6 +32,7 @@ export class MarketFactory extends SDKConstruct {
     }
 
     this.poolFactory = new PoolFactory(sdk, marketData);
+    this.zappers = marketData.zappers;
 
     for (let i = 0; i < marketData.creditManagers.length; i++) {
       this.creditManagers.push(new CreditFactory(sdk, marketData, i));
@@ -62,6 +65,13 @@ export class MarketFactory extends SDKConstruct {
       emergencyLiquidators: this.state.emergencyLiquidators.map(a =>
         this.labelAddress(a),
       ),
+      zappers: this.zappers.map(z => ({
+        address: z.baseParams.addr,
+        contractType: z.baseParams.contractType,
+        version: Number(z.baseParams.version),
+        tokenIn: this.labelAddress(z.tokenIn),
+        tokenOut: this.labelAddress(z.tokenOut),
+      })),
     };
   }
 }
