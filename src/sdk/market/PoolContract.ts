@@ -32,6 +32,13 @@ export class PoolContract extends BaseContract<typeof abi> {
     this.creditManagerDebtParams = new AddressMap(
       creditManagerDebtParams.map(p => [p.creditManager, p]),
     );
+    // Put diesel token into tokens meta
+    sdk.tokensMeta.upsert(data.baseParams.addr, {
+      addr: data.baseParams.addr,
+      decimals: data.decimals,
+      name: data.name,
+      symbol: data.symbol,
+    });
   }
 
   public override stateHuman(raw = true): PoolStateHuman {
