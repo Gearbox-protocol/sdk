@@ -31,7 +31,22 @@ type ExtraFarmTokens = Extract<
 // tokens with apy among them
 type ExtraTokensWithAPY = Extract<
   ExtraFarmTokens,
-  "STETH" | "rETH" | "osETH" | "cbETH" | "wstETH" | "sfrxETH"
+  | "STETH"
+  | "rETH"
+  | "osETH"
+  | "cbETH"
+  | "wstETH"
+  | "sfrxETH"
+  | "pzETH"
+  | "ezETH"
+  | "Re7LRT"
+  | "rsETH"
+  | "weETH"
+  | "rswETH"
+  | "rstETH"
+  | "steakLRT"
+  | "amphrETH"
+  | "pufETH"
 >;
 
 // LRT & LST tokens among them
@@ -70,6 +85,17 @@ const EXTRA_TOKENS_WITH_APY: Record<ExtraTokensWithAPY, true> = {
   wstETH: true,
   cbETH: true,
   sfrxETH: true,
+
+  pzETH: true,
+  ezETH: true,
+  Re7LRT: true,
+  rsETH: true,
+  weETH: true,
+  rswETH: true,
+  rstETH: true,
+  steakLRT: true,
+  amphrETH: true,
+  pufETH: true,
 };
 
 const isExtraTokenWithAPY = (t: unknown): t is ExtraTokensWithAPY => {
