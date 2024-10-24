@@ -94,6 +94,9 @@ export class PriceFeedRegister
     }
 
     const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
+    this.logger?.debug(
+      `generated ${txs.length} price feed update transactions, timestamp: ${maxTimestamp}`,
+    );
     if (txs.length) {
       await this.#hooks.triggerHooks("updatesGenerated", result);
     }
