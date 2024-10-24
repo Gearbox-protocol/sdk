@@ -44,13 +44,14 @@ export interface SDKOptions {
    */
   blockNumber?: bigint | number;
   /**
+   * Fixed redstone historic timestamp in ms
+   * Set to true to enable redstone historical mode using timestamp from attach block
+   */
+  redstoneHistoricTimestamp?: number | true;
+  /**
    * Bring your own logger
    */
   logger?: ILogger;
-  /**
-   * Fixed redstone historic timestamp in ms
-   */
-  redstoneHistoricTimestamp?: number;
 }
 
 interface SDKContructorArgs {
@@ -62,7 +63,7 @@ interface AttachOptionsInternal {
   addressProvider: Address;
   riskCurators?: Address[];
   blockNumber?: bigint | number;
-  redstoneHistoricTimestamp?: number;
+  redstoneHistoricTimestamp?: number | true;
 }
 
 export interface SyncStateOptions {
@@ -181,11 +182,6 @@ export class GearboxSDK {
       riskCurators,
     } = opts;
     const time = Date.now();
-
-    if (redstoneHistoricTimestamp) {
-      this.priceFeeds.setRedstoneHistoricalTimestamp(redstoneHistoricTimestamp);
-    }
-
     const block = await this.provider.publicClient.getBlock(
       blockNumber
         ? { blockNumber: BigInt(blockNumber) }
@@ -193,6 +189,11 @@ export class GearboxSDK {
             blockTag: "latest",
           },
     );
+
+    if (redstoneHistoricTimestamp) {
+      this.priceFeeds.setRedstoneHistoricalTimestamp(redstoneHistoricTimestamp);
+    }
+
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 

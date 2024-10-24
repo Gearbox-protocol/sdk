@@ -118,10 +118,12 @@ export class PriceFeedRegister
 
   /**
    * Set redstone historical timestamp
-   * @param timestampMs in milliseconds
+   * @param timestampMs in milliseconds, or true to use timestamp from attach block
    */
-  public setRedstoneHistoricalTimestamp(timestampMs: number): void {
-    this.#redstoneUpdater.setHistoricalTimestamp(timestampMs);
+  public setRedstoneHistoricalTimestamp(timestampMs: number | true): void {
+    const ts =
+      timestampMs === true ? Number(this.sdk.timestamp) * 1000 : timestampMs;
+    this.#redstoneUpdater.setHistoricalTimestamp(ts);
   }
 
   /**
