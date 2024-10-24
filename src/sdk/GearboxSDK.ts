@@ -189,13 +189,12 @@ export class GearboxSDK {
             blockTag: "latest",
           },
     );
+    this.#currentBlock = block.number;
+    this.#timestamp = block.timestamp;
 
     if (redstoneHistoricTimestamp) {
       this.priceFeeds.setRedstoneHistoricalTimestamp(redstoneHistoricTimestamp);
     }
-
-    this.#currentBlock = block.number;
-    this.#timestamp = block.timestamp;
 
     this.logger?.info("Attaching to address provider", addressProvider);
     this.#addressProvider = new AddressProviderContractV3_1(
