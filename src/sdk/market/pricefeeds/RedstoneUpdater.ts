@@ -28,15 +28,16 @@ interface UpdatePFTask {
 export class RedstoneUpdater extends SDKConstruct {
   #logger?: ILogger;
   #cache = new Map<string, TimestampedCalldata>();
-  #historicalTimestamp?: number;
+  #historicalTimestampMs?: number;
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#logger = childLogger("RedstoneUpdater", sdk.logger);
   }
 
-  public setHistoricalTimestamp(timestamp: number): void {
-    this.#historicalTimestamp = timestamp;
+  public setHistoricalTimestamp(timestampMs: number): void {
+    // redstone timestamps are rounded to one minute
+    this.#historicalTimestampMs = 60_000 * Math.floor(timestampMs / 60_000);
   }
 
   public async getUpdateTxs(
@@ -113,10 +114,10 @@ export class RedstoneUpdater extends SDKConstruct {
         dataServiceId,
         dataFeedId,
         uniqueSignersCount,
-        this.#historicalTimestamp,
+        this.#historicalTimestampMs,
       );
       const cached = this.#cache.get(key);
-      if (this.#historicalTimestamp && !!cached) {
+      if (this.#historicalTimestampMs && !!cached) {
         fromCache.push(cached);
       } else {
         uncached.push(dataFeedId);
@@ -129,13 +130,13 @@ export class RedstoneUpdater extends SDKConstruct {
       uniqueSignersCount,
     );
     // cache newly fetched responses
-    if (this.#historicalTimestamp) {
+    if (this.#historicalTimestampMs) {
       for (const resp of fromRedstone) {
         const key = cacheKey(
           dataServiceId,
           resp.dataFeedId,
           uniqueSignersCount,
-          this.#historicalTimestamp,
+          this.#historicalTimestampMs,
         );
         this.#cache.set(key, resp);
       }
@@ -164,8 +165,8 @@ export class RedstoneUpdater extends SDKConstruct {
       return [];
     }
     const dataPackagesIds = Array.from(dataFeedsIds);
-    const tsStr = this.#historicalTimestamp
-      ? ` with historical timestamp ${this.#historicalTimestamp}`
+    const tsStr = this.#historicalTimestampMs
+      ? ` with historical timestamp ${this.#historicalTimestampMs}`
       : "";
     this.#logger?.debug(
       `fetching redstone payloads for ${dataFeedsIds.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${dataPackagesIds.join(", ")}${tsStr}`,
@@ -174,7 +175,7 @@ export class RedstoneUpdater extends SDKConstruct {
       dataServiceId,
       dataPackagesIds,
       uniqueSignersCount,
-      historicalTimestamp: this.#historicalTimestamp,
+      historicalTimestamp: this.#historicalTimestampMs,
     });
 
     const dataPayload = await wrapper.prepareRedstonePayload(true);

@@ -196,7 +196,14 @@ export class GearboxSDK {
       this.priceFeeds.setRedstoneHistoricalTimestamp(redstoneHistoricTimestamp);
     }
 
-    this.logger?.info("Attaching to address provider", addressProvider);
+    this.logger?.info(
+      {
+        addressProvider,
+        blockNumber: block.number,
+        timestamp: block.timestamp,
+      },
+      "attaching",
+    );
     this.#addressProvider = new AddressProviderContractV3_1(
       this,
       addressProvider,
