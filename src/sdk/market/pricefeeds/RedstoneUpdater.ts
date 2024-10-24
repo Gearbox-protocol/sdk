@@ -85,7 +85,7 @@ export class RedstoneUpdater extends SDKConstruct {
       }
     }
     this.#logger?.debug(
-      `generated  ${results.length} update transactions for redstone price feeds`,
+      `generated ${results.length} update transactions for redstone price feeds`,
     );
     return results;
   }
@@ -141,7 +141,7 @@ export class RedstoneUpdater extends SDKConstruct {
       }
     }
     this.#logger?.debug(
-      `got ${fromRedstone.length} redstone updates from cache and ${fromCache.length} from cache`,
+      `got ${fromRedstone.length} new redstone updates and ${fromCache.length} from cache`,
     );
 
     return [...fromCache, ...fromRedstone];
