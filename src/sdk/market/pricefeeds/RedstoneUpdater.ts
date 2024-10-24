@@ -62,10 +62,6 @@ export class RedstoneUpdater extends SDKConstruct {
     for (const [key, group] of Object.entries(groupedFeeds)) {
       const [dataServiceId, signersStr] = key.split(":");
       const uniqueSignersCount = parseInt(signersStr, 10);
-      this.#logger?.debug(
-        `fetching redstone payloads for ${group.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${Array.from(group).join(", ")}`,
-      );
-
       const payloads = await this.#getPayloads(
         dataServiceId,
         group,
@@ -107,6 +103,9 @@ export class RedstoneUpdater extends SDKConstruct {
     dataFeedsIds: Set<string>,
     uniqueSignersCount: number,
   ): Promise<TimestampedCalldata[]> {
+    this.#logger?.debug(
+      `getting redstone payloads for ${dataFeedsIds.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${Array.from(dataFeedsIds).join(", ")}`,
+    );
     const fromCache: TimestampedCalldata[] = [];
     const uncached: string[] = [];
     for (const dataFeedId of dataFeedsIds) {
@@ -141,6 +140,9 @@ export class RedstoneUpdater extends SDKConstruct {
         this.#cache.set(key, resp);
       }
     }
+    this.#logger?.debug(
+      `got ${fromRedstone.length} redstone updates from cache and ${fromCache.length} from cache`,
+    );
 
     return [...fromCache, ...fromRedstone];
   }
@@ -162,6 +164,12 @@ export class RedstoneUpdater extends SDKConstruct {
       return [];
     }
     const dataPackagesIds = Array.from(dataFeedsIds);
+    const tsStr = this.#historicalTimestamp
+      ? ` with historical timestamp ${this.#historicalTimestamp}`
+      : "";
+    this.#logger?.debug(
+      `fetching redstone payloads for ${dataFeedsIds.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${dataPackagesIds.join(", ")}${tsStr}`,
+    );
     const wrapper = new DataServiceWrapper({
       dataServiceId,
       dataPackagesIds,
