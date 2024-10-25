@@ -5,7 +5,6 @@ import { routerV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import type { CreditAccountData } from "../base/types";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { MultiCall } from "../types";
 import { AddressMap } from "../utils";
 import type { IHooks } from "../utils/internal";
 import { Hooks } from "../utils/internal";
@@ -47,18 +46,6 @@ export type RouterHooks = {
    * Internal router event
    */
   foundPathOptions: [{ creditAccount: Address } & FindClosePathInput];
-  /**
-   * Internal router event
-   */
-  foundBestClosePath: [
-    {
-      creditAccount: Address;
-      amount: bigint;
-      minAmount: bigint;
-      calls: MultiCall[];
-      underlyingBalance: bigint;
-    },
-  ];
 };
 
 /**
@@ -311,10 +298,6 @@ export class RouterV3Contract
       })),
       underlyingBalance: underlyingBalance + bestResult.minAmount,
     };
-    await this.#hooks.triggerHooks("foundBestClosePath", {
-      creditAccount: ca.creditAccount as Address,
-      ...result,
-    });
     return result;
   }
 

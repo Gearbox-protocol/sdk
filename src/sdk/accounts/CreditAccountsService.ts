@@ -21,6 +21,7 @@ import {
   rawTxToMulticallPriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market";
+import type { RouterCloseResult } from "../router";
 import type { MultiCall, RawTx } from "../types";
 import { simulateMulticall } from "../utils/viem";
 
@@ -42,6 +43,16 @@ export interface CreditAccountFilter {
   includeZeroDebt?: boolean;
   minHealthFactor?: number;
   maxHealthFactor?: number;
+}
+
+export interface FullyLiquidateAccountResult {
+  tx: RawTx;
+  routerCloseResult: RouterCloseResult;
+}
+
+export interface CloseCreditAccountResult {
+  tx: RawTx;
+  routerCloseResult: RouterCloseResult;
 }
 
 export class CreditAccountsService extends SDKConstruct {
@@ -171,18 +182,20 @@ export class CreditAccountsService extends SDKConstruct {
     account: CreditAccountData,
     to: Address,
     slippage = 50n,
-  ): Promise<RawTx> {
+  ): Promise<FullyLiquidateAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
-    const preview = await this.sdk.router.findBestClosePath(
+    const routerCloseResult = await this.sdk.router.findBestClosePath(
       account,
       cm.creditManager,
       slippage,
     );
     const priceUpdates = await this.getPriceUpdatesForFacade(account);
-    return cm.creditFacade.liquidateCreditAccount(account.creditAccount, to, [
-      ...priceUpdates,
-      ...preview.calls,
-    ]);
+    const tx = cm.creditFacade.liquidateCreditAccount(
+      account.creditAccount,
+      to,
+      [...priceUpdates, ...routerCloseResult.calls],
+    );
+    return { tx, routerCloseResult };
   }
 
   /**
@@ -200,18 +213,20 @@ export class CreditAccountsService extends SDKConstruct {
     assetsToKeep: Address[],
     to: Address,
     slippage = 50n,
-  ): Promise<RawTx> {
+  ): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-    const calls = await this.#prepareCloseCreditAccount(
+    const { calls, routerCloseResult } = await this.#prepareCloseCreditAccount(
       ca,
       cm,
       assetsToKeep,
       to,
       slippage,
     );
-    return operation === "close"
-      ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-      : cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx =
+      operation === "close"
+        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
+        : cm.creditFacade.multicall(ca.creditAccount, calls);
+    return { tx, routerCloseResult };
   }
 
   /**
@@ -331,16 +346,16 @@ export class CreditAccountsService extends SDKConstruct {
     assetsToKeep: Address[],
     to: Address,
     slippage = 50n,
-  ): Promise<MultiCall[]> {
-    const closePath = await this.sdk.router.findBestClosePath(
+  ): Promise<{ calls: MultiCall[]; routerCloseResult: RouterCloseResult }> {
+    const routerCloseResult = await this.sdk.router.findBestClosePath(
       ca,
       cm.creditManager,
       slippage,
     );
     const priceUpdates = await this.getPriceUpdatesForFacade(ca);
-    return [
+    const calls = [
       ...priceUpdates,
-      ...closePath.calls,
+      ...routerCloseResult.calls,
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
       ...this.#prepareDisableTokens(ca),
@@ -348,6 +363,7 @@ export class CreditAccountsService extends SDKConstruct {
         this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
       ),
     ];
+    return { calls, routerCloseResult };
   }
 
   #prepareDisableQuotas(ca: CreditAccountData): MultiCall[] {
