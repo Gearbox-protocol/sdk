@@ -65,6 +65,13 @@ const NORMAL_TO_LAMA: Record<
     auraB_rETH_STABLE_vault: "a4b5b995-99e7-4b8f-916d-8940b5627d70",
 
     sUSDe: "66985a81-9c51-46ca-9977-42b4fe7bc6df",
+
+    stkcvxcrvFRAX: "bd072651-d99c-4154-aeae-51f12109c054",
+    stkcvxcrvUSDETHCRV: "654ac683-141b-42d3-b28d-b2f77eedd595",
+    stkcvxcrvUSDFRAX: "411af006-56b0-480a-9586-1071bccbd178",
+    stkcvxcrvUSDTWBTCWETH: "3be97c90-d4a8-42b3-a0d0-2906ae4e9d27",
+    stkcvxcrvUSDUSDC: "755fcec6-f4fd-4150-9184-60f099206694",
+    stkcvxcrvUSDUSDT: "a3ffd3fe-b21c-44eb-94d5-22c80057a600",
   },
   Optimism: { rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb" },
   Arbitrum: {
