@@ -40,15 +40,6 @@ export class PoolData {
 
   readonly totalBorrowed: bigint;
   readonly totalDebtLimit: bigint;
-  readonly creditManagerDebtParams: Record<
-    Address,
-    {
-      creditManager: Address;
-      borrowed: bigint;
-      limit: bigint;
-      availableToBorrow: bigint;
-    }
-  >;
   readonly quotas: Record<
     Address,
     {
@@ -115,19 +106,6 @@ export class PoolData {
 
     this.totalBorrowed = payload.totalBorrowed;
     this.totalDebtLimit = payload.totalDebtLimit;
-    this.creditManagerDebtParams = payload.creditManagerDebtParams.reduce<
-      PoolData["creditManagerDebtParams"]
-    >((acc, p) => {
-      const creditManager = p.creditManager.toLowerCase() as Address;
-      acc[creditManager] = {
-        creditManager,
-        borrowed: p.borrowed,
-        limit: p.limit,
-        availableToBorrow: p.availableToBorrow,
-      };
-
-      return acc;
-    }, {});
 
     this.quotas = payload.quotas.reduce<PoolData["quotas"]>((acc, q) => {
       const token = q.token.toLowerCase() as Address;
