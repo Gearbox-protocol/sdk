@@ -40,6 +40,11 @@ export interface FindClosePathInput {
   connectors: Address[];
 }
 
+interface ClosePathBalances {
+  expectedBalances: Array<Asset>;
+  leftoverBalances: Array<Asset>;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RouterHooks = {
   /**
@@ -193,8 +198,8 @@ export class RouterV3Contract
     slippage: number | bigint,
   ): Promise<OpenStrategyResult> {
     const [expectedMap, leftoverMap] = [
-      assetsMap(expectedBalances),
-      assetsMap(leftoverBalances),
+      balancesMap(expectedBalances),
+      balancesMap(leftoverBalances),
     ];
     const input: Asset[] = cm.collateralTokens.map(token => ({
       token,
@@ -250,9 +255,19 @@ export class RouterV3Contract
     ca: CreditAccountData,
     cm: CreditManagerSlice,
     slippage: bigint | number,
+    balances?: ClosePathBalances,
   ): Promise<RouterCloseResult> {
     const { pathOptions, expected, leftover, connectors } =
-      this.getFindClosePathInput(ca, cm);
+      this.getFindClosePathInput(
+        ca,
+        cm,
+        balances
+          ? {
+              expectedBalances: assetsMap(balances.expectedBalances),
+              leftoverBalances: assetsMap(balances.leftoverBalances),
+            }
+          : undefined,
+      );
     await this.#hooks.triggerHooks("foundPathOptions", {
       creditAccount: ca.creditAccount,
       pathOptions,
@@ -260,6 +275,7 @@ export class RouterV3Contract
       leftover,
       connectors,
     });
+
     let results: RouterResult[] = [];
     for (const po of pathOptions) {
       // TODO: maybe Promise.all?
@@ -310,21 +326,10 @@ export class RouterV3Contract
   public getFindClosePathInput(
     ca: CreditAccountData,
     cm: CreditManagerSlice,
+    balances?: ReturnType<RouterV3Contract["getDefaultExpectedAndLeftover"]>,
   ): FindClosePathInput {
-    const expectedBalances = new AddressMap<Asset>();
-    const leftoverBalances = new AddressMap<Asset>();
-    for (const { token: t, balance, mask } of ca.tokens) {
-      const token = t as Address;
-      const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
-      expectedBalances.upsert(token, { token, balance });
-      const decimals = this.sdk.tokensMeta.decimals(token);
-      // filter out dust, we don't want to swap it
-      const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
-      // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
-      if (balance < minBalance || !isEnabled) {
-        leftoverBalances.upsert(token, { token, balance });
-      }
-    }
+    const b = balances || this.getDefaultExpectedAndLeftover(ca);
+    const { leftoverBalances, expectedBalances } = b;
 
     // TODO: PathOptionFactory deals with token data from SDK
     // it needs to accept market data
@@ -354,6 +359,25 @@ export class RouterV3Contract
     return { expected, leftover, connectors, pathOptions };
   }
 
+  public getDefaultExpectedAndLeftover(ca: CreditAccountData) {
+    const expectedBalances = new AddressMap<Asset>();
+    const leftoverBalances = new AddressMap<Asset>();
+    for (const { token: t, balance, mask } of ca.tokens) {
+      const token = t as Address;
+      const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
+      expectedBalances.upsert(token, { token, balance });
+      const decimals = this.sdk.tokensMeta.decimals(token);
+      // filter out dust, we don't want to swap it
+      const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
+      // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
+      if (balance < minBalance || !isEnabled) {
+        leftoverBalances.upsert(token, { token, balance });
+      }
+    }
+
+    return { expectedBalances, leftoverBalances };
+  }
+
   public getAvailableConnectors(collateralTokens: Address[]): Address[] {
     return collateralTokens.filter(t =>
       this.#connectors.includes(t.toLowerCase() as Address),
@@ -365,6 +389,10 @@ function compareRouterResults(a: RouterResult, b: RouterResult): RouterResult {
   return a.amount > b.amount ? a : b;
 }
 
-function assetsMap(assets: Asset[]): AddressMap<bigint> {
+function balancesMap(assets: Asset[]): AddressMap<bigint> {
   return new AddressMap(assets.map(({ token, balance }) => [token, balance]));
+}
+
+function assetsMap(assets: Asset[]): AddressMap<Asset> {
+  return new AddressMap(assets.map(a => [a.token, a]));
 }
