@@ -8,11 +8,11 @@ export interface CaTokenBalance {
   isQuoted: boolean;
   quota: bigint;
   quotaRate: bigint;
+  mask: bigint;
 }
 
 export interface CreditAccountDataPayload {
   isSuccessful: boolean;
-  priceFeedsNeeded: readonly Address[];
   addr: Address;
   borrower: Address;
   creditManager: Address;
@@ -36,6 +36,7 @@ export interface CreditAccountDataPayload {
     isQuoted: boolean;
     quota: bigint;
     quotaRate: number;
+    mask: bigint;
   }[];
   cfVersion: bigint;
   expirationDate: number;

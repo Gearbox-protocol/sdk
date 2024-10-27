@@ -135,7 +135,6 @@ const MAX_UINT16 = 65535;
 
 export class CreditAccountData {
   readonly isSuccessful: boolean;
-  readonly priceFeedsNeeded: Address[];
 
   readonly addr: Address;
   readonly borrower: Address;
@@ -170,7 +169,6 @@ export class CreditAccountData {
 
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
-    this.priceFeedsNeeded = payload.priceFeedsNeeded.map(t => t);
 
     this.addr = payload.addr.toLowerCase() as Address;
     this.borrower = payload.borrower.toLowerCase() as Address;
@@ -216,6 +214,7 @@ export class CreditAccountData {
         isQuoted: b.isQuoted,
         quota: b.quota,
         quotaRate: BigInt(b.quotaRate) * PERCENTAGE_DECIMALS,
+        mask: b.mask,
       };
 
       if (!b.isForbidden) {
