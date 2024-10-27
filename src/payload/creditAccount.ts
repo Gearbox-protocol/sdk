@@ -36,7 +36,6 @@ export interface CreditAccountDataPayload {
     isQuoted: boolean;
     quota: bigint;
     quotaRate: number;
-    quotaCumulativeIndexLU: bigint;
   }[];
   cfVersion: bigint;
   expirationDate: number;
