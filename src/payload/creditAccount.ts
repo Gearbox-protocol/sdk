@@ -8,7 +8,6 @@ export interface CaTokenBalance {
   isQuoted: boolean;
   quota: bigint;
   quotaRate: bigint;
-  quotaCumulativeIndexLU: bigint;
 }
 
 export interface CreditAccountDataPayload {
@@ -17,12 +16,9 @@ export interface CreditAccountDataPayload {
   addr: Address;
   borrower: Address;
   creditManager: Address;
-  cmName: string;
   creditFacade: Address;
   underlying: Address;
   debt: bigint;
-  cumulativeIndexLastUpdate: bigint;
-  cumulativeQuotaInterest: bigint;
   accruedInterest: bigint;
   accruedFees: bigint;
   totalDebtUSD: bigint;
@@ -32,7 +28,6 @@ export interface CreditAccountDataPayload {
   enabledTokensMask: bigint;
   healthFactor: bigint;
   baseBorrowRate: bigint;
-  aggregatedBorrowRate: bigint;
   balances: readonly {
     token: Address;
     balance: bigint;
@@ -43,7 +38,6 @@ export interface CreditAccountDataPayload {
     quotaRate: number;
     quotaCumulativeIndexLU: bigint;
   }[];
-  since: bigint;
   cfVersion: bigint;
   expirationDate: number;
   activeBots: readonly Address[];
