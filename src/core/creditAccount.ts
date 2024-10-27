@@ -142,17 +142,14 @@ export class CreditAccountData {
   readonly creditManager: Address;
   readonly creditFacade: Address;
   readonly underlyingToken: Address;
-  readonly since: number;
   readonly expirationDate: number;
   readonly version: number;
-  readonly cmName: string;
 
   readonly enabledTokenMask: bigint;
   readonly healthFactor: number;
   isDeleting: boolean;
 
   readonly baseBorrowRateWithoutFee: number;
-  readonly borrowRateWithoutFee: number;
 
   readonly borrowedAmount: bigint;
   readonly accruedInterest: bigint;
@@ -162,9 +159,6 @@ export class CreditAccountData {
   readonly totalValue: bigint;
   readonly totalValueUSD: bigint;
   readonly twvUSD: bigint;
-
-  readonly cumulativeIndexLastUpdate: bigint;
-  readonly cumulativeQuotaInterest: bigint;
 
   readonly activeBots: Record<Address, true>;
 
@@ -183,10 +177,8 @@ export class CreditAccountData {
     this.creditManager = payload.creditManager.toLowerCase() as Address;
     this.creditFacade = payload.creditFacade.toLowerCase() as Address;
     this.underlyingToken = payload.underlying.toLowerCase() as Address;
-    this.since = Number(payload.since);
     this.expirationDate = Number(payload.expirationDate);
     this.version = Number(payload.cfVersion);
-    this.cmName = payload.cmName;
 
     this.healthFactor = Number(payload.healthFactor || 0n);
     this.enabledTokenMask = payload.enabledTokensMask;
@@ -205,12 +197,6 @@ export class CreditAccountData {
     this.baseBorrowRateWithoutFee = rayToNumber(
       payload.baseBorrowRate * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR,
     );
-    this.borrowRateWithoutFee = rayToNumber(
-      payload.aggregatedBorrowRate * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR,
-    );
-
-    this.cumulativeIndexLastUpdate = payload.cumulativeIndexLastUpdate;
-    this.cumulativeQuotaInterest = payload.cumulativeQuotaInterest;
 
     this.activeBots = payload.activeBots.reduce<
       CreditAccountData["activeBots"]
@@ -230,7 +216,6 @@ export class CreditAccountData {
         isQuoted: b.isQuoted,
         quota: b.quota,
         quotaRate: BigInt(b.quotaRate) * PERCENTAGE_DECIMALS,
-        quotaCumulativeIndexLU: b.quotaCumulativeIndexLU,
       };
 
       if (!b.isForbidden) {
