@@ -21,7 +21,7 @@ import {
   rawTxToMulticallPriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market";
-import type { RouterCloseResult } from "../router";
+import type { CreditAccountDataSlice, RouterCloseResult } from "../router";
 import type { MultiCall, RawTx } from "../types";
 import { simulateMulticall } from "../utils/viem";
 
@@ -179,7 +179,7 @@ export class CreditAccountsService extends SDKConstruct {
    * @returns
    */
   public async fullyLiquidate(
-    account: CreditAccountData,
+    account: CreditAccountDataSlice,
     to: Address,
     slippage = 50n,
   ): Promise<FullyLiquidateAccountResult> {
@@ -209,7 +209,7 @@ export class CreditAccountsService extends SDKConstruct {
    */
   async closeCreditAccount(
     operation: "close" | "zeroDebt",
-    ca: CreditAccountData,
+    ca: CreditAccountDataSlice,
     assetsToKeep: Address[],
     to: Address,
     slippage = 50n,
@@ -284,7 +284,7 @@ export class CreditAccountsService extends SDKConstruct {
    * @returns
    */
   public async getUpdateForAccounts(
-    accounts: CreditAccountData[],
+    accounts: CreditAccountDataSlice[],
   ): Promise<UpdatePriceFeedsResult> {
     // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
     const tokensByPool = new Map<Address, Set<Address>>();
@@ -318,7 +318,7 @@ export class CreditAccountsService extends SDKConstruct {
    * @returns
    */
   public async getOnDemandPriceUpdates(
-    acc: CreditAccountData,
+    acc: CreditAccountDataSlice,
   ): Promise<OnDemandPriceUpdate[]> {
     const market = this.sdk.marketRegister.findByCreditManager(
       acc.creditManager,
@@ -333,7 +333,7 @@ export class CreditAccountsService extends SDKConstruct {
    * @returns
    */
   public async getPriceUpdatesForFacade(
-    acc: CreditAccountData,
+    acc: CreditAccountDataSlice,
   ): Promise<MultiCall[]> {
     const cm = this.sdk.marketRegister.findCreditManager(acc.creditManager);
     const updates = await this.getOnDemandPriceUpdates(acc);
@@ -341,7 +341,7 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   async #prepareCloseCreditAccount(
-    ca: CreditAccountData,
+    ca: CreditAccountDataSlice,
     cm: CreditFactory,
     assetsToKeep: Address[],
     to: Address,
@@ -366,7 +366,7 @@ export class CreditAccountsService extends SDKConstruct {
     return { calls, routerCloseResult };
   }
 
-  #prepareDisableQuotas(ca: CreditAccountData): MultiCall[] {
+  #prepareDisableQuotas(ca: CreditAccountDataSlice): MultiCall[] {
     const calls: MultiCall[] = [];
     for (const { token, quota } of ca.tokens) {
       if (quota > 0n) {
@@ -383,7 +383,7 @@ export class CreditAccountsService extends SDKConstruct {
     return calls;
   }
 
-  #prepareDecreaseDebt(ca: CreditAccountData): MultiCall[] {
+  #prepareDecreaseDebt(ca: CreditAccountDataSlice): MultiCall[] {
     if (ca.totalDebtUSD > 0n) {
       return [
         {
@@ -399,7 +399,7 @@ export class CreditAccountsService extends SDKConstruct {
     return [];
   }
 
-  #prepareDisableTokens(ca: CreditAccountData): MultiCall[] {
+  #prepareDisableTokens(ca: CreditAccountDataSlice): MultiCall[] {
     const calls: MultiCall[] = [];
     for (const t of ca.tokens) {
       if (
@@ -421,7 +421,7 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   #prepareWithdrawToken(
-    ca: CreditAccountData,
+    ca: CreditAccountDataSlice,
     token: Address,
     amount: bigint,
     to: Address,

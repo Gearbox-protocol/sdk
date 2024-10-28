@@ -61,6 +61,17 @@ interface CreditManagerSlice {
   collateralTokens: Address[];
 }
 
+export type CreditAccountDataSlice = Pick<
+  CreditAccountData,
+  | "tokens"
+  | "enabledTokensMask"
+  | "underlying"
+  | "creditAccount"
+  | "creditFacade"
+  | "totalDebtUSD"
+  | "creditManager"
+>;
+
 export class RouterV3Contract
   extends BaseContract<abi>
   implements IHooks<RouterHooks>
@@ -93,7 +104,7 @@ export class RouterV3Contract
    * @returns
    */
   public async findAllSwaps(
-    ca: CreditAccountData,
+    ca: CreditAccountDataSlice,
     cm: CreditManagerSlice,
     swapOperation: SwapOperation,
     tokenIn: Address,
@@ -149,7 +160,7 @@ export class RouterV3Contract
    * @returns
    */
   public async findOneTokenPath(
-    ca: CreditAccountData,
+    ca: CreditAccountDataSlice,
     cm: CreditManagerSlice,
     tokenIn: Address,
     tokenOut: Address,
@@ -245,14 +256,14 @@ export class RouterV3Contract
    * @dev Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
    *   Can bu used for closing Credit Account and for liquidations as well.
    * @param ca CreditAccountStruct object used for close path computation
-   * @param cm CreditManagerSlice for corresponging credit manager
+   * @param cm CreditManagerSlice for corresponding credit manager
    * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
    * @return The best option in PathFinderCloseResult format, which
    *          - underlyingBalance - total balance of underlying token
    *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
    */
   public async findBestClosePath(
-    ca: CreditAccountData,
+    ca: CreditAccountDataSlice,
     cm: CreditManagerSlice,
     slippage: bigint | number,
     balances?: ClosePathBalances,
@@ -324,7 +335,7 @@ export class RouterV3Contract
    * @returns
    */
   public getFindClosePathInput(
-    ca: CreditAccountData,
+    ca: CreditAccountDataSlice,
     cm: CreditManagerSlice,
     balances?: ReturnType<RouterV3Contract["getDefaultExpectedAndLeftover"]>,
   ): FindClosePathInput {
@@ -359,7 +370,7 @@ export class RouterV3Contract
     return { expected, leftover, connectors, pathOptions };
   }
 
-  public getDefaultExpectedAndLeftover(ca: CreditAccountData) {
+  public getDefaultExpectedAndLeftover(ca: CreditAccountDataSlice) {
     const expectedBalances = new AddressMap<Asset>();
     const leftoverBalances = new AddressMap<Asset>();
     for (const { token: t, balance, mask } of ca.tokens) {
