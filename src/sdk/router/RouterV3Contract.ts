@@ -40,7 +40,7 @@ export interface FindClosePathInput {
   connectors: Address[];
 }
 
-interface ClosePathBalances {
+export interface ClosePathBalances {
   expectedBalances: Array<Asset>;
   leftoverBalances: Array<Asset>;
 }
