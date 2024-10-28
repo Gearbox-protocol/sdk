@@ -68,7 +68,7 @@ export type CreditAccountDataSlice = Pick<
   | "underlying"
   | "creditAccount"
   | "creditFacade"
-  | "totalDebtUSD"
+  | "debt"
   | "creditManager"
 >;
 

@@ -52,6 +52,25 @@ export interface FullyLiquidateAccountResult {
 
 export interface CloseCreditAccountResult {
   tx: RawTx;
+  calls: Array<MultiCall>;
+}
+
+interface CloseCreditAccountProps {
+  operation: "close" | "zeroDebt";
+  ca: CreditAccountDataSlice;
+  assetsToKeep: Address[];
+  to: Address;
+  slippage?: bigint;
+  closeCall?: Array<MultiCall>;
+}
+
+interface PrepareCloseCreditAccountProps {
+  ca: CreditAccountDataSlice;
+  cm: CreditFactory;
+  assetsToKeep: Address[];
+  to: Address;
+  slippage?: bigint;
+  closeCall?: Array<MultiCall>;
 }
 
 export class CreditAccountsService extends SDKConstruct {
@@ -207,28 +226,20 @@ export class CreditAccountsService extends SDKConstruct {
    * @returns
    */
   async closeCreditAccount(
-    operation: "close" | "zeroDebt",
-    ca: CreditAccountDataSlice,
-    assetsToKeep: Address[],
-    to: Address,
-    slippage = 50n,
-    closeCall?: Array<MultiCall>,
+    props: CloseCreditAccountProps,
   ): Promise<CloseCreditAccountResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-    const { calls } = closeCall
-      ? { calls: closeCall }
-      : await this.#prepareCloseCreditAccount(
-          ca,
-          cm,
-          assetsToKeep,
-          to,
-          slippage,
-        );
+    const cm = this.sdk.marketRegister.findCreditManager(
+      props.ca.creditManager,
+    );
+    const { calls } = await this.#prepareCloseCreditAccount({
+      ...props,
+      cm,
+    });
     const tx =
-      operation === "close"
-        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-        : cm.creditFacade.multicall(ca.creditAccount, calls);
-    return { tx };
+      props.operation === "close"
+        ? cm.creditFacade.closeCreditAccount(props.ca.creditAccount, calls)
+        : cm.creditFacade.multicall(props.ca.creditAccount, calls);
+    return { tx, calls };
   }
 
   /**
@@ -342,22 +353,23 @@ export class CreditAccountsService extends SDKConstruct {
     return cm.creditFacade.encodeOnDemandPriceUpdates(updates);
   }
 
-  async #prepareCloseCreditAccount(
-    ca: CreditAccountDataSlice,
-    cm: CreditFactory,
-    assetsToKeep: Address[],
-    to: Address,
+  async #prepareCloseCreditAccount({
+    ca,
+    cm,
+    assetsToKeep,
+    to,
     slippage = 50n,
-  ): Promise<{ calls: MultiCall[] }> {
-    const routerCloseResult = await this.sdk.router.findBestClosePath(
-      ca,
-      cm.creditManager,
-      slippage,
-    );
+    closeCall,
+  }: PrepareCloseCreditAccountProps): Promise<{ calls: MultiCall[] }> {
+    const routerCloseCalls =
+      closeCall ||
+      (await this.sdk.router.findBestClosePath(ca, cm.creditManager, slippage))
+        .calls;
+
     const priceUpdates = await this.getPriceUpdatesForFacade(ca);
     const calls = [
       ...priceUpdates,
-      ...routerCloseResult.calls,
+      ...routerCloseCalls,
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
       ...this.#prepareDisableTokens(ca),
@@ -386,7 +398,7 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   #prepareDecreaseDebt(ca: CreditAccountDataSlice): MultiCall[] {
-    if (ca.totalDebtUSD > 0n) {
+    if (ca.debt > 0n) {
       return [
         {
           target: ca.creditFacade,
