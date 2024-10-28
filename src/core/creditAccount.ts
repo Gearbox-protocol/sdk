@@ -155,6 +155,7 @@ export class CreditAccountData {
   readonly accruedFees: bigint;
   readonly totalDebtUSD: bigint;
   readonly borrowedAmountPlusInterestAndFees: bigint;
+  readonly debt: bigint;
   readonly totalValue: bigint;
   readonly totalValueUSD: bigint;
   readonly twvUSD: bigint;
@@ -185,6 +186,7 @@ export class CreditAccountData {
     this.borrowedAmount = payload.debt;
     this.accruedInterest = payload.accruedInterest || 0n;
     this.accruedFees = payload.accruedFees || 0n;
+    this.debt = this.borrowedAmount;
     this.borrowedAmountPlusInterestAndFees =
       this.borrowedAmount + this.accruedInterest + this.accruedFees;
     this.totalDebtUSD = payload.totalDebtUSD;
