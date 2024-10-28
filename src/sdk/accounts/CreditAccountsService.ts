@@ -5,7 +5,11 @@ import {
   iCreditAccountCompressorAbi,
   iCreditFacadeV3MulticallAbi,
 } from "../abi";
-import { type CreditAccountData, SDKConstruct } from "../base";
+import {
+  type CreditAccountData,
+  CreditManagerData,
+  SDKConstruct,
+} from "../base";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -21,7 +25,11 @@ import {
   rawTxToMulticallPriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market";
-import type { CreditAccountDataSlice, RouterCloseResult } from "../router";
+import type {
+  Asset,
+  CreditAccountDataSlice,
+  RouterCloseResult,
+} from "../router";
 import type { MultiCall, RawTx } from "../types";
 import { simulateMulticall } from "../utils/viem";
 
@@ -56,22 +64,51 @@ export interface CloseCreditAccountResult {
   routerCloseResult: RouterCloseResult;
 }
 
-interface CloseCreditAccountProps {
-  operation: "close" | "zeroDebt";
+export interface RepayCreditAccountResult {
+  tx: RawTx;
+  calls: Array<MultiCall>;
+}
+
+type CloseOptions = "close" | "zeroDebt";
+
+interface CloseCreditAccountProps
+  extends Omit<PrepareCloseCreditAccountProps, "cm"> {
+  operation: CloseOptions;
+}
+
+interface PrepareCloseCreditAccountProps {
+  cm: CreditFactory;
   ca: CreditAccountDataSlice;
-  assetsToKeep: Address[];
+  assetsToWithdraw: Address[];
   to: Address;
   slippage?: bigint;
   closePath?: RouterCloseResult;
 }
 
-interface PrepareCloseCreditAccountProps {
+interface RepayCreditAccountProps extends PrepareRepayCreditAccountProps {
+  operation: CloseOptions;
+}
+
+interface PrepareRepayCreditAccountProps {
+  collateralAssets: Asset[];
+  assetsToWithdraw: Address[];
   ca: CreditAccountDataSlice;
-  cm: CreditFactory;
-  assetsToKeep: Address[];
   to: Address;
-  slippage?: bigint;
-  closePath?: RouterCloseResult;
+  permits: Record<string, PermitResult>;
+}
+
+export interface PermitResult {
+  r: Address;
+  s: Address;
+  v: number;
+
+  token: Address;
+  owner: Address;
+  spender: Address;
+  value: bigint;
+
+  deadline: bigint;
+  nonce: bigint;
 }
 
 export class CreditAccountsService extends SDKConstruct {
@@ -221,7 +258,7 @@ export class CreditAccountsService extends SDKConstruct {
    * Closes credit account or sets debt to zero (but keep account)
    * @param operation
    * @param ca
-   * @param assetsToKeep Tokens to withdraw from credit account
+   * @param assetsToWithdraw Tokens to withdraw from credit account
    * @param to Address to withdraw underlying to
    * @param slippage
    * @returns
@@ -241,6 +278,31 @@ export class CreditAccountsService extends SDKConstruct {
         ? cm.creditFacade.closeCreditAccount(props.ca.creditAccount, calls)
         : cm.creditFacade.multicall(props.ca.creditAccount, calls);
     return { tx, calls, routerCloseResult };
+  }
+
+  /**
+   * Repays credit account or sets debt to zero (but keep account)
+   * @param operation
+   * @param ca
+   * @param assetsToWithdraw Tokens to withdraw from credit account
+   * @param collateralAssets Tokens to pay for
+   * @param to Address to withdraw underlying to
+   * @param slippage
+   * @returns
+   */
+  async repayCreditAccount(
+    props: RepayCreditAccountProps,
+  ): Promise<RepayCreditAccountResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      props.ca.creditManager,
+    );
+    const { calls } = await this.#prepareRepayCreditAccount(props);
+
+    const tx =
+      props.operation === "close"
+        ? cm.creditFacade.closeCreditAccount(props.ca.creditAccount, calls)
+        : cm.creditFacade.multicall(props.ca.creditAccount, calls);
+    return { tx, calls };
   }
 
   /**
@@ -357,7 +419,7 @@ export class CreditAccountsService extends SDKConstruct {
   async #prepareCloseCreditAccount({
     ca,
     cm,
-    assetsToKeep,
+    assetsToWithdraw,
     to,
     slippage = 50n,
     closePath,
@@ -374,11 +436,34 @@ export class CreditAccountsService extends SDKConstruct {
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
       ...this.#prepareDisableTokens(ca),
-      ...assetsToKeep.map(t =>
+      ...assetsToWithdraw.map(t =>
         this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
       ),
     ];
     return { calls, routerCloseResult };
+  }
+
+  async #prepareRepayCreditAccount({
+    ca,
+    assetsToWithdraw,
+    to,
+    collateralAssets,
+    permits,
+  }: PrepareRepayCreditAccountProps): Promise<{
+    calls: MultiCall[];
+  }> {
+    const addCollateral = collateralAssets.filter(a => a.balance > 0);
+
+    const calls = [
+      ...this.#prepareAddCollateralCalls(addCollateral, ca, permits),
+      ...this.#prepareDisableQuotas(ca),
+      ...this.#prepareDecreaseDebt(ca),
+      ...this.#prepareDisableTokens(ca),
+      ...assetsToWithdraw.map(t =>
+        this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
+      ),
+    ];
+    return { calls };
   }
 
   #prepareDisableQuotas(ca: CreditAccountDataSlice): MultiCall[] {
@@ -449,6 +534,38 @@ export class CreditAccountsService extends SDKConstruct {
         args: [token, amount, to],
       }),
     };
+  }
+
+  #prepareAddCollateralCalls(
+    assets: Array<Asset>,
+    ca: CreditAccountDataSlice,
+    permits: Record<string, PermitResult>,
+  ): Array<MultiCall> {
+    const calls = assets.map(({ token, balance }) => {
+      const p = permits[token];
+
+      if (p) {
+        return {
+          target: ca.creditFacade,
+          callData: encodeFunctionData({
+            abi: iCreditFacadeV3MulticallAbi,
+            functionName: "addCollateralWithPermit",
+            args: [token, balance, p.deadline, p.v, p.r, p.s],
+          }),
+        };
+      }
+
+      return {
+        target: ca.creditFacade,
+        callData: encodeFunctionData({
+          abi: iCreditFacadeV3MulticallAbi,
+          functionName: "addCollateral",
+          args: [token, balance],
+        }),
+      };
+    });
+
+    return calls;
   }
 
   /**
