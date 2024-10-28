@@ -71,13 +71,8 @@ export interface RepayCreditAccountResult {
 
 type CloseOptions = "close" | "zeroDebt";
 
-interface CloseCreditAccountProps
-  extends Omit<PrepareCloseCreditAccountProps, "cm"> {
+interface CloseCreditAccountProps {
   operation: CloseOptions;
-}
-
-interface PrepareCloseCreditAccountProps {
-  cm: CreditFactory;
   ca: CreditAccountDataSlice;
   assetsToWithdraw: Address[];
   to: Address;
@@ -85,11 +80,11 @@ interface PrepareCloseCreditAccountProps {
   closePath?: RouterCloseResult;
 }
 
-interface RepayCreditAccountProps extends PrepareRepayCreditAccountProps {
+interface RepayCreditAccountProps extends RepayAndLiquidateCreditAccountProps {
   operation: CloseOptions;
 }
 
-interface PrepareRepayCreditAccountProps {
+interface RepayAndLiquidateCreditAccountProps {
   collateralAssets: Asset[];
   assetsToWithdraw: Address[];
   ca: CreditAccountDataSlice;
@@ -261,22 +256,37 @@ export class CreditAccountsService extends SDKConstruct {
    * @param assetsToWithdraw Tokens to withdraw from credit account
    * @param to Address to withdraw underlying to
    * @param slippage
+   * @param closePath
    * @returns
    */
-  async closeCreditAccount(
-    props: CloseCreditAccountProps,
-  ): Promise<CloseCreditAccountResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      props.ca.creditManager,
-    );
-    const { calls, routerCloseResult } = await this.#prepareCloseCreditAccount({
-      ...props,
-      cm,
-    });
+  async closeCreditAccount({
+    operation,
+    assetsToWithdraw,
+    ca,
+    to,
+    slippage = 50n,
+    closePath,
+  }: CloseCreditAccountProps): Promise<CloseCreditAccountResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+    const routerCloseResult =
+      closePath ||
+      (await this.sdk.router.findBestClosePath(ca, cm.creditManager, slippage));
+
+    const calls = [
+      ...routerCloseResult.calls,
+      ...this.#prepareDisableQuotas(ca),
+      ...this.#prepareDecreaseDebt(ca),
+      ...this.#prepareDisableTokens(ca),
+      ...assetsToWithdraw.map(t =>
+        this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
+      ),
+    ];
+
     const tx =
-      props.operation === "close"
-        ? cm.creditFacade.closeCreditAccount(props.ca.creditAccount, calls)
-        : cm.creditFacade.multicall(props.ca.creditAccount, calls);
+      operation === "close"
+        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
+        : cm.creditFacade.multicall(ca.creditAccount, calls);
     return { tx, calls, routerCloseResult };
   }
 
@@ -288,20 +298,72 @@ export class CreditAccountsService extends SDKConstruct {
    * @param collateralAssets Tokens to pay for
    * @param to Address to withdraw underlying to
    * @param slippage
+   * @param permits
    * @returns
    */
-  async repayCreditAccount(
-    props: RepayCreditAccountProps,
-  ): Promise<RepayCreditAccountResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      props.ca.creditManager,
-    );
-    const { calls } = await this.#prepareRepayCreditAccount(props);
+  async repayCreditAccount({
+    operation,
+    collateralAssets,
+    assetsToWithdraw,
+    ca,
+    permits,
+    to,
+  }: RepayCreditAccountProps): Promise<RepayCreditAccountResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+    const addCollateral = collateralAssets.filter(a => a.balance > 0);
+
+    const calls = [
+      ...this.#prepareAddCollateralCalls(addCollateral, ca, permits),
+      ...this.#prepareDisableQuotas(ca),
+      ...this.#prepareDecreaseDebt(ca),
+      ...this.#prepareDisableTokens(ca),
+      ...assetsToWithdraw.map(t =>
+        this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
+      ),
+    ];
 
     const tx =
-      props.operation === "close"
-        ? cm.creditFacade.closeCreditAccount(props.ca.creditAccount, calls)
-        : cm.creditFacade.multicall(props.ca.creditAccount, calls);
+      operation === "close"
+        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
+        : cm.creditFacade.multicall(ca.creditAccount, calls);
+    return { tx, calls };
+  }
+
+  /**
+   * Repays liquidatable credit account
+   * @param ca
+   * @param assetsToWithdraw Tokens to withdraw from credit account
+   * @param collateralAssets Tokens to pay for
+   * @param to Address to withdraw underlying to
+   * @param slippage
+   * @returns
+   */
+  async repayAndLiquidateCreditAccount({
+    collateralAssets,
+    assetsToWithdraw,
+    ca,
+    permits,
+    to,
+  }: RepayAndLiquidateCreditAccountProps): Promise<RepayCreditAccountResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+    const priceUpdates = await this.getPriceUpdatesForFacade(ca);
+
+    const addCollateral = collateralAssets.filter(a => a.balance > 0);
+
+    const calls = [
+      ...priceUpdates,
+      ...this.#prepareAddCollateralCalls(addCollateral, ca, permits),
+      ...assetsToWithdraw.map(t =>
+        this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
+      ),
+    ];
+
+    const tx = cm.creditFacade.liquidateCreditAccount(
+      ca.creditAccount,
+      to,
+      calls,
+    );
     return { tx, calls };
   }
 
@@ -414,56 +476,6 @@ export class CreditAccountsService extends SDKConstruct {
     const cm = this.sdk.marketRegister.findCreditManager(acc.creditManager);
     const updates = await this.getOnDemandPriceUpdates(acc);
     return cm.creditFacade.encodeOnDemandPriceUpdates(updates);
-  }
-
-  async #prepareCloseCreditAccount({
-    ca,
-    cm,
-    assetsToWithdraw,
-    to,
-    slippage = 50n,
-    closePath,
-  }: PrepareCloseCreditAccountProps): Promise<{
-    calls: MultiCall[];
-    routerCloseResult: RouterCloseResult;
-  }> {
-    const routerCloseResult =
-      closePath ||
-      (await this.sdk.router.findBestClosePath(ca, cm.creditManager, slippage));
-
-    const calls = [
-      ...routerCloseResult.calls,
-      ...this.#prepareDisableQuotas(ca),
-      ...this.#prepareDecreaseDebt(ca),
-      ...this.#prepareDisableTokens(ca),
-      ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
-      ),
-    ];
-    return { calls, routerCloseResult };
-  }
-
-  async #prepareRepayCreditAccount({
-    ca,
-    assetsToWithdraw,
-    to,
-    collateralAssets,
-    permits,
-  }: PrepareRepayCreditAccountProps): Promise<{
-    calls: MultiCall[];
-  }> {
-    const addCollateral = collateralAssets.filter(a => a.balance > 0);
-
-    const calls = [
-      ...this.#prepareAddCollateralCalls(addCollateral, ca, permits),
-      ...this.#prepareDisableQuotas(ca),
-      ...this.#prepareDecreaseDebt(ca),
-      ...this.#prepareDisableTokens(ca),
-      ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
-      ),
-    ];
-    return { calls };
   }
 
   #prepareDisableQuotas(ca: CreditAccountDataSlice): MultiCall[] {
