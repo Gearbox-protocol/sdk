@@ -12,15 +12,12 @@ import { CreditManagerData } from "../core/creditManager";
 import { iRouterV3Abi } from "../types";
 import {
   MultiCall,
-  PathFinderCloseResult,
   PathFinderOpenStrategyResult,
   PathFinderResult,
   SwapOperation,
   SwapTask,
 } from "./core";
-import { PathOptionFactory } from "./pathOptions";
 
-const MAX_GAS_PER_ROUTE = 200000000n;
 const GAS_PER_BLOCK = 400000000n;
 
 interface FindAllSwapsProps {
@@ -39,15 +36,6 @@ interface FindOneTokenPathProps {
   tokenOut: Address;
   amount: bigint;
   slippage: number;
-}
-
-interface FindBestClosePathProps {
-  creditAccount: CreditAccountData;
-  creditManager: CreditManagerData;
-  expectedBalances: Record<Address, Asset>;
-  leftoverBalances: Record<Address, Asset>;
-  slippage: number;
-  network: NetworkType;
 }
 
 interface FindOpenStrategyPathProps {
@@ -97,7 +85,7 @@ export class PathFinder {
 
     const swapTask: SwapTask = {
       swapOperation: swapOperation,
-      creditAccount: creditAccount.addr,
+      creditAccount: creditAccount.creditAccount,
       tokenIn,
       tokenOut,
       connectors,
@@ -143,7 +131,7 @@ export class PathFinder {
         tokenIn,
         amount,
         tokenOut,
-        creditAccount.addr,
+        creditAccount.creditAccount,
         connectors,
         BigInt(slippage),
       ],
@@ -224,96 +212,6 @@ export class PathFinder {
     };
   }
 
-  /**
-   * @dev Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
-   *   Can bu used for closing Credit Account and for liquidations as well.
-   * @param creditAccount CreditAccountData object used for close path computation
-   * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
-   * @return The best option in PathFinderCloseResult format, which
-   *          - underlyingBalance - total balance of underlying token
-   *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
-   */
-  async findBestClosePath({
-    creditAccount,
-    creditManager: cm,
-    expectedBalances,
-    leftoverBalances,
-    slippage,
-    network,
-  }: FindBestClosePathProps): Promise<PathFinderCloseResult> {
-    const loopsPerTx = GAS_PER_BLOCK / MAX_GAS_PER_ROUTE;
-    const pathOptions = PathOptionFactory.generatePathOptions(
-      creditAccount.allBalances,
-      Number(loopsPerTx),
-      network,
-    );
-
-    const expected: Array<Balance> = cm.collateralTokens.map(token => {
-      // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
-      // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
-      // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
-      const actual = expectedBalances[token]?.balance || 0n;
-      return {
-        token,
-        balance: actual > 10n ? actual : 0n,
-      };
-    });
-
-    const leftover: Array<Balance> = cm.collateralTokens.map(token => ({
-      token,
-      balance: leftoverBalances[token]?.balance || 1n,
-    }));
-
-    const connectors = this.getAvailableConnectors(creditAccount.balances);
-
-    const results = await Promise.all(
-      pathOptions.map(po =>
-        this.pathFinder.simulate.findBestClosePath(
-          [
-            creditAccount.addr,
-            expected,
-            leftover,
-            connectors,
-            BigInt(slippage),
-            po,
-            loopsPerTx,
-            false,
-          ],
-          {
-            gas: GAS_PER_BLOCK,
-          },
-        ),
-      ),
-    );
-
-    const bestResult = results.reduce<PathFinderResult>(
-      (best, pathFinderResult) =>
-        PathFinder.compare(best, {
-          calls: pathFinderResult.result.calls as Array<MultiCall>,
-          amount: pathFinderResult.result.amount,
-          minAmount: pathFinderResult.result.minAmount,
-        }),
-      {
-        amount: 0n,
-        minAmount: 0n,
-        calls: [],
-      },
-    );
-
-    return {
-      ...bestResult,
-      underlyingBalance:
-        bestResult.minAmount +
-        creditAccount.allBalances[
-          creditAccount.underlyingToken.toLowerCase() as Address
-        ].balance,
-    };
-  }
-
-  static compare(r1: PathFinderResult, r2: PathFinderResult): PathFinderResult {
-    return r1.amount > r2.amount ? r1 : r2;
-  }
-
   getAvailableConnectors(
     availableList: Record<Address, bigint> | Record<Address, true>,
   ) {
@@ -329,5 +227,9 @@ export class PathFinder {
     connectors: Address[],
   ) {
     return connectors.filter(t => availableList[t] !== undefined);
+  }
+
+  static compare(r1: PathFinderResult, r2: PathFinderResult): PathFinderResult {
+    return r1.amount > r2.amount ? r1 : r2;
   }
 }

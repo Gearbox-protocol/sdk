@@ -62,7 +62,11 @@ export class RewardConvex {
     network: NetworkType,
     provider: PublicClient,
   ): Promise<Array<Rewards>> {
-    const prepared = RewardConvex.prepareMultiCalls(ca.addr, cm, network);
+    const prepared = RewardConvex.prepareMultiCalls(
+      ca.creditAccount,
+      cm,
+      network,
+    );
 
     if (!prepared) return [];
     const { auraCalls, auraDistribution, convexCalls, convexDistribution } =

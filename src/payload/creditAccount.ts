@@ -1,6 +1,7 @@
 import { Address } from "viem";
 
 export interface CaTokenBalance {
+  success: boolean;
   token: Address;
   balance: bigint;
   isForbidden: boolean;
@@ -29,6 +30,7 @@ export interface CreditAccountDataPayload {
   healthFactor: bigint;
   baseBorrowRate: bigint;
   balances: readonly {
+    success: boolean;
     token: Address;
     balance: bigint;
     isForbidden: boolean;
