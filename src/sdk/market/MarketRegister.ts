@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import { getAddress } from "viem";
 
 import { iMarketCompressorAbi } from "../abi";
 import type { MarketData } from "../base";
@@ -152,9 +153,10 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public findCreditManager(creditManager: Address): CreditFactory {
+    const addr = creditManager.toLowerCase();
     for (const market of this.markets) {
       for (const cm of market.creditManagers) {
-        if (cm.creditManager.address === creditManager) {
+        if (cm.creditManager.address.toLowerCase() === addr) {
           return cm;
         }
       }
@@ -163,11 +165,10 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public findByCreditManager(creditManager: Address): MarketFactory {
+    const addr = creditManager.toLowerCase();
     const market = this.markets.find(m =>
       m.creditManagers.some(
-        cm =>
-          cm.creditManager.address.toLowerCase() ===
-          creditManager.toLowerCase(),
+        cm => cm.creditManager.address.toLowerCase() === addr,
       ),
     );
     if (!market) {
@@ -177,8 +178,9 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public findByPriceOracle(address: Address): MarketFactory {
+    const addr = address.toLowerCase();
     for (const market of this.markets) {
-      if (market.priceOracle.address.toLowerCase() === address.toLowerCase()) {
+      if (market.priceOracle.address.toLowerCase() === addr) {
         return market;
       }
     }
