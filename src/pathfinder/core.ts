@@ -1,7 +1,5 @@
 import { Address } from "viem";
 
-export type SwapOperation = "EXACT_INPUT" | "EXACT_INPUT_ALL" | "EXACT_OUTPUT";
-
 export interface MultiCall {
   target: Address;
   callData: Address;
